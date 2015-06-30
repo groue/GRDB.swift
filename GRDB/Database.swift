@@ -25,8 +25,8 @@ public class Database {
         }
     }
     
-    public func selectStatement(query: String) throws -> RowSequence {
-        return try RowSequence(cConnection: cConnection, query: query)
+    public func selectStatement(query: String) throws -> SelectStatement {
+        return try SelectStatement(cConnection: cConnection, query: query)
     }
     
     public func updateStatement(query: String) throws -> UpdateStatement {

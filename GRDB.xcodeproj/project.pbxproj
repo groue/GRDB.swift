@@ -12,7 +12,7 @@
 		5699AE551B42BE8700C35172 /* DatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE541B42BE8700C35172 /* DatabaseTests.swift */; };
 		5699AE571B42C34A00C35172 /* Statement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE561B42C34A00C35172 /* Statement.swift */; };
 		5699AE591B42CD7800C35172 /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE581B42CD7800C35172 /* Row.swift */; };
-		5699AE5B1B42D3DC00C35172 /* RowSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5A1B42D3DC00C35172 /* RowSequence.swift */; };
+		5699AE5B1B42D3DC00C35172 /* SelectStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */; };
 		5699AE5D1B42D49C00C35172 /* UpdateStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */; };
 		5699AE5F1B42E59F00C35172 /* DBValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5E1B42E59F00C35172 /* DBValue.swift */; };
 		DC2393C81ABE35F8003FF113 /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -38,7 +38,7 @@
 		5699AE541B42BE8700C35172 /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
 		5699AE561B42C34A00C35172 /* Statement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Statement.swift; sourceTree = "<group>"; };
 		5699AE581B42CD7800C35172 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
-		5699AE5A1B42D3DC00C35172 /* RowSequence.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowSequence.swift; sourceTree = "<group>"; };
+		5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectStatement.swift; sourceTree = "<group>"; };
 		5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateStatement.swift; sourceTree = "<group>"; };
 		5699AE5E1B42E59F00C35172 /* DBValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBValue.swift; sourceTree = "<group>"; };
 		DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDB-Bridging.h"; sourceTree = "<group>"; };
@@ -121,7 +121,7 @@
 				565E191D1B42B2B600D32814 /* Database.swift */,
 				565E191F1B42B9C000D32814 /* Error.swift */,
 				5699AE581B42CD7800C35172 /* Row.swift */,
-				5699AE5A1B42D3DC00C35172 /* RowSequence.swift */,
+				5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */,
 				5699AE561B42C34A00C35172 /* Statement.swift */,
 				5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */,
 				DC37743319C8CFCE004FCF85 /* Supporting Files */,
@@ -259,7 +259,7 @@
 				5699AE5D1B42D49C00C35172 /* UpdateStatement.swift in Sources */,
 				565E19201B42B9C000D32814 /* Error.swift in Sources */,
 				565E191E1B42B2B600D32814 /* Database.swift in Sources */,
-				5699AE5B1B42D3DC00C35172 /* RowSequence.swift in Sources */,
+				5699AE5B1B42D3DC00C35172 /* SelectStatement.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
