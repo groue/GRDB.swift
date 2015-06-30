@@ -32,18 +32,35 @@ public class Statement {
     public lazy var columnCount: Int = Int(sqlite3_column_count(self.cStatement))
     public lazy var bindParameterCount: Int = Int(sqlite3_bind_parameter_count(self.cStatement))
     
-    public func bind(value: DBValue, atIndex index: Int) {
-        value.bindInStatement(self, atIndex: index)
+    public func bind(value: DBValue?, atIndex index: Int) {
+        if let value = value {
+            value.bindInStatement(self, atIndex: index)
+        } else {
+            let code = sqlite3_bind_null(cStatement, Int32(index))
+            assert(code == SQLITE_OK)
+        }
     }
     
-    public func bind(value: DBValue, forKey key: String) {
+    public func bind(value: DBValue?, forKey key: String) {
         let index = key.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
             Int(sqlite3_bind_parameter_index(cStatement, UnsafePointer<Int8>(codeUnits.baseAddress)))
         }
         guard index > 0 else {
             fatalError("Key not found: \(key)")
         }
-        value.bindInStatement(self, atIndex: index)
+        bind(value, atIndex: index)
+    }
+    
+    public func bind(dictionary: [String: DBValue?]) {
+        for (key, value) in dictionary {
+            bind(value, forKey: key)
+        }
+    }
+    
+    public func bind(values: [DBValue?]) {
+        for (index, value) in values.enumerate() {
+            bind(value, atIndex: index + 1)
+        }
     }
 
     public func reset() {
