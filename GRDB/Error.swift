@@ -3,29 +3,35 @@
 //  GRDB
 //
 //  Created by Gwendal Roué on 30/06/2015.
-//  Copyright © 2015 Stephen Celis. All rights reserved.
+//  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-struct Error : ErrorType {
-    let _domain: String = "GRDB.Error"
-    let _code: Int
-    let message: String?
+public struct Error : ErrorType {
+    public let _domain: String = "GRDB.Error"
+    public let _code: Int
+    
+    public var code: Int { return _code }
+    public let message: String?
     
     init(code: Int32, message: String? = nil) {
         self._code = Int(code)
         self.message = message
     }
     
-    static func checkCResultCode(code: Int32, cDB: CDatabase) throws {
+    init(code: Int32, cConnection: CConnection) {
+        let message: String?
+        let cString = sqlite3_errmsg(cConnection)
+        if cString == nil {
+            message = nil
+        } else {
+            message = String.fromCString(cString)
+        }
+        self.init(code: code, message: message)
+    }
+    
+    static func checkCResultCode(code: Int32, cConnection: CConnection) throws {
         if code != SQLITE_OK {
-            let message: String?
-            let cstring = sqlite3_errmsg(cDB)
-            if cstring == nil {
-                message = nil
-            } else {
-                message = String.fromCString(cstring)
-            }
-            throw Error(code: code, message: message)
+            throw Error(code: code, cConnection: cConnection)
         }
     }
 }
