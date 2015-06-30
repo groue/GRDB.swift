@@ -58,6 +58,7 @@ class DatabaseTests: XCTestCase {
                 let name = row.stringAtIndex(0)
                 let age = row.intAtIndex(1)
                 print("\(name): \(age)")
+                print("\(row.asDictionary)")
             }
         } catch let error as GRDB.Error {
             print("Error \(error._code), \(error.message)")
