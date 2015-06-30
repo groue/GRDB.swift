@@ -7,6 +7,8 @@
 //
 
 public class RowSequence : Statement, SequenceType {
+    public lazy var columnCount: Int = Int(sqlite3_column_count(self.cStatement))
+    
     private var _rowGenerator: RowGenerator?
     
     public func generate() -> RowGenerator {

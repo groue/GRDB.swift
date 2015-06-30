@@ -8,8 +8,6 @@
 
 typealias CStatement = COpaquePointer
 
-internal let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
-
 public class Statement {
     let cStatement = CStatement()
     let cConnection: CConnection
@@ -29,7 +27,6 @@ public class Statement {
         }
     }
     
-    public lazy var columnCount: Int = Int(sqlite3_column_count(self.cStatement))
     public lazy var bindParameterCount: Int = Int(sqlite3_bind_parameter_count(self.cStatement))
     
     public func bind(value: DBValue?, atIndex index: Int) {
@@ -68,9 +65,8 @@ public class Statement {
         assert(code == SQLITE_OK)
     }
     
-    public func clear_bindings() {
+    public func clearBindings() {
         let code = sqlite3_clear_bindings(cStatement)
         assert(code == SQLITE_OK)
     }
-    
 }

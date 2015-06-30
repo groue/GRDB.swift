@@ -6,6 +6,8 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
+internal let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
+
 public protocol DBValue {
     func bindInStatement(statement: Statement, atIndex index:Int)
 }
