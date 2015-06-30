@@ -27,8 +27,6 @@ public class Statement {
         }
     }
     
-    public lazy var bindParameterCount: Int = Int(sqlite3_bind_parameter_count(self.cStatement))
-    
     public func bind(value: DBValue?, atIndex index: Int) {
         if let value = value {
             value.bindInStatement(self, atIndex: index)
