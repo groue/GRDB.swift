@@ -7,46 +7,46 @@
 //
 
 public struct Row {
-    let cStatement: CStatement
+    let statement: Statement
     
-    init(cStatement: CStatement) {
-        self.cStatement = cStatement
+    init(statement: Statement) {
+        self.statement = statement
     }
     
     public func intAtIndex(index: Int) -> Int? {
-        switch sqlite3_column_type(cStatement, Int32(index)) {
+        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
         case SQLITE_NULL:
-            return nil;
+            return nil
         default:
-            return Int(sqlite3_column_int(cStatement, Int32(index)))
+            return Int(sqlite3_column_int(statement.cStatement, Int32(index)))
         }
     }
     
     public func int64AtIndex(index: Int) -> Int64? {
-        switch sqlite3_column_type(cStatement, Int32(index)) {
+        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
         case SQLITE_NULL:
-            return nil;
+            return nil
         default:
-            return sqlite3_column_int64(cStatement, Int32(index))
+            return sqlite3_column_int64(statement.cStatement, Int32(index))
         }
     }
     
     public func doubleAtIndex(index: Int) -> Double? {
-        switch sqlite3_column_type(cStatement, Int32(index)) {
+        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
         case SQLITE_NULL:
             return nil;
         default:
-            return sqlite3_column_double(cStatement, Int32(index))
+            return sqlite3_column_double(statement.cStatement, Int32(index))
         }
     }
     
     public func stringAtIndex(index: Int) -> String? {
-        switch sqlite3_column_type(cStatement, Int32(index)) {
+        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
         case SQLITE_NULL:
             return nil;
         default:
-            let cString = UnsafePointer<Int8>(sqlite3_column_text(cStatement, Int32(index)))
-            return String.fromCString(cString)
+            let cString = UnsafePointer<Int8>(sqlite3_column_text(statement.cStatement, Int32(index)))
+            return String.fromCString(cString)!
         }
     }
 }

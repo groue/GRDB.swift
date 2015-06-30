@@ -15,22 +15,27 @@ class DatabaseTests: XCTestCase {
         do {
             let database = try Database(path: "/tmp/GRDB.sqlite")
             
-            let dropTableStmt = try database.updateStatementWithQuery("DROP TABLE IF EXISTS toto")
+            let dropTableStmt = try database.updateStatementWithQuery("DROP TABLE IF EXISTS persons")
             try dropTableStmt.executeUpdate()
             
-            let createTableStmt = try database.updateStatementWithQuery("CREATE TABLE toto (tata INT)")
+            let createTableStmt = try database.updateStatementWithQuery("CREATE TABLE persons (name TEXT, age INT)")
             try createTableStmt.executeUpdate()
             
-            let insert1Stmt = try database.updateStatementWithQuery("INSERT INTO toto (tata) VALUES (1)")
+            let insert1Stmt = try database.updateStatementWithQuery("INSERT INTO persons (name, age) VALUES (?, ?)")
+            insert1Stmt.bind("Arthur", atIndex: 1)
+            insert1Stmt.bind(36, atIndex: 2)
             try insert1Stmt.executeUpdate()
             
-            let insert2Stmt = try database.updateStatementWithQuery("INSERT INTO toto (tata) VALUES (2)")
+            let insert2Stmt = try database.updateStatementWithQuery("INSERT INTO persons (name, age) VALUES (:name, :age)")
+            insert2Stmt.bind("Beate", forKey: ":name")
+            insert2Stmt.bind(37, forKey: ":age")
             try insert2Stmt.executeUpdate()
             
-            let rows = try database.rowSequenceWithQuery("SELECT * FROM toto")
+            let rows = try database.rowSequenceWithQuery("SELECT * FROM persons")
             for row in rows {
-                let tata = row.intAtIndex(0)
-                print(tata)
+                let name = row.stringAtIndex(0)
+                let age = row.intAtIndex(1)
+                print("\(name): \(age)")
             }
         } catch let error as GRDB.Error {
             print("Error \(error._code), \(error.message)")

@@ -13,7 +13,7 @@ public class RowSequence : Statement, SequenceType {
         if let _rowGenerator = _rowGenerator {
             return _rowGenerator
         }
-        _rowGenerator = RowGenerator(cConnection: cConnection, cStatement: cStatement)
+        _rowGenerator = RowGenerator(statement: self)
         return _rowGenerator!
     }
     
@@ -23,25 +23,23 @@ public class RowSequence : Statement, SequenceType {
     }
     
     public class RowGenerator : GeneratorType {
-        let cStatement: CStatement
-        let cConnection: CConnection
+        let statement: Statement
         
-        init(cConnection: CConnection, cStatement: CStatement) {
-            self.cConnection = cConnection
-            self.cStatement = cStatement
+        init(statement: Statement) {
+            self.statement = statement
         }
         
         public func next() -> Row? {
-            let code = sqlite3_step(cStatement)
+            let code = sqlite3_step(statement.cStatement)
             switch code {
             case SQLITE_DONE:
                 // the statement has finished executing successfully
                 return nil
             case SQLITE_ROW:
                 // each time a new row of data is ready for processing by the caller.
-                return Row(cStatement: cStatement)
+                return Row(statement: statement)
             default:
-                try! Error.checkCResultCode(code, cConnection: cConnection)
+                try! Error.checkCResultCode(code, cConnection: statement.cConnection)
                 return nil
             }
         }

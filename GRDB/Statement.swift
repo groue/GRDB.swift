@@ -8,7 +8,7 @@
 
 typealias CStatement = COpaquePointer
 
-let SQLITE_TRANSIENT = UnsafePointer<sqlite3_destructor_type>(COpaquePointer(bitPattern: -1)).memory
+internal let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
 
 public class Statement {
     let cStatement = CStatement()
@@ -29,26 +29,21 @@ public class Statement {
         }
     }
     
-    public func bindNullAtIndex(index:Int) {
-        let code = sqlite3_bind_null(cStatement, Int32(index))
-        assert(code == SQLITE_OK)
+    public lazy var columnCount: Int = Int(sqlite3_column_count(self.cStatement))
+    public lazy var bindParameterCount: Int = Int(sqlite3_bind_parameter_count(self.cStatement))
+    
+    public func bind(value: DBValue, atIndex index: Int) {
+        value.bindInStatement(self, atIndex: index)
     }
     
-    public func bindInt(int: Int, atIndex index:Int) {
-        let code = sqlite3_bind_int64(cStatement, Int32(index), Int64(int))
-        assert(code == SQLITE_OK)
-    }
-    
-    public func bindDouble(double: Double, atIndex index:Int) {
-        let code = sqlite3_bind_double(cStatement, Int32(index), double)
-        assert(code == SQLITE_OK)
-    }
-    
-    public func bindString(string: String, atIndex index:Int) {
-        let code = string.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
-            return sqlite3_bind_text(cStatement, Int32(index), UnsafePointer<Int8>(codeUnits.baseAddress), -1, SQLITE_TRANSIENT)
+    public func bind(value: DBValue, forKey key: String) {
+        let index = key.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
+            Int(sqlite3_bind_parameter_index(cStatement, UnsafePointer<Int8>(codeUnits.baseAddress)))
         }
-        assert(code == SQLITE_OK)
+        guard index > 0 else {
+            fatalError("Key not found: \(key)")
+        }
+        value.bindInStatement(self, atIndex: index)
     }
 
     public func reset() {
