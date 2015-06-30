@@ -25,11 +25,11 @@ public class Database {
         }
     }
     
-    public func rowSequenceWithQuery(query: String) throws -> RowSequence {
+    public func selectStatement(query: String) throws -> RowSequence {
         return try RowSequence(cConnection: cConnection, query: query)
     }
     
-    public func updateStatementWithQuery(query: String) throws -> UpdateStatement {
+    public func updateStatement(query: String) throws -> UpdateStatement {
         return try UpdateStatement(cConnection: cConnection, query: query)
     }
 }

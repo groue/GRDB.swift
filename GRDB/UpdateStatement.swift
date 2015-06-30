@@ -10,7 +10,7 @@ public class UpdateStatement : Statement {
     
     public lazy var lastInsertedRowID: Int64 = sqlite3_last_insert_rowid(self.cStatement)
     
-    public func executeUpdate() throws {
+    public func execute() throws {
         let code = sqlite3_step(cStatement)
         switch code {
         case SQLITE_DONE:
