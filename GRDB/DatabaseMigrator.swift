@@ -44,7 +44,7 @@ public struct DatabaseMigrator {
             for (position, migration) in self.migrations.enumerate() {
                 if appliedMigrationIdentifiers.indexOf(migration.identifier) == nil {
                     try migration.block(db: db)
-                    try db.execute("INSERT INTO db_migrations (position, identifier) VALUES (?, ?)", arguments: [position, migration.identifier])
+                    try db.execute("INSERT INTO db_migrations (position, identifier) VALUES (?, ?)", bindings: [position, migration.identifier])
                 }
             }
         }

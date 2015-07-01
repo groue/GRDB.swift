@@ -8,6 +8,7 @@
 
 protocol RowImpl {
     func databaseCellAtIndex(index: Int) -> DatabaseCell
+    func indexForColumnNamed(name: String) -> Int?
     var dictionary: [String: DatabaseValue?] { get }
 }
 
@@ -22,12 +23,16 @@ public struct Row {
         }
     }
     
-    public func valueAtIndex(index: Int) -> DatabaseValue? {
-        return impl.databaseCellAtIndex(index).value()
+    public func value<T: DatabaseValue>(atIndex index: Int) -> T? {
+        return impl.databaseCellAtIndex(index).value() as T?
     }
     
-    public func valueAtIndex<T: DatabaseValue>(index: Int) -> T? {
-        return impl.databaseCellAtIndex(index).value() as T?
+    public func value<T: DatabaseValue>(named columnName: String) -> T? {
+        if let index = impl.indexForColumnNamed(columnName) {
+            return impl.databaseCellAtIndex(index).value() as T?
+        } else {
+            return nil
+        }
     }
     
     public var dictionary: [String: DatabaseValue?] {
@@ -40,19 +45,16 @@ public struct Row {
         let columnNames: [String]
         
         init(statement: SelectStatement) {
-            var databaseCells = [DatabaseCell]()
-            var columnNames = [String]()
-            for index in 0..<statement.columnCount {
-                databaseCells.append(statement.databaseCellAtIndex(index))
-                let columnName = String.fromCString(sqlite3_column_name(statement.cStatement, Int32(index)))!
-                columnNames.append(columnName)
-            }
-            self.databaseCells = databaseCells
-            self.columnNames = columnNames
+            self.databaseCells = (0..<statement.columnCount).map { index in statement.databaseCellAtIndex(index) }
+            self.columnNames = statement.columnNames
         }
         
         func databaseCellAtIndex(index: Int) -> DatabaseCell {
             return databaseCells[index]
+        }
+        
+        func indexForColumnNamed(name: String) -> Int? {
+            return columnNames.indexOf(name)
         }
         
         var dictionary: [String: DatabaseValue?] {
@@ -74,6 +76,10 @@ public struct Row {
         
         func databaseCellAtIndex(index: Int) -> DatabaseCell {
             return statement.databaseCellAtIndex(index)
+        }
+        
+        func indexForColumnNamed(name: String) -> Int? {
+            return statement.columnNames.indexOf(name)
         }
         
         var dictionary: [String: DatabaseValue?] {

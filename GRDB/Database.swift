@@ -45,18 +45,18 @@ public class Database {
         return statement
     }
     
-    public func selectStatement(sql: String, arguments: [DatabaseValue?]?) throws -> SelectStatement {
+    public func selectStatement(sql: String, bindings: [DatabaseValue?]?) throws -> SelectStatement {
         let statement = try SelectStatement(database: self, sql: sql)
-        if let arguments = arguments {
-            statement.bind(arguments)
+        if let bindings = bindings {
+            statement.bind(bindings)
         }
         return statement
     }
     
-    public func selectStatement(sql: String, arguments: [String: DatabaseValue?]?) throws -> SelectStatement {
+    public func selectStatement(sql: String, bindings: [String: DatabaseValue?]?) throws -> SelectStatement {
         let statement = try SelectStatement(database: self, sql: sql)
-        if let arguments = arguments {
-            statement.bind(arguments)
+        if let bindings = bindings {
+            statement.bind(bindings)
         }
         return statement
     }
@@ -69,14 +69,32 @@ public class Database {
         return statement.fetchRows()
     }
     
-    public func fetchRows(sql: String, arguments: [DatabaseValue?]?) throws -> AnySequence<Row> {
-        let statement = try selectStatement(sql, arguments: arguments)
+    public func fetchRows(sql: String, bindings: [DatabaseValue?]?) throws -> AnySequence<Row> {
+        let statement = try selectStatement(sql, bindings: bindings)
         return statement.fetchRows()
     }
     
-    public func fetchRows(sql: String, arguments: [String: DatabaseValue?]?) throws -> AnySequence<Row> {
-        let statement = try selectStatement(sql, arguments: arguments)
+    public func fetchRows(sql: String, bindings: [String: DatabaseValue?]?) throws -> AnySequence<Row> {
+        let statement = try selectStatement(sql, bindings: bindings)
         return statement.fetchRows()
+    }
+    
+    
+    // MARK: - fetchFirstRow
+    
+    public func fetchFirstRow(sql: String) throws -> Row? {
+        let statement = try selectStatement(sql)
+        return statement.fetchFirstRow()
+    }
+    
+    public func fetchFirstRow(sql: String, bindings: [DatabaseValue?]?) throws -> Row? {
+        let statement = try selectStatement(sql, bindings: bindings)
+        return statement.fetchFirstRow()
+    }
+    
+    public func fetchFirstRow(sql: String, bindings: [String: DatabaseValue?]?) throws -> Row? {
+        let statement = try selectStatement(sql, bindings: bindings)
+        return statement.fetchFirstRow()
     }
     
     
@@ -87,14 +105,32 @@ public class Database {
         return statement.fetchValues(type: type)
     }
     
-    public func fetchValues<T: DatabaseValue>(sql: String, arguments: [DatabaseValue?]?, type: T.Type) throws -> AnySequence<T?> {
-        let statement = try selectStatement(sql, arguments: arguments)
+    public func fetchValues<T: DatabaseValue>(sql: String, bindings: [DatabaseValue?]?, type: T.Type) throws -> AnySequence<T?> {
+        let statement = try selectStatement(sql, bindings: bindings)
         return statement.fetchValues(type: type)
     }
     
-    public func fetchValues<T: DatabaseValue>(sql: String, arguments: [String: DatabaseValue?]?, type: T.Type) throws -> AnySequence<T?> {
-        let statement = try selectStatement(sql, arguments: arguments)
+    public func fetchValues<T: DatabaseValue>(sql: String, bindings: [String: DatabaseValue?]?, type: T.Type) throws -> AnySequence<T?> {
+        let statement = try selectStatement(sql, bindings: bindings)
         return statement.fetchValues(type: type)
+    }
+    
+    
+    // MARK: - fetchFirstValue
+    
+    public func fetchFirstValue<T: DatabaseValue>(sql: String) throws -> T? {
+        let statement = try selectStatement(sql)
+        return statement.fetchFirstValue()
+    }
+    
+    public func fetchFirstValue<T: DatabaseValue>(sql: String, bindings: [DatabaseValue?]?) throws -> T? {
+        let statement = try selectStatement(sql, bindings: bindings)
+        return statement.fetchFirstValue()
+    }
+    
+    public func fetchFirstValue<T: DatabaseValue>(sql: String, bindings: [String: DatabaseValue?]?) throws -> T? {
+        let statement = try selectStatement(sql, bindings: bindings)
+        return statement.fetchFirstValue()
     }
     
     
@@ -105,18 +141,18 @@ public class Database {
         return statement
     }
     
-    public func updateStatement(sql: String, arguments: [DatabaseValue?]?) throws -> UpdateStatement {
+    public func updateStatement(sql: String, bindings: [DatabaseValue?]?) throws -> UpdateStatement {
         let statement = try UpdateStatement(database: self, sql: sql)
-        if let arguments = arguments {
-            statement.bind(arguments)
+        if let bindings = bindings {
+            statement.bind(bindings)
         }
         return statement
     }
     
-    public func updateStatement(sql: String, arguments: [String: DatabaseValue?]?) throws -> UpdateStatement {
+    public func updateStatement(sql: String, bindings: [String: DatabaseValue?]?) throws -> UpdateStatement {
         let statement = try UpdateStatement(database: self, sql: sql)
-        if let arguments = arguments {
-            statement.bind(arguments)
+        if let bindings = bindings {
+            statement.bind(bindings)
         }
         return statement
     }
@@ -129,13 +165,13 @@ public class Database {
         try statement.execute()
     }
     
-    public func execute(sql: String, arguments: [DatabaseValue?]?) throws {
-        let statement = try updateStatement(sql, arguments: arguments)
+    public func execute(sql: String, bindings: [DatabaseValue?]?) throws {
+        let statement = try updateStatement(sql, bindings: bindings)
         try statement.execute()
     }
     
-    public func execute(sql: String, arguments: [String: DatabaseValue?]?) throws {
-        let statement = try updateStatement(sql, arguments: arguments)
+    public func execute(sql: String, bindings: [String: DatabaseValue?]?) throws {
+        let statement = try updateStatement(sql, bindings: bindings)
         try statement.execute()
     }
     

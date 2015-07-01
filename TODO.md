@@ -1,0 +1,1 @@
+- [ ] Rename GRDB.Error to GRDB.SQLiteError

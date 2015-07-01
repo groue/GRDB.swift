@@ -8,6 +8,11 @@
 
 public class SelectStatement : Statement {
     public lazy var columnCount: Int = Int(sqlite3_column_count(self.cStatement))
+    public lazy var columnNames: [String] = (0..<self.columnCount).map { index in
+        return String.fromCString(sqlite3_column_name(self.cStatement, Int32(index)))!
+    }
+    
+    // MARK: - fetchRows
     
     public func fetchRows(unsafe unsafe: Bool = false) -> AnySequence<Row> {
         return AnySequence {
@@ -15,12 +20,33 @@ public class SelectStatement : Statement {
         }
     }
     
+    
+    // MARK: - fetchFirstRow
+    
+    public func fetchFirstRow(unsafe unsafe: Bool = false) -> Row? {
+        return self.rowGenerator(unsafe: unsafe).next()
+    }
+    
+    
+    // MARK: - fetchValues
+    
     public func fetchValues<T: DatabaseValue>(type type: T.Type, unsafe: Bool = false) -> AnySequence<T?> {
         return AnySequence {
             return self.valueGenerator(type: type, unsafe: unsafe)
         }
     }
-
+    
+    
+    // MARK: - fetchFirstValue
+    
+    public func fetchFirstValue<T: DatabaseValue>(unsafe unsafe: Bool = false) -> T? {
+        if let first = self.valueGenerator(type: T.self, unsafe: unsafe).next() {
+            return first
+        } else {
+            return nil
+        }
+    }
+    
     func databaseCellAtIndex(index: Int) -> DatabaseCell {
         switch sqlite3_column_type(cStatement, Int32(index)) {
         case SQLITE_NULL:
@@ -64,7 +90,7 @@ public class SelectStatement : Statement {
         let rowGenerator = self.rowGenerator(unsafe: unsafe)
         return anyGenerator { () -> T?? in
             if let row = rowGenerator.next() {
-                return Optional.Some(row.valueAtIndex(0) as T?)
+                return Optional.Some(row.value(atIndex: 0) as T?)
             } else {
                 return nil
             }

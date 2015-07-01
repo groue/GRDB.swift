@@ -22,21 +22,20 @@ try dbQueue.inTransaction { db -> Void in
         "id INTEGER PRIMARY KEY, " +
         "name TEXT, " +
         "age INT)")
-    try db.execute("INSERT INTO persons (name, age) VALUES (?, ?)", arguments: ["Arthur", 36])
-    try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: [":name": "Barbara", ":age": 37])
+    try db.execute("INSERT INTO persons (name, age) VALUES (?, ?)", bindings: ["Arthur", 36])
+    try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara", ":age": 37])
 }
 
 try dbQueue.inDatabase { db -> Void in
     for row in try db.fetchRows("SELECT * FROM persons") {
         // Leverage Swift type inference
-        let value = row.valueAtIndex(1)           // value is DatabaseValue?
-        let name: String? = row.valueAtIndex(1)   // name is String?
+        let name: String? = row.value(atIndex: 1)
         
         // Force unwrap when column is NOT NULL
-        let id: Int64 = row.valueAtIndex(0)!
+        let id: Int64 = row.value(named: "id")!
         
         // Both Int and Int64 are supported
-        let age: Int? = row.valueAtIndex(2)
+        let age: Int? = row.value(named: "age")
         
         print("id: \(id), name: \(name), age: \(age)")
     }
