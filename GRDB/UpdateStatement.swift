@@ -7,8 +7,6 @@
 //
 
 public class UpdateStatement : Statement {
-    public lazy var lastInsertedRowID: Int64 = sqlite3_last_insert_rowid(self.cStatement)
-    
     public func execute() throws {
         if database.configuration.verbose {
             NSLog("%@", sql)

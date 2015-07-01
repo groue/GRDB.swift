@@ -234,6 +234,14 @@ public class Database {
     
     // MARK: -
     
+    public var lastInsertedRowID: Int64? {
+        let rowid = sqlite3_last_insert_rowid(cConnection)
+        return rowid == 0 ? nil : rowid
+    }
+
+    
+    // MARK: -
+    
     public func tableExists(tableName: String) -> Bool {
         let statement = try! selectStatement("SELECT [sql] FROM sqlite_master WHERE [type] = 'table' AND LOWER(name) = ?")
         statement.bind(tableName.lowercaseString, atIndex: 1)
