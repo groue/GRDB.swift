@@ -17,13 +17,20 @@ let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 
 try dbQueue.inTransaction { db -> Void in
     try db.execute("DROP TABLE IF EXISTS persons")
+    
     try db.execute(
         "CREATE TABLE persons (" +
         "id INTEGER PRIMARY KEY, " +
         "name TEXT, " +
         "age INT)")
-    try db.execute("INSERT INTO persons (name, age) VALUES (?, ?)", bindings: ["Arthur", 36])
-    try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara", ":age": 37])
+        
+    try db.execute(
+        "INSERT INTO persons (name, age) VALUES (?, ?)",
+        bindings: ["Arthur", 36])
+        
+    try db.execute(
+        "INSERT INTO persons (name, age) VALUES (:name, :age)",
+        bindings: [":name": "Barbara", ":age": 37])
 }
 
 try dbQueue.inDatabase { db -> Void in
