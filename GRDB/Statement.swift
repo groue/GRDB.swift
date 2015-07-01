@@ -19,7 +19,7 @@ public class Statement {
         self.database = database
         self.databaseQueueID = dispatch_get_specific(DatabaseQueue.databaseQueueIDKey)
         let code = sqlite3_prepare_v2(database.cConnection, sql, -1, &cStatement, nil)
-        try SQLiteError.checkCResultCode(code, cConnection: database.cConnection)
+        try SQLiteError.checkCResultCode(code, cConnection: database.cConnection, sql: sql)
     }
     
     deinit {
@@ -59,7 +59,7 @@ public class Statement {
 
     public func reset() throws {
         let code = sqlite3_reset(cStatement)
-        try SQLiteError.checkCResultCode(code, cConnection: database.cConnection)
+        try SQLiteError.checkCResultCode(code, cConnection: database.cConnection, sql: sql)
     }
     
     public func clearBindings() {

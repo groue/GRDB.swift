@@ -93,7 +93,7 @@ public class SelectStatement : Statement {
             case SQLITE_ROW:
                 return Row(statement: self, unsafe: unsafe)
             default:
-                try! SQLiteError.checkCResultCode(code, cConnection: self.database.cConnection)
+                try! SQLiteError.checkCResultCode(code, cConnection: self.database.cConnection, sql: self.sql)
                 return nil
             }
         }
