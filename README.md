@@ -19,31 +19,38 @@ A sqlite3 wrapper for Swift 2.
 ## Usage (work in progress)
 
 ```swift
-// GRDB uses database queues just like ccgus/FMDB:
+// GRDB uses database queues for database accesses serialization,
+// just like ccgus/FMDB:
 
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 
 
-// Queues serialize database accesses:
+// DatabaseMigrator sets up migrations:
 
-try dbQueue.inDatabase { db -> Void in
-  try db.execute(
-      "CREATE TABLE persons (" +
-      "id INTEGER PRIMARY KEY, " +
-      "name TEXT, " +
-      "age INT)")
-}
-
-
-// Transactions:
-
-try dbQueue.inTransaction { db in
+var migrator = DatabaseMigrator()
+migrator.registerMigration("createPersons") { db in
     try db.execute(
         "CREATE TABLE persons (" +
         "id INTEGER PRIMARY KEY, " +
         "name TEXT, " +
         "age INT)")
-        
+}
+migrator.registerMigration("createPets") { db in
+    // Support for foreign keys is enabled by default:
+    try db.execute("CREATE TABLE pets (" +
+        "id INTEGER PRIMARY KEY, " +
+        "masterID INTEGER NOT NULL " +
+        "         REFERENCES persons(id) " +
+        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
+        "name TEXT)")
+}
+
+try migrator.migrate(dbQueue)
+
+
+// Transactions:
+
+try dbQueue.inTransaction { db in
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (?, ?)",
         bindings: ["Arthur", 36])

@@ -28,14 +28,22 @@ class DatabaseMigratorTests: GRDBTests {
         self.dbQueue = nil
         try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
     }
-
+    
     func testMigrator() {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(
+                "CREATE TABLE persons (" +
+                "id INTEGER PRIMARY KEY, " +
+                "name TEXT)")
         }
         migrator.registerMigration("createPets") { db in
-            try db.execute("CREATE TABLE pets (id INTEGER PRIMARY KEY, masterID INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
+            try db.execute("CREATE TABLE pets (" +
+                "id INTEGER PRIMARY KEY, " +
+                "masterID INTEGER NOT NULL " +
+                "         REFERENCES persons(id) " +
+                "         ON DELETE CASCADE ON UPDATE CASCADE, " +
+                "name TEXT)")
         }
         
         assertNoError {
@@ -45,11 +53,11 @@ class DatabaseMigratorTests: GRDBTests {
                 XCTAssertTrue(db.tableExists("pets"))
             }
         }
-
+        
         migrator.registerMigration("destroyPersons") { db in
             try db.execute("DROP TABLE pets")
         }
-
+        
         assertNoError {
             try migrator.migrate(dbQueue)
             try dbQueue.inDatabase { db -> Void in
