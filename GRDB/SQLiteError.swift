@@ -1,13 +1,13 @@
 //
-//  Error.swift
+//  SQLiteError.swift
 //  GRDB
 //
 //  Created by Gwendal Roué on 30/06/2015.
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-public struct Error : ErrorType {
-    public let _domain: String = "GRDB.Error"
+public struct SQLiteError : ErrorType {
+    public let _domain: String = "GRDB.SQLiteError"
     public let _code: Int
     
     public var code: Int { return _code }
@@ -31,7 +31,7 @@ public struct Error : ErrorType {
     
     static func checkCResultCode(code: Int32, cConnection: CConnection) throws {
         if code != SQLITE_OK {
-            throw Error(code: code, cConnection: cConnection)
+            throw SQLiteError(code: code, cConnection: cConnection)
         }
     }
 }

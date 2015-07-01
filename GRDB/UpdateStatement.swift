@@ -19,7 +19,7 @@ public class UpdateStatement : Statement {
             // the statement has finished executing successfully
             break
         default:
-            try Error.checkCResultCode(code, cConnection: database.cConnection)
+            try SQLiteError.checkCResultCode(code, cConnection: database.cConnection)
         }
     }
 }

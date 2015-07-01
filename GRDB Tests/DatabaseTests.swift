@@ -36,7 +36,7 @@ class DatabaseTests: XCTestCase {
                         "age INT)")
                 XCTAssertTrue(db.tableExist("persons"))
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -56,7 +56,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -78,7 +78,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -100,7 +100,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -121,7 +121,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -142,7 +142,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -162,7 +162,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -182,7 +182,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -201,7 +201,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -220,7 +220,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -239,7 +239,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -259,7 +259,7 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 2)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -280,7 +280,7 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -301,7 +301,7 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -322,7 +322,7 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -343,7 +343,7 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -363,7 +363,7 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -383,7 +383,7 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -413,7 +413,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(ages[0]!, 41)
                 XCTAssertNil(ages[1])
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -443,7 +443,7 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(ages[0]!, 41)
                 XCTAssertNil(ages[1])
             }
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -476,7 +476,7 @@ class DatabaseTests: XCTestCase {
             XCTAssertEqual(names[1]!, "Barbara")
             XCTAssertEqual(ages[0]!, 41)
             XCTAssertNil(ages[1])
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             XCTFail("error code \(error.code): \(error.message)")
         } catch {
             XCTFail("error: \(error)")
@@ -585,7 +585,7 @@ class DatabaseTests: XCTestCase {
             }
             print("names: \(names)")
 
-        } catch let error as GRDB.Error {
+        } catch let error as SQLiteError {
             print("Error \(error._code), \(error.message)")
         } catch {
             

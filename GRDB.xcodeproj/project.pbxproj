@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		565E191E1B42B2B600D32814 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565E191D1B42B2B600D32814 /* Database.swift */; };
-		565E19201B42B9C000D32814 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565E191F1B42B9C000D32814 /* Error.swift */; };
+		565E19201B42B9C000D32814 /* SQLiteError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565E191F1B42B9C000D32814 /* SQLiteError.swift */; };
 		5699AE551B42BE8700C35172 /* DatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE541B42BE8700C35172 /* DatabaseTests.swift */; };
 		5699AE571B42C34A00C35172 /* Statement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE561B42C34A00C35172 /* Statement.swift */; };
 		5699AE591B42CD7800C35172 /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE581B42CD7800C35172 /* Row.swift */; };
@@ -37,7 +37,7 @@
 
 /* Begin PBXFileReference section */
 		565E191D1B42B2B600D32814 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		565E191F1B42B9C000D32814 /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
+		565E191F1B42B9C000D32814 /* SQLiteError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteError.swift; sourceTree = "<group>"; };
 		5699AE541B42BE8700C35172 /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
 		5699AE561B42C34A00C35172 /* Statement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Statement.swift; sourceTree = "<group>"; };
 		5699AE581B42CD7800C35172 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
@@ -130,9 +130,9 @@
 				56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */,
 				56CC3C8E1B43A5A700A9A534 /* DatabaseQueue.swift */,
 				5699AE5E1B42E59F00C35172 /* DatabaseValue.swift */,
-				565E191F1B42B9C000D32814 /* Error.swift */,
 				5699AE581B42CD7800C35172 /* Row.swift */,
 				5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */,
+				565E191F1B42B9C000D32814 /* SQLiteError.swift */,
 				5699AE561B42C34A00C35172 /* Statement.swift */,
 				5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */,
 				DC37743319C8CFCE004FCF85 /* Supporting Files */,
@@ -271,7 +271,7 @@
 				56CC3C931B43BF0100A9A534 /* DatabaseConfiguration.swift in Sources */,
 				56CC3C951B43C0E600A9A534 /* DatabaseMigrator.swift in Sources */,
 				5699AE5D1B42D49C00C35172 /* UpdateStatement.swift in Sources */,
-				565E19201B42B9C000D32814 /* Error.swift in Sources */,
+				565E19201B42B9C000D32814 /* SQLiteError.swift in Sources */,
 				565E191E1B42B2B600D32814 /* Database.swift in Sources */,
 				5699AE5B1B42D3DC00C35172 /* SelectStatement.swift in Sources */,
 			);

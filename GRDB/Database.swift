@@ -23,7 +23,7 @@ public class Database {
         self.configuration = configuration
         // See https://www.sqlite.org/c3ref/open.html
         let code = sqlite3_open(path, &cConnection)
-        try Error.checkCResultCode(code, cConnection: cConnection)
+        try SQLiteError.checkCResultCode(code, cConnection: cConnection)
         
         if configuration.foreignKeysEnabled {
             try execute("PRAGMA foreign_keys = ON")
