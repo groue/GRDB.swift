@@ -11,6 +11,8 @@ import GRDB
 
 class DatabaseTests: XCTestCase {
     
+    // TODO: test RAII (database, statement)
+    
     func testDatabase() {
         do {
             let database = try Database(path: "/tmp/GRDB.sqlite")
@@ -54,13 +56,13 @@ class DatabaseTests: XCTestCase {
             try insert4Stmt.execute()
             
             let selectStmt = try database.selectStatement("SELECT * FROM persons")
-            for row in selectStmt.rows {
+            for row in selectStmt.fetchRows() {
                 let name = row.stringAtIndex(0)
                 let age = row.intAtIndex(1)
                 print("\(name): \(age)")
                 print("\(row.asDictionary)")
             }
-            for row in selectStmt.rows {
+            for row in selectStmt.fetchRows() {
                 let name = row.stringAtIndex(0)
                 let age = row.intAtIndex(1)
                 print("\(name): \(age)")

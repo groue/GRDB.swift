@@ -9,14 +9,7 @@
 public class SelectStatement : Statement {
     public lazy var columnCount: Int = Int(sqlite3_column_count(self.cStatement))
     
-    // Document the reset performed on each generation
-    public var rows: AnySequence<Row> {
-        return AnySequence {
-            return self.rowGenerator()
-        }
-    }
-    
-    private func rowGenerator() -> AnyGenerator<Row> {
+    private var rowGenerator: AnyGenerator<Row> {
         try! reset()
         
         return anyGenerator { () -> Row? in
@@ -30,6 +23,13 @@ public class SelectStatement : Statement {
                 try! Error.checkCResultCode(code, cConnection: self.database.cConnection)
                 return nil
             }
+        }
+    }
+    
+    // TODO: Document the reset performed on each generation
+    public func fetchRows() -> AnySequence<Row> {
+        return AnySequence {
+            return self.rowGenerator
         }
     }
 }
