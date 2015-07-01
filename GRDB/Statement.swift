@@ -12,6 +12,8 @@ public class Statement {
     let database: Database
     let cStatement = CStatement()
     
+    public lazy var sql: String = String.fromCString(UnsafePointer<Int8>(sqlite3_sql(self.cStatement)))!
+    
     init(database: Database, sql: String) throws {
         // See https://www.sqlite.org/c3ref/prepare.html
         self.database = database

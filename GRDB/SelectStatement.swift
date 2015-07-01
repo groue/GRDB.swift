@@ -11,8 +11,12 @@ public class SelectStatement : Statement {
     
     private var rowGenerator: AnyGenerator<Row> {
         try! reset()
-        
+        var firstStep = true
         return anyGenerator { () -> Row? in
+            if firstStep {
+                NSLog("%@", self.sql)
+                firstStep = false
+            }
             let code = sqlite3_step(self.cStatement)
             switch code {
             case SQLITE_DONE:
