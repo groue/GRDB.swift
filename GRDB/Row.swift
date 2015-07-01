@@ -13,6 +13,15 @@ public struct Row {
         self.statement = statement
     }
     
+    public func boolAtIndex(index: Int) -> Bool? {
+        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
+        case SQLITE_NULL:
+            return nil
+        default:
+            return sqlite3_column_int(statement.cStatement, Int32(index)) != 0
+        }
+    }
+    
     public func intAtIndex(index: Int) -> Int? {
         switch sqlite3_column_type(statement.cStatement, Int32(index)) {
         case SQLITE_NULL:

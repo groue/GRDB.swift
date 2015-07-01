@@ -12,6 +12,13 @@ public protocol DBValue {
     func bindInStatement(statement: Statement, atIndex index:Int)
 }
 
+extension Bool: DBValue {
+    public func bindInStatement(statement: Statement, atIndex index: Int) {
+        let code = sqlite3_bind_int(statement.cStatement, Int32(index), Int32(self ? 1 : 0))
+        assert(code == SQLITE_OK)
+    }
+}
+
 extension Int: DBValue {
     public func bindInStatement(statement: Statement, atIndex index: Int) {
         let code = sqlite3_bind_int64(statement.cStatement, Int32(index), Int64(self))
