@@ -41,7 +41,7 @@ try dbQueue.inDatabase { db -> Void in
         print("id: \(id), name: \(name), age: \(age)")
     }
     
-    // Value collection requires explicit `type` parameter
+    // Value sequences require explicit `type` parameter
     for name in try db.fetchValues("SELECT name FROM persons", type: String.self) {
         // name is `String?` because some rows may have a NULL name.
         print(name)
