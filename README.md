@@ -19,11 +19,25 @@ A sqlite3 wrapper for Swift 2.
 ## Usage (work in progress)
 
 ```swift
+// GRDB uses database queues just like ccgus/FMDB:
+
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 
+
+// Queues serialize database accesses:
+
+try dbQueue.inDatabase { db -> Void in
+  try db.execute(
+      "CREATE TABLE persons (" +
+      "id INTEGER PRIMARY KEY, " +
+      "name TEXT, " +
+      "age INT)")
+}
+
+
+// Transactions:
+
 try dbQueue.inTransaction { db in
-    try db.execute("DROP TABLE IF EXISTS persons")
-    
     try db.execute(
         "CREATE TABLE persons (" +
         "id INTEGER PRIMARY KEY, " +
@@ -40,6 +54,9 @@ try dbQueue.inTransaction { db in
     
     return .Commit
 }
+
+
+// Fetching rows and values:
 
 try dbQueue.inDatabase { db -> Void in
     for row in try db.fetchRows("SELECT * FROM persons") {
@@ -62,9 +79,12 @@ try dbQueue.inDatabase { db -> Void in
     }
 }
 
-// names is [String]: ["Arthur", "Barbara"]
+
+// Extracting values out of a database block:
+
 let names = try dbQueue.inDatabase { db in
     try db.fetchValues("SELECT name FROM persons", type: String.self).map { $0! }
 }
+// names is [String]: ["Arthur", "Barbara"]
 
 ```
