@@ -112,9 +112,7 @@ extension Double: DatabaseValue {
 
 extension String: DatabaseValue {
     public func bindInStatement(statement: Statement, atIndex index: Int) {
-        let code = nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
-            return sqlite3_bind_text(statement.cStatement, Int32(index), UnsafePointer<Int8>(codeUnits.baseAddress), -1, SQLITE_TRANSIENT)
-        }
+        let code = sqlite3_bind_text(statement.cStatement, Int32(index), self, -1, SQLITE_TRANSIENT)
         assert(code == SQLITE_OK)
     }
     

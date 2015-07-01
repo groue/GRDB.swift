@@ -39,9 +39,7 @@ public class Statement {
     }
     
     public func bind(value: DatabaseValue?, forKey key: String) {
-        let index = key.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
-            Int(sqlite3_bind_parameter_index(cStatement, UnsafePointer<Int8>(codeUnits.baseAddress)))
-        }
+        let index = Int(sqlite3_bind_parameter_index(cStatement, key))
         guard index > 0 else {
             fatalError("Key not found: \(key)")
         }

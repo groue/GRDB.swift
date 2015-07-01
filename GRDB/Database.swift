@@ -22,9 +22,7 @@ public class Database {
     public init(path: String, configuration: DatabaseConfiguration = DatabaseConfiguration()) throws {
         self.configuration = configuration
         // See https://www.sqlite.org/c3ref/open.html
-        let code = path.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
-            return sqlite3_open(UnsafePointer<Int8>(codeUnits.baseAddress), &cConnection)
-        }
+        let code = sqlite3_open(path, &cConnection)
         try Error.checkCResultCode(code, cConnection: cConnection)
         
         if configuration.foreignKeysEnabled {
