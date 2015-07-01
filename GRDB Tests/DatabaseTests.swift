@@ -68,8 +68,8 @@ class DatabaseTests: XCTestCase {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                // The tested function:
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                // The tested function:
                 statement.bind("Arthur", atIndex: 1)
                 statement.bind(41, atIndex: 2)
                 try statement.execute()
@@ -90,8 +90,8 @@ class DatabaseTests: XCTestCase {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                // The tested function:
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                // The tested function:
                 statement.bind("Arthur", forKey: ":name")
                 statement.bind(41, forKey: ":age")
                 try statement.execute()
@@ -112,8 +112,8 @@ class DatabaseTests: XCTestCase {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                // The tested function:
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                // The tested function:
                 statement.bind(["Arthur", 41])
                 try statement.execute()
                 
@@ -133,8 +133,8 @@ class DatabaseTests: XCTestCase {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                // The tested function:
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                // The tested function:
                 statement.bind([":name": "Arthur", ":age": 41])
                 try statement.execute()
                 
@@ -273,8 +273,8 @@ class DatabaseTests: XCTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
                 
-                // The tested function:
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?")
+                // The tested function:
                 statement.bind("Arthur", atIndex: 1)
                 
                 let rows = Array(statement.fetchRows())
@@ -294,8 +294,8 @@ class DatabaseTests: XCTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
                 
-                // The tested function:
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name")
+                // The tested function:
                 statement.bind("Arthur", forKey: ":name")
                 
                 let rows = Array(statement.fetchRows())
@@ -315,8 +315,8 @@ class DatabaseTests: XCTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
                 
-                // The tested function:
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?")
+                // The tested function:
                 statement.bind(["Arthur"])
                 
                 let rows = Array(statement.fetchRows())
@@ -336,8 +336,8 @@ class DatabaseTests: XCTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
                 
-                // The tested function:
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name")
+                // The tested function:
                 statement.bind([":name": "Arthur"])
                 
                 let rows = Array(statement.fetchRows())
@@ -390,18 +390,18 @@ class DatabaseTests: XCTestCase {
         }
     }
     
-    func testFetchRowValueAtIndex() {
+    func testRowValueAtIndex() {
         do {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
                 
-                // The tested function:
                 var names: [String?] = []
                 var ages: [Int?] = []
                 let rows = try db.fetchRows("SELECT * FROM persons ORDER BY name")
                 for row in rows {
+                    // The tested function:
                     let name: String? = row.value(atIndex: 0)
                     let age: Int? = row.value(atIndex: 1)
                     names.append(name)
@@ -420,18 +420,18 @@ class DatabaseTests: XCTestCase {
         }
     }
     
-    func testFetchRowValueNamed() {
+    func testRowValueNamed() {
         do {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
                 
-                // The tested function:
                 var names: [String?] = []
                 var ages: [Int?] = []
                 let rows = try db.fetchRows("SELECT * FROM persons ORDER BY name")
                 for row in rows {
+                    // The tested function:
                     let name: String? = row.value(named: "name")
                     let age: Int? = row.value(named: "age")
                     names.append(name)
