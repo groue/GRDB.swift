@@ -3,7 +3,7 @@ GRDB
 
 A sqlite3 wrapper for Swift 2.
 
-## Goals:
+## Goals
 
 - [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization)
 - Leverage the Swift standard library (errors, generators, etc.)
@@ -11,17 +11,17 @@ A sqlite3 wrapper for Swift 2.
 - Focus on rows, not on tables.
 
 
-## Inspirations:
+## Inspirations
 
 - [ccgus/FMDB](https://github.com/ccgus/fmdb)
 
 
-## Usage (work in progress):
+## Usage (work in progress)
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 
-try dbQueue.inTransaction { db -> Void in
+try dbQueue.inTransaction { db in
     try db.execute("DROP TABLE IF EXISTS persons")
     
     try db.execute(
