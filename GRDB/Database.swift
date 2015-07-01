@@ -16,14 +16,20 @@ public class Database {
         case Exclusive
     }
     
+    public let configuration: DatabaseConfiguration
     let cConnection = CConnection()
     
-    public init(path: String) throws {
+    public init(path: String, configuration: DatabaseConfiguration = DatabaseConfiguration()) throws {
+        self.configuration = configuration
         // See https://www.sqlite.org/c3ref/open.html
         let code = path.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
             return sqlite3_open(UnsafePointer<Int8>(codeUnits.baseAddress), &cConnection)
         }
         try Error.checkCResultCode(code, cConnection: cConnection)
+        
+        if configuration.foreignKeysEnabled {
+            try execute("PRAGMA foreign_keys = ON")
+        }
     }
     
     deinit {

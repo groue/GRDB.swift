@@ -11,9 +11,9 @@ public class DatabaseQueue {
     private let queue: dispatch_queue_t
     private var _database: Database! = nil
     
-    public init(path: String) throws {
+    public init(path: String, configuration: DatabaseConfiguration = DatabaseConfiguration()) throws {
         queue = dispatch_queue_create("GRDB", nil)
-        _database = try Database(path: path)
+        _database = try Database(path: path, configuration: configuration)
     }
     
     public func inDatabase(block: (db: Database) throws -> Void) throws {

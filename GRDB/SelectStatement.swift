@@ -11,11 +11,11 @@ public class SelectStatement : Statement {
     
     private var rowGenerator: AnyGenerator<Row> {
         try! reset()
-        var firstStep = true
+        var logFirstStep = database.configuration.verbose
         return anyGenerator { () -> Row? in
-            if firstStep {
+            if logFirstStep {
                 NSLog("%@", self.sql)
-                firstStep = false
+                logFirstStep = false
             }
             let code = sqlite3_step(self.cStatement)
             switch code {

@@ -15,7 +15,8 @@ class DatabaseTests: XCTestCase {
     
     func testDatabase() {
         do {
-            let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
+            let configuration = DatabaseConfiguration(verbose: true)
+            let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite", configuration: configuration)
             
             try dbQueue.inTransaction { db in
                 let dropTableStmt = try db.updateStatement("DROP TABLE IF EXISTS persons")
