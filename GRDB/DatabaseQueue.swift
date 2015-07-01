@@ -33,14 +33,13 @@ public class DatabaseQueue {
         }
     }
     
-    public func inTransaction<R>(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> R) throws -> R {
+    public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) throws {
         var dbError: ErrorType?
-        var result: R? = nil
         let database = self.database
         dispatch_sync(queue) { () -> Void in
             do {
                 try database.inTransaction(type) { () in
-                    result = try block(db: database)
+                    return try block(db: database)
                 }
             } catch {
                 dbError = error
@@ -48,8 +47,6 @@ public class DatabaseQueue {
         }
         if let dbError = dbError {
             throw dbError
-        } else {
-            return result!
         }
     }
 }

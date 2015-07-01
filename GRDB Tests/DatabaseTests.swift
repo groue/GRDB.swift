@@ -532,7 +532,7 @@ class DatabaseTests: XCTestCase {
             let configuration = DatabaseConfiguration(verbose: true)
             let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite", configuration: configuration)
             
-            try dbQueue.inTransaction { db -> Void in
+            try dbQueue.inTransaction { db in
                 try db.execute("DROP TABLE IF EXISTS persons")
                 try db.execute(
                     "CREATE TABLE persons (" +
@@ -578,6 +578,8 @@ class DatabaseTests: XCTestCase {
                 try insert4Stmt.reset()
                 insert4Stmt.bind([":name": "Crystel no age", ":age": nil])
                 try insert4Stmt.execute()
+                
+                return .Commit
             }
             
             try dbQueue.inDatabase { db -> Void in

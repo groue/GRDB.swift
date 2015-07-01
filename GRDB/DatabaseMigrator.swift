@@ -38,13 +38,16 @@ public struct DatabaseMigrator {
     }
     
     private func runMigrations(dbQueue: DatabaseQueue) throws {
-        try dbQueue.inTransaction { db -> Void in
-            let appliedMigrationIdentifiers = try db.fetchValues("SELECT identifier FROM db_migrations", type: String.self).map { $0! }
-        
-            for (position, migration) in self.migrations.enumerate() {
-                if appliedMigrationIdentifiers.indexOf(migration.identifier) == nil {
+        let appliedMigrationIdentifiers = try dbQueue.inDatabase { db in
+            try db.fetchValues("SELECT identifier FROM db_migrations", type: String.self).map { $0! }
+        }
+    
+        for (position, migration) in self.migrations.enumerate() {
+            if appliedMigrationIdentifiers.indexOf(migration.identifier) == nil {
+                try dbQueue.inTransaction { db in
                     try migration.block(db: db)
                     try db.execute("INSERT INTO db_migrations (position, identifier) VALUES (?, ?)", bindings: [position, migration.identifier])
+                    return .Commit
                 }
             }
         }

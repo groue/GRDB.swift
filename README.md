@@ -31,6 +31,8 @@ try dbQueue.inTransaction { db -> Void in
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (:name, :age)",
         bindings: [":name": "Barbara", ":age": 37])
+    
+    return .Commit
 }
 
 try dbQueue.inDatabase { db -> Void in

@@ -178,14 +178,39 @@ public class Database {
     
     // MARK: - transactions
     
-    public func inTransaction(type: TransactionType = .Exclusive, block: () throws -> Void) throws {
+    public enum TransactionCompletion {
+        case Commit
+        case Rollback
+    }
+    
+    public func inTransaction(type: TransactionType = .Exclusive, block: () throws -> TransactionCompletion) throws {
+        var completion: TransactionCompletion = .Rollback
+        var dbError: ErrorType? = nil
+        
         try beginTransaction(type)
+        
         do {
-            try block()
-            try commit()
+            completion = try block()
         } catch {
-            try rollback()
-            throw error
+            completion = .Rollback
+            dbError = error
+        }
+        
+        do {
+            switch completion {
+            case .Commit:
+                try commit()
+            case .Rollback:
+                try rollback()
+            }
+        } catch {
+            if dbError == nil {
+                dbError = error
+            }
+        }
+        
+        if let dbError = dbError {
+            throw dbError
         }
     }
     

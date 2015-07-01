@@ -1,2 +1,1 @@
 - [ ] Rename GRDB.Error to GRDB.SQLiteError
-- [ ] Have inTransaction block return .Commit or .Rollback
