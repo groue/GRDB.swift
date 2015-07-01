@@ -6,17 +6,26 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
+typealias DatabaseQueueID = UnsafeMutablePointer<Void>
+
 public class DatabaseQueue {
     public var database: Database { return _database! }
     private let queue: dispatch_queue_t
     private var _database: Database! = nil
+    static var databaseQueueIDKey = unsafeBitCast(DatabaseQueue.self, UnsafePointer<Void>.self)
+    lazy var databaseQueueID: DatabaseQueueID = unsafeBitCast(self, DatabaseQueueID.self)
     
     public init(path: String, configuration: DatabaseConfiguration = DatabaseConfiguration()) throws {
         queue = dispatch_queue_create("GRDB", nil)
         _database = try Database(path: path, configuration: configuration)
+        dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
     }
     
     public func inDatabase<R>(block: (db: Database) throws -> R) throws -> R {
+        guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
+            fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")
+        }
+        
         var dbError: ErrorType?
         var result: R? = nil
         dispatch_sync(queue) { () -> Void in
@@ -34,6 +43,10 @@ public class DatabaseQueue {
     }
     
     public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) throws {
+        guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
+            fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")
+        }
+        
         var dbError: ErrorType?
         let database = self.database
         dispatch_sync(queue) { () -> Void in

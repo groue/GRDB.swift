@@ -11,15 +11,14 @@ typealias CStatement = COpaquePointer
 public class Statement {
     let database: Database
     let cStatement = CStatement()
-    
+    let databaseQueueID: DatabaseQueueID
     public lazy var sql: String = String.fromCString(UnsafePointer<Int8>(sqlite3_sql(self.cStatement)))!
     
     init(database: Database, sql: String) throws {
         // See https://www.sqlite.org/c3ref/prepare.html
         self.database = database
-        let code = sql.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
-            sqlite3_prepare_v2(database.cConnection, UnsafePointer<Int8>(codeUnits.baseAddress), -1, &cStatement, nil)
-        }
+        self.databaseQueueID = dispatch_get_specific(DatabaseQueue.databaseQueueIDKey)
+        let code = sqlite3_prepare_v2(database.cConnection, sql, -1, &cStatement, nil)
         try Error.checkCResultCode(code, cConnection: database.cConnection)
     }
     

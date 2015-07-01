@@ -68,6 +68,20 @@ public class SelectStatement : Statement {
         try! reset()
         var logFirstStep = database.configuration.verbose
         return anyGenerator { () -> Row? in
+            // Make sure values are not consumed in a different queue.
+            //
+            // Here we avoid this pattern:
+            //
+            //      let rows = dbQueue.inDatabase { db in
+            //          try db.fetchRows("...")
+            //      }
+            //      for row in rows {   // fatal error
+            //          ...
+            //      }
+            guard self.databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
+                fatalError("SelectStatement was not iterated on its database queue. Consider wrapping the results of the fetch in an Array before escaping the database queue.")
+            }
+            
             if logFirstStep {
                 NSLog("%@", self.sql)
                 logFirstStep = false
@@ -96,5 +110,4 @@ public class SelectStatement : Statement {
             }
         }
     }
-    
 }

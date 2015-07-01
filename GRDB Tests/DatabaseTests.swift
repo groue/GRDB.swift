@@ -483,48 +483,6 @@ class DatabaseTests: XCTestCase {
         }
     }
     
-    func testFuck() {
-        do {
-            let rows = try dbQueue.inDatabase { db -> AnySequence<Row> in
-                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
-                
-                let rows = try db.fetchRows("SELECT * FROM persons ORDER BY name")
-                // The array iterates all rows
-                return rows
-            }
-            
-            // The problem is that the statement has escaped the
-            // dbQueue.inDatabase block: it looks like the rows have already
-            // been loaded. But they are actually not.
-            //
-            // We must find a way to prevent this, and tell users to wrap the
-            // sequence in an array (have the block return Array(rows)).
-            
-            XCTFail("this code should not run")
-            
-            var names: [String?] = []
-            var ages: [Int?] = []
-            
-            for row in rows {
-                let name: String? = row.value(named: "name")
-                let age: Int? = row.value(named: "age")
-                names.append(name)
-                ages.append(age)
-            }
-            
-            XCTAssertEqual(names[0]!, "Arthur")
-            XCTAssertEqual(names[1]!, "Barbara")
-            XCTAssertEqual(ages[0]!, 41)
-            XCTAssertNil(ages[1])
-        } catch let error as GRDB.Error {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
-        }
-    }
-    
     // TODO: test RAII (database, statement)
     
     func testDatabase() {
@@ -542,7 +500,6 @@ class DatabaseTests: XCTestCase {
                 
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)", bindings: ["Arthur", 36])
                 try statement.execute()
-                let rowID = statement.lastInsertedRowID
                 
                 try db.execute("INSERT INTO persons (name, age) VALUES (?, ?)", bindings: ["Arthur", 36])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 36])
