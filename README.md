@@ -37,7 +37,8 @@ migrator.registerMigration("createPersons") { db in
 }
 migrator.registerMigration("createPets") { db in
     // Support for foreign keys is enabled by default:
-    try db.execute("CREATE TABLE pets (" +
+    try db.execute(
+        "CREATE TABLE pets (" +
         "id INTEGER PRIMARY KEY, " +
         "masterID INTEGER NOT NULL " +
         "         REFERENCES persons(id) " +
