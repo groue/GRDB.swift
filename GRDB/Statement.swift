@@ -29,7 +29,7 @@ public class Statement {
         }
     }
     
-    public func bind(value: DBValue?, atIndex index: Int) {
+    public func bind(value: DatabaseValue?, atIndex index: Int) {
         if let value = value {
             value.bindInStatement(self, atIndex: index)
         } else {
@@ -38,7 +38,7 @@ public class Statement {
         }
     }
     
-    public func bind(value: DBValue?, forKey key: String) {
+    public func bind(value: DatabaseValue?, forKey key: String) {
         let index = key.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
             Int(sqlite3_bind_parameter_index(cStatement, UnsafePointer<Int8>(codeUnits.baseAddress)))
         }
@@ -48,13 +48,13 @@ public class Statement {
         bind(value, atIndex: index)
     }
     
-    public func bind(dictionary: [String: DBValue?]) {
+    public func bind(dictionary: [String: DatabaseValue?]) {
         for (key, value) in dictionary {
             bind(value, forKey: key)
         }
     }
     
-    public func bind(values: [DBValue?]) {
+    public func bind(values: [DatabaseValue?]) {
         for (index, value) in values.enumerate() {
             bind(value, atIndex: index + 1)
         }

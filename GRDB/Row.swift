@@ -6,86 +6,83 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
+protocol RowImpl {
+    func databaseCellAtIndex(index: Int) -> DatabaseCell
+    var dictionary: [String: DatabaseValue?] { get }
+}
+
 public struct Row {
-    let statement: SelectStatement
+    let impl: RowImpl
     
-    init(statement: SelectStatement) {
-        self.statement = statement
-    }
-    
-    public func boolAtIndex(index: Int) -> Bool? {
-        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
-        case SQLITE_NULL:
-            return nil
-        default:
-            return sqlite3_column_int(statement.cStatement, Int32(index)) != 0
+    init(statement: SelectStatement, unsafe: Bool) {
+        if unsafe {
+            self.impl = UnsafeRowImpl(statement: statement)
+        } else {
+            self.impl = SafeRowImpl(statement: statement)
         }
     }
     
-    public func intAtIndex(index: Int) -> Int? {
-        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
-        case SQLITE_NULL:
-            return nil
-        default:
-            return Int(sqlite3_column_int(statement.cStatement, Int32(index)))
+    public func valueAtIndex(index: Int) -> DatabaseValue? {
+        return impl.databaseCellAtIndex(index).value()
+    }
+    
+    public func valueAtIndex<T: DatabaseValue>(index: Int) -> T? {
+        return impl.databaseCellAtIndex(index).value() as T?
+    }
+    
+    public var dictionary: [String: DatabaseValue?] {
+        return self.impl.dictionary
+    }
+    
+    // SafeRowImpl can be safely accessed after sqlite3_step() and sqlite3_finalize() has been called.
+    private struct SafeRowImpl : RowImpl {
+        let databaseCells: [DatabaseCell]
+        let columnNames: [String]
+        
+        init(statement: SelectStatement) {
+            var databaseCells = [DatabaseCell]()
+            var columnNames = [String]()
+            for index in 0..<statement.columnCount {
+                databaseCells.append(statement.databaseCellAtIndex(index))
+                let columnName = String.fromCString(sqlite3_column_name(statement.cStatement, Int32(index)))!
+                columnNames.append(columnName)
+            }
+            self.databaseCells = databaseCells
+            self.columnNames = columnNames
+        }
+        
+        func databaseCellAtIndex(index: Int) -> DatabaseCell {
+            return databaseCells[index]
+        }
+        
+        var dictionary: [String: DatabaseValue?] {
+            var dictionary = [String: DatabaseValue?]()
+            for (cell, columnName) in zip(databaseCells, columnNames) {
+                dictionary[columnName] = cell.value()
+            }
+            return dictionary
         }
     }
     
-    public func int64AtIndex(index: Int) -> Int64? {
-        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
-        case SQLITE_NULL:
-            return nil
-        default:
-            return sqlite3_column_int64(statement.cStatement, Int32(index))
+    // UnsafeRowImpl can not be safely accessed after sqlite3_step() or sqlite3_finalize() has been called.
+    private struct UnsafeRowImpl : RowImpl {
+        let statement: SelectStatement
+        
+        init(statement: SelectStatement) {
+            self.statement = statement
         }
-    }
-    
-    public func doubleAtIndex(index: Int) -> Double? {
-        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
-        case SQLITE_NULL:
-            return nil;
-        default:
-            return sqlite3_column_double(statement.cStatement, Int32(index))
+        
+        func databaseCellAtIndex(index: Int) -> DatabaseCell {
+            return statement.databaseCellAtIndex(index)
         }
-    }
-    
-    public func stringAtIndex(index: Int) -> String? {
-        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
-        case SQLITE_NULL:
-            return nil;
-        default:
-            let cString = UnsafePointer<Int8>(sqlite3_column_text(statement.cStatement, Int32(index)))
-            return String.fromCString(cString)!
+        
+        var dictionary: [String: DatabaseValue?] {
+            var dictionary = [String: DatabaseValue?]()
+            for index in 0..<statement.columnCount {
+                let columnName = String.fromCString(sqlite3_column_name(statement.cStatement, Int32(index)))!
+                dictionary[columnName] = databaseCellAtIndex(index).value()
+            }
+            return dictionary
         }
-    }
-    
-    public func valueAtIndex(index: Int) -> DBValue? {
-        switch sqlite3_column_type(statement.cStatement, Int32(index)) {
-        case SQLITE_NULL:
-            return nil;
-        case SQLITE_INTEGER:
-            return sqlite3_column_int64(statement.cStatement, Int32(index))
-        case SQLITE_FLOAT:
-            return sqlite3_column_double(statement.cStatement, Int32(index))
-        case SQLITE_TEXT:
-            let cString = UnsafePointer<Int8>(sqlite3_column_text(statement.cStatement, Int32(index)))
-            return String.fromCString(cString)!
-        default:
-            fatalError("Not implemented")
-        }
-    }
-    
-    public func valueAtIndex<T: DBValue>(index: Int, type: T.Type) -> T? {
-        return nil
-    }
-    
-    public var asDictionary: [String: DBValue?] {
-        var dictionary = [String: DBValue?]()
-        for index in 0..<statement.columnCount {
-            let cString = sqlite3_column_name(statement.cStatement, Int32(index))
-            let key = String.fromCString(cString)!
-            dictionary[key] = valueAtIndex(index)
-        }
-        return dictionary
     }
 }

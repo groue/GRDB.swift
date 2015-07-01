@@ -38,7 +38,7 @@ public class Database {
         }
     }
     
-    public func selectStatement(sql: String, arguments: [DBValue?]? = nil) throws -> SelectStatement {
+    public func selectStatement(sql: String, arguments: [DatabaseValue?]? = nil) throws -> SelectStatement {
         let statement = try SelectStatement(database: self, sql: sql)
         if let arguments = arguments {
             statement.bind(arguments)
@@ -46,17 +46,17 @@ public class Database {
         return statement
     }
     
-    public func fetchRows(sql: String, arguments: [DBValue?]? = nil) throws -> AnySequence<Row> {
+    public func fetchRows(sql: String, arguments: [DatabaseValue?]? = nil) throws -> AnySequence<Row> {
         let statement = try selectStatement(sql, arguments: arguments)
         return statement.fetchRows()
     }
     
-    public func fetchValues<T: DBValue>(type: T.Type, sql: String, arguments: [DBValue?]? = nil) throws -> AnySequence<T?> {
+    public func fetchValues<T: DatabaseValue>(sql: String, arguments: [DatabaseValue?]? = nil, type: T.Type) throws -> AnySequence<T?> {
         let statement = try selectStatement(sql, arguments: arguments)
-        return statement.fetchValues(type)
+        return statement.fetchValues(type: type)
     }
     
-    public func updateStatement(sql: String, arguments: [DBValue?]? = nil) throws -> UpdateStatement {
+    public func updateStatement(sql: String, arguments: [DatabaseValue?]? = nil) throws -> UpdateStatement {
         let statement = try UpdateStatement(database: self, sql: sql)
         if let arguments = arguments {
             statement.bind(arguments)
@@ -64,7 +64,7 @@ public class Database {
         return statement
     }
     
-    public func execute(sql: String, arguments: [DBValue?]? = nil) throws {
+    public func execute(sql: String, arguments: [DatabaseValue?]? = nil) throws {
         let statement = try updateStatement(sql, arguments: arguments)
         try statement.execute()
     }

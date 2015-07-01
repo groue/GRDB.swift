@@ -61,17 +61,29 @@ class DatabaseTests: XCTestCase {
             try dbQueue.inDatabase { db -> Void in
                 let selectStmt = try db.selectStatement("SELECT * FROM persons")
                 
+                for name in selectStmt.fetchValues(type: String.self) {
+                    print(name)
+                }
+                
+                let uncachedRows = Array(selectStmt.fetchRows(unsafe: true)).map { $0.dictionary }
+                NSLog("%@", "\(uncachedRows)")
+                
+                let cachedRows = Array(selectStmt.fetchRows()).map { $0.dictionary }
+                NSLog("%@", "\(cachedRows)")
+                
                 for row in selectStmt.fetchRows() {
-                    let name = row.stringAtIndex(0)
-                    let age = row.intAtIndex(1)
+                    let value = row.valueAtIndex(0)
+                    let name: String? = row.valueAtIndex(0)
+                    let age: Int? = row.valueAtIndex(1)
+                    print("value: \(value)")
                     print("\(name): \(age)")
-                    print("\(row.asDictionary)")
+                    print("\(row.dictionary)")
                 }
                 for row in selectStmt.fetchRows() {
-                    let name = row.stringAtIndex(0)
-                    let age = row.intAtIndex(1)
+                    let name: String? = row.valueAtIndex(0)
+                    let age: Int? = row.valueAtIndex(1)
                     print("\(name): \(age)")
-                    print("\(row.asDictionary)")
+                    print("\(row.dictionary)")
                 }
             }
             
