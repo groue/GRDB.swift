@@ -8,6 +8,9 @@
 
 public struct DatabaseMigrator {
     
+    public init() {
+    }
+    
     public mutating func registerMigration(identifier: String, block: (db: Database) throws -> Void) {
         guard migrations.map({ $0.identifier }).indexOf(identifier) == nil else {
             fatalError("Already registered migration: \"\(identifier)\"")
@@ -30,7 +33,7 @@ public struct DatabaseMigrator {
     private func setupMigrations(dbQueue: DatabaseQueue) throws {
         try dbQueue.inDatabase { db in
             try db.execute(
-                "CREATE TABLE grdb_migrations IF NOT EXISTS (" +
+                "CREATE TABLE IF NOT EXISTS grdb_migrations (" +
                     "identifier VARCHAR(128) PRIMARY KEY NOT NULL," +
                     "position INT" +
                 ")")
@@ -39,14 +42,14 @@ public struct DatabaseMigrator {
     
     private func runMigrations(dbQueue: DatabaseQueue) throws {
         let appliedMigrationIdentifiers = try dbQueue.inDatabase { db in
-            try db.fetchValues("SELECT identifier FROM db_migrations", type: String.self).map { $0! }
+            try db.fetchValues("SELECT identifier FROM grdb_migrations", type: String.self).map { $0! }
         }
     
         for (position, migration) in self.migrations.enumerate() {
             if appliedMigrationIdentifiers.indexOf(migration.identifier) == nil {
                 try dbQueue.inTransaction { db in
                     try migration.block(db: db)
-                    try db.execute("INSERT INTO db_migrations (position, identifier) VALUES (?, ?)", bindings: [position, migration.identifier])
+                    try db.execute("INSERT INTO grdb_migrations (position, identifier) VALUES (?, ?)", bindings: [position, migration.identifier])
                     return .Commit
                 }
             }

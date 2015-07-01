@@ -9,11 +9,13 @@
 import XCTest
 import GRDB
 
-class DatabaseTests: XCTestCase {
+class DatabaseTests: GRDBTests {
     var databasePath: String!
     var dbQueue: DatabaseQueue!
     
     override func setUp() {
+        super.setUp()
+        
         self.databasePath = "/tmp/GRDB.sqlite"
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
         let configuration = DatabaseConfiguration(verbose: true)
@@ -21,30 +23,28 @@ class DatabaseTests: XCTestCase {
     }
     
     override func tearDown() {
+        super.tearDown()
+        
         self.dbQueue = nil
         try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
     }
     
     func testCreateTable() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
-                XCTAssertFalse(db.tableExist("persons"))
+                XCTAssertFalse(db.tableExists("persons"))
                 try db.execute(
                     "CREATE TABLE persons (" +
                         "id INTEGER PRIMARY KEY, " +
                         "name TEXT, " +
                         "age INT)")
-                XCTAssertTrue(db.tableExist("persons"))
+                XCTAssertTrue(db.tableExists("persons"))
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testUpdateStatement() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -56,15 +56,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testUpdateStatementIndexedBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -78,15 +74,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testUpdateStatementKeyedBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -100,15 +92,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testUpdateStatementArrayBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -121,15 +109,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testUpdateStatementDictionaryBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -142,15 +126,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testUpdateStatementWithArrayBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -162,15 +142,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testUpdateStatementWithDictionaryBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -182,15 +158,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testDatabaseExecute() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -201,15 +173,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testDatabaseExecuteWithArrayBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -220,15 +188,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testDatabaseExecuteWithDictionaryBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -239,15 +203,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testSelectStatement() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -259,15 +219,11 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 2)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testSelectStatementIndexedBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -280,15 +236,11 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testSelectStatementKeyedBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -301,15 +253,11 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testSelectStatementArrayBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -322,15 +270,11 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testSelectStatementDictionaryBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -343,15 +287,11 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testSelectStatementWithArrayBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -363,15 +303,11 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testSelectStatementWithDictionaryBinding() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -383,15 +319,11 @@ class DatabaseTests: XCTestCase {
                 let rows = Array(statement.fetchRows())
                 XCTAssertEqual(rows.count, 1)
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testRowValueAtIndex() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -413,15 +345,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(ages[0]!, 41)
                 XCTAssertNil(ages[1])
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testRowValueNamed() {
-        do {
+        assertNoError {
             try dbQueue.inDatabase { db -> Void in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -443,15 +371,11 @@ class DatabaseTests: XCTestCase {
                 XCTAssertEqual(ages[0]!, 41)
                 XCTAssertNil(ages[1])
             }
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     func testFetchRowsCacheSQLiteResults() {
-        do {
+        assertNoError {
             let rows = try dbQueue.inDatabase { db -> [Row] in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
@@ -476,17 +400,13 @@ class DatabaseTests: XCTestCase {
             XCTAssertEqual(names[1]!, "Barbara")
             XCTAssertEqual(ages[0]!, 41)
             XCTAssertNil(ages[1])
-        } catch let error as SQLiteError {
-            XCTFail("error code \(error.code): \(error.message)")
-        } catch {
-            XCTFail("error: \(error)")
         }
     }
     
     // TODO: test RAII (database, statement)
     
     func testDatabase() {
-        do {
+        assertNoError {
             let configuration = DatabaseConfiguration(verbose: true)
             let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite", configuration: configuration)
             
@@ -585,10 +505,6 @@ class DatabaseTests: XCTestCase {
             }
             print("names: \(names)")
 
-        } catch let error as SQLiteError {
-            print("Error \(error._code), \(error.message)")
-        } catch {
-            
         }
     }
 }

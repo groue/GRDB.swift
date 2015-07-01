@@ -234,7 +234,7 @@ public class Database {
     
     // MARK: -
     
-    public func tableExist(tableName: String) -> Bool {
+    public func tableExists(tableName: String) -> Bool {
         let statement = try! selectStatement("SELECT [sql] FROM sqlite_master WHERE [type] = 'table' AND LOWER(name) = ?")
         statement.bind(tableName.lowercaseString, atIndex: 1)
         for _ in statement.fetchRows() {
