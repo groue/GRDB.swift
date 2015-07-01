@@ -19,7 +19,7 @@ public class Database {
     public let configuration: DatabaseConfiguration
     let cConnection = CConnection()
     
-    public init(path: String, configuration: DatabaseConfiguration = DatabaseConfiguration()) throws {
+    init(path: String, configuration: DatabaseConfiguration = DatabaseConfiguration()) throws {
         self.configuration = configuration
         // See https://www.sqlite.org/c3ref/open.html
         let code = sqlite3_open(path, &cConnection)
