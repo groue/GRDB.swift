@@ -19,11 +19,19 @@ class DatabaseTests: XCTestCase {
             let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite", configuration: configuration)
             
             try dbQueue.inTransaction { db -> Void in
-                let dropTableStmt = try db.updateStatement("DROP TABLE IF EXISTS persons")
-                try dropTableStmt.execute()
+                try db.execute("DROP TABLE IF EXISTS persons")
+                try db.execute(
+                    "CREATE TABLE persons (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "name TEXT, " +
+                    "age INT)")
                 
-                let createTableStmt = try db.updateStatement("CREATE TABLE persons (name TEXT, age INT)")
-                try createTableStmt.execute()
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)", arguments: ["Arthur", 36])
+                try statement.execute()
+                let rowID = statement.lastInsertedRowID
+                
+                try db.execute("INSERT INTO persons (name, age) VALUES (?, ?)", arguments: ["Arthur", 36])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: [":name": "Arthur", ":age": 36])
                 
                 let insert1Stmt = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 insert1Stmt.bind("Arthur", atIndex: 1)
@@ -59,9 +67,23 @@ class DatabaseTests: XCTestCase {
             }
             
             try dbQueue.inDatabase { db -> Void in
+                for row in try db.fetchRows("SELECT * FROM persons") {
+                    let id: Int64 = row.valueAtIndex(0)!
+                    let name: String? = row.valueAtIndex(1)
+                    let age: Int? = row.valueAtIndex(2)
+                    print("id: \(id), name: \(name), age: \(age)")
+                }
+                
+                for name in try db.fetchValues("SELECT name FROM persons", type: String.self) {
+                    print(name)
+                }
+                
+                let names = try db.fetchValues("SELECT name FROM persons", type: String.self).map { $0! }
+                print("names: \(names)")
+                
                 let selectStmt = try db.selectStatement("SELECT * FROM persons")
                 
-                for name in selectStmt.fetchValues(type: String.self) {
+                for name: String? in selectStmt.fetchValues(type: String.self) {
                     print(name)
                 }
                 
@@ -86,7 +108,12 @@ class DatabaseTests: XCTestCase {
                     print("\(row.dictionary)")
                 }
             }
-            
+
+            let names = try dbQueue.inDatabase { db in
+                try db.fetchValues("SELECT name FROM persons", type: String.self).map { $0! }
+            }
+            print("names: \(names)")
+
         } catch let error as GRDB.Error {
             print("Error \(error._code), \(error.message)")
         } catch {

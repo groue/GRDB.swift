@@ -9,3 +9,52 @@ Goals:
 - Leverage the Swift standard library (errors, generators, etc.)
 - Foster SQL
 - Focus on rows, not on tables.
+
+Usage (work in progress):
+
+```swift
+let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
+
+try dbQueue.inTransaction { db -> Void in
+    try db.execute("DROP TABLE IF EXISTS persons")
+    try db.execute(
+        "CREATE TABLE persons (" +
+        "id INTEGER PRIMARY KEY, " +
+        "name TEXT, " +
+        "age INT)")
+    try db.execute("INSERT INTO persons (name, age) VALUES (?, ?)", arguments: ["Arthur", 36])
+    try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: [":name": "Barbara", ":age": 37])
+}
+
+try dbQueue.inDatabase { db -> Void in
+    for row in try db.fetchRows("SELECT * FROM persons") {
+        // Leverage Swift type inference
+        let value = row.valueAtIndex(1)           // value is DatabaseValue?
+        let name: String? = row.valueAtIndex(1)   // name is String?
+        
+        // Force unwrap when column is NOT NULL
+        let id: Int64 = row.valueAtIndex(0)!
+        
+        // Both Int and Int64 are supported
+        let age: Int? = row.valueAtIndex(2)
+        
+        print("id: \(id), name: \(name), age: \(age)")
+    }
+    
+    // Value collection requires explicit `type` parameter
+    for name in try db.fetchValues("SELECT name FROM persons", type: String.self) {
+        // name is `String?` because some rows may have a NULL name.
+        print(name)
+    }
+}
+
+// names is [String]: ["Arthur", "Barbara"]
+let names = try dbQueue.inDatabase { db in
+    try db.fetchValues("SELECT name FROM persons", type: String.self).map { $0! }
+}
+
+```
+
+Inspirations:
+
+- [ccgus/FMDB](https://github.com/ccgus/fmdb)
