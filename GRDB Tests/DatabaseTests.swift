@@ -18,7 +18,7 @@ class DatabaseTests: XCTestCase {
             let configuration = DatabaseConfiguration(verbose: true)
             let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite", configuration: configuration)
             
-            try dbQueue.inTransaction { db in
+            try dbQueue.inTransaction { db -> Void in
                 let dropTableStmt = try db.updateStatement("DROP TABLE IF EXISTS persons")
                 try dropTableStmt.execute()
                 
@@ -58,7 +58,7 @@ class DatabaseTests: XCTestCase {
                 try insert4Stmt.execute()
             }
             
-            try dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { db -> Void in
                 let selectStmt = try db.selectStatement("SELECT * FROM persons")
                 
                 for row in selectStmt.fetchRows() {

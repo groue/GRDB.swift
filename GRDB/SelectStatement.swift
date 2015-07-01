@@ -30,10 +30,27 @@ public class SelectStatement : Statement {
         }
     }
     
+    private func valueGenerator<T: DBValue>(type: T.Type) -> AnyGenerator<T?> {
+        let rowGenerator = self.rowGenerator
+        return anyGenerator { () -> T?? in
+            if let row = rowGenerator.next() {
+                return Optional.Some(row.valueAtIndex(0, type: type))
+            } else {
+                return nil
+            }
+        }
+    }
+    
     // TODO: Document the reset performed on each generation
     public func fetchRows() -> AnySequence<Row> {
         return AnySequence {
             return self.rowGenerator
+        }
+    }
+    
+    public func fetchValues<T: DBValue>(type: T.Type) -> AnySequence<T?> {
+        return AnySequence {
+            return self.valueGenerator(type)
         }
     }
 }

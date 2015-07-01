@@ -75,6 +75,10 @@ public struct Row {
         }
     }
     
+    public func valueAtIndex<T: DBValue>(index: Int, type: T.Type) -> T? {
+        return nil
+    }
+    
     public var asDictionary: [String: DBValue?] {
         var dictionary = [String: DBValue?]()
         for index in 0..<statement.columnCount {

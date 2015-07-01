@@ -16,27 +16,31 @@ public class DatabaseQueue {
         _database = try Database(path: path, configuration: configuration)
     }
     
-    public func inDatabase(block: (db: Database) throws -> Void) throws {
+    public func inDatabase<R>(block: (db: Database) throws -> R) throws -> R {
         var dbError: ErrorType?
+        var result: R? = nil
         dispatch_sync(queue) { () -> Void in
             do {
-                try block(db: self.database)
+                result = try block(db: self.database)
             } catch {
                 dbError = error
             }
         }
         if let dbError = dbError {
             throw dbError
+        } else {
+            return result!
         }
     }
     
-    public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Void) throws {
+    public func inTransaction<R>(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> R) throws -> R {
         var dbError: ErrorType?
+        var result: R? = nil
         let database = self.database
         dispatch_sync(queue) { () -> Void in
             do {
                 try database.inTransaction(type) { () in
-                    try block(db: database)
+                    result = try block(db: database)
                 }
             } catch {
                 dbError = error
@@ -44,6 +48,8 @@ public class DatabaseQueue {
         }
         if let dbError = dbError {
             throw dbError
+        } else {
+            return result!
         }
     }
 }

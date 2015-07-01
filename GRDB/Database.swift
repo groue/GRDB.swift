@@ -38,16 +38,34 @@ public class Database {
         }
     }
     
-    public func selectStatement(sql: String) throws -> SelectStatement {
-        return try SelectStatement(database: self, sql: sql)
+    public func selectStatement(sql: String, arguments: [DBValue?]? = nil) throws -> SelectStatement {
+        let statement = try SelectStatement(database: self, sql: sql)
+        if let arguments = arguments {
+            statement.bind(arguments)
+        }
+        return statement
     }
     
-    public func updateStatement(sql: String) throws -> UpdateStatement {
-        return try UpdateStatement(database: self, sql: sql)
+    public func fetchRows(sql: String, arguments: [DBValue?]? = nil) throws -> AnySequence<Row> {
+        let statement = try selectStatement(sql, arguments: arguments)
+        return statement.fetchRows()
     }
     
-    public func execute(sql: String) throws {
-        let statement = try updateStatement(sql)
+    public func fetchValues<T: DBValue>(type: T.Type, sql: String, arguments: [DBValue?]? = nil) throws -> AnySequence<T?> {
+        let statement = try selectStatement(sql, arguments: arguments)
+        return statement.fetchValues(type)
+    }
+    
+    public func updateStatement(sql: String, arguments: [DBValue?]? = nil) throws -> UpdateStatement {
+        let statement = try UpdateStatement(database: self, sql: sql)
+        if let arguments = arguments {
+            statement.bind(arguments)
+        }
+        return statement
+    }
+    
+    public func execute(sql: String, arguments: [DBValue?]? = nil) throws {
+        let statement = try updateStatement(sql, arguments: arguments)
         try statement.execute()
     }
     
@@ -60,6 +78,15 @@ public class Database {
             try rollback()
             throw error
         }
+    }
+    
+    public func tableExist(tableName: String) -> Bool {
+        let statement = try! selectStatement("SELECT [sql] FROM sqlite_master WHERE [type] = 'table' AND LOWER(name) = ?")
+        statement.bind(tableName.lowercaseString, atIndex: 1)
+        for _ in statement.fetchRows() {
+            return true
+        }
+        return false
     }
 
     private func beginTransaction(type: TransactionType = .Exclusive) throws {
