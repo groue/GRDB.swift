@@ -10,24 +10,6 @@ import XCTest
 import GRDB
 
 class DatabaseTests: GRDBTests {
-    var databasePath: String!
-    var dbQueue: DatabaseQueue!
-    
-    override func setUp() {
-        super.setUp()
-        
-        self.databasePath = "/tmp/GRDB.sqlite"
-        do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
-        let configuration = DatabaseConfiguration(verbose: true)
-        self.dbQueue = try! DatabaseQueue(path: databasePath, configuration: configuration)
-    }
-    
-    override func tearDown() {
-        super.tearDown()
-        
-        self.dbQueue = nil
-        try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
-    }
     
     func testCreateTable() {
         assertNoError {

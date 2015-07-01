@@ -10,24 +10,6 @@ import XCTest
 import GRDB
 
 class DatabaseMigratorTests: GRDBTests {
-    var databasePath: String!
-    var dbQueue: DatabaseQueue!
-    
-    override func setUp() {
-        super.setUp()
-        
-        self.databasePath = "/tmp/GRDB.sqlite"
-        do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
-        let configuration = DatabaseConfiguration(verbose: true)
-        self.dbQueue = try! DatabaseQueue(path: databasePath, configuration: configuration)
-    }
-    
-    override func tearDown() {
-        super.tearDown()
-        
-        self.dbQueue = nil
-        try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
-    }
     
     func testMigrator() {
         var migrator = DatabaseMigrator()
@@ -38,7 +20,8 @@ class DatabaseMigratorTests: GRDBTests {
                 "name TEXT)")
         }
         migrator.registerMigration("createPets") { db in
-            try db.execute("CREATE TABLE pets (" +
+            try db.execute(
+                "CREATE TABLE pets (" +
                 "id INTEGER PRIMARY KEY, " +
                 "masterID INTEGER NOT NULL " +
                 "         REFERENCES persons(id) " +
