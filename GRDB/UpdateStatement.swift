@@ -7,7 +7,6 @@
 //
 
 public class UpdateStatement : Statement {
-    
     public lazy var lastInsertedRowID: Int64 = sqlite3_last_insert_rowid(self.cStatement)
     
     public func execute() throws {
@@ -17,7 +16,7 @@ public class UpdateStatement : Statement {
             // the statement has finished executing successfully
             break
         default:
-            try Error.checkCResultCode(code, cConnection: cConnection)
+            try Error.checkCResultCode(code, cConnection: database.cConnection)
         }
     }
 }

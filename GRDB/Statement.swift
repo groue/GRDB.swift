@@ -9,16 +9,16 @@
 typealias CStatement = COpaquePointer
 
 public class Statement {
+    let database: Database
     let cStatement = CStatement()
-    let cConnection: CConnection
     
-    init(cConnection: CConnection, query: String) throws {
+    init(database: Database, sql: String) throws {
         // See https://www.sqlite.org/c3ref/prepare.html
-        self.cConnection = cConnection
-        let code = query.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
-            sqlite3_prepare_v2(cConnection, UnsafePointer<Int8>(codeUnits.baseAddress), -1, &cStatement, nil)
+        self.database = database
+        let code = sql.nulTerminatedUTF8.withUnsafeBufferPointer { codeUnits in
+            sqlite3_prepare_v2(database.cConnection, UnsafePointer<Int8>(codeUnits.baseAddress), -1, &cStatement, nil)
         }
-        try Error.checkCResultCode(code, cConnection: cConnection)
+        try Error.checkCResultCode(code, cConnection: database.cConnection)
     }
     
     deinit {
@@ -58,9 +58,9 @@ public class Statement {
         }
     }
 
-    public func reset() {
+    public func reset() throws {
         let code = sqlite3_reset(cStatement)
-        assert(code == SQLITE_OK)
+        try Error.checkCResultCode(code, cConnection: database.cConnection)
     }
     
     public func clearBindings() {

@@ -25,11 +25,11 @@ public class Database {
         }
     }
     
-    public func selectStatement(query: String) throws -> SelectStatement {
-        return try SelectStatement(cConnection: cConnection, query: query)
+    public func selectStatement(sql: String) throws -> SelectStatement {
+        return try SelectStatement(database: self, sql: sql)
     }
     
-    public func updateStatement(query: String) throws -> UpdateStatement {
-        return try UpdateStatement(cConnection: cConnection, query: query)
+    public func updateStatement(sql: String) throws -> UpdateStatement {
+        return try UpdateStatement(database: self, sql: sql)
     }
 }
