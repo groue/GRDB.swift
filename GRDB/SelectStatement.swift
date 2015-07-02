@@ -68,7 +68,9 @@ extension SelectStatement {
             case SQLITE_ROW:
                 return Row(statement: self, unsafe: self.unsafe)
             default:
-                try! SQLiteError.checkCResultCode(code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+                failOnError { () -> Void in
+                    throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+                }
                 return nil
             }
         }

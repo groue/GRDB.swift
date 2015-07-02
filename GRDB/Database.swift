@@ -133,11 +133,32 @@ public class Database {
     }
 }
 
+func failOnError<R>(@noescape block: (Void) throws -> R) -> R {
+    do {
+        return try block()
+    } catch let error as SQLiteError {
+        switch (error.sql, error.message) {
+        case (nil, nil):
+            fatalError("SQLite error code \(error.code)")
+        case (nil, let message):
+            fatalError("SQLite error code \(error.code): \(message)")
+        case (let sql, nil):
+            fatalError("SQLite error code \(error.code) executing `\(sql)`")
+        case (let sql, let message):
+            fatalError("SQLite error code \(error.code) executing `\(sql)`: \(message)")
+        }
+    } catch {
+        fatalError("error: \(error)")
+    }
+}
+
 extension Database {
     
     public func fetchRowGenerator(sql: String, bindings: Bindings? = nil) -> AnyGenerator<Row> {
-        let statement = try! selectStatement(sql, bindings: bindings)
-        return statement.fetchRowGenerator()
+        return failOnError {
+            let statement = try selectStatement(sql, bindings: bindings)
+            return statement.fetchRowGenerator()
+        }
     }
     
     public func fetchRows(sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
@@ -156,8 +177,10 @@ extension Database {
 extension Database {
     
     public func fetchGenerator<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnyGenerator<T?> {
-        let statement = try! selectStatement(sql, bindings: bindings)
-        return statement.fetchGenerator(type)
+        return failOnError {
+            let statement = try selectStatement(sql, bindings: bindings)
+            return statement.fetchGenerator(type)
+        }
     }
     
     public func fetch<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<T?> {
