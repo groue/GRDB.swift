@@ -33,8 +33,11 @@ public final class SelectStatement : Statement {
             fatalError("Not implemented")
         }
     }
+}
+
+extension SelectStatement {
     
-    private func rowGenerator() -> AnyGenerator<Row> {
+    public func fetchRowGenerator() -> AnyGenerator<Row> {
         // TODO: Document this reset performed on each generation
         try! reset()
         var logFirstStep = database.configuration.verbose
@@ -70,9 +73,20 @@ public final class SelectStatement : Statement {
         }
     }
     
+    public func fetchRows() -> AnySequence<Row> {
+        return AnySequence { self.fetchRowGenerator() }
+    }
     
-    private func valueGenerator<T: DatabaseValue>(type type: T.Type) -> AnyGenerator<T?> {
-        let rowGenerator = self.rowGenerator()
+    public func fetchAllRows() -> [Row] {
+        return fetchRows().map { $0 }
+    }
+    
+    public func fetchOneRow() -> Row? {
+        return fetchRowGenerator().next()
+    }
+    
+    public func fetchValueGenerator<T: DatabaseValue>(type: T.Type) -> AnyGenerator<T?> {
+        let rowGenerator = fetchRowGenerator()
         return anyGenerator { () -> T?? in
             if let row = rowGenerator.next() {
                 return Optional.Some(row.value(atIndex: 0) as T?)
@@ -81,42 +95,22 @@ public final class SelectStatement : Statement {
             }
         }
     }
-}
-
-public func fetchRowGenerator(statement: SelectStatement) -> AnyGenerator<Row> {
-    return statement.rowGenerator()
-}
-
-public func fetchRows(statement: SelectStatement) -> AnySequence<Row> {
-    return AnySequence { fetchRowGenerator(statement) }
-}
-
-public func fetchAllRows(statement: SelectStatement) -> [Row] {
-    return fetchRows(statement).map { $0 }
-}
-
-public func fetchOneRow(statement: SelectStatement) -> Row? {
-    return fetchRowGenerator(statement).next()
-}
-
-public func fetchValueGenerator<T: DatabaseValue>(type: T.Type, statement: SelectStatement) -> AnyGenerator<T?> {
-    return statement.valueGenerator(type: type)
-}
-
-public func fetchValues<T: DatabaseValue>(type: T.Type, statement: SelectStatement) -> AnySequence<T?> {
-    return AnySequence { fetchValueGenerator(type, statement: statement) }
-}
-
-public func fetchAllValues<T: DatabaseValue>(type: T.Type, statement: SelectStatement) -> [T?] {
-    return fetchValues(type, statement: statement).map { $0 }
-}
-
-public func fetchOneValue<T: DatabaseValue>(type: T.Type, statement: SelectStatement) -> T? {
-    if let optionalValue = fetchValueGenerator(type, statement: statement).next() {
-        // one row containing an optional value
-        return optionalValue
-    } else {
-        // no row
-        return nil
+    
+    public func fetchValues<T: DatabaseValue>(type: T.Type) -> AnySequence<T?> {
+        return AnySequence { self.fetchValueGenerator(type) }
+    }
+    
+    public func fetchAllValues<T: DatabaseValue>(type: T.Type) -> [T?] {
+        return fetchValues(type).map { $0 }
+    }
+    
+    public func fetchOneValue<T: DatabaseValue>(type: T.Type) -> T? {
+        if let optionalValue = fetchValueGenerator(type).next() {
+            // one row containing an optional value
+            return optionalValue
+        } else {
+            // no row
+            return nil
+        }
     }
 }

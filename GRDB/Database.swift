@@ -126,49 +126,52 @@ public class Database {
     public func tableExists(tableName: String) -> Bool {
         let statement = try! selectStatement("SELECT [sql] FROM sqlite_master WHERE [type] = 'table' AND LOWER(name) = ?")
         statement.bind(tableName.lowercaseString, atIndex: 1)
-        for _ in fetchRows(statement) {
+        for _ in statement.fetchRows() {
             return true
         }
         return false
     }
 }
 
-public func fetchRowGenerator(db: Database, sql: String, bindings: Bindings? = nil) -> AnyGenerator<Row> {
-    let statement = try! db.selectStatement(sql, bindings: bindings)
-    return fetchRowGenerator(statement)
-}
-
-public func fetchRows(db: Database, sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
-    return AnySequence { fetchRowGenerator(db, sql: sql, bindings: bindings) }
-}
-
-public func fetchAllRows(db: Database, sql: String, bindings: Bindings? = nil) -> [Row] {
-    return fetchRows(db, sql: sql, bindings: bindings).map { $0 }
-}
-
-public func fetchOneRow(db: Database, sql: String, bindings: Bindings? = nil) -> Row? {
-    return fetchRowGenerator(db, sql: sql, bindings: bindings).next()
-}
-
-public func fetchValueGenerator<T: DatabaseValue>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> AnyGenerator<T?> {
-    let statement = try! db.selectStatement(sql, bindings: bindings)
-    return fetchValueGenerator(type, statement: statement)
-}
-
-public func fetchValues<T: DatabaseValue>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> AnySequence<T?> {
-    return AnySequence { fetchValueGenerator(type, db: db, sql: sql, bindings: bindings) }
-}
-
-public func fetchAllValues<T: DatabaseValue>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> [T?] {
-    return fetchValues(type, db: db, sql: sql, bindings: bindings).map { $0 }
-}
-
-public func fetchOne<T: DatabaseValue>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> T? {
-    if let first = fetchValueGenerator(type, db: db, sql: sql, bindings: bindings).next() {
-        // one row containing an optional value
-        return first
-    } else {
-        // no row
-        return nil
+extension Database {
+    public func fetchRowGenerator(sql: String, bindings: Bindings? = nil) -> AnyGenerator<Row> {
+        let statement = try! selectStatement(sql, bindings: bindings)
+        return statement.fetchRowGenerator()
+    }
+    
+    public func fetchRows(sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
+        return AnySequence { self.fetchRowGenerator(sql, bindings: bindings) }
+    }
+    
+    public func fetchAllRows(sql: String, bindings: Bindings? = nil) -> [Row] {
+        return fetchRows(sql, bindings: bindings).map { $0 }
+    }
+    
+    public func fetchOneRow(sql: String, bindings: Bindings? = nil) -> Row? {
+        return fetchRowGenerator(sql, bindings: bindings).next()
+    }
+    
+    public func fetchValueGenerator<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnyGenerator<T?> {
+        let statement = try! selectStatement(sql, bindings: bindings)
+        return statement.fetchValueGenerator(type)
+    }
+    
+    public func fetchValues<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnySequence<T?> {
+        return AnySequence { self.fetchValueGenerator(sql, bindings: bindings, type: type) }
+    }
+    
+    public func fetchAllValues<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T?] {
+        return fetchValues(sql, bindings: bindings, type: type).map { $0 }
+    }
+    
+    public func fetchOne<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> T? {
+        if let first = fetchValueGenerator(sql, bindings: bindings, type: type).next() {
+            // one row containing an optional value
+            return first
+        } else {
+            // no row
+            return nil
+        }
     }
 }
+

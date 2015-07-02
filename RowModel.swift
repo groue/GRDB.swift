@@ -77,7 +77,7 @@ public class RowModel {
 }
 
 public func fetchModelGenerator<T: RowModel>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> AnyGenerator<T?> {
-    let rowGenerator = fetchRowGenerator(db, sql: sql, bindings: bindings)
+    let rowGenerator = db.fetchRowGenerator(sql, bindings: bindings)
     return anyGenerator {
         if let row = rowGenerator.next() {
             return T.init(row: row)
