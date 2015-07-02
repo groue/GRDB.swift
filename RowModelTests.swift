@@ -106,6 +106,7 @@ class Stuff: RowModel {
 class Citizenship: RowModel {
     var personID: Int64?
     var countryName: String?
+    var grantedDate: NSDate?
     
     override class var databaseTableName: String? {
         return "citizenships"
@@ -116,12 +117,19 @@ class Citizenship: RowModel {
     }
     
     override var databaseDictionary: [String: DatabaseValue?] {
-        return ["personID": personID, "countryName": countryName]
+        return ["personID": personID, "countryName": countryName, "grantedTimestamp": grantedDate?.timeIntervalSince1970]
     }
     
     override func updateFromDatabaseRow(row: Row) {
         if row.hasColumn("personID") { personID = row.value(named: "personID") }
         if row.hasColumn("countryName") { countryName = row.value(named: "countryName") }
+        if row.hasColumn("grantedTimestamp") {
+            if let timestamp: NSTimeInterval = row.value(named: "grantedTimestamp") {
+                grantedDate = NSDate(timeIntervalSince1970: timestamp)
+            } else {
+                grantedDate = nil
+            }
+        }
     }
 }
 
@@ -161,6 +169,7 @@ class RowModelTests: GRDBTests {
                     "         REFERENCES persons(ID) " +
                     "         ON DELETE CASCADE ON UPDATE CASCADE, " +
                     "countryName TEXT NOT NULL, " +
+                    "grantedTimestamp DOUBLE, " +
                     "PRIMARY KEY (personID, countryName)" +
                 ")")
         }
@@ -371,6 +380,12 @@ class RowModelTests: GRDBTests {
         
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
+            let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
+            let dateComponents = NSDateComponents()
+            dateComponents.year = 1973
+            dateComponents.month = 09
+            dateComponents.day = 18
+            let date = calendar.dateFromComponents(dateComponents)!
             
             try dbQueue.inTransaction { db in
                 try arthur.insert(db)
@@ -380,6 +395,7 @@ class RowModelTests: GRDBTests {
             let citizenship = Citizenship()
             citizenship.personID = arthur.ID
             citizenship.countryName = "France"
+            citizenship.grantedDate = date
             
             try dbQueue.inTransaction { db in
                 // The tested method
@@ -398,6 +414,7 @@ class RowModelTests: GRDBTests {
                 XCTAssertEqual(citizenships.count, 1)
                 XCTAssertEqual(citizenships.first!.personID!, arthur.ID!)
                 XCTAssertEqual(citizenships.first!.countryName!, "France")
+                XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: citizenships.first!.grantedDate!), 1973)
             }
         }
     }
@@ -470,6 +487,43 @@ class RowModelTests: GRDBTests {
                 XCTAssertEqual(pets.count, 1)
                 XCTAssertEqual(pets.first!.UUID!, "BobbyID")
                 XCTAssertEqual(pets.first!.name!, "Karl")
+            }
+        }
+    }
+    
+    func testUpdateRowModelWithMultiplePrimaryKey() {
+        assertNoError {
+            let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
+            let dateComponents = NSDateComponents()
+            dateComponents.year = 1973
+            dateComponents.month = 09
+            dateComponents.day = 18
+            let date1 = calendar.dateFromComponents(dateComponents)!
+            dateComponents.year = 2000
+            let date2 = calendar.dateFromComponents(dateComponents)!
+            XCTAssertFalse(date1.isEqualToDate(date2))
+            
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+                
+                let citizenship = Citizenship()
+                citizenship.personID = arthur.ID
+                citizenship.countryName = "France"
+                citizenship.grantedDate = date1
+                try citizenship.insert(db)
+                
+                citizenship.grantedDate = date2
+                try citizenship.update(db)  // The tested method
+                return .Commit
+            }
+            
+            // After insertion, model should be present in the database
+            dbQueue.inDatabase { db in
+                let citizenships = db.fetchAllModels("SELECT * FROM citizenships", type: Citizenship.self)
+                XCTAssertEqual(citizenships.count, 1)
+                XCTAssertEqual(citizenships.first!.countryName!, "France")
+                XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: citizenships.first!.grantedDate!), 2000)
             }
         }
     }

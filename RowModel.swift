@@ -66,7 +66,8 @@ public class RowModel {
         
         
         // If there is nothing to insert, and primary key is not managed,
-        // somthing is wrong.
+        // something is wrong.
+        
         guard insertedDic.count > 0 || rowIDColumn != nil else {
             fatalError("Nothing to insert")
         }
@@ -126,10 +127,18 @@ public class RowModel {
             primaryKeyDic = dic
         }
         
+        
+        // If there is nothing to update, something is wrong.
+        
+        guard updatedDic.count > 0 else {
+            fatalError("Nothing to update")
+        }
+        
+        
         // "UPDATE table SET name = ? WHERE id = ?"
         
         let updateSQL = ",".join(updatedDic.keys.map { column in "\(column)=?" })
-        let whereSQL = ",".join(primaryKeyDic.keys.map { column in "\(column)=?" })
+        let whereSQL = " AND ".join(primaryKeyDic.keys.map { column in "\(column)=?" })
         let bindings = Bindings(Array(updatedDic.values) + Array(primaryKeyDic.values))
         let sql = "UPDATE \(tableName) SET \(updateSQL) WHERE \(whereSQL)"
         try db.execute(sql, bindings: bindings)
