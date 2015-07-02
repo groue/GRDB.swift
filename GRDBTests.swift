@@ -34,7 +34,7 @@ class GRDBTests: XCTestCase {
             try test()
         } catch let error as SQLiteError {
             if let sql = error.sql {
-                XCTFail("error code \(error.code) executing \(sql): \(error.message)")
+                XCTFail("error code \(error.code) executing `\(sql)`: \(error.message)")
             } else {
                 XCTFail("error code \(error.code): \(error.message)")
             }
