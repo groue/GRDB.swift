@@ -6,7 +6,7 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-public class UpdateStatement : Statement {
+public final class UpdateStatement : Statement {
     public func execute() throws {
         if database.configuration.verbose {
             NSLog("%@", sql)

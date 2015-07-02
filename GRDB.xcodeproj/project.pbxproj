@@ -22,6 +22,7 @@
 		56CC3C9B1B4464AE00A9A534 /* RowModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C9A1B4464AE00A9A534 /* RowModel.swift */; };
 		56CC3C9D1B44681A00A9A534 /* RowModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C9C1B44681A00A9A534 /* RowModelTests.swift */; };
 		56E4BB7F1B452A6200FD324B /* SQLite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4BB7E1B452A6200FD324B /* SQLite.swift */; };
+		56E4BB811B45373600FD324B /* Bindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4BB801B45373600FD324B /* Bindings.swift */; };
 		DC2393C81ABE35F8003FF113 /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC2F675E1AEA7CD600151C15 /* fts3_tokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = DC2F675D1AEA7CD600151C15 /* fts3_tokenizer.h */; };
 		DC3773F919C8CBB3004FCF85 /* GRDB.h in Headers */ = {isa = PBXBuildFile; fileRef = DC3773F819C8CBB3004FCF85 /* GRDB.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -56,6 +57,7 @@
 		56CC3C9C1B44681A00A9A534 /* RowModelTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelTests.swift; sourceTree = SOURCE_ROOT; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		56E4BB7E1B452A6200FD324B /* SQLite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLite.swift; sourceTree = "<group>"; };
+		56E4BB801B45373600FD324B /* Bindings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Bindings.swift; sourceTree = "<group>"; };
 		DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDB-Bridging.h"; sourceTree = "<group>"; };
 		DC2F675D1AEA7CD600151C15 /* fts3_tokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fts3_tokenizer.h; sourceTree = "<group>"; };
 		DC3773F319C8CBB3004FCF85 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -136,6 +138,7 @@
 		DC37742D19C8CC90004FCF85 /* GRDB */ = {
 			isa = PBXGroup;
 			children = (
+				56E4BB801B45373600FD324B /* Bindings.swift */,
 				565E191D1B42B2B600D32814 /* Database.swift */,
 				56CC3C921B43BF0100A9A534 /* DatabaseConfiguration.swift */,
 				56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */,
@@ -287,6 +290,7 @@
 				565E191E1B42B2B600D32814 /* Database.swift in Sources */,
 				5699AE5B1B42D3DC00C35172 /* SelectStatement.swift in Sources */,
 				56CC3C9B1B4464AE00A9A534 /* RowModel.swift in Sources */,
+				56E4BB811B45373600FD324B /* Bindings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

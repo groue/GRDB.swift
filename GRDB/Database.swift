@@ -36,139 +36,50 @@ public class Database {
     
     // MARK: - selectStatement
     
-    public func selectStatement(sql: String) throws -> SelectStatement {
-        let statement = try SelectStatement(database: self, sql: sql)
-        return statement
-    }
-    
-    public func selectStatement(sql: String, bindings: [DatabaseValue?]?) throws -> SelectStatement {
-        let statement = try SelectStatement(database: self, sql: sql)
-        if let bindings = bindings {
-            statement.bind(bindings)
-        }
-        return statement
-    }
-    
-    public func selectStatement(sql: String, bindings: [String: DatabaseValue?]?) throws -> SelectStatement {
-        let statement = try SelectStatement(database: self, sql: sql)
-        if let bindings = bindings {
-            statement.bind(bindings)
-        }
-        return statement
+    public func selectStatement(sql: String, bindings: Bindings? = nil) throws -> SelectStatement {
+        return try SelectStatement(database: self, sql: sql, bindings: bindings)
     }
     
     
     // MARK: - fetchRows
     
-    public func fetchRows(sql: String) throws -> AnySequence<Row> {
-        let statement = try selectStatement(sql)
-        return statement.fetchRows()
-    }
-    
-    public func fetchRows(sql: String, bindings: [DatabaseValue?]?) throws -> AnySequence<Row> {
-        let statement = try selectStatement(sql, bindings: bindings)
-        return statement.fetchRows()
-    }
-    
-    public func fetchRows(sql: String, bindings: [String: DatabaseValue?]?) throws -> AnySequence<Row> {
-        let statement = try selectStatement(sql, bindings: bindings)
-        return statement.fetchRows()
+    public func fetchRows(sql: String, bindings: Bindings? = nil) throws -> AnySequence<Row> {
+        return try selectStatement(sql, bindings: bindings).fetchRows()
     }
     
     
     // MARK: - fetchFirstRow
     
-    public func fetchFirstRow(sql: String) throws -> Row? {
-        let statement = try selectStatement(sql)
-        return statement.fetchFirstRow()
-    }
-    
-    public func fetchFirstRow(sql: String, bindings: [DatabaseValue?]?) throws -> Row? {
-        let statement = try selectStatement(sql, bindings: bindings)
-        return statement.fetchFirstRow()
-    }
-    
-    public func fetchFirstRow(sql: String, bindings: [String: DatabaseValue?]?) throws -> Row? {
-        let statement = try selectStatement(sql, bindings: bindings)
-        return statement.fetchFirstRow()
+    public func fetchFirstRow(sql: String, bindings: Bindings? = nil) throws -> Row? {
+        return try selectStatement(sql, bindings: bindings).fetchFirstRow()
     }
     
     
     // MARK: - fetchValues
     
-    public func fetchValues<T: DatabaseValue>(sql: String, type: T.Type) throws -> AnySequence<T?> {
-        let statement = try selectStatement(sql)
-        return statement.fetchValues(type: type)
-    }
-    
-    public func fetchValues<T: DatabaseValue>(sql: String, bindings: [DatabaseValue?]?, type: T.Type) throws -> AnySequence<T?> {
-        let statement = try selectStatement(sql, bindings: bindings)
-        return statement.fetchValues(type: type)
-    }
-    
-    public func fetchValues<T: DatabaseValue>(sql: String, bindings: [String: DatabaseValue?]?, type: T.Type) throws -> AnySequence<T?> {
-        let statement = try selectStatement(sql, bindings: bindings)
-        return statement.fetchValues(type: type)
+    public func fetchValues<T: DatabaseValue>(sql: String, type: T.Type, bindings: Bindings? = nil) throws -> AnySequence<T?> {
+        return try selectStatement(sql, bindings: bindings).fetchValues(type: type)
     }
     
     
     // MARK: - fetchFirstValue
     
-    public func fetchFirstValue<T: DatabaseValue>(sql: String) throws -> T? {
-        let statement = try selectStatement(sql)
-        return statement.fetchFirstValue()
-    }
-    
-    public func fetchFirstValue<T: DatabaseValue>(sql: String, bindings: [DatabaseValue?]?) throws -> T? {
-        let statement = try selectStatement(sql, bindings: bindings)
-        return statement.fetchFirstValue()
-    }
-    
-    public func fetchFirstValue<T: DatabaseValue>(sql: String, bindings: [String: DatabaseValue?]?) throws -> T? {
-        let statement = try selectStatement(sql, bindings: bindings)
-        return statement.fetchFirstValue()
+    public func fetchFirstValue<T: DatabaseValue>(sql: String, bindings: Bindings? = nil) throws -> T? {
+        return try selectStatement(sql, bindings: bindings).fetchFirstValue()
     }
     
     
     // MARK: - updateStatement
     
-    public func updateStatement(sql: String) throws -> UpdateStatement {
-        let statement = try UpdateStatement(database: self, sql: sql)
-        return statement
-    }
-    
-    public func updateStatement(sql: String, bindings: [DatabaseValue?]?) throws -> UpdateStatement {
-        let statement = try UpdateStatement(database: self, sql: sql)
-        if let bindings = bindings {
-            statement.bind(bindings)
-        }
-        return statement
-    }
-    
-    public func updateStatement(sql: String, bindings: [String: DatabaseValue?]?) throws -> UpdateStatement {
-        let statement = try UpdateStatement(database: self, sql: sql)
-        if let bindings = bindings {
-            statement.bind(bindings)
-        }
-        return statement
+    public func updateStatement(sql: String, bindings: Bindings? = nil) throws -> UpdateStatement {
+        return try UpdateStatement(database: self, sql: sql, bindings: bindings)
     }
     
     
     // MARK: - execute
     
-    public func execute(sql: String) throws {
-        let statement = try updateStatement(sql)
-        try statement.execute()
-    }
-    
-    public func execute(sql: String, bindings: [DatabaseValue?]?) throws {
-        let statement = try updateStatement(sql, bindings: bindings)
-        try statement.execute()
-    }
-    
-    public func execute(sql: String, bindings: [String: DatabaseValue?]?) throws {
-        let statement = try updateStatement(sql, bindings: bindings)
-        try statement.execute()
+    public func execute(sql: String, bindings: Bindings? = nil) throws {
+        return try updateStatement(sql, bindings: bindings).execute()
     }
     
     

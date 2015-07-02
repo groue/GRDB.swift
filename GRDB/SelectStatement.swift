@@ -6,7 +6,7 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-public class SelectStatement : Statement {
+public final class SelectStatement : Statement {
     public lazy var columnCount: Int = Int(sqlite3_column_count(self.sqliteStatement))
     public lazy var columnNames: [String] = (0..<self.columnCount).map { index in
         return String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32(index)))!

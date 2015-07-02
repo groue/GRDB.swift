@@ -60,7 +60,7 @@ public class RowModel {
         let columnList = ",".join(columnNames)
         let questionMarks = ",".join([String](count: columnNames.count, repeatedValue: "?"))
         let sql = "INSERT INTO \(tableName) (\(columnList)) VALUES (\(questionMarks))"
-        try db.execute(sql, bindings: Array(dic.values))
+        try db.execute(sql, bindings: Bindings(dic.values))
         
         // Update managed primary key
         if let managedPrimaryKeyName = managedPrimaryKeyName, let lastInsertedRowID = db.lastInsertedRowID {
@@ -76,26 +76,27 @@ public class RowModel {
     }
 }
 
-public class FetchSequence<T: RowModel>: SequenceType {
-    private var rows: AnySequence<Row>
-    
-    private init(rows: AnySequence<Row>) {
-        self.rows = rows
-    }
-    
-    public func generate() -> AnyGenerator<T> {
-        let gen = rows.generate()
-        return anyGenerator { () -> T? in
-            if let row = gen.next() {
-                return T.init(row: row)
-            } else {
-                return nil
-            }
+func fetchGenerator<T: RowModel>(db: Database, type: T.Type, sql: String) -> AnyGenerator<T> {
+    let statement = try! db.selectStatement(sql)
+    let rows = statement.fetchRows()
+    let rowGenerator = rows.generate()
+    return anyGenerator {
+        if let row = rowGenerator.next() {
+            return T.init(row: row)
+        } else {
+            return nil
         }
     }
 }
 
-func fetchSequence<T: RowModel>(db: Database, type: T.Type, sql: String) -> FetchSequence<T> {
-    let rows = try! db.fetchRows(sql)
-    return FetchSequence<T>(rows: rows)
+func fetch<T: RowModel>(db: Database, type: T.Type, sql: String) -> AnySequence<T> {
+    return AnySequence { fetchGenerator(db, type: type, sql: sql) }
+}
+
+func fetchAll<T: RowModel>(db: Database, type: T.Type, sql: String) -> [T] {
+    return fetch(db, type: type, sql: sql).map { $0 }
+}
+
+func fetchOne<T: RowModel>(db: Database, type: T.Type, sql: String) -> T? {
+    return fetchGenerator(db, type: type, sql: sql).next()
 }
