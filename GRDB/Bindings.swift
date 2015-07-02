@@ -14,7 +14,7 @@ public struct Bindings {
     let impl: BindingsImpl
     
     public init<C: SequenceType where C.Generator.Element == Optional<DatabaseValue>>(_ array: C) {
-        impl = BindingsArrayImpl(array: array.map { $0 })
+        impl = BindingsArrayImpl(array: Array(array))
     }
     
     public init<C: SequenceType where C.Generator.Element == DatabaseValue>(_ array: C) {

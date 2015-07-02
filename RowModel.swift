@@ -99,7 +99,7 @@ extension Database {
     }
 
     public func fetchAllModels<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T] {
-        return fetchModels(sql, bindings: bindings, type: type).map { $0 }
+        return Array(fetchModels(sql, bindings: bindings, type: type))
     }
 
     public func fetchOneModel<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> T? {

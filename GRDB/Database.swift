@@ -144,7 +144,7 @@ extension Database {
     }
     
     public func fetchAllRows(sql: String, bindings: Bindings? = nil) -> [Row] {
-        return fetchRows(sql, bindings: bindings).map { $0 }
+        return Array(fetchRows(sql, bindings: bindings))
     }
     
     public func fetchOneRow(sql: String, bindings: Bindings? = nil) -> Row? {
@@ -161,7 +161,7 @@ extension Database {
     }
     
     public func fetchAllValues<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T?] {
-        return fetchValues(sql, bindings: bindings, type: type).map { $0 }
+        return Array(fetchValues(sql, bindings: bindings, type: type))
     }
     
     public func fetchOne<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> T? {

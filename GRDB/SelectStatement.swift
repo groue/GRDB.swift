@@ -78,7 +78,7 @@ extension SelectStatement {
     }
     
     public func fetchAllRows() -> [Row] {
-        return fetchRows().map { $0 }
+        return Array(fetchRows())
     }
     
     public func fetchOneRow() -> Row? {
@@ -101,7 +101,7 @@ extension SelectStatement {
     }
     
     public func fetchAllValues<T: DatabaseValue>(type: T.Type) -> [T?] {
-        return fetchValues(type).map { $0 }
+        return Array(fetchValues(type))
     }
     
     public func fetchOneValue<T: DatabaseValue>(type: T.Type) -> T? {
