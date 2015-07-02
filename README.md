@@ -11,7 +11,6 @@ Features
 
 - **A low-level SQLite API** that leverages the Swift 2 standard library.
 - **Migrations**
-- A thin class that wraps query results: RowModel.
 - **No ORM, no query builder**. Instead, a thin class that wraps query results, and helps people who like customizing their SQL queries.
 
 
