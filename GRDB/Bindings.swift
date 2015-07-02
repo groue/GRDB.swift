@@ -13,11 +13,11 @@ protocol BindingsImpl {
 public struct Bindings {
     let impl: BindingsImpl
     
-    public init<C: CollectionType where C.Generator.Element == Optional<DatabaseValue>>(_ array: C) {
+    public init<C: SequenceType where C.Generator.Element == Optional<DatabaseValue>>(_ array: C) {
         impl = BindingsArrayImpl(array: array.map { $0 })
     }
     
-    public init<C: CollectionType where C.Generator.Element == DatabaseValue>(_ array: C) {
+    public init<C: SequenceType where C.Generator.Element == DatabaseValue>(_ array: C) {
         impl = BindingsArrayImpl(array: array.map { $0 })
     }
     
