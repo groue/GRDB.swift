@@ -14,16 +14,16 @@ class Person: RowModel {
     var name: String?
     var age: Int?
     
-    override var tableName: String? {
+    override class var databaseTableName: String? {
         return "persons"
     }
     
-    override var databaseDictionary : [String: DatabaseValue?] {
-        return ["name": name, "age": age]
+    override class var databasePrimaryKey: PrimaryKey {
+        return .SQLiteRowID("ID")
     }
     
-    override var databasePrimaryKey : [String: DatabaseValue?] {
-        return ["ID": ID]
+    override var databaseDictionary: [String: DatabaseValue?] {
+        return ["ID": ID, "name": name, "age": age]
     }
     
     override func updateFromDatabaseRow(row: Row) {
@@ -48,22 +48,33 @@ class Pet: RowModel {
     var masterID: Int64?
     var name: String?
     
-    override var tableName: String? {
+    override class var databaseTableName: String? {
         return "pets"
     }
     
-    override var databaseDictionary : [String: DatabaseValue?] {
-        return ["name": name, "masterID": masterID]
+    override class var databasePrimaryKey: PrimaryKey {
+        return .Single("UUID")
     }
     
-    override var databasePrimaryKey : [String: DatabaseValue?] {
-        return ["UUID": UUID]
+    override var databaseDictionary: [String: DatabaseValue?] {
+        return ["UUID": UUID, "name": name, "masterID": masterID]
     }
     
     override func updateFromDatabaseRow(row: Row) {
         if row.hasColumn("UUID") { UUID = row.value(named: "UUID") }
         if row.hasColumn("name") { name = row.value(named: "name") }
         if row.hasColumn("masterID") { masterID = row.value(named: "masterID") }
+    }
+    
+    init (UUID: String? = nil, name: String? = nil, masterID: Int64? = nil) {
+        self.UUID = UUID
+        self.name = name
+        self.masterID = masterID
+        super.init()
+    }
+    
+    required init(row: Row) {
+        super.init(row: row)
     }
 }
 
@@ -79,11 +90,11 @@ class PersonWithPet: Person {
 class Stuff: RowModel {
     var name: String?
     
-    override var tableName: String? {
+    override class var databaseTableName: String? {
         return "stuffs"
     }
     
-    override var databaseDictionary : [String: DatabaseValue?] {
+    override var databaseDictionary: [String: DatabaseValue?] {
         return ["name": name]
     }
     
@@ -96,12 +107,16 @@ class Citizenship: RowModel {
     var personID: Int64?
     var countryName: String?
     
-    override var tableName: String? {
+    override class var databaseTableName: String? {
         return "citizenships"
     }
     
-    override var databaseDictionary : [String: DatabaseValue?] {
-        return ["countryName": countryName, "personID": personID]
+    override class var databasePrimaryKey: PrimaryKey {
+        return .Multiple(["personID", "countryName"])
+    }
+    
+    override var databaseDictionary: [String: DatabaseValue?] {
+        return ["personID": personID, "countryName": countryName]
     }
     
     override func updateFromDatabaseRow(row: Row) {
@@ -154,7 +169,11 @@ class RowModelTests: GRDBTests {
         }
     }
     
-    func testInsertRowModelWithManagedID() {
+    func testInsertRowModelWithSQLiteRowIDPrimaryKey() {
+        // Models with SQLiteRowID primary key should be able to be inserted
+        // with a nil primary key. After the insertion, they have their primary
+        // key set.
+        
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
@@ -169,7 +188,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            // After insertion, person should be present in the database
+            // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
                 let persons = db.fetchAllModels("SELECT * FROM persons ORDER BY name", type: Person.self)
                 XCTAssertEqual(persons.count, 1)
@@ -178,7 +197,14 @@ class RowModelTests: GRDBTests {
         }
     }
     
-    func testInsertTwiceRowModelWithManagedID() {
+    func testInsertTwiceRowModelWithSQLiteRowIDPrimaryKey() {
+        // Models with SQLiteRowID primary key should be able to be inserted
+        // with a nil primary key. After the insertion, they have their primary
+        // key set.
+        //
+        // The second insertion should fail because the primary key is already
+        // taken.
+        
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
@@ -196,7 +222,9 @@ class RowModelTests: GRDBTests {
         }
     }
     
-    func testInsertRowModelWithoutPrimaryKey() {
+    func testInsertRowModelWithNonePrimaryKey() {
+        // Models with None primary key should be able to be inserted.
+        
         assertNoError {
             let stuff = Stuff()
             stuff.name = "foo"
@@ -208,7 +236,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            // After insertion, stuff should be present in the database
+            // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
                 let stuffs = db.fetchAllModels("SELECT * FROM stuffs ORDER BY name", type: Stuff.self)
                 XCTAssertEqual(stuffs.count, 1)
@@ -217,7 +245,11 @@ class RowModelTests: GRDBTests {
         }
     }
     
-    func testInsertTwiceRowModelWithoutPrimaryKey() {
+    func testInsertTwiceRowModelWithNonePrimaryKey() {
+        // Models with None primary key should be able to be inserted.
+        //
+        // The second insertion simply inserts a second row.
+        
         assertNoError {
             let stuff = Stuff()
             stuff.name = "foo"
@@ -230,7 +262,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            // After insertion, stuff should be present in the database
+            // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
                 let stuffs = db.fetchAllModels("SELECT * FROM stuffs ORDER BY name", type: Stuff.self)
                 XCTAssertEqual(stuffs.count, 2)
@@ -240,7 +272,10 @@ class RowModelTests: GRDBTests {
         }
     }
     
-    func testInsertRowModelWithNonNilUnmanagedSingleColumnPrimaryKey() {
+    func testInsertRowModelWithNonNilSinglePrimaryKey() {
+        // Models with Single primary key should be able to be inserted when
+        // their primary key is not nil.
+        
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
@@ -249,10 +284,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            let pet = Pet()
-            pet.UUID = "BobbyID"
-            pet.name = "Bobby"
-            pet.masterID = arthur.ID
+            let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.ID)
             
             try dbQueue.inTransaction { db in
                 // The tested method
@@ -264,7 +296,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            // After insertion, person should be present in the database
+            // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
                 let pets = db.fetchAllModels("SELECT * FROM pets ORDER BY name", type: Pet.self)
                 XCTAssertEqual(pets.count, 1)
@@ -274,7 +306,10 @@ class RowModelTests: GRDBTests {
         }
     }
     
-    func testInsertRowModelWithNilUnmanagedSingleColumnPrimaryKey() {
+    func testInsertRowModelWithNilSinglePrimaryKey() {
+        // Models with Single primary key should not be able to be inserted when
+        // their primary key is nil.
+        
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
@@ -283,9 +318,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            let pet = Pet()
-            pet.name = "Bobby"
-            pet.masterID = arthur.ID
+            let pet = Pet(name: "Bobby", masterID: arthur.ID)
             
             do {
                 try dbQueue.inTransaction { db in
@@ -300,7 +333,13 @@ class RowModelTests: GRDBTests {
         }
     }
     
-    func testInsertTwiceRowModelWithNonNilUnmanagedSingleColumnPrimaryKey() {
+    func testInsertTwiceRowModelWithNonNilSinglePrimaryKey() {
+        // Models with Single primary key should be able to be inserted when
+        // their primary key is not nil.
+        //
+        // The second insertion should fail because the primary key is already
+        // taken.
+        
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
@@ -309,10 +348,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            let pet = Pet()
-            pet.UUID = "BobbyID"
-            pet.name = "Bobby"
-            pet.masterID = arthur.ID
+            let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.ID)
             
             do {
                 try dbQueue.inTransaction { db in
@@ -329,7 +365,10 @@ class RowModelTests: GRDBTests {
         }
     }
     
-    func testInsertRowModelWithMultipleColumnsPrimaryKey() {
+    func testInsertRowModelWithMultiplePrimaryKey() {
+        // Models with Multiple primary key should be able to be inserted when
+        // their primary key is set.
+        
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
@@ -353,7 +392,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            // After insertion, person should be present in the database
+            // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
                 let citizenships = db.fetchAllModels("SELECT * FROM citizenships", type: Citizenship.self)
                 XCTAssertEqual(citizenships.count, 1)
@@ -363,7 +402,7 @@ class RowModelTests: GRDBTests {
         }
     }
     
-    func testInsertTwiceRowModelMultipleColumnsPrimaryKey() {
+    func testInsertTwiceRowModelWithMultiplePrimaryKey() {
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
@@ -407,6 +446,50 @@ class RowModelTests: GRDBTests {
                 XCTAssertEqual(persons.map { $0.age! }, [41, 36])
                 XCTAssertEqual(arthur.name!, "Arthur")
                 XCTAssertEqual(arthur.age!, 41)
+            }
+        }
+    }
+    
+    func testSelectOneRowModelWithSQLiteRowIDPrimaryKey() {
+        assertNoError {
+            var arthurID: Int64? = nil
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+                arthurID = arthur.ID
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let arthur = db.fetchOneModel(primaryKey: arthurID!, type: Person.self)!
+                
+                XCTAssertEqual(arthur.ID!, arthurID!)
+                XCTAssertEqual(arthur.name!, "Arthur")
+                XCTAssertEqual(arthur.age!, 41)
+            }
+        }
+    }
+    
+    func testSelectOneRowModelWithSinglePrimaryKey() {
+        assertNoError {
+            let petUUID = "BobbyID"
+            
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+
+                let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.ID)
+                try pet.insert(db)
+                
+                return .Commit
+            }
+            
+            
+            dbQueue.inDatabase { db in
+                let pet = db.fetchOneModel(primaryKey: petUUID, type: Pet.self)!
+                
+                XCTAssertEqual(pet.UUID!, petUUID)
+                XCTAssertEqual(pet.name!, "Bobby")
             }
         }
     }

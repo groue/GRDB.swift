@@ -10,15 +10,22 @@ import Cocoa
 
 public class RowModel {
     
-    public var tableName: String? {
+    public enum PrimaryKey {
+        case None
+        case SQLiteRowID(String)
+        case Single(String)
+        case Multiple([String])
+    }
+    
+    public class var databaseTableName : String? {
         return nil
     }
     
-    public var databaseDictionary : [String: DatabaseValue?] {
-        return [:]
+    public class var databasePrimaryKey: PrimaryKey {
+        return .None
     }
     
-    public var databasePrimaryKey : [String: DatabaseValue?] {
+    public var databaseDictionary: [String: DatabaseValue?] {
         return [:]
     }
     
@@ -30,53 +37,61 @@ public class RowModel {
         // TODO: dirty
         // TODO?: table modification notification
         
-        guard let tableName = self.tableName else {
+        guard let tableName = self.dynamicType.databaseTableName else {
             fatalError("Missing table name")
         }
         
+        
+        // The inserted values, and the primary key
+        
         var insertedDic = databaseDictionary
-        let primaryKey = databasePrimaryKey
+        let primaryKey = self.dynamicType.databasePrimaryKey
         
-        // TODO: assert primaryKey and insertedDic have no common key
         
-        // If primary key is made of a single column, and this column is not
-        // set, assume it is managed by SQLite.
-        let managedPrimaryKeyName: String?
-        if primaryKey.count == 1 && primaryKey.first!.1 == nil {
-            managedPrimaryKeyName = primaryKey.first!.0
-        } else {
-            managedPrimaryKeyName = nil
-        }
+        // Should we include the primary key in the insert statement?
+        // We do, unless the key is a SQLite RowID, without any value.
         
-        // If primary key is not managed, add it to the inserted values:
-        if managedPrimaryKeyName == nil {
-            for (key, value) in primaryKey {
-                insertedDic[key] = value
+        let rowIDColumnName: String?
+        switch primaryKey {
+        case .SQLiteRowID(let columName):
+            if let _ = insertedDic[columName]! {    // unwrap double optional
+                rowIDColumnName = nil
+            } else {
+                insertedDic.removeValueForKey(columName)
+                rowIDColumnName = columName
             }
+        default:
+            rowIDColumnName = nil
         }
+        
         
         // If there is nothing to insert, and primary key is not managed,
         // somthing is wrong.
-        guard insertedDic.count > 0 || managedPrimaryKeyName != nil else {
+        guard insertedDic.count > 0 || rowIDColumnName != nil else {
             fatalError("Nothing to insert")
         }
         
+        
         // INSERT INTO table ([id, ]name) VALUES ([:id, ]:name)
+        
         let columnNames = insertedDic.keys
         let columnList = ",".join(columnNames)
         let questionMarks = ",".join([String](count: columnNames.count, repeatedValue: "?"))
         let sql = "INSERT INTO \(tableName) (\(columnList)) VALUES (\(questionMarks))"
         try db.execute(sql, bindings: Bindings(insertedDic.values))
         
-        // Update managed primary key
-        if let managedPrimaryKeyName = managedPrimaryKeyName, let lastInsertedRowID = db.lastInsertedRowID {
-            let row = Row(sqliteDictionary: [managedPrimaryKeyName: SQLiteValue.Integer(lastInsertedRowID)])
+        
+        // Update RowID column
+        
+        if let rowIDColumnName = rowIDColumnName, let lastInsertedRowID = db.lastInsertedRowID {
+            let row = Row(sqliteDictionary: [rowIDColumnName: SQLiteValue.Integer(lastInsertedRowID)])
             updateFromDatabaseRow(row)
         }
     }
     
     public init () {
     }
+    
     required public init (row: Row) {
         updateFromDatabaseRow(row)
     }
@@ -110,6 +125,26 @@ extension Database {
             // no row
             return nil
         }
+    }
+    
+    public func fetchOneModel<T: RowModel>(primaryKey primaryKey: DatabaseValue, type: T.Type) -> T? {
+        guard let tableName = T.databaseTableName else {
+            fatalError("Missing table name")
+        }
+        
+        let sql: String
+        switch T.databasePrimaryKey {
+        case .None:
+            fatalError("Missing primary key")
+        case .SQLiteRowID(let columnName):
+            sql = "SELECT * FROM \(tableName) WHERE \(columnName) = ?"
+        case .Single(let columnName):
+            sql = "SELECT * FROM \(tableName) WHERE \(columnName) = ?"
+        case .Multiple:
+            fatalError("Multiple primary key")
+        }
+        
+        return fetchOneModel(sql, bindings: [primaryKey], type: type)
     }
 }
 
