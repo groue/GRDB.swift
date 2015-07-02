@@ -104,4 +104,24 @@ class RowModelTests: GRDBTests {
             XCTAssertTrue(arthur.ID != nil)
         }
     }
+    
+    func testInsertTwiceBreaksUniqueIndex() {
+        assertNoError {
+            let arthur = Person()
+            arthur.name = "Arthur"
+            arthur.age = 41
+            
+            XCTAssertTrue(arthur.ID == nil)
+            do {
+                try dbQueue.inTransaction { db in
+                    try arthur.insert(db)
+                    try arthur.insert(db)
+                    return .Commit
+                }
+                XCTFail("Expected error")
+            } catch is SQLiteError {
+                // OK, this is expected
+            }
+        }
+    }
 }

@@ -34,33 +34,39 @@ public class RowModel {
             fatalError("Missing table name")
         }
         
-        var dic = databaseDictionary
-        let pk = databasePrimaryKey
+        var insertedDic = databaseDictionary
+        let primaryKey = databasePrimaryKey
+        
+        // TODO: assert primaryKey and insertedDic have no common key
         
         // If primary key is made of a single column, and this column is not
         // set, assume it is managed by SQLite.
         let managedPrimaryKeyName: String?
-        if pk.count == 1 && pk.first!.1 == nil {
-            managedPrimaryKeyName = pk.first!.0
+        if primaryKey.count == 1 && primaryKey.first!.1 == nil {
+            managedPrimaryKeyName = primaryKey.first!.0
         } else {
             managedPrimaryKeyName = nil
         }
         
-        // Don't insert managedPrimaryKeyName:
-        if let managedPrimaryKeyName = managedPrimaryKeyName {
-            dic.removeValueForKey(managedPrimaryKeyName)
+        // If primary key is not managed, add it to the inserted values:
+        if managedPrimaryKeyName == nil {
+            for (key, value) in primaryKey {
+                insertedDic[key] = value
+            }
         }
         
-        guard dic.count > 0 || managedPrimaryKeyName != nil else {
+        // If there is nothing to insert, and primary key is not managed,
+        // somthing is wrong.
+        guard insertedDic.count > 0 || managedPrimaryKeyName != nil else {
             fatalError("Nothing to insert")
         }
         
         // INSERT INTO table ([id, ]name) VALUES ([:id, ]:name)
-        let columnNames = dic.keys
+        let columnNames = insertedDic.keys
         let columnList = ",".join(columnNames)
         let questionMarks = ",".join([String](count: columnNames.count, repeatedValue: "?"))
         let sql = "INSERT INTO \(tableName) (\(columnList)) VALUES (\(questionMarks))"
-        try db.execute(sql, bindings: Bindings(dic.values))
+        try db.execute(sql, bindings: Bindings(insertedDic.values))
         
         // Update managed primary key
         if let managedPrimaryKeyName = managedPrimaryKeyName, let lastInsertedRowID = db.lastInsertedRowID {
