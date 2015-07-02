@@ -25,15 +25,14 @@ public class RowModel {
     public func updateFromDatabaseRow(row: Row) {
     }
     
-    public func insert(db: Database) throws {
+    final public func insert(db: Database) throws {
+        // TODO: validation
+        // TODO: dirty
+        // TODO?: table modification notification
+        
         guard let tableName = self.tableName else {
             fatalError("Missing table name")
         }
-//        if !validateForInsert(error: error) {
-//            return false
-//        }
-        
-        // "INSERT INTO table ([id, ]name) VALUES ([:id, ]:name)"
         
         var dic = databaseDictionary
         let pk = databasePrimaryKey
@@ -56,26 +55,47 @@ public class RowModel {
             fatalError("Nothing to insert")
         }
         
+        // INSERT INTO table ([id, ]name) VALUES ([:id, ]:name)
         let columnNames = dic.keys
         let columnList = ",".join(columnNames)
         let questionMarks = ",".join([String](count: columnNames.count, repeatedValue: "?"))
-        let insertQuery = "INSERT INTO \(tableName) (\(columnList)) VALUES (\(questionMarks))"
+        let sql = "INSERT INTO \(tableName) (\(columnList)) VALUES (\(questionMarks))"
+        try db.execute(sql, bindings: Array(dic.values))
         
-        try db.execute(insertQuery, bindings: Array(dic.values))
-//        if db.changes() > 0 {
-//            ModelDatabase.tableDidChange(table.name)
-//        }
-        
+        // Update managed primary key
         if let managedPrimaryKeyName = managedPrimaryKeyName, let lastInsertedRowID = db.lastInsertedRowID {
             let row = Row(cellDictionary: [managedPrimaryKeyName: DatabaseCell.Integer(lastInsertedRowID)])
             updateFromDatabaseRow(row)
         }
-        
-//        // Not dirty any longer
-//        nonDirtyDictionary = dictionaryWithValuesForKeys(table.columnNames)
     }
     
     public init () {
-        
     }
+    required public init (row: Row) {
+        updateFromDatabaseRow(row)
+    }
+}
+
+public class FetchSequence<T: RowModel>: SequenceType {
+    private var rows: AnySequence<Row>
+    
+    private init(rows: AnySequence<Row>) {
+        self.rows = rows
+    }
+    
+    public func generate() -> AnyGenerator<T> {
+        let gen = rows.generate()
+        return anyGenerator { () -> T? in
+            if let row = gen.next() {
+                return T.init(row: row)
+            } else {
+                return nil
+            }
+        }
+    }
+}
+
+func fetchSequence<T: RowModel>(db: Database, type: T.Type, sql: String) -> FetchSequence<T> {
+    let rows = try! db.fetchRows(sql)
+    return FetchSequence<T>(rows: rows)
 }
