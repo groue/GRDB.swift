@@ -32,6 +32,13 @@ public class RowModel {
     public func updateFromDatabaseRow(row: Row) {
     }
     
+    public init() {
+    }
+    
+    required public init(row: Row) {
+        updateFromDatabaseRow(row)
+    }
+    
     final public func insert(db: Database) throws {
         // TODO: validation
         // TODO: dirty
@@ -144,16 +151,51 @@ public class RowModel {
         try db.execute(sql, bindings: bindings)
     }
     
-    public init () {
-    }
-    
-    required public init (row: Row) {
-        updateFromDatabaseRow(row)
+    final public func save(db: Database) throws {
+        
+        guard let tableName = self.dynamicType.databaseTableName else {
+            fatalError("Missing table name")
+        }
+        
+        let needUpdate: Bool
+        pk: switch self.dynamicType.databasePrimaryKey {
+        case .None:
+            needUpdate = false
+        case .SQLiteRowID(let column):
+            if let value = databaseDictionary[column]! {    // unwrap double optional
+                needUpdate = db.fetchOne("SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value], type: Bool.self)!
+            } else {
+                needUpdate = false
+            }
+        case .Single(let column):
+            if let value = databaseDictionary[column]! {    // unwrap double optional
+                needUpdate = db.fetchOne("SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value], type: Bool.self)!
+            } else {
+                needUpdate = false
+            }
+        case .Multiple(let columns):
+            let dic = databaseDictionary
+            for column in columns {
+                if dic[column]! == nil {    // unwrap double optional
+                    needUpdate = false
+                    break pk
+                }
+            }
+            let whereSQL = " AND ".join(columns.map { column in "\(column)=?" })
+            let bindings = Bindings(columns.map { column in dic[column]! })
+            needUpdate = db.fetchOne("SELECT 1 FROM \(tableName) WHERE \(whereSQL)", bindings: bindings, type: Bool.self)!
+        }
+        
+        if needUpdate {
+            try update(db)
+        } else {
+            try insert(db)
+        }
     }
 }
 
 extension Database {
-    public func fetchModelGenerator<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnyGenerator<T> {
+    public func fetchGenerator<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnyGenerator<T> {
         let rowGenerator = fetchRowGenerator(sql, bindings: bindings)
         return anyGenerator {
             if let row = rowGenerator.next() {
@@ -164,16 +206,16 @@ extension Database {
         }
     }
 
-    public func fetchModels<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnySequence<T> {
-        return AnySequence { self.fetchModelGenerator(sql, bindings: bindings, type: type) }
+    public func fetch<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnySequence<T> {
+        return AnySequence { self.fetchGenerator(sql, bindings: bindings, type: type) }
     }
 
-    public func fetchAllModels<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T] {
-        return Array(fetchModels(sql, bindings: bindings, type: type))
+    public func fetchAll<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T] {
+        return Array(fetch(sql, bindings: bindings, type: type))
     }
 
-    public func fetchOneModel<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> T? {
-        if let first = fetchModelGenerator(sql, bindings: bindings, type: type).next() {
+    public func fetchOne<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> T? {
+        if let first = fetchGenerator(sql, bindings: bindings, type: type).next() {
             // one row containing an optional value
             return first
         } else {
@@ -182,7 +224,7 @@ extension Database {
         }
     }
     
-    public func fetchOneModel<T: RowModel>(primaryKey primaryKey: DatabaseValue, type: T.Type) -> T? {
+    public func fetchOne<T: RowModel>(primaryKey primaryKey: DatabaseValue, type: T.Type) -> T? {
         guard let tableName = T.databaseTableName else {
             fatalError("Missing table name")
         }
@@ -199,7 +241,7 @@ extension Database {
             fatalError("Multiple primary key")
         }
         
-        return fetchOneModel(sql, bindings: [primaryKey], type: type)
+        return fetchOne(sql, bindings: [primaryKey], type: type)
     }
 }
 

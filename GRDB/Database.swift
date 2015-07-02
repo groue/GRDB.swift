@@ -134,6 +134,7 @@ public class Database {
 }
 
 extension Database {
+    
     public func fetchRowGenerator(sql: String, bindings: Bindings? = nil) -> AnyGenerator<Row> {
         let statement = try! selectStatement(sql, bindings: bindings)
         return statement.fetchRowGenerator()
@@ -150,22 +151,25 @@ extension Database {
     public func fetchOneRow(sql: String, bindings: Bindings? = nil) -> Row? {
         return fetchRowGenerator(sql, bindings: bindings).next()
     }
+}
+
+extension Database {
     
-    public func fetchValueGenerator<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnyGenerator<T?> {
+    public func fetchGenerator<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnyGenerator<T?> {
         let statement = try! selectStatement(sql, bindings: bindings)
-        return statement.fetchValueGenerator(type)
+        return statement.fetchGenerator(type)
     }
     
-    public func fetchValues<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnySequence<T?> {
-        return AnySequence { self.fetchValueGenerator(sql, bindings: bindings, type: type) }
+    public func fetch<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnySequence<T?> {
+        return AnySequence { self.fetchGenerator(sql, bindings: bindings, type: type) }
     }
     
-    public func fetchAllValues<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T?] {
-        return Array(fetchValues(sql, bindings: bindings, type: type))
+    public func fetchAll<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T?] {
+        return Array(fetch(sql, bindings: bindings, type: type))
     }
     
     public func fetchOne<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> T? {
-        if let first = fetchValueGenerator(sql, bindings: bindings, type: type).next() {
+        if let first = fetchGenerator(sql, bindings: bindings, type: type).next() {
             // one row containing an optional value
             return first
         } else {

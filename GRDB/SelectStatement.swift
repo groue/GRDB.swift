@@ -85,8 +85,11 @@ extension SelectStatement {
     public func fetchOneRow() -> Row? {
         return fetchRowGenerator().next()
     }
+}
+
+extension SelectStatement {
     
-    public func fetchValueGenerator<T: DatabaseValue>(type: T.Type) -> AnyGenerator<T?> {
+    public func fetchGenerator<T: DatabaseValue>(type: T.Type) -> AnyGenerator<T?> {
         let rowGenerator = fetchRowGenerator()
         return anyGenerator { () -> T?? in
             if let row = rowGenerator.next() {
@@ -97,16 +100,16 @@ extension SelectStatement {
         }
     }
     
-    public func fetchValues<T: DatabaseValue>(type: T.Type) -> AnySequence<T?> {
-        return AnySequence { self.fetchValueGenerator(type) }
+    public func fetch<T: DatabaseValue>(type: T.Type) -> AnySequence<T?> {
+        return AnySequence { self.fetchGenerator(type) }
     }
     
-    public func fetchAllValues<T: DatabaseValue>(type: T.Type) -> [T?] {
-        return Array(fetchValues(type))
+    public func fetchAll<T: DatabaseValue>(type: T.Type) -> [T?] {
+        return Array(fetch(type))
     }
     
-    public func fetchOneValue<T: DatabaseValue>(type: T.Type) -> T? {
-        if let optionalValue = fetchValueGenerator(type).next() {
+    public func fetchOne<T: DatabaseValue>(type: T.Type) -> T? {
+        if let optionalValue = fetchGenerator(type).next() {
             // one row containing an optional value
             return optionalValue
         } else {

@@ -443,7 +443,7 @@ class DatabaseTests: GRDBTests {
                 }
                 
                 // Value sequences require explicit `type` parameter
-                for name in db.fetchValues("SELECT name FROM persons", type: String.self) {
+                for name in db.fetch("SELECT name FROM persons", type: String.self) {
                     // name is `String?` because some rows may have a NULL name.
                     print(name)
                 }
@@ -453,7 +453,7 @@ class DatabaseTests: GRDBTests {
             // Extracting values out of a database block:
             
             let names = dbQueue.inDatabase { db in
-                db.fetchValues("SELECT name FROM persons ORDER BY name", type: String.self).map { $0! }
+                db.fetch("SELECT name FROM persons ORDER BY name", type: String.self).map { $0! }
             }
             XCTAssertEqual(names, ["Arthur", "Barbara"])
         }
