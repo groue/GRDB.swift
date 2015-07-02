@@ -31,7 +31,7 @@ class DatabaseMigratorTests: GRDBTests {
         
         assertNoError {
             try migrator.migrate(dbQueue)
-            try dbQueue.inDatabase { db in
+            dbQueue.inDatabase { db in
                 XCTAssertTrue(db.tableExists("persons"))
                 XCTAssertTrue(db.tableExists("pets"))
             }
@@ -43,7 +43,7 @@ class DatabaseMigratorTests: GRDBTests {
         
         assertNoError {
             try migrator.migrate(dbQueue)
-            try dbQueue.inDatabase { db in
+            dbQueue.inDatabase { db in
                 XCTAssertTrue(db.tableExists("persons"))
                 XCTAssertFalse(db.tableExists("pets"))
             }

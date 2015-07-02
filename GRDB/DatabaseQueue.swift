@@ -39,6 +39,16 @@ public class DatabaseQueue {
         }
     }
     
+    public func inDatabase(block: (db: Database) -> Void) {
+        guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
+            fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")
+        }
+        
+        dispatch_sync(queue) { () -> Void in
+            block(db: self.database)
+        }
+    }
+    
     public func inDatabase<R>(block: (db: Database) -> R) -> R {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
             fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")

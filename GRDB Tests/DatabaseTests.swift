@@ -428,7 +428,7 @@ class DatabaseTests: GRDBTests {
             
             // Fetching rows and values:
             
-            try dbQueue.inDatabase { db in
+            dbQueue.inDatabase { db in
                 for row in db.fetchRows("SELECT * FROM persons") {
                     // Leverage Swift type inference
                     let name: String? = row.value(atIndex: 1)
