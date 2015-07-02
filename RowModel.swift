@@ -64,7 +64,7 @@ public class RowModel {
         
         // Update managed primary key
         if let managedPrimaryKeyName = managedPrimaryKeyName, let lastInsertedRowID = db.lastInsertedRowID {
-            let row = Row(cellDictionary: [managedPrimaryKeyName: DatabaseCell.Integer(lastInsertedRowID)])
+            let row = Row(sqliteDictionary: [managedPrimaryKeyName: SQLiteValue.Integer(lastInsertedRowID)])
             updateFromDatabaseRow(row)
         }
     }

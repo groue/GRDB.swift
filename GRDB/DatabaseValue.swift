@@ -6,48 +6,20 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-internal let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
-
-public enum DatabaseCell {
-    case Null
-    case Integer(Int64)
-    case Double(Swift.Double)
-    case Text(String)
-    case Blob
-
-    public func value() -> DatabaseValue? {
-        switch self {
-        case .Null:
-            return nil
-        case .Integer(let int):
-            return int
-        case .Double(let double):
-            return double
-        case .Text(let string):
-            return string
-        case .Blob:
-            fatalError("Not implemented")
-        }
-    }
-
-    public func value<T: DatabaseValue>() -> T? {
-        return T.fromDatabaseCell(self)
-    }
-}
+private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
 
 public protocol DatabaseValue {
-    func bindInStatement(statement: Statement, atIndex index:Int)
-    static func fromDatabaseCell(databaseCell: DatabaseCell) -> Self?
+    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32
+    static func fromSQLiteValue(value: SQLiteValue) -> Self?
 }
 
 extension Bool: DatabaseValue {
-    public func bindInStatement(statement: Statement, atIndex index: Int) {
-        let code = sqlite3_bind_int(statement.cStatement, Int32(index), Int32(self ? 1 : 0))
-        assert(code == SQLITE_OK)
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+        return sqlite3_bind_int(statement, Int32(index), Int32(self ? 1 : 0))
     }
     
-    public static func fromDatabaseCell(databaseCell: DatabaseCell) -> Bool? {
-        switch databaseCell {
+    public static func fromSQLiteValue(value: SQLiteValue) -> Bool? {
+        switch value {
         case .Integer(let int):
             return int != 0
         default:
@@ -57,13 +29,12 @@ extension Bool: DatabaseValue {
 }
 
 extension Int: DatabaseValue {
-    public func bindInStatement(statement: Statement, atIndex index: Int) {
-        let code = sqlite3_bind_int64(statement.cStatement, Int32(index), Int64(self))
-        assert(code == SQLITE_OK)
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+        return sqlite3_bind_int64(statement, Int32(index), Int64(self))
     }
     
-    public static func fromDatabaseCell(databaseCell: DatabaseCell) -> Int? {
-        switch databaseCell {
+    public static func fromSQLiteValue(value: SQLiteValue) -> Int? {
+        switch value {
         case .Integer(let int):
             return Int(int)
         case .Double(let double):
@@ -75,13 +46,12 @@ extension Int: DatabaseValue {
 }
 
 extension Int64: DatabaseValue {
-    public func bindInStatement(statement: Statement, atIndex index: Int) {
-        let code = sqlite3_bind_int64(statement.cStatement, Int32(index), self)
-        assert(code == SQLITE_OK)
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+        return sqlite3_bind_int64(statement, Int32(index), self)
     }
     
-    public static func fromDatabaseCell(databaseCell: DatabaseCell) -> Int64? {
-        switch databaseCell {
+    public static func fromSQLiteValue(value: SQLiteValue) -> Int64? {
+        switch value {
         case .Integer(let int):
             return int
         case .Double(let double):
@@ -93,13 +63,12 @@ extension Int64: DatabaseValue {
 }
 
 extension Double: DatabaseValue {
-    public func bindInStatement(statement: Statement, atIndex index: Int) {
-        let code = sqlite3_bind_double(statement.cStatement, Int32(index), self)
-        assert(code == SQLITE_OK)
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+        return sqlite3_bind_double(statement, Int32(index), self)
     }
     
-    public static func fromDatabaseCell(databaseCell: DatabaseCell) -> Double? {
-        switch databaseCell {
+    public static func fromSQLiteValue(value: SQLiteValue) -> Double? {
+        switch value {
         case .Integer(let int):
             return Double(int)
         case .Double(let double):
@@ -111,13 +80,12 @@ extension Double: DatabaseValue {
 }
 
 extension String: DatabaseValue {
-    public func bindInStatement(statement: Statement, atIndex index: Int) {
-        let code = sqlite3_bind_text(statement.cStatement, Int32(index), self, -1, SQLITE_TRANSIENT)
-        assert(code == SQLITE_OK)
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+        return sqlite3_bind_text(statement, Int32(index), self, -1, SQLITE_TRANSIENT)
     }
     
-    public static func fromDatabaseCell(databaseCell: DatabaseCell) -> String? {
-        switch databaseCell {
+    public static func fromSQLiteValue(value: SQLiteValue) -> String? {
+        switch value {
         case .Text(let string):
             return string
         default:

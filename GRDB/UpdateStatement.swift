@@ -11,13 +11,13 @@ public class UpdateStatement : Statement {
         if database.configuration.verbose {
             NSLog("%@", sql)
         }
-        let code = sqlite3_step(cStatement)
+        let code = sqlite3_step(sqliteStatement)
         switch code {
         case SQLITE_DONE:
             // the statement has finished executing successfully
             break
         default:
-            try SQLiteError.checkCResultCode(code, cConnection: database.cConnection, sql: sql)
+            try SQLiteError.checkCResultCode(code, sqliteConnection: database.sqliteConnection, sql: sql)
         }
     }
 }

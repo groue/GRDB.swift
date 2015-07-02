@@ -6,8 +6,6 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-typealias CConnection = COpaquePointer
-
 public class Database {
     
     public enum TransactionType {
@@ -17,13 +15,13 @@ public class Database {
     }
     
     public let configuration: DatabaseConfiguration
-    let cConnection = CConnection()
+    let sqliteConnection = SQLiteConnection()
     
     init(path: String, configuration: DatabaseConfiguration = DatabaseConfiguration()) throws {
         self.configuration = configuration
         // See https://www.sqlite.org/c3ref/open.html
-        let code = sqlite3_open(path, &cConnection)
-        try SQLiteError.checkCResultCode(code, cConnection: cConnection)
+        let code = sqlite3_open(path, &sqliteConnection)
+        try SQLiteError.checkCResultCode(code, sqliteConnection: sqliteConnection)
         
         if configuration.foreignKeysEnabled {
             try execute("PRAGMA foreign_keys = ON")
@@ -31,8 +29,8 @@ public class Database {
     }
     
     deinit {
-        if cConnection != nil {
-            sqlite3_close(cConnection)
+        if sqliteConnection != nil {
+            sqlite3_close(sqliteConnection)
         }
     }
     
@@ -235,7 +233,7 @@ public class Database {
     // MARK: -
     
     public var lastInsertedRowID: Int64? {
-        let rowid = sqlite3_last_insert_rowid(cConnection)
+        let rowid = sqlite3_last_insert_rowid(sqliteConnection)
         return rowid == 0 ? nil : rowid
     }
 

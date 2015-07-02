@@ -6,39 +6,38 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-typealias CStatement = COpaquePointer
-
 public class Statement {
     let database: Database
-    let cStatement = CStatement()
+    let sqliteStatement = SQLiteStatement()
     let databaseQueueID: DatabaseQueueID
-    public lazy var sql: String = String.fromCString(UnsafePointer<Int8>(sqlite3_sql(self.cStatement)))!
+    public lazy var sql: String = String.fromCString(UnsafePointer<Int8>(sqlite3_sql(self.sqliteStatement)))!
     
     init(database: Database, sql: String) throws {
         // See https://www.sqlite.org/c3ref/prepare.html
         self.database = database
         self.databaseQueueID = dispatch_get_specific(DatabaseQueue.databaseQueueIDKey)
-        let code = sqlite3_prepare_v2(database.cConnection, sql, -1, &cStatement, nil)
-        try SQLiteError.checkCResultCode(code, cConnection: database.cConnection, sql: sql)
+        let code = sqlite3_prepare_v2(database.sqliteConnection, sql, -1, &sqliteStatement, nil)
+        try SQLiteError.checkCResultCode(code, sqliteConnection: database.sqliteConnection, sql: sql)
     }
     
     deinit {
-        if cStatement != nil {
-            sqlite3_finalize(cStatement)
+        if sqliteStatement != nil {
+            sqlite3_finalize(sqliteStatement)
         }
     }
     
     public func bind(value: DatabaseValue?, atIndex index: Int) {
+        let code: Int32
         if let value = value {
-            value.bindInStatement(self, atIndex: index)
+            code = value.bindInSQLiteStatement(sqliteStatement, atIndex: index)
         } else {
-            let code = sqlite3_bind_null(cStatement, Int32(index))
-            assert(code == SQLITE_OK)
+            code = sqlite3_bind_null(sqliteStatement, Int32(index))
         }
+        assert(code == SQLITE_OK)
     }
     
     public func bind(value: DatabaseValue?, forKey key: String) {
-        let index = Int(sqlite3_bind_parameter_index(cStatement, key))
+        let index = Int(sqlite3_bind_parameter_index(sqliteStatement, key))
         guard index > 0 else {
             fatalError("Key not found: \(key)")
         }
@@ -58,12 +57,12 @@ public class Statement {
     }
 
     public func reset() throws {
-        let code = sqlite3_reset(cStatement)
-        try SQLiteError.checkCResultCode(code, cConnection: database.cConnection, sql: sql)
+        let code = sqlite3_reset(sqliteStatement)
+        try SQLiteError.checkCResultCode(code, sqliteConnection: database.sqliteConnection, sql: sql)
     }
     
     public func clearBindings() {
-        let code = sqlite3_clear_bindings(cStatement)
+        let code = sqlite3_clear_bindings(sqliteStatement)
         assert(code == SQLITE_OK)
     }
 }

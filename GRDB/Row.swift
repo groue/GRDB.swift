@@ -7,9 +7,9 @@
 //
 
 protocol RowImpl {
-    func databaseCellAtIndex(index: Int) -> DatabaseCell
+    func sqliteValueAtIndex(index: Int) -> SQLiteValue
     func indexForColumnNamed(name: String) -> Int?
-    var cellDictionary: [String: DatabaseCell] { get }
+    var sqliteDictionary: [String: SQLiteValue] { get }
 }
 
 public struct Row {
@@ -23,21 +23,21 @@ public struct Row {
         }
     }
     
-    init(cellDictionary: [String: DatabaseCell]) {
-        self.impl = DictionaryRowImpl(cellDictionary: cellDictionary)
+    public init(sqliteDictionary: [String: SQLiteValue]) {
+        self.impl = DictionaryRowImpl(sqliteDictionary: sqliteDictionary)
     }
     
     public func hasColumn(name: String) -> Bool {
-        return impl.cellDictionary.indexForKey(name) != nil
+        return impl.sqliteDictionary.indexForKey(name) != nil
     }
     
     public func value<T: DatabaseValue>(atIndex index: Int) -> T? {
-        return impl.databaseCellAtIndex(index).value() as T?
+        return impl.sqliteValueAtIndex(index).value() as T?
     }
     
     public func value<T: DatabaseValue>(named columnName: String) -> T? {
         if let index = impl.indexForColumnNamed(columnName) {
-            return impl.databaseCellAtIndex(index).value() as T?
+            return impl.sqliteValueAtIndex(index).value() as T?
         } else {
             return nil
         }
@@ -45,7 +45,7 @@ public struct Row {
     
     public var dictionary: [String: DatabaseValue?] {
         var dictionary = [String: DatabaseValue?]()
-        for (columnName, cell) in impl.cellDictionary {
+        for (columnName, cell) in impl.sqliteDictionary {
             dictionary[columnName] = cell.value()
         }
         return dictionary
@@ -54,23 +54,23 @@ public struct Row {
     // SafeRowImpl can be safely accessed after sqlite3_step() and sqlite3_finalize() has been called.
     // It preserves the column ordering of the statement.
     private struct SafeRowImpl : RowImpl {
-        let databaseCells: [DatabaseCell]
+        let sqliteValues: [SQLiteValue]
         let columnNames: [String]
-        let cellDictionary: [String: DatabaseCell]
+        let sqliteDictionary: [String: SQLiteValue]
         
         init(statement: SelectStatement) {
-            self.databaseCells = (0..<statement.columnCount).map { index in statement.databaseCellAtIndex(index) }
+            self.sqliteValues = (0..<statement.columnCount).map { index in statement.sqliteValueAtIndex(index) }
             self.columnNames = statement.columnNames
 
-            var cellDictionary = [String: DatabaseCell]()
-            for (cell, columnName) in zip(databaseCells, columnNames) {
-                cellDictionary[columnName] = cell
+            var sqliteDictionary = [String: SQLiteValue]()
+            for (cell, columnName) in zip(sqliteValues, columnNames) {
+                sqliteDictionary[columnName] = cell
             }
-            self.cellDictionary = cellDictionary
+            self.sqliteDictionary = sqliteDictionary
         }
         
-        func databaseCellAtIndex(index: Int) -> DatabaseCell {
-            return databaseCells[index]
+        func sqliteValueAtIndex(index: Int) -> SQLiteValue {
+            return sqliteValues[index]
         }
         
         func indexForColumnNamed(name: String) -> Int? {
@@ -87,38 +87,38 @@ public struct Row {
             self.statement = statement
         }
         
-        func databaseCellAtIndex(index: Int) -> DatabaseCell {
-            return statement.databaseCellAtIndex(index)
+        func sqliteValueAtIndex(index: Int) -> SQLiteValue {
+            return statement.sqliteValueAtIndex(index)
         }
         
         func indexForColumnNamed(name: String) -> Int? {
             return statement.columnNames.indexOf(name)
         }
         
-        var cellDictionary: [String: DatabaseCell] {
-            var dic = [String: DatabaseCell]()
+        var sqliteDictionary: [String: SQLiteValue] {
+            var dic = [String: SQLiteValue]()
             for index in 0..<statement.columnCount {
-                let columnName = String.fromCString(sqlite3_column_name(statement.cStatement, Int32(index)))!
-                dic[columnName] = statement.databaseCellAtIndex(index)
+                let columnName = String.fromCString(sqlite3_column_name(statement.sqliteStatement, Int32(index)))!
+                dic[columnName] = statement.sqliteValueAtIndex(index)
             }
             return dic
         }
     }
     
     private struct DictionaryRowImpl: RowImpl {
-        let cellDictionary: [String: DatabaseCell]
+        let sqliteDictionary: [String: SQLiteValue]
         
-        init (cellDictionary: [String: DatabaseCell]) {
-            self.cellDictionary = cellDictionary
+        init (sqliteDictionary: [String: SQLiteValue]) {
+            self.sqliteDictionary = sqliteDictionary
         }
         
-        func databaseCellAtIndex(index: Int) -> DatabaseCell {
-            return cellDictionary[advance(cellDictionary.startIndex, index)].1
+        func sqliteValueAtIndex(index: Int) -> SQLiteValue {
+            return sqliteDictionary[advance(sqliteDictionary.startIndex, index)].1
         }
         
         func indexForColumnNamed(name: String) -> Int? {
-            if let index = cellDictionary.indexForKey(name) {
-                return distance(cellDictionary.startIndex, index)
+            if let index = sqliteDictionary.indexForKey(name) {
+                return distance(sqliteDictionary.startIndex, index)
             } else {
                 return nil
             }
