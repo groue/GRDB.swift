@@ -189,9 +189,9 @@ class PersonsViewController: UITableViewController {
     
     let persons: [Person]?
     
-    // Just like Person, with extra `petCount`:
+    // Subclass Person, with an extra `petCount`:
     
-    class PersonViewModel : Person {
+    private class PersonViewModel : Person {
         var petCount: Int?
         
         override func updateFromDatabaseRow(row: Row) {
@@ -214,7 +214,7 @@ class PersonsViewController: UITableViewController {
                 "GROUP BY persons.id")
         }
         
-        self.tableView.reloadData()
+        tableView.reloadData()
     }
     
     ...
