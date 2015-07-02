@@ -16,7 +16,7 @@ Features
 
 ## Usage (work in progress)
 
-GRDB uses **database queues** for database accesses serialization, just like [ccgus/FMDB](https://github.com/ccgus/fmdb):
+**Database queues** safely serialize database accesses (inspired by [ccgus/FMDB](https://github.com/ccgus/fmdb)):
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
