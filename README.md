@@ -30,8 +30,8 @@ var migrator = DatabaseMigrator()
 migrator.registerMigration("createPersons") { db in
     try db.execute(
         "CREATE TABLE persons (" +
-            "id INTEGER PRIMARY KEY, " +
-            "name TEXT, " +
+        "id INTEGER PRIMARY KEY, " +
+        "name TEXT NOT NULL, " +
         "age INT)")
 }
 
@@ -39,11 +39,11 @@ migrator.registerMigration("createPets") { db in
     // Support for foreign keys is enabled by default:
     try db.execute(
         "CREATE TABLE pets (" +
-            "id INTEGER PRIMARY KEY, " +
-            "masterID INTEGER NOT NULL " +
-            "         REFERENCES persons(id) " +
-            "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-        "name TEXT)")
+        "id INTEGER PRIMARY KEY, " +
+        "masterID INTEGER NOT NULL " +
+        "         REFERENCES persons(id) " +
+        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
+        "name TEXT NOT NULL)")
 }
 
 try migrator.migrate(dbQueue)
@@ -67,11 +67,15 @@ try dbQueue.inTransaction { db in
 ```
 
 
-**Fetch queries** load database rows or typed values:
+**Fetch Queries** load database rows or typed values:
 
 ```swift
 dbQueue.inDatabase { db in
-    for row in db.fetchRows("SELECT * FROM persons") {
+    
+    // AnySequence[Row]
+    let rows = db.fetchRows("SELECT * FROM persons")
+    
+    for row in rows {
         // Leverage Swift type inference
         let name: String? = row.value(atIndex: 1)
         
@@ -84,15 +88,135 @@ dbQueue.inDatabase { db in
         print("id: \(id), name: \(name), age: \(age)")
     }
     
-    // Value sequences require explicit `type` parameter
-    for name in db.fetch(String.self, "SELECT name FROM persons") {
-        // name is `String?` because some rows may have a NULL name.
-        print(name)
+    
+    // Shortcuts
+    
+    db.fetchAllRows("SELECT ...")                       // [Row]
+    db.fetchOneRow("SELECT ...")                        // Row?
+    
+    
+    // Use explicit type to load values, like `String.self` below:
+    
+    db.fetch(String.self, "SELECT name FROM persons")   // AnySequence[String?]
+    db.fetchAll(String.self, "SELECT ...")              // [String?]
+    db.fetchOne(String.self, "SELECT ...")              // String?
+}
+
+
+// Extract results our of database blocks:
+
+let names = dbQueue.inDatabase { db in
+    db.fetch(String.self, "SELECT name FROM persons ORDER BY name").map { $0! }
+}
+```
+
+
+**Row Models** wrap rows:
+
+```swift
+class Person: RowModel {
+    var id: Int64?
+    var name: String?
+    var age: Int?
+    
+    // Boring and not very DRY, but straightforward:
+    override func updateFromDatabaseRow(row: Row) {
+        if row.hasColumn("id") { id = row.value(named: "id") }
+        if row.hasColumn("name") { name = row.value(named: "name") }
+        if row.hasColumn("age") { age = row.value(named: "age") }
     }
 }
 
-// names is [String]: ["Arthur", "Barbara"]
-let names = dbQueue.inDatabase { db in
-    db.fetch(String.self, "SELECT name FROM persons ORDER BY name").map { $0! }
+let persons = dbQueue.inDatabase { db in
+    db.fetch(Person.self, "SELECT * FROM persons")
+}
+```
+
+
+Declare **Primary Key** in order to fetch a specific row model:
+
+```swift
+class Person: RowModel {
+    ...
+
+    override class var databasePrimaryKey: PrimaryKey {
+        return .SQLiteRowID("id")
+    }
+}
+
+let person = dbQueue.inDatabase { db in
+    db.fetchOne(Person.self, primaryKey: 123)
+}
+```
+
+
+**Insert, update and delete** with two more methods:
+
+```swift
+class Person: RowModel {
+    ...
+
+    override class var databaseTableName: String? {
+        return "persons"
+    }
+    
+    override var databaseDictionary: [String: DatabaseValue?] {
+        return ["ID": ID, "name": name, "age": age]
+    }
+}
+
+try dbQueue.inTransaction { db in
+    
+    // Insert
+    let person = Person(name: "Arthur", age: 41)
+    try person.insert(db)
+    
+    // Update
+    person.age = 42
+    try person.update(db)
+    
+    // Delete
+    try person.delete(db)
+    
+    return .Commit
+}
+```
+
+**Subclass with ad-hoc classes** when iterating custom queries:
+
+```swift
+class PersonsViewController: UITableViewController {
+    
+    let persons: [Person]?
+    
+    // Just like Person, with extra `petCount`:
+    
+    class PersonViewModel : Person {
+        var petCount: Int?
+        
+        override func updateFromDatabaseRow(row: Row) {
+            super.updateFromDatabaseRow(row)
+            
+            if row.hasColumn("petCount") {
+                petCount = row.value(named: "petCount")
+            }
+        }
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        let persons = dbQueue.inDatabase { db in
+            db.fetchAll(PersonViewModel.self,
+                "SELECT persons.*, COUNT(*) AS petCount " +
+                "FROM persons " +
+                "JOIN pets ON pets.masterID = persons.id " +
+                "GROUP BY persons.id")
+        }
+        
+        self.tableView.reloadData()
+    }
+    
+    ...
 }
 ```
