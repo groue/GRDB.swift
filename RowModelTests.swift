@@ -199,7 +199,7 @@ class RowModelTests: GRDBTests {
             
             // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
-                let persons = db.fetchAll("SELECT * FROM persons ORDER BY name", type: Person.self)
+                let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(persons.count, 1)
                 XCTAssertEqual(persons.first!.name!, "Arthur")
             }
@@ -247,7 +247,7 @@ class RowModelTests: GRDBTests {
             
             // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
-                let stuffs = db.fetchAll("SELECT * FROM stuffs ORDER BY name", type: Stuff.self)
+                let stuffs = db.fetchAll(Stuff.self, "SELECT * FROM stuffs ORDER BY name")
                 XCTAssertEqual(stuffs.count, 1)
                 XCTAssertEqual(stuffs.first!.name!, "foo")
             }
@@ -273,7 +273,7 @@ class RowModelTests: GRDBTests {
             
             // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
-                let stuffs = db.fetchAll("SELECT * FROM stuffs ORDER BY name", type: Stuff.self)
+                let stuffs = db.fetchAll(Stuff.self, "SELECT * FROM stuffs ORDER BY name")
                 XCTAssertEqual(stuffs.count, 2)
                 XCTAssertEqual(stuffs.first!.name!, "foo")
                 XCTAssertEqual(stuffs.last!.name!, "foo")
@@ -307,7 +307,7 @@ class RowModelTests: GRDBTests {
             
             // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
-                let pets = db.fetchAll("SELECT * FROM pets ORDER BY name", type: Pet.self)
+                let pets = db.fetchAll(Pet.self, "SELECT * FROM pets ORDER BY name")
                 XCTAssertEqual(pets.count, 1)
                 XCTAssertEqual(pets.first!.UUID!, "BobbyID")
                 XCTAssertEqual(pets.first!.name!, "Bobby")
@@ -410,7 +410,7 @@ class RowModelTests: GRDBTests {
             
             // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
-                let citizenships = db.fetchAll("SELECT * FROM citizenships", type: Citizenship.self)
+                let citizenships = db.fetchAll(Citizenship.self, "SELECT * FROM citizenships")
                 XCTAssertEqual(citizenships.count, 1)
                 XCTAssertEqual(citizenships.first!.personID!, arthur.ID!)
                 XCTAssertEqual(citizenships.first!.countryName!, "France")
@@ -460,7 +460,7 @@ class RowModelTests: GRDBTests {
             }
             
             dbQueue.inDatabase { db in
-                let persons = db.fetchAll("SELECT * FROM persons ORDER BY name", type: Person.self)
+                let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(persons.count, 1)
                 XCTAssertEqual(persons.first!.name!, "Arthur")
                 XCTAssertEqual(persons.first!.age!, 42)
@@ -483,7 +483,7 @@ class RowModelTests: GRDBTests {
             
             // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
-                let pets = db.fetchAll("SELECT * FROM pets ORDER BY name", type: Pet.self)
+                let pets = db.fetchAll(Pet.self, "SELECT * FROM pets ORDER BY name")
                 XCTAssertEqual(pets.count, 1)
                 XCTAssertEqual(pets.first!.UUID!, "BobbyID")
                 XCTAssertEqual(pets.first!.name!, "Karl")
@@ -520,7 +520,7 @@ class RowModelTests: GRDBTests {
             
             // After insertion, model should be present in the database
             dbQueue.inDatabase { db in
-                let citizenships = db.fetchAll("SELECT * FROM citizenships", type: Citizenship.self)
+                let citizenships = db.fetchAll(Citizenship.self, "SELECT * FROM citizenships")
                 XCTAssertEqual(citizenships.count, 1)
                 XCTAssertEqual(citizenships.first!.countryName!, "France")
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: citizenships.first!.grantedDate!), 2000)
@@ -562,8 +562,8 @@ class RowModelTests: GRDBTests {
             }
             
             dbQueue.inDatabase { db in
-                let persons = db.fetchAll("SELECT * FROM persons ORDER BY name", type: Person.self)
-                let arthur = db.fetchOne("SELECT * FROM persons ORDER BY age DESC", type: Person.self)!
+                let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
+                let arthur = db.fetchOne(Person.self, "SELECT * FROM persons ORDER BY age DESC")!
                 
                 XCTAssertEqual(persons.map { $0.name! }, ["Arthur", "Barbara"])
                 XCTAssertEqual(persons.map { $0.age! }, [41, 36])

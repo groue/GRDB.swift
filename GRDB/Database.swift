@@ -155,21 +155,21 @@ extension Database {
 
 extension Database {
     
-    public func fetchGenerator<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnyGenerator<T?> {
+    public func fetchGenerator<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnyGenerator<T?> {
         let statement = try! selectStatement(sql, bindings: bindings)
         return statement.fetchGenerator(type)
     }
     
-    public func fetch<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnySequence<T?> {
-        return AnySequence { self.fetchGenerator(sql, bindings: bindings, type: type) }
+    public func fetch<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<T?> {
+        return AnySequence { self.fetchGenerator(type, sql, bindings: bindings) }
     }
     
-    public func fetchAll<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T?] {
-        return Array(fetch(sql, bindings: bindings, type: type))
+    public func fetchAll<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> [T?] {
+        return Array(fetch(type, sql, bindings: bindings))
     }
     
-    public func fetchOne<T: DatabaseValue>(sql: String, bindings: Bindings? = nil, type: T.Type) -> T? {
-        if let first = fetchGenerator(sql, bindings: bindings, type: type).next() {
+    public func fetchOne<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> T? {
+        if let first = fetchGenerator(type, sql, bindings: bindings).next() {
             // one row containing an optional value
             return first
         } else {

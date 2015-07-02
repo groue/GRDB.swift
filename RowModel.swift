@@ -163,13 +163,13 @@ public class RowModel {
             needUpdate = false
         case .SQLiteRowID(let column):
             if let value = databaseDictionary[column]! {    // unwrap double optional
-                needUpdate = db.fetchOne("SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value], type: Bool.self)!
+                needUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value])!
             } else {
                 needUpdate = false
             }
         case .Single(let column):
             if let value = databaseDictionary[column]! {    // unwrap double optional
-                needUpdate = db.fetchOne("SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value], type: Bool.self)!
+                needUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value])!
             } else {
                 needUpdate = false
             }
@@ -183,7 +183,7 @@ public class RowModel {
             }
             let whereSQL = " AND ".join(columns.map { column in "\(column)=?" })
             let bindings = Bindings(columns.map { column in dic[column]! })
-            needUpdate = db.fetchOne("SELECT 1 FROM \(tableName) WHERE \(whereSQL)", bindings: bindings, type: Bool.self)!
+            needUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(whereSQL)", bindings: bindings)!
         }
         
         if needUpdate {
@@ -195,7 +195,7 @@ public class RowModel {
 }
 
 extension Database {
-    public func fetchGenerator<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnyGenerator<T> {
+    public func fetchGenerator<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnyGenerator<T> {
         let rowGenerator = fetchRowGenerator(sql, bindings: bindings)
         return anyGenerator {
             if let row = rowGenerator.next() {
@@ -206,16 +206,16 @@ extension Database {
         }
     }
 
-    public func fetch<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnySequence<T> {
-        return AnySequence { self.fetchGenerator(sql, bindings: bindings, type: type) }
+    public func fetch<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<T> {
+        return AnySequence { self.fetchGenerator(type, sql, bindings: bindings) }
     }
 
-    public func fetchAll<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T] {
-        return Array(fetch(sql, bindings: bindings, type: type))
+    public func fetchAll<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> [T] {
+        return Array(fetch(type, sql, bindings: bindings))
     }
 
-    public func fetchOne<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> T? {
-        if let first = fetchGenerator(sql, bindings: bindings, type: type).next() {
+    public func fetchOne<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> T? {
+        if let first = fetchGenerator(type, sql, bindings: bindings).next() {
             // one row containing an optional value
             return first
         } else {
@@ -241,7 +241,7 @@ extension Database {
             fatalError("Multiple primary key")
         }
         
-        return fetchOne(sql, bindings: [primaryKey], type: type)
+        return fetchOne(type, sql, bindings: [primaryKey])
     }
 }
 
