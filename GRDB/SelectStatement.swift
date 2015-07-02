@@ -40,7 +40,8 @@ extension SelectStatement {
     public func fetchRowGenerator() -> AnyGenerator<Row> {
         // TODO: Document this reset performed on each generation
         try! reset()
-        var logFirstStep = database.configuration.verbose
+        
+        var logSQL = database.configuration.verbose
         return anyGenerator { () -> Row? in
             // Make sure values are not consumed in a different queue.
             //
@@ -56,9 +57,9 @@ extension SelectStatement {
                 fatalError("SelectStatement was not iterated on its database queue. Consider wrapping the results of the fetch in an Array before escaping the database queue.")
             }
             
-            if logFirstStep {
+            if logSQL {
                 NSLog("%@", self.sql)
-                logFirstStep = false
+                logSQL = false
             }
             let code = sqlite3_step(self.sqliteStatement)
             switch code {
