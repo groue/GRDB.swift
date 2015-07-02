@@ -224,7 +224,7 @@ extension Database {
         }
     }
     
-    public func fetchOne<T: RowModel>(primaryKey primaryKey: DatabaseValue, type: T.Type) -> T? {
+    public func fetchOne<T: RowModel>(type: T.Type, primaryKey: DatabaseValue) -> T? {
         guard let tableName = T.databaseTableName else {
             fatalError("Missing table name")
         }

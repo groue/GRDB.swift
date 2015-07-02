@@ -547,7 +547,7 @@ class RowModelTests: GRDBTests {
             }
             
             dbQueue.inDatabase { db in
-                let arthur2 = db.fetchOne(primaryKey: arthur.ID!, type: Person.self)!
+                let arthur2 = db.fetchOne(Person.self, primaryKey: arthur.ID!)!
                 XCTAssertEqual(arthur2.age!, 42)
             }
         }
@@ -584,7 +584,7 @@ class RowModelTests: GRDBTests {
             }
             
             dbQueue.inDatabase { db in
-                let arthur = db.fetchOne(primaryKey: arthurID!, type: Person.self)!
+                let arthur = db.fetchOne(Person.self, primaryKey: arthurID!)!
                 
                 XCTAssertEqual(arthur.ID!, arthurID!)
                 XCTAssertEqual(arthur.name!, "Arthur")
@@ -609,7 +609,7 @@ class RowModelTests: GRDBTests {
             
             
             dbQueue.inDatabase { db in
-                let pet = db.fetchOne(primaryKey: petUUID, type: Pet.self)!
+                let pet = db.fetchOne(Pet.self, primaryKey: petUUID)!
                 
                 XCTAssertEqual(pet.UUID!, petUUID)
                 XCTAssertEqual(pet.name!, "Bobby")
