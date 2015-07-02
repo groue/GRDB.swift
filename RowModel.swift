@@ -51,42 +51,88 @@ public class RowModel {
         // Should we include the primary key in the insert statement?
         // We do, unless the key is a SQLite RowID, without any value.
         
-        let rowIDColumnName: String?
+        let rowIDColumn: String?
         switch primaryKey {
-        case .SQLiteRowID(let columName):
-            if let _ = insertedDic[columName]! {    // unwrap double optional
-                rowIDColumnName = nil
+        case .SQLiteRowID(let column):
+            if let _ = insertedDic[column]! {    // unwrap double optional
+                rowIDColumn = nil
             } else {
-                insertedDic.removeValueForKey(columName)
-                rowIDColumnName = columName
+                insertedDic.removeValueForKey(column)
+                rowIDColumn = column
             }
         default:
-            rowIDColumnName = nil
+            rowIDColumn = nil
         }
         
         
         // If there is nothing to insert, and primary key is not managed,
         // somthing is wrong.
-        guard insertedDic.count > 0 || rowIDColumnName != nil else {
+        guard insertedDic.count > 0 || rowIDColumn != nil else {
             fatalError("Nothing to insert")
         }
         
         
         // INSERT INTO table ([id, ]name) VALUES ([:id, ]:name)
         
-        let columnNames = insertedDic.keys
-        let columnList = ",".join(columnNames)
-        let questionMarks = ",".join([String](count: columnNames.count, repeatedValue: "?"))
-        let sql = "INSERT INTO \(tableName) (\(columnList)) VALUES (\(questionMarks))"
+        let columns = insertedDic.keys
+        let columnSQL = ",".join(columns)
+        let valuesSQL = ",".join([String](count: columns.count, repeatedValue: "?"))
+        let sql = "INSERT INTO \(tableName) (\(columnSQL)) VALUES (\(valuesSQL))"
         try db.execute(sql, bindings: Bindings(insertedDic.values))
         
         
         // Update RowID column
         
-        if let rowIDColumnName = rowIDColumnName, let lastInsertedRowID = db.lastInsertedRowID {
-            let row = Row(sqliteDictionary: [rowIDColumnName: SQLiteValue.Integer(lastInsertedRowID)])
+        if let rowIDColumn = rowIDColumn, let lastInsertedRowID = db.lastInsertedRowID {
+            let row = Row(sqliteDictionary: [rowIDColumn: SQLiteValue.Integer(lastInsertedRowID)])
             updateFromDatabaseRow(row)
         }
+    }
+    
+    final public func update(db: Database) throws {
+        // TODO: validation
+        // TODO: dirty
+        // TODO?: table modification notification
+        
+        guard let tableName = self.dynamicType.databaseTableName else {
+            fatalError("Missing table name")
+        }
+        
+        
+        // The updated values, and the primary key
+        
+        var updatedDic = databaseDictionary
+        let primaryKey = self.dynamicType.databasePrimaryKey
+        
+        
+        // Extract primary keys from updatedDic into primaryKeyDic
+        
+        let primaryKeyDic: [String: DatabaseValue?]
+        switch primaryKey {
+        case .None:
+            fatalError("Missing primary key")
+        case .SQLiteRowID(let column):
+            primaryKeyDic = [column: updatedDic[column]!]
+            updatedDic.removeValueForKey(column)
+        case .Single(let column):
+            primaryKeyDic = [column: updatedDic[column]!]
+            updatedDic.removeValueForKey(column)
+        case .Multiple(let columns):
+            var dic = [String: DatabaseValue?]()
+            for column in columns {
+                dic[column] = updatedDic[column]!
+                updatedDic.removeValueForKey(column)
+            }
+            primaryKeyDic = dic
+        }
+        
+        // "UPDATE table SET name = ? WHERE id = ?"
+        
+        let updateSQL = ",".join(updatedDic.keys.map { column in "\(column)=?" })
+        let whereSQL = ",".join(primaryKeyDic.keys.map { column in "\(column)=?" })
+        let bindings = Bindings(Array(updatedDic.values) + Array(primaryKeyDic.values))
+        let sql = "UPDATE \(tableName) SET \(updateSQL) WHERE \(whereSQL)"
+        try db.execute(sql, bindings: bindings)
     }
     
     public init () {
@@ -136,10 +182,10 @@ extension Database {
         switch T.databasePrimaryKey {
         case .None:
             fatalError("Missing primary key")
-        case .SQLiteRowID(let columnName):
-            sql = "SELECT * FROM \(tableName) WHERE \(columnName) = ?"
-        case .Single(let columnName):
-            sql = "SELECT * FROM \(tableName) WHERE \(columnName) = ?"
+        case .SQLiteRowID(let column):
+            sql = "SELECT * FROM \(tableName) WHERE \(column) = ?"
+        case .Single(let column):
+            sql = "SELECT * FROM \(tableName) WHERE \(column) = ?"
         case .Multiple:
             fatalError("Multiple primary key")
         }

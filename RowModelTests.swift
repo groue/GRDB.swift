@@ -430,6 +430,50 @@ class RowModelTests: GRDBTests {
         }
     }
 
+    func testUpdateRowModelWithSQLiteRowIDPrimaryKey() {
+        assertNoError {
+            let arthur = Person(name: "Arthur", age: 41)
+            
+            XCTAssertTrue(arthur.ID == nil)
+            try dbQueue.inTransaction { db in
+                try arthur.insert(db)
+                arthur.age = 42
+                try arthur.update(db)   // The tested method
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let persons = db.fetchAllModels("SELECT * FROM persons ORDER BY name", type: Person.self)
+                XCTAssertEqual(persons.count, 1)
+                XCTAssertEqual(persons.first!.name!, "Arthur")
+                XCTAssertEqual(persons.first!.age!, 42)
+            }
+        }
+    }
+    
+    func testUpdateRowModelWithSinglePrimaryKey() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+                let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.ID)
+                try pet.insert(db)
+                
+                pet.name = "Karl"
+                try pet.update(db)  // The tested method
+                return .Commit
+            }
+            
+            // After insertion, model should be present in the database
+            dbQueue.inDatabase { db in
+                let pets = db.fetchAllModels("SELECT * FROM pets ORDER BY name", type: Pet.self)
+                XCTAssertEqual(pets.count, 1)
+                XCTAssertEqual(pets.first!.UUID!, "BobbyID")
+                XCTAssertEqual(pets.first!.name!, "Karl")
+            }
+        }
+    }
+    
     func testSelect() {
         assertNoError {
             try dbQueue.inTransaction { db in
