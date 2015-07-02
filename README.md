@@ -1,33 +1,33 @@
-GRDB
-====
+GRDB.swift
+==========
 
-A sqlite3 wrapper for Swift 2.
+GRDB.swift is a Swift 2 library built around [SQLite](https://www.sqlite.org).
 
-## Goals
-
-- [RAII](https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization)
-- Leverage the Swift standard library (errors, generators, etc.)
-- Foster SQL
-- Focus on rows, not on tables.
+It ships with a low-level database API, plus application-level tools.
 
 
-## Inspirations
+Features
+--------
 
-- [ccgus/FMDB](https://github.com/ccgus/fmdb)
+- **A low-level SQLite API** that leverages the Swift 2 standard library.
+- **Migrations**
+- A thin class that wraps query results: RowModel.
+- **No ORM, no query builder**. Instead, a thin class that wraps query results, and helps people who like customizing their SQL queries.
 
 
 ## Usage (work in progress)
 
+GRDB uses **database queues** for database accesses serialization, just like [ccgus/FMDB](https://github.com/ccgus/fmdb):
+
 ```swift
-// GRDB uses database queues for database accesses serialization,
-// just like ccgus/FMDB:
-
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
+```
 
+**Migrations** are a convenient way to alter your database schema over time in a consistent and easy way. Define them with a DatabaseMigrator:
 
-// DatabaseMigrator sets up migrations:
-
+```swift
 var migrator = DatabaseMigrator()
+
 migrator.registerMigration("createPersons") { db in
     try db.execute(
         "CREATE TABLE persons (" +
@@ -35,6 +35,7 @@ migrator.registerMigration("createPersons") { db in
             "name TEXT, " +
         "age INT)")
 }
+
 migrator.registerMigration("createPets") { db in
     // Support for foreign keys is enabled by default:
     try db.execute(
@@ -47,10 +48,12 @@ migrator.registerMigration("createPets") { db in
 }
 
 try migrator.migrate(dbQueue)
+```
 
 
-// Transactions:
+**Transactions** wrap the queries that alter the database content:
 
+```swift
 try dbQueue.inTransaction { db in
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (?, ?)",
@@ -62,10 +65,12 @@ try dbQueue.inTransaction { db in
     
     return .Commit
 }
+```
 
 
-// Fetching rows and values:
+**Fetch queries** allow you load full rows or typed values:
 
+```swift
 dbQueue.inDatabase { db in
     for row in db.fetchRows("SELECT * FROM persons") {
         // Leverage Swift type inference
@@ -86,7 +91,6 @@ dbQueue.inDatabase { db in
         print(name)
     }
 }
-
 
 // Extracting values out of a database block:
 
