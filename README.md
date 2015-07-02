@@ -128,7 +128,7 @@ struct DatabaseDate: DatabaseValue {
         self.date = date
     }
     
-    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
         let timestamp = date.timeIntervalSince1970
         return timestamp.bindInSQLiteStatement(statement, atIndex: index)
     }

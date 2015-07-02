@@ -9,12 +9,12 @@
 private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
 
 public protocol DatabaseValue {
-    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32
+    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32
     static func fromSQLiteValue(value: SQLiteValue) -> Self?
 }
 
 extension Bool: DatabaseValue {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
         return sqlite3_bind_int(statement, Int32(index), Int32(self ? 1 : 0))
     }
     
@@ -29,7 +29,7 @@ extension Bool: DatabaseValue {
 }
 
 extension Int: DatabaseValue {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
         return sqlite3_bind_int64(statement, Int32(index), Int64(self))
     }
     
@@ -46,7 +46,7 @@ extension Int: DatabaseValue {
 }
 
 extension Int64: DatabaseValue {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
         return sqlite3_bind_int64(statement, Int32(index), self)
     }
     
@@ -63,7 +63,7 @@ extension Int64: DatabaseValue {
 }
 
 extension Double: DatabaseValue {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
         return sqlite3_bind_double(statement, Int32(index), self)
     }
     
@@ -80,7 +80,7 @@ extension Double: DatabaseValue {
 }
 
 extension String: DatabaseValue {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
         return sqlite3_bind_text(statement, Int32(index), self, -1, SQLITE_TRANSIENT)
     }
     
