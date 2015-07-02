@@ -67,7 +67,7 @@ try dbQueue.inTransaction { db in
 ```
 
 
-**Fetch queries** allow you load full rows or typed values:
+**Fetch queries** load database rows or typed values:
 
 ```swift
 dbQueue.inDatabase { db in
