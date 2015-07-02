@@ -67,7 +67,7 @@ try dbQueue.inTransaction { db in
 ```
 
 
-**Fetch Queries** load database rows or typed values:
+**Fetch Queries** load database rows:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -91,9 +91,22 @@ dbQueue.inDatabase { db in
     
     // Shortcuts
     
-    db.fetchAllRows("SELECT ...")                       // [Row]
-    db.fetchOneRow("SELECT ...")                        // Row?
-    
+    db.fetchAllRows("SELECT ...")   // [Row]
+    db.fetchOneRow("SELECT ...")    // Row?
+}
+
+
+// Extract results our of database blocks:
+
+let rows = dbQueue.inDatabase { db in
+    db.fetchAllRows("SELECT ...")
+}
+```
+
+**Fetch values**:
+
+```swift
+dbQueue.inDatabase { db in
     
     // Use explicit type to load values, like `String.self` below:
     
@@ -101,13 +114,49 @@ dbQueue.inDatabase { db in
     db.fetchAll(String.self, "SELECT ...")              // [String?]
     db.fetchOne(String.self, "SELECT ...")              // String?
 }
+```
 
+GRDB.swift ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String`.
 
-// Extract results our of database blocks:
+The protocol `DatabaseValue` makes this list extensible:
 
-let names = dbQueue.inDatabase { db in
-    db.fetch(String.self, "SELECT name FROM persons ORDER BY name").map { $0! }
+```swift
+struct DatabaseDate: DatabaseValue {
+    let date: NSDate
+    
+    init(_ date: NSDate) {
+        self.date = date
+    }
+    
+    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index:Int) -> Int32 {
+        let timestamp = date.timeIntervalSince1970
+        return timestamp.bindInSQLiteStatement(statement, atIndex: index)
+    }
+    
+    static func fromSQLiteValue(value: SQLiteValue) -> DatabaseDate? {
+        switch value {
+        case .Double(let timestamp):
+            return self.init(NSDate(timeIntervalSince1970: timestamp))
+        default:
+            // NULL, integer, text or blob:
+            return nil
+        }
+    }
 }
+
+// Write
+
+let date = NSDate()
+try db.execute("INSERT INTO dates (timestamp) VALUES (?)", bindings: [DatabaseDate(date)])
+
+// Read from row
+
+let row = db.fetchOneRow("SELECT creationTimestamp FROM stuffs")!
+let date: DatabaseDate = row.value(atIndex: 0)!
+
+// Direct read
+
+let date = db.fetchOne(DatabaseDate.self, "SELECT timestamp FROM stuffs")!
 ```
 
 
