@@ -31,18 +31,18 @@ var migrator = DatabaseMigrator()
 migrator.registerMigration("createPersons") { db in
     try db.execute(
         "CREATE TABLE persons (" +
-        "id INTEGER PRIMARY KEY, " +
-        "name TEXT, " +
+            "id INTEGER PRIMARY KEY, " +
+            "name TEXT, " +
         "age INT)")
 }
 migrator.registerMigration("createPets") { db in
     // Support for foreign keys is enabled by default:
     try db.execute(
         "CREATE TABLE pets (" +
-        "id INTEGER PRIMARY KEY, " +
-        "masterID INTEGER NOT NULL " +
-        "         REFERENCES persons(id) " +
-        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
+            "id INTEGER PRIMARY KEY, " +
+            "masterID INTEGER NOT NULL " +
+            "         REFERENCES persons(id) " +
+            "         ON DELETE CASCADE ON UPDATE CASCADE, " +
         "name TEXT)")
 }
 
@@ -55,7 +55,7 @@ try dbQueue.inTransaction { db in
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (?, ?)",
         bindings: ["Arthur", 36])
-        
+    
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (:name, :age)",
         bindings: [":name": "Barbara", ":age": 37])
@@ -67,7 +67,7 @@ try dbQueue.inTransaction { db in
 // Fetching rows and values:
 
 try dbQueue.inDatabase { db -> Void in
-    for row in try db.fetchRows("SELECT * FROM persons") {
+    for row in fetchRows(db, sql: "SELECT * FROM persons") {
         // Leverage Swift type inference
         let name: String? = row.value(atIndex: 1)
         
@@ -81,7 +81,7 @@ try dbQueue.inDatabase { db -> Void in
     }
     
     // Value sequences require explicit `type` parameter
-    for name in try db.fetchValues("SELECT name FROM persons", type: String.self) {
+    for name in fetchValues(String.self, db: db, sql: "SELECT name FROM persons") {
         // name is `String?` because some rows may have a NULL name.
         print(name)
     }
@@ -91,7 +91,7 @@ try dbQueue.inDatabase { db -> Void in
 // Extracting values out of a database block:
 
 let names = try dbQueue.inDatabase { db in
-    try db.fetchValues("SELECT name FROM persons", type: String.self).map { $0! }
+    fetchValues(String.self, db: db, sql: "SELECT name FROM persons ORDER BY name").map { $0! }
 }
 // names is [String]: ["Arthur", "Barbara"]
 

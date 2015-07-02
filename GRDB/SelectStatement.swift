@@ -7,46 +7,17 @@
 //
 
 public final class SelectStatement : Statement {
+    let unsafe: Bool
     public lazy var columnCount: Int = Int(sqlite3_column_count(self.sqliteStatement))
     public lazy var columnNames: [String] = (0..<self.columnCount).map { index in
         return String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32(index)))!
     }
-    
-    // MARK: - fetchRows
-    
-    public func fetchRows(unsafe unsafe: Bool = false) -> AnySequence<Row> {
-        return AnySequence {
-            return self.rowGenerator(unsafe: unsafe)
-        }
+
+    init(database: Database, sql: String, bindings: Bindings?, unsafe: Bool) throws {
+        self.unsafe = unsafe
+        try super.init(database: database, sql: sql, bindings: bindings)
     }
-    
-    
-    // MARK: - fetchFirstRow
-    
-    public func fetchFirstRow(unsafe unsafe: Bool = false) -> Row? {
-        return self.rowGenerator(unsafe: unsafe).next()
-    }
-    
-    
-    // MARK: - fetchValues
-    
-    public func fetchValues<T: DatabaseValue>(type type: T.Type, unsafe: Bool = false) -> AnySequence<T?> {
-        return AnySequence {
-            return self.valueGenerator(type: type, unsafe: unsafe)
-        }
-    }
-    
-    
-    // MARK: - fetchFirstValue
-    
-    public func fetchFirstValue<T: DatabaseValue>(unsafe unsafe: Bool = false) -> T? {
-        if let first = self.valueGenerator(type: T.self, unsafe: unsafe).next() {
-            return first
-        } else {
-            return nil
-        }
-    }
-    
+
     func sqliteValueAtIndex(index: Int) -> SQLiteValue {
         switch sqlite3_column_type(sqliteStatement, Int32(index)) {
         case SQLITE_NULL:
@@ -63,7 +34,7 @@ public final class SelectStatement : Statement {
         }
     }
     
-    private func rowGenerator(unsafe unsafe: Bool) -> AnyGenerator<Row> {
+    private func rowGenerator() -> AnyGenerator<Row> {
         // TODO: Document this reset performed on each generation
         try! reset()
         var logFirstStep = database.configuration.verbose
@@ -91,7 +62,7 @@ public final class SelectStatement : Statement {
             case SQLITE_DONE:
                 return nil
             case SQLITE_ROW:
-                return Row(statement: self, unsafe: unsafe)
+                return Row(statement: self, unsafe: self.unsafe)
             default:
                 try! SQLiteError.checkCResultCode(code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
                 return nil
@@ -100,8 +71,8 @@ public final class SelectStatement : Statement {
     }
     
     
-    private func valueGenerator<T: DatabaseValue>(type type: T.Type, unsafe: Bool) -> AnyGenerator<T?> {
-        let rowGenerator = self.rowGenerator(unsafe: unsafe)
+    private func valueGenerator<T: DatabaseValue>(type type: T.Type) -> AnyGenerator<T?> {
+        let rowGenerator = self.rowGenerator()
         return anyGenerator { () -> T?? in
             if let row = rowGenerator.next() {
                 return Optional.Some(row.value(atIndex: 0) as T?)
@@ -109,5 +80,43 @@ public final class SelectStatement : Statement {
                 return nil
             }
         }
+    }
+}
+
+public func fetchRowGenerator(statement: SelectStatement) -> AnyGenerator<Row> {
+    return statement.rowGenerator()
+}
+
+public func fetchRows(statement: SelectStatement) -> AnySequence<Row> {
+    return AnySequence { fetchRowGenerator(statement) }
+}
+
+public func fetchAllRows(statement: SelectStatement) -> [Row] {
+    return fetchRows(statement).map { $0 }
+}
+
+public func fetchOneRow(statement: SelectStatement) -> Row? {
+    return fetchRowGenerator(statement).next()
+}
+
+public func fetchValueGenerator<T: DatabaseValue>(type: T.Type, statement: SelectStatement) -> AnyGenerator<T?> {
+    return statement.valueGenerator(type: type)
+}
+
+public func fetchValues<T: DatabaseValue>(type: T.Type, statement: SelectStatement) -> AnySequence<T?> {
+    return AnySequence { fetchValueGenerator(type, statement: statement) }
+}
+
+public func fetchAllValues<T: DatabaseValue>(type: T.Type, statement: SelectStatement) -> [T?] {
+    return fetchValues(type, statement: statement).map { $0 }
+}
+
+public func fetchOneValue<T: DatabaseValue>(type: T.Type, statement: SelectStatement) -> T? {
+    if let optionalValue = fetchValueGenerator(type, statement: statement).next() {
+        // one row containing an optional value
+        return optionalValue
+    } else {
+        // no row
+        return nil
     }
 }

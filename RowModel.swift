@@ -76,10 +76,8 @@ public class RowModel {
     }
 }
 
-func fetchGenerator<T: RowModel>(db: Database, type: T.Type, sql: String) -> AnyGenerator<T> {
-    let statement = try! db.selectStatement(sql)
-    let rows = statement.fetchRows()
-    let rowGenerator = rows.generate()
+public func fetchModelGenerator<T: RowModel>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> AnyGenerator<T?> {
+    let rowGenerator = fetchRowGenerator(db, sql: sql, bindings: bindings)
     return anyGenerator {
         if let row = rowGenerator.next() {
             return T.init(row: row)
@@ -89,14 +87,20 @@ func fetchGenerator<T: RowModel>(db: Database, type: T.Type, sql: String) -> Any
     }
 }
 
-func fetch<T: RowModel>(db: Database, type: T.Type, sql: String) -> AnySequence<T> {
-    return AnySequence { fetchGenerator(db, type: type, sql: sql) }
+public func fetchModels<T: RowModel>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> AnySequence<T?> {
+    return AnySequence { fetchModelGenerator(type, db: db, sql: sql, bindings: bindings) }
 }
 
-func fetchAll<T: RowModel>(db: Database, type: T.Type, sql: String) -> [T] {
-    return fetch(db, type: type, sql: sql).map { $0 }
+public func fetchAllModels<T: RowModel>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> [T?] {
+    return fetchModels(type, db: db, sql: sql, bindings: bindings).map { $0 }
 }
 
-func fetchOne<T: RowModel>(db: Database, type: T.Type, sql: String) -> T? {
-    return fetchGenerator(db, type: type, sql: sql).next()
+public func fetchOneModel<T: RowModel>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> T? {
+    if let first = fetchModelGenerator(type, db: db, sql: sql, bindings: bindings).next() {
+        // one row containing an optional value
+        return first
+    } else {
+        // no row
+        return nil
+    }
 }

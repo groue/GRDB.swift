@@ -34,7 +34,7 @@ class DatabaseTests: GRDBTests {
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
                 try statement.execute()
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -52,7 +52,7 @@ class DatabaseTests: GRDBTests {
                 statement.bind(41, atIndex: 2)
                 try statement.execute()
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -70,7 +70,7 @@ class DatabaseTests: GRDBTests {
                 statement.bind(41, forKey: ":age")
                 try statement.execute()
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -87,7 +87,7 @@ class DatabaseTests: GRDBTests {
                 statement.bind(["Arthur", 41])
                 try statement.execute()
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -104,7 +104,7 @@ class DatabaseTests: GRDBTests {
                 statement.bind([":name": "Arthur", ":age": 41])
                 try statement.execute()
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -120,7 +120,7 @@ class DatabaseTests: GRDBTests {
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)", bindings: ["Arthur", 41])
                 try statement.execute()
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -136,7 +136,7 @@ class DatabaseTests: GRDBTests {
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try statement.execute()
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -151,7 +151,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 try db.execute("INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -166,7 +166,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 try db.execute("INSERT INTO persons (name, age) VALUES (?, ?)", bindings: ["Arthur", 41])
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -181,7 +181,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 
-                let row = try db.fetchFirstRow("SELECT * FROM persons")!
+                let row = fetchOneRow(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
             }
@@ -198,7 +198,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 let statement = try db.selectStatement("SELECT * FROM persons")
                 
-                let rows = Array(statement.fetchRows())
+                let rows = fetchAllRows(statement)
                 XCTAssertEqual(rows.count, 2)
             }
         }
@@ -215,7 +215,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 statement.bind("Arthur", atIndex: 1)
                 
-                let rows = Array(statement.fetchRows())
+                let rows = fetchAllRows(statement)
                 XCTAssertEqual(rows.count, 1)
             }
         }
@@ -232,7 +232,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 statement.bind("Arthur", forKey: ":name")
                 
-                let rows = Array(statement.fetchRows())
+                let rows = fetchAllRows(statement)
                 XCTAssertEqual(rows.count, 1)
             }
         }
@@ -249,7 +249,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 statement.bind(["Arthur"])
                 
-                let rows = Array(statement.fetchRows())
+                let rows = fetchAllRows(statement)
                 XCTAssertEqual(rows.count, 1)
             }
         }
@@ -266,7 +266,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 statement.bind([":name": "Arthur"])
                 
-                let rows = Array(statement.fetchRows())
+                let rows = fetchAllRows(statement)
                 XCTAssertEqual(rows.count, 1)
             }
         }
@@ -282,7 +282,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
                 
-                let rows = Array(statement.fetchRows())
+                let rows = fetchAllRows(statement)
                 XCTAssertEqual(rows.count, 1)
             }
         }
@@ -298,7 +298,7 @@ class DatabaseTests: GRDBTests {
                 // The tested function:
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name", bindings: [":name": "Arthur"])
                 
-                let rows = Array(statement.fetchRows())
+                let rows = fetchAllRows(statement)
                 XCTAssertEqual(rows.count, 1)
             }
         }
@@ -313,7 +313,7 @@ class DatabaseTests: GRDBTests {
                 
                 var names: [String?] = []
                 var ages: [Int?] = []
-                let rows = try db.fetchRows("SELECT * FROM persons ORDER BY name")
+                let rows = fetchRows(db, sql: "SELECT * FROM persons ORDER BY name")
                 for row in rows {
                     // The tested function:
                     let name: String? = row.value(atIndex: 0)
@@ -339,7 +339,7 @@ class DatabaseTests: GRDBTests {
                 
                 var names: [String?] = []
                 var ages: [Int?] = []
-                let rows = try db.fetchRows("SELECT * FROM persons ORDER BY name")
+                let rows = fetchRows(db, sql: "SELECT * FROM persons ORDER BY name")
                 for row in rows {
                     // The tested function:
                     let name: String? = row.value(named: "name")
@@ -363,7 +363,7 @@ class DatabaseTests: GRDBTests {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
                 
-                let rows = try db.fetchRows("SELECT * FROM persons ORDER BY name")
+                let rows = fetchRows(db, sql: "SELECT * FROM persons ORDER BY name")
                 // The array iterates all rows
                 return Array(rows)
             }
@@ -385,108 +385,77 @@ class DatabaseTests: GRDBTests {
         }
     }
     
-    // TODO: test RAII (database, statement)
-    
-    func testDatabase() {
+    func testREADME() {
         assertNoError {
-            let configuration = DatabaseConfiguration(verbose: true)
-            let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite", configuration: configuration)
+            // DatabaseMigrator sets up migrations:
             
-            try dbQueue.inTransaction { db in
-                try db.execute("DROP TABLE IF EXISTS persons")
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("createPersons") { db in
                 try db.execute(
                     "CREATE TABLE persons (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "name TEXT, " +
+                        "id INTEGER PRIMARY KEY, " +
+                        "name TEXT, " +
                     "age INT)")
+            }
+            migrator.registerMigration("createPets") { db in
+                // Support for foreign keys is enabled by default:
+                try db.execute(
+                    "CREATE TABLE pets (" +
+                        "id INTEGER PRIMARY KEY, " +
+                        "masterID INTEGER NOT NULL " +
+                        "         REFERENCES persons(id) " +
+                        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
+                    "name TEXT)")
+            }
+            
+            try migrator.migrate(dbQueue)
+            
+            
+            // Transactions:
+            
+            try dbQueue.inTransaction { db in
+                try db.execute(
+                    "INSERT INTO persons (name, age) VALUES (?, ?)",
+                    bindings: ["Arthur", 36])
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)", bindings: ["Arthur", 36])
-                try statement.execute()
-                
-                try db.execute("INSERT INTO persons (name, age) VALUES (?, ?)", bindings: ["Arthur", 36])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 36])
-                
-                let insert1Stmt = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-                insert1Stmt.bind("Arthur", atIndex: 1)
-                insert1Stmt.bind(36, atIndex: 2)
-                try insert1Stmt.execute()
-                try insert1Stmt.reset()
-                insert1Stmt.bind("Arthur no age", atIndex: 1)
-                insert1Stmt.bind(nil, atIndex: 2)
-                try insert1Stmt.execute()
-                
-                let insert2Stmt = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-                insert2Stmt.bind(["Zoe", 65])
-                try insert2Stmt.execute()
-                try insert2Stmt.reset()
-                insert2Stmt.bind(["Zoe no age", nil])
-                try insert2Stmt.execute()
-                
-                let insert3Stmt = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-                insert3Stmt.bind("Beate", forKey: ":name")
-                insert3Stmt.bind(37, forKey: ":age")
-                try insert3Stmt.execute()
-                try insert3Stmt.reset()
-                insert3Stmt.bind("Beate no age", forKey: ":name")
-                insert3Stmt.bind(nil, forKey: ":age")
-                try insert3Stmt.execute()
-                
-                let insert4Stmt = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-                insert4Stmt.bind([":name": "Crystel", ":age": 16])
-                try insert4Stmt.execute()
-                try insert4Stmt.reset()
-                insert4Stmt.bind([":name": "Crystel no age", ":age": nil])
-                try insert4Stmt.execute()
+                try db.execute(
+                    "INSERT INTO persons (name, age) VALUES (:name, :age)",
+                    bindings: [":name": "Barbara", ":age": 37])
                 
                 return .Commit
             }
             
+            
+            // Fetching rows and values:
+            
             try dbQueue.inDatabase { db -> Void in
-                for row in try db.fetchRows("SELECT * FROM persons") {
-                    let id: Int64 = row.value(atIndex: 0)!
+                for row in fetchRows(db, sql: "SELECT * FROM persons") {
+                    // Leverage Swift type inference
                     let name: String? = row.value(atIndex: 1)
-                    let age: Int? = row.value(atIndex: 2)
+                    
+                    // Force unwrap when column is NOT NULL
+                    let id: Int64 = row.value(named: "id")!
+                    
+                    // Both Int and Int64 are supported
+                    let age: Int? = row.value(named: "age")
+                    
                     print("id: \(id), name: \(name), age: \(age)")
                 }
                 
-                for name in try db.fetchValues("SELECT name FROM persons", type: String.self) {
+                // Value sequences require explicit `type` parameter
+                for name in fetchValues(String.self, db: db, sql: "SELECT name FROM persons") {
+                    // name is `String?` because some rows may have a NULL name.
                     print(name)
-                }
-                
-                let names = try db.fetchValues("SELECT name FROM persons", type: String.self).map { $0! }
-                print("names: \(names)")
-                
-                let selectStmt = try db.selectStatement("SELECT * FROM persons")
-                
-                for name: String? in selectStmt.fetchValues(type: String.self) {
-                    print(name)
-                }
-                
-                let uncachedRows = Array(selectStmt.fetchRows(unsafe: true)).map { $0.dictionary }
-                NSLog("%@", "\(uncachedRows)")
-                
-                let cachedRows = Array(selectStmt.fetchRows()).map { $0.dictionary }
-                NSLog("%@", "\(cachedRows)")
-                
-                for row in selectStmt.fetchRows() {
-                    let name: String? = row.value(atIndex: 0)
-                    let age: Int? = row.value(atIndex: 1)
-                    print("\(name): \(age)")
-                    print("\(row.dictionary)")
-                }
-                for row in selectStmt.fetchRows() {
-                    let name: String? = row.value(atIndex: 0)
-                    let age: Int? = row.value(atIndex: 1)
-                    print("\(name): \(age)")
-                    print("\(row.dictionary)")
                 }
             }
-
+            
+            
+            // Extracting values out of a database block:
+            
             let names = try dbQueue.inDatabase { db in
-                try db.fetchValues("SELECT name FROM persons", type: String.self).map { $0! }
+                fetchValues(String.self, db: db, sql: "SELECT name FROM persons ORDER BY name").map { $0! }
             }
-            print("names: \(names)")
-
+            XCTAssertEqual(names, ["Arthur", "Barbara"])
         }
     }
 }
