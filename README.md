@@ -66,7 +66,7 @@ try dbQueue.inTransaction { db in
 
 // Fetching rows and values:
 
-try dbQueue.inDatabase { db -> Void in
+try dbQueue.inDatabase { db in
     for row in db.fetchRows("SELECT * FROM persons") {
         // Leverage Swift type inference
         let name: String? = row.value(atIndex: 1)
@@ -90,7 +90,7 @@ try dbQueue.inDatabase { db -> Void in
 
 // Extracting values out of a database block:
 
-let names = try dbQueue.inDatabase { db in
+let names = dbQueue.inDatabase { db in
     db.fetchValues("SELECT name FROM persons ORDER BY name", type: String.self).map { $0! }
 }
 // names is [String]: ["Arthur", "Barbara"]

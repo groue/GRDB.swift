@@ -31,7 +31,7 @@ class DatabaseMigratorTests: GRDBTests {
         
         assertNoError {
             try migrator.migrate(dbQueue)
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 XCTAssertTrue(db.tableExists("persons"))
                 XCTAssertTrue(db.tableExists("pets"))
             }
@@ -43,7 +43,7 @@ class DatabaseMigratorTests: GRDBTests {
         
         assertNoError {
             try migrator.migrate(dbQueue)
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 XCTAssertTrue(db.tableExists("persons"))
                 XCTAssertFalse(db.tableExists("pets"))
             }
@@ -66,7 +66,7 @@ class DatabaseMigratorTests: GRDBTests {
         } catch {
             // The first migration should be committed.
             // The second migration should be rollbacked.
-            let names = try! dbQueue.inDatabase { db in
+            let names = dbQueue.inDatabase { db in
                 db.fetchAllValues("SELECT * FROM persons", type: String.self).map { $0! }
             }
             XCTAssertEqual(names, ["Arthur"])

@@ -21,25 +21,34 @@ public class DatabaseQueue {
         dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
     }
     
-    public func inDatabase<R>(block: (db: Database) throws -> R) throws -> R {
+    public func inDatabase(block: (db: Database) throws -> Void) throws {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
             fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")
         }
         
         var dbError: ErrorType?
-        var result: R? = nil
         dispatch_sync(queue) { () -> Void in
             do {
-                result = try block(db: self.database)
+                try block(db: self.database)
             } catch {
                 dbError = error
             }
         }
         if let dbError = dbError {
             throw dbError
-        } else {
-            return result!
         }
+    }
+    
+    public func inDatabase<R>(block: (db: Database) -> R) -> R {
+        guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
+            fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")
+        }
+        
+        var result: R? = nil
+        dispatch_sync(queue) { () -> Void in
+            result = block(db: self.database)
+        }
+        return result!
     }
     
     public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) throws {

@@ -41,7 +41,7 @@ public struct DatabaseMigrator {
     }
     
     private func runMigrations(dbQueue: DatabaseQueue) throws {
-        let appliedMigrationIdentifiers = try dbQueue.inDatabase { db in
+        let appliedMigrationIdentifiers = dbQueue.inDatabase { db in
             db.fetchAllValues("SELECT identifier FROM grdb_migrations", type: String.self).map { $0! }
         }
     

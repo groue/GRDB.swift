@@ -13,7 +13,7 @@ class DatabaseTests: GRDBTests {
     
     func testCreateTable() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 XCTAssertFalse(db.tableExists("persons"))
                 try db.execute(
                     "CREATE TABLE persons (" +
@@ -27,7 +27,7 @@ class DatabaseTests: GRDBTests {
     
     func testUpdateStatement() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
@@ -43,7 +43,7 @@ class DatabaseTests: GRDBTests {
     
     func testUpdateStatementIndexedBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
@@ -61,7 +61,7 @@ class DatabaseTests: GRDBTests {
     
     func testUpdateStatementKeyedBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
@@ -79,7 +79,7 @@ class DatabaseTests: GRDBTests {
     
     func testUpdateStatementArrayBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
@@ -96,7 +96,7 @@ class DatabaseTests: GRDBTests {
     
     func testUpdateStatementDictionaryBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
@@ -113,7 +113,7 @@ class DatabaseTests: GRDBTests {
     
     func testUpdateStatementWithArrayBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
@@ -129,7 +129,7 @@ class DatabaseTests: GRDBTests {
     
     func testUpdateStatementWithDictionaryBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
@@ -145,7 +145,7 @@ class DatabaseTests: GRDBTests {
     
     func testDatabaseExecute() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
@@ -160,7 +160,7 @@ class DatabaseTests: GRDBTests {
     
     func testDatabaseExecuteWithArrayBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
@@ -175,7 +175,7 @@ class DatabaseTests: GRDBTests {
     
     func testDatabaseExecuteWithDictionaryBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
@@ -190,7 +190,7 @@ class DatabaseTests: GRDBTests {
     
     func testSelectStatement() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
@@ -206,7 +206,7 @@ class DatabaseTests: GRDBTests {
     
     func testSelectStatementIndexedBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
@@ -223,7 +223,7 @@ class DatabaseTests: GRDBTests {
     
     func testSelectStatementKeyedBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
@@ -240,7 +240,7 @@ class DatabaseTests: GRDBTests {
     
     func testSelectStatementArrayBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
@@ -257,7 +257,7 @@ class DatabaseTests: GRDBTests {
     
     func testSelectStatementDictionaryBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
@@ -274,7 +274,7 @@ class DatabaseTests: GRDBTests {
     
     func testSelectStatementWithArrayBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
@@ -290,7 +290,7 @@ class DatabaseTests: GRDBTests {
     
     func testSelectStatementWithDictionaryBinding() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
@@ -306,7 +306,7 @@ class DatabaseTests: GRDBTests {
     
     func testRowValueAtIndex() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
@@ -332,7 +332,7 @@ class DatabaseTests: GRDBTests {
     
     func testRowValueNamed() {
         assertNoError {
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
@@ -358,14 +358,14 @@ class DatabaseTests: GRDBTests {
     
     func testFetchRowsCacheSQLiteResults() {
         assertNoError {
-            let rows = try dbQueue.inDatabase { db -> [Row] in
+            var rows: [Row] = []
+            try dbQueue.inTransaction { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
                 
-                let rows = db.fetchRows("SELECT * FROM persons ORDER BY name")
-                // The array iterates all rows
-                return Array(rows)
+                rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
+                return .Commit
             }
             
             var names: [String?] = []
@@ -428,7 +428,7 @@ class DatabaseTests: GRDBTests {
             
             // Fetching rows and values:
             
-            try dbQueue.inDatabase { db -> Void in
+            try dbQueue.inDatabase { db in
                 for row in db.fetchRows("SELECT * FROM persons") {
                     // Leverage Swift type inference
                     let name: String? = row.value(atIndex: 1)
@@ -452,7 +452,7 @@ class DatabaseTests: GRDBTests {
             
             // Extracting values out of a database block:
             
-            let names = try dbQueue.inDatabase { db in
+            let names = dbQueue.inDatabase { db in
                 db.fetchValues("SELECT name FROM persons ORDER BY name", type: String.self).map { $0! }
             }
             XCTAssertEqual(names, ["Arthur", "Barbara"])
