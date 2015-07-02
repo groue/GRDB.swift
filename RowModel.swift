@@ -82,31 +82,34 @@ public class RowModel {
     }
 }
 
-public func fetchModelGenerator<T: RowModel>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> AnyGenerator<T?> {
-    let rowGenerator = db.fetchRowGenerator(sql, bindings: bindings)
-    return anyGenerator {
-        if let row = rowGenerator.next() {
-            return T.init(row: row)
+extension Database {
+    public func fetchModelGenerator<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnyGenerator<T> {
+        let rowGenerator = fetchRowGenerator(sql, bindings: bindings)
+        return anyGenerator {
+            if let row = rowGenerator.next() {
+                return T.init(row: row)
+            } else {
+                return nil
+            }
+        }
+    }
+
+    public func fetchModels<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> AnySequence<T> {
+        return AnySequence { self.fetchModelGenerator(sql, bindings: bindings, type: type) }
+    }
+
+    public func fetchAllModels<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> [T] {
+        return fetchModels(sql, bindings: bindings, type: type).map { $0 }
+    }
+
+    public func fetchOneModel<T: RowModel>(sql: String, bindings: Bindings? = nil, type: T.Type) -> T? {
+        if let first = fetchModelGenerator(sql, bindings: bindings, type: type).next() {
+            // one row containing an optional value
+            return first
         } else {
+            // no row
             return nil
         }
     }
 }
 
-public func fetchModels<T: RowModel>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> AnySequence<T?> {
-    return AnySequence { fetchModelGenerator(type, db: db, sql: sql, bindings: bindings) }
-}
-
-public func fetchAllModels<T: RowModel>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> [T?] {
-    return fetchModels(type, db: db, sql: sql, bindings: bindings).map { $0 }
-}
-
-public func fetchOneModel<T: RowModel>(type: T.Type, db: Database, sql: String, bindings: Bindings? = nil) -> T? {
-    if let first = fetchModelGenerator(type, db: db, sql: sql, bindings: bindings).next() {
-        // one row containing an optional value
-        return first
-    } else {
-        // no row
-        return nil
-    }
-}

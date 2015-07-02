@@ -31,6 +31,16 @@ class Person: RowModel {
         if row.hasColumn("name") { name = row.value(named: "name") }
         if row.hasColumn("age") { age = row.value(named: "age") }
     }
+    
+    init (name: String? = nil, age: Int? = nil) {
+        self.name = name
+        self.age = age
+        super.init()
+    }
+    
+    required init(row: Row) {
+        super.init(row: row)
+    }
 }
 
 class Pet: RowModel {
@@ -92,9 +102,7 @@ class RowModelTests: GRDBTests {
     
     func testInsert() {
         assertNoError {
-            let arthur = Person()
-            arthur.name = "Arthur"
-            arthur.age = 41
+            let arthur = Person(name: "Arthur", age: 41)
             
             XCTAssertTrue(arthur.ID == nil)
             try dbQueue.inTransaction { db in
@@ -107,9 +115,7 @@ class RowModelTests: GRDBTests {
     
     func testInsertTwiceBreaksUniqueIndex() {
         assertNoError {
-            let arthur = Person()
-            arthur.name = "Arthur"
-            arthur.age = 41
+            let arthur = Person(name: "Arthur", age: 41)
             
             XCTAssertTrue(arthur.ID == nil)
             do {
@@ -121,6 +127,26 @@ class RowModelTests: GRDBTests {
                 XCTFail("Expected error")
             } catch is SQLiteError {
                 // OK, this is expected
+            }
+        }
+    }
+    
+    func testSelect() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                try Person(name: "Arthur", age: 41).insert(db)
+                try Person(name: "Barbara", age: 36).insert(db)
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let persons = db.fetchAllModels("SELECT * FROM persons ORDER BY name", type: Person.self)
+                let arthur = db.fetchOneModel("SELECT * FROM persons ORDER BY age DESC", type: Person.self)!
+                
+                XCTAssertEqual(persons.map { $0.name! }, ["Arthur", "Barbara"])
+                XCTAssertEqual(persons.map { $0.age! }, [41, 36])
+                XCTAssertEqual(arthur.name!, "Arthur")
+                XCTAssertEqual(arthur.age!, 41)
             }
         }
     }
