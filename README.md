@@ -91,10 +91,8 @@ dbQueue.inDatabase { db in
     }
 }
 
-// Extracting values out of a database block:
-
+// names is [String]: ["Arthur", "Barbara"]
 let names = dbQueue.inDatabase { db in
     db.fetch(String.self, "SELECT name FROM persons ORDER BY name").map { $0! }
 }
-// names is [String]: ["Arthur", "Barbara"]
 ```
