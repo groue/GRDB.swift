@@ -8,16 +8,17 @@
 
 protocol BindingsImpl {
     func bindInStatement(statement: Statement)
+    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValue?]
 }
 
 public struct Bindings {
     let impl: BindingsImpl
     
-    public init<C: SequenceType where C.Generator.Element == Optional<DatabaseValue>>(_ array: C) {
+    public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<DatabaseValue>>(_ array: Sequence) {
         impl = BindingsArrayImpl(array: Array(array))
     }
     
-    public init<C: SequenceType where C.Generator.Element == DatabaseValue>(_ array: C) {
+    public init<Sequence: SequenceType where Sequence.Generator.Element == DatabaseValue>(_ array: Sequence) {
         impl = BindingsArrayImpl(array: array.map { $0 })
     }
     
@@ -27,6 +28,10 @@ public struct Bindings {
     
     func bindInStatement(statement: Statement) {
         impl.bindInStatement(statement)
+    }
+    
+    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValue?] {
+        return impl.dictionary(defaultColumnNames: defaultColumnNames)
     }
     
     private struct BindingsArrayImpl : BindingsImpl {
@@ -39,6 +44,19 @@ public struct Bindings {
                 statement.bind(value, atIndex: index + 1)
             }
         }
+        func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValue?] {
+            guard let defaultColumnNames = defaultColumnNames else {
+                fatalError("Missing column names")
+            }
+            guard defaultColumnNames.count == array.count else {
+                fatalError("Columns count mismatch.")
+            }
+            var dictionary = [String : DatabaseValue?]()
+            for (column, value) in zip(defaultColumnNames, array) {
+                dictionary[column] = value
+            }
+            return dictionary
+        }
     }
     
     private struct BindingsDictionaryImpl : BindingsImpl {
@@ -50,6 +68,9 @@ public struct Bindings {
             for (key, value) in dictionary {
                 statement.bind(value, forKey: key)
             }
+        }
+        func dictionary( defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValue?] {
+            return dictionary
         }
     }
 }
