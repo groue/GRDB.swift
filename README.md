@@ -111,7 +111,7 @@ let rows = dbQueue.inDatabase { db in
 }
 ```
 
-**Row queries are lazy**. They are Swift *sequences*, that iterates SQLite results as it is consumed.
+**A row sequence is lazy**. It iterates SQLite results as it is consumed.
 
 You will get a *fatal error* if you iterate such a sequence out of the database queue:
 
@@ -126,7 +126,7 @@ for row in rowSequence {
 }
 ```
 
-Avoid those fatal errors by consuming the sequence in an Array:
+Avoid those fatal errors by consuming the sequence in an Array before using it outside of a database queue:
 
 ```swift
 let rows = dbQueue.inDatabase { db in
