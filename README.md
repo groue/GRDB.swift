@@ -94,11 +94,13 @@ You can load row **lazy sequences**, **arrays**, or a **single** row:
 
 ```swift
 dbQueue.inDatabase { db in
-    db.fetchRows("SELECT ...")     // AnySequence[Row]
-    db.fetchAllRows("SELECT ...")  // [Row]
-    db.fetchOneRow("SELECT ...")   // Row?
+    db.fetchRows("SELECT ...", bindings: ...)     // AnySequence[Row]
+    db.fetchAllRows("SELECT ...", bindings: ...)  // [Row]
+    db.fetchOneRow("SELECT ...", bindings: ...)   // Row?
 }
 ```
+
+Bindings are optional arrays or dictionaries that fill the `?` and `:name` parameters in the query.
 
 You can extract rows values by index or column name:
 
@@ -173,16 +175,16 @@ Just like rows, you can load **lazy sequences**, **arrays**, or a **single** val
 ```swift
 dbQueue.inDatabase { db in
     
-    db.fetch(String.self, "SELECT name FROM persons")   // AnySequence[String?]
-    db.fetchAll(String.self, "SELECT ...")              // [String?]
-    db.fetchOne(String.self, "SELECT ...")              // String?
+    db.fetch(String.self, "SELECT ...", bindings: ...)    // AnySequence[String?]
+    db.fetchAll(String.self, "SELECT ...", bindings: ...) // [String?]
+    db.fetchOne(String.self, "SELECT ...", bindings: ...) // String?
 }
 
 
 // Extract results our of database blocks:
 
 let names = dbQueue.inDatabase { db in
-    db.fetchAll(String.self, "SELECT ...")
+    db.fetchAll(String.self, "SELECT name FROM persons")
 }
 ```
 
