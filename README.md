@@ -63,8 +63,8 @@ try dbQueue.inTransaction { db in
         bindings: ["Arthur", 36])
     
     try db.execute(
-        "INSERT INTO persons (name, age) VALUES (:name, :age)",
-        bindings: [":name": "Barbara", ":age": 37])
+        "INSERT INTO persons (name, age) VALUES ($name, $age)",
+        bindings: ["$name": "Barbara", "$age": 37])
     
     return .Commit
 }
