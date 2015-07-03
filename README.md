@@ -454,3 +454,10 @@ class Person : RowModel {
     }
 }
 ```
+
+
+## Thanks
+
+- [Pierlis](http://pierlis.com), where we write great software.
+- [@pierlo](https://github.com/pierlo) for his feedback on GRDB.
+- Other Swift wrappers around SQLite, for being so different.
