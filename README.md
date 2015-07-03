@@ -81,7 +81,14 @@ A rollback statement is issued if an error is thrown from the transaction block.
 
 ## Fetch Queries
 
-**Row Queries** load database rows:
+You can load rows and values from the database.
+
+- [Row Queries](#row-queries)
+- [Value Queries](#value-queries)
+- [Custom Values](#custom-values)
+- 
+
+### Row Queries
 
 ```swift
 dbQueue.inDatabase { db in
@@ -148,7 +155,9 @@ let rows = dbQueue.inDatabase { db in
 ```
 
 
-**Values queries** load value types:
+### Value Queries
+
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob):
 
 ```swift
 dbQueue.inDatabase { db in
@@ -160,9 +169,6 @@ dbQueue.inDatabase { db in
     db.fetchOne(String.self, "SELECT ...")              // String?
 }
 ```
-
-GRDB.swift ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob).
-
 
 **Enum types** are supported through the `DatabaseEnum` type:
 
@@ -193,7 +199,13 @@ let color = dbColor.value
 
 
 
-**Custom types** can be inserted and loaded by adopting the `DatabaseValueType` protocol:
+### Custom Values
+
+Your custom types can be inserted and loaded by adopting the `DatabaseValueType` protocol.
+
+As long as you can represent your type as one of the five [datatypes](https://www.sqlite.org/datatype3.html) supported by SQLite, namely NULL, INTEGER, REAL, TEXT, and BLOB, your type is fully supported by GRDB.swift.
+
+For example, let's define below the `DatabaseDate` type that stores and loads an NSDate in the database through its timestamp:
 
 ```swift
 struct DatabaseDate: DatabaseValueType {
