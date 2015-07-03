@@ -331,10 +331,10 @@ class Person : RowModel {
     // Boring and not DRY, but straightforward:
     
     override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("id")   { id = row.value(named: "id") }
-        if row.hasColumn("name") { name = row.value(named: "name") }
-        if row.hasColumn("age")  { age = row.value(named: "age") }
-        if row.hasColumn("creationTimestamp") {
+        if row.hasColumn("id")   { id = row.value(named: "id") }     // Int64
+        if row.hasColumn("age")  { age = row.value(named: "age") }   // Int
+        if row.hasColumn("name") { name = row.value(named: "name") } // String
+        if row.hasColumn("creationTimestamp") {                      // NSDate
             // The custom type DatabaseDate that we have declared above turns
             // out handy:
             let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
