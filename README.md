@@ -460,4 +460,5 @@ class Person : RowModel {
 
 - [Pierlis](http://pierlis.com), where we write great software.
 - [@pierlo](https://github.com/pierlo) for his feedback on GRDB.
-- Other Swift wrappers around SQLite, for being so different.
+- [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
+- [ccgus/FMDB](https://github.com/ccgus/fmdb) for its excellency.
