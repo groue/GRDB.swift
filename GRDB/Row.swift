@@ -7,13 +7,18 @@
 //
 
 protocol RowImpl {
+    var count: Int { get }
     func sqliteValueAtIndex(index: Int) -> SQLiteValue
+    func columnNameAtIndex(index: Int) -> String
     func indexForColumnNamed(name: String) -> Int?
     var sqliteDictionary: [String: SQLiteValue] { get }
 }
 
-public struct Row {
+public struct Row: CollectionType {
     let impl: RowImpl
+    
+    
+    // MARK: - Initializers
     
     init(statement: SelectStatement, unsafe: Bool) {
         if unsafe {
@@ -26,6 +31,9 @@ public struct Row {
     public init(sqliteDictionary: [String: SQLiteValue]) {
         self.impl = DictionaryRowImpl(sqliteDictionary: sqliteDictionary)
     }
+    
+    
+    // MARK: - Values
     
     public func hasColumn(name: String) -> Bool {
         return impl.sqliteDictionary.indexForKey(name) != nil
@@ -63,6 +71,77 @@ public struct Row {
         return dictionary
     }
     
+    
+    // MARK: - CollectionType
+    
+    // TODO: test the row as collection
+    
+    // Use a custom index, so that we eventually can provide a subscript(Int)
+    // that returns a DatabaseValue.
+    public struct RowIndex: ForwardIndexType {
+        let index: Int
+        
+        init(_ index: Int) {
+            self.index = index
+        }
+        
+        public func successor() -> RowIndex {
+            return RowIndex(index+1)
+        }
+    }
+    
+    public func generate() -> IndexingGenerator<Row> {
+        return IndexingGenerator(self)
+    }
+    
+    public var startIndex: RowIndex {
+        return Index(0)
+    }
+    
+    public var endIndex: RowIndex {
+        return Index(impl.count)
+    }
+    
+    public subscript(index: RowIndex) -> (String, SQLiteValue) {
+        return (
+            self.impl.columnNameAtIndex(index.index),
+            self.impl.sqliteValueAtIndex(index.index))
+    }
+    
+    
+    // MARK: - DictionaryRowImpl
+    
+    private struct DictionaryRowImpl: RowImpl {
+        let sqliteDictionary: [String: SQLiteValue]
+        
+        var count: Int {
+            return sqliteDictionary.count
+        }
+        
+        init (sqliteDictionary: [String: SQLiteValue]) {
+            self.sqliteDictionary = sqliteDictionary
+        }
+        
+        func sqliteValueAtIndex(index: Int) -> SQLiteValue {
+            return sqliteDictionary[advance(sqliteDictionary.startIndex, index)].1
+        }
+        
+        func columnNameAtIndex(index: Int) -> String {
+            return sqliteDictionary[advance(sqliteDictionary.startIndex, index)].0
+        }
+        
+        func indexForColumnNamed(name: String) -> Int? {
+            if let index = sqliteDictionary.indexForKey(name) {
+                return distance(sqliteDictionary.startIndex, index)
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    
+    // MARK: - SafeRowImpl
+    
     // SafeRowImpl can be safely accessed after sqlite3_step() and sqlite3_finalize() has been called.
     // It preserves the column ordering of the statement.
     private struct SafeRowImpl : RowImpl {
@@ -81,14 +160,25 @@ public struct Row {
             self.sqliteDictionary = sqliteDictionary
         }
         
+        var count: Int {
+            return columnNames.count
+        }
+        
         func sqliteValueAtIndex(index: Int) -> SQLiteValue {
             return sqliteValues[index]
+        }
+        
+        func columnNameAtIndex(index: Int) -> String {
+            return columnNames[index]
         }
         
         func indexForColumnNamed(name: String) -> Int? {
             return columnNames.indexOf(name)
         }
     }
+    
+    
+    // MARK: - UnsafeRowImpl
     
     // UnsafeRowImpl can not be safely accessed after sqlite3_step() or sqlite3_finalize() has been called.
     // It preserves the column ordering of the statement.
@@ -99,8 +189,16 @@ public struct Row {
             self.statement = statement
         }
         
+        var count: Int {
+            return statement.columnCount
+        }
+        
         func sqliteValueAtIndex(index: Int) -> SQLiteValue {
             return statement.sqliteValueAtIndex(index)
+        }
+        
+        func columnNameAtIndex(index: Int) -> String {
+            return statement.columnNames[index]
         }
         
         func indexForColumnNamed(name: String) -> Int? {
@@ -116,24 +214,8 @@ public struct Row {
             return dic
         }
     }
-    
-    private struct DictionaryRowImpl: RowImpl {
-        let sqliteDictionary: [String: SQLiteValue]
-        
-        init (sqliteDictionary: [String: SQLiteValue]) {
-            self.sqliteDictionary = sqliteDictionary
-        }
-        
-        func sqliteValueAtIndex(index: Int) -> SQLiteValue {
-            return sqliteDictionary[advance(sqliteDictionary.startIndex, index)].1
-        }
-        
-        func indexForColumnNamed(name: String) -> Int? {
-            if let index = sqliteDictionary.indexForKey(name) {
-                return distance(sqliteDictionary.startIndex, index)
-            } else {
-                return nil
-            }
-        }
-    }
+}
+
+public func ==(lhs: Row.RowIndex, rhs: Row.RowIndex) -> Bool {
+    return lhs.index == rhs.index
 }
