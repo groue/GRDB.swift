@@ -311,7 +311,7 @@ let person = dbQueue.inDatabase { db in
 ```swift
 class PersonsViewController: UITableViewController {
     
-    let persons: [Person]?
+    let persons: [PersonViewModel]?
     
     // Subclass Person, with an extra `petCount`:
     
