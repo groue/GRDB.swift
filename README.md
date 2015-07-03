@@ -17,6 +17,7 @@ Features
 Usage
 -----
 
+```swift
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 
 let person = Person(name: "Arthur")
@@ -29,6 +30,7 @@ try dbQueue.inTransaction { db in
 let persons = dbQueue.inDatabase { db in
     db.fetchAll(Person.type, "SELECT * FROM persons")
 }
+```
 
 
 Documentation
