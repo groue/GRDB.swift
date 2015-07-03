@@ -42,9 +42,7 @@ class UpdateStatementTests: GRDBTests {
                     ["Barbara"],
                 ]
                 for person in persons {
-                    statement.reset()
-                    statement.clearBindings()
-                    statement.bind(Bindings(person))
+                    statement.bindings = Bindings(person)
                     try statement.execute()
                 }
                 
@@ -73,9 +71,7 @@ class UpdateStatementTests: GRDBTests {
                     ["name": "Barbara"],
                 ]
                 for person in persons {
-                    statement.reset()
-                    statement.clearBindings()
-                    statement.bind(Bindings(person))
+                    statement.bindings = Bindings(person)
                     try statement.execute()
                 }
                 

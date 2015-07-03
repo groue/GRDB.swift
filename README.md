@@ -228,14 +228,7 @@ try dbQueue.inTransaction { db in
     ]
     
     for person in persons {
-        // Ready for next execution
-        statement.reset()
-        
-        // Forget previously bound values
-        statement.clearBindings()
-        
-        // Execute with new values
-        statement.bind(Bindings(person))
+        statement.bindings = Bindings(person)
         try statement.execute()
     }
     
