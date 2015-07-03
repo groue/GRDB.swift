@@ -90,13 +90,22 @@ You can load rows and values from the database.
 
 ### Row Queries
 
+You can load row **lazy sequences**, **arrays**, or a **single** row:
+
+```swift
+dbQueue.inDatabase { db in
+    db.fetchRows(String.self, "SELECT ...")     // AnySequence[Row]
+    db.fetchAllRows(String.self, "SELECT ...")  // [Row]
+    db.fetchOneRow(String.self, "SELECT ...")   // Row?
+}
+```
+
+You can extract rows values by index or column name:
+
 ```swift
 dbQueue.inDatabase { db in
     
-    // AnySequence[Row]
-    let rows = db.fetchRows("SELECT * FROM persons")
-    
-    for row in rows {
+    for row in db.fetchRows("SELECT * FROM persons") {
         // Leverage Swift type inference
         let name: String? = row.value(atIndex: 1)
         
@@ -124,7 +133,7 @@ let rows = dbQueue.inDatabase { db in
 }
 ```
 
-**A row sequence is lazy**. It iterates SQLite results as it is consumed.
+**A sequence is lazy**: it iterates SQLite results as it is consumed.
 
 If you iterate such a sequence out of a database queue, you will get a *fatal error*:
 
@@ -157,46 +166,25 @@ let rows = dbQueue.inDatabase { db in
 
 ### Value Queries
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob):
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob)?
+
+Just like rows, you can load **lazy sequences**, **arrays**, or a **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
-    
-    // Use explicit type to load values, like `String.self` below:
     
     db.fetch(String.self, "SELECT name FROM persons")   // AnySequence[String?]
     db.fetchAll(String.self, "SELECT ...")              // [String?]
     db.fetchOne(String.self, "SELECT ...")              // String?
 }
-```
 
-**Enum types** are supported through the `DatabaseEnum` type:
 
-```swift
-enum Color: Int {   // A raw underlying type that is database-compatible.
-    case Red
-    case White
-    case Rose
+// Extract results our of database blocks:
+
+let names = dbQueue.inDatabase { db in
+    db.fetchAll(String.self, "SELECT ...")
 }
-
-// Write
-
-let color = Color.Red
-try db.execute("INSERT INTO wines (color, ...) " +
-                          "VALUES (?, ...)",
-                        bindings: [DatabaseEnum(color), ...])
-
-// Read from row
-
-let row = db.fetchOneRow("SELECT color FROM wines ORDER BY color LIMIT 1")!
-let dbColor: DatabaseEnum<Color> = row.value(named: "color")!
-let color = dbColor.value
-
-// Direct read
-
-let dbColor = db.fetchOne(DatabaseDate.self, "SELECT color ...")!
-let color = dbColor.value
-
+```
 
 
 ### Custom Values
