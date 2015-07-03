@@ -94,9 +94,9 @@ You can load row **lazy sequences**, **arrays**, or a **single** row:
 
 ```swift
 dbQueue.inDatabase { db in
-    db.fetchRows(String.self, "SELECT ...")     // AnySequence[Row]
-    db.fetchAllRows(String.self, "SELECT ...")  // [Row]
-    db.fetchOneRow(String.self, "SELECT ...")   // Row?
+    db.fetchRows("SELECT ...")     // AnySequence[Row]
+    db.fetchAllRows("SELECT ...")  // [Row]
+    db.fetchOneRow("SELECT ...")   // Row?
 }
 ```
 
