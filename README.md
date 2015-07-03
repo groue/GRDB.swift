@@ -119,9 +119,10 @@ let rows = dbQueue.inDatabase { db in
 
 **A row sequence is lazy**. It iterates SQLite results as it is consumed.
 
-You will get a *fatal error* if you iterate such a sequence out of the database queue:
+If you iterate such a sequence out of a database queue, you will get a *fatal error*:
 
 ```swift
+// Wrong: sequence is extracted out of the database queue
 let rowSequence = dbQueue.inDatabase { db in
     db.fetchRows("SELECT ...")
 }
@@ -132,9 +133,10 @@ for row in rowSequence {
 }
 ```
 
-Avoid those errors by extracting arrays, not sequences:
+The solution is to dump such a sequence into an array:
 
 ```swift
+// Good: extract an array out of the database queue
 let rows = dbQueue.inDatabase { db in
     // The `fetchAllRows` variant returns an array of rows:
     return db.fetchAllRows("SELECT ...")
