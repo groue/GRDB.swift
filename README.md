@@ -41,6 +41,7 @@ SQLite API:
 - [Database queues](#database_queues)
 - [Transactions](#transactions)
 - [Fetch Queries](#fetch-queries)
+- [Statements](#statements)
 
 Application tools:
 
@@ -207,6 +208,37 @@ let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
 // Direct read
 
 let dbDate = db.fetchOne(DatabaseDate.self, "SELECT creationTimestamp ...")!
+```
+
+
+## Statements
+
+SQLite supports **Prepared Statements** that can be reused. For example:
+
+```swift
+try dbQueue.inTransaction { db in
+    
+    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+    
+    let persons = [
+        ["Arthur", 41],
+        ["Barbara"],
+    ]
+    
+    for person in persons {
+        // Ready for next execution
+        statement.reset()
+        
+        // Forget previously bound values
+        statement.clearBindings()
+        
+        // Execute with new values
+        statement.bind(Bindings(person))
+        try statement.execute()
+    }
+    
+    return .Commit
+}
 ```
 
 
