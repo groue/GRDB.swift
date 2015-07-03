@@ -64,7 +64,7 @@ public enum SQLiteValue {
         }
     }
     
-    public func value<T: DatabaseValue>() -> T? {
-        return T.fromSQLiteValue(self)
+    public func value<DatabaseValue: GRDB.DatabaseValue>() -> DatabaseValue? {
+        return DatabaseValue.fromSQLiteValue(self)
     }
 }

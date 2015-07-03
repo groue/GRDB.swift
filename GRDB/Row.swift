@@ -31,13 +31,13 @@ public struct Row {
         return impl.sqliteDictionary.indexForKey(name) != nil
     }
     
-    public func value<T: DatabaseValue>(atIndex index: Int) -> T? {
-        return impl.sqliteValueAtIndex(index).value() as T?
+    public func value<DatabaseValue: GRDB.DatabaseValue>(atIndex index: Int) -> DatabaseValue? {
+        return impl.sqliteValueAtIndex(index).value() as DatabaseValue?
     }
     
-    public func value<T: DatabaseValue>(named columnName: String) -> T? {
+    public func value<DatabaseValue: GRDB.DatabaseValue>(named columnName: String) -> DatabaseValue? {
         if let index = impl.indexForColumnNamed(columnName) {
-            return impl.sqliteValueAtIndex(index).value() as T?
+            return impl.sqliteValueAtIndex(index).value() as DatabaseValue?
         } else {
             return nil
         }

@@ -133,7 +133,7 @@ public class Database {
     }
 }
 
-func failOnError<R>(@noescape block: (Void) throws -> R) -> R {
+func failOnError<Result>(@noescape block: (Void) throws -> Result) -> Result {
     do {
         return try block()
     } catch let error as SQLiteError {
@@ -176,18 +176,18 @@ extension Database {
 
 extension Database {
     
-    public func fetch<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<T?> {
+    public func fetch<DatabaseValue: GRDB.DatabaseValue>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<DatabaseValue?> {
         return failOnError {
             let statement = try selectStatement(sql, bindings: bindings)
             return statement.fetch(type)
         }
     }
     
-    public func fetchAll<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> [T?] {
+    public func fetchAll<DatabaseValue: GRDB.DatabaseValue>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> [DatabaseValue?] {
         return Array(fetch(type, sql, bindings: bindings))
     }
     
-    public func fetchOne<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> T? {
+    public func fetchOne<DatabaseValue: GRDB.DatabaseValue>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> DatabaseValue? {
         if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
             return first
