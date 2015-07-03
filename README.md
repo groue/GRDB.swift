@@ -146,17 +146,17 @@ struct DatabaseDate: DatabaseValue {
 
 // Write
 
-let date = NSDate()
-try db.execute("INSERT INTO dates (timestamp) VALUES (?)", bindings: [DatabaseDate(date)])
+let dbDate = DatabaseDate(NSDate())
+try db.execute("INSERT INTO dates (timestamp) VALUES (?)", bindings: [dbDate])
 
 // Read from row
 
 let row = db.fetchOneRow("SELECT creationTimestamp FROM stuffs")!
-let date: DatabaseDate = row.value(atIndex: 0)!
+let dbDate: DatabaseDate = row.value(atIndex: 0)!
 
 // Direct read
 
-let date = db.fetchOne(DatabaseDate.self, "SELECT timestamp FROM stuffs")!
+let dbDate = db.fetchOne(DatabaseDate.self, "SELECT timestamp FROM stuffs")!
 ```
 
 
