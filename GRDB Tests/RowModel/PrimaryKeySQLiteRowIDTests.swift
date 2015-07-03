@@ -193,7 +193,7 @@ class PrimaryKeySQLiteRowIDTests: RowModelTests {
         }
     }
     
-    func testSelectWithDictionaryBindings() {
+    func testSelectWithDictionaryPrimaryKey() {
         assertNoError {
             var arthurID: Int64? = nil
             try dbQueue.inTransaction { db in
@@ -204,7 +204,7 @@ class PrimaryKeySQLiteRowIDTests: RowModelTests {
             }
             
             dbQueue.inDatabase { db in
-                let arthur = db.fetchOne(Person.self, bindings: ["id": arthurID])! // The tested method
+                let arthur = db.fetchOne(Person.self, primaryKey: ["id": arthurID])! // The tested method
                 
                 XCTAssertEqual(arthur.id!, arthurID!)
                 XCTAssertEqual(arthur.name!, "Arthur")
@@ -213,7 +213,7 @@ class PrimaryKeySQLiteRowIDTests: RowModelTests {
         }
     }
     
-    func testSelectWithArrayBindings() {
+    func testSelectWithArrayPrimaryKey() {
         assertNoError {
             var arthurID: Int64? = nil
             try dbQueue.inTransaction { db in
@@ -224,7 +224,7 @@ class PrimaryKeySQLiteRowIDTests: RowModelTests {
             }
             
             dbQueue.inDatabase { db in
-                let arthur = db.fetchOne(Person.self, bindings: [arthurID])! // The tested method
+                let arthur = db.fetchOne(Person.self, primaryKey: [arthurID])! // The tested method
                 XCTAssertEqual(arthur.id!, arthurID!)
                 XCTAssertEqual(arthur.name!, "Arthur")
                 XCTAssertEqual(arthur.age!, 41)
