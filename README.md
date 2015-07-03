@@ -168,7 +168,7 @@ let rows = dbQueue.inDatabase { db in
 
 ### Value Queries
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob)?
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob).
 
 Just like rows, you can load **lazy sequences**, **arrays**, or a **single** value:
 
