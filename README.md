@@ -328,7 +328,7 @@ By overriding `updateFromDatabaseRow`, you can load persons:
 class Person : RowModel {
     ...
     
-    // Boring and not DRY, but straightforward and trivial:
+    // Boring and not DRY, but straightforward:
     
     override func updateFromDatabaseRow(row: Row) {
         if row.hasColumn("id")   { id = row.value(named: "id") }
