@@ -11,7 +11,7 @@ public struct DatabaseMigrator {
     public init() {
     }
     
-    public mutating func registerMigration(identifier: String, block: (db: Database) throws -> Void) {
+    public mutating func registerMigration(identifier: String, _ block: (db: Database) throws -> Void) {
         guard migrations.map({ $0.identifier }).indexOf(identifier) == nil else {
             fatalError("Already registered migration: \"\(identifier)\"")
         }
