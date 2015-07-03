@@ -51,7 +51,7 @@ Application tools:
 
 ## Database queues
 
-Database queues safely serialize database accesses (inspired by [ccgus/FMDB](https://github.com/ccgus/fmdb)):
+**Database queues** safely serialize database accesses (inspired by [ccgus/FMDB](https://github.com/ccgus/fmdb)):
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
@@ -60,7 +60,7 @@ let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 
 ## Transactions
 
-Transactions wrap the queries that alter the database content:
+**Transactions** wrap the queries that alter the database content:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -244,7 +244,7 @@ try dbQueue.inTransaction { db in
 
 ## Migrations
 
-Migrations are a convenient way to alter your database schema over time in a consistent and easy way. Define them with a DatabaseMigrator:
+**Migrations** are a convenient way to alter your database schema over time in a consistent and easy way. Define them with a DatabaseMigrator:
 
 ```swift
 var migrator = DatabaseMigrator()
@@ -275,7 +275,7 @@ try migrator.migrate(dbQueue)
 
 ## Row Models
 
-`RowModel` is a class that wraps a database row. *It is designed to be subclassed.*
+**RowModel** is a class that wraps a database row. *It is designed to be subclassed.*
 
 We'll illustrate its features with the Person class below. Note how it declares properties for the `persons` table seen above:
 
