@@ -13,30 +13,6 @@ public protocol DatabaseValueType {
     static func fromSQLiteValue(value: SQLiteValue) -> Self?
 }
 
-public struct DatabaseEnum<T: RawRepresentable where T.RawValue: DatabaseValueType> : DatabaseValueType {
-    public let value: T
-    
-    public init?(_ value: T?) {
-        if let value = value {
-            self.value = value
-        } else {
-            return nil
-        }
-    }
-    
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
-        return value.rawValue.bindInSQLiteStatement(statement, atIndex: index)
-    }
-    
-    public static func fromSQLiteValue(value: SQLiteValue) -> DatabaseEnum<T>? {
-        if let rawValue = T.RawValue.fromSQLiteValue(value), value = T.init(rawValue: rawValue) {
-            return self.init(value)
-        } else {
-            return nil
-        }
-    }
-}
-
 extension Bool: DatabaseValueType {
     public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
         return sqlite3_bind_int(statement, Int32(index), Int32(self ? 1 : 0))
