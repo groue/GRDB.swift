@@ -128,7 +128,7 @@ dbQueue.inDatabase { db in
 }
 
 
-// Extract results our of database blocks:
+// Extract results out of database blocks:
 
 let rows = dbQueue.inDatabase { db in
     db.fetchAllRows("SELECT ...")
@@ -181,7 +181,7 @@ dbQueue.inDatabase { db in
 }
 
 
-// Extract results our of database blocks:
+// Extract results out of database blocks:
 
 let names = dbQueue.inDatabase { db in
     db.fetchAll(String.self, "SELECT name FROM persons")
