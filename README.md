@@ -36,9 +36,14 @@ let persons = dbQueue.inDatabase { db in
 Documentation
 =============
 
+SQLite API:
+
 - [Database queues](#database_queues)
 - [Transactions](#transactions)
 - [Fetch Queries](#fetch-queries)
+
+Application tools:
+
 - [Migrations](#migrations)
 - [Row models](#row-models)
 
