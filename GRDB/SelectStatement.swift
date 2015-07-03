@@ -38,6 +38,7 @@ public final class SelectStatement : Statement {
 
 extension SelectStatement {
     
+    // let rows = statement.fetchRows()
     public func fetchRows() -> AnySequence<Row> {
         return AnySequence { () -> AnyGenerator<Row> in
             var logSQL = self.database.configuration.verbose
@@ -77,10 +78,12 @@ extension SelectStatement {
         }
     }
     
+    // let rows = statement.fetchAllRows()
     public func fetchAllRows() -> [Row] {
         return Array(fetchRows())
     }
     
+    // let row = statement.fetchOneRow()
     public func fetchOneRow() -> Row? {
         return fetchRows().generate().next()
     }
@@ -88,6 +91,7 @@ extension SelectStatement {
 
 extension SelectStatement {
     
+    // let names = statement.fetch(String.self)
     public func fetch<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type) -> AnySequence<DatabaseValue?> {
         let rowSequence = fetchRows()
         return AnySequence { () -> AnyGenerator<DatabaseValue?> in
@@ -102,10 +106,12 @@ extension SelectStatement {
         }
     }
     
+    // let names = statement.fetchAll(String.self)
     public func fetchAll<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type) -> [DatabaseValue?] {
         return Array(fetch(type))
     }
     
+    // let name = statement.fetchOne(String.self)
     public func fetchOne<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type) -> DatabaseValue? {
         if let optionalValue = fetch(type).generate().next() {
             // one row containing an optional value

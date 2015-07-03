@@ -158,6 +158,7 @@ func failOnError<Result>(@noescape block: (Void) throws -> Result) -> Result {
 
 extension Database {
     
+    // let rows = db.fetchRows("SELECT ...", bindings: ...)
     public func fetchRows(sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
         return failOnError {
             let statement = try selectStatement(sql, bindings: bindings)
@@ -165,10 +166,12 @@ extension Database {
         }
     }
     
+    // let rows = db.fetchAllRows("SELECT ...", bindings: ...)
     public func fetchAllRows(sql: String, bindings: Bindings? = nil) -> [Row] {
         return Array(fetchRows(sql, bindings: bindings))
     }
     
+    // let row = db.fetchOneRows("SELECT ...", bindings: ...)
     public func fetchOneRow(sql: String, bindings: Bindings? = nil) -> Row? {
         return fetchRows(sql, bindings: bindings).generate().next()
     }
@@ -176,6 +179,7 @@ extension Database {
 
 extension Database {
     
+    // let names = db.fetch(String.self, "SELECT name ...", bindings: ...)
     public func fetch<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<DatabaseValue?> {
         return failOnError {
             let statement = try selectStatement(sql, bindings: bindings)
@@ -183,10 +187,12 @@ extension Database {
         }
     }
     
+    // let names = db.fetchAll(String.self, "SELECT name ...", bindings: ...)
     public func fetchAll<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> [DatabaseValue?] {
         return Array(fetch(type, sql, bindings: bindings))
     }
     
+    // let name = db.fetchOne(String.self, "SELECT name ...", bindings: ...)
     public func fetchOne<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> DatabaseValue? {
         if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
