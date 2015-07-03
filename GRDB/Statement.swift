@@ -41,10 +41,11 @@ public class Statement {
         }
     }
     
+    // TODO: document that we only support the colon prefix (like FMDB).
     public final func bind(value: DatabaseValue?, forKey key: String) {
-        let index = Int(sqlite3_bind_parameter_index(sqliteStatement, key))
+        let index = Int(sqlite3_bind_parameter_index(sqliteStatement, ":\(key)"))
         guard index > 0 else {
-            fatalError("Key not found: \(key)")
+            fatalError("Key not found in SQLite statement: `:\(key)`")
         }
         bind(value, atIndex: index)
     }

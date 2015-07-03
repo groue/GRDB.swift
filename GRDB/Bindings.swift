@@ -53,10 +53,10 @@ public struct Bindings {
         //
         // Without it, the following code won't compile:
         //
-        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (@name, @age)")
+        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
         //    let persons = [
-        //        ["@name": "Arthur", "@age": 41],
-        //        ["@name": "Barbara"],
+        //        ["name": "Arthur", "age": 41],
+        //        ["name": "Barbara"],
         //    ]
         //    for person in persons {
         //        statement.clearBindings()

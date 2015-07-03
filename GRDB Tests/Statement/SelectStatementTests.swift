@@ -58,9 +58,9 @@ class SelectStatementTests: GRDBTests {
             
             try dbQueue.inDatabase { db in
                 
-                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < @age")
+                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: why is this explicit type declaration required?
-                let ages: [[String: DatabaseValue?]] = [["@age": 20], ["@age": 30], ["@age": 40], ["@age": 50]]
+                let ages: [[String: DatabaseValue?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ages.map { age -> Int in
                     statement.reset()
                     statement.clearBindings()

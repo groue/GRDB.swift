@@ -67,10 +67,10 @@ class UpdateStatementTests: GRDBTests {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (@name, @age)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons = [
-                    ["@name": "Arthur", "@age": 41],
-                    ["@name": "Barbara"],
+                    ["name": "Arthur", "age": 41],
+                    ["name": "Barbara"],
                 ]
                 for person in persons {
                     statement.reset()

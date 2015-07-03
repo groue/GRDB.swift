@@ -66,8 +66,8 @@ class DatabaseTests: GRDBTests {
                 
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 // The tested function:
-                statement.bind("Arthur", forKey: ":name")
-                statement.bind(41, forKey: ":age")
+                statement.bind("Arthur", forKey: "name")
+                statement.bind(41, forKey: "age")
                 try statement.execute()
                 
                 let row = db.fetchOneRow("SELECT * FROM persons")!
@@ -101,7 +101,7 @@ class DatabaseTests: GRDBTests {
                 
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 // The tested function:
-                statement.bind([":name": "Arthur", ":age": 41])
+                statement.bind(["name": "Arthur", "age": 41])
                 try statement.execute()
                 
                 let row = db.fetchOneRow("SELECT * FROM persons")!
@@ -133,7 +133,7 @@ class DatabaseTests: GRDBTests {
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
                 try statement.execute()
                 
                 let row = db.fetchOneRow("SELECT * FROM persons")!
@@ -179,7 +179,7 @@ class DatabaseTests: GRDBTests {
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
                 
                 let row = db.fetchOneRow("SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
@@ -192,8 +192,8 @@ class DatabaseTests: GRDBTests {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 // The tested function:
                 let statement = try db.selectStatement("SELECT * FROM persons")
@@ -208,8 +208,8 @@ class DatabaseTests: GRDBTests {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?")
                 // The tested function:
@@ -225,12 +225,12 @@ class DatabaseTests: GRDBTests {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name")
                 // The tested function:
-                statement.bind("Arthur", forKey: ":name")
+                statement.bind("Arthur", forKey: "name")
                 
                 let rows = statement.fetchAllRows()
                 XCTAssertEqual(rows.count, 1)
@@ -242,8 +242,8 @@ class DatabaseTests: GRDBTests {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?")
                 // The tested function:
@@ -259,12 +259,12 @@ class DatabaseTests: GRDBTests {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name")
                 // The tested function:
-                statement.bind([":name": "Arthur"])
+                statement.bind(["name": "Arthur"])
                 
                 let rows = statement.fetchAllRows()
                 XCTAssertEqual(rows.count, 1)
@@ -276,8 +276,8 @@ class DatabaseTests: GRDBTests {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 // The tested function:
                 let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
@@ -292,11 +292,11 @@ class DatabaseTests: GRDBTests {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 // The tested function:
-                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name", bindings: [":name": "Arthur"])
+                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Arthur"])
                 
                 let rows = statement.fetchAllRows()
                 XCTAssertEqual(rows.count, 1)
@@ -308,8 +308,8 @@ class DatabaseTests: GRDBTests {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 var names: [String?] = []
                 var ages: [Int?] = []
@@ -334,8 +334,8 @@ class DatabaseTests: GRDBTests {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 var names: [String?] = []
                 var ages: [Int?] = []
@@ -361,8 +361,8 @@ class DatabaseTests: GRDBTests {
             var rows: [Row] = []
             try dbQueue.inTransaction { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Arthur", ":age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: [":name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
                 return .Commit
@@ -420,7 +420,7 @@ class DatabaseTests: GRDBTests {
                 
                 try db.execute(
                     "INSERT INTO persons (name, age) VALUES (:name, :age)",
-                    bindings: [":name": "Barbara", ":age": 37])
+                    bindings: ["name": "Barbara", "age": 37])
                 
                 return .Commit
             }
