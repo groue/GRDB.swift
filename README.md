@@ -381,6 +381,7 @@ class Person : RowModel {
             "id": id,
             "name": name,
             "age": age,
+            // The custom type DatabaseDate has been declared above.
             "creationTimestamp": DatabaseDate(creationDate),
         ]
     }
