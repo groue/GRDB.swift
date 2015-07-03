@@ -37,9 +37,9 @@ Documentation
 =============
 
 - [Database queues](#database_queues)
-- [Migrations](#migrations)
 - [Transactions](#transactions)
 - [Fetch Queries](#fetch-queries)
+- [Migrations](#migrations)
 - [Row models](#row-models)
 
 
@@ -49,36 +49,6 @@ Database queues safely serialize database accesses (inspired by [ccgus/FMDB](htt
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
-```
-
-## Migrations
-
-Migrations are a convenient way to alter your database schema over time in a consistent and easy way. Define them with a DatabaseMigrator:
-
-```swift
-var migrator = DatabaseMigrator()
-
-migrator.registerMigration("createPersons") { db in
-    try db.execute(
-        "CREATE TABLE persons (" +
-        "id INTEGER PRIMARY KEY, " +
-        "creationTimestamp DOUBLE, " +
-        "name TEXT NOT NULL, " +
-        "age INT)")
-}
-
-migrator.registerMigration("createPets") { db in
-    // Support for foreign keys is enabled by default:
-    try db.execute(
-        "CREATE TABLE pets (" +
-        "id INTEGER PRIMARY KEY, " +
-        "masterID INTEGER NOT NULL " +
-        "         REFERENCES persons(id) " +
-        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-        "name TEXT NOT NULL)")
-}
-
-try migrator.migrate(dbQueue)
 ```
 
 
@@ -203,6 +173,37 @@ let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
 // Direct read
 
 let dbDate = db.fetchOne(DatabaseDate.self, "SELECT creationTimestamp ...")!
+```
+
+
+## Migrations
+
+Migrations are a convenient way to alter your database schema over time in a consistent and easy way. Define them with a DatabaseMigrator:
+
+```swift
+var migrator = DatabaseMigrator()
+
+migrator.registerMigration("createPersons") { db in
+    try db.execute(
+        "CREATE TABLE persons (" +
+        "id INTEGER PRIMARY KEY, " +
+        "creationTimestamp DOUBLE, " +
+        "name TEXT NOT NULL, " +
+        "age INT)")
+}
+
+migrator.registerMigration("createPets") { db in
+    // Support for foreign keys is enabled by default:
+    try db.execute(
+        "CREATE TABLE pets (" +
+        "id INTEGER PRIMARY KEY, " +
+        "masterID INTEGER NOT NULL " +
+        "         REFERENCES persons(id) " +
+        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
+        "name TEXT NOT NULL)")
+}
+
+try migrator.migrate(dbQueue)
 ```
 
 
