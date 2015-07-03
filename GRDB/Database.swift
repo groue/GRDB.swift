@@ -176,18 +176,18 @@ extension Database {
 
 extension Database {
     
-    public func fetch<DatabaseValue: GRDB.DatabaseValue>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<DatabaseValue?> {
+    public func fetch<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<DatabaseValue?> {
         return failOnError {
             let statement = try selectStatement(sql, bindings: bindings)
             return statement.fetch(type)
         }
     }
     
-    public func fetchAll<DatabaseValue: GRDB.DatabaseValue>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> [DatabaseValue?] {
+    public func fetchAll<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> [DatabaseValue?] {
         return Array(fetch(type, sql, bindings: bindings))
     }
     
-    public func fetchOne<DatabaseValue: GRDB.DatabaseValue>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> DatabaseValue? {
+    public func fetchOne<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> DatabaseValue? {
         if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
             return first

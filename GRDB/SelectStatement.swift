@@ -91,13 +91,13 @@ extension SelectStatement {
 
 extension SelectStatement {
     
-    public func fetch<DatabaseValue: GRDB.DatabaseValue>(type: DatabaseValue.Type) -> AnySequence<DatabaseValue?> {
+    public func fetch<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type) -> AnySequence<DatabaseValue?> {
         let rowSequence = fetchRows()
         return AnySequence { () -> AnyGenerator<DatabaseValue?> in
             let rowGenerator = rowSequence.generate()
             return anyGenerator { () -> DatabaseValue?? in
                 if let row = rowGenerator.next() {
-                    return Optional.Some(row.value(atIndex: 0) as DatabaseValue?)
+                    return Optional.Some(row.value(atIndex: 0))
                 } else {
                     return nil
                 }
@@ -105,11 +105,11 @@ extension SelectStatement {
         }
     }
     
-    public func fetchAll<DatabaseValue: GRDB.DatabaseValue>(type: DatabaseValue.Type) -> [DatabaseValue?] {
+    public func fetchAll<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type) -> [DatabaseValue?] {
         return Array(fetch(type))
     }
     
-    public func fetchOne<DatabaseValue: GRDB.DatabaseValue>(type: DatabaseValue.Type) -> DatabaseValue? {
+    public func fetchOne<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type) -> DatabaseValue? {
         if let optionalValue = fetch(type).generate().next() {
             // one row containing an optional value
             return optionalValue

@@ -27,7 +27,7 @@ public class Statement {
         }
     }
     
-    public final func bind(value: DatabaseValue?, atIndex index: Int) {
+    public final func bind(value: DatabaseValueType?, atIndex index: Int) {
         let code: Int32
         if let value = value {
             code = value.bindInSQLiteStatement(sqliteStatement, atIndex: index)
@@ -42,7 +42,7 @@ public class Statement {
     }
     
     // TODO: document that we only support the colon prefix (like FMDB).
-    public final func bind(value: DatabaseValue?, forKey key: String) {
+    public final func bind(value: DatabaseValueType?, forKey key: String) {
         let index = Int(sqlite3_bind_parameter_index(sqliteStatement, ":\(key)"))
         guard index > 0 else {
             fatalError("Key not found in SQLite statement: `:\(key)`")

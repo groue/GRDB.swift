@@ -9,7 +9,7 @@
 import XCTest
 import GRDB
 
-struct DatabaseDate: DatabaseValue {
+struct DatabaseDate: DatabaseValueType {
     let date: NSDate
     
     // Use a failable initializer to give nil NSDate the behavior of NULL:

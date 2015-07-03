@@ -12,10 +12,10 @@
 		5699AE591B42CD7800C35172 /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE581B42CD7800C35172 /* Row.swift */; };
 		5699AE5B1B42D3DC00C35172 /* SelectStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */; };
 		5699AE5D1B42D49C00C35172 /* UpdateStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */; };
-		5699AE5F1B42E59F00C35172 /* DatabaseValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5E1B42E59F00C35172 /* DatabaseValue.swift */; };
+		5699AE5F1B42E59F00C35172 /* DatabaseValueType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5E1B42E59F00C35172 /* DatabaseValueType.swift */; };
 		56C9E65B1B468EB200DDC541 /* DatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E64D1B468EB200DDC541 /* DatabaseTests.swift */; };
 		56C9E65C1B468EB200DDC541 /* DatabaseMigratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E64F1B468EB200DDC541 /* DatabaseMigratorTests.swift */; };
-		56C9E65D1B468EB200DDC541 /* CustomDatabaseValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6511B468EB200DDC541 /* CustomDatabaseValueTests.swift */; };
+		56C9E65D1B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6511B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift */; };
 		56C9E65E1B468EB200DDC541 /* PrimaryKeyMultipleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6531B468EB200DDC541 /* PrimaryKeyMultipleTests.swift */; };
 		56C9E65F1B468EB200DDC541 /* PrimaryKeyNoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6541B468EB200DDC541 /* PrimaryKeyNoneTests.swift */; };
 		56C9E6601B468EB200DDC541 /* PrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6551B468EB200DDC541 /* PrimaryKeySingleTests.swift */; };
@@ -54,10 +54,10 @@
 		5699AE581B42CD7800C35172 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
 		5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectStatement.swift; sourceTree = "<group>"; };
 		5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateStatement.swift; sourceTree = "<group>"; };
-		5699AE5E1B42E59F00C35172 /* DatabaseValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValue.swift; sourceTree = "<group>"; };
+		5699AE5E1B42E59F00C35172 /* DatabaseValueType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueType.swift; sourceTree = "<group>"; };
 		56C9E64D1B468EB200DDC541 /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
 		56C9E64F1B468EB200DDC541 /* DatabaseMigratorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseMigratorTests.swift; sourceTree = "<group>"; };
-		56C9E6511B468EB200DDC541 /* CustomDatabaseValueTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomDatabaseValueTests.swift; sourceTree = "<group>"; };
+		56C9E6511B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomDatabaseValueTypeTests.swift; sourceTree = "<group>"; };
 		56C9E6531B468EB200DDC541 /* PrimaryKeyMultipleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeyMultipleTests.swift; sourceTree = "<group>"; };
 		56C9E6541B468EB200DDC541 /* PrimaryKeyNoneTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeyNoneTests.swift; sourceTree = "<group>"; };
 		56C9E6551B468EB200DDC541 /* PrimaryKeySingleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeySingleTests.swift; sourceTree = "<group>"; };
@@ -126,7 +126,7 @@
 		56C9E6501B468EB200DDC541 /* DatabaseValue */ = {
 			isa = PBXGroup;
 			children = (
-				56C9E6511B468EB200DDC541 /* CustomDatabaseValueTests.swift */,
+				56C9E6511B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift */,
 			);
 			path = DatabaseValue;
 			sourceTree = "<group>";
@@ -207,7 +207,7 @@
 				56CC3C921B43BF0100A9A534 /* DatabaseConfiguration.swift */,
 				56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */,
 				56CC3C8E1B43A5A700A9A534 /* DatabaseQueue.swift */,
-				5699AE5E1B42E59F00C35172 /* DatabaseValue.swift */,
+				5699AE5E1B42E59F00C35172 /* DatabaseValueType.swift */,
 				5699AE581B42CD7800C35172 /* Row.swift */,
 				56CC3C9A1B4464AE00A9A534 /* RowModel.swift */,
 				5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */,
@@ -345,7 +345,7 @@
 			files = (
 				5699AE591B42CD7800C35172 /* Row.swift in Sources */,
 				56E4BB7F1B452A6200FD324B /* SQLite.swift in Sources */,
-				5699AE5F1B42E59F00C35172 /* DatabaseValue.swift in Sources */,
+				5699AE5F1B42E59F00C35172 /* DatabaseValueType.swift in Sources */,
 				5699AE571B42C34A00C35172 /* Statement.swift in Sources */,
 				56CC3C8F1B43A5A700A9A534 /* DatabaseQueue.swift in Sources */,
 				56CC3C931B43BF0100A9A534 /* DatabaseConfiguration.swift in Sources */,
@@ -364,7 +364,7 @@
 			files = (
 				56C9E6631B468EB200DDC541 /* RowModelTests.swift in Sources */,
 				56C9E65C1B468EB200DDC541 /* DatabaseMigratorTests.swift in Sources */,
-				56C9E65D1B468EB200DDC541 /* CustomDatabaseValueTests.swift in Sources */,
+				56C9E65D1B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift in Sources */,
 				56C9E65B1B468EB200DDC541 /* DatabaseTests.swift in Sources */,
 				56C9E65E1B468EB200DDC541 /* PrimaryKeyMultipleTests.swift in Sources */,
 				56C9E6641B468EB200DDC541 /* UpdateStatementTests.swift in Sources */,

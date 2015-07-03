@@ -25,7 +25,7 @@ public class RowModel {
         return .None
     }
     
-    public var databaseDictionary: [String: DatabaseValue?] {
+    public var databaseDictionary: [String: DatabaseValueType?] {
         return [:]
     }
     
@@ -227,7 +227,7 @@ public class RowModel {
     }
     
     
-    private static func primaryKeyDictionary(primaryKey: PrimaryKey, dictionary: [String: DatabaseValue?]) -> [String: DatabaseValue?]? {
+    private static func primaryKeyDictionary(primaryKey: PrimaryKey, dictionary: [String: DatabaseValueType?]) -> [String: DatabaseValueType?]? {
         switch primaryKey {
         case .None:
             return nil
@@ -236,7 +236,7 @@ public class RowModel {
         case .Single(let column):
             return [column: dictionary[column]!]
         case .Multiple(let columns):
-            var dic = [String: DatabaseValue?]()
+            var dic = [String: DatabaseValueType?]()
             for column in columns {
                 dic[column] = dictionary[column]!
             }
@@ -283,7 +283,7 @@ extension Database {
             fatalError("Missing table name")
         }
         
-        let keyDictionary: [String: DatabaseValue?]
+        let keyDictionary: [String: DatabaseValueType?]
         switch RowModel.databasePrimaryKey {
         case .None:
             keyDictionary = bindings.dictionary(defaultColumnNames: nil)
@@ -318,7 +318,7 @@ extension Database {
 
 extension Database {
     
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValue) -> RowModel? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValueType) -> RowModel? {
         guard let tableName = RowModel.databaseTableName else {
             fatalError("Missing table name")
         }

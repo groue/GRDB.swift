@@ -8,17 +8,17 @@
 
 protocol BindingsImpl {
     func bindInStatement(statement: Statement)
-    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValue?]
+    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValueType?]
 }
 
 public struct Bindings {
     let impl: BindingsImpl
     
-    public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<DatabaseValue>>(_ array: Sequence) {
+    public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<DatabaseValueType>>(_ array: Sequence) {
         impl = BindingsArrayImpl(array: Array(array))
     }
     
-    public init<Sequence: SequenceType where Sequence.Generator.Element == DatabaseValue>(_ array: Sequence) {
+    public init<Sequence: SequenceType where Sequence.Generator.Element == DatabaseValueType>(_ array: Sequence) {
         impl = BindingsArrayImpl(array: array.map { $0 })
     }
     
@@ -37,14 +37,14 @@ public struct Bindings {
         //        statement.bind(Bindings(person))  // Error
         //        try statement.execute()
         //    }
-        var values = [DatabaseValue?]()
+        var values = [DatabaseValueType?]()
         for item in array {
             values.append(Bindings.databaseValueFromAnyObject(item))
         }
         self.init(values)
     }
     
-    public init(_ dictionary: [String: DatabaseValue?]) {
+    public init(_ dictionary: [String: DatabaseValueType?]) {
         impl = BindingsDictionaryImpl(dictionary: dictionary)
     }
     
@@ -63,7 +63,7 @@ public struct Bindings {
         //        statement.bind(Bindings(person))  // Error
         //        try statement.execute()
         //    }
-        var values = [String: DatabaseValue?]()
+        var values = [String: DatabaseValueType?]()
         for (key, item) in dictionary {
             if let key = key as? String {
                 values[key] = Bindings.databaseValueFromAnyObject(item)
@@ -78,13 +78,13 @@ public struct Bindings {
         impl.bindInStatement(statement)
     }
     
-    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValue?] {
+    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValueType?] {
         return impl.dictionary(defaultColumnNames: defaultColumnNames)
     }
     
     private struct BindingsArrayImpl : BindingsImpl {
-        let array: [DatabaseValue?]
-        init(array: [DatabaseValue?]) {
+        let array: [DatabaseValueType?]
+        init(array: [DatabaseValueType?]) {
             self.array = array
         }
         func bindInStatement(statement: Statement) {
@@ -92,14 +92,14 @@ public struct Bindings {
                 statement.bind(value, atIndex: index + 1)
             }
         }
-        func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValue?] {
+        func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValueType?] {
             guard let defaultColumnNames = defaultColumnNames else {
                 fatalError("Missing column names")
             }
             guard defaultColumnNames.count == array.count else {
                 fatalError("Columns count mismatch.")
             }
-            var dictionary = [String : DatabaseValue?]()
+            var dictionary = [String : DatabaseValueType?]()
             for (column, value) in zip(defaultColumnNames, array) {
                 dictionary[column] = value
             }
@@ -108,8 +108,8 @@ public struct Bindings {
     }
     
     private struct BindingsDictionaryImpl : BindingsImpl {
-        let dictionary: [String: DatabaseValue?]
-        init(dictionary: [String: DatabaseValue?]) {
+        let dictionary: [String: DatabaseValueType?]
+        init(dictionary: [String: DatabaseValueType?]) {
             self.dictionary = dictionary
         }
         func bindInStatement(statement: Statement) {
@@ -117,23 +117,23 @@ public struct Bindings {
                 statement.bind(value, forKey: key)
             }
         }
-        func dictionary( defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValue?] {
+        func dictionary( defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValueType?] {
             return dictionary
         }
     }
     
-    private static func databaseValueFromAnyObject(object: AnyObject) -> DatabaseValue? {
+    private static func databaseValueFromAnyObject(object: AnyObject) -> DatabaseValueType? {
         
         // IMPLEMENTATION NOTE:
         //
-        // NSNumber, NSString, NSNull can't adopt DatabaseValue because Swift 2
-        // won't make it possible.
+        // NSNumber, NSString, NSNull can't adopt DatabaseValueType because
+        // Swift 2 won't make it possible.
         //
         // This is why this method exists. As a convenience for init(NSArray)
         // and init(NSDictionary), themselves conveniences for the library user.
         
         switch object {
-        case let value as DatabaseValue:
+        case let value as DatabaseValueType:
             return value
         case _ as NSNull:
             return nil
@@ -169,23 +169,23 @@ public struct Bindings {
             case "B":
                 return number.boolValue
             default:
-                fatalError("Not a DatabaseValue: \(object)")
+                fatalError("Not a DatabaseValueType: \(object)")
             }
         default:
-            fatalError("Not a DatabaseValue: \(object)")
+            fatalError("Not a DatabaseValueType: \(object)")
         }
     }
 }
 
 extension Bindings : ArrayLiteralConvertible {
-    public init(arrayLiteral elements: DatabaseValue?...) {
+    public init(arrayLiteral elements: DatabaseValueType?...) {
         self.init(elements)
     }
 }
 
 extension Bindings : DictionaryLiteralConvertible {
-    public init(dictionaryLiteral elements: (String, DatabaseValue?)...) {
-        var dictionary = [String: DatabaseValue?]()
+    public init(dictionaryLiteral elements: (String, DatabaseValueType?)...) {
+        var dictionary = [String: DatabaseValueType?]()
         for (key, value) in elements {
             dictionary[key] = value
         }

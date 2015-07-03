@@ -23,7 +23,7 @@ class Person: RowModel {
         return .SQLiteRowID("id")
     }
     
-    override var databaseDictionary: [String: DatabaseValue?] {
+    override var databaseDictionary: [String: DatabaseValueType?] {
         return [
             "id": id,
             "name": name,

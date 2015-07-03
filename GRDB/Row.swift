@@ -39,15 +39,15 @@ public struct Row: CollectionType {
         return impl.sqliteDictionary.indexForKey(name) != nil
     }
     
-    public func value(atIndex index: Int) -> DatabaseValue? {
+    public func value(atIndex index: Int) -> DatabaseValueType? {
         return impl.sqliteValueAtIndex(index).value()
     }
     
-    public func value<DatabaseValue: GRDB.DatabaseValue>(atIndex index: Int) -> DatabaseValue? {
-        return impl.sqliteValueAtIndex(index).value() as DatabaseValue?
+    public func value<DatabaseValue: DatabaseValueType>(atIndex index: Int) -> DatabaseValue? {
+        return impl.sqliteValueAtIndex(index).value()
     }
     
-    public func value(named columnName: String) -> DatabaseValue? {
+    public func value(named columnName: String) -> DatabaseValueType? {
         if let index = impl.indexForColumnNamed(columnName) {
             return impl.sqliteValueAtIndex(index).value()
         } else {
@@ -55,16 +55,16 @@ public struct Row: CollectionType {
         }
     }
     
-    public func value<DatabaseValue: GRDB.DatabaseValue>(named columnName: String) -> DatabaseValue? {
+    public func value<DatabaseValue: DatabaseValueType>(named columnName: String) -> DatabaseValue? {
         if let index = impl.indexForColumnNamed(columnName) {
-            return impl.sqliteValueAtIndex(index).value() as DatabaseValue?
+            return impl.sqliteValueAtIndex(index).value()
         } else {
             return nil
         }
     }
     
-    public var dictionary: [String: DatabaseValue?] {
-        var dictionary = [String: DatabaseValue?]()
+    public var dictionary: [String: DatabaseValueType?] {
+        var dictionary = [String: DatabaseValueType?]()
         for (columnName, cell) in impl.sqliteDictionary {
             dictionary[columnName] = cell.value()
         }
@@ -77,7 +77,7 @@ public struct Row: CollectionType {
     // TODO: test the row as collection
     
     // Use a custom index, so that we eventually can provide a subscript(Int)
-    // that returns a DatabaseValue.
+    // that returns a DatabaseValueType.
     public struct RowIndex: ForwardIndexType {
         let index: Int
         

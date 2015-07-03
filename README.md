@@ -164,10 +164,10 @@ dbQueue.inDatabase { db in
 GRDB.swift ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob).
 
 
-**Custom types** can be inserted and loaded by adopting the `DatabaseValue` protocol:
+**Custom types** can be inserted and loaded by adopting the `DatabaseValueType` protocol:
 
 ```swift
-struct DatabaseDate: DatabaseValue {
+struct DatabaseDate: DatabaseValueType {
     let date: NSDate
     
     // Use a failable initializer to give nil NSDate the behavior of NULL:
@@ -408,7 +408,7 @@ class Person : RowModel {
     
     // The saved values:
     
-    override var databaseDictionary: [String: DatabaseValue?] {
+    override var databaseDictionary: [String: DatabaseValueType?] {
         return [
             "id": id,
             "name": name,

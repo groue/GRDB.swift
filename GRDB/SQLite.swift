@@ -49,7 +49,7 @@ public enum SQLiteValue {
     case Text(String)
     case Blob
     
-    public func value() -> DatabaseValue? {
+    public func value() -> DatabaseValueType? {
         switch self {
         case .Null:
             return nil
@@ -64,7 +64,7 @@ public enum SQLiteValue {
         }
     }
     
-    public func value<DatabaseValue: GRDB.DatabaseValue>() -> DatabaseValue? {
+    public func value<DatabaseValue: DatabaseValueType>() -> DatabaseValue? {
         return DatabaseValue.fromSQLiteValue(self)
     }
 }
