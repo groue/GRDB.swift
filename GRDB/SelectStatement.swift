@@ -16,6 +16,7 @@ public final class SelectStatement : Statement {
     init(database: Database, sql: String, bindings: Bindings?, unsafe: Bool) throws {
         self.unsafe = unsafe
         try super.init(database: database, sql: sql, bindings: bindings)
+        assert(databaseQueueID != nil)
     }
 
     func sqliteValueAtIndex(index: Int) -> SQLiteValue {
@@ -37,47 +38,46 @@ public final class SelectStatement : Statement {
 
 extension SelectStatement {
     
-    public func fetchRowGenerator() -> AnyGenerator<Row> {
+    public func fetchRows() -> AnySequence<Row> {
         // TODO: Document this reset performed on each generation
         try! reset()
         
-        var logSQL = database.configuration.verbose
-        return anyGenerator { () -> Row? in
-            // Make sure values are not consumed in a different queue.
-            //
-            // Here we avoid this pattern:
-            //
-            //      let rows = dbQueue.inDatabase { db in
-            //          try db.fetchRows("...")
-            //      }
-            //      for row in rows {   // fatal error
-            //          ...
-            //      }
-            guard self.databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-                fatalError("SelectStatement was not iterated on its database queue. Consider wrapping the results of the fetch in an Array before escaping the database queue.")
-            }
-            
-            if logSQL {
-                NSLog("%@", self.sql)
-                logSQL = false
-            }
-            let code = sqlite3_step(self.sqliteStatement)
-            switch code {
-            case SQLITE_DONE:
-                return nil
-            case SQLITE_ROW:
-                return Row(statement: self, unsafe: self.unsafe)
-            default:
-                failOnError { () -> Void in
-                    throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+        return AnySequence { () -> AnyGenerator<Row> in
+            var logSQL = self.database.configuration.verbose
+            return anyGenerator { () -> Row? in
+                // Make sure values are not consumed in a different queue.
+                //
+                // Here we avoid this pattern:
+                //
+                //      let rows = dbQueue.inDatabase { db in
+                //          try db.fetchRows("...")
+                //      }
+                //      for row in rows {   // fatal error
+                //          ...
+                //      }
+                assert(self.databaseQueueID != nil)
+                guard self.databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
+                    fatalError("SelectStatement was not iterated on its database queue. Consider wrapping the results of the fetch in an Array before escaping the database queue.")
                 }
-                return nil
+                
+                if logSQL {
+                    NSLog("%@", self.sql)
+                    logSQL = false
+                }
+                let code = sqlite3_step(self.sqliteStatement)
+                switch code {
+                case SQLITE_DONE:
+                    return nil
+                case SQLITE_ROW:
+                    return Row(statement: self, unsafe: self.unsafe)
+                default:
+                    failOnError { () -> Void in
+                        throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+                    }
+                    return nil
+                }
             }
         }
-    }
-    
-    public func fetchRows() -> AnySequence<Row> {
-        return AnySequence { self.fetchRowGenerator() }
     }
     
     public func fetchAllRows() -> [Row] {
@@ -85,25 +85,24 @@ extension SelectStatement {
     }
     
     public func fetchOneRow() -> Row? {
-        return fetchRowGenerator().next()
+        return fetchRows().generate().next()
     }
 }
 
 extension SelectStatement {
     
-    public func fetchGenerator<T: DatabaseValue>(type: T.Type) -> AnyGenerator<T?> {
-        let rowGenerator = fetchRowGenerator()
-        return anyGenerator { () -> T?? in
-            if let row = rowGenerator.next() {
-                return Optional.Some(row.value(atIndex: 0) as T?)
-            } else {
-                return nil
+    public func fetch<T: DatabaseValue>(type: T.Type) -> AnySequence<T?> {
+        let rowSequence = fetchRows()
+        return AnySequence { () -> AnyGenerator<T?> in
+            let rowGenerator = rowSequence.generate()
+            return anyGenerator { () -> T?? in
+                if let row = rowGenerator.next() {
+                    return Optional.Some(row.value(atIndex: 0) as T?)
+                } else {
+                    return nil
+                }
             }
         }
-    }
-    
-    public func fetch<T: DatabaseValue>(type: T.Type) -> AnySequence<T?> {
-        return AnySequence { self.fetchGenerator(type) }
     }
     
     public func fetchAll<T: DatabaseValue>(type: T.Type) -> [T?] {
@@ -111,7 +110,7 @@ extension SelectStatement {
     }
     
     public func fetchOne<T: DatabaseValue>(type: T.Type) -> T? {
-        if let optionalValue = fetchGenerator(type).next() {
+        if let optionalValue = fetch(type).generate().next() {
             // one row containing an optional value
             return optionalValue
         } else {

@@ -195,19 +195,19 @@ public class RowModel {
 }
 
 extension Database {
-    public func fetchGenerator<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnyGenerator<T> {
-        let rowGenerator = fetchRowGenerator(sql, bindings: bindings)
-        return anyGenerator {
-            if let row = rowGenerator.next() {
-                return T.init(row: row)
-            } else {
-                return nil
-            }
-        }
-    }
 
     public func fetch<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<T> {
-        return AnySequence { self.fetchGenerator(type, sql, bindings: bindings) }
+        let rowSequence = fetchRows(sql, bindings: bindings)
+        return AnySequence { () -> AnyGenerator<T> in
+            let rowGenerator = rowSequence.generate()
+            return anyGenerator { () -> T? in
+                if let row = rowGenerator.next() {
+                    return T.init(row: row)
+                } else {
+                    return nil
+                }
+            }
+        }
     }
 
     public func fetchAll<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> [T] {
@@ -215,7 +215,7 @@ extension Database {
     }
 
     public func fetchOne<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> T? {
-        if let first = fetchGenerator(type, sql, bindings: bindings).next() {
+        if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
             return first
         } else {

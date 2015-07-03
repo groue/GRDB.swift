@@ -158,15 +158,11 @@ func failOnError<R>(@noescape block: (Void) throws -> R) -> R {
 
 extension Database {
     
-    public func fetchRowGenerator(sql: String, bindings: Bindings? = nil) -> AnyGenerator<Row> {
+    public func fetchRows(sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
         return failOnError {
             let statement = try selectStatement(sql, bindings: bindings)
-            return statement.fetchRowGenerator()
+            return statement.fetchRows()
         }
-    }
-    
-    public func fetchRows(sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
-        return AnySequence { self.fetchRowGenerator(sql, bindings: bindings) }
     }
     
     public func fetchAllRows(sql: String, bindings: Bindings? = nil) -> [Row] {
@@ -174,21 +170,17 @@ extension Database {
     }
     
     public func fetchOneRow(sql: String, bindings: Bindings? = nil) -> Row? {
-        return fetchRowGenerator(sql, bindings: bindings).next()
+        return fetchRows(sql, bindings: bindings).generate().next()
     }
 }
 
 extension Database {
     
-    public func fetchGenerator<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnyGenerator<T?> {
+    public func fetch<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<T?> {
         return failOnError {
             let statement = try selectStatement(sql, bindings: bindings)
-            return statement.fetchGenerator(type)
+            return statement.fetch(type)
         }
-    }
-    
-    public func fetch<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<T?> {
-        return AnySequence { self.fetchGenerator(type, sql, bindings: bindings) }
     }
     
     public func fetchAll<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> [T?] {
@@ -196,7 +188,7 @@ extension Database {
     }
     
     public func fetchOne<T: DatabaseValue>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> T? {
-        if let first = fetchGenerator(type, sql, bindings: bindings).next() {
+        if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
             return first
         } else {
