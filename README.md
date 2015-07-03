@@ -126,7 +126,7 @@ for row in rowSequence {
 }
 ```
 
-Avoid those fatal errors by consuming the sequence in an Array before using it outside of a database queue:
+Avoid those errors by extracting arrays, not sequences:
 
 ```swift
 let rows = dbQueue.inDatabase { db in
