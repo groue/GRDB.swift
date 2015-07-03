@@ -14,15 +14,44 @@ Features
 - **No ORM, no query builder**. Instead, a thin class that wraps query results, and helps people who like customizing their SQL queries.
 
 
-## Usage (work in progress)
+Usage
+-----
 
-**Database queues** safely serialize database accesses (inspired by [ccgus/FMDB](https://github.com/ccgus/fmdb)):
+let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
+
+let person = Person(name: "Arthur")
+
+try dbQueue.inTransaction { db in
+    try person.insert(db)
+    return .Commit
+}
+
+let persons = dbQueue.inDatabase { db in
+    db.fetchAll(Person.type, "SELECT * FROM persons")
+}
+
+
+Documentation
+=============
+
+- [Database queues](#database_queues)
+- [Migrations](#migrations)
+- [Transactions](#transactions)
+- [Fetch Queries](#fetch-queries)
+- [Row models](#row-models)
+
+
+## Database queues
+
+Database queues safely serialize database accesses (inspired by [ccgus/FMDB](https://github.com/ccgus/fmdb)):
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 ```
 
-**Migrations** are a convenient way to alter your database schema over time in a consistent and easy way. Define them with a DatabaseMigrator:
+## Migrations
+
+Migrations are a convenient way to alter your database schema over time in a consistent and easy way. Define them with a DatabaseMigrator:
 
 ```swift
 var migrator = DatabaseMigrator()
@@ -51,7 +80,9 @@ try migrator.migrate(dbQueue)
 ```
 
 
-**Transactions** wrap the queries that alter the database content:
+## Transactions
+
+Transactions wrap the queries that alter the database content:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -67,8 +98,12 @@ try dbQueue.inTransaction { db in
 }
 ```
 
+A rollback statement is issued if an error is thrown from the transaction block.
 
-**Fetch Queries** load database rows:
+
+## Fetch Queries
+
+**Row Queries** load database rows:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -104,7 +139,7 @@ let rows = dbQueue.inDatabase { db in
 }
 ```
 
-**Fetch values**:
+**Values queries** load value types:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -117,9 +152,10 @@ dbQueue.inDatabase { db in
 }
 ```
 
-GRDB.swift ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String`.
+GRDB.swift ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob).
 
-The protocol `DatabaseValue` makes this list extensible:
+
+**Custom types** can be inserted and loaded by adoption the `DatabaseValue` protocol:
 
 ```swift
 struct DatabaseDate: DatabaseValue {
@@ -168,14 +204,33 @@ let dbDate = db.fetchOne(DatabaseDate.self, "SELECT creationTimestamp ...")!
 ```
 
 
-**Row Models** wrap rows:
+## Row Models
+
+`RowModel` is a class that wraps a database row. It is designed to be subclassed.
+
+We'll illustrate its features with the Person class below, which declares properties for the `persons` table seen above:
 
 ```swift
-class Person: RowModel {
+class Person : RowModel {
     var id: Int64?
     var name: String?
     var age: Int?
     var creationDate: NSDate?
+}
+
+- [Loading](#loading)
+- [Insert, Update and Delete](#insert-update-and-delete)
+
+
+### Loading
+
+You opt in RowModel services by overriding methods.
+
+By overriding `updateFromDatabaseRow`, you can load persons:
+
+```swift
+class Person : RowModel {
+    ...
     
     // Boring and not very DRY, but straightforward:
     override func updateFromDatabaseRow(row: Row) {
@@ -196,15 +251,15 @@ class Person: RowModel {
 }
 
 let persons = dbQueue.inDatabase { db in
-    db.fetch(Person.self, "SELECT * FROM persons")
+    db.fetchAll(Person.self, "SELECT * FROM persons")
 }
 ```
 
 
-Declare **Primary Key** in order to fetch a specific row model:
+Declare a **Primary Key** in order to fetch a specific row model:
 
 ```swift
-class Person: RowModel {
+class Person : RowModel {
     ...
 
     override class var databasePrimaryKey: PrimaryKey {
@@ -214,60 +269,6 @@ class Person: RowModel {
 
 let person = dbQueue.inDatabase { db in
     db.fetchOne(Person.self, primaryKey: 123)
-}
-```
-
-
-**Insert, update and delete** with two more methods:
-
-```swift
-class Person: RowModel {
-    ...
-
-    override class var databaseTableName: String? {
-        return "persons"
-    }
-    
-    override var databaseDictionary: [String: DatabaseValue?] {
-        return [
-            "id": id,
-            "name": name,
-            "age": age,
-            "creationTimestamp": DatabaseDate(creationDate),
-        ]
-    }
-}
-
-try dbQueue.inTransaction { db in
-    
-    // Insert
-    let person = Person(name: "Arthur", age: 41)
-    try person.insert(db)
-    
-    // Update
-    person.age = 42
-    try person.update(db)
-    
-    // Delete
-    try person.delete(db)
-    
-    return .Commit
-}
-```
-
-**Override primitive methods** to prepare your insertions or updates:
-
-```swift
-class Person: RowModel {
-    ...
-    
-    override func insert(db: Database) throws {
-        if creationDate == nil {
-            creationDate = NSDate()
-        }
-        
-        try super.insert(db)
-    }
 }
 ```
 
@@ -308,5 +309,62 @@ class PersonsViewController: UITableViewController {
     }
     
     ...
+}
+```
+
+
+### Insert, Update and Delete
+
+CUD operations require two more methods:
+
+```swift
+class Person : RowModel {
+    ...
+
+    override class var databaseTableName: String? {
+        return "persons"
+    }
+    
+    override var databaseDictionary: [String: DatabaseValue?] {
+        return [
+            "id": id,
+            "name": name,
+            "age": age,
+            "creationTimestamp": DatabaseDate(creationDate),
+        ]
+    }
+}
+
+try dbQueue.inTransaction { db in
+    
+    // Insert
+    let person = Person(name: "Arthur", age: 41)
+    try person.insert(db)
+    
+    // Update
+    person.age = 42
+    try person.update(db)
+    
+    // Delete
+    try person.delete(db)
+    
+    return .Commit
+}
+```
+
+
+**Override primitive methods** to prepare your insertions or updates:
+
+```swift
+class Person : RowModel {
+    ...
+    
+    override func insert(db: Database) throws {
+        if creationDate == nil {
+            creationDate = NSDate()
+        }
+        
+        try super.insert(db)
+    }
 }
 ```
