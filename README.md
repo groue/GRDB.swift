@@ -398,7 +398,7 @@ class PersonsViewController: UITableViewController {
 
 ### Insert, Update and Delete
 
-CUD operations require two more methods:
+Those operations require two more methods:
 
 ```swift
 class Person : RowModel {
