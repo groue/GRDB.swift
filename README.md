@@ -38,7 +38,7 @@ Documentation
 
 SQLite API:
 
-- [Database queues](#database_queues)
+- [Database queues](#database-queues)
 - [Transactions](#transactions)
 - [Fetch Queries](#fetch-queries)
 - [Statements](#statements)
