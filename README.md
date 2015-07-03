@@ -11,7 +11,7 @@ Features
 
 - **A low-level SQLite API** that leverages the Swift 2 standard library.
 - **Migrations**
-- **No ORM, no smart query builder, no table abstraction**. Instead, a thin class that wraps query results, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
+- **No ORM, no smart query builder, no table abstraction**. Instead, a thin class that wraps database rows, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
 
 
 Usage
@@ -46,7 +46,7 @@ SQLite API:
 Application tools:
 
 - [Migrations](#migrations)
-- [Row models](#row-models)
+- [Row Models](#row-models)
 
 
 ## Database queues
