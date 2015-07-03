@@ -164,6 +164,35 @@ dbQueue.inDatabase { db in
 GRDB.swift ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob).
 
 
+**Enum types** are supported through the `DatabaseEnum` type:
+
+```swift
+enum Color: Int {   // A raw underlying type that is database-compatible.
+    case Red
+    case White
+    case Rose
+}
+
+// Write
+
+let color = Color.Red
+try db.execute("INSERT INTO wines (color, ...) " +
+                          "VALUES (?, ...)",
+                        bindings: [DatabaseEnum(color), ...])
+
+// Read from row
+
+let row = db.fetchOneRow("SELECT color FROM wines ORDER BY color LIMIT 1")!
+let dbColor: DatabaseEnum<Color> = row.value(named: "color")!
+let color = dbColor.value
+
+// Direct read
+
+let dbColor = db.fetchOne(DatabaseDate.self, "SELECT color ...")!
+let color = dbColor.value
+
+
+
 **Custom types** can be inserted and loaded by adopting the `DatabaseValueType` protocol:
 
 ```swift
@@ -197,10 +226,10 @@ struct DatabaseDate: DatabaseValueType {
 
 // Write
 
-let dbDate = DatabaseDate(NSDate())
-try db.execute("INSERT INTO persons (..., creationTimestamp) " +
-                            "VALUES (..., ?)",
-                          bindings: [..., dbDate])
+let date = NSDate()
+try db.execute("INSERT INTO persons (creationTimestamp, ...) " +
+                            "VALUES (?, ...)",
+                          bindings: [DatabaseDate(date), ...])
 
 // Read from row
 
@@ -210,6 +239,7 @@ let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
 // Direct read
 
 let dbDate = db.fetchOne(DatabaseDate.self, "SELECT creationTimestamp ...")!
+let date = dbDate.date
 ```
 
 

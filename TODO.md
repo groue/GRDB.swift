@@ -1,4 +1,2 @@
-- [ ] Rename GRDB.Error to GRDB.SQLiteError
 - [ ] Configuration.readonly
-- [ ] See if RawRepresentable can adopt DatabaseValueType (generally, store enums in the database)
 - [ ] Replace DatabaseConfiguration.verbose with a logger function
