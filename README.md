@@ -265,7 +265,7 @@ By overriding `updateFromDatabaseRow`, you can load persons:
 class Person : RowModel {
     ...
     
-    // Boring and not very DRY, but straightforward:
+    // Boring and not DRY, but straightforward and trivial:
     override func updateFromDatabaseRow(row: Row) {
         if row.hasColumn("id") {
             id = row.value(named: "id")
@@ -277,6 +277,8 @@ class Person : RowModel {
             age = row.value(named: "age")
         }
         if row.hasColumn("creationTimestamp") {
+            // The custom type DatabaseDate that we have declared above turns
+            // out handy:
             let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
             creationDate = dbDate?.date
         }
