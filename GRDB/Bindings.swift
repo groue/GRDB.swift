@@ -22,8 +22,56 @@ public struct Bindings {
         impl = BindingsArrayImpl(array: array.map { $0 })
     }
     
+    public init(_ array: NSArray) {
+        // This is a convenience initializer.
+        //
+        // Without it, the following code won't compile:
+        //
+        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+        //    let persons = [
+        //        ["Arthur", 41],
+        //        ["Barbara"],
+        //    ]
+        //    for person in persons {
+        //        statement.clearBindings()
+        //        statement.bind(Bindings(person))  // Error
+        //        try statement.execute()
+        //    }
+        var values = [DatabaseValue?]()
+        for item in array {
+            values.append(Bindings.databaseValueFromAnyObject(item))
+        }
+        self.init(values)
+    }
+    
     public init(_ dictionary: [String: DatabaseValue?]) {
         impl = BindingsDictionaryImpl(dictionary: dictionary)
+    }
+    
+    public init(_ dictionary: NSDictionary) {
+        // This is a convenience initializer.
+        //
+        // Without it, the following code won't compile:
+        //
+        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (@name, @age)")
+        //    let persons = [
+        //        ["@name": "Arthur", "@age": 41],
+        //        ["@name": "Barbara"],
+        //    ]
+        //    for person in persons {
+        //        statement.clearBindings()
+        //        statement.bind(Bindings(person))  // Error
+        //        try statement.execute()
+        //    }
+        var values = [String: DatabaseValue?]()
+        for (key, item) in dictionary {
+            if let key = key as? String {
+                values[key] = Bindings.databaseValueFromAnyObject(item)
+            } else {
+                fatalError("Not a String key: \(key)")
+            }
+        }
+        self.init(values)
     }
     
     func bindInStatement(statement: Statement) {
@@ -71,6 +119,60 @@ public struct Bindings {
         }
         func dictionary( defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValue?] {
             return dictionary
+        }
+    }
+    
+    private static func databaseValueFromAnyObject(object: AnyObject) -> DatabaseValue? {
+        
+        // IMPLEMENTATION NOTE:
+        //
+        // NSNumber, NSString, NSNull can't adopt DatabaseValue because Swift 2
+        // won't make it possible.
+        //
+        // This is why this method exists. As a convenience for init(NSArray)
+        // and init(NSDictionary), themselves conveniences for the library user.
+        
+        switch object {
+        case let value as DatabaseValue:
+            return value
+        case _ as NSNull:
+            return nil
+        case let string as NSString:
+            return string as String
+        case let number as NSNumber:
+            let objCType = String.fromCString(number.objCType)!
+            switch objCType {
+            case "c":
+                return Int64(number.charValue)
+            case "C":
+                return Int64(number.unsignedCharValue)
+            case "s":
+                return Int64(number.shortValue)
+            case "S":
+                return Int64(number.unsignedShortValue)
+            case "i":
+                return Int64(number.intValue)
+            case "I":
+                return Int64(number.unsignedIntValue)
+            case "l":
+                return Int64(number.longValue)
+            case "L":
+                return Int64(number.unsignedLongValue)
+            case "q":
+                return Int64(number.longLongValue)
+            case "Q":
+                return Int64(number.unsignedLongLongValue)
+            case "f":
+                return Double(number.floatValue)
+            case "d":
+                return number.doubleValue
+            case "B":
+                return number.boolValue
+            default:
+                fatalError("Not a DatabaseValue: \(object)")
+            }
+        default:
+            fatalError("Not a DatabaseValue: \(object)")
         }
     }
 }
