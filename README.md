@@ -86,7 +86,7 @@ You can load rows and values from the database.
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
 - [Custom Values](#custom-values)
-- 
+
 
 ### Row Queries
 
