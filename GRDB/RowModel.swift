@@ -39,6 +39,7 @@ public class RowModel {
         updateFromDatabaseRow(row)
     }
     
+    
     public func insert(db: Database) throws {
         // TODO: validation
         // TODO: dirty
@@ -61,7 +62,7 @@ public class RowModel {
         let rowIDColumn: String?
         switch primaryKey {
         case .SQLiteRowID(let column):
-            if let _ = insertedDic[column]! {    // unwrap double optional
+            if let _ = insertedDic[column]! {
                 rowIDColumn = nil
             } else {
                 insertedDic.removeValueForKey(column)
@@ -97,7 +98,8 @@ public class RowModel {
         }
     }
     
-    final public func update(db: Database) throws {
+    
+    public func update(db: Database) throws {
         // TODO: validation
         // TODO: dirty
         // TODO?: table modification notification
@@ -107,49 +109,42 @@ public class RowModel {
         }
         
         
-        // The updated values, and the primary key
+        // The updated values
         
-        var updatedDic = databaseDictionary
+        var updatedDictionary = databaseDictionary
+        
+        
+        // Extract primary key values
+        
         let primaryKey = self.dynamicType.databasePrimaryKey
+        guard let primaryKeyDictionary = RowModel.primaryKeyDictionary(primaryKey, dictionary: updatedDictionary) else {
+            fatalError("Missing primaryKey")
+        }
         
         
-        // Extract primary keys from updatedDic into primaryKeyDic
+        // Don't update primary key columns
         
-        let primaryKeyDic: [String: DatabaseValue?]
-        switch primaryKey {
-        case .None:
-            fatalError("Missing primary key")
-        case .SQLiteRowID(let column):
-            primaryKeyDic = [column: updatedDic[column]!]
-            updatedDic.removeValueForKey(column)
-        case .Single(let column):
-            primaryKeyDic = [column: updatedDic[column]!]
-            updatedDic.removeValueForKey(column)
-        case .Multiple(let columns):
-            var dic = [String: DatabaseValue?]()
-            for column in columns {
-                dic[column] = updatedDic[column]!
-                updatedDic.removeValueForKey(column)
-            }
-            primaryKeyDic = dic
+        for column in primaryKeyDictionary.keys {
+            updatedDictionary.removeValueForKey(column)
         }
         
         
         // If there is nothing to update, something is wrong.
         
-        guard updatedDic.count > 0 else {
+        guard updatedDictionary.count > 0 else {
             fatalError("Nothing to update")
         }
         
         
         // "UPDATE table SET name = ? WHERE id = ?"
         
-        let updateSQL = ",".join(updatedDic.keys.map { column in "\(column)=?" })
-        let whereSQL = " AND ".join(primaryKeyDic.keys.map { column in "\(column)=?" })
-        let bindings = Bindings(Array(updatedDic.values) + Array(primaryKeyDic.values))
+        let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column)=?" })
+        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column)=?" })
+        let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
         let sql = "UPDATE \(tableName) SET \(updateSQL) WHERE \(whereSQL)"
         try db.execute(sql, bindings: bindings)
     }
+    
     
     final public func save(db: Database) throws {
         
@@ -157,52 +152,108 @@ public class RowModel {
             fatalError("Missing table name")
         }
         
-        let needUpdate: Bool
+        let saveIsUpdate: Bool
         pk: switch self.dynamicType.databasePrimaryKey {
         case .None:
-            needUpdate = false
+            // No primary key? Insert.
+            saveIsUpdate = false
+            
         case .SQLiteRowID(let column):
-            if let value = databaseDictionary[column]! {    // unwrap double optional
-                needUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value])!
-            } else {
-                needUpdate = false
+            if let value = databaseDictionary[column]!
+            {
+                // Update if and only if the primary key exists in the database.
+                saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value])!
             }
+            else
+            {
+                // Primary key not set? Insert.
+                saveIsUpdate = false
+            }
+            
         case .Single(let column):
-            if let value = databaseDictionary[column]! {    // unwrap double optional
-                needUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value])!
-            } else {
-                needUpdate = false
+            if let value = databaseDictionary[column]!
+            {
+                // Update if and only if the primary key exists in the database.
+                saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value])!
             }
+            else
+            {
+                // Primary key not set? Insert.
+                saveIsUpdate = false
+            }
+            
         case .Multiple(let columns):
-            let dic = databaseDictionary
+            let databaseDictionary = self.databaseDictionary
             for column in columns {
-                if dic[column]! == nil {    // unwrap double optional
-                    needUpdate = false
+                if databaseDictionary[column]! == nil {
+                    // One item of the primary key is not set? Insert.
+                    saveIsUpdate = false
                     break pk
                 }
             }
+            
+            // Update if and only if the primary key exists in the database.
             let whereSQL = " AND ".join(columns.map { column in "\(column)=?" })
-            let bindings = Bindings(columns.map { column in dic[column]! })
-            needUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(whereSQL)", bindings: bindings)!
+            let bindings = Bindings(columns.map { column in databaseDictionary[column]! })
+            saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(whereSQL)", bindings: bindings)!
         }
         
-        if needUpdate {
+        if saveIsUpdate {
             try update(db)
         } else {
             try insert(db)
+        }
+    }
+    
+    
+    final public func delete(db: Database) throws {
+        
+        guard let tableName = self.dynamicType.databaseTableName else {
+            fatalError("Missing table name")
+        }
+        
+        // Extract primary key values, and remove primary key columns from the updated columns
+        
+        let primaryKey = self.dynamicType.databasePrimaryKey
+        guard let primaryKeyDictionary = RowModel.primaryKeyDictionary(primaryKey, dictionary: databaseDictionary) else {
+            fatalError("Missing primaryKey")
+        }
+        
+        // "DELETE FROM table WHERE id = ?"
+        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column)=?" })
+        let bindings = Bindings(Array(primaryKeyDictionary.values))
+        let sql = "DELETE FROM \(tableName) WHERE \(whereSQL)"
+        try db.execute(sql, bindings: bindings)
+    }
+    
+    
+    private static func primaryKeyDictionary(primaryKey: PrimaryKey, dictionary: [String: DatabaseValue?]) -> [String: DatabaseValue?]? {
+        switch primaryKey {
+        case .None:
+            return nil
+        case .SQLiteRowID(let column):
+            return [column: dictionary[column]!]
+        case .Single(let column):
+            return [column: dictionary[column]!]
+        case .Multiple(let columns):
+            var dic = [String: DatabaseValue?]()
+            for column in columns {
+                dic[column] = dictionary[column]!
+            }
+            return dic
         }
     }
 }
 
 extension Database {
 
-    public func fetch<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<T> {
+    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<RowModel> {
         let rowSequence = fetchRows(sql, bindings: bindings)
-        return AnySequence { () -> AnyGenerator<T> in
+        return AnySequence { () -> AnyGenerator<RowModel> in
             let rowGenerator = rowSequence.generate()
-            return anyGenerator { () -> T? in
+            return anyGenerator { () -> RowModel? in
                 if let row = rowGenerator.next() {
-                    return T.init(row: row)
+                    return RowModel.init(row: row)
                 } else {
                     return nil
                 }
@@ -210,11 +261,11 @@ extension Database {
         }
     }
 
-    public func fetchAll<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> [T] {
+    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> [RowModel] {
         return Array(fetch(type, sql, bindings: bindings))
     }
 
-    public func fetchOne<T: RowModel>(type: T.Type, _ sql: String, bindings: Bindings? = nil) -> T? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> RowModel? {
         if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
             return first
@@ -223,22 +274,69 @@ extension Database {
             return nil
         }
     }
+}
+
+extension Database {
     
-    public func fetchOne<T: RowModel>(type: T.Type, primaryKey: DatabaseValue) -> T? {
-        guard let tableName = T.databaseTableName else {
+    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, key bindings: Bindings) -> AnySequence<RowModel> {
+        guard let tableName = RowModel.databaseTableName else {
+            fatalError("Missing table name")
+        }
+        
+        let keyDictionary: [String: DatabaseValue?]
+        switch RowModel.databasePrimaryKey {
+        case .None:
+            keyDictionary = bindings.dictionary(defaultColumnNames: nil)
+        case .SQLiteRowID(let column):
+            keyDictionary = bindings.dictionary(defaultColumnNames: [column])
+        case .Single(let column):
+            keyDictionary = bindings.dictionary(defaultColumnNames: [column])
+        case .Multiple(let columns):
+            keyDictionary = bindings.dictionary(defaultColumnNames: columns)
+        }
+        
+        let whereSQL = " AND ".join(keyDictionary.keys.map { column in "\(column)=?" })
+        let bindings = Bindings(Array(keyDictionary.values))
+        let sql = "SELECT * FROM \(tableName) WHERE \(whereSQL)"
+        return fetch(type, sql, bindings: bindings)
+    }
+    
+    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, key: Bindings) -> [RowModel] {
+        return Array(fetch(type, key: key))
+    }
+    
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, key: Bindings) -> RowModel? {
+        if let first = fetch(type, key: key).generate().next() {
+            // one row containing an optional value
+            return first
+        } else {
+            // no row
+            return nil
+        }
+    }
+}
+
+extension Database {
+    
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValue) -> RowModel? {
+        guard let tableName = RowModel.databaseTableName else {
             fatalError("Missing table name")
         }
         
         let sql: String
-        switch T.databasePrimaryKey {
+        switch RowModel.databasePrimaryKey {
         case .None:
             fatalError("Missing primary key")
         case .SQLiteRowID(let column):
             sql = "SELECT * FROM \(tableName) WHERE \(column) = ?"
         case .Single(let column):
             sql = "SELECT * FROM \(tableName) WHERE \(column) = ?"
-        case .Multiple:
-            fatalError("Multiple primary key")
+        case .Multiple(let columns):
+            if columns.count == 1 {
+                sql = "SELECT * FROM \(tableName) WHERE \(columns.first!) = ?"
+            } else {
+                fatalError("Primary key columns count mismatch.")
+            }
         }
         
         return fetchOne(type, sql, bindings: [primaryKey])

@@ -184,7 +184,7 @@ class PrimaryKeySQLiteRowIDTests: RowModelTests {
             }
             
             dbQueue.inDatabase { db in
-                let arthur = db.fetchOne(Person.self, primaryKey: arthurID!)!
+                let arthur = db.fetchOne(Person.self, primaryKey: arthurID!)! // The tested method
                 
                 XCTAssertEqual(arthur.id!, arthurID!)
                 XCTAssertEqual(arthur.name!, "Arthur")
@@ -193,4 +193,64 @@ class PrimaryKeySQLiteRowIDTests: RowModelTests {
         }
     }
     
+    func testSelectWithDictionaryKey() {
+        assertNoError {
+            var arthurID: Int64? = nil
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+                arthurID = arthur.id
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let arthur = db.fetchOne(Person.self, key: ["id": arthurID])! // The tested method
+                
+                XCTAssertEqual(arthur.id!, arthurID!)
+                XCTAssertEqual(arthur.name!, "Arthur")
+                XCTAssertEqual(arthur.age!, 41)
+            }
+        }
+    }
+    
+    func testSelectWithArrayKey() {
+        assertNoError {
+            var arthurID: Int64? = nil
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+                arthurID = arthur.id
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let arthur = db.fetchOne(Person.self, key: [arthurID])! // The tested method
+                XCTAssertEqual(arthur.id!, arthurID!)
+                XCTAssertEqual(arthur.name!, "Arthur")
+                XCTAssertEqual(arthur.age!, 41)
+            }
+        }
+    }
+    
+    func testDelete() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur")
+                try arthur.insert(db)
+                
+                let barbara = Person(name: "Barbara")
+                try barbara.insert(db)
+                
+                try arthur.delete(db)   // The tested method
+                
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
+                XCTAssertEqual(persons.count, 1)
+                XCTAssertEqual(persons.first!.name!, "Barbara")
+            }
+        }
+    }
 }

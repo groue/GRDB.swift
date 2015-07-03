@@ -164,4 +164,72 @@ class PrimaryKeyMultipleTests: RowModelTests {
         }
     }
     
+    func testSelectWithDictionaryKey() {
+        assertNoError {
+            var citizenshipKey: [String: DatabaseValue?]? = nil
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+                
+                let citizenship = Citizenship()
+                citizenship.personID = arthur.id
+                citizenship.countryName = "France"
+                try citizenship.insert(db)
+                
+                citizenshipKey = ["personID": citizenship.personID, "countryName": citizenship.countryName] // tested key
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let citizenship = db.fetchOne(Citizenship.self, key: Bindings(citizenshipKey!))!
+                XCTAssertEqual(citizenship.countryName!, "France")
+            }
+        }
+    }
+    
+    func testSelectWithArrayKey() {
+        assertNoError {
+            var citizenshipKey: [DatabaseValue?]? = nil
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+                
+                let citizenship = Citizenship()
+                citizenship.personID = arthur.id
+                citizenship.countryName = "France"
+                try citizenship.insert(db)
+                
+                // Order matchs Citizenship.databasePrimaryKey columns
+                citizenshipKey = [citizenship.personID, citizenship.countryName] // tested key
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let citizenship = db.fetchOne(Citizenship.self, key: Bindings(citizenshipKey!))!
+                XCTAssertEqual(citizenship.countryName!, "France")
+            }
+        }
+    }
+    
+    func testDelete() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur")
+                try arthur.insert(db)
+                
+                let barbara = Person(name: "Barbara")
+                try barbara.insert(db)
+                
+                try arthur.delete(db)   // The tested method
+                
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
+                XCTAssertEqual(persons.count, 1)
+                XCTAssertEqual(persons.first!.name!, "Barbara")
+            }
+        }
+    }
 }
