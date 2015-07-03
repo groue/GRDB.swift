@@ -31,6 +31,7 @@ migrator.registerMigration("createPersons") { db in
     try db.execute(
         "CREATE TABLE persons (" +
         "id INTEGER PRIMARY KEY, " +
+        "creationTimestamp DOUBLE, " +
         "name TEXT NOT NULL, " +
         "age INT)")
 }
@@ -124,8 +125,13 @@ The protocol `DatabaseValue` makes this list extensible:
 struct DatabaseDate: DatabaseValue {
     let date: NSDate
     
-    init(_ date: NSDate) {
-        self.date = date
+    // Use a failable initializer to give nil NSDate the behavior of NULL:
+    init?(_ date: NSDate?) {
+        if let date = date {
+            self.date = date
+        } else {
+            return nil
+        }
     }
     
     func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
@@ -147,16 +153,18 @@ struct DatabaseDate: DatabaseValue {
 // Write
 
 let dbDate = DatabaseDate(NSDate())
-try db.execute("INSERT INTO dates (timestamp) VALUES (?)", bindings: [dbDate])
+try db.execute("INSERT INTO persons (..., creationTimestamp) " +
+                            "VALUES (..., ?)",
+                          bindings: [..., dbDate])
 
 // Read from row
 
-let row = db.fetchOneRow("SELECT creationTimestamp FROM stuffs")!
-let dbDate: DatabaseDate = row.value(atIndex: 0)!
+let row = db.fetchOneRow("SELECT * FROM persons")!
+let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
 
 // Direct read
 
-let dbDate = db.fetchOne(DatabaseDate.self, "SELECT timestamp FROM stuffs")!
+let dbDate = db.fetchOne(DatabaseDate.self, "SELECT creationTimestamp ...")!
 ```
 
 
@@ -167,12 +175,23 @@ class Person: RowModel {
     var id: Int64?
     var name: String?
     var age: Int?
+    var creationDate: NSDate?
     
     // Boring and not very DRY, but straightforward:
     override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("id") { id = row.value(named: "id") }
-        if row.hasColumn("name") { name = row.value(named: "name") }
-        if row.hasColumn("age") { age = row.value(named: "age") }
+        if row.hasColumn("id") {
+            id = row.value(named: "id")
+        }
+        if row.hasColumn("name") {
+            name = row.value(named: "name")
+        }
+        if row.hasColumn("age") {
+            age = row.value(named: "age")
+        }
+        if row.hasColumn("creationTimestamp") {
+            let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
+            creationDate = dbDate?.date
+        }
     }
 }
 
@@ -210,7 +229,12 @@ class Person: RowModel {
     }
     
     override var databaseDictionary: [String: DatabaseValue?] {
-        return ["ID": ID, "name": name, "age": age]
+        return [
+            "id": id,
+            "name": name,
+            "age": age,
+            "creationTimestamp": DatabaseDate(creationDate),
+        ]
     }
 }
 
@@ -230,6 +254,23 @@ try dbQueue.inTransaction { db in
     return .Commit
 }
 ```
+
+**Override primitive methods** to prepare your insertions or updates:
+
+```swift
+class Person: RowModel {
+    ...
+    
+    override func insert(db: Database) throws {
+        if creationDate == nil {
+            creationDate = NSDate()
+        }
+        
+        try super.insert(db)
+    }
+}
+```
+
 
 **Subclass with ad-hoc classes** when iterating custom queries:
 
