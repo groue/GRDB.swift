@@ -11,7 +11,7 @@ Features
 
 - **A low-level SQLite API** that leverages the Swift 2 standard library.
 - **Migrations**
-- **No ORM, no query builder**. Instead, a thin class that wraps query results, and helps people who like customizing their SQL queries.
+- **No ORM, no smart query builder, no table abstraction**. Instead, a thin class that wraps database rows, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
 
 
 Usage
