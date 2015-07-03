@@ -238,16 +238,16 @@ try migrator.migrate(dbQueue)
 
 ## Row Models
 
-`RowModel` is a class that wraps a database row. It is designed to be subclassed.
+`RowModel` is a class that wraps a database row. *It is designed to be subclassed.*
 
-We'll illustrate its features with the Person class below, which declares properties for the `persons` table seen above:
+We'll illustrate its features with the Person class below. Note how it declares properties for the `persons` table seen above:
 
 ```swift
 class Person : RowModel {
-    var id: Int64?
-    var name: String?
-    var age: Int?
-    var creationDate: NSDate?
+    var id: Int64?            // matches "id" column
+    var name: String?         // matches "name" column
+    var age: Int?             // matches "age" columnn
+    var creationDate: NSDate? // matches "creationTimestamp" column
 }
 ```
 
