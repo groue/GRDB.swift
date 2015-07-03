@@ -197,7 +197,7 @@ class PrimaryKeySingleTests: RowModelTests {
         }
     }
     
-    func testSelectWithDictionaryKey() {
+    func testSelectWithDictionaryBindings() {
         assertNoError {
             let petUUID = "BobbyID"
             
@@ -213,7 +213,7 @@ class PrimaryKeySingleTests: RowModelTests {
             
             
             dbQueue.inDatabase { db in
-                let pet = db.fetchOne(Pet.self, key: ["UUID": petUUID])!   // The tested method
+                let pet = db.fetchOne(Pet.self, bindings: ["UUID": petUUID])!   // The tested method
                 
                 XCTAssertEqual(pet.UUID!, petUUID)
                 XCTAssertEqual(pet.name!, "Bobby")
@@ -221,7 +221,7 @@ class PrimaryKeySingleTests: RowModelTests {
         }
     }
     
-    func testSelectWithArrayKey() {
+    func testSelectWithArrayBindings() {
         assertNoError {
             let petUUID = "BobbyID"
             
@@ -237,7 +237,7 @@ class PrimaryKeySingleTests: RowModelTests {
             
             
             dbQueue.inDatabase { db in
-                let pet = db.fetchOne(Pet.self, key: [petUUID])!   // The tested method
+                let pet = db.fetchOne(Pet.self, bindings: [petUUID])!   // The tested method
                 
                 XCTAssertEqual(pet.UUID!, petUUID)
                 XCTAssertEqual(pet.name!, "Bobby")

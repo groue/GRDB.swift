@@ -164,7 +164,7 @@ class PrimaryKeyMultipleTests: RowModelTests {
         }
     }
     
-    func testSelectWithDictionaryKey() {
+    func testSelectWithDictionaryBindings() {
         assertNoError {
             var citizenshipKey: [String: DatabaseValue?]? = nil
             try dbQueue.inTransaction { db in
@@ -181,13 +181,13 @@ class PrimaryKeyMultipleTests: RowModelTests {
             }
             
             dbQueue.inDatabase { db in
-                let citizenship = db.fetchOne(Citizenship.self, key: Bindings(citizenshipKey!))!
+                let citizenship = db.fetchOne(Citizenship.self, bindings: Bindings(citizenshipKey!))!
                 XCTAssertEqual(citizenship.countryName!, "France")
             }
         }
     }
     
-    func testSelectWithArrayKey() {
+    func testSelectWithArrayBindings() {
         assertNoError {
             var citizenshipKey: [DatabaseValue?]? = nil
             try dbQueue.inTransaction { db in
@@ -205,7 +205,7 @@ class PrimaryKeyMultipleTests: RowModelTests {
             }
             
             dbQueue.inDatabase { db in
-                let citizenship = db.fetchOne(Citizenship.self, key: Bindings(citizenshipKey!))!
+                let citizenship = db.fetchOne(Citizenship.self, bindings: Bindings(citizenshipKey!))!
                 XCTAssertEqual(citizenship.countryName!, "France")
             }
         }

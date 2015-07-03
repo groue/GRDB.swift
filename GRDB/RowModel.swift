@@ -278,7 +278,7 @@ extension Database {
 
 extension Database {
     
-    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, key bindings: Bindings) -> AnySequence<RowModel> {
+    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings) -> AnySequence<RowModel> {
         guard let tableName = RowModel.databaseTableName else {
             fatalError("Missing table name")
         }
@@ -301,12 +301,12 @@ extension Database {
         return fetch(type, sql, bindings: bindings)
     }
     
-    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, key: Bindings) -> [RowModel] {
-        return Array(fetch(type, key: key))
+    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings) -> [RowModel] {
+        return Array(fetch(type, bindings: bindings))
     }
     
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, key: Bindings) -> RowModel? {
-        if let first = fetch(type, key: key).generate().next() {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings) -> RowModel? {
+        if let first = fetch(type, bindings: bindings).generate().next() {
             // one row containing an optional value
             return first
         } else {
