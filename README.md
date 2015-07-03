@@ -140,7 +140,7 @@ let rows = dbQueue.inDatabase { db in
 If you iterate such a sequence out of a database queue, you will get a *fatal error*:
 
 ```swift
-// Wrong: sequence is extracted out of the database queue
+// WRONG: sequence is extracted out of the database queue
 let rowSequence = dbQueue.inDatabase { db in
     db.fetchRows("SELECT ...")
 }
@@ -154,7 +154,7 @@ for row in rowSequence {
 The solution is to dump such a sequence into an array:
 
 ```swift
-// Good: extract an array out of the database queue
+// GOOD: extract an array out of the database queue
 let rows = dbQueue.inDatabase { db in
     // The `fetchAllRows` variant returns an array of rows:
     return db.fetchAllRows("SELECT ...")
