@@ -467,7 +467,6 @@ class Person : RowModel {
     ...
     
     // Before insertion, set creationDate if not set yet.
-    
     override func insert(db: Database) throws {
         if creationDate == nil {
             creationDate = NSDate()
