@@ -275,9 +275,9 @@ try migrator.migrate(dbQueue)
 
 ## Row Models
 
-**RowModel** is a class that wraps a database row. *It is designed to be subclassed.*
+**RowModel** is a convenience class that wraps a table row, or the result of any query.
 
-We'll illustrate its features with the Person class below. Note how it declares properties for the `persons` table seen above:
+We'll illustrate its features with the Person subclass below. Note how it declares properties for the `persons` table seen above:
 
 ```swift
 class Person : RowModel {
@@ -294,8 +294,6 @@ class Person : RowModel {
 
 ### Loading
 
-You opt in RowModel services by overriding methods.
-
 By overriding `updateFromDatabaseRow`, you can load persons:
 
 ```swift
@@ -305,15 +303,9 @@ class Person : RowModel {
     // Boring and not DRY, but straightforward and trivial:
     
     override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("id") {
-            id = row.value(named: "id")
-        }
-        if row.hasColumn("name") {
-            name = row.value(named: "name")
-        }
-        if row.hasColumn("age") {
-            age = row.value(named: "age")
-        }
+        if row.hasColumn("id")   { id = row.value(named: "id") }
+        if row.hasColumn("name") { name = row.value(named: "name") }
+        if row.hasColumn("age")  { age = row.value(named: "age") }
         if row.hasColumn("creationTimestamp") {
             // The custom type DatabaseDate that we have declared above turns
             // out handy:
