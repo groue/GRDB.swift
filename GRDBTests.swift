@@ -9,6 +9,34 @@
 import XCTest
 import GRDB
 
+struct DatabaseDate: DatabaseValue {
+    let date: NSDate
+    
+    // Use a failable initializer to give nil NSDate the behavior of NULL:
+    init?(_ date: NSDate?) {
+        if let date = date {
+            self.date = date
+        } else {
+            return nil
+        }
+    }
+    
+    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
+        let timestamp = date.timeIntervalSince1970
+        return timestamp.bindInSQLiteStatement(statement, atIndex: index)
+    }
+    
+    static func fromSQLiteValue(value: SQLiteValue) -> DatabaseDate? {
+        switch value {
+        case .Double(let timestamp):
+            return self.init(NSDate(timeIntervalSince1970: timestamp))
+        default:
+            // NULL, integer, text or blob:
+            return nil
+        }
+    }
+}
+
 class GRDBTests: XCTestCase {
     var databasePath: String!
     var dbQueue: DatabaseQueue!

@@ -10,26 +10,45 @@ import XCTest
 import GRDB
 
 class Person: RowModel {
-    var ID: Int64?
+    var id: Int64?
     var name: String?
     var age: Int?
+    var creationDate: NSDate?
     
     override class var databaseTableName: String? {
         return "persons"
     }
     
     override class var databasePrimaryKey: PrimaryKey {
-        return .SQLiteRowID("ID")
+        return .SQLiteRowID("id")
     }
     
     override var databaseDictionary: [String: DatabaseValue?] {
-        return ["ID": ID, "name": name, "age": age]
+        return [
+            "id": id,
+            "name": name,
+            "age": age,
+            "creationTimestamp": DatabaseDate(creationDate),
+        ]
     }
     
     override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("ID") { ID = row.value(named: "ID") }
+        if row.hasColumn("id") { id = row.value(named: "id") }
         if row.hasColumn("name") { name = row.value(named: "name") }
         if row.hasColumn("age") { age = row.value(named: "age") }
+        if row.hasColumn("creationTimestamp") {
+            let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
+            creationDate = dbDate?.date
+        }
+    }
+    
+    override func insert(db: Database) throws {
+        // TODO: test
+        if creationDate == nil {
+            creationDate = NSDate()
+        }
+        
+        try super.insert(db)
     }
     
     init (name: String? = nil, age: Int? = nil) {
@@ -141,7 +160,8 @@ class RowModelTests: GRDBTests {
         migrator.registerMigration("createPersons") { db in
             try db.execute(
                 "CREATE TABLE persons (" +
-                    "ID INTEGER PRIMARY KEY, " +
+                    "id INTEGER PRIMARY KEY, " +
+                    "creationTimestamp DOUBLE, " +
                     "name TEXT NOT NULL, " +
                     "age INT" +
                 ")")
@@ -186,13 +206,13 @@ class RowModelTests: GRDBTests {
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
-            XCTAssertTrue(arthur.ID == nil)
+            XCTAssertTrue(arthur.id == nil)
             try dbQueue.inTransaction { db in
                 // The tested method
                 try arthur.insert(db)
 
                 // After insertion, ID should be set
-                XCTAssertTrue(arthur.ID != nil)
+                XCTAssertTrue(arthur.id != nil)
                 
                 return .Commit
             }
@@ -217,7 +237,7 @@ class RowModelTests: GRDBTests {
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
-            XCTAssertTrue(arthur.ID == nil)
+            XCTAssertTrue(arthur.id == nil)
             do {
                 try dbQueue.inTransaction { db in
                     try arthur.insert(db)
@@ -293,7 +313,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.ID)
+            let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.id)
             
             try dbQueue.inTransaction { db in
                 // The tested method
@@ -327,7 +347,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            let pet = Pet(name: "Bobby", masterID: arthur.ID)
+            let pet = Pet(name: "Bobby", masterID: arthur.id)
             
             do {
                 try dbQueue.inTransaction { db in
@@ -357,7 +377,7 @@ class RowModelTests: GRDBTests {
                 return .Commit
             }
             
-            let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.ID)
+            let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.id)
             
             do {
                 try dbQueue.inTransaction { db in
@@ -393,7 +413,7 @@ class RowModelTests: GRDBTests {
             }
             
             let citizenship = Citizenship()
-            citizenship.personID = arthur.ID
+            citizenship.personID = arthur.id
             citizenship.countryName = "France"
             citizenship.grantedDate = date
             
@@ -402,7 +422,7 @@ class RowModelTests: GRDBTests {
                 try citizenship.insert(db)
                 
                 // After insertion, primary key is still set
-                XCTAssertEqual(citizenship.personID!, arthur.ID!)
+                XCTAssertEqual(citizenship.personID!, arthur.id!)
                 XCTAssertEqual(citizenship.countryName!, "France")
                 
                 return .Commit
@@ -412,7 +432,7 @@ class RowModelTests: GRDBTests {
             dbQueue.inDatabase { db in
                 let citizenships = db.fetchAll(Citizenship.self, "SELECT * FROM citizenships")
                 XCTAssertEqual(citizenships.count, 1)
-                XCTAssertEqual(citizenships.first!.personID!, arthur.ID!)
+                XCTAssertEqual(citizenships.first!.personID!, arthur.id!)
                 XCTAssertEqual(citizenships.first!.countryName!, "France")
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: citizenships.first!.grantedDate!), 1973)
             }
@@ -429,7 +449,7 @@ class RowModelTests: GRDBTests {
             }
             
             let citizenship = Citizenship()
-            citizenship.personID = arthur.ID
+            citizenship.personID = arthur.id
             citizenship.countryName = "France"
             
             do {
@@ -451,7 +471,7 @@ class RowModelTests: GRDBTests {
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
-            XCTAssertTrue(arthur.ID == nil)
+            XCTAssertTrue(arthur.id == nil)
             try dbQueue.inTransaction { db in
                 try arthur.insert(db)
                 arthur.age = 42
@@ -473,7 +493,7 @@ class RowModelTests: GRDBTests {
             try dbQueue.inTransaction { db in
                 let arthur = Person(name: "Arthur", age: 41)
                 try arthur.insert(db)
-                let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.ID)
+                let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.id)
                 try pet.insert(db)
                 
                 pet.name = "Karl"
@@ -508,7 +528,7 @@ class RowModelTests: GRDBTests {
                 try arthur.insert(db)
                 
                 let citizenship = Citizenship()
-                citizenship.personID = arthur.ID
+                citizenship.personID = arthur.id
                 citizenship.countryName = "France"
                 citizenship.grantedDate = date1
                 try citizenship.insert(db)
@@ -532,13 +552,13 @@ class RowModelTests: GRDBTests {
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
             
-            XCTAssertTrue(arthur.ID == nil)
+            XCTAssertTrue(arthur.id == nil)
             try dbQueue.inTransaction { db in
                 // Initial save should insert
                 try arthur.save(db)
                 return .Commit
             }
-            XCTAssertTrue(arthur.ID != nil)
+            XCTAssertTrue(arthur.id != nil)
             arthur.age = 42
             try dbQueue.inTransaction { db in
                 // Initial save should update
@@ -547,7 +567,7 @@ class RowModelTests: GRDBTests {
             }
             
             dbQueue.inDatabase { db in
-                let arthur2 = db.fetchOne(Person.self, primaryKey: arthur.ID!)!
+                let arthur2 = db.fetchOne(Person.self, primaryKey: arthur.id!)!
                 XCTAssertEqual(arthur2.age!, 42)
             }
         }
@@ -579,14 +599,14 @@ class RowModelTests: GRDBTests {
             try dbQueue.inTransaction { db in
                 let arthur = Person(name: "Arthur", age: 41)
                 try arthur.insert(db)
-                arthurID = arthur.ID
+                arthurID = arthur.id
                 return .Commit
             }
             
             dbQueue.inDatabase { db in
                 let arthur = db.fetchOne(Person.self, primaryKey: arthurID!)!
                 
-                XCTAssertEqual(arthur.ID!, arthurID!)
+                XCTAssertEqual(arthur.id!, arthurID!)
                 XCTAssertEqual(arthur.name!, "Arthur")
                 XCTAssertEqual(arthur.age!, 41)
             }
@@ -601,7 +621,7 @@ class RowModelTests: GRDBTests {
                 let arthur = Person(name: "Arthur", age: 41)
                 try arthur.insert(db)
 
-                let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.ID)
+                let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.id)
                 try pet.insert(db)
                 
                 return .Commit

@@ -96,12 +96,12 @@
 		DC10500F19C904DD00D8CA30 /* GRDB Tests */ = {
 			isa = PBXGroup;
 			children = (
+				56CC3C9E1B45E84400A9A534 /* CustomDatabaseValueTests.swift */,
 				56CC3C961B44598200A9A534 /* DatabaseMigratorTests.swift */,
 				5699AE541B42BE8700C35172 /* DatabaseTests.swift */,
 				56CC3C981B445DDB00A9A534 /* GRDBTests.swift */,
 				56CC3C9C1B44681A00A9A534 /* RowModelTests.swift */,
 				DC37740319C8CBB3004FCF85 /* Supporting Files */,
-				56CC3C9E1B45E84400A9A534 /* CustomDatabaseValueTests.swift */,
 			);
 			path = "GRDB Tests";
 			sourceTree = "<group>";

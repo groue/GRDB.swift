@@ -39,7 +39,7 @@ public class RowModel {
         updateFromDatabaseRow(row)
     }
     
-    final public func insert(db: Database) throws {
+    public func insert(db: Database) throws {
         // TODO: validation
         // TODO: dirty
         // TODO?: table modification notification

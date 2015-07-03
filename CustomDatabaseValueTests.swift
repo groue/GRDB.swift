@@ -9,28 +9,6 @@
 import XCTest
 import GRDB
 
-struct DatabaseDate: DatabaseValue {
-    let date: NSDate
-    
-    init(_ date: NSDate) {
-        self.date = date
-    }
-    
-    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
-        let timestamp = date.timeIntervalSince1970
-        return timestamp.bindInSQLiteStatement(statement, atIndex: index)
-    }
-    
-    static func fromSQLiteValue(value: SQLiteValue) -> DatabaseDate? {
-        switch value {
-        case .Double(let timestamp):
-            return self.init(NSDate(timeIntervalSince1970: timestamp))
-        default:
-            return nil
-        }
-    }
-}
-
 class CustomDatabaseValueTests: GRDBTests {
     
     override func setUp() {
