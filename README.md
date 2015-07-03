@@ -303,6 +303,7 @@ class Person : RowModel {
     ...
     
     // Boring and not DRY, but straightforward and trivial:
+    
     override func updateFromDatabaseRow(row: Row) {
         if row.hasColumn("id") {
             id = row.value(named: "id")
@@ -333,7 +334,7 @@ Declare a **Primary Key** in order to fetch a specific row model:
 ```swift
 class Person : RowModel {
     ...
-
+    
     override class var databasePrimaryKey: PrimaryKey {
         return .SQLiteRowID("id")
     }
@@ -361,9 +362,7 @@ We think that this is the killer feature of GRDB.swift :bowtie:
 ```swift
 class PersonsViewController: UITableViewController {
     
-    let persons: [PersonViewModel]?
-    
-    // Subclass Person, with an extra `petCount`:
+    // Private subclass of Person, with an extra `petCount`:
     
     private class PersonViewModel : Person {
         var petCount: Int?
@@ -376,6 +375,8 @@ class PersonsViewController: UITableViewController {
             }
         }
     }
+    
+    let persons: [PersonViewModel]?
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
@@ -403,10 +404,15 @@ Those operations require two more methods:
 ```swift
 class Person : RowModel {
     ...
-
+    
+    // The table name:
+    
     override class var databaseTableName: String? {
         return "persons"
     }
+    
+    
+    // The saved values:
     
     override var databaseDictionary: [String: DatabaseValue?] {
         return [
@@ -442,6 +448,8 @@ try dbQueue.inTransaction { db in
 ```swift
 class Person : RowModel {
     ...
+    
+    // Before insertion, set creationDate if not set yet.
     
     override func insert(db: Database) throws {
         if creationDate == nil {
