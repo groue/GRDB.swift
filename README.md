@@ -249,6 +249,7 @@ class Person : RowModel {
     var age: Int?
     var creationDate: NSDate?
 }
+```
 
 - [Loading](#loading)
 - [Insert, Update and Delete](#insert-update-and-delete)
