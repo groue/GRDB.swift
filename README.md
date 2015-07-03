@@ -236,7 +236,8 @@ try db.execute("INSERT INTO persons (creationTimestamp, ...) " +
 // Read from row
 
 let row = db.fetchOneRow("SELECT * FROM persons")!
-let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
+let dbDate: DatabaseDate = row.value(named: "creationTimestamp")!
+let date = dbDate.date
 
 // Direct read
 
