@@ -34,7 +34,11 @@ public class Statement {
         } else {
             code = sqlite3_bind_null(sqliteStatement, Int32(index))
         }
-        assert(code == SQLITE_OK)
+        if code != SQLITE_OK {
+            failOnError { () -> Void in
+                throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+            }
+        }
     }
     
     public final func bind(value: DatabaseValue?, forKey key: String) {
@@ -51,13 +55,21 @@ public class Statement {
         }
     }
 
-    public final func reset() throws {
+    public final func reset() {
         let code = sqlite3_reset(sqliteStatement)
-        try SQLiteError.checkCResultCode(code, sqliteConnection: database.sqliteConnection, sql: sql)
+        if code != SQLITE_OK {
+            failOnError { () -> Void in
+                throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+            }
+        }
     }
     
     public final func clearBindings() {
         let code = sqlite3_clear_bindings(sqliteStatement)
-        assert(code == SQLITE_OK)
+        if code != SQLITE_OK {
+            failOnError { () -> Void in
+                throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+            }
+        }
     }
 }

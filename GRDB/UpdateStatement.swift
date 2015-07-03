@@ -7,6 +7,7 @@
 //
 
 public final class UpdateStatement : Statement {
+    
     public func execute() throws {
         if database.configuration.verbose {
             NSLog("%@", sql)

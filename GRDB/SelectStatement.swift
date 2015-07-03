@@ -38,9 +38,9 @@ public final class SelectStatement : Statement {
 
 extension SelectStatement {
     
+    // TODO: document the reset()
     public func fetchRows() -> AnySequence<Row> {
-        // TODO: Document this reset performed on each generation
-        try! reset()
+        reset()
         
         return AnySequence { () -> AnyGenerator<Row> in
             var logSQL = self.database.configuration.verbose
