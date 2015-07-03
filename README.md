@@ -426,14 +426,11 @@ class Person : RowModel {
     ...
     
     // The table name:
-    
     override class var databaseTableName: String? {
         return "persons"
     }
     
-    
     // The saved values:
-    
     override var databaseDictionary: [String: DatabaseValueType?] {
         return [
             "id": id,
