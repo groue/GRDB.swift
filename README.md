@@ -305,6 +305,15 @@ let person = dbQueue.inDatabase { db in
 }
 ```
 
+There are four kinds of primary keys:
+
+- **None**: the default
+- **SQLiteRowID**: use it when you rely on SQLite to automatically generate IDs (see https://www.sqlite.org/autoinc.html).
+- **Single**: for single-column primary keys that are not managed by SQLite.
+- **Multiple**: for primary keys that span accross several columns.
+
+By declaring a primary key, you get access to the `Database.fetchOne(type:primaryKey:)` method. The type of the primary key also as an impact on the insert/update/delete methods that we will see below.
+
 
 **Subclass with ad-hoc classes** when iterating custom queries:
 
