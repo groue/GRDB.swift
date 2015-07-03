@@ -247,6 +247,7 @@ public class RowModel {
 
 extension Database {
 
+    // let persons = db.fetch(Person.self, "SELECT ...", bindings: ...)
     public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<RowModel> {
         let rowSequence = fetchRows(sql, bindings: bindings)
         return AnySequence { () -> AnyGenerator<RowModel> in
@@ -261,10 +262,12 @@ extension Database {
         }
     }
 
+    // let persons = db.fetchAll(Person.self, "SELECT ...", bindings: ...)
     public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> [RowModel] {
         return Array(fetch(type, sql, bindings: bindings))
     }
 
+    // let person = db.fetchOne(Person.self, "SELECT ...", bindings: ...)
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> RowModel? {
         if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
@@ -278,7 +281,8 @@ extension Database {
 
 extension Database {
     
-    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings) -> AnySequence<RowModel> {
+    // let person = db.fetchOne(Person.self, primaryKey: ...)
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey bindings: Bindings) -> RowModel? {
         guard let tableName = RowModel.databaseTableName else {
             fatalError("Missing table name")
         }
@@ -298,26 +302,10 @@ extension Database {
         let whereSQL = " AND ".join(keyDictionary.keys.map { column in "\(column)=?" })
         let bindings = Bindings(Array(keyDictionary.values))
         let sql = "SELECT * FROM \(tableName) WHERE \(whereSQL)"
-        return fetch(type, sql, bindings: bindings)
+        return fetchOne(type, sql, bindings: bindings)
     }
     
-    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings) -> [RowModel] {
-        return Array(fetch(type, bindings: bindings))
-    }
-    
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings) -> RowModel? {
-        if let first = fetch(type, bindings: bindings).generate().next() {
-            // one row containing an optional value
-            return first
-        } else {
-            // no row
-            return nil
-        }
-    }
-}
-
-extension Database {
-    
+    // let person = db.fetchOne(Person.self, primaryKey: ...)
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValueType) -> RowModel? {
         guard let tableName = RowModel.databaseTableName else {
             fatalError("Missing table name")
