@@ -355,9 +355,9 @@ There are four kinds of primary keys:
 By declaring a primary key, you get access to the `Database.fetchOne(type:primaryKey:)` method. The type of the primary key also as an impact on the insert/update/delete methods that we will see below.
 
 
-**Subclass with ad-hoc classes** when iterating custom queries:
+**Subclass with ad-hoc classes** when iterating custom queries.
 
-We think that this is the killer feature of GRDB.swift :bowtie:
+We think that this is the killer feature of GRDB.swift :bowtie:. For example:
 
 ```swift
 class PersonsViewController: UITableViewController {
