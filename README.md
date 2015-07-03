@@ -111,6 +111,35 @@ let rows = dbQueue.inDatabase { db in
 }
 ```
 
+**Row queries are lazy**. They are Swift *sequences*, that iterates SQLite results as it is consumed.
+
+You will get a *fatal error* if you iterate such a sequence out of the database queue:
+
+```swift
+let rowSequence = dbQueue.inDatabase { db in
+    db.fetchRows("SELECT ...")
+}
+
+// fatal error: SelectStatement was not iterated on its database queue.
+for row in rowSequence {
+    ...
+}
+```
+
+Avoid those fatal errors by consuming the sequence in an Array:
+
+```swift
+let rows = dbQueue.inDatabase { db in
+    // The `fetchAllRows` variant returns an array of rows:
+    return db.fetchAllRows("SELECT ...")
+    
+    // Generally, any non-lazy collection will do:
+    return Array(db.fetchRows("SELECT ..."))
+    return db.fetchRows("SELECT ...").filter { ... }
+}
+```
+
+
 **Values queries** load value types:
 
 ```swift
