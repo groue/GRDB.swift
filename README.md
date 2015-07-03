@@ -317,6 +317,8 @@ By declaring a primary key, you get access to the `Database.fetchOne(type:primar
 
 **Subclass with ad-hoc classes** when iterating custom queries:
 
+We think that this is the killer feature of GRDB.swift :bowtie:
+
 ```swift
 class PersonsViewController: UITableViewController {
     
