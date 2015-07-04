@@ -363,18 +363,20 @@ do {
 
 ## Migrations
 
-**Migrations** are a convenient way to alter your database schema over time in a consistent and easy way. Define them with a DatabaseMigrator:
+**Migrations** are a convenient way to alter your database schema over time in a consistent and easy way.
+
+Migrations run in order, once and only once. When a user upgrades your application, only non-applied migration are run.
 
 ```swift
 var migrator = DatabaseMigrator()
 
+// v1.0 database
 migrator.registerMigration("createPersons") { db in
     try db.execute(
         "CREATE TABLE persons (" +
         "id INTEGER PRIMARY KEY, " +
         "creationTimestamp DOUBLE, " +
-        "name TEXT NOT NULL, " +
-        "age INT)")
+        "name TEXT NOT NULL)")
 }
 
 migrator.registerMigration("createBooks") { db in
@@ -386,6 +388,11 @@ migrator.registerMigration("createBooks") { db in
         "        REFERENCES persons(id) " +
         "        ON DELETE CASCADE ON UPDATE CASCADE, " +
         "title TEXT NOT NULL)")
+}
+
+// v2.0 database
+migrator.registerMigration("AddAgeToPersons") { db in
+    try db.execute("ALTER TABLE persons ADD COLUMN age INT")
 }
 
 try migrator.migrate(dbQueue)
