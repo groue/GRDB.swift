@@ -201,7 +201,7 @@ The `db.fetchOne` function returns an optional value which is nil in two cases: 
 
 SQLite has a funny way to store values in the database. It is "funny" because it is a rather long read: https://www.sqlite.org/datatype3.html.
 
-The interested reader should know that GRDB.swift *does not* use any of the built-in casting features of SQLite. Instead, it performs its *own conversions*, based on the storage class of database values. It has to do so because you generally consume database values long after SQLite has fetched them.
+The interested reader should know that GRDB.swift *does not* use any of the built-in casting features of SQLite. Instead, it performs its *own conversions*, based on the storage class of database values. It has to do so because you generally consume database values long after the opportunity to use SQLite casting features has passed.
 
 For reference:
 
