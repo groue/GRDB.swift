@@ -6,16 +6,14 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
-
 public protocol DatabaseValueType {
-    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32
+    var sqliteValue: SQLiteValue { get }
     static func fromSQLiteValue(value: SQLiteValue) -> Self?
 }
 
 extension Bool: DatabaseValueType {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
-        return sqlite3_bind_int(statement, Int32(index), Int32(self ? 1 : 0))
+    public var sqliteValue: SQLiteValue {
+        return .Integer(self ? 1 : 0)
     }
     
     public static func fromSQLiteValue(value: SQLiteValue) -> Bool? {
@@ -29,8 +27,8 @@ extension Bool: DatabaseValueType {
 }
 
 extension Int: DatabaseValueType {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
-        return sqlite3_bind_int64(statement, Int32(index), Int64(self))
+    public var sqliteValue: SQLiteValue {
+        return .Integer(Int64(self))
     }
     
     public static func fromSQLiteValue(value: SQLiteValue) -> Int? {
@@ -46,8 +44,8 @@ extension Int: DatabaseValueType {
 }
 
 extension Int64: DatabaseValueType {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
-        return sqlite3_bind_int64(statement, Int32(index), self)
+    public var sqliteValue: SQLiteValue {
+        return .Integer(self)
     }
     
     public static func fromSQLiteValue(value: SQLiteValue) -> Int64? {
@@ -63,8 +61,8 @@ extension Int64: DatabaseValueType {
 }
 
 extension Double: DatabaseValueType {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
-        return sqlite3_bind_double(statement, Int32(index), self)
+    public var sqliteValue: SQLiteValue {
+        return .Double(self)
     }
     
     public static func fromSQLiteValue(value: SQLiteValue) -> Double? {
@@ -80,8 +78,8 @@ extension Double: DatabaseValueType {
 }
 
 extension String: DatabaseValueType {
-    public func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
-        return sqlite3_bind_text(statement, Int32(index), self, -1, SQLITE_TRANSIENT)
+    public var sqliteValue: SQLiteValue {
+        return .Text(self)
     }
     
     public static func fromSQLiteValue(value: SQLiteValue) -> String? {

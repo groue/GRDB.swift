@@ -46,7 +46,7 @@ public class Statement {
     final func bind(value: DatabaseValueType?, atIndex index: Int) {
         let code: Int32
         if let value = value {
-            code = value.bindInSQLiteStatement(sqliteStatement, atIndex: index)
+            code = value.sqliteValue.bindInSQLiteStatement(sqliteStatement, atIndex: index)
         } else {
             code = sqlite3_bind_null(sqliteStatement, Int32(index))
         }

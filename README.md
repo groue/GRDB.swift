@@ -209,17 +209,16 @@ struct DatabaseDate: DatabaseValueType {
         }
     }
     
-    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
-        let timestamp = date.timeIntervalSince1970
-        return timestamp.bindInSQLiteStatement(statement, atIndex: index)
+    // Date -> SQLite
+    var sqliteValue: SQLiteValue {
+        return .Double(date.timeIntervalSince1970)
     }
     
+    // SQLite -> Date
     static func fromSQLiteValue(value: SQLiteValue) -> DatabaseDate? {
-        switch value {
-        case .Double(let timestamp):
+        if let timestamp = Double.fromSQLiteValue(value) {
             return self.init(NSDate(timeIntervalSince1970: timestamp))
-        default:
-            // NULL, integer, text or blob:
+        } else {
             return nil
         }
     }

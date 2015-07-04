@@ -7,8 +7,7 @@
 //
 
 typealias SQLiteConnection = COpaquePointer
-
-public typealias SQLiteStatement = COpaquePointer
+typealias SQLiteStatement = COpaquePointer
 
 public struct SQLiteError : ErrorType {
     public let _domain: String = "GRDB.SQLiteError"
@@ -42,6 +41,8 @@ public struct SQLiteError : ErrorType {
     }
 }
 
+private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
+
 public enum SQLiteValue {
     case Null
     case Integer(Int64)
@@ -66,5 +67,20 @@ public enum SQLiteValue {
     
     public func value<DatabaseValue: DatabaseValueType>() -> DatabaseValue? {
         return DatabaseValue.fromSQLiteValue(self)
+    }
+    
+    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
+        switch self {
+        case .Null:
+            return sqlite3_bind_null(statement, Int32(index))
+        case .Integer(let int):
+            return sqlite3_bind_int64(statement, Int32(index), int)
+        case .Double(let double):
+            return sqlite3_bind_double(statement, Int32(index), double)
+        case .Text(let text):
+            return sqlite3_bind_text(statement, Int32(index), text, -1, SQLITE_TRANSIENT)
+        case .Blob:
+            fatalError("Not implemented")
+        }
     }
 }
