@@ -223,7 +223,7 @@ For reference:
     
     All strings are falsey (caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr), which considers *most* strings as falsey, but not *all* strings). [Help](https://github.com/groue/GRDB.swift/pulls) is welcome.
 
-- **Blob** storage classes can be turned into Swift `Bool` and `Blob`.
+- **BLOB** storage classes can be turned into Swift `Bool` and `Blob`.
     
     All blobs are truthy.
 
