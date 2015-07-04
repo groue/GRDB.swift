@@ -86,6 +86,7 @@ You can load rows and values from the database.
 
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
+- [A Note About SQLite Storage Classes](#a-note-about-sqlite-storage-classes)
 
 
 ### Row Queries
@@ -196,7 +197,7 @@ let names = dbQueue.inDatabase { db in
 The `db.fetchOne` function returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
 
-#### A note about SQLite storage classes
+### A Note About SQLite Storage Classes
 
 SQLite has a funny way to store values in the database. It is "funny" because it is a rather long read: https://www.sqlite.org/datatype3.html.
 
