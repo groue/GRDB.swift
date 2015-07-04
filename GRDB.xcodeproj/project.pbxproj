@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5610C2091B483AA500F8B4EC /* InMemoryDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5610C2081B483AA500F8B4EC /* InMemoryDatabaseTests.swift */; };
+		5610C20E1B4852D600F8B4EC /* RowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5610C20D1B4852D600F8B4EC /* RowTests.swift */; };
 		565E191E1B42B2B600D32814 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565E191D1B42B2B600D32814 /* Database.swift */; };
 		5699AE571B42C34A00C35172 /* Statement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE561B42C34A00C35172 /* Statement.swift */; };
 		5699AE591B42CD7800C35172 /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE581B42CD7800C35172 /* Row.swift */; };
@@ -53,6 +54,7 @@
 
 /* Begin PBXFileReference section */
 		5610C2081B483AA500F8B4EC /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = "<group>"; };
+		5610C20D1B4852D600F8B4EC /* RowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowTests.swift; sourceTree = "<group>"; };
 		565E191D1B42B2B600D32814 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		5699AE561B42C34A00C35172 /* Statement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Statement.swift; sourceTree = "<group>"; };
 		5699AE581B42CD7800C35172 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
@@ -113,6 +115,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5610C20C1B4852C200F8B4EC /* Row */ = {
+			isa = PBXGroup;
+			children = (
+				5610C20D1B4852D600F8B4EC /* RowTests.swift */,
+			);
+			path = Row;
+			sourceTree = "<group>";
+		};
 		56C9E64C1B468EB200DDC541 /* Database */ = {
 			isa = PBXGroup;
 			children = (
@@ -168,6 +178,7 @@
 				56C9E64C1B468EB200DDC541 /* Database */,
 				56C9E64E1B468EB200DDC541 /* DatabaseMigrator */,
 				56C9E6501B468EB200DDC541 /* SQLiteValueConvertible */,
+				5610C20C1B4852C200F8B4EC /* Row */,
 				56C9E6521B468EB200DDC541 /* RowModel */,
 				56C9E6591B468EB200DDC541 /* Statement */,
 				56CC3C981B445DDB00A9A534 /* GRDBTestCase.swift */,
@@ -375,6 +386,7 @@
 				5610C2091B483AA500F8B4EC /* InMemoryDatabaseTests.swift in Sources */,
 				56C9E65C1B468EB200DDC541 /* DatabaseMigratorTests.swift in Sources */,
 				56C9E65D1B468EB200DDC541 /* CustomSQLiteValueConvertibleTests.swift in Sources */,
+				5610C20E1B4852D600F8B4EC /* RowTests.swift in Sources */,
 				56C9E65B1B468EB200DDC541 /* DatabaseTests.swift in Sources */,
 				56C9E65E1B468EB200DDC541 /* PrimaryKeyMultipleTests.swift in Sources */,
 				56C9E6641B468EB200DDC541 /* UpdateStatementTests.swift in Sources */,
