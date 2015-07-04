@@ -221,7 +221,7 @@ For reference:
 
 - **TEXT** storage classes can be turned into Swift `Bool` and `String`.
     
-    All strings are falsey (caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr), which considers *most* strings as falsey, but not *all* strings).
+    All strings are falsey (caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr), which considers *most* strings as falsey, but not *all* strings). [Help](https://github.com/groue/GRDB.swift/pulls) is welcome.
 
 - **Blob** storage classes can be turned into Swift `Bool` and `Blob`.
     
