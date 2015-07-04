@@ -213,17 +213,17 @@ For reference:
     
     The only falsey integer is 0.
 
-- **REAL** storage classes can be turned into Swift `Bool`, `Int`, `Int64`, and `Double`.
+- **REAL** storage class can be turned into Swift `Bool`, `Int`, `Int64`, and `Double`.
     
     You will get a fatal error if you extract a value too big for `Int` or `Int64`.
     
     The only falsey real is 0.0.
 
-- **TEXT** storage classes can be turned into Swift `Bool` and `String`.
+- **TEXT** storage class can be turned into Swift `Bool` and `String`.
     
     All strings are falsey (caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr), which considers *most* strings as falsey, but not *all* strings). [Help](https://github.com/groue/GRDB.swift/pulls) is welcome.
 
-- **BLOB** storage classes can be turned into Swift `Bool` and `Blob`.
+- **BLOB** storage class can be turned into Swift `Bool` and `Blob`.
     
     All blobs are truthy.
 
