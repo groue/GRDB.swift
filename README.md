@@ -41,6 +41,7 @@ SQLite API:
 - [Database queues](#database-queues)
 - [Transactions](#transactions)
 - [Fetch Queries](#fetch-queries)
+- [Custom Types](#custom-types)
 - [Statements](#statements)
 
 Application tools:
@@ -85,7 +86,6 @@ You can load rows and values from the database.
 
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
-- [Custom Values](#custom-values)
 
 
 ### Row Queries
@@ -189,19 +189,18 @@ let names = dbQueue.inDatabase { db in
 ```
 
 
-### Custom Values
+## Custom Types
 
-Your custom types can be inserted and loaded by adopting the `DatabaseValueType` protocol.
+A custom type that can be represented as a [SQLIte datatype](https://www.sqlite.org/datatype3.html) (INTEGER, REAL, TEXT, and BLOB) gets full support from GRDB.swift by adopting the `DatabaseValueType` protocol.
 
-As long as you can represent your type as one of the five [datatypes](https://www.sqlite.org/datatype3.html) supported by SQLite, namely NULL, INTEGER, REAL, TEXT, and BLOB, your type is fully supported by GRDB.swift.
-
-For example, let's define below the `DatabaseDate` type that stores and loads an NSDate in the database through its timestamp:
+For example, let's define below the `DatabaseDate` type that stores and loads NSDates as timestamps:
 
 ```swift
 struct DatabaseDate: DatabaseValueType {
     let date: NSDate
     
-    // Use a failable initializer to give nil NSDate the behavior of NULL:
+    // Define a failable initializer in order to consistently use nil as the
+    // NULL marker throughout the conversions NSDate <-> DatabaseDate <-> SQLite
     init?(_ date: NSDate?) {
         if let date = date {
             self.date = date
