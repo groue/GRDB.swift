@@ -12,6 +12,7 @@ Features
 - **A low-level SQLite API** that leverages the Swift 2 standard library.
 - **Migrations**
 - **No ORM, no smart query builder, no table abstraction**. Instead, a thin class that wraps database rows, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
+- **Full Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Declare your own database-convertible types.
 
 
 Usage
