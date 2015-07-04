@@ -41,6 +41,25 @@ public struct SQLiteError : ErrorType {
     }
 }
 
+extension SQLiteError: CustomStringConvertible {
+    public var description: String {
+        // How to write this with a switch?
+        if let sql = sql {
+            if let message = message {
+                fatalError("SQLite error \(code) with statement `\(sql)`: \(message)")
+            } else {
+                fatalError("SQLite error \(code) with statement `\(sql)`")
+            }
+        } else {
+            if let message = message {
+                fatalError("SQLite error \(code): \(message)")
+            } else {
+                fatalError("SQLite error \(code)")
+            }
+        }
+    }
+}
+
 public enum SQLiteValue {
     case Null
     case Integer(Int64)

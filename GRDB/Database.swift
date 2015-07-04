@@ -137,20 +137,7 @@ func failOnError<Result>(@noescape block: (Void) throws -> Result) -> Result {
     do {
         return try block()
     } catch let error as SQLiteError {
-        // How to write this with a switch?
-        if let sql = error.sql {
-            if let message = error.message {
-                fatalError("SQLite error \(error.code) with statement `\(sql)`: \(message)")
-            } else {
-                fatalError("SQLite error \(error.code) with statement `\(sql)`")
-            }
-        } else {
-            if let message = error.message {
-                fatalError("SQLite error \(error.code): \(message)")
-            } else {
-                fatalError("SQLite error \(error.code)")
-            }
-        }
+        fatalError(error.description)
     } catch {
         fatalError("error: \(error)")
     }
