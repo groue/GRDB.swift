@@ -270,20 +270,20 @@ struct DatabaseDate: DatabaseValueType {
 // Write
 
 let date = NSDate()
-try db.execute("INSERT INTO persons (creationTimestamp, ...) " +
+try db.execute("INSERT INTO persons (timestamp, ...) " +
                             "VALUES (?, ...)",
                           bindings: [DatabaseDate(date), ...])
 
 // Read from row
 
 let row = db.fetchOneRow("SELECT * FROM persons")!
-let dbDate: DatabaseDate = row.value(named: "creationTimestamp")!
-let date = dbDate.date
+let dbDate: DatabaseDate? = row.value(named: "timestamp")
+let date = dbDate?.date
 
 // Direct read
 
-let dbDate = db.fetchOne(DatabaseDate.self, "SELECT creationTimestamp ...")!
-let date = dbDate.date
+let dbDate = db.fetchOne(DatabaseDate.self, "SELECT timestamp ...")
+let date = dbDate?.date
 ```
 
 The `sqliteValue` property feeds SQLite with its own food (NULL, Int64, Real, Text or Blob). Yet the *actual* value stored on the database depends on the column *affinity*. SQLite may store your integer as a string, for example. For reference: https://www.sqlite.org/datatype3.html#affinity.
