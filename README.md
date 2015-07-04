@@ -257,6 +257,8 @@ struct DatabaseDate: DatabaseValueType {
     
     // SQLite -> Date
     static func fromSQLiteValue(value: SQLiteValue) -> DatabaseDate? {
+        // Don't handle the raw SQLiteValue unless you know what you do.
+        // It is recommended to use GRDB built-in conversions instead:
         if let timestamp = Double.fromSQLiteValue(value) {
             return self.init(NSDate(timeIntervalSince1970: timestamp))
         } else {
