@@ -28,6 +28,8 @@ public struct Row: CollectionType {
         }
     }
     
+    // Used by RowModel so that it can call RowModel.updateFromDatabaseRow()
+    // to set the ID after an insertion.
     public init(sqliteDictionary: [String: SQLiteValue]) {
         self.impl = DictionaryRowImpl(sqliteDictionary: sqliteDictionary)
     }
@@ -35,18 +37,22 @@ public struct Row: CollectionType {
     
     // MARK: - Values
     
+    // if row.hasColumn("name") { self.name = row.value(named:"name") }
     public func hasColumn(name: String) -> Bool {
         return impl.sqliteDictionary.indexForKey(name) != nil
     }
     
+    // if row.value(atIndex:0) == nil { ... }
     public func value(atIndex index: Int) -> SQLiteValueConvertible? {
         return impl.sqliteValueAtIndex(index).value()
     }
     
+    // let name:String? = row.value(atIndex: 0)
     public func value<Value: SQLiteValueConvertible>(atIndex index: Int) -> Value? {
         return impl.sqliteValueAtIndex(index).value()
     }
     
+    // if row.value(named: "name") == nil { ... }
     public func value(named columnName: String) -> SQLiteValueConvertible? {
         if let index = impl.indexForColumnNamed(columnName) {
             return impl.sqliteValueAtIndex(index).value()
@@ -55,6 +61,7 @@ public struct Row: CollectionType {
         }
     }
     
+    // let name:String? = row.value(named: "name")
     public func value<Value: SQLiteValueConvertible>(named columnName: String) -> Value? {
         if let index = impl.indexForColumnNamed(columnName) {
             return impl.sqliteValueAtIndex(index).value()
@@ -63,7 +70,7 @@ public struct Row: CollectionType {
         }
     }
     
-    // For tests
+    // For tests.
     func sqliteValue(atIndex index: Int) -> SQLiteValue {
         return impl.sqliteValueAtIndex(index)
     }
@@ -71,9 +78,9 @@ public struct Row: CollectionType {
     
     // MARK: - CollectionType
     
-    // TODO: test the row as collection
-    
-    // Use a custom index, so that we eventually can provide a subscript(Int)
+    // Row needs an index type in order to adopt CollectionType.
+    //
+    // We use a custom index, so that we eventually can provide a subscript(Int)
     // that returns a SQLiteValueConvertible.
     public struct RowIndex: ForwardIndexType {
         let index: Int
@@ -87,18 +94,22 @@ public struct Row: CollectionType {
         }
     }
     
+    // Required by Row adoption of CollectionType
     public func generate() -> IndexingGenerator<Row> {
         return IndexingGenerator(self)
     }
     
+    // Required by Row adoption of CollectionType
     public var startIndex: RowIndex {
         return Index(0)
     }
     
+    // Required by Row adoption of CollectionType
     public var endIndex: RowIndex {
         return Index(impl.count)
     }
     
+    // Required by Row adoption of CollectionType
     public subscript(index: RowIndex) -> (String, SQLiteValue) {
         return (
             self.impl.columnNameAtIndex(index.index),
@@ -108,6 +119,7 @@ public struct Row: CollectionType {
     
     // MARK: - DictionaryRowImpl
     
+    // Implements a Rows on a top of a dictionary [String: SQLiteValue]
     private struct DictionaryRowImpl: RowImpl {
         let sqliteDictionary: [String: SQLiteValue]
         
@@ -139,8 +151,10 @@ public struct Row: CollectionType {
     
     // MARK: - SafeRowImpl
     
-    // SafeRowImpl can be safely accessed after sqlite3_step() and sqlite3_finalize() has been called.
-    // It preserves the column ordering of the statement.
+    // Implements a Rows on a top of a statement.
+    //
+    // It makes Array(rowSequence) work: as the sequence is iterated,
+    // SafeRowImpl *copies* statement results.
     private struct SafeRowImpl : RowImpl {
         let sqliteValues: [SQLiteValue]
         let columnNames: [String]
@@ -177,8 +191,11 @@ public struct Row: CollectionType {
     
     // MARK: - UnsafeRowImpl
     
-    // UnsafeRowImpl can not be safely accessed after sqlite3_step() or sqlite3_finalize() has been called.
-    // It preserves the column ordering of the statement.
+    // Implements a Rows on a top of a statement.
+    //
+    // It can't make Array(rowSequence) work: as the sequence is iterated,
+    // UnsafeRowImpl *does not* copy statement results, and those results are
+    // lost.
     private struct UnsafeRowImpl : RowImpl {
         let statement: SelectStatement
         
@@ -213,6 +230,7 @@ public struct Row: CollectionType {
     }
 }
 
+// Required by Row adoption of CollectionType
 public func ==(lhs: Row.RowIndex, rhs: Row.RowIndex) -> Bool {
     return lhs.index == rhs.index
 }

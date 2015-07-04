@@ -14,29 +14,40 @@ protocol BindingsImpl {
 public struct Bindings {
     let impl: BindingsImpl
     
+    // Bindings([SQLiteValueConvertible?])
+    //
+    // Supported usage:
+    //
+    //     db.execute("INSERT ... (?,?,?)",
+    //                bindings: Bindings(rowModel.databaseDictionary.values))
     public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<SQLiteValueConvertible>>(_ array: Sequence) {
         impl = BindingsArrayImpl(array: Array(array))
     }
     
+    // Bindings([SQLiteValueConvertible])
+    //
+    // No known usage yet.
     public init<Sequence: SequenceType where Sequence.Generator.Element == SQLiteValueConvertible>(_ array: Sequence) {
         impl = BindingsArrayImpl(array: array.map { $0 })
     }
     
+    // Bindings(NSArray)
+    //
+    // This is a convenience initializer.
+    //
+    // Without it, the following code won't compile:
+    //
+    //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+    //    let persons = [
+    //        ["Arthur", 41],
+    //        ["Barbara"],
+    //    ]
+    //    for person in persons {
+    //        statement.clearBindings()
+    //        statement.bind(Bindings(person))  // Error
+    //        try statement.execute()
+    //    }
     public init(_ array: NSArray) {
-        // This is a convenience initializer.
-        //
-        // Without it, the following code won't compile:
-        //
-        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-        //    let persons = [
-        //        ["Arthur", 41],
-        //        ["Barbara"],
-        //    ]
-        //    for person in persons {
-        //        statement.clearBindings()
-        //        statement.bind(Bindings(person))  // Error
-        //        try statement.execute()
-        //    }
         var values = [SQLiteValueConvertible?]()
         for item in array {
             values.append(Bindings.valueFromAnyObject(item))
@@ -44,25 +55,33 @@ public struct Bindings {
         self.init(values)
     }
     
+    // Bindings([String: SQLiteValueConvertible?])
+    //
+    // Supported usage: DictionaryLiteralConvertible adoption:
+    //
+    //     db.execute("INSERT ... (:name, :age)",
+    //                bindings: ["name"; "Arthur", "age": 41])
     public init(_ dictionary: [String: SQLiteValueConvertible?]) {
         impl = BindingsDictionaryImpl(dictionary: dictionary)
     }
     
+    // Bindings(NSDictionary)
+    //
+    // This is a convenience initializer.
+    //
+    // Without it, the following code won't compile:
+    //
+    //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+    //    let persons = [
+    //        ["name": "Arthur", "age": 41],
+    //        ["name": "Barbara"],
+    //    ]
+    //    for person in persons {
+    //        statement.clearBindings()
+    //        statement.bind(Bindings(person))  // Error
+    //        try statement.execute()
+    //    }
     public init(_ dictionary: NSDictionary) {
-        // This is a convenience initializer.
-        //
-        // Without it, the following code won't compile:
-        //
-        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-        //    let persons = [
-        //        ["name": "Arthur", "age": 41],
-        //        ["name": "Barbara"],
-        //    ]
-        //    for person in persons {
-        //        statement.clearBindings()
-        //        statement.bind(Bindings(person))  // Error
-        //        try statement.execute()
-        //    }
         var values = [String: SQLiteValueConvertible?]()
         for (key, item) in dictionary {
             if let key = key as? String {
@@ -74,10 +93,18 @@ public struct Bindings {
         self.init(values)
     }
     
+    // Supported uage: Statement.bindings property
+    //
+    //     let statement = db.UpdateStatement("INSERT INTO persons (name, age) VALUES (?,?)"
+    //     statement.bindings = ["Arthur", 41]
+    //     statement.execute()
     func bindInStatement(statement: Statement) {
         impl.bindInStatement(statement)
     }
     
+    // Supported usage: loading of RowModel by multiple-columns primary keys:
+    //
+    //     let person = db.fetchOne(Person.self, primaryKey: Bindings)
     func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: SQLiteValueConvertible?] {
         return impl.dictionary(defaultColumnNames: defaultColumnNames)
     }
@@ -122,15 +149,14 @@ public struct Bindings {
         }
     }
     
+    // IMPLEMENTATION NOTE:
+    //
+    // NSNumber, NSString, NSNull can't adopt SQLiteValueConvertible because
+    // Swift 2 won't make it possible.
+    //
+    // This is why this method exists. As a convenience for init(NSArray)
+    // and init(NSDictionary), themselves conveniences for the library user.
     private static func valueFromAnyObject(object: AnyObject) -> SQLiteValueConvertible? {
-        
-        // IMPLEMENTATION NOTE:
-        //
-        // NSNumber, NSString, NSNull can't adopt SQLiteValueConvertible because
-        // Swift 2 won't make it possible.
-        //
-        // This is why this method exists. As a convenience for init(NSArray)
-        // and init(NSDictionary), themselves conveniences for the library user.
         
         switch object {
         case let value as SQLiteValueConvertible:
@@ -178,12 +204,18 @@ public struct Bindings {
 }
 
 extension Bindings : ArrayLiteralConvertible {
+    // Supported usage:
+    //
+    //     db.selectRows("SELECT ...", bindings: ["Arthur", 41])
     public init(arrayLiteral elements: SQLiteValueConvertible?...) {
         self.init(elements)
     }
 }
 
 extension Bindings : DictionaryLiteralConvertible {
+    // Supported usage:
+    //
+    //     db.selectRows("SELECT ...", bindings: ["name": "Arthur", "age": 41])
     public init(dictionaryLiteral elements: (String, SQLiteValueConvertible?)...) {
         var dictionary = [String: SQLiteValueConvertible?]()
         for (key, value) in elements {
