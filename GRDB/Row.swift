@@ -71,6 +71,11 @@ public struct Row: CollectionType {
         return dictionary
     }
     
+    // For tests
+    func sqliteValue(atIndex index: Int) -> SQLiteValue {
+        return impl.sqliteValueAtIndex(index)
+    }
+    
     
     // MARK: - CollectionType
     
