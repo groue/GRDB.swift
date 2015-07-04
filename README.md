@@ -296,19 +296,27 @@ SQLite supports **Prepared Statements** that can be reused. For example:
 ```swift
 try dbQueue.inTransaction { db in
     
-    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
     
     let persons = [
-        ["Arthur", 41],
-        ["Barbara"],
+        ["name": "Arthur", "age": 41],
+        ["name": "Barbara"],
     ]
     
     for person in persons {
-        statement.bindings = Bindings(person)
-        try statement.execute()
+        try statement.execute(bindings: Bindings(person))
     }
     
     return .Commit
+}
+
+dbQueue.inDatabase { db in
+    
+    let statement = try db.selectStatement("SELECT COUNT(*) FROM persons " +
+                                           "WHERE age < ?")
+    
+    let lessThanTwentyCount = statement.fetchOne(Int.self, bindings: [20])!
+    let lessThanFortyCount = statement.fetchOne(Int.self, bindings: [40])!
 }
 ```
 

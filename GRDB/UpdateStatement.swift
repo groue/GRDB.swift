@@ -9,7 +9,10 @@
 public final class UpdateStatement : Statement {
     
     // TODO: document this reset
-    public func execute() throws {
+    public func execute(bindings bindings: Bindings? = nil) throws {
+        if let bindings = bindings {
+            self.bindings = bindings
+        }
         reset()
         if database.configuration.verbose {
             NSLog("%@", sql)

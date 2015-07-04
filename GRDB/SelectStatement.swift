@@ -46,7 +46,10 @@ public final class SelectStatement : Statement {
 extension SelectStatement {
     
     // let rows = statement.fetchRows()
-    public func fetchRows() -> AnySequence<Row> {
+    public func fetchRows(bindings bindings: Bindings? = nil) -> AnySequence<Row> {
+        if let bindings = bindings {
+            self.bindings = bindings
+        }
         return AnySequence { () -> AnyGenerator<Row> in
             var logSQL = self.database.configuration.verbose
             return anyGenerator { () -> Row? in
@@ -86,21 +89,21 @@ extension SelectStatement {
     }
     
     // let rows = statement.fetchAllRows()
-    public func fetchAllRows() -> [Row] {
-        return Array(fetchRows())
+    public func fetchAllRows(bindings bindings: Bindings? = nil) -> [Row] {
+        return Array(fetchRows(bindings: bindings))
     }
     
     // let row = statement.fetchOneRow()
-    public func fetchOneRow() -> Row? {
-        return fetchRows().generate().next()
+    public func fetchOneRow(bindings bindings: Bindings? = nil) -> Row? {
+        return fetchRows(bindings: bindings).generate().next()
     }
 }
 
 extension SelectStatement {
     
     // let names = statement.fetch(String.self)
-    public func fetch<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type) -> AnySequence<DatabaseValue?> {
-        let rowSequence = fetchRows()
+    public func fetch<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, bindings: Bindings? = nil) -> AnySequence<DatabaseValue?> {
+        let rowSequence = fetchRows(bindings: bindings)
         return AnySequence { () -> AnyGenerator<DatabaseValue?> in
             let rowGenerator = rowSequence.generate()
             return anyGenerator { () -> DatabaseValue?? in
@@ -114,13 +117,13 @@ extension SelectStatement {
     }
     
     // let names = statement.fetchAll(String.self)
-    public func fetchAll<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type) -> [DatabaseValue?] {
-        return Array(fetch(type))
+    public func fetchAll<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, bindings: Bindings? = nil) -> [DatabaseValue?] {
+        return Array(fetch(type, bindings: bindings))
     }
     
     // let name = statement.fetchOne(String.self)
-    public func fetchOne<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type) -> DatabaseValue? {
-        if let optionalValue = fetch(type).generate().next() {
+    public func fetchOne<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, bindings: Bindings? = nil) -> DatabaseValue? {
+        if let optionalValue = fetch(type, bindings: bindings).generate().next() {
             // one row containing an optional value
             return optionalValue
         } else {
