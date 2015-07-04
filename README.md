@@ -532,7 +532,7 @@ There are four kinds of primary keys:
     ```
     
 
-By declaring a primary key, you get access to the `Database.fetchOne(type:primaryKey:)` method. The kind of primary key impacts the insert/update/delete methods that we will see below.
+The kind of primary key impacts the insert/update/delete methods that we will see below.
 
 
 **Subclass with ad-hoc classes** when iterating custom queries.
@@ -619,19 +619,49 @@ try dbQueue.inTransaction { db in
 }
 ```
 
+Models that declare a `SQLiteRowID` primary key have their id automatically set after insertion:
 
-**Override primitive methods** to prepare your insertions or updates:
+```swift
+class Person : RowModel {
+    override class var databasePrimaryKey: PrimaryKey {
+        return .SQLiteRowID("id")
+    }
+}
+
+let arthur = Person(name: "Arthur")
+arthur.id   // nil
+try arthur.insert(db)
+arthur.id   // some value
+```
+
+Other primary keys (None, Single, Multiple) are not managed by GRDB: you have to manage them yourself.
+
+You can for example **override primitive methods**:
+
+```swift
+class Pet : RowModel {
+    ...
+    
+    // Before insertion, set uuid if not set yet.
+    override func insert(db: Database) throws {
+        if uuid == nil {
+            uuid = NSUUID().UUIDString
+        }
+        
+        try super.insert(db)
+    }
+}
+```
+
+There are a lot of possible customizations:
 
 ```swift
 class Person : RowModel {
     ...
     
-    // Before insertion, set creationDate if not set yet.
     override func insert(db: Database) throws {
-        if creationDate == nil {
-            creationDate = NSDate()
-        }
-        
+        creationDate = NSDate()
+        try validate()
         try super.insert(db)
     }
 }
