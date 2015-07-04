@@ -134,11 +134,10 @@ Extract row values by index or column name:
 dbQueue.inDatabase { db in
     
     for row in db.fetchRows("SELECT ...") {
-        
         let name: String? = row.value(atIndex: 0)
         let name: String? = row.value(named: "name")
         
-        // Force unwrap when column is NOT NULL
+        // Force unwrap when value is not NULL
         let id: Int64 = row.value(named: "id")!
         
         // Use Swift type inference to fetch the data type you need:
