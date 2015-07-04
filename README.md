@@ -159,6 +159,11 @@ let rows = dbQueue.inDatabase { db in
     return Array(db.fetchRows("SELECT ..."))
     return db.fetchRows("SELECT ...").filter { ... }
 }
+
+// Safely iterate rows:
+for row in rows {
+    ...
+}
 ```
 
 
