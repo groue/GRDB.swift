@@ -298,7 +298,8 @@ try dbQueue.inTransaction { db in
     
     // Update statement
     
-    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+    let statement = try db.updateStatement("INSERT INTO persons (name, age) " +
+                                           "VALUES (:name, :age)")
     
     let persons = [
         ["name": "Arthur", "age": 41],
