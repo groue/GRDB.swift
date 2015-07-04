@@ -234,7 +234,7 @@ Your custom types can perform their own conversions to and from SQLite storage c
 
 ## Custom Types
 
-A custom type that can be represented as a [SQLIte datatype](https://www.sqlite.org/datatype3.html) (INTEGER, REAL, TEXT, and BLOB) gets full support from GRDB.swift by adopting the `SQLiteValueConvertible` protocol. It can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
+A custom type gets full support from GRDB.swift by adopting the `SQLiteValueConvertible` protocol. It can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
 
 For example, let's define below the `DBDate` type that stores and loads NSDates as timestamps:
 
