@@ -451,7 +451,7 @@ There are four kinds of primary keys:
 - **Single**: for single-column primary keys that are not managed by SQLite.
 - **Multiple**: for primary keys that span accross several columns.
 
-By declaring a primary key, you get access to the `Database.fetchOne(type:primaryKey:)` method. The type of the primary key also as an impact on the insert/update/delete methods that we will see below.
+By declaring a primary key, you get access to the `Database.fetchOne(type:primaryKey:)` method. The kind of primary key impacts the insert/update/delete methods that we will see below.
 
 
 **Subclass with ad-hoc classes** when iterating custom queries.
