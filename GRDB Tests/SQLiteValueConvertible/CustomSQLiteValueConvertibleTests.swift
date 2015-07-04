@@ -38,18 +38,18 @@ class CustomSQLiteValueConvertibleTests: GRDBTests {
                     dateComponents.month = 09
                     dateComponents.day = 18
                     let date = calendar.dateFromComponents(dateComponents)!
-                    try db.execute("INSERT INTO stuffs (creationTimestamp) VALUES (?)", bindings: [DatabaseDate(date)])
+                    try db.execute("INSERT INTO stuffs (creationTimestamp) VALUES (?)", bindings: [DBDate(date)])
                 }
                 
                 do {
                     let row = db.fetchOneRow("SELECT creationTimestamp FROM stuffs")!
-                    let date: DatabaseDate = row.value(atIndex: 0)!
+                    let date: DBDate = row.value(atIndex: 0)!
                     let year = calendar.component(NSCalendarUnit.Year, fromDate: date.date)
                     XCTAssertEqual(year, 1973)
                 }
                 
                 do {
-                    let date = db.fetchOne(DatabaseDate.self, "SELECT creationTimestamp FROM stuffs")!
+                    let date = db.fetchOne(DBDate.self, "SELECT creationTimestamp FROM stuffs")!
                     let year = calendar.component(NSCalendarUnit.Year, fromDate: date.date)
                     XCTAssertEqual(year, 1973)
                 }

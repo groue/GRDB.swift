@@ -238,17 +238,17 @@ Your custom types can perform their own conversions to and from SQLite storage c
 
 A custom type that can be represented as a [SQLIte datatype](https://www.sqlite.org/datatype3.html) (INTEGER, REAL, TEXT, and BLOB) gets full support from GRDB.swift by adopting the `SQLiteValueConvertible` protocol. It can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
 
-For example, let's define below the `DatabaseDate` type that stores and loads NSDates as timestamps:
+For example, let's define below the `DBDate` type that stores and loads NSDates as timestamps:
 
 ```swift
-struct DatabaseDate: SQLiteValueConvertible {
+struct DBDate: SQLiteValueConvertible {
     
-    // MARK: - DatabaseDate <-> NSDate conversion
+    // MARK: - DBDate <-> NSDate conversion
     
     let date: NSDate
     
     // Define a failable initializer in order to consistently use nil as the
-    // NULL marker throughout the conversions NSDate <-> DatabaseDate <-> SQLite
+    // NULL marker throughout the conversions NSDate <-> DBDate <-> SQLite
     init?(_ date: NSDate?) {
         if let date = date {
             self.date = date
@@ -257,7 +257,7 @@ struct DatabaseDate: SQLiteValueConvertible {
         }
     }
     
-    // MARK: - DatabaseDate <-> SQLiteValue conversion
+    // MARK: - DBDate <-> SQLiteValue conversion
     
     var sqliteValue: SQLiteValue {
         return .Real(date.timeIntervalSince1970)
@@ -274,23 +274,28 @@ struct DatabaseDate: SQLiteValueConvertible {
     }
 }
 
-// Write
+dbQueue.inDatabase { db in
 
-let date = NSDate()
-try db.execute("INSERT INTO persons (timestamp, ...) " +
-                            "VALUES (?, ...)",
-                          bindings: [DatabaseDate(date), ...])
+    // Write
 
-// Read from row
+    let date = NSDate()
+    try db.execute("INSERT INTO persons (timestamp, ...) " +
+                                "VALUES (?, ...)",
+                              bindings: [DBDate(date), ...])
 
-let row = db.fetchOneRow("SELECT * FROM persons")!
-let dbDate: DatabaseDate? = row.value(named: "timestamp")
-let date = dbDate?.date
+    // Read from row
 
-// Direct read
+    for rows in db.fetchRows("SELECT * FROM persons") {
+        let dbDate: DBDate? = row.value(named: "timestamp")
+        let date = dbDate?.date
+    }
 
-let dbDate = db.fetchOne(DatabaseDate.self, "SELECT timestamp ...")
-let date = dbDate?.date
+    // Direct read
+
+    db.fetch(DBDate.self, "SELECT ...", bindings: ...)    // AnySequence<DBDate?>
+    db.fetchAll(DBDate.self, "SELECT ...", bindings: ...) // [DBDate?]
+    db.fetchOne(DBDate.self, "SELECT ...", bindings: ...) // DBDate?
+}
 ```
 
 The `sqliteValue` property feeds SQLite with its own food (NULL, INTEGER, REAL, TEXT or BLOB). Yet the *actual* value stored on the database depends on the *column affinity*. That value is usually the one you expect, fortunately. Yet, for reference: https://www.sqlite.org/datatype3.html#affinity.
@@ -423,9 +428,9 @@ class Person : RowModel {
         if row.hasColumn("age")  { age = row.value(named: "age") }   // Int
         if row.hasColumn("name") { name = row.value(named: "name") } // String
         if row.hasColumn("creationTimestamp") {                      // NSDate
-            // The custom type DatabaseDate that we have declared above turns
+            // The custom type DBDate that we have declared above turns
             // out handy:
-            let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
+            let dbDate: DBDate? = row.value(named: "creationTimestamp")
             creationDate = dbDate?.date
         }
     }
@@ -533,8 +538,8 @@ class Person : RowModel {
             "id": id,
             "name": name,
             "age": age,
-            // The custom type DatabaseDate has been declared above.
-            "creationTimestamp": DatabaseDate(creationDate),
+            // The custom type DBDate has been declared above.
+            "creationTimestamp": DBDate(creationDate),
         ]
     }
 }

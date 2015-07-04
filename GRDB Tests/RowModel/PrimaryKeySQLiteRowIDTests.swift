@@ -28,7 +28,7 @@ class Person: RowModel {
             "id": id,
             "name": name,
             "age": age,
-            "creationTimestamp": DatabaseDate(creationDate),
+            "creationTimestamp": DBDate(creationDate),
         ]
     }
     
@@ -37,7 +37,7 @@ class Person: RowModel {
         if row.hasColumn("name") { name = row.value(named: "name") }
         if row.hasColumn("age") { age = row.value(named: "age") }
         if row.hasColumn("creationTimestamp") {
-            let dbDate: DatabaseDate? = row.value(named: "creationTimestamp")
+            let dbDate: DBDate? = row.value(named: "creationTimestamp")
             creationDate = dbDate?.date
         }
     }
