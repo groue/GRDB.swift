@@ -51,7 +51,7 @@ extension SelectStatement {
             self.bindings = bindings
         }
         return AnySequence { () -> AnyGenerator<Row> in
-            var logSQL = self.database.configuration.verbose
+            var trace = self.database.configuration.trace
             return anyGenerator { () -> Row? in
                 // Make sure values are not consumed in a different queue.
                 //
@@ -68,9 +68,9 @@ extension SelectStatement {
                     fatalError("SelectStatement was not iterated on its database queue. Consider wrapping the results of the fetch in an Array before escaping the database queue.")
                 }
                 
-                if logSQL {
-                    NSLog("%@", self.sql)
-                    logSQL = false
+                if let appliedTrace = trace {
+                    appliedTrace(self.sql)
+                    trace = nil
                 }
                 let code = sqlite3_step(self.sqliteStatement)
                 switch code {

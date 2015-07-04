@@ -1,2 +1,0 @@
-- [ ] Configuration.readonly
-- [ ] Replace DatabaseConfiguration.verbose with a logger function

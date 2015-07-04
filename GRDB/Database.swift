@@ -14,13 +14,14 @@ public class Database {
         case Exclusive
     }
     
-    public let configuration: DatabaseConfiguration
+    public let configuration: Configuration
     let sqliteConnection = SQLiteConnection()
     
-    init(path: String, configuration: DatabaseConfiguration = DatabaseConfiguration()) throws {
+    init(path: String, configuration: Configuration) throws {
         self.configuration = configuration
+        
         // See https://www.sqlite.org/c3ref/open.html
-        let code = sqlite3_open(path, &sqliteConnection)
+        let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
         try SQLiteError.checkCResultCode(code, sqliteConnection: sqliteConnection)
         
         if configuration.foreignKeysEnabled {

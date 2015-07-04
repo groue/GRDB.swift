@@ -14,8 +14,8 @@ public final class UpdateStatement : Statement {
             self.bindings = bindings
         }
         reset()
-        if database.configuration.verbose {
-            NSLog("%@", sql)
+        if let trace = database.configuration.trace {
+            trace(sql)
         }
         let code = sqlite3_step(sqliteStatement)
         switch code {
