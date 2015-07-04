@@ -22,7 +22,7 @@ struct DatabaseDate: DatabaseValueType {
     }
     
     var sqliteValue: SQLiteValue {
-        return .Double(date.timeIntervalSince1970)
+        return .Real(date.timeIntervalSince1970)
     }
     
     static func fromSQLiteValue(value: SQLiteValue) -> DatabaseDate? {
@@ -60,19 +60,19 @@ class GRDBTests: XCTestCase {
         } catch let error as SQLiteError {
             if let sql = error.sql {
                 if let message = error.message {
-                    XCTFail("SQLite error code \(error.code) executing `\(sql)`: \(message)")
+                    fatalError("SQLite error code \(error.code) executing `\(sql)`: \(message)")
                 } else {
-                    XCTFail("SQLite error code \(error.code) executing `\(sql)`")
+                    fatalError("SQLite error code \(error.code) executing `\(sql)`")
                 }
             } else {
                 if let message = error.message {
-                    XCTFail("SQLite error code \(error.code): \(message)")
+                    fatalError("SQLite error code \(error.code): \(message)")
                 } else {
-                    XCTFail("SQLite error code \(error.code)")
+                    fatalError("SQLite error code \(error.code)")
                 }
             }
         } catch {
-            XCTFail("error: \(error)")
+            fatalError("error: \(error)")
         }
     }
 }

@@ -41,46 +41,55 @@ public struct SQLiteError : ErrorType {
     }
 }
 
-private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
-
 public enum SQLiteValue {
     case Null
     case Integer(Int64)
-    case Double(Swift.Double)
+    case Real(Double)
     case Text(String)
-    case Blob
+    case Blob(GRDB.Blob)
     
     public func value() -> DatabaseValueType? {
         switch self {
         case .Null:
             return nil
-        case .Integer(let int):
-            return int
-        case .Double(let double):
+        case .Integer(let int64):
+            return int64
+        case .Real(let double):
             return double
         case .Text(let string):
             return string
-        case .Blob:
-            fatalError("Not implemented")
+        case .Blob(let blob):
+            return blob
         }
     }
     
     public func value<DatabaseValue: DatabaseValueType>() -> DatabaseValue? {
         return DatabaseValue.fromSQLiteValue(self)
     }
-    
-    func bindInSQLiteStatement(statement: SQLiteStatement, atIndex index: Int) -> Int32 {
+}
+
+public enum SQLiteStorageClass {
+    case Null
+    case Integer
+    case Real
+    case Text
+    case Blob
+}
+
+extension SQLiteValue {
+    public var storageClass: SQLiteStorageClass {
         switch self {
         case .Null:
-            return sqlite3_bind_null(statement, Int32(index))
-        case .Integer(let int):
-            return sqlite3_bind_int64(statement, Int32(index), int)
-        case .Double(let double):
-            return sqlite3_bind_double(statement, Int32(index), double)
-        case .Text(let text):
-            return sqlite3_bind_text(statement, Int32(index), text, -1, SQLITE_TRANSIENT)
+            return .Null
+        case .Integer:
+            return .Integer
+        case .Real:
+            return .Real
+        case .Text:
+            return .Text
         case .Blob:
-            fatalError("Not implemented")
+            return .Blob
         }
     }
 }
+

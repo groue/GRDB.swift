@@ -6,6 +6,8 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
+private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
+
 public class Statement {
     let database: Database
     let sqliteStatement = SQLiteStatement()
@@ -44,12 +46,23 @@ public class Statement {
     
     // Exposed for Bindings. Don't make this one public unless we keep the bindings property in sync.
     final func bind(value: DatabaseValueType?, atIndex index: Int) {
+        let sqliteValue = value?.sqliteValue ?? .Null
         let code: Int32
-        if let value = value {
-            code = value.sqliteValue.bindInSQLiteStatement(sqliteStatement, atIndex: index)
-        } else {
+        
+        switch sqliteValue {
+        case .Null:
             code = sqlite3_bind_null(sqliteStatement, Int32(index))
+        case .Integer(let int64):
+            code = sqlite3_bind_int64(sqliteStatement, Int32(index), int64)
+        case .Real(let double):
+            code = sqlite3_bind_double(sqliteStatement, Int32(index), double)
+        case .Text(let text):
+            code = sqlite3_bind_text(sqliteStatement, Int32(index), text, -1, SQLITE_TRANSIENT)
+        case .Blob(let blob):
+            let data = blob.data
+            code = sqlite3_bind_blob(sqliteStatement, Int32(index), data.bytes, Int32(data.length), SQLITE_TRANSIENT)
         }
+        
         if code != SQLITE_OK {
             failOnError { () -> Void in
                 throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)

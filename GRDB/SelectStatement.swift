@@ -6,6 +6,8 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
+import Foundation
+
 public final class SelectStatement : Statement {
     let unsafe: Bool
     public lazy var columnCount: Int = Int(sqlite3_column_count(self.sqliteStatement))
@@ -26,12 +28,17 @@ public final class SelectStatement : Statement {
         case SQLITE_INTEGER:
             return .Integer(sqlite3_column_int64(sqliteStatement, Int32(index)))
         case SQLITE_FLOAT:
-            return .Double(sqlite3_column_double(sqliteStatement, Int32(index)))
+            return .Real(sqlite3_column_double(sqliteStatement, Int32(index)))
         case SQLITE_TEXT:
             let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
             return .Text(String.fromCString(cString)!)
+        case SQLITE_BLOB:
+            let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
+            let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
+            let data = NSData(bytes: bytes, length: Int(length))
+            return .Blob(Blob(data)!)
         default:
-            fatalError("Not implemented")
+            fatalError("Unexpected SQLite column type")
         }
     }
 }
