@@ -70,7 +70,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, false)  // Today Text storage is assumed to be false (see Bool.fromSQLiteValue())
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -88,7 +88,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, false)  // Today Text storage is assumed to be false (see Bool.fromSQLiteValue())
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -106,7 +106,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, false)  // Today Text storage is assumed to be false (see Bool.fromSQLiteValue())
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -124,7 +124,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, false)  // Today Text storage is assumed to be false (see Bool.fromSQLiteValue())
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -142,7 +142,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check built-in conversions from Blob storage:
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -211,7 +211,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, false)
                 XCTAssertEqual(self.int(sqliteValue)!, 0)
                 XCTAssertEqual(self.int64(sqliteValue)!, Int64(0))
                 XCTAssertEqual(self.double(sqliteValue)!, 0.0)
@@ -229,7 +229,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertEqual(self.int(sqliteValue)!, 300000)
                 XCTAssertEqual(self.int64(sqliteValue)!, Int64(300000))
                 XCTAssertEqual(self.double(sqliteValue)!, Double(300000))
@@ -247,7 +247,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage (avoid Int and Int64 since 1.0e20 does not fit)
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertEqual(self.double(sqliteValue)!, 1e20)
                 XCTAssertTrue(self.string(sqliteValue) == nil)
                 XCTAssertTrue(self.blob(sqliteValue) == nil)
@@ -263,7 +263,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertEqual(self.int(sqliteValue)!, 300000)
                 XCTAssertEqual(self.int64(sqliteValue)!, Int64(300000))
                 XCTAssertEqual(self.double(sqliteValue)!, Double(300000))
@@ -281,7 +281,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage: (avoid Int and Int64 since 1.0e20 does not fit)
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertEqual(self.double(sqliteValue)!, 1e20)
                 XCTAssertTrue(self.string(sqliteValue) == nil)
                 XCTAssertTrue(self.blob(sqliteValue) == nil)
@@ -297,7 +297,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, false)  // Today Text storage is assumed to be false (see Bool.fromSQLiteValue())
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -315,7 +315,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check built-in conversions from Blob storage:
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -344,11 +344,11 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check built-in conversions from Integer storage
-                XCTAssertEqual(self.bool(sqliteValue)!, false)      // Integer storage always provide a Bool
-                XCTAssertEqual(self.int(sqliteValue)!, 0)           // Integer storage always provide an Int, with a runtime crash if value is too big.
-                XCTAssertEqual(self.int64(sqliteValue)!, Int64(0))  // Integer storage always provide an Int64.
-                XCTAssertEqual(self.double(sqliteValue)!, 0.0)      // Integer storage always provide a Double.
-                XCTAssertTrue(self.string(sqliteValue) == nil)      // Integer storage does not provide any String
+                XCTAssertEqual(self.bool(sqliteValue)!, false)
+                XCTAssertEqual(self.int(sqliteValue)!, 0)
+                XCTAssertEqual(self.int64(sqliteValue)!, Int64(0))
+                XCTAssertEqual(self.double(sqliteValue)!, 0.0)
+                XCTAssertTrue(self.string(sqliteValue) == nil)      
                 XCTAssertTrue(self.blob(sqliteValue) == nil)
                 
                 return .Rollback
@@ -362,10 +362,10 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
-                XCTAssertEqual(self.int(sqliteValue)!, 0)           // Real storage always provide an Int, with a runtime crash if value is too big.
-                XCTAssertEqual(self.int64(sqliteValue)!, Int64(0))  // Real storage always provide an Int64, with a runtime crash if value is too big.
-                XCTAssertEqual(self.double(sqliteValue)!, 0.0)      // Real storage always provide a Double.
+                XCTAssertEqual(self.bool(sqliteValue)!, false)
+                XCTAssertEqual(self.int(sqliteValue)!, 0)
+                XCTAssertEqual(self.int64(sqliteValue)!, Int64(0))
+                XCTAssertEqual(self.double(sqliteValue)!, 0.0)
                 XCTAssertTrue(self.string(sqliteValue) == nil)
                 XCTAssertTrue(self.blob(sqliteValue) == nil)
                 
@@ -380,7 +380,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, false)  // Today Text storage is assumed to be false (see Bool.fromSQLiteValue())
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -398,7 +398,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check built-in conversions from Blob storage
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -477,7 +477,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage (avoid Int and Int64 since 1.0e20 does not fit)
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertEqual(self.double(sqliteValue)!, 1e20)
                 XCTAssertTrue(self.string(sqliteValue) == nil)
                 XCTAssertTrue(self.blob(sqliteValue) == nil)
@@ -511,7 +511,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage: (avoid Int and Int64 since 1.0e20 does not fit)
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertEqual(self.double(sqliteValue)!, 1e20)
                 XCTAssertTrue(self.string(sqliteValue) == nil)
                 XCTAssertTrue(self.blob(sqliteValue) == nil)
@@ -527,7 +527,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, false)  // Today Text storage is assumed to be false (see Bool.fromSQLiteValue())
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
@@ -545,7 +545,7 @@ class DatabaseValueTests: GRDBTests {
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check built-in conversions from Blob storage:
-                XCTAssertTrue(self.bool(sqliteValue) == nil)
+                XCTAssertEqual(self.bool(sqliteValue)!, true)
                 XCTAssertTrue(self.int(sqliteValue) == nil)
                 XCTAssertTrue(self.int64(sqliteValue) == nil)
                 XCTAssertTrue(self.double(sqliteValue) == nil)
