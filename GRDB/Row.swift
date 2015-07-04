@@ -63,14 +63,6 @@ public struct Row: CollectionType {
         }
     }
     
-    public var dictionary: [String: SQLiteValueConvertible?] {
-        var dictionary = [String: SQLiteValueConvertible?]()
-        for (columnName, sqliteValue) in impl.sqliteDictionary {
-            dictionary[columnName] = sqliteValue.value()
-        }
-        return dictionary
-    }
-    
     // For tests
     func sqliteValue(atIndex index: Int) -> SQLiteValue {
         return impl.sqliteValueAtIndex(index)
