@@ -119,6 +119,13 @@ dbQueue.inDatabase { db in
     db.fetchAllRows("SELECT ...", bindings: ...)  // [Row]
     db.fetchOneRow("SELECT ...", bindings: ...)   // Row?
 }
+
+// Extract arrays (not sequences) out of database blocks, so that the SQLite
+// results are iterated in the database queue:
+//
+let rows = dbQueue.inDatabase { db in
+    db.fetchAllRows("SELECT ...")
+}
 ```
 
 Bindings are optional arrays or dictionaries that fill the `?` and `:name` parameters in the query:
@@ -133,7 +140,6 @@ db.fetchRows("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Art
 
 ```swift
 dbQueue.inDatabase { db in
-    
     for row in db.fetchRows("SELECT ...") {
         let name: String? = row.value(atIndex: 0)
         let name: String? = row.value(named: "name")
@@ -173,10 +179,9 @@ dbQueue.inDatabase { db in
     db.fetchOne(Int.self, "SELECT ...", bindings: ...) // Int?
 }
 
-
-// Extract results out of database blocks:
+// Extract arrays (not sequences) out of database blocks, so that the SQLite
+// results are iterated in the database queue:
 //
-// names is [String?]
 let names = dbQueue.inDatabase { db in
     db.fetchAll(String.self, "SELECT name FROM persons")
 }
