@@ -129,7 +129,7 @@ db.fetchRows("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
 db.fetchRows("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Arthur"])
 ```
 
-You can extract rows values by index or column name:
+You can extract row values by index or column name:
 
 ```swift
 dbQueue.inDatabase { db in
