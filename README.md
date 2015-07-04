@@ -124,7 +124,7 @@ dbQueue.inDatabase { db in
 // results are iterated in the database queue:
 //
 let rows = dbQueue.inDatabase { db in
-    db.fetchAllRows("SELECT ...")
+    db.fetchAllRows("SELECT ...")                 // [Row]
 }
 ```
 
@@ -174,16 +174,16 @@ Load **lazy sequences** of values, **arrays**, or a **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
-    db.fetch(Int.self, "SELECT ...", bindings: ...)    // AnySequence<Int?>
-    db.fetchAll(Int.self, "SELECT ...", bindings: ...) // [Int?]
-    db.fetchOne(Int.self, "SELECT ...", bindings: ...) // Int?
+    db.fetch(Int.self, "SELECT ...", bindings: ...)      // AnySequence<Int?>
+    db.fetchAll(Int.self, "SELECT ...", bindings: ...)   // [Int?]
+    db.fetchOne(Int.self, "SELECT ...", bindings: ...)   // Int?
 }
 
 // Extract arrays (not sequences) out of database blocks, so that the SQLite
 // results are iterated in the database queue:
 //
 let names = dbQueue.inDatabase { db in
-    db.fetchAll(String.self, "SELECT name FROM persons")
+    db.fetchAll(String.self, "SELECT name FROM persons") // [String?]
 }
 ```
 
