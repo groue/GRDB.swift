@@ -354,9 +354,10 @@ db.fetchAllRows("SELECT foo FROM bar")
 do {
     let statement = try db.selectStatement("SELECT foo FROM bar")
 } catch let error as SQLiteError {
-    error.code      // 1: the SQLite error code
-    error.message   // "no such table: bar": the eventual SQLite message
-    error.sql       // "SELECT foo FROM bar": the eventual erroneous SQL query
+    error.code        // 1: the SQLite error code
+    error.message     // "no such table: bar": the eventual SQLite message
+    error.sql         // "SELECT foo FROM bar": the eventual erroneous SQL query
+    error.description // "SQLite error 1 with statement `SELECT foo FROM bar`: no such table: bar"
 }
 ```
 
