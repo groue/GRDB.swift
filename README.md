@@ -128,34 +128,8 @@ db.fetchRows("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
 db.fetchRows("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Arthur"])
 ```
 
-Extract row values by index or column name:
 
-```swift
-dbQueue.inDatabase { db in
-    
-    for row in db.fetchRows("SELECT ...") {
-        let name: String? = row.value(atIndex: 0)
-        let name: String? = row.value(named: "name")
-        
-        // Force unwrap when value is not NULL
-        let id: Int64 = row.value(named: "id")!
-        
-        // Use Swift type inference to fetch the data type you need:
-        let bookCount: Int = row.value(named: "bookCount")!
-        let bookCount64: Int64 = row.value(named: "bookCount")!
-        let hasBooks: Bool = row.value(named: "bookCount")!
-    }
-}
-
-
-// Extract results out of database blocks:
-
-let rows = dbQueue.inDatabase { db in
-    db.fetchAllRows("SELECT ...")
-}
-```
-
-**A sequence is lazy**: it iterates SQLite results as it is consumed.
+**Rows sequences are lazy**: they iterates SQLite results as it they are consumed.
 
 If you iterate such a sequence out of a database queue, you will get a *fatal error*:
 
@@ -187,6 +161,37 @@ let rows = dbQueue.inDatabase { db in
 // Safely iterate rows:
 for row in rows {
     ...
+}
+```
+
+
+**Extract row values** by index or column name:
+
+```swift
+dbQueue.inDatabase { db in
+    
+    for row in db.fetchRows("SELECT ...") {
+        let name: String? = row.value(atIndex: 0)
+        let name: String? = row.value(named: "name")
+        
+        // Force unwrap when value is not NULL
+        let id: Int64 = row.value(named: "id")!
+        
+        // Use Swift type inference to fetch the data type you need:
+        let bookCount: Int = row.value(named: "bookCount")!
+        let bookCount64: Int64 = row.value(named: "bookCount")!
+        let hasBooks: Bool = row.value(named: "bookCount")!
+    }
+}
+```
+
+**Rows themselves are sequences** of (column name, value) pairs:
+
+```swift
+let row = db.fetchOneRow("SELECT firstName, lastName FROM persons")!
+for (columnName, sqliteValue) in row {
+    columnName                      // "firstName", then "lastName".
+    sqliteValue.value() as String   // the first name, then the last name.
 }
 ```
 
