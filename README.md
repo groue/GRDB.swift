@@ -325,6 +325,24 @@ try dbQueue.inDatabase { db in
 }
 ```
 
+Note that the `Database.selectStatement()` function is the **only** function of GRDB.swift that may throw an error when building a SELECT statement. All other fetching functions prefer dying in a loud and verbose crash when given an invalid SELECT statements.
+
+Compare:
+
+```swift
+// fatal error: SQLite error 1 with statement `SELECT foo FROM bar`:
+// no such table: bar
+db.fetchAllRows("SELECT foo FROM bar")
+
+do {
+    let statement = try db.selectStatement("SELECT foo FROM bar")
+} catch let error as SQLiteError {
+    error.code      // 1: the SQLite error code
+    error.message   // "no such table: bar": the eventual SQLite message
+    error.sql       // "SELECT foo FROM bar": the eventual erroneous SQL query
+}
+```
+
 
 ## Migrations
 
