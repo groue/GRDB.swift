@@ -38,7 +38,7 @@ Documentation
 
 SQLite API:
 
-- [Database queues](#database-queues)
+- [Database](#database)
 - [Transactions](#transactions)
 - [Fetch Queries](#fetch-queries)
 - [Custom Types](#custom-types)
@@ -50,13 +50,34 @@ Application tools:
 - [Row Models](#row-models)
 
 
-## Database queues
+## Database
 
-**Database queues** safely serialize database accesses (inspired by [ccgus/FMDB](https://github.com/ccgus/fmdb)):
+You access SQLite databases through thread-safe database queues (inspired by [ccgus/FMDB](https://github.com/ccgus/fmdb)):
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 ```
+
+You can customize database access:
+
+```swift
+let configuration = Configuration(
+    foreignKeysEnabled: true,   // default: true because, come on
+    readonly: false,            // default: false
+    trace: { print($0) }        // default: nil
+)
+let dbQueue = try DatabaseQueue(
+    path: "/tmp/GRDB.sqlite",
+    configuration: configuration)
+```
+
+To open an in-memory database, don't provide any path:
+
+```swift
+let inMemoryDBQueue = try DatabaseQueue()
+```
+
+Database connections get closed when the database queue gets deallocated.
 
 
 ## Transactions
