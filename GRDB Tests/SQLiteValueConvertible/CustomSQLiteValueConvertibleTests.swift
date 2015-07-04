@@ -9,7 +9,7 @@
 import XCTest
 import GRDB
 
-class CustomSQLiteValueConvertibleTests: GRDBTests {
+class CustomSQLiteValueConvertibleTests : GRDBTestCase {
     
     override func setUp() {
         super.setUp()

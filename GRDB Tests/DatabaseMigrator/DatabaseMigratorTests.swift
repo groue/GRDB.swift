@@ -9,7 +9,7 @@
 import XCTest
 import GRDB
 
-class DatabaseMigratorTests: GRDBTests {
+class DatabaseMigratorTests : GRDBTestCase {
     
     func testMigrator() {
         var migrator = DatabaseMigrator()

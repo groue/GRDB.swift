@@ -9,7 +9,7 @@
 import XCTest
 @testable import GRDB
 
-class SQLiteValueConvertibleTests: GRDBTests {
+class SQLiteValueConvertibleTests : GRDBTestCase {
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     

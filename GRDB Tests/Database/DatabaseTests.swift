@@ -9,7 +9,7 @@
 import XCTest
 import GRDB
 
-class DatabaseTests: GRDBTests {
+class DatabaseTests : GRDBTestCase {
     
     func testCreateTable() {
         assertNoError {

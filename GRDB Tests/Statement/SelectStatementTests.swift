@@ -9,7 +9,7 @@
 import XCTest
 import GRDB
 
-class SelectStatementTests: GRDBTests {
+class SelectStatementTests : GRDBTestCase {
     
     override func setUp() {
         super.setUp()

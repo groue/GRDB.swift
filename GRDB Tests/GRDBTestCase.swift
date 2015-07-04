@@ -1,5 +1,5 @@
 //
-//  GRDBTests.swift
+//  GRDBTestCase.swift
 //  GRDB
 //
 //  Created by Gwendal Roué on 01/07/2015.
@@ -42,7 +42,7 @@ struct DBDate: SQLiteValueConvertible {
     }
 }
 
-class GRDBTests: XCTestCase {
+class GRDBTestCase: XCTestCase {
     var databasePath: String!
     var dbQueue: DatabaseQueue!
     
@@ -66,19 +66,7 @@ class GRDBTests: XCTestCase {
         do {
             try test()
         } catch let error as SQLiteError {
-            if let sql = error.sql {
-                if let message = error.message {
-                    fatalError("SQLite error code \(error.code) executing `\(sql)`: \(message)")
-                } else {
-                    fatalError("SQLite error code \(error.code) executing `\(sql)`")
-                }
-            } else {
-                if let message = error.message {
-                    fatalError("SQLite error code \(error.code): \(message)")
-                } else {
-                    fatalError("SQLite error code \(error.code)")
-                }
-            }
+            fatalError(error.description)
         } catch {
             fatalError("error: \(error)")
         }
