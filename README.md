@@ -133,18 +133,18 @@ Extract row values by index or column name:
 ```swift
 dbQueue.inDatabase { db in
     
-    for row in db.fetchRows("SELECT * FROM persons") {
+    for row in db.fetchRows("SELECT ...") {
         
-        // Leverage Swift type inference
-        let name: String? = row.value(atIndex: 1)
+        let name: String? = row.value(atIndex: 0)
+        let name: String? = row.value(named: "name")
         
         // Force unwrap when column is NOT NULL
         let id: Int64 = row.value(named: "id")!
         
-        // Both Int and Int64 are supported
-        let age: Int? = row.value(named: "age")
-        
-        print("id: \(id), name: \(name), age: \(age)")
+        // Use Swift type inference to fetch the data type you need:
+        let bookCount: Int = row.value(named: "bookCount")!
+        let bookCount64: Int64 = row.value(named: "bookCount")!
+        let hasBooks: Bool = row.value(named: "bookCount")!
     }
 }
 
