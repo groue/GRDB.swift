@@ -291,12 +291,12 @@ The `sqliteValue` property feeds SQLite with its own food (NULL, INTEGER, REAL, 
 
 ## Statements
 
-SQLite supports **Prepared Statements** that can be reused. For example:
+SQLite supports **Prepared Statements** that can be reused.
+
+Update statements:
 
 ```swift
 try dbQueue.inTransaction { db in
-    
-    // Update statement
     
     let statement = try db.updateStatement("INSERT INTO persons (name, age) " +
                                            "VALUES (:name, :age)")
@@ -312,10 +312,12 @@ try dbQueue.inTransaction { db in
     
     return .Commit
 }
+```
 
+Select statements:
+
+```swift
 try dbQueue.inDatabase { db in
-    
-    // Select statement
     
     let statement = try db.selectStatement("SELECT COUNT(*) FROM persons " +
                                            "WHERE age < ?")
