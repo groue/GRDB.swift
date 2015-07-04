@@ -122,7 +122,12 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Bindings are optional arrays or dictionaries that fill the `?` and `:name` parameters in the query.
+Bindings are optional arrays or dictionaries that fill the `?` and `:name` parameters in the query:
+
+```swift
+db.fetchRows("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
+db.fetchRows("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Arthur"])
+```
 
 You can extract rows values by index or column name:
 
