@@ -48,7 +48,7 @@ public enum SQLiteValue {
     case Text(String)
     case Blob(GRDB.Blob)
     
-    public func value() -> DatabaseValueType? {
+    public func value() -> SQLiteValueConvertible? {
         switch self {
         case .Null:
             return nil
@@ -63,8 +63,8 @@ public enum SQLiteValue {
         }
     }
     
-    public func value<DatabaseValue: DatabaseValueType>() -> DatabaseValue? {
-        return DatabaseValue.fromSQLiteValue(self)
+    public func value<Value: SQLiteValueConvertible>() -> Value? {
+        return Value(sqliteValue: self)
     }
 }
 

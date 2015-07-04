@@ -232,12 +232,12 @@ Your custom types can perform their own conversions to and from SQLite storage c
 
 ## Custom Types
 
-A custom type that can be represented as a [SQLIte datatype](https://www.sqlite.org/datatype3.html) (INTEGER, REAL, TEXT, and BLOB) gets full support from GRDB.swift by adopting the `DatabaseValueType` protocol. It can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
+A custom type that can be represented as a [SQLIte datatype](https://www.sqlite.org/datatype3.html) (INTEGER, REAL, TEXT, and BLOB) gets full support from GRDB.swift by adopting the `SQLiteValueConvertible` protocol. It can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
 
 For example, let's define below the `DatabaseDate` type that stores and loads NSDates as timestamps:
 
 ```swift
-struct DatabaseDate: DatabaseValueType {
+struct DatabaseDate: SQLiteValueConvertible {
     let date: NSDate
     
     // Define a failable initializer in order to consistently use nil as the
@@ -252,15 +252,15 @@ struct DatabaseDate: DatabaseValueType {
     
     // Date -> SQLite
     var sqliteValue: SQLiteValue {
-        return .Double(date.timeIntervalSince1970)
+        return .Real(date.timeIntervalSince1970)
     }
     
     // SQLite -> Date
-    static func fromSQLiteValue(value: SQLiteValue) -> DatabaseDate? {
+    init?(sqliteValue: SQLiteValue) {
         // Don't handle the raw SQLiteValue unless you know what you do.
         // It is recommended to use GRDB built-in conversions instead:
-        if let timestamp = Double.fromSQLiteValue(value) {
-            return self.init(NSDate(timeIntervalSince1970: timestamp))
+        if let timestamp = Double(sqliteValue: sqliteValue) {
+            self.init(NSDate(timeIntervalSince1970: timestamp))
         } else {
             return nil
         }
@@ -507,7 +507,7 @@ class Person : RowModel {
     }
     
     // The saved values:
-    override var databaseDictionary: [String: DatabaseValueType?] {
+    override var databaseDictionary: [String: SQLiteValueConvertible?] {
         return [
             "id": id,
             "name": name,

@@ -45,7 +45,7 @@ public class Statement {
     }
     
     // Exposed for Bindings. Don't make this one public unless we keep the bindings property in sync.
-    final func bind(value: DatabaseValueType?, atIndex index: Int) {
+    final func bind(value: SQLiteValueConvertible?, atIndex index: Int) {
         let sqliteValue = value?.sqliteValue ?? .Null
         let code: Int32
         
@@ -72,7 +72,7 @@ public class Statement {
     
     // TODO: document that we only support the colon prefix (like FMDB).
     // Exposed for Bindings. Don't make this one public unless we keep the bindings property in sync.
-    final func bind(value: DatabaseValueType?, forKey key: String) {
+    final func bind(value: SQLiteValueConvertible?, forKey key: String) {
         let index = Int(sqlite3_bind_parameter_index(sqliteStatement, ":\(key)"))
         guard index > 0 else {
             fatalError("Key not found in SQLite statement: `:\(key)`")

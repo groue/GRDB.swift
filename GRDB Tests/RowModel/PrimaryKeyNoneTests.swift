@@ -16,7 +16,7 @@ class Item: RowModel {
         return "items"
     }
     
-    override var databaseDictionary: [String: DatabaseValueType?] {
+    override var databaseDictionary: [String: SQLiteValueConvertible?] {
         return ["name": name]
     }
     

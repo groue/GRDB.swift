@@ -1,22 +1,22 @@
 //
-//  DatabaseValueType.swift
+//  SQLiteValueConvertible.swift
 //  GRDB
 //
 //  Created by Gwendal Roué on 30/06/2015.
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-public protocol DatabaseValueType {
+public protocol SQLiteValueConvertible {
     var sqliteValue: SQLiteValue { get }
-    static func fromSQLiteValue(value: SQLiteValue) -> Self?
+    init?(sqliteValue: SQLiteValue)
 }
 
-extension Bool: DatabaseValueType {
+extension Bool: SQLiteValueConvertible {
     public var sqliteValue: SQLiteValue {
         return .Integer(self ? 1 : 0)
     }
     
-    public static func fromSQLiteValue(value: SQLiteValue) -> Bool? {
+    public init?(sqliteValue: SQLiteValue) {
         // https://www.sqlite.org/lang_expr.html#booleanexpr
         //
         // > # Boolean Expressions
@@ -43,13 +43,13 @@ extension Bool: DatabaseValueType {
         //
         // OK so we have to support boolean for all storage classes.
         
-        switch value {
+        switch sqliteValue {
         case .Null:
             return nil
         case .Integer(let int64):
-            return int64 != 0
+            self = (int64 != 0)
         case .Real(let double):
-            return double != 0.0
+            self = (double != 0.0)
         case .Text:
             // The doc says that "english" should be false, and "1english"
             // should be true. I guess "-1english" and "0.1english" should be
@@ -61,80 +61,80 @@ extension Bool: DatabaseValueType {
             //
             // So let's take a short route for now. Assume false, since most
             // strings are indeed falsey.
-            return false
+            self = false
         case .Blob:
-            return true
+            self = true
         }
     }
 }
 
-extension Int: DatabaseValueType {
+extension Int: SQLiteValueConvertible {
     public var sqliteValue: SQLiteValue {
         return .Integer(Int64(self))
     }
     
-    public static func fromSQLiteValue(value: SQLiteValue) -> Int? {
-        switch value {
+    public init?(sqliteValue: SQLiteValue) {
+        switch sqliteValue {
         case .Integer(let int64):
-            return Int(int64)
+            self.init(int64)
         case .Real(let double):
-            return Int(double)
+            self.init(double)
         default:
             return nil
         }
     }
 }
 
-extension Int64: DatabaseValueType {
+extension Int64: SQLiteValueConvertible {
     public var sqliteValue: SQLiteValue {
         return .Integer(self)
     }
     
-    public static func fromSQLiteValue(value: SQLiteValue) -> Int64? {
-        switch value {
+    public init?(sqliteValue: SQLiteValue) {
+        switch sqliteValue {
         case .Integer(let int64):
-            return int64
+            self.init(int64)
         case .Real(let double):
-            return Int64(double)
+            self.init(double)
         default:
             return nil
         }
     }
 }
 
-extension Double: DatabaseValueType {
+extension Double: SQLiteValueConvertible {
     public var sqliteValue: SQLiteValue {
         return .Real(self)
     }
     
-    public static func fromSQLiteValue(value: SQLiteValue) -> Double? {
-        switch value {
+    public init?(sqliteValue: SQLiteValue) {
+        switch sqliteValue {
         case .Integer(let int64):
-            return Double(int64)
+            self.init(int64)
         case .Real(let double):
-            return double
+            self.init(double)
         default:
             return nil
         }
     }
 }
 
-extension String: DatabaseValueType {
+extension String: SQLiteValueConvertible {
     public var sqliteValue: SQLiteValue {
         return .Text(self)
     }
     
-    public static func fromSQLiteValue(value: SQLiteValue) -> String? {
-        switch value {
+    public init?(sqliteValue: SQLiteValue) {
+        switch sqliteValue {
         case .Text(let string):
-            return string
+            self = string
         default:
             return nil
         }
     }
 }
 
-public struct Blob : DatabaseValueType {
+public struct Blob : SQLiteValueConvertible {
     public let data: NSData
     
     init?(_ data: NSData?) {
@@ -149,10 +149,10 @@ public struct Blob : DatabaseValueType {
         return .Blob(self)
     }
     
-    public static func fromSQLiteValue(value: SQLiteValue) -> Blob? {
-        switch value {
+    public init?(sqliteValue: SQLiteValue) {
+        switch sqliteValue {
         case .Blob(let blob):
-            return blob
+            self.init(blob.data)
         default:
             return nil
         }

@@ -22,7 +22,7 @@ class Citizenship: RowModel {
         return .Multiple(["personID", "countryName"])
     }
     
-    override var databaseDictionary: [String: DatabaseValueType?] {
+    override var databaseDictionary: [String: SQLiteValueConvertible?] {
         return ["personID": personID, "countryName": countryName, "grantedTimestamp": grantedDate?.timeIntervalSince1970]
     }
     
@@ -166,7 +166,7 @@ class PrimaryKeyMultipleTests: RowModelTests {
     
     func testSelectWithDictionaryPrimaryKey() {
         assertNoError {
-            var citizenshipKey: [String: DatabaseValueType?]? = nil
+            var citizenshipKey: [String: SQLiteValueConvertible?]? = nil
             try dbQueue.inTransaction { db in
                 let arthur = Person(name: "Arthur", age: 41)
                 try arthur.insert(db)
@@ -189,7 +189,7 @@ class PrimaryKeyMultipleTests: RowModelTests {
     
     func testSelectWithArrayPrimaryKey() {
         assertNoError {
-            var citizenshipKey: [DatabaseValueType?]? = nil
+            var citizenshipKey: [SQLiteValueConvertible?]? = nil
             try dbQueue.inTransaction { db in
                 let arthur = Person(name: "Arthur", age: 41)
                 try arthur.insert(db)

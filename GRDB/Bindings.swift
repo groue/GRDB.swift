@@ -8,17 +8,17 @@
 
 protocol BindingsImpl {
     func bindInStatement(statement: Statement)
-    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValueType?]
+    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: SQLiteValueConvertible?]
 }
 
 public struct Bindings {
     let impl: BindingsImpl
     
-    public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<DatabaseValueType>>(_ array: Sequence) {
+    public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<SQLiteValueConvertible>>(_ array: Sequence) {
         impl = BindingsArrayImpl(array: Array(array))
     }
     
-    public init<Sequence: SequenceType where Sequence.Generator.Element == DatabaseValueType>(_ array: Sequence) {
+    public init<Sequence: SequenceType where Sequence.Generator.Element == SQLiteValueConvertible>(_ array: Sequence) {
         impl = BindingsArrayImpl(array: array.map { $0 })
     }
     
@@ -37,14 +37,14 @@ public struct Bindings {
         //        statement.bind(Bindings(person))  // Error
         //        try statement.execute()
         //    }
-        var values = [DatabaseValueType?]()
+        var values = [SQLiteValueConvertible?]()
         for item in array {
-            values.append(Bindings.databaseValueFromAnyObject(item))
+            values.append(Bindings.valueFromAnyObject(item))
         }
         self.init(values)
     }
     
-    public init(_ dictionary: [String: DatabaseValueType?]) {
+    public init(_ dictionary: [String: SQLiteValueConvertible?]) {
         impl = BindingsDictionaryImpl(dictionary: dictionary)
     }
     
@@ -63,10 +63,10 @@ public struct Bindings {
         //        statement.bind(Bindings(person))  // Error
         //        try statement.execute()
         //    }
-        var values = [String: DatabaseValueType?]()
+        var values = [String: SQLiteValueConvertible?]()
         for (key, item) in dictionary {
             if let key = key as? String {
-                values[key] = Bindings.databaseValueFromAnyObject(item)
+                values[key] = Bindings.valueFromAnyObject(item)
             } else {
                 fatalError("Not a String key: \(key)")
             }
@@ -78,13 +78,13 @@ public struct Bindings {
         impl.bindInStatement(statement)
     }
     
-    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValueType?] {
+    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: SQLiteValueConvertible?] {
         return impl.dictionary(defaultColumnNames: defaultColumnNames)
     }
     
     private struct BindingsArrayImpl : BindingsImpl {
-        let array: [DatabaseValueType?]
-        init(array: [DatabaseValueType?]) {
+        let array: [SQLiteValueConvertible?]
+        init(array: [SQLiteValueConvertible?]) {
             self.array = array
         }
         func bindInStatement(statement: Statement) {
@@ -92,14 +92,14 @@ public struct Bindings {
                 statement.bind(value, atIndex: index + 1)
             }
         }
-        func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValueType?] {
+        func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String : SQLiteValueConvertible?] {
             guard let defaultColumnNames = defaultColumnNames else {
                 fatalError("Missing column names")
             }
             guard defaultColumnNames.count == array.count else {
                 fatalError("Columns count mismatch.")
             }
-            var dictionary = [String : DatabaseValueType?]()
+            var dictionary = [String : SQLiteValueConvertible?]()
             for (column, value) in zip(defaultColumnNames, array) {
                 dictionary[column] = value
             }
@@ -108,8 +108,8 @@ public struct Bindings {
     }
     
     private struct BindingsDictionaryImpl : BindingsImpl {
-        let dictionary: [String: DatabaseValueType?]
-        init(dictionary: [String: DatabaseValueType?]) {
+        let dictionary: [String: SQLiteValueConvertible?]
+        init(dictionary: [String: SQLiteValueConvertible?]) {
             self.dictionary = dictionary
         }
         func bindInStatement(statement: Statement) {
@@ -117,23 +117,23 @@ public struct Bindings {
                 statement.bind(value, forKey: key)
             }
         }
-        func dictionary( defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValueType?] {
+        func dictionary( defaultColumnNames defaultColumnNames: [String]?) -> [String : SQLiteValueConvertible?] {
             return dictionary
         }
     }
     
-    private static func databaseValueFromAnyObject(object: AnyObject) -> DatabaseValueType? {
+    private static func valueFromAnyObject(object: AnyObject) -> SQLiteValueConvertible? {
         
         // IMPLEMENTATION NOTE:
         //
-        // NSNumber, NSString, NSNull can't adopt DatabaseValueType because
+        // NSNumber, NSString, NSNull can't adopt SQLiteValueConvertible because
         // Swift 2 won't make it possible.
         //
         // This is why this method exists. As a convenience for init(NSArray)
         // and init(NSDictionary), themselves conveniences for the library user.
         
         switch object {
-        case let value as DatabaseValueType:
+        case let value as SQLiteValueConvertible:
             return value
         case _ as NSNull:
             return nil
@@ -169,23 +169,23 @@ public struct Bindings {
             case "B":
                 return number.boolValue
             default:
-                fatalError("Not a DatabaseValueType: \(object)")
+                fatalError("Not a SQLiteValueConvertible: \(object)")
             }
         default:
-            fatalError("Not a DatabaseValueType: \(object)")
+            fatalError("Not a SQLiteValueConvertible: \(object)")
         }
     }
 }
 
 extension Bindings : ArrayLiteralConvertible {
-    public init(arrayLiteral elements: DatabaseValueType?...) {
+    public init(arrayLiteral elements: SQLiteValueConvertible?...) {
         self.init(elements)
     }
 }
 
 extension Bindings : DictionaryLiteralConvertible {
-    public init(dictionaryLiteral elements: (String, DatabaseValueType?)...) {
-        var dictionary = [String: DatabaseValueType?]()
+    public init(dictionaryLiteral elements: (String, SQLiteValueConvertible?)...) {
+        var dictionary = [String: SQLiteValueConvertible?]()
         for (key, value) in elements {
             dictionary[key] = value
         }

@@ -25,7 +25,7 @@ public class RowModel {
         return .None
     }
     
-    public var databaseDictionary: [String: DatabaseValueType?] {
+    public var databaseDictionary: [String: SQLiteValueConvertible?] {
         return [:]
     }
     
@@ -227,7 +227,7 @@ public class RowModel {
     }
     
     
-    private static func primaryKeyDictionary(primaryKey: PrimaryKey, dictionary: [String: DatabaseValueType?]) -> [String: DatabaseValueType?]? {
+    private static func primaryKeyDictionary(primaryKey: PrimaryKey, dictionary: [String: SQLiteValueConvertible?]) -> [String: SQLiteValueConvertible?]? {
         switch primaryKey {
         case .None:
             return nil
@@ -236,7 +236,7 @@ public class RowModel {
         case .Single(let column):
             return [column: dictionary[column]!]
         case .Multiple(let columns):
-            var dic = [String: DatabaseValueType?]()
+            var dic = [String: SQLiteValueConvertible?]()
             for column in columns {
                 dic[column] = dictionary[column]!
             }
@@ -287,7 +287,7 @@ extension Database {
             fatalError("Missing table name")
         }
         
-        let keyDictionary: [String: DatabaseValueType?]
+        let keyDictionary: [String: SQLiteValueConvertible?]
         switch RowModel.databasePrimaryKey {
         case .None:
             keyDictionary = bindings.dictionary(defaultColumnNames: nil)
@@ -306,7 +306,7 @@ extension Database {
     }
     
     // let person = db.fetchOne(Person.self, primaryKey: ...)
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValueType) -> RowModel? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: SQLiteValueConvertible) -> RowModel? {
         guard let tableName = RowModel.databaseTableName else {
             fatalError("Missing table name")
         }

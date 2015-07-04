@@ -1,5 +1,5 @@
 //
-//  CustomDatabaseValueTypeTests.swift
+//  CustomSQLiteValueConvertibleTests.swift
 //  GRDB
 //
 //  Created by Gwendal Roué on 02/07/2015.
@@ -9,7 +9,7 @@
 import XCTest
 import GRDB
 
-class CustomDatabaseValueTypeTests: GRDBTests {
+class CustomSQLiteValueConvertibleTests: GRDBTests {
     
     override func setUp() {
         super.setUp()

@@ -102,11 +102,11 @@ extension SelectStatement {
 extension SelectStatement {
     
     // let names = statement.fetch(String.self)
-    public func fetch<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, bindings: Bindings? = nil) -> AnySequence<DatabaseValue?> {
+    public func fetch<Value: SQLiteValueConvertible>(type: Value.Type, bindings: Bindings? = nil) -> AnySequence<Value?> {
         let rowSequence = fetchRows(bindings: bindings)
-        return AnySequence { () -> AnyGenerator<DatabaseValue?> in
+        return AnySequence { () -> AnyGenerator<Value?> in
             let rowGenerator = rowSequence.generate()
-            return anyGenerator { () -> DatabaseValue?? in
+            return anyGenerator { () -> Value?? in
                 if let row = rowGenerator.next() {
                     return Optional.Some(row.value(atIndex: 0))
                 } else {
@@ -117,12 +117,12 @@ extension SelectStatement {
     }
     
     // let names = statement.fetchAll(String.self)
-    public func fetchAll<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, bindings: Bindings? = nil) -> [DatabaseValue?] {
+    public func fetchAll<Value: SQLiteValueConvertible>(type: Value.Type, bindings: Bindings? = nil) -> [Value?] {
         return Array(fetch(type, bindings: bindings))
     }
     
     // let name = statement.fetchOne(String.self)
-    public func fetchOne<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, bindings: Bindings? = nil) -> DatabaseValue? {
+    public func fetchOne<Value: SQLiteValueConvertible>(type: Value.Type, bindings: Bindings? = nil) -> Value? {
         if let optionalValue = fetch(type, bindings: bindings).generate().next() {
             // one row containing an optional value
             return optionalValue

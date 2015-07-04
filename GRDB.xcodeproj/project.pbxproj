@@ -12,10 +12,10 @@
 		5699AE591B42CD7800C35172 /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE581B42CD7800C35172 /* Row.swift */; };
 		5699AE5B1B42D3DC00C35172 /* SelectStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */; };
 		5699AE5D1B42D49C00C35172 /* UpdateStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */; };
-		5699AE5F1B42E59F00C35172 /* DatabaseValueType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5E1B42E59F00C35172 /* DatabaseValueType.swift */; };
+		5699AE5F1B42E59F00C35172 /* SQLiteValueConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5E1B42E59F00C35172 /* SQLiteValueConvertible.swift */; };
 		56C9E65B1B468EB200DDC541 /* DatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E64D1B468EB200DDC541 /* DatabaseTests.swift */; };
 		56C9E65C1B468EB200DDC541 /* DatabaseMigratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E64F1B468EB200DDC541 /* DatabaseMigratorTests.swift */; };
-		56C9E65D1B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6511B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift */; };
+		56C9E65D1B468EB200DDC541 /* CustomSQLiteValueConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6511B468EB200DDC541 /* CustomSQLiteValueConvertibleTests.swift */; };
 		56C9E65E1B468EB200DDC541 /* PrimaryKeyMultipleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6531B468EB200DDC541 /* PrimaryKeyMultipleTests.swift */; };
 		56C9E65F1B468EB200DDC541 /* PrimaryKeyNoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6541B468EB200DDC541 /* PrimaryKeyNoneTests.swift */; };
 		56C9E6601B468EB200DDC541 /* PrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6551B468EB200DDC541 /* PrimaryKeySingleTests.swift */; };
@@ -29,7 +29,7 @@
 		56CC3C951B43C0E600A9A534 /* DatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */; };
 		56CC3C991B445DDB00A9A534 /* GRDBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C981B445DDB00A9A534 /* GRDBTests.swift */; };
 		56CC3C9B1B4464AE00A9A534 /* RowModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C9A1B4464AE00A9A534 /* RowModel.swift */; };
-		56CC3CA31B47D19F00A9A534 /* DatabaseValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3CA21B47D19F00A9A534 /* DatabaseValueTests.swift */; };
+		56CC3CA31B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3CA21B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift */; };
 		56E4BB7F1B452A6200FD324B /* SQLite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4BB7E1B452A6200FD324B /* SQLite.swift */; };
 		56E4BB811B45373600FD324B /* Bindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4BB801B45373600FD324B /* Bindings.swift */; };
 		DC2393C81ABE35F8003FF113 /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -55,10 +55,10 @@
 		5699AE581B42CD7800C35172 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
 		5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectStatement.swift; sourceTree = "<group>"; };
 		5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateStatement.swift; sourceTree = "<group>"; };
-		5699AE5E1B42E59F00C35172 /* DatabaseValueType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueType.swift; sourceTree = "<group>"; };
+		5699AE5E1B42E59F00C35172 /* SQLiteValueConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteValueConvertible.swift; sourceTree = "<group>"; };
 		56C9E64D1B468EB200DDC541 /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
 		56C9E64F1B468EB200DDC541 /* DatabaseMigratorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseMigratorTests.swift; sourceTree = "<group>"; };
-		56C9E6511B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomDatabaseValueTypeTests.swift; sourceTree = "<group>"; };
+		56C9E6511B468EB200DDC541 /* CustomSQLiteValueConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomSQLiteValueConvertibleTests.swift; sourceTree = "<group>"; };
 		56C9E6531B468EB200DDC541 /* PrimaryKeyMultipleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeyMultipleTests.swift; sourceTree = "<group>"; };
 		56C9E6541B468EB200DDC541 /* PrimaryKeyNoneTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeyNoneTests.swift; sourceTree = "<group>"; };
 		56C9E6551B468EB200DDC541 /* PrimaryKeySingleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeySingleTests.swift; sourceTree = "<group>"; };
@@ -72,7 +72,7 @@
 		56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseMigrator.swift; sourceTree = "<group>"; };
 		56CC3C981B445DDB00A9A534 /* GRDBTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBTests.swift; sourceTree = "<group>"; };
 		56CC3C9A1B4464AE00A9A534 /* RowModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModel.swift; sourceTree = "<group>"; };
-		56CC3CA21B47D19F00A9A534 /* DatabaseValueTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueTests.swift; sourceTree = SOURCE_ROOT; };
+		56CC3CA21B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteValueConvertibleTests.swift; sourceTree = SOURCE_ROOT; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		56E4BB7E1B452A6200FD324B /* SQLite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLite.swift; sourceTree = "<group>"; };
 		56E4BB801B45373600FD324B /* Bindings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Bindings.swift; sourceTree = "<group>"; };
@@ -125,13 +125,13 @@
 			path = DatabaseMigrator;
 			sourceTree = "<group>";
 		};
-		56C9E6501B468EB200DDC541 /* DatabaseValue */ = {
+		56C9E6501B468EB200DDC541 /* SQLiteValueConvertible */ = {
 			isa = PBXGroup;
 			children = (
-				56C9E6511B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift */,
-				56CC3CA21B47D19F00A9A534 /* DatabaseValueTests.swift */,
+				56C9E6511B468EB200DDC541 /* CustomSQLiteValueConvertibleTests.swift */,
+				56CC3CA21B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift */,
 			);
-			path = DatabaseValue;
+			path = SQLiteValueConvertible;
 			sourceTree = "<group>";
 		};
 		56C9E6521B468EB200DDC541 /* RowModel */ = {
@@ -161,7 +161,7 @@
 			children = (
 				56C9E64C1B468EB200DDC541 /* Database */,
 				56C9E64E1B468EB200DDC541 /* DatabaseMigrator */,
-				56C9E6501B468EB200DDC541 /* DatabaseValue */,
+				56C9E6501B468EB200DDC541 /* SQLiteValueConvertible */,
 				56C9E6521B468EB200DDC541 /* RowModel */,
 				56C9E6591B468EB200DDC541 /* Statement */,
 				56CC3C981B445DDB00A9A534 /* GRDBTests.swift */,
@@ -210,11 +210,11 @@
 				56CC3C921B43BF0100A9A534 /* DatabaseConfiguration.swift */,
 				56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */,
 				56CC3C8E1B43A5A700A9A534 /* DatabaseQueue.swift */,
-				5699AE5E1B42E59F00C35172 /* DatabaseValueType.swift */,
 				5699AE581B42CD7800C35172 /* Row.swift */,
 				56CC3C9A1B4464AE00A9A534 /* RowModel.swift */,
 				5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */,
 				56E4BB7E1B452A6200FD324B /* SQLite.swift */,
+				5699AE5E1B42E59F00C35172 /* SQLiteValueConvertible.swift */,
 				5699AE561B42C34A00C35172 /* Statement.swift */,
 				5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */,
 				DC37743319C8CFCE004FCF85 /* Supporting Files */,
@@ -348,7 +348,7 @@
 			files = (
 				5699AE591B42CD7800C35172 /* Row.swift in Sources */,
 				56E4BB7F1B452A6200FD324B /* SQLite.swift in Sources */,
-				5699AE5F1B42E59F00C35172 /* DatabaseValueType.swift in Sources */,
+				5699AE5F1B42E59F00C35172 /* SQLiteValueConvertible.swift in Sources */,
 				5699AE571B42C34A00C35172 /* Statement.swift in Sources */,
 				56CC3C8F1B43A5A700A9A534 /* DatabaseQueue.swift in Sources */,
 				56CC3C931B43BF0100A9A534 /* DatabaseConfiguration.swift in Sources */,
@@ -367,7 +367,7 @@
 			files = (
 				56C9E6631B468EB200DDC541 /* RowModelTests.swift in Sources */,
 				56C9E65C1B468EB200DDC541 /* DatabaseMigratorTests.swift in Sources */,
-				56C9E65D1B468EB200DDC541 /* CustomDatabaseValueTypeTests.swift in Sources */,
+				56C9E65D1B468EB200DDC541 /* CustomSQLiteValueConvertibleTests.swift in Sources */,
 				56C9E65B1B468EB200DDC541 /* DatabaseTests.swift in Sources */,
 				56C9E65E1B468EB200DDC541 /* PrimaryKeyMultipleTests.swift in Sources */,
 				56C9E6641B468EB200DDC541 /* UpdateStatementTests.swift in Sources */,
@@ -375,7 +375,7 @@
 				56C9E6611B468EB200DDC541 /* PrimaryKeySQLiteRowIDTests.swift in Sources */,
 				56C9E65F1B468EB200DDC541 /* PrimaryKeyNoneTests.swift in Sources */,
 				56C9E6681B4696E100DDC541 /* SelectStatementTests.swift in Sources */,
-				56CC3CA31B47D19F00A9A534 /* DatabaseValueTests.swift in Sources */,
+				56CC3CA31B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift in Sources */,
 				56CC3C991B445DDB00A9A534 /* GRDBTests.swift in Sources */,
 				56C9E6601B468EB200DDC541 /* PrimaryKeySingleTests.swift in Sources */,
 			);

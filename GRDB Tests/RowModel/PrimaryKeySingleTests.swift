@@ -22,7 +22,7 @@ class Pet: RowModel {
         return .Single("UUID")
     }
     
-    override var databaseDictionary: [String: DatabaseValueType?] {
+    override var databaseDictionary: [String: SQLiteValueConvertible?] {
         return ["UUID": UUID, "name": name, "masterID": masterID]
     }
     

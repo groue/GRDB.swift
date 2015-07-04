@@ -1,5 +1,5 @@
 //
-//  DatabaseValueTests.swift
+//  SQLiteValueConvertibleTests.swift
 //  GRDB
 //
 //  Created by Gwendal Roué on 04/07/2015.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import GRDB
 
-class DatabaseValueTests: GRDBTests {
+class SQLiteValueConvertibleTests: GRDBTests {
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     

@@ -39,15 +39,15 @@ public struct Row: CollectionType {
         return impl.sqliteDictionary.indexForKey(name) != nil
     }
     
-    public func value(atIndex index: Int) -> DatabaseValueType? {
+    public func value(atIndex index: Int) -> SQLiteValueConvertible? {
         return impl.sqliteValueAtIndex(index).value()
     }
     
-    public func value<DatabaseValue: DatabaseValueType>(atIndex index: Int) -> DatabaseValue? {
+    public func value<Value: SQLiteValueConvertible>(atIndex index: Int) -> Value? {
         return impl.sqliteValueAtIndex(index).value()
     }
     
-    public func value(named columnName: String) -> DatabaseValueType? {
+    public func value(named columnName: String) -> SQLiteValueConvertible? {
         if let index = impl.indexForColumnNamed(columnName) {
             return impl.sqliteValueAtIndex(index).value()
         } else {
@@ -55,7 +55,7 @@ public struct Row: CollectionType {
         }
     }
     
-    public func value<DatabaseValue: DatabaseValueType>(named columnName: String) -> DatabaseValue? {
+    public func value<Value: SQLiteValueConvertible>(named columnName: String) -> Value? {
         if let index = impl.indexForColumnNamed(columnName) {
             return impl.sqliteValueAtIndex(index).value()
         } else {
@@ -63,10 +63,10 @@ public struct Row: CollectionType {
         }
     }
     
-    public var dictionary: [String: DatabaseValueType?] {
-        var dictionary = [String: DatabaseValueType?]()
-        for (columnName, cell) in impl.sqliteDictionary {
-            dictionary[columnName] = cell.value()
+    public var dictionary: [String: SQLiteValueConvertible?] {
+        var dictionary = [String: SQLiteValueConvertible?]()
+        for (columnName, sqliteValue) in impl.sqliteDictionary {
+            dictionary[columnName] = sqliteValue.value()
         }
         return dictionary
     }
@@ -82,7 +82,7 @@ public struct Row: CollectionType {
     // TODO: test the row as collection
     
     // Use a custom index, so that we eventually can provide a subscript(Int)
-    // that returns a DatabaseValueType.
+    // that returns a SQLiteValueConvertible.
     public struct RowIndex: ForwardIndexType {
         let index: Int
         
@@ -159,8 +159,8 @@ public struct Row: CollectionType {
             self.columnNames = statement.columnNames
 
             var sqliteDictionary = [String: SQLiteValue]()
-            for (cell, columnName) in zip(sqliteValues, columnNames) {
-                sqliteDictionary[columnName] = cell
+            for (sqliteValue, columnName) in zip(sqliteValues, columnNames) {
+                sqliteDictionary[columnName] = sqliteValue
             }
             self.sqliteDictionary = sqliteDictionary
         }

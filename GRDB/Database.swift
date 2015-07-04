@@ -180,7 +180,7 @@ extension Database {
 extension Database {
     
     // let names = db.fetch(String.self, "SELECT name ...", bindings: ...)
-    public func fetch<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<DatabaseValue?> {
+    public func fetch<Value: SQLiteValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<Value?> {
         return failOnError {
             let statement = try selectStatement(sql, bindings: bindings)
             return statement.fetch(type)
@@ -188,12 +188,12 @@ extension Database {
     }
     
     // let names = db.fetchAll(String.self, "SELECT name ...", bindings: ...)
-    public func fetchAll<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> [DatabaseValue?] {
+    public func fetchAll<Value: SQLiteValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> [Value?] {
         return Array(fetch(type, sql, bindings: bindings))
     }
     
     // let name = db.fetchOne(String.self, "SELECT name ...", bindings: ...)
-    public func fetchOne<DatabaseValue: DatabaseValueType>(type: DatabaseValue.Type, _ sql: String, bindings: Bindings? = nil) -> DatabaseValue? {
+    public func fetchOne<Value: SQLiteValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> Value? {
         if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
             return first
