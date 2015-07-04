@@ -129,42 +129,6 @@ db.fetchRows("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Art
 ```
 
 
-**Rows sequences are lazy**: they iterates SQLite results as it they are consumed.
-
-If you iterate such a sequence out of a database queue, you will get a *fatal error*:
-
-```swift
-// WRONG: you must not extract sequences out of a database queue.
-let rowSequence = dbQueue.inDatabase { db in
-    db.fetchRows("SELECT ...")
-}
-
-// fatal error: SelectStatement was not iterated on its database queue.
-for row in rowSequence {
-    ...
-}
-```
-
-The solution is to dump such a sequence into an array:
-
-```swift
-// GOOD: Arrays of rows can safely be used outside of a database queue
-let rows = dbQueue.inDatabase { db in
-    // The `fetchAllRows` variant returns an array of rows:
-    return db.fetchAllRows("SELECT ...")
-    
-    // Generally, any non-lazy collection will do:
-    return Array(db.fetchRows("SELECT ..."))
-    return db.fetchRows("SELECT ...").filter { ... }
-}
-
-// Safely iterate rows:
-for row in rows {
-    ...
-}
-```
-
-
 **Extract row values** by index or column name:
 
 ```swift
@@ -185,7 +149,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-**Rows themselves are sequences** of (column name, value) pairs:
+**Rows themselves are sequences** of (column name, value) tuples:
 
 ```swift
 let row = db.fetchOneRow("SELECT firstName, lastName FROM persons")!
