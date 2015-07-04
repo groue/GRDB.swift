@@ -227,7 +227,7 @@ For reference:
     
     All blobs are truthy.
 
-Your custom types can perform their own conversions.
+Your custom types can perform their own conversions to and from SQLite storage classes.
 
 
 ## Custom Types
