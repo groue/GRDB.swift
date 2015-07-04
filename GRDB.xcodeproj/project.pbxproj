@@ -52,7 +52,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		5610C2081B483AA500F8B4EC /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = SOURCE_ROOT; };
+		5610C2081B483AA500F8B4EC /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = "<group>"; };
 		565E191D1B42B2B600D32814 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		5699AE561B42C34A00C35172 /* Statement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Statement.swift; sourceTree = "<group>"; };
 		5699AE581B42CD7800C35172 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
@@ -75,7 +75,7 @@
 		56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseMigrator.swift; sourceTree = "<group>"; };
 		56CC3C981B445DDB00A9A534 /* GRDBTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBTestCase.swift; sourceTree = "<group>"; };
 		56CC3C9A1B4464AE00A9A534 /* RowModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModel.swift; sourceTree = "<group>"; };
-		56CC3CA21B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteValueConvertibleTests.swift; sourceTree = SOURCE_ROOT; };
+		56CC3CA21B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteValueConvertibleTests.swift; sourceTree = "<group>"; };
 		56CC3CA41B48289200A9A534 /* RowModelSelectStatementTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelSelectStatementTests.swift; sourceTree = "<group>"; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		56E4BB7E1B452A6200FD324B /* SQLite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLite.swift; sourceTree = "<group>"; };
