@@ -380,7 +380,6 @@ migrator.registerMigration("createPersons") { db in
 }
 
 migrator.registerMigration("createBooks") { db in
-    // Support for foreign keys is enabled by default:
     try db.execute(
         "CREATE TABLE books (" +
         "uuid TEXT PRIMARY KEY, " +
