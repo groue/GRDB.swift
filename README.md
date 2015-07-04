@@ -94,7 +94,7 @@ You can load row **lazy sequences**, **arrays**, or a **single** row:
 
 ```swift
 dbQueue.inDatabase { db in
-    db.fetchRows("SELECT ...", bindings: ...)     // AnySequence[Row]
+    db.fetchRows("SELECT ...", bindings: ...)     // AnySequence<Row>
     db.fetchAllRows("SELECT ...", bindings: ...)  // [Row]
     db.fetchOneRow("SELECT ...", bindings: ...)   // Row?
 }
@@ -140,7 +140,7 @@ let rows = dbQueue.inDatabase { db in
 If you iterate such a sequence out of a database queue, you will get a *fatal error*:
 
 ```swift
-// WRONG: sequence is extracted out of the database queue
+// WRONG: you must not extract sequences out of a database queue.
 let rowSequence = dbQueue.inDatabase { db in
     db.fetchRows("SELECT ...")
 }
@@ -154,7 +154,7 @@ for row in rowSequence {
 The solution is to dump such a sequence into an array:
 
 ```swift
-// GOOD: extract an array out of the database queue
+// GOOD: Arrays of rows can safely be used outside of a database queue
 let rows = dbQueue.inDatabase { db in
     // The `fetchAllRows` variant returns an array of rows:
     return db.fetchAllRows("SELECT ...")
@@ -168,30 +168,42 @@ let rows = dbQueue.inDatabase { db in
 
 ### Value Queries
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double` and `String` (TODO: binary blob).
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String` and "binary large objects" through the `Blob` type, implemented on top of `NSData`.
 
-Just like rows, you can load **lazy sequences**, **arrays**, or a **single** value:
+You can load **lazy sequences** of values, **arrays**, or a **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
     
-    db.fetch(String.self, "SELECT ...", bindings: ...)    // AnySequence[String?]
+    db.fetch(String.self, "SELECT ...", bindings: ...)    // AnySequence<String?>
     db.fetchAll(String.self, "SELECT ...", bindings: ...) // [String?]
     db.fetchOne(String.self, "SELECT ...", bindings: ...) // String?
 }
 
 
 // Extract results out of database blocks:
-
+//
+// names is [String?]
 let names = dbQueue.inDatabase { db in
     db.fetchAll(String.self, "SELECT name FROM persons")
 }
 ```
 
+Sequences and arrays contain optional values. When you are sure that all results are not NULL, unwrap the optionals with the bang `!` operator:
+
+```swift
+// names is [String]
+let names = dbQueue.inDatabase { db in
+    db.fetchAll(String.self, "SELECT name FROM persons").map { $0! }
+}
+```
+
+The `db.fetchOne` function returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
+
 
 ## Custom Types
 
-A custom type that can be represented as a [SQLIte datatype](https://www.sqlite.org/datatype3.html) (INTEGER, REAL, TEXT, and BLOB) gets full support from GRDB.swift by adopting the `DatabaseValueType` protocol.
+A custom type that can be represented as a [SQLIte datatype](https://www.sqlite.org/datatype3.html) (INTEGER, REAL, TEXT, and BLOB) gets full support from GRDB.swift by adopting the `DatabaseValueType` protocol. It can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
 
 For example, let's define below the `DatabaseDate` type that stores and loads NSDates as timestamps:
 
