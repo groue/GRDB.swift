@@ -313,7 +313,7 @@ try dbQueue.inTransaction { db in
     return .Commit
 }
 
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
     
     // Select statement
     
