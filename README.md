@@ -180,7 +180,7 @@ dbQueue.inDatabase { db in
         // Use Swift type inference to fetch the data type you need:
         let bookCount: Int = row.value(named: "bookCount")!
         let bookCount64: Int64 = row.value(named: "bookCount")!
-        let hasBooks: Bool = row.value(named: "bookCount")!
+        let hasBooks: Bool = row.value(named: "bookCount")!  // 0 is false
     }
 }
 ```
