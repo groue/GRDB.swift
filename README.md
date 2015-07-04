@@ -108,6 +108,7 @@ You can extract rows values by index or column name:
 dbQueue.inDatabase { db in
     
     for row in db.fetchRows("SELECT * FROM persons") {
+        
         // Leverage Swift type inference
         let name: String? = row.value(atIndex: 1)
         
@@ -119,12 +120,6 @@ dbQueue.inDatabase { db in
         
         print("id: \(id), name: \(name), age: \(age)")
     }
-    
-    
-    // Shortcuts
-    
-    db.fetchAllRows("SELECT ...")   // [Row]
-    db.fetchOneRow("SELECT ...")    // Row?
 }
 
 
@@ -199,6 +194,39 @@ let names = dbQueue.inDatabase { db in
 ```
 
 The `db.fetchOne` function returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
+
+
+#### A note about SQLite storage classes
+
+SQLite has a funny way to store values in the database. It is "funny" because it is a rather long read: https://www.sqlite.org/datatype3.html.
+
+The interested reader should know that GRDB.swift *does not* use any of the built-in casting features of SQLite. Instead, it performs its *own conversions*, based on the storage class of database values. It has to do so because you generally consume database values long after SQLite has fetched them.
+
+For reference:
+
+- **NULL** storage class is always extracted as nil.
+
+- **INTEGER** storage class can be turned into Swift `Bool`, `Int`, `Int64`, and `Double`.
+
+    You will get a fatal error if you extract a value too big for `Int`.
+    
+    The only falsey integer is 0.
+
+- **REAL** storage classes can be turned into Swift `Bool`, `Int`, `Int64`, and `Double`.
+    
+    You will get a fatal error if you extract a value too big for `Int` or `Int64`.
+    
+    The only falsey real is 0.0.
+
+- **TEXT** storage classes can be turned into Swift `Bool` and `String`.
+    
+    All strings are falsey (caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr), which considers *most* strings as false, but not *all* strings).
+
+- **Blob** storage classes can be turned into Swift `Bool` and `Blob`.
+    
+    All blobs are truthy.
+
+Your custom types can perform their own conversions.
 
 
 ## Custom Types

@@ -17,7 +17,7 @@ extension Bool: DatabaseValueType {
     }
     
     public static func fromSQLiteValue(value: SQLiteValue) -> Bool? {
-        // https://www.sqlite.org/lang_expr.html#castexpr
+        // https://www.sqlite.org/lang_expr.html#booleanexpr
         //
         // > # Boolean Expressions
         // >
