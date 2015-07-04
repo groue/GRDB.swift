@@ -59,7 +59,7 @@ You access SQLite databases through thread-safe database queues (inspired by [cc
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 ```
 
-You can customize database access:
+Customize database access:
 
 ```swift
 let configuration = Configuration(
@@ -104,8 +104,6 @@ A rollback statement is issued if an error is thrown from the transaction block.
 
 ## Fetch Queries
 
-You can load rows and values from the database.
-
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
 - [A Note about SQLite Storage Classes](#a-note-about-sqlite-storage-classes)
@@ -113,7 +111,7 @@ You can load rows and values from the database.
 
 ### Row Queries
 
-You can load row **lazy sequences**, **arrays**, or a **single** row:
+Load **lazy sequences** of rows, **arrays**, or a **single** row:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -198,7 +196,7 @@ for row in rows {
 
 The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String` and "binary large objects" through the `Blob` type, implemented on top of `NSData`.
 
-You can load **lazy sequences** of values, **arrays**, or a **single** value:
+Load **lazy sequences** of values, **arrays**, or a **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
