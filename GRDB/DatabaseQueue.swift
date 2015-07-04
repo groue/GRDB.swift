@@ -15,9 +15,17 @@ public class DatabaseQueue {
     static var databaseQueueIDKey = unsafeBitCast(DatabaseQueue.self, UnsafePointer<Void>.self)
     lazy var databaseQueueID: DatabaseQueueID = unsafeBitCast(self, DatabaseQueueID.self)
     
-    public init(path: String = ":memory:", configuration: Configuration = Configuration()) throws {
+    public convenience init(path: String, configuration: Configuration = Configuration()) throws {
+        try self.init(database: Database(path: path, configuration: configuration))
+    }
+    
+    public convenience init(configuration: Configuration = Configuration()) {
+        self.init(database: Database(configuration: configuration))
+    }
+    
+    init(database: Database) {
         queue = dispatch_queue_create("GRDB", nil)
-        _database = try Database(path: path, configuration: configuration)
+        _database = database
         dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
     }
     

@@ -29,6 +29,10 @@ public class Database {
         }
     }
     
+    convenience init(configuration: Configuration) {
+        try! self.init(path: ":memory:", configuration: configuration)
+    }
+    
     deinit {
         if sqliteConnection != nil {
             sqlite3_close(sqliteConnection)

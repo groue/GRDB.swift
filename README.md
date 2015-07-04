@@ -74,7 +74,7 @@ let dbQueue = try DatabaseQueue(
 To open an in-memory database, don't provide any path:
 
 ```swift
-let inMemoryDBQueue = try DatabaseQueue()
+let inMemoryDBQueue = DatabaseQueue()
 ```
 
 Database connections get closed when the database queue gets deallocated.
