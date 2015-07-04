@@ -406,15 +406,15 @@ migrator.registerMigration("createPersons") { db in
         "age INT)")
 }
 
-migrator.registerMigration("createPets") { db in
+migrator.registerMigration("createBooks") { db in
     // Support for foreign keys is enabled by default:
     try db.execute(
-        "CREATE TABLE pets (" +
-        "id INTEGER PRIMARY KEY, " +
-        "masterID INTEGER NOT NULL " +
-        "         REFERENCES persons(id) " +
-        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-        "name TEXT NOT NULL)")
+        "CREATE TABLE books (" +
+        "uuid TEXT PRIMARY KEY, " +
+        "ownerID INTEGER NOT NULL " +
+        "        REFERENCES persons(id) " +
+        "        ON DELETE CASCADE ON UPDATE CASCADE, " +
+        "title TEXT NOT NULL)")
 }
 
 try migrator.migrate(dbQueue)
@@ -542,16 +542,16 @@ We think that this is the killer feature of GRDB.swift :bowtie:. For example:
 ```swift
 class PersonsViewController: UITableViewController {
     
-    // Private subclass of Person, with an extra `petCount`:
+    // Private subclass of Person, with an extra `bookCount`:
     
     private class PersonViewModel : Person {
-        var petCount: Int?
+        var bookCount: Int?
         
         override func updateFromDatabaseRow(row: Row) {
             super.updateFromDatabaseRow(row)
             
-            if row.hasColumn("petCount") {
-                petCount = row.value(named: "petCount")
+            if row.hasColumn("bookCount") {
+                bookCount = row.value(named: "bookCount")
             }
         }
     }
@@ -563,9 +563,9 @@ class PersonsViewController: UITableViewController {
         
         let persons = dbQueue.inDatabase { db in
             db.fetchAll(PersonViewModel.self,
-                "SELECT persons.*, COUNT(*) AS petCount " +
+                "SELECT persons.*, COUNT(*) AS bookCount " +
                 "FROM persons " +
-                "JOIN pets ON pets.masterID = persons.id " +
+                "JOIN books ON books.ownerID = persons.id " +
                 "GROUP BY persons.id")
         }
         
@@ -639,7 +639,7 @@ Other primary keys (None, Single, Multiple) are not managed by GRDB: you have to
 You can for example **override primitive methods**:
 
 ```swift
-class Pet : RowModel {
+class Book : RowModel {
     ...
     
     // Before insertion, set uuid if not set yet.
