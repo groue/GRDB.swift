@@ -331,3 +331,37 @@ extension Database {
     }
 }
 
+extension SelectStatement {
+    
+    // let persons = statement.fetch(Person.self, bindings: ...)
+    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings? = nil) -> AnySequence<RowModel> {
+        let rowSequence = fetchRows(bindings: bindings)
+        return AnySequence { () -> AnyGenerator<RowModel> in
+            let rowGenerator = rowSequence.generate()
+            return anyGenerator { () -> RowModel? in
+                if let row = rowGenerator.next() {
+                    return RowModel.init(row: row)
+                } else {
+                    return nil
+                }
+            }
+        }
+    }
+    
+    // let persons = statement.fetchAll(Person.self, bindings: ...)
+    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings? = nil) -> [RowModel] {
+        return Array(fetch(type, bindings: bindings))
+    }
+    
+    // let person = statement.fetchOne(Person.self, bindings: ...)
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings? = nil) -> RowModel? {
+        if let first = fetch(type, bindings: bindings).generate().next() {
+            // one row containing an optional value
+            return first
+        } else {
+            // no row
+            return nil
+        }
+    }
+}
+

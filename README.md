@@ -170,10 +170,9 @@ You can load **lazy sequences** of values, **arrays**, or a **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
-    
-    db.fetch(String.self, "SELECT ...", bindings: ...)    // AnySequence<String?>
-    db.fetchAll(String.self, "SELECT ...", bindings: ...) // [String?]
-    db.fetchOne(String.self, "SELECT ...", bindings: ...) // String?
+    db.fetch(Int.self, "SELECT ...", bindings: ...)    // AnySequence<Int?>
+    db.fetchAll(Int.self, "SELECT ...", bindings: ...) // [Int?]
+    db.fetchOne(Int.self, "SELECT ...", bindings: ...) // Int?
 }
 
 
@@ -317,7 +316,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Select statements:
+Select statements can load rows and values:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -325,8 +324,13 @@ try dbQueue.inDatabase { db in
     let statement = try db.selectStatement("SELECT COUNT(*) FROM persons " +
                                            "WHERE age < ?")
     
-    let lessThanTwentyCount = statement.fetchOne(Int.self, bindings: [20])!
-    let lessThanFortyCount = statement.fetchOne(Int.self, bindings: [40])!
+    statement.fetchRows(bindings: ...)          // AnySequence<Row>
+    statement.fetchAllRows(bindings: ...)       // [Row]
+    statement.fetchOneRow(bindings: ...)        // Row?
+    
+    statement.fetch(Int.self, bindings: ...)    // AnySequence<Int?>
+    statement.fetchAll(Int.self, bindings: ...) // [Int?]
+    statement.fetchOne(Int.self, bindings: ...) // Int?
 }
 ```
 
@@ -422,8 +426,17 @@ class Person : RowModel {
     }
 }
 
-let persons = dbQueue.inDatabase { db in
-    db.fetchAll(Person.self, "SELECT * FROM persons")
+dbQueue.inDatabase { db in
+    
+    db.fetch(Person.self, "SELECT ...", bindings:...)    // AnySequence<Person>
+    db.fetchAll(Person.self, "SELECT ...", bindings:...) // [Person]
+    db.fetchOne(Person.self, "SELECT ...", bindings:...) // Person?
+    
+    let statement = db.selectStatement("SELECT ...")
+
+    statement.fetch(Person.self, bindings:...)          // AnySequence<Person>
+    statement.fetchAll(Person.self, bindings:...)       // [Person]
+    statement.fetchOne(Person.self, bindings:...)       // Person?
 }
 ```
 
@@ -439,8 +452,8 @@ class Person : RowModel {
     }
 }
 
-let person = dbQueue.inDatabase { db in
-    db.fetchOne(Person.self, primaryKey: 123)
+dbQueue.inDatabase { db in
+    db.fetchOne(Person.self, primaryKey: 123)           // Person?
 }
 ```
 
