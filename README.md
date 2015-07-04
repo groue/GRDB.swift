@@ -296,6 +296,8 @@ SQLite supports **Prepared Statements** that can be reused. For example:
 ```swift
 try dbQueue.inTransaction { db in
     
+    // Update statement
+    
     let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
     
     let persons = [
@@ -311,6 +313,8 @@ try dbQueue.inTransaction { db in
 }
 
 dbQueue.inDatabase { db in
+    
+    // Select statement
     
     let statement = try db.selectStatement("SELECT COUNT(*) FROM persons " +
                                            "WHERE age < ?")
