@@ -498,8 +498,39 @@ There are four kinds of primary keys:
 
 - **None**: the default
 - **SQLiteRowID**: use it when you rely on SQLite to automatically generate IDs (see https://www.sqlite.org/autoinc.html).
+    
+    ```swift
+    class Person : RowModel {
+        override class var databasePrimaryKey: PrimaryKey {
+            return .SQLiteRowID("id")
+        }
+    }
+    db.fetchOne(Person.self, primaryKey: 123)
+    ```
+    
 - **Single**: for single-column primary keys that are not managed by SQLite.
+    
+    ```swift
+    class Book : RowModel {
+        override class var databasePrimaryKey: PrimaryKey {
+            return .Single("uuid")
+        }
+    }
+    db.fetchOne(Book.self, primaryKey: "b3fc...")
+    ```
+    
 - **Multiple**: for primary keys that span accross several columns.
+    
+    ```swift
+    class Citizenship : RowModel {
+        override class var databasePrimaryKey: PrimaryKey {
+            return .Multiple("personID", "countryID")
+        }
+    }
+    db.fetchOne(Citizenship.self, primaryKey: [arthur.id, france.id])
+    db.fetchOne(Citizenship.self, primaryKey: ["personID": arthur.id, "countryID": france.id])
+    ```
+    
 
 By declaring a primary key, you get access to the `Database.fetchOne(type:primaryKey:)` method. The kind of primary key impacts the insert/update/delete methods that we will see below.
 
