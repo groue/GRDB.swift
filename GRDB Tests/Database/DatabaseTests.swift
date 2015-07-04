@@ -325,7 +325,8 @@ class DatabaseTests: GRDBTests {
                     "CREATE TABLE persons (" +
                         "id INTEGER PRIMARY KEY, " +
                         "name TEXT, " +
-                    "age INT)")
+                        "age INT" +
+                    ")")
             }
             migrator.registerMigration("createPets") { db in
                 // Support for foreign keys is enabled by default:
@@ -335,7 +336,8 @@ class DatabaseTests: GRDBTests {
                         "masterID INTEGER NOT NULL " +
                         "         REFERENCES persons(id) " +
                         "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-                    "name TEXT)")
+                        "name TEXT" +
+                    ")")
             }
             
             try migrator.migrate(dbQueue)
