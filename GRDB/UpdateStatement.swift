@@ -8,7 +8,9 @@
 
 public final class UpdateStatement : Statement {
     
+    // TODO: document this reset
     public func execute() throws {
+        reset()
         if database.configuration.verbose {
             NSLog("%@", sql)
         }
