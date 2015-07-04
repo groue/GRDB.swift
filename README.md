@@ -59,13 +59,13 @@ You access SQLite databases through thread-safe database queues (inspired by [cc
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 ```
 
-Customize database access:
+Configure databases:
 
 ```swift
 let configuration = Configuration(
-    foreignKeysEnabled: true,   // default: true because, come on
-    readonly: false,            // default: false
-    trace: { print($0) }        // default: nil
+    foreignKeysEnabled: true,   // default true, because, come on
+    readonly: false,            // default false
+    trace: { print($0) }        // default nil
 )
 let dbQueue = try DatabaseQueue(
     path: "/tmp/GRDB.sqlite",
