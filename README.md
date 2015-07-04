@@ -454,11 +454,15 @@ dbQueue.inDatabase { db in
 ```
 
 
-Declare a **Primary Key** in order to fetch a specific row model:
+Declare a **Primary Key** and a **Table name** in order to fetch a specific row model:
 
 ```swift
 class Person : RowModel {
     ...
+    
+    override class var databaseTableName: String? {
+        return "persons"
+    }
     
     override class var databasePrimaryKey: PrimaryKey {
         return .SQLiteRowID("id")
@@ -555,18 +559,13 @@ class PersonsViewController: UITableViewController {
 
 ### Insert, Update and Delete
 
-Those operations require two more methods:
+Those operations require one more method:
 
 ```swift
 class Person : RowModel {
     ...
     
-    // The table name:
-    override class var databaseTableName: String? {
-        return "persons"
-    }
-    
-    // The saved values:
+    // The values stored in the database:
     override var databaseDictionary: [String: SQLiteValueConvertible?] {
         return [
             "id": id,
