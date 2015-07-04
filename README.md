@@ -286,7 +286,7 @@ let dbDate = db.fetchOne(DatabaseDate.self, "SELECT timestamp ...")
 let date = dbDate?.date
 ```
 
-The `sqliteValue` property feeds SQLite with its own food (NULL, INTEGER, REAL, TEXT or BLOB). Yet the *actual* value stored on the database depends on the column *affinity*. It is usually the value you expect, fortunately. Yet, for reference: https://www.sqlite.org/datatype3.html#affinity.
+The `sqliteValue` property feeds SQLite with its own food (NULL, INTEGER, REAL, TEXT or BLOB). Yet the *actual* value stored on the database depends on the *column affinity*. That value is usually the one you expect, fortunately. Yet, for reference: https://www.sqlite.org/datatype3.html#affinity.
 
 
 ## Statements
