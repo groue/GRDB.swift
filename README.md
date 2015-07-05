@@ -527,7 +527,7 @@ class Person : RowModel {
         if let v = row["age"]  { age = v.value() }    // String
         if let v = row["creationTimestamp"] {         // NSDate
             // Use the DBDate custom type declared above:
-            let dbDate: DBDate? = v.value()
+            let dbDate = v.value() as DBDate?
             creationDate = dbDate?.date
         }
     }
@@ -564,15 +564,8 @@ Declare a **Primary Key** and a **Table name** in order to fetch row models by p
 
 ```swift
 class Person : RowModel {
-    ...
-    
-    override class var databaseTableName: String? {
-        return "persons"
-    }
-    
-    override class var databasePrimaryKey: PrimaryKey {
-        return .RowID("id")
-    }
+    override class var databaseTableName: String? { return "persons" }
+    override class var databasePrimaryKey: PrimaryKey { return .RowID("id") }
 }
 
 dbQueue.inDatabase { db in
@@ -666,8 +659,6 @@ Those operations require one more method:
 
 ```swift
 class Person : RowModel {
-    ...
-    
     // The values stored in the database:
     override var databaseDictionary: [String: SQLiteValueConvertible?] {
         return [
