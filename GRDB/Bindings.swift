@@ -64,7 +64,7 @@ public struct Bindings {
     - returns: A Bindings.
     */
     public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<SQLiteValueConvertible>>(_ sequence: Sequence) {
-        impl = BindingsArrayImpl(array: Array(sequence))
+        impl = BindingsArrayImpl(values: Array(sequence))
     }
     
     /**
@@ -78,7 +78,7 @@ public struct Bindings {
     - returns: A Bindings.
     */
     public init<Sequence: SequenceType where Sequence.Generator.Element == SQLiteValueConvertible>(_ sequence: Sequence) {
-        impl = BindingsArrayImpl(array: sequence.map { $0 })
+        impl = BindingsArrayImpl(values: sequence.map { $0 })
     }
     
     /**
@@ -189,12 +189,12 @@ public struct Bindings {
     
     // Support for array-based bindings
     private struct BindingsArrayImpl : BindingsImpl {
-        let array: [SQLiteValueConvertible?]
-        init(array: [SQLiteValueConvertible?]) {
-            self.array = array
+        let values: [SQLiteValueConvertible?]
+        init(values: [SQLiteValueConvertible?]) {
+            self.values = values
         }
         func bindInStatement(statement: Statement) {
-            for (index, value) in array.enumerate() {
+            for (index, value) in values.enumerate() {
                 statement.bind(value, atIndex: index + 1)
             }
         }
@@ -202,18 +202,18 @@ public struct Bindings {
             guard let defaultColumnNames = defaultColumnNames else {
                 fatalError("Missing column names")
             }
-            guard defaultColumnNames.count == array.count else {
+            guard defaultColumnNames.count == values.count else {
                 fatalError("Columns count mismatch.")
             }
             var dictionary = [String : SQLiteValueConvertible?]()
-            for (column, value) in zip(defaultColumnNames, array) {
+            for (column, value) in zip(defaultColumnNames, values) {
                 dictionary[column] = value
             }
             return dictionary
         }
         
         var description: String {
-            return "[" + ", ".join(array.map { value in
+            return "[" + ", ".join(values.map { value in
                 if var string = value as? String {
                     string = string.stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
                     string = string.stringByReplacingOccurrencesOfString("\n", withString: "\\n")
