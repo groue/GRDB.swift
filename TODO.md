@@ -1,2 +1,3 @@
 - Escape table & column names
 - RowModel.reload(db)
+- Test that sequences of rows, values, and RowModels from database and statements can be iterated twice.
