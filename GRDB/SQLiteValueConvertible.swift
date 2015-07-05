@@ -33,6 +33,95 @@ public protocol SQLiteValueConvertible {
     init?(sqliteValue: SQLiteValue)
 }
 
+
+// MARK: - Int Enum Support
+
+/**
+Have your Int enum adopt SQLiteIntRepresentable and it automatically gains
+SQLiteValueConvertible adoption.
+    
+    // An Int enum:
+    enum Color : Int {
+        case Red
+        case White
+        case Rose
+    }
+    
+    // Declare SQLiteIntRepresentable adoption:
+    extension Color : SQLiteIntRepresentable { }
+    
+    // Gain full GRDB.swift support:
+    db.execute("INSERT INTO colors (color) VALUES (?)", [Color.Red])
+    let color: Color? = db.fetchOne(Color.self, "SELECT ...")
+*/
+public protocol SQLiteIntRepresentable : SQLiteValueConvertible {
+    var rawValue: Int { get }
+    init?(rawValue: Int)
+}
+
+extension SQLiteIntRepresentable {
+    
+    /// Returns a SQLite value that can be stored in the database.
+    public var sqliteValue: SQLiteValue {
+        return .Integer(Int64(rawValue))
+    }
+    
+    /// Create an instance initialized to `sqliteValue`.
+    public init?(sqliteValue: SQLiteValue) {
+        if let int = Int(sqliteValue: sqliteValue) {
+            self.init(rawValue: int)
+        } else {
+            return nil
+        }
+    }
+}
+
+
+// MARK: - String Enum Support
+
+/**
+Have your String enum adopt SQLiteStringRepresentable and it automatically gains
+SQLiteValueConvertible adoption.
+    
+    // A String enum:
+    enum Color : String {
+        case Red = "red"
+        case White = "white"
+        case Rose = "rose"
+    }
+    
+    // Declare SQLiteStringRepresentable adoption:
+    extension Color : SQLiteStringRepresentable { }
+    
+    // Gain full GRDB.swift support:
+    db.execute("INSERT StringO colors (color) VALUES (?)", [Color.Red])
+    let color: Color? = db.fetchOne(Color.self, "SELECT ...")
+*/
+public protocol SQLiteStringRepresentable : SQLiteValueConvertible {
+    var rawValue: String { get }
+    init?(rawValue: String)
+}
+
+extension SQLiteStringRepresentable {
+    
+    /// Returns a SQLite value that can be stored in the database.
+    public var sqliteValue: SQLiteValue {
+        return .Text(rawValue)
+    }
+    
+    /// Create an instance initialized to `sqliteValue`.
+    public init?(sqliteValue: SQLiteValue) {
+        if let string = String(sqliteValue: sqliteValue) {
+            self.init(rawValue: string)
+        } else {
+            return nil
+        }
+    }
+}
+
+
+// MARK: - Built-in Types
+
 /// Bool is convertible to and from SQLiteValue.
 extension Bool: SQLiteValueConvertible {
     

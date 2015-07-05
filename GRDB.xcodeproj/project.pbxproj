@@ -146,8 +146,8 @@
 			isa = PBXGroup;
 			children = (
 				56C9E6511B468EB200DDC541 /* CustomSQLiteValueConvertibleTests.swift */,
-				56CC3CA21B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift */,
 				5623E0891B494A8A00B20B7F /* RawRepresentableTests.swift */,
+				56CC3CA21B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift */,
 			);
 			path = SQLiteValueConvertible;
 			sourceTree = "<group>";

@@ -9,32 +9,20 @@
 import XCTest
 import GRDB
 
-protocol IntRawRepresentableSQLiteValueConvertible : SQLiteValueConvertible {
-    typealias RawValue = Int
-    var rawValue: Int { get }
-    init?(rawValue: Int)
-}
-
-extension IntRawRepresentableSQLiteValueConvertible {
-    var sqliteValue: SQLiteValue {
-        return .Integer(Int64(rawValue))
-    }
-    init?(sqliteValue: SQLiteValue) {
-        if let int = Int(sqliteValue: sqliteValue) {
-            self.init(rawValue: int)
-        } else {
-            return nil
-        }
-    }
-}
-
 enum Color : Int {
     case Red
     case White
     case Rose
 }
 
-extension Color : IntRawRepresentableSQLiteValueConvertible { }
+enum Grape : String {
+    case Chardonnay = "Chardonnay"
+    case Merlot = "Merlot"
+    case Riesling = "Riesling"
+}
+
+extension Color : SQLiteIntRepresentable { }
+extension Grape : SQLiteStringRepresentable { }
 
 class RawRepresentableTests: GRDBTestCase {
     
@@ -43,7 +31,7 @@ class RawRepresentableTests: GRDBTestCase {
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("CREATE TABLE wines (color INTEGER)")
+            try db.execute("CREATE TABLE wines (grape TEXT, color INTEGER)")
         }
         assertNoError {
             try migrator.migrate(dbQueue)
@@ -76,6 +64,39 @@ class RawRepresentableTests: GRDBTestCase {
                     XCTAssertEqual(colors[1]!, Color.White)
                     XCTAssertEqual(colors[2]!, Color.Rose)
                     XCTAssertTrue(colors[3] == nil)
+                }
+                
+                return .Rollback
+            }
+        }
+    }
+    
+    func testGrape() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                
+                do {
+                    for grape in [Grape.Chardonnay, Grape.Merlot, Grape.Riesling] {
+                        try db.execute("INSERT INTO wines (grape) VALUES (?)", bindings: [grape])
+                    }
+                    try db.execute("INSERT INTO wines (grape) VALUES (?)", bindings: ["Syrah"])
+                }
+                
+                do {
+                    let rows = db.fetchAllRows("SELECT grape FROM wines ORDER BY grape")
+                    let grapes = rows.map { $0.value(atIndex: 0) as Grape? }
+                    XCTAssertEqual(grapes[0]!, Grape.Chardonnay)
+                    XCTAssertEqual(grapes[1]!, Grape.Merlot)
+                    XCTAssertEqual(grapes[2]!, Grape.Riesling)
+                    XCTAssertTrue(grapes[3] == nil)
+                }
+                
+                do {
+                    let grapes = db.fetchAll(Grape.self, "SELECT grape FROM wines ORDER BY grape")
+                    XCTAssertEqual(grapes[0]!, Grape.Chardonnay)
+                    XCTAssertEqual(grapes[1]!, Grape.Merlot)
+                    XCTAssertEqual(grapes[2]!, Grape.Riesling)
+                    XCTAssertTrue(grapes[3] == nil)
                 }
                 
                 return .Rollback
