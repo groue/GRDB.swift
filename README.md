@@ -183,9 +183,9 @@ for (columnName, sqliteValue) in row {
 
 Instead of rows, you can directly fetch **values**, extracted from the first column of the resulting rows.
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String` and `Blob`. Custom types are supported as well through the SQLiteValueConvertible protocol described [below](#custom-types).
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, and [Swift enums](#swift-enums). Custom types are supported as well through the [SQLiteValueConvertible protocol](#custom-types).
 
-As usual, you fetch **lazy sequences** of values, **arrays**, or a **single** value:
+All those types can be fetched as **lazy sequences**, **arrays**, or **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
