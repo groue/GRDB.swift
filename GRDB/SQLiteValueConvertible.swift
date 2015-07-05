@@ -22,16 +22,26 @@
 // THE SOFTWARE.
 
 
+/**
+The protocol for values that can be stored and extracted from SQLite databases.
+*/
 public protocol SQLiteValueConvertible {
+    /// Returns a SQLite value that can be stored in the database.
     var sqliteValue: SQLiteValue { get }
+    
+    /// Create an instance initialized to `sqliteValue`.
     init?(sqliteValue: SQLiteValue)
 }
 
+/// Bool is convertible to and from SQLiteValue.
 extension Bool: SQLiteValueConvertible {
+    
+    /// Returns a SQLite value that can be stored in the database.
     public var sqliteValue: SQLiteValue {
         return .Integer(self ? 1 : 0)
     }
     
+    /// Create an instance initialized to `sqliteValue`.
     public init?(sqliteValue: SQLiteValue) {
         // https://www.sqlite.org/lang_expr.html#booleanexpr
         //
@@ -84,11 +94,15 @@ extension Bool: SQLiteValueConvertible {
     }
 }
 
+/// Int is convertible to and from SQLiteValue.
 extension Int: SQLiteValueConvertible {
+    
+    /// Returns a SQLite value that can be stored in the database.
     public var sqliteValue: SQLiteValue {
         return .Integer(Int64(self))
     }
     
+    /// Create an instance initialized to `sqliteValue`.
     public init?(sqliteValue: SQLiteValue) {
         switch sqliteValue {
         case .Integer(let int64):
@@ -101,11 +115,15 @@ extension Int: SQLiteValueConvertible {
     }
 }
 
+/// Int64 is convertible to and from SQLiteValue.
 extension Int64: SQLiteValueConvertible {
+    
+    /// Returns a SQLite value that can be stored in the database.
     public var sqliteValue: SQLiteValue {
         return .Integer(self)
     }
     
+    /// Create an instance initialized to `sqliteValue`.
     public init?(sqliteValue: SQLiteValue) {
         switch sqliteValue {
         case .Integer(let int64):
@@ -118,11 +136,15 @@ extension Int64: SQLiteValueConvertible {
     }
 }
 
+/// Double is convertible to and from SQLiteValue.
 extension Double: SQLiteValueConvertible {
+    
+    /// Returns Returns a SQLite value that can be stored in the database..
     public var sqliteValue: SQLiteValue {
         return .Real(self)
     }
     
+    /// Create an instance initialized to `sqliteValue`.
     public init?(sqliteValue: SQLiteValue) {
         switch sqliteValue {
         case .Integer(let int64):
@@ -135,11 +157,15 @@ extension Double: SQLiteValueConvertible {
     }
 }
 
+/// String is convertible to and from SQLiteValue.
 extension String: SQLiteValueConvertible {
+    
+    /// Returns a SQLite value that can be stored in the database.
     public var sqliteValue: SQLiteValue {
         return .Text(self)
     }
     
+    /// Create an instance initialized to `sqliteValue`.
     public init?(sqliteValue: SQLiteValue) {
         switch sqliteValue {
         case .Text(let string):
@@ -150,9 +176,13 @@ extension String: SQLiteValueConvertible {
     }
 }
 
+/// Blob is convertible to and from SQLiteValue.
 public struct Blob : SQLiteValueConvertible {
+    
+    /// The data
     public let data: NSData
     
+    /// Create a Blob from NSData. Returns nil if and only if *data* is nil.
     init?(_ data: NSData?) {
         if let data = data {
             self.data = data
@@ -160,11 +190,13 @@ public struct Blob : SQLiteValueConvertible {
             return nil
         }
     }
-
+    
+    /// Returns a SQLite value that can be stored in the database.
     public var sqliteValue: SQLiteValue {
         return .Blob(self)
     }
     
+    /// Create an instance initialized to `sqliteValue`.
     public init?(sqliteValue: SQLiteValue) {
         switch sqliteValue {
         case .Blob(let blob):
