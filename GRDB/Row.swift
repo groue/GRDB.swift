@@ -78,22 +78,6 @@ public struct Row: CollectionType {
     
     // MARK: - CollectionType
     
-    // Row needs an index type in order to adopt CollectionType.
-    //
-    // We use a custom index, so that we eventually can provide a subscript(Int)
-    // that returns a SQLiteValueConvertible.
-    public struct RowIndex: ForwardIndexType {
-        let index: Int
-        
-        init(_ index: Int) {
-            self.index = index
-        }
-        
-        public func successor() -> RowIndex {
-            return RowIndex(index+1)
-        }
-    }
-    
     // Required by Row adoption of CollectionType
     public func generate() -> IndexingGenerator<Row> {
         return IndexingGenerator(self)
@@ -230,7 +214,35 @@ public struct Row: CollectionType {
     }
 }
 
-// Required by Row adoption of CollectionType
-public func ==(lhs: Row.RowIndex, rhs: Row.RowIndex) -> Bool {
+
+// Row needs an index type in order to adopt CollectionType.
+//
+// We use a custom index, so that we eventually can provide a subscript(Int)
+// that returns a SQLiteValueConvertible.
+public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIndexType {
+    let index: Int
+    
+    init(_ index: Int) {
+        self.index = index
+    }
+    
+    public func successor() -> RowIndex {
+        return RowIndex(index + 1)
+    }
+    
+    public func predecessor() -> RowIndex {
+        return RowIndex(index - 1)
+    }
+    
+    public func distanceTo(other: RowIndex) -> Int {
+        return other.index - index
+    }
+    
+    public func advancedBy(n: Int) -> RowIndex {
+        return RowIndex(index + n)
+    }
+}
+
+public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
     return lhs.index == rhs.index
 }
