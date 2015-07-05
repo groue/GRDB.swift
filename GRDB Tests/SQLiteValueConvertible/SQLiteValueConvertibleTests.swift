@@ -25,6 +25,31 @@
 import XCTest
 @testable import GRDB
 
+enum SQLiteStorageClass {
+    case Null
+    case Integer
+    case Real
+    case Text
+    case Blob
+}
+
+extension SQLiteValue {
+    var storageClass: SQLiteStorageClass {
+        switch self {
+        case .Null:
+            return .Null
+        case .Integer:
+            return .Integer
+        case .Real:
+            return .Real
+        case .Text:
+            return .Text
+        case .Blob:
+            return .Blob
+        }
+    }
+}
+
 class SQLiteValueConvertibleTests : GRDBTestCase {
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html

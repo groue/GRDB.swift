@@ -68,13 +68,13 @@ public struct Row: CollectionType {
     }
     
     /**
-    Returns the value at given index.
+    Returns the value at given index, converted to the requested type.
     
     Indexes span from 0 for the leftmost column to (row.count - 1) for the
     righmost column.
     
-    The returned value has the requested type, as long as the fetched SQLite
-    value is not NULL, and convertible to the requested type:
+    The conversion returns nil if the fetched SQLite value is NULL, or can't be
+    converted to the requested type:
     
         let value: Bool? = row.value(atIndex: 0)
         let value: Int? = row.value(atIndex: 0)
@@ -93,7 +93,7 @@ public struct Row: CollectionType {
         String        | nil     nil             nil             String      nil
         Blob          | nil     nil             nil             nil         Blob
     
-    (*) Conversions to Int and Int64 fail if the value is too big.
+    (*) Conversions to Int and Int64 crash if the value is too big.
     (**) All strings are falsey. Caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr),
     which considers *most* strings as falsey, but not *all* strings).
     
@@ -128,10 +128,10 @@ public struct Row: CollectionType {
     }
     
     /**
-    Returns the value for the given column.
+    Returns the value for the given column, converted to the requested type.
     
-    The returned value has the requested type, as long as the fetched SQLite
-    value is not NULL, and convertible to the requested type:
+    The conversion returns nil if the fetched SQLite value is NULL, or can't be
+    converted to the requested type:
     
         let value: Bool? = row.value(named: "count")
         let value: Int? = row.value(named: "count")
@@ -150,7 +150,7 @@ public struct Row: CollectionType {
         String        | nil     nil             nil             String      nil
         Blob          | nil     nil             nil             nil         Blob
     
-    (*) Conversions to Int and Int64 fail if the value is too big.
+    (*) Conversions to Int and Int64 crash if the value is too big.
     (**) All strings are falsey. Caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr),
     which considers *most* strings as falsey, but not *all* strings).
     

@@ -22,19 +22,33 @@
 // THE SOFTWARE.
 
 
-typealias SQLiteConnection = COpaquePointer
-typealias SQLiteStatement = COpaquePointer
+// MARK: - SQLiteError
 
+/**
+SQLiteError wraps a SQLite error.
+*/
 public struct SQLiteError : ErrorType {
-    public let _domain: String = "GRDB.SQLiteError"
-    public let _code: Int
     
-    public var code: Int { return _code }
+    /// Required for ErrorType conformance.
+    public let _domain: String = "GRDB.SQLiteError"
+    
+    /// Required for ErrorType conformance.
+    public var _code: Int { return code }
+    
+    /// The SQLite error code (see https://www.sqlite.org/c3ref/c_abort.html).
+    public let code: Int
+    
+    /// The SQLite error message.
     public let message: String?
+    
+    /// The SQL query that yielded the error (if relevant).
     public let sql: String?
     
+    
+    // MARK: Not public
+    
     init(code: Int32, message: String? = nil, sql: String? = nil) {
-        self._code = Int(code)
+        self.code = Int(code)
         self.message = message
         self.sql = sql
     }
@@ -49,15 +63,10 @@ public struct SQLiteError : ErrorType {
         }
         self.init(code: code, message: message, sql: sql)
     }
-    
-    static func checkCResultCode(code: Int32, sqliteConnection: SQLiteConnection, sql: String? = nil) throws {
-        if code != SQLITE_OK {
-            throw SQLiteError(code: code, sqliteConnection: sqliteConnection, sql: sql)
-        }
-    }
 }
 
 extension SQLiteError: CustomStringConvertible {
+    /// A textual representation of `self`.
     public var description: String {
         // How to write this with a switch?
         if let sql = sql {
@@ -76,13 +85,39 @@ extension SQLiteError: CustomStringConvertible {
     }
 }
 
+
+// MARK: - SQLiteValue
+
+/**
+SQLiteValue is the intermediate type between SQLite storage and your values.
+
+It has five cases that match the SQLite "storage classes": https://www.sqlite.org/datatype3.html
+*/
 public enum SQLiteValue {
+    
+    /// The NULL storage class.
     case Null
+    
+    /// The INTEGER storage class, wrapping an Int64.
     case Integer(Int64)
+    
+    /// The REAL storage class, wrapping a Double.
     case Real(Double)
+    
+    /// The TEXT storage class, wrapping a String.
     case Text(String)
+    
+    /// The BLOB storage class, wrapping a Blob.
     case Blob(GRDB.Blob)
     
+    /**
+    Returns the wrapped value.
+    
+    If not nil (for NULL), its type is guaranteed to be one of the following:
+    Int64, Double, String, and Blob.
+    
+        let value = sqliteValue.value()
+    */
     public func value() -> SQLiteValueConvertible? {
         switch self {
         case .Null:
@@ -98,33 +133,44 @@ public enum SQLiteValue {
         }
     }
     
+    /**
+    Returns the wrapped value, converted to the requested type.
+    
+    The conversion returns nil if the SQLite value is NULL, or can't be
+    converted to the requested type:
+    
+        let value: Bool? = sqliteValue.value()
+        let value: Int? = sqliteValue.value()
+        let value: Double? = sqliteValue.value()
+    
+    Your custom types that adopt the SQLiteValueConvertible protocol handle
+    their own conversion from raw SQLite values. Yet, here is the reference for
+    built-in types:
+    
+        SQLite value: | NULL    INTEGER         REAL            TEXT        BLOB
+        --------------|---------------------------------------------------------
+        Bool          | nil     false if 0      false if 0.0    false(**)   true
+        Int           | nil     Int(*)          Int(*)          nil         nil
+        Int64         | nil     Int64           Int64(*)        nil         nil
+        Double        | nil     Double          Double          nil         nil
+        String        | nil     nil             nil             String      nil
+        Blob          | nil     nil             nil             nil         Blob
+    
+    (*) Conversions to Int and Int64 crash if the value is too big.
+    (**) All strings are falsey. Caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr),
+    which considers *most* strings as falsey, but not *all* strings).
+    */
     public func value<Value: SQLiteValueConvertible>() -> Value? {
         return Value(sqliteValue: self)
     }
 }
 
-public enum SQLiteStorageClass {
-    case Null
-    case Integer
-    case Real
-    case Text
-    case Blob
-}
 
-extension SQLiteValue {
-    public var storageClass: SQLiteStorageClass {
-        switch self {
-        case .Null:
-            return .Null
-        case .Integer:
-            return .Integer
-        case .Real:
-            return .Real
-        case .Text:
-            return .Text
-        case .Blob:
-            return .Blob
-        }
-    }
-}
+// MARK: - Not public
+
+/// A nicer name than COpaquePointer for SQLite connection handle
+typealias SQLiteConnection = COpaquePointer
+
+/// A nicer name than COpaquePointer for SQLite statement handle
+typealias SQLiteStatement = COpaquePointer
 

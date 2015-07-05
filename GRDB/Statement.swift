@@ -44,7 +44,7 @@ public class Statement {
         self.database = database
         self.databaseQueueID = dispatch_get_specific(DatabaseQueue.databaseQueueIDKey)
         let code = sqlite3_prepare_v2(database.sqliteConnection, sql, -1, &sqliteStatement, nil)
-        try SQLiteError.checkCResultCode(code, sqliteConnection: database.sqliteConnection, sql: sql)
+        try throwUnlessSQLITE_OK(code, sqliteConnection: database.sqliteConnection, sql: sql)
         
         // Set bingins. Duplicate the didSet property observer since it is not
         // called during initialization.

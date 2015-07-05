@@ -189,7 +189,7 @@ public final class Database {
         
         // See https://www.sqlite.org/c3ref/open.html
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
-        try SQLiteError.checkCResultCode(code, sqliteConnection: sqliteConnection)
+        try throwUnlessSQLITE_OK(code, sqliteConnection: sqliteConnection)
         
         if configuration.foreignKeysEnabled {
             try execute("PRAGMA foreign_keys = ON")
@@ -227,6 +227,9 @@ public final class Database {
     }
 }
 
+
+// MARK: - Error Management
+
 /**
 Convenience function that calls fatalError in case of error
 
@@ -241,6 +244,14 @@ func verboseFailOnError<Result>(@noescape block: (Void) throws -> Result) -> Res
         fatalError(error.description)
     } catch {
         fatalError("error: \(error)")
+    }
+}
+
+
+/// Throws if code is not SQLITE_OK.
+func throwUnlessSQLITE_OK(code: Int32, sqliteConnection: SQLiteConnection, sql: String? = nil) throws {
+    if code != SQLITE_OK {
+        throw SQLiteError(code: code, sqliteConnection: sqliteConnection, sql: sql)
     }
 }
 

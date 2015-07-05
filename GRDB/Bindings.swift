@@ -358,7 +358,7 @@ extension Bindings : DictionaryLiteralConvertible {
 // MARK: - CustomStringConvertible
 
 extension Bindings : CustomStringConvertible {
-    /// A String description of self
+    /// A textual representation of `self`.
     public var description: String {
         return impl.description
     }

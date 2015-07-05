@@ -39,7 +39,7 @@ public final class UpdateStatement : Statement {
             // the statement has finished executing successfully
             break
         default:
-            try SQLiteError.checkCResultCode(code, sqliteConnection: database.sqliteConnection, sql: sql)
+            try throwUnlessSQLITE_OK(code, sqliteConnection: database.sqliteConnection, sql: sql)
         }
     }
 }
