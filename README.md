@@ -205,7 +205,7 @@ let names = dbQueue.inDatabase { db in
 }
 ```
 
-The `db.fetchOne` function returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
+The `db.fetchOne` function returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value. If this ambiguity does not fit your need, use `db.fetchOneRow`.
 
 
 ### A Note about SQLite Storage Classes
