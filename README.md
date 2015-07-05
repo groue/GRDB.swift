@@ -10,7 +10,7 @@ Features
 --------
 
 - **A low-level SQLite API** that leverages the Swift 2 standard library.
-- **Full Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Declare your own database-convertible types, without any limitation (OK, it won't work for NSObject but that's it).
+- **Full Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Declare Swift enums for discrete data types. Define your own database-convertible types, without any limitation (OK, it won't work for NSObject but that's it).
 - **No ORM, no smart query builder, no table introspection**. Instead, a thin class that wraps database rows, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
 - **Migrations**
 
@@ -44,6 +44,7 @@ SQLite API:
 - [Database](#database)
 - [Transactions](#transactions)
 - [Fetch Queries](#fetch-queries)
+- [Swift Enums](#swift-enums)
 - [Custom Types](#custom-types)
 - [Statements](#statements)
 
@@ -246,24 +247,85 @@ For reference:
     
     All blobs are truthy.
 
-Your custom types can perform their own conversions to and from SQLite storage classes.
+Your custom types can perform their own conversions to and from SQLite storage classes (see [below](#custom-types))
+
+
+## Swift Enums
+
+**Swift enums with raw values** get full support from GRDB.swift as long as their raw values are Int or String.
+
+Given those two enums:
+
+```swift
+enum Color : Int {
+    case Red
+    case White
+    case Rose
+}
+
+enum Grape : String {
+    case Chardonnay = "Chardonnay"
+    case Merlot = "Merlot"
+    case Riesling = "Riesling"
+}
+```
+
+Simply add those two lines:
+
+```swift
+extension Color : SQLiteIntRepresentable { }
+extension Grape : SQLiteStringRepresentable { }
+```
+
+And both types gain database powers:
+
+```swift
+
+dbQueue.inDatabase { db in
+    
+    // Write
+    
+    try db.execute("INSERT INTO wines (grape, color) VALUES (?, ?)",
+                   bindings: [Grape.Merlot, Color.Red])
+    
+    // Read from row
+    
+    for rows in db.fetchRows("SELECT * FROM wines") {
+        let grape: Grape? = row.value(named: "grape")
+        let color: Color? = row.value(named: "color")
+    }
+    
+    // Direct read
+    
+    db.fetch(Color.self, "SELECT ...", bindings: ...)    // AnySequence<Color?>
+    db.fetchAll(Color.self, "SELECT ...", bindings: ...) // [Color?]
+    db.fetchOne(Color.self, "SELECT ...", bindings: ...) // Color?
+}
+```
 
 
 ## Custom Types
 
-A custom type gets full support from GRDB.swift by adopting the `SQLiteValueConvertible` protocol. It can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
+Conversion to and from database is based on the `SQLiteValueConvertible` protocol. Types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
 
-For example, let's define below the `DBDate` type that stores NSDates as timestamps:
+Swift won't allow this protocol to be adopted by non-final classes, and this prevents all our NSObject fellows to enter the game. That's unfortunate.
+
+As an example, let's define the `DBDate` type that stores NSDates as timestamps. It applies all the best practices for a great GRDB.swift integration:
 
 ```swift
 struct DBDate: SQLiteValueConvertible {
     
     // MARK: - DBDate <-> NSDate conversion
+    //
+    // It is good to consistently use the Swift nil to represent the database
+    // NULL: the date property is a non-optional NSDate, and the NSDate
+    // initializer is failable:
     
+    // The represented date
     let date: NSDate
     
-    // Define a failable initializer in order to consistently use nil as the
-    // NULL marker throughout the conversions NSDate <-> DBDate <-> SQLite
+    // Creates a DBDate from an NSDate.
+    // Returns nil if and only if the NSDate is nil.
     init?(_ date: NSDate?) {
         if let date = date {
             self.date = date
@@ -273,6 +335,8 @@ struct DBDate: SQLiteValueConvertible {
     }
     
     // MARK: - DBDate <-> SQLiteValue conversion
+    //
+    // Represents the date as a timestamp in the database
     
     var sqliteValue: SQLiteValue {
         return .Real(date.timeIntervalSince1970)
