@@ -627,7 +627,6 @@ We think that this is the killer feature of GRDB.swift :bowtie:. For example:
 class PersonsViewController: UITableViewController {
     
     // Private subclass of Person, with an extra `bookCount`:
-    
     private class PersonViewModel : Person {
         var bookCount: Int!
         
