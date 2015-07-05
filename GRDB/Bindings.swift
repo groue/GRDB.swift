@@ -22,11 +22,6 @@
 // THE SOFTWARE.
 
 
-protocol BindingsImpl {
-    func bindInStatement(statement: Statement)
-    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: SQLiteValueConvertible?]
-}
-
 /**
 Bindings hold values for SQLite parameters:
 
@@ -55,42 +50,62 @@ the colon-prefixed ones.
 See https://www.sqlite.org/lang_expr.html#varparam for more information.
 */
 public struct Bindings {
-    let impl: BindingsImpl
     
-    // Bindings([SQLiteValueConvertible?])
-    //
-    // Supported usage:
-    //
-    //     db.execute("INSERT ... (?,?,?)",
-    //                bindings: Bindings(rowModel.databaseDictionary.values))
-    public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<SQLiteValueConvertible>>(_ array: Sequence) {
-        impl = BindingsArrayImpl(array: Array(array))
+    // MARK: - Positional SQLite parameters
+    
+    /**
+    Initializes bindings from a sequence of optional values.
+    
+        let values: [String?] = ["foo", "bar", nil]
+        db.execute("INSERT ... (?,?,?)", bindings: Bindings(values))
+    
+    - parameter sequence: A sequence of optional values that adopt the
+                          SQLiteValueConvertible protocol.
+    - returns: A Bindings.
+    */
+    public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<SQLiteValueConvertible>>(_ sequence: Sequence) {
+        impl = BindingsArrayImpl(array: Array(sequence))
     }
     
-    // Bindings([SQLiteValueConvertible])
-    //
-    // No known usage yet.
-    public init<Sequence: SequenceType where Sequence.Generator.Element == SQLiteValueConvertible>(_ array: Sequence) {
-        impl = BindingsArrayImpl(array: array.map { $0 })
+    /**
+    Initializes bindings from a sequence of values.
+    
+        let values: [String] = ["foo", "bar", "baz"]
+        db.execute("INSERT ... (?,?,?)", bindings: Bindings(values))
+    
+    - parameter sequence: A sequence of values that adopt the
+                          SQLiteValueConvertible protocol.
+    - returns: A Bindings.
+    */
+    public init<Sequence: SequenceType where Sequence.Generator.Element == SQLiteValueConvertible>(_ sequence: Sequence) {
+        impl = BindingsArrayImpl(array: sequence.map { $0 })
     }
     
-    // Bindings(NSArray)
-    //
-    // This is a convenience initializer.
-    //
-    // Without it, the following code won't compile:
-    //
-    //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-    //    let persons = [
-    //        ["Arthur", 41],
-    //        ["Barbara"],
-    //    ]
-    //    for person in persons {
-    //        statement.clearBindings()
-    //        statement.bind(Bindings(person))  // Error
-    //        try statement.execute()
-    //    }
+    /**
+    Initializes bindings from an NSArray.
+    
+    The array must contain objects that adopt the SQLiteValueConvertible
+    protocol, NSNull, NSNumber or NSString. A fatal error is thrown otherwise.
+    
+        let values: NSArray = ["foo", "bar", "baz"]
+        db.execute("INSERT ... (?,?,?)", bindings: Bindings(values))
+    
+    - parameter array: An NSArray
+    - returns: A Bindings.
+    */
     public init(_ array: NSArray) {
+        // IMPLEMENTATION NOTE
+        //
+        // This initializer is required for the following code to compile:
+        //
+        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+        //    let persons = [   // NSArray of NSArray, actually
+        //        ["Arthur", 41],
+        //        ["Barbara"],
+        //    ]
+        //    for person in persons {
+        //        try statement.execute(Bindings(person))   // Avoid an error here
+        //    }
         var values = [SQLiteValueConvertible?]()
         for item in array {
             values.append(Bindings.valueFromAnyObject(item))
@@ -98,33 +113,48 @@ public struct Bindings {
         self.init(values)
     }
     
-    // Bindings([String: SQLiteValueConvertible?])
-    //
-    // Supported usage: DictionaryLiteralConvertible adoption:
-    //
-    //     db.execute("INSERT ... (:name, :age)",
-    //                bindings: ["name"; "Arthur", "age": 41])
+    
+    // MARK: - Named SQLite parameters
+    
+    /**
+    Initializes bindings from a dictionary of optional values.
+    
+        let values: [String: String?] = ["firstName": nil, "lastName": "Miller"]
+        db.execute("INSERT ... (:firstName, :lastName)", bindings: Bindings(values))
+    
+    - parameter dictionary: A dictionary of optional values that adopt the
+                            SQLiteValueConvertible protocol.
+    - returns: A Bindings.
+    */
     public init(_ dictionary: [String: SQLiteValueConvertible?]) {
         impl = BindingsDictionaryImpl(dictionary: dictionary)
     }
     
-    // Bindings(NSDictionary)
-    //
-    // This is a convenience initializer.
-    //
-    // Without it, the following code won't compile:
-    //
-    //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-    //    let persons = [
-    //        ["name": "Arthur", "age": 41],
-    //        ["name": "Barbara"],
-    //    ]
-    //    for person in persons {
-    //        statement.clearBindings()
-    //        statement.bind(Bindings(person))  // Error
-    //        try statement.execute()
-    //    }
+    /**
+    Initializes bindings from an NSDictionary.
+    
+    The dictionary must contain objects that adopt the SQLiteValueConvertible
+    protocol, NSNull, NSNumber or NSString. A fatal error is thrown otherwise.
+    
+        let values: NSDictionary = ["firstName": "Arthur", "lastName": "Miller"]
+        db.execute("INSERT ... (?,?,?)", bindings: Bindings(values))
+    
+    - parameter dictionary: An NSDictionary
+    - returns: A Bindings.
+    */
     public init(_ dictionary: NSDictionary) {
+        // IMPLEMENTATION NOTE
+        //
+        // This initializer is required for the following code to compile:
+        //
+        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+        //    let persons = [   // NSArray of NSDictionary, actually
+        //        ["name": "Arthur", "age": 41],
+        //        ["name": "Barbara"],
+        //    ]
+        //    for person in persons {
+        //        try statement.execute(Bindings(person))   // Avoid an error here
+        //    }
         var values = [String: SQLiteValueConvertible?]()
         for (key, item) in dictionary {
             if let key = key as? String {
@@ -136,7 +166,12 @@ public struct Bindings {
         self.init(values)
     }
     
-    // Supported uage: Statement.bindings property
+    
+    // MARK: - Not Public
+    
+    let impl: BindingsImpl
+    
+    // Supported usage: Statement.bindings property
     //
     //     let statement = db.UpdateStatement("INSERT INTO persons (name, age) VALUES (?,?)"
     //     statement.bindings = ["Arthur", 41]
@@ -152,6 +187,7 @@ public struct Bindings {
         return impl.dictionary(defaultColumnNames: defaultColumnNames)
     }
     
+    // Support for array-based bindings
     private struct BindingsArrayImpl : BindingsImpl {
         let array: [SQLiteValueConvertible?]
         init(array: [SQLiteValueConvertible?]) {
@@ -177,6 +213,7 @@ public struct Bindings {
         }
     }
     
+    // Support for dictionary-based bindings
     private struct BindingsDictionaryImpl : BindingsImpl {
         let dictionary: [String: SQLiteValueConvertible?]
         init(dictionary: [String: SQLiteValueConvertible?]) {
@@ -246,19 +283,36 @@ public struct Bindings {
     }
 }
 
+
+// The protocol for Bindings underlying implementation
+protocol BindingsImpl {
+    func bindInStatement(statement: Statement)
+    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: SQLiteValueConvertible?]
+}
+
+
+// MARK: - ArrayLiteralConvertible
+
 extension Bindings : ArrayLiteralConvertible {
-    // Supported usage:
-    //
-    //     db.selectRows("SELECT ...", bindings: ["Arthur", 41])
+    /**
+    Returns a Bindings from an array literal:
+
+        db.selectRows("SELECT ...", bindings: ["Arthur", 41])
+    */
     public init(arrayLiteral elements: SQLiteValueConvertible?...) {
         self.init(elements)
     }
 }
 
+
+// MARK: - DictionaryLiteralConvertible
+
 extension Bindings : DictionaryLiteralConvertible {
-    // Supported usage:
-    //
-    //     db.selectRows("SELECT ...", bindings: ["name": "Arthur", "age": 41])
+    /**
+    Returns a Bindings from a dictionary literal:
+    
+        db.selectRows("SELECT ...", bindings: ["name": "Arthur", "age": 41])
+    */
     public init(dictionaryLiteral elements: (String, SQLiteValueConvertible?)...) {
         var dictionary = [String: SQLiteValueConvertible?]()
         for (key, value) in elements {
