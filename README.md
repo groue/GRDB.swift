@@ -140,6 +140,7 @@ let rows = dbQueue.inDatabase { db in
     return Array(fetchRows("SELECT ..."))         // [Row]
     return fetchRows("SELECT ...").filter { ... } // [Row]
 }
+for row in rows { ... } // OK
 ```
 
 
@@ -203,6 +204,7 @@ let names = dbQueue.inDatabase { db in
     return Array(db.fetch(String.self, "SELECT name ..."))         // [String?]
     return db.fetch(String.self, "SELECT name ...").filter { ... } // [String?]
 }
+for name in names { ... } // OK
 ```
 
 Sequences and arrays contain optional values. When you are sure that all results are not NULL, unwrap the optionals with the bang `!` operator:
