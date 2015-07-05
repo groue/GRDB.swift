@@ -112,7 +112,7 @@ A rollback statement is issued if an error is thrown from the transaction block.
 
 ### Row Queries
 
-Load **lazy sequences** of rows, **arrays**, or a **single** row:
+Fetch **lazy sequences** of rows, **arrays**, or a **single** row:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -172,9 +172,11 @@ for (columnName, sqliteValue) in row {
 
 ### Value Queries
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String` and "binary large objects" through the `Blob` type, implemented on top of `NSData`.
+Instead of rows, you can directly fetch **values**, extracted from the first column of the resulting rows.
 
-Load **lazy sequences** of values, **arrays**, or a **single** value:
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String` and `Blob`. Custom types are supported as well through the SQLiteValueConvertible protocol described [below](#custom-types).
+
+As usual, you fetch **lazy sequences** of values, **arrays**, or a **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -243,7 +245,7 @@ Your custom types can perform their own conversions to and from SQLite storage c
 
 A custom type gets full support from GRDB.swift by adopting the `SQLiteValueConvertible` protocol. It can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
 
-For example, let's define below the `DBDate` type that stores and loads NSDates as timestamps:
+For example, let's define below the `DBDate` type that stores NSDates as timestamps:
 
 ```swift
 struct DBDate: SQLiteValueConvertible {
@@ -329,7 +331,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Select statements can load rows and values:
+Select statements can fetch rows and values:
 
 ```swift
 try dbQueue.inDatabase { db in
