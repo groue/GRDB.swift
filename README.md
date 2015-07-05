@@ -717,11 +717,7 @@ You can for example **override primitive methods**:
 class Book : RowModel {
     ...
     
-    override class var databasePrimaryKey: PrimaryKey {
-        return .Column("uuid")
-    }
-    
-    // Before insertion, set uuid if not set yet.
+    // Before insertion, set uuid primary key if not set yet.
     override func insert(db: Database) throws {
         if uuid == nil {
             uuid = NSUUID().UUIDString
