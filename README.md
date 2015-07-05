@@ -21,7 +21,7 @@ Usage
 ```swift
 import GRDB
 
-let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
 let person = Person(name: "Arthur")
 
