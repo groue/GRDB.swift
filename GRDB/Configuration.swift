@@ -48,7 +48,7 @@ public struct Configuration {
                                     database is opened readonly.
     - parameter trace:              An optional tracing function (default nil).
     
-    - returns: A Configuration
+    - returns: A Configuration.
     */
     public init(foreignKeysEnabled: Bool = true, readonly: Bool = false, trace: TraceFunction? = nil) {
         self.foreignKeysEnabled = foreignKeysEnabled
