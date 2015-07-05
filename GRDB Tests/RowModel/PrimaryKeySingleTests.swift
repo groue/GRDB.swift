@@ -35,7 +35,7 @@ class Pet: RowModel {
     }
     
     override class var databasePrimaryKey: PrimaryKey {
-        return .Single("UUID")
+        return .Column("UUID")
     }
     
     override var databaseDictionary: [String: SQLiteValueConvertible?] {

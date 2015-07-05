@@ -563,7 +563,8 @@ dbQueue.inDatabase { db in
 
 There are four kinds of primary keys:
 
-- **None**: the default
+- **None** (the default): no primary key
+
 - **RowID**: use it when you rely on SQLite to automatically generate IDs (see https://www.sqlite.org/autoinc.html).
     
     ```swift
@@ -575,23 +576,23 @@ There are four kinds of primary keys:
     db.fetchOne(Person.self, primaryKey: 123)
     ```
     
-- **Single**: for single-column primary keys that are not managed by SQLite.
+- **Column**: for single-column primary keys that are not managed by SQLite.
     
     ```swift
     class Book : RowModel {
         override class var databasePrimaryKey: PrimaryKey {
-            return .Single("uuid")
+            return .Column("uuid")
         }
     }
     db.fetchOne(Book.self, primaryKey: "b3fc...")
     ```
     
-- **Multiple**: for primary keys that span accross several columns.
+- **Columns**: for primary keys that span accross several columns.
     
     ```swift
     class Citizenship : RowModel {
         override class var databasePrimaryKey: PrimaryKey {
-            return .Multiple("personID", "countryID")
+            return .Columns("personID", "countryID")
         }
     }
     db.fetchOne(Citizenship.self, primaryKey: [arthur.id, france.id])
@@ -696,13 +697,17 @@ try arthur.insert(db)
 arthur.id   // some value
 ```
 
-Other primary keys (None, Single, Multiple) are not managed by GRDB: you have to manage them yourself.
+Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself.
 
 You can for example **override primitive methods**:
 
 ```swift
 class Book : RowModel {
     ...
+    
+    override class var databasePrimaryKey: PrimaryKey {
+        return .Column("uuid")
+    }
     
     // Before insertion, set uuid if not set yet.
     override func insert(db: Database) throws {

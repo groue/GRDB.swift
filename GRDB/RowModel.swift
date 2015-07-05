@@ -29,8 +29,8 @@ public class RowModel {
     public enum PrimaryKey {
         case None
         case RowID(String)
-        case Single(String)
-        case Multiple([String])
+        case Column(String)
+        case Columns([String])
     }
     
     public class var databaseTableName : String? {
@@ -186,7 +186,7 @@ public class RowModel {
                 saveIsUpdate = false
             }
             
-        case .Single(let column):
+        case .Column(let column):
             if let value = databaseDictionary[column]!
             {
                 // Update if and only if the primary key exists in the database.
@@ -198,7 +198,7 @@ public class RowModel {
                 saveIsUpdate = false
             }
             
-        case .Multiple(let columns):
+        case .Columns(let columns):
             let databaseDictionary = self.databaseDictionary
             for column in columns {
                 if databaseDictionary[column]! == nil {
@@ -249,9 +249,9 @@ public class RowModel {
             return nil
         case .RowID(let column):
             return [column: dictionary[column]!]
-        case .Single(let column):
+        case .Column(let column):
             return [column: dictionary[column]!]
-        case .Multiple(let columns):
+        case .Columns(let columns):
             var dic = [String: SQLiteValueConvertible?]()
             for column in columns {
                 dic[column] = dictionary[column]!
@@ -327,9 +327,9 @@ extension Database {
             keyDictionary = bindings.dictionary(defaultColumnNames: nil)
         case .RowID(let column):
             keyDictionary = bindings.dictionary(defaultColumnNames: [column])
-        case .Single(let column):
+        case .Column(let column):
             keyDictionary = bindings.dictionary(defaultColumnNames: [column])
-        case .Multiple(let columns):
+        case .Columns(let columns):
             keyDictionary = bindings.dictionary(defaultColumnNames: columns)
         }
         
@@ -351,9 +351,9 @@ extension Database {
             fatalError("Missing primary key")
         case .RowID(let column):
             sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
-        case .Single(let column):
+        case .Column(let column):
             sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
-        case .Multiple(let columns):
+        case .Columns(let columns):
             if columns.count == 1 {
                 sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(columns.first!.sqliteQuotedIdentifier) = ?"
             } else {

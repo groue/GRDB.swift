@@ -35,7 +35,7 @@ class Citizenship: RowModel {
     }
     
     override class var databasePrimaryKey: PrimaryKey {
-        return .Multiple(["personID", "countryName"])
+        return .Columns(["personID", "countryName"])
     }
     
     override var databaseDictionary: [String: SQLiteValueConvertible?] {
