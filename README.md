@@ -508,8 +508,7 @@ class Person : RowModel {
 
 By overriding `updateFromDatabaseRow(row: Row)`, you can load row models from the database.
 
-In this method, use the subscript operator to load SQLite values that you can assign to your properties (see the [Row Queries](#row-queries) chapter for more information).
-
+In this method, use the subscript operator to load SQLite values that you can assign to your properties:
 
 ```swift
 class Person : RowModel {
@@ -532,7 +531,7 @@ class Person : RowModel {
 }
 ```
 
-For more information about the supported types, check [Value Queries](#value-queries), [Swift Enums](#swift-enums), and [Custom Types](#custom-types) chapters.
+Your properties can be assigned if they are `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, or [Swift enums](#swift-enums). Custom types like `DBDate` are supported through the [SQLiteValueConvertible protocol](#custom-types).
 
 
 Fetch **lazy sequences** of row models, **arrays**, or a **single** instance:
