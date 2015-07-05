@@ -149,7 +149,7 @@ public enum SQLiteValue {
     
         SQLite value: | NULL    INTEGER         REAL            TEXT        BLOB
         --------------|---------------------------------------------------------
-        Bool          | nil     false if 0      false if 0.0    false(**)   true
+        Bool          | nil     false if 0      false if 0.0    nil         nil
         Int           | nil     Int(*)          Int(*)          nil         nil
         Int64         | nil     Int64           Int64(*)        nil         nil
         Double        | nil     Double          Double          nil         nil
@@ -157,8 +157,7 @@ public enum SQLiteValue {
         Blob          | nil     nil             nil             nil         Blob
     
     (*) Conversions to Int and Int64 crash if the value is too big.
-    (**) All strings are falsey. Caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr),
-    which considers *most* strings as falsey, but not *all* strings).
+    
     */
     public func value<Value: SQLiteValueConvertible>() -> Value? {
         return Value(sqliteValue: self)

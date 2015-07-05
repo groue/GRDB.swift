@@ -1,5 +1,4 @@
 - [ ] RowModel.reload(db)
 - [ ] RowModel support for implicit RowID column (see https://www.sqlite.org/autoinc.html)
 - [ ] RowModel.description
-- [ ] Extract Bools from Int only. And document why.
 - [ ] db.fetch(RowModel.type, primaryKeys:[...])    // several primary keys

@@ -228,27 +228,23 @@ The interested reader should know that GRDB.swift *does not* use SQLite built-in
 
 For reference:
 
-- **NULL** storage class is always extracted as nil.
+- **NULL** storage class is always extracted as the Swift nil.
 
-- **INTEGER** storage class can be turned into Swift `Bool`, `Int`, `Int64`, and `Double`.
+- **INTEGER** storage class can be converted to `Bool`, `Int`, `Int64`, and `Double`.
 
     You will get a fatal error if you extract a value too big for `Int`.
     
     The only falsey integer is 0.
 
-- **REAL** storage class can be turned into Swift `Bool`, `Int`, `Int64`, and `Double`.
+- **REAL** storage class can be converted to `Bool`, `Int`, `Int64`, and `Double`.
     
     You will get a fatal error if you extract a value too big for `Int` or `Int64`.
     
     The only falsey real is 0.0.
 
-- **TEXT** storage class can be turned into Swift `Bool` and `String`.
-    
-    All strings are falsey (caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr), which considers *most* strings as falsey, but not *all* strings). [Help](https://github.com/groue/GRDB.swift/pulls) is welcome.
+- **TEXT** storage class can be converted to `String`.
 
-- **BLOB** storage class can be turned into Swift `Bool` and `Blob`.
-    
-    All blobs are truthy.
+- **BLOB** storage class can be converted to `Blob`.
 
 Your custom types can perform their own conversions to and from SQLite storage classes (see [below](#custom-types))
 
