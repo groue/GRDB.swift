@@ -629,7 +629,7 @@ class PersonsViewController: UITableViewController {
     // Private subclass of Person, with an extra `bookCount`:
     
     private class PersonViewModel : Person {
-        var bookCount: Int?
+        var bookCount: Int!
         
         override func updateFromDatabaseRow(row: Row) {
             super.updateFromDatabaseRow(row)
