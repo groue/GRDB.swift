@@ -527,7 +527,7 @@ class Person : RowModel {
         if let v = row["age"]  { age = v.value() }    // String
         if let v = row["creationTimestamp"] {         // NSDate
             // Use the DBDate custom type declared above:
-            let dbDate = v.value() as DBDate?
+            let dbDate: DBDate? = v.value()
             creationDate = dbDate?.date
         }
     }
