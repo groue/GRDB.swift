@@ -406,8 +406,7 @@ Select statements can fetch rows and values:
 ```swift
 try dbQueue.inDatabase { db in
     
-    let statement = try db.selectStatement("SELECT COUNT(*) FROM persons " +
-                                           "WHERE age < ?")
+    let statement = try db.selectStatement("SELECT ...")
     
     statement.fetchRows(bindings: ...)          // AnySequence<Row>
     statement.fetchAllRows(bindings: ...)       // [Row]
