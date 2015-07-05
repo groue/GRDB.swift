@@ -230,11 +230,11 @@ public final class Database {
 /**
 Convenience function that calls fatalError in case of error
 
-    let x = failOnError {
+    let x = verboseFailOnError {
         ...
     }
 */
-func failOnError<Result>(@noescape block: (Void) throws -> Result) -> Result {
+func verboseFailOnError<Result>(@noescape block: (Void) throws -> Result) -> Result {
     do {
         return try block()
     } catch let error as SQLiteError {
@@ -263,7 +263,7 @@ extension Database {
     - returns: A lazy sequence of rows.
     */
     public func fetchRows(sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
-        return failOnError {
+        return verboseFailOnError {
             let statement = try selectStatement(sql, bindings: bindings)
             return statement.fetchRows()
         }
@@ -318,7 +318,7 @@ extension Database {
     - returns: A lazy sequence of values.
     */
     public func fetch<Value: SQLiteValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<Value?> {
-        return failOnError {
+        return verboseFailOnError {
             let statement = try selectStatement(sql, bindings: bindings)
             return statement.fetch(type)
         }

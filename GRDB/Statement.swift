@@ -80,7 +80,7 @@ public class Statement {
         }
         
         if code != SQLITE_OK {
-            failOnError { () -> Void in
+            verboseFailOnError { () -> Void in
                 throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
             }
         }
@@ -101,7 +101,7 @@ public class Statement {
     final func reset() {
         let code = sqlite3_reset(sqliteStatement)
         if code != SQLITE_OK {
-            failOnError { () -> Void in
+            verboseFailOnError { () -> Void in
                 throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
             }
         }
@@ -111,7 +111,7 @@ public class Statement {
     private func clearBindings() {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {
-            failOnError { () -> Void in
+            verboseFailOnError { () -> Void in
                 throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
             }
         }
