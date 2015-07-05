@@ -642,7 +642,7 @@ class PersonsViewController: UITableViewController {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        let persons = dbQueue.inDatabase { db in
+        persons = dbQueue.inDatabase { db in
             db.fetchAll(PersonViewModel.self,
                 "SELECT persons.*, COUNT(*) AS bookCount " +
                 "FROM persons " +
