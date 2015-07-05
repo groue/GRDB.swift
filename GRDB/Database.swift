@@ -49,6 +49,12 @@ public final class Database {
     
         let statement = db.selectStatement("SELECT * FROM persons WHERE id = ?")
     
+    This method may throw a SQLiteError.
+    
+    It is the only one throughout GRDB.swift which may throw an error when
+    building a select statement. All other methods fail with a fatal error when
+    given an invalid select statement.
+    
     - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
     - parameter unsafe:   TODO.
@@ -67,6 +73,8 @@ public final class Database {
     
         let statement = db.updateStatement("INSERT INTO persons (name) VALUES (?)")
     
+    This method may throw a SQLiteError.
+    
     - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
     
@@ -80,6 +88,8 @@ public final class Database {
     Executes an update statement.
     
         db.excute("INSERT INTO persons (name) VALUES (?)", bindings: ["Arthur"])
+    
+    This method may throw a SQLiteError.
     
     - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
@@ -105,14 +115,14 @@ public final class Database {
     }
     
     /**
-    Executes a block inside a SQLite transaction.
+    Executes a block inside an SQLite transaction.
     
     If the block throws an error, the transaction is rollbacked and the error is
     rethrown.
     
     - parameter type:  The transaction type (default Exclusive)
                        See https://www.sqlite.org/lang_transaction.html
-    - parameter block: A function that executes SQL statements and return either
+    - parameter block: A block that executes SQL statements and return either
                        .Commit or .Rollback.
     */
     public func inTransaction(type: TransactionType = .Exclusive, block: () throws -> TransactionCompletion) throws {

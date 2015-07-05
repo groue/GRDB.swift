@@ -22,32 +22,53 @@
 // THE SOFTWARE.
 
 
-typealias DatabaseQueueID = UnsafeMutablePointer<Void>
-
+/**
+A Database Queue serializes access to an SQLite database.
+*/
 public final class DatabaseQueue {
-    private var database: Database { return _database! }
-    private let queue: dispatch_queue_t
-    private var _database: Database! = nil
-    static var databaseQueueIDKey = unsafeBitCast(DatabaseQueue.self, UnsafePointer<Void>.self)
-    private lazy var databaseQueueID: DatabaseQueueID = unsafeBitCast(self, DatabaseQueueID.self)
     
+    // MARK: - Initializers
+    
+    /**
+    Opens the SQLite database at path *path*, according to the configuration.
+    
+    Database connections get closed when the database queue gets deallocated.
+    
+    - parameter path: The path to the database file.
+    - parameter configuration: A configuration
+    */
     public convenience init(path: String, configuration: Configuration = Configuration()) throws {
         try self.init(database: Database(path: path, configuration: configuration))
     }
     
+    /**
+    Opens an in-memory SQLite database, according to the configuration.
+    
+    Database memory is released when the database queue gets deallocated.
+    
+    - parameter configuration: A configuration
+    */
     public convenience init(configuration: Configuration = Configuration()) {
         self.init(database: Database(configuration: configuration))
     }
     
-    init(database: Database) {
-        queue = dispatch_queue_create("GRDB", nil)
-        _database = database
-        dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
-    }
     
+    // MARK: - Database access
+    
+    /**
+    Executes a throwing block in the database queue.
+    
+        try dbQueue.inDatabase { db in
+            try db.execute(...)
+        }
+    
+    This method is not reentrant.
+    
+    - parameter block: A block that accesses the databse.
+    */
     public func inDatabase(block: (db: Database) throws -> Void) throws {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-            fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")
+            fatalError("DatabaseQueue.inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
         }
         
         var dbError: ErrorType?
@@ -63,9 +84,20 @@ public final class DatabaseQueue {
         }
     }
     
+    /**
+    Executes a non-throwing block in the database queue.
+    
+        dbQueue.inDatabase { db in
+            db.fetch(...)
+        }
+    
+    This method is not reentrant.
+    
+    - parameter block: A block that accesses the databse.
+    */
     public func inDatabase(block: (db: Database) -> Void) {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-            fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")
+            fatalError("DatabaseQueue.inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
         }
         
         dispatch_sync(queue) { () -> Void in
@@ -73,9 +105,20 @@ public final class DatabaseQueue {
         }
     }
     
+    /**
+    Executes a non-throwing block in the database queue, and returns its result.
+    
+        let rows = dbQueue.inDatabase { db in
+            db.fetch(...)
+        }
+    
+    This method is not reentrant.
+    
+    - parameter block: A block that accesses the databse and returns some result.
+    */
     public func inDatabase<Result>(block: (db: Database) -> Result) -> Result {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-            fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")
+            fatalError("DatabaseQueue.inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
         }
         
         var result: Result? = nil
@@ -85,9 +128,23 @@ public final class DatabaseQueue {
         return result!
     }
     
+    
+    /**
+    Executes a block in the database queue, wrapped inside an SQLite transaction.
+    
+    If the block throws an error, the transaction is rollbacked and the error is
+    rethrown.
+    
+    This method is not reentrant.
+    
+    - parameter type:  The transaction type (default Exclusive)
+                       See https://www.sqlite.org/lang_transaction.html
+    - parameter block: A block that executes SQL statements and return either
+                       .Commit or .Rollback.
+    */
     public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) throws {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-            fatalError("inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock")
+            fatalError("DatabaseQueue.inTransaction(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
         }
         
         var dbError: ErrorType?
@@ -105,4 +162,37 @@ public final class DatabaseQueue {
             throw dbError
         }
     }
+    
+    
+    // MARK: - Not public
+    
+    /// The Database
+    private var database: Database
+    
+    /// The dispatch queue
+    private let queue: dispatch_queue_t
+    
+    /// The key for the dispatch queue specific that holds the DatabaseQueue
+    /// identity. See databaseQueueID.
+    static var databaseQueueIDKey = unsafeBitCast(DatabaseQueue.self, UnsafePointer<Void>.self)     // some unique pointer
+    
+    /// The value for the dispatch queue specific that holds the DatabaseQueue
+    /// identity.
+    ///
+    /// It helps:
+    /// - warning the user when he wraps calls to inDatabase() or
+    ///   inTransaction(), which would create a deadlock
+    /// - warning the user the he uses a statement outside of the database
+    ///   queue.
+    private lazy var databaseQueueID: DatabaseQueueID = unsafeBitCast(self, DatabaseQueueID.self)   // pointer to self
+    
+    init(database: Database) {
+        queue = dispatch_queue_create("GRDB", nil)
+        self.database = database
+        dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
+    }
+    
 }
+
+typealias DatabaseQueueID = UnsafeMutablePointer<Void>
+
