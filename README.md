@@ -306,7 +306,7 @@ dbQueue.inDatabase { db in
 
 ## Custom Types
 
-Conversion to and from database is based on the `SQLiteValueConvertible` protocol. Types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
+Conversion to and from the database is based on the `SQLiteValueConvertible` protocol. Types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
 
 Swift won't allow this protocol to be adopted by non-final classes, and this prevents all our NSObject fellows to enter the game. That's unfortunate.
 
