@@ -502,10 +502,12 @@ By overriding `updateFromDatabaseRow`, you can load persons from the database:
 
 ```swift
 class Person : RowModel {
-    ...
+    var id: Int64?            // matches "id" column
+    var name: String?         // matches "name" column
+    var age: Int?             // matches "age" columnn
+    var creationDate: NSDate? // matches "creationTimestamp" column
     
-    // Boring but straightforward:
-    
+    // Boring, but straightforward:
     override func updateFromDatabaseRow(row: Row) {
         if let v = row.sqliteValue(named: "id") { id = v.value() }     // Int64
         if let v = row.sqliteValue(named: "name") { name = v.value() } // Int
