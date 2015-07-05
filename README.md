@@ -182,7 +182,7 @@ if let sqliteValue = row["bookCount"] {
 ```
 
 
-**Rows are collections** of tuples (column name, value):
+**Rows are collections** of tuples (columnName, sqliteValue):
 
 ```swift
 let row = db.fetchOneRow("SELECT firstName, lastName FROM persons")!
