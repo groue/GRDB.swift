@@ -2,3 +2,4 @@
 - [ ] RowModel support for implicit RowID column (see https://www.sqlite.org/autoinc.html)
 - [ ] db.fetch(RowModel.type, primaryKeys:[...])    // several primary keys
 - [ ] Investigate INSERT OR REPLACE
+- [ ] Add bindings to SQLiteError, so that one known the value that could not be updated/inserted.
