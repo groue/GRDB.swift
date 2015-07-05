@@ -512,7 +512,7 @@ class Person : RowModel {
 
 By overriding `updateFromDatabaseRow(row: Row)`, you can load row models from the database.
 
-In this method, use the subscript operator to load SQLite values that you can assign to your properties:
+In this method, load the available SQLite values and assign them to your properties:
 
 ```swift
 class Person : RowModel {
@@ -523,10 +523,10 @@ class Person : RowModel {
     
     override func updateFromDatabaseRow(row: Row) {
         // Set the `id` property if the row has an "id" column:
-        if let v = row["id"]   { id = v.value() }     // Int64
-        if let v = row["name"] { name = v.value() }   // Int
-        if let v = row["age"]  { age = v.value() }    // String
-        if let v = row["creationTimestamp"] {         // NSDate
+        if let v = row["id"]   { id = v.value() }
+        if let v = row["name"] { name = v.value() }
+        if let v = row["age"]  { age = v.value() }
+        if let v = row["creationTimestamp"] {
             // Use the DBDate custom type declared above:
             let dbDate = v.value() as DBDate?
             creationDate = dbDate?.date
