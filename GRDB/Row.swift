@@ -22,20 +22,225 @@
 // THE SOFTWARE.
 
 
-protocol RowImpl {
-    var count: Int { get }
-    func sqliteValueAtIndex(index: Int) -> SQLiteValue
-    func columnNameAtIndex(index: Int) -> String
-    func indexForColumnNamed(name: String) -> Int?
-    var sqliteDictionary: [String: SQLiteValue] { get }
-}
-
+/**
+A row is the result of a database query.
+*/
 public struct Row: CollectionType {
+    
+    // MARK: - Columns
+    
+    /**
+    Return whether the row contains a column named *name*.
+    
+    Usage:
+    
+        if row.hasColumn("name") {
+            let name: String? = row.value(named:"name")
+        }
+
+    - parameter name: A column name.
+    - returns: true if the row has such column.
+    */
+    public func hasColumn(name: String) -> Bool {
+        return impl.sqliteDictionary.indexForKey(name) != nil
+    }
+    
+    
+    // MARK: - Values by column index
+    
+    /**
+    Returns the value at given index.
+    
+    Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    righmost column.
+    
+    If not nil (for NULL), its type is guaranteed to be one of the following:
+    Int64, Double, String, and Blob.
+    
+        let value = row.value(atIndex: 0)
+    
+    - parameter index: The index of a column.
+    - returns: An optional SQLiteValueConvertible.
+    */
+    // if row.value(atIndex:0) == nil { ... }
+    public func value(atIndex index: Int) -> SQLiteValueConvertible? {
+        return impl.sqliteValue(atIndex: index).value()
+    }
+    
+    /**
+    Returns the value at given index.
+    
+    Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    righmost column.
+    
+    The returned value has the requested type, as long as the fetched SQLite
+    value is not NULL, and convertible to the requested type:
+    
+        let value: Bool? = row.value(atIndex: 0)
+        let value: Int? = row.value(atIndex: 0)
+        let value: Double? = row.value(atIndex: 0)
+    
+    Your custom types that adopt the SQLiteValueConvertible protocol handle
+    their own conversion from raw SQLite values. Yet, here is the reference for
+    built-in types:
+    
+        SQLite value: | NULL    INTEGER         REAL            TEXT        BLOB
+        --------------|---------------------------------------------------------
+        Bool          | nil     false if 0      false if 0.0    false(**)   true
+        Int           | nil     Int(*)          Int(*)          nil         nil
+        Int64         | nil     Int64           Int64(*)        nil         nil
+        Double        | nil     Double          Double          nil         nil
+        String        | nil     nil             nil             String      nil
+        Blob          | nil     nil             nil             nil         Blob
+    
+    (*) Conversions to Int and Int64 fail if the value is too big.
+    (**) All strings are falsey. Caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr),
+    which considers *most* strings as falsey, but not *all* strings).
+    
+    - parameter index: The index of a column.
+    - returns: An optional *Value*.
+    */
+    // let name:String? = row.value(atIndex: 0)
+    public func value<Value: SQLiteValueConvertible>(atIndex index: Int) -> Value? {
+        return impl.sqliteValue(atIndex: index).value()
+    }
+    
+    
+    // MARK: - Values by column name
+    
+    /**
+    Returns the value for the given column.
+    
+    If not nil (for NULL), its type is guaranteed to be one of the following:
+    Int64, Double, String, and Blob.
+    
+        let value = row.value(named: "name")
+    
+    - parameter name: A column name.
+    - returns: An optional SQLiteValueConvertible.
+    */
+    public func value(named columnName: String) -> SQLiteValueConvertible? {
+        if let index = impl.indexForColumn(named: columnName) {
+            return impl.sqliteValue(atIndex: index).value()
+        } else {
+            return nil
+        }
+    }
+    
+    /**
+    Returns the value for the given column.
+    
+    The returned value has the requested type, as long as the fetched SQLite
+    value is not NULL, and convertible to the requested type:
+    
+        let value: Bool? = row.value(named: "count")
+        let value: Int? = row.value(named: "count")
+        let value: Double? = row.value(named: "count")
+    
+    Your custom types that adopt the SQLiteValueConvertible protocol handle
+    their own conversion from raw SQLite values. Yet, here is the reference for
+    built-in types:
+    
+        SQLite value: | NULL    INTEGER         REAL            TEXT        BLOB
+        --------------|---------------------------------------------------------
+        Bool          | nil     false if 0      false if 0.0    false(**)   true
+        Int           | nil     Int(*)          Int(*)          nil         nil
+        Int64         | nil     Int64           Int64(*)        nil         nil
+        Double        | nil     Double          Double          nil         nil
+        String        | nil     nil             nil             String      nil
+        Blob          | nil     nil             nil             nil         Blob
+    
+    (*) Conversions to Int and Int64 fail if the value is too big.
+    (**) All strings are falsey. Caveat: SQLite performs [another conversion](https://www.sqlite.org/lang_expr.html#booleanexpr),
+    which considers *most* strings as falsey, but not *all* strings).
+    
+    - parameter name: A column name.
+    - returns: An optional *Value*.
+    */
+    public func value<Value: SQLiteValueConvertible>(named columnName: String) -> Value? {
+        if let index = impl.indexForColumn(named: columnName) {
+            return impl.sqliteValue(atIndex: index).value()
+        } else {
+            return nil
+        }
+    }
+    
+    
+    // MARK: - Collection of (columnName, sqliteValue)
+    
+    /**
+    Row is a *collection* of (columnName, sqliteValue) pairs, ordered from left
+    to right.
+
+    Returns a *generator* over elements.
+    */
+    public func generate() -> IndexingGenerator<Row> {
+        return IndexingGenerator(self)
+    }
+    
+    /**
+    Row is a *collection* of (columnName, sqliteValue) pairs, ordered from left
+    to right.
+
+    The index of the first element.
+    */
+    public var startIndex: RowIndex {
+        return Index(0)
+    }
+    
+    /**
+    Row is a *collection* of (columnName, sqliteValue) pairs, ordered from left
+    to right.
+
+    Return the "past-the-end" index, successor of the index of the last element.
+    */
+    public var endIndex: RowIndex {
+        return Index(impl.columnCount)
+    }
+    
+    /**
+    Row is a *collection* of (columnName, sqliteValue) pairs, ordered from left
+    to right.
+    
+    Returns the element at given index.
+    */
+    public subscript(index: RowIndex) -> (String, SQLiteValue) {
+        return (
+            self.impl.columnName(atIndex: index.index),
+            self.impl.sqliteValue(atIndex: index.index))
+    }
+    
+    
+    // MARK: - Not Public
+    
+    /**
+    There are 3 different row implementations:
+
+    - DictionaryRowImpl
+    - SafeRowImpl
+    - UnsafeRowImpl
+    */
     let impl: RowImpl
     
+    /// Helper method for tests.
+    func sqliteValue(atIndex index: Int) -> SQLiteValue {
+        return impl.sqliteValue(atIndex: index)
+    }
     
-    // MARK: - Initializers
     
+    // MARK: Initializers
+    
+    /**
+    Builds a row from the *current state* of the SQLite statement.
+    
+    If the *unsafe* argument is false, the row is implemented on top of
+    SafeRowImpl, which *copies* the SQLite values so that the SQLite statement
+    can be further iterated without corrupting the row.
+    
+    If the *unsafe* argument is true, the row is implemented on top of
+    UnsafeRowImpl, which *does not* copy the SQLite values. Such an unsafe row
+    is invalidated when the SQLite statement is further iterated.
+    */
     init(statement: SelectStatement, unsafe: Bool) {
         if unsafe {
             self.impl = UnsafeRowImpl(statement: statement)
@@ -44,86 +249,24 @@ public struct Row: CollectionType {
         }
     }
     
-    // Used by RowModel so that it can call RowModel.updateFromDatabaseRow()
-    // to set the ID after an insertion.
+    /**
+    Builds a row from an ad-hoc dictionary.
+
+    This initializer is used by RowModel.insert() so that it can call
+    RowModel.updateFromDatabaseRow() to set the ID after the insertion.
+    */
     public init(sqliteDictionary: [String: SQLiteValue]) {
         self.impl = DictionaryRowImpl(sqliteDictionary: sqliteDictionary)
     }
     
     
-    // MARK: - Values
+    // MARK: DictionaryRowImpl
     
-    // if row.hasColumn("name") { self.name = row.value(named:"name") }
-    public func hasColumn(name: String) -> Bool {
-        return impl.sqliteDictionary.indexForKey(name) != nil
-    }
-    
-    // if row.value(atIndex:0) == nil { ... }
-    public func value(atIndex index: Int) -> SQLiteValueConvertible? {
-        return impl.sqliteValueAtIndex(index).value()
-    }
-    
-    // let name:String? = row.value(atIndex: 0)
-    public func value<Value: SQLiteValueConvertible>(atIndex index: Int) -> Value? {
-        return impl.sqliteValueAtIndex(index).value()
-    }
-    
-    // if row.value(named: "name") == nil { ... }
-    public func value(named columnName: String) -> SQLiteValueConvertible? {
-        if let index = impl.indexForColumnNamed(columnName) {
-            return impl.sqliteValueAtIndex(index).value()
-        } else {
-            return nil
-        }
-    }
-    
-    // let name:String? = row.value(named: "name")
-    public func value<Value: SQLiteValueConvertible>(named columnName: String) -> Value? {
-        if let index = impl.indexForColumnNamed(columnName) {
-            return impl.sqliteValueAtIndex(index).value()
-        } else {
-            return nil
-        }
-    }
-    
-    // For tests.
-    func sqliteValue(atIndex index: Int) -> SQLiteValue {
-        return impl.sqliteValueAtIndex(index)
-    }
-    
-    
-    // MARK: - CollectionType
-    
-    // Required by Row adoption of CollectionType
-    public func generate() -> IndexingGenerator<Row> {
-        return IndexingGenerator(self)
-    }
-    
-    // Required by Row adoption of CollectionType
-    public var startIndex: RowIndex {
-        return Index(0)
-    }
-    
-    // Required by Row adoption of CollectionType
-    public var endIndex: RowIndex {
-        return Index(impl.count)
-    }
-    
-    // Required by Row adoption of CollectionType
-    public subscript(index: RowIndex) -> (String, SQLiteValue) {
-        return (
-            self.impl.columnNameAtIndex(index.index),
-            self.impl.sqliteValueAtIndex(index.index))
-    }
-    
-    
-    // MARK: - DictionaryRowImpl
-    
-    // Implements a Rows on a top of a dictionary [String: SQLiteValue]
-    private struct DictionaryRowImpl: RowImpl {
+    /// See Row.init(sqliteDictionary:)
+    private struct DictionaryRowImpl : RowImpl {
         let sqliteDictionary: [String: SQLiteValue]
         
-        var count: Int {
+        var columnCount: Int {
             return sqliteDictionary.count
         }
         
@@ -131,15 +274,15 @@ public struct Row: CollectionType {
             self.sqliteDictionary = sqliteDictionary
         }
         
-        func sqliteValueAtIndex(index: Int) -> SQLiteValue {
+        func sqliteValue(atIndex index: Int) -> SQLiteValue {
             return sqliteDictionary[advance(sqliteDictionary.startIndex, index)].1
         }
         
-        func columnNameAtIndex(index: Int) -> String {
+        func columnName(atIndex index: Int) -> String {
             return sqliteDictionary[advance(sqliteDictionary.startIndex, index)].0
         }
         
-        func indexForColumnNamed(name: String) -> Int? {
+        func indexForColumn(named name: String) -> Int? {
             if let index = sqliteDictionary.indexForKey(name) {
                 return distance(sqliteDictionary.startIndex, index)
             } else {
@@ -149,19 +292,16 @@ public struct Row: CollectionType {
     }
     
     
-    // MARK: - SafeRowImpl
+    // MARK: SafeRowImpl
     
-    // Implements a Rows on a top of a statement.
-    //
-    // It makes Array(rowSequence) work: as the sequence is iterated,
-    // SafeRowImpl *copies* statement results.
+    /// See Row.init(statement:unsafe:)
     private struct SafeRowImpl : RowImpl {
         let sqliteValues: [SQLiteValue]
         let columnNames: [String]
         let sqliteDictionary: [String: SQLiteValue]
         
         init(statement: SelectStatement) {
-            self.sqliteValues = (0..<statement.columnCount).map { index in statement.sqliteValueAtIndex(index) }
+            self.sqliteValues = (0..<statement.columnCount).map { index in statement.sqliteValue(atIndex: index) }
             self.columnNames = statement.columnNames
 
             var sqliteDictionary = [String: SQLiteValue]()
@@ -171,31 +311,27 @@ public struct Row: CollectionType {
             self.sqliteDictionary = sqliteDictionary
         }
         
-        var count: Int {
+        var columnCount: Int {
             return columnNames.count
         }
         
-        func sqliteValueAtIndex(index: Int) -> SQLiteValue {
+        func sqliteValue(atIndex index: Int) -> SQLiteValue {
             return sqliteValues[index]
         }
         
-        func columnNameAtIndex(index: Int) -> String {
+        func columnName(atIndex index: Int) -> String {
             return columnNames[index]
         }
         
-        func indexForColumnNamed(name: String) -> Int? {
+        func indexForColumn(named name: String) -> Int? {
             return columnNames.indexOf(name)
         }
     }
     
     
-    // MARK: - UnsafeRowImpl
+    // MARK: UnsafeRowImpl
     
-    // Implements a Rows on a top of a statement.
-    //
-    // It can't make Array(rowSequence) work: as the sequence is iterated,
-    // UnsafeRowImpl *does not* copy statement results, and those results are
-    // lost.
+    /// See Row.init(statement:unsafe:)
     private struct UnsafeRowImpl : RowImpl {
         let statement: SelectStatement
         
@@ -203,19 +339,19 @@ public struct Row: CollectionType {
             self.statement = statement
         }
         
-        var count: Int {
+        var columnCount: Int {
             return statement.columnCount
         }
         
-        func sqliteValueAtIndex(index: Int) -> SQLiteValue {
-            return statement.sqliteValueAtIndex(index)
+        func sqliteValue(atIndex index: Int) -> SQLiteValue {
+            return statement.sqliteValue(atIndex: index)
         }
         
-        func columnNameAtIndex(index: Int) -> String {
+        func columnName(atIndex index: Int) -> String {
             return statement.columnNames[index]
         }
         
-        func indexForColumnNamed(name: String) -> Int? {
+        func indexForColumn(named name: String) -> Int? {
             return statement.columnNames.indexOf(name)
         }
         
@@ -223,42 +359,48 @@ public struct Row: CollectionType {
             var dic = [String: SQLiteValue]()
             for index in 0..<statement.columnCount {
                 let columnName = String.fromCString(sqlite3_column_name(statement.sqliteStatement, Int32(index)))!
-                dic[columnName] = statement.sqliteValueAtIndex(index)
+                dic[columnName] = statement.sqliteValue(atIndex: index)
             }
             return dic
         }
     }
 }
 
-
-// Row needs an index type in order to adopt CollectionType.
-//
-// We use a custom index, so that we eventually can provide a subscript(Int)
-// that returns a SQLiteValueConvertible.
-public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIndexType {
-    let index: Int
-    
-    init(_ index: Int) {
-        self.index = index
-    }
-    
-    public func successor() -> RowIndex {
-        return RowIndex(index + 1)
-    }
-    
-    public func predecessor() -> RowIndex {
-        return RowIndex(index - 1)
-    }
-    
-    public func distanceTo(other: RowIndex) -> Int {
-        return other.index - index
-    }
-    
-    public func advancedBy(n: Int) -> RowIndex {
-        return RowIndex(index + n)
-    }
+// The protocol for Row underlying implementation
+protocol RowImpl {
+    var columnCount: Int { get }
+    func sqliteValue(atIndex index: Int) -> SQLiteValue
+    func columnName(atIndex index: Int) -> String
+    func indexForColumn(named name: String) -> Int?
+    var sqliteDictionary: [String: SQLiteValue] { get }
 }
 
+
+/// Used to access the (columnName, sqliteValue) pairs in a Row.
+public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIndexType {
+    
+    // IMPLEMENTATION NOTE
+    //
+    // RowIndex is the index type that lets Row adopt CollectionType.
+    //
+    // We use a custom index, so that we eventually can provide a subscript(Int)
+    // that returns a SQLiteValueConvertible. It is impossible right now,
+    // because Swift subscript does not support generics, which are required to
+    // implement on-the-fly type conversions to user-requested types. Yet it may
+    // become possible in the future, and we reserve Int for this potential use
+    // case.
+    //
+    // See Row.value(atIndex:) and Row.value(named:)
+    
+    let index: Int
+    init(_ index: Int) { self.index = index }
+    public func successor() -> RowIndex { return RowIndex(index + 1) }
+    public func predecessor() -> RowIndex { return RowIndex(index - 1) }
+    public func distanceTo(other: RowIndex) -> Int { return other.index - index }
+    public func advancedBy(n: Int) -> RowIndex { return RowIndex(index + n) }
+}
+
+// Equatable implementation for RowIndex
 public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
     return lhs.index == rhs.index
 }

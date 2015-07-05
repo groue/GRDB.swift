@@ -37,7 +37,7 @@ public final class SelectStatement : Statement {
         assert(databaseQueueID != nil)
     }
 
-    func sqliteValueAtIndex(index: Int) -> SQLiteValue {
+    func sqliteValue(atIndex index: Int) -> SQLiteValue {
         switch sqlite3_column_type(sqliteStatement, Int32(index)) {
         case SQLITE_NULL:
             return .Null;
