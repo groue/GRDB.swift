@@ -259,7 +259,7 @@ Your custom types can perform their own conversions to and from SQLite storage c
 
 ## Swift Enums
 
-**Swift enums with raw values** get full support from GRDB.swift as long as their raw values are Int or String.
+**Swift enums** get full support from GRDB.swift as long as their raw values are Int or String.
 
 Given those two enums:
 
@@ -287,27 +287,20 @@ extension Grape : SQLiteStringRepresentable { }
 And both types gain database powers:
 
 ```swift
+// Store:
+try db.execute("INSERT INTO wines (grape, color) VALUES (?, ?)",
+               bindings: [Grape.Merlot, Color.Red])
 
-dbQueue.inDatabase { db in
-    
-    // Write
-    
-    try db.execute("INSERT INTO wines (grape, color) VALUES (?, ?)",
-                   bindings: [Grape.Merlot, Color.Red])
-    
-    // Read from row
-    
-    for rows in db.fetchRows("SELECT * FROM wines") {
-        let grape: Grape? = row.value(named: "grape")
-        let color: Color? = row.value(named: "color")
-    }
-    
-    // Direct read
-    
-    db.fetch(Color.self, "SELECT ...", bindings: ...)    // AnySequence<Color?>
-    db.fetchAll(Color.self, "SELECT ...", bindings: ...) // [Color?]
-    db.fetchOne(Color.self, "SELECT ...", bindings: ...) // Color?
+// Extract from row:
+for rows in db.fetchRows("SELECT * FROM wines") {
+    let grape: Grape? = row.value(named: "grape")
+    let color: Color? = row.value(named: "color")
 }
+
+// Direct fetch:
+db.fetch(Color.self, "SELECT ...", bindings: ...)    // AnySequence<Color?>
+db.fetchAll(Color.self, "SELECT ...", bindings: ...) // [Color?]
+db.fetchOne(Color.self, "SELECT ...", bindings: ...) // Color?
 ```
 
 
@@ -315,7 +308,7 @@ dbQueue.inDatabase { db in
 
 Conversion to and from the database is based on the `SQLiteValueConvertible` protocol. Types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
 
-Swift won't allow this protocol to be adopted by non-final classes, and this prevents all our NSObject fellows to enter the game. That's unfortunate.
+> Swift won't allow this protocol to be adopted by non-final classes, and this prevents all our NSObject fellows to enter the game. That's unfortunate.
 
 As an example, let's define the `DBDate` type that stores NSDates as timestamps. It applies all the best practices for a great GRDB.swift integration:
 
@@ -359,29 +352,27 @@ struct DBDate: SQLiteValueConvertible {
         }
     }
 }
+```
 
-dbQueue.inDatabase { db in
+DBDate can now be stored and fetched from the database just like built-in types:
 
-    // Write
+```swift
+// Store:
+let date = NSDate()
+try db.execute("INSERT INTO persons (timestamp, ...) " +
+                            "VALUES (?, ...)",
+                          bindings: [DBDate(date), ...])
 
-    let date = NSDate()
-    try db.execute("INSERT INTO persons (timestamp, ...) " +
-                                "VALUES (?, ...)",
-                              bindings: [DBDate(date), ...])
-
-    // Read from row
-
-    for rows in db.fetchRows("SELECT * FROM persons") {
-        let dbDate: DBDate? = row.value(named: "timestamp")
-        let date = dbDate?.date
-    }
-
-    // Direct read
-
-    db.fetch(DBDate.self, "SELECT ...", bindings: ...)    // AnySequence<DBDate?>
-    db.fetchAll(DBDate.self, "SELECT ...", bindings: ...) // [DBDate?]
-    db.fetchOne(DBDate.self, "SELECT ...", bindings: ...) // DBDate?
+// Extract from row:
+for rows in db.fetchRows("SELECT ...") {
+    let dbDate: DBDate? = row.value(named: "timestamp")
+    let date = dbDate?.date
 }
+
+// Direct fetch:
+db.fetch(DBDate.self, "SELECT ...", bindings: ...)    // AnySequence<DBDate?>
+db.fetchAll(DBDate.self, "SELECT ...", bindings: ...) // [DBDate?]
+db.fetchOne(DBDate.self, "SELECT ...", bindings: ...) // DBDate?
 ```
 
 
