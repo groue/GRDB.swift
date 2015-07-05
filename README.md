@@ -504,6 +504,7 @@ class Person : RowModel {
 ```
 
 - [Loading](#loading)
+- [Primary Keys](#primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
 
 
@@ -560,6 +561,46 @@ for person in persons { ... } // OK
 ```
 
 
+**Subclass with ad-hoc classes** when iterating custom queries.
+
+We think that this is the killer feature of GRDB.swift :bowtie:. For example:
+
+```swift
+class PersonsViewController: UITableViewController {
+    
+    // Private subclass of Person, with an extra `bookCount`:
+    private class PersonViewModel : Person {
+        var bookCount: Int!
+        
+        override func updateFromDatabaseRow(row: Row) {
+            super.updateFromDatabaseRow(row)
+            if let v = row["bookCount"] { bookCount = v.value() }
+        }
+    }
+    
+    let persons: [PersonViewModel]?
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        persons = dbQueue.inDatabase { db in
+            db.fetchAll(PersonViewModel.self,
+                "SELECT persons.*, COUNT(*) AS bookCount " +
+                "FROM persons " +
+                "JOIN books ON books.ownerID = persons.id " +
+                "GROUP BY persons.id")
+        }
+        
+        tableView.reloadData()
+    }
+    
+    ...
+}
+```
+
+
+### Primary Keys
+
 Declare a **Primary Key** and a **Table name** in order to fetch row models by primary key:
 
 ```swift
@@ -615,50 +656,14 @@ There are four kinds of primary keys:
 The kind of primary key impacts the insert/update/delete methods that we will see below.
 
 
-**Subclass with ad-hoc classes** when iterating custom queries.
-
-We think that this is the killer feature of GRDB.swift :bowtie:. For example:
-
-```swift
-class PersonsViewController: UITableViewController {
-    
-    // Private subclass of Person, with an extra `bookCount`:
-    private class PersonViewModel : Person {
-        var bookCount: Int!
-        
-        override func updateFromDatabaseRow(row: Row) {
-            super.updateFromDatabaseRow(row)
-            if let v = row["bookCount"] { bookCount = v.value() }
-        }
-    }
-    
-    let persons: [PersonViewModel]?
-    
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        persons = dbQueue.inDatabase { db in
-            db.fetchAll(PersonViewModel.self,
-                "SELECT persons.*, COUNT(*) AS bookCount " +
-                "FROM persons " +
-                "JOIN books ON books.ownerID = persons.id " +
-                "GROUP BY persons.id")
-        }
-        
-        tableView.reloadData()
-    }
-    
-    ...
-}
-```
-
-
 ### Insert, Update and Delete
 
 Those operations require one more method:
 
 ```swift
 class Person : RowModel {
+    ...
+    
     // The values stored in the database:
     override var databaseDictionary: [String: SQLiteValueConvertible?] {
         return [
