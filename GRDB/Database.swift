@@ -47,7 +47,9 @@ public final class Database {
     /**
     Returns a select statement that can be reused.
     
-        let statement = db.selectStatement("SELECT * FROM persons WHERE id = ?")
+        let statement = try db.selectStatement("SELECT * FROM persons WHERE age > ?")
+        let moreThanTwentyCount = statement.fetchOne(Int.self, bindings: [20])!
+        let moreThanThirtyCount = statement.fetchOne(Int.self, bindings: [30])!
     
     This method may throw a SQLiteError.
     
@@ -71,7 +73,9 @@ public final class Database {
     /**
     Returns an update statement that can be reused.
     
-        let statement = db.updateStatement("INSERT INTO persons (name) VALUES (?)")
+        let statement = try db.updateStatement("INSERT INTO persons (name) VALUES (?)")
+        try statement.execute(bindings: ["Arthur"])
+        try statement.execute(bindings: ["Barbara"])
     
     This method may throw a SQLiteError.
     
@@ -112,48 +116,6 @@ public final class Database {
     public enum TransactionCompletion {
         case Commit
         case Rollback
-    }
-    
-    /**
-    Executes a block inside an SQLite transaction.
-    
-    If the block throws an error, the transaction is rollbacked and the error is
-    rethrown.
-    
-    - parameter type:  The transaction type (default Exclusive)
-                       See https://www.sqlite.org/lang_transaction.html
-    - parameter block: A block that executes SQL statements and return either
-                       .Commit or .Rollback.
-    */
-    public func inTransaction(type: TransactionType = .Exclusive, block: () throws -> TransactionCompletion) throws {
-        var completion: TransactionCompletion = .Rollback
-        var dbError: ErrorType? = nil
-        
-        try beginTransaction(type)
-        
-        do {
-            completion = try block()
-        } catch {
-            completion = .Rollback
-            dbError = error
-        }
-        
-        do {
-            switch completion {
-            case .Commit:
-                try commit()
-            case .Rollback:
-                try rollback()
-            }
-        } catch {
-            if dbError == nil {
-                dbError = error
-            }
-        }
-        
-        if let dbError = dbError {
-            throw dbError
-        }
     }
     
     
@@ -208,6 +170,53 @@ public final class Database {
         }
     }
     
+    /**
+    Executes a block inside an SQLite transaction.
+    
+        try dbQueue.inTransaction do {
+            try db.execute("INSERT ...")
+            return .Commit
+        }
+    
+    If the block throws an error, the transaction is rollbacked and the error is
+    rethrown.
+    
+    - parameter type:  The transaction type
+                       See https://www.sqlite.org/lang_transaction.html
+    - parameter block: A block that executes SQL statements and return either
+                       .Commit or .Rollback.
+    */
+    func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) throws {
+        var completion: TransactionCompletion = .Rollback
+        var dbError: ErrorType? = nil
+        
+        try beginTransaction(type)
+        
+        do {
+            completion = try block()
+        } catch {
+            completion = .Rollback
+            dbError = error
+        }
+        
+        do {
+            switch completion {
+            case .Commit:
+                try commit()
+            case .Rollback:
+                try rollback()
+            }
+        } catch {
+            if dbError == nil {
+                dbError = error
+            }
+        }
+        
+        if let dbError = dbError {
+            throw dbError
+        }
+    }
+
     private func beginTransaction(type: TransactionType = .Exclusive) throws {
         switch type {
         case .Deferred:
