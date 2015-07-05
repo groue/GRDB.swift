@@ -315,7 +315,7 @@ As an example, let's define the `DBDate` type that stores NSDates as timestamps.
 ```swift
 struct DBDate: SQLiteValueConvertible {
     
-    // MARK: - DBDate <-> NSDate conversion
+    // NSDate conversion
     //
     // It is good to consistently use the Swift nil to represent the database
     // NULL: the date property is a non-optional NSDate, and the NSDate
@@ -334,7 +334,7 @@ struct DBDate: SQLiteValueConvertible {
         }
     }
     
-    // MARK: - DBDate <-> SQLiteValue conversion
+    // SQLiteValue conversion
     //
     // Represents the date as a timestamp in the database
     
