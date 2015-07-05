@@ -32,6 +32,8 @@ public final class DatabaseQueue {
     /**
     Opens the SQLite database at path *path*, according to the configuration.
     
+        let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+    
     Database connections get closed when the database queue gets deallocated.
     
     - parameter path: The path to the database file.
@@ -43,6 +45,8 @@ public final class DatabaseQueue {
     
     /**
     Opens an in-memory SQLite database, according to the configuration.
+    
+        let dbQueue = DatabaseQueue()
     
     Database memory is released when the database queue gets deallocated.
     
@@ -134,6 +138,11 @@ public final class DatabaseQueue {
     
     If the block throws an error, the transaction is rollbacked and the error is
     rethrown.
+    
+        try dbQueue.inTransaction { db in
+            db.execute(...)
+            return .Commit
+        }
     
     This method is not reentrant.
     
