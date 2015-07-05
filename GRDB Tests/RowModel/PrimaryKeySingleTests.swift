@@ -71,7 +71,7 @@ class Pet: RowModel {
     }
 }
 
-class PrimaryKeySingleTests: RowModelTests {
+class PrimaryKeySingleTests: RowModelTestCase {
     
     func testInsertWithNonNilPrimaryKey() {
         // Models with Single primary key should be able to be inserted when

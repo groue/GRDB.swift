@@ -261,6 +261,24 @@ public class RowModel {
     }
 }
 
+extension RowModel : CustomStringConvertible {
+    public var description: String {
+        return "<\(reflect(self.dynamicType).summary)" + "".join(databaseDictionary.map { (key, value) in
+            if var string = value as? String {
+                string = string.stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
+                string = string.stringByReplacingOccurrencesOfString("\n", withString: "\\n")
+                string = string.stringByReplacingOccurrencesOfString("\r", withString: "\\r")
+                string = string.stringByReplacingOccurrencesOfString("\t", withString: "\\t")
+                string = string.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+                return " \(key):\"\(string)\""
+            } else if let value = value {
+                return " \(key):\(value)"
+            } else {
+                return " \(key):nil"
+            }}) + ">"
+    }
+}
+
 extension Database {
 
     // let persons = db.fetch(Person.self, "SELECT ...", bindings: ...)

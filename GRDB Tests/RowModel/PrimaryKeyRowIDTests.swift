@@ -85,7 +85,7 @@ class Person: RowModel {
     }
 }
 
-class PrimaryKeyRowIDTests: RowModelTests {
+class PrimaryKeyRowIDTests: RowModelTestCase {
 
     func testInsert() {
         // Models with RowID primary key should be able to be inserted with a

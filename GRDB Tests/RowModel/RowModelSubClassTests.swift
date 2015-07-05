@@ -34,7 +34,7 @@ class PersonWithPet: Person {
     }
 }
 
-class RowModelSubClassTests: RowModelTests {
+class RowModelSubClassTests: RowModelTestCase {
     
     func testSelect() {
         assertNoError {

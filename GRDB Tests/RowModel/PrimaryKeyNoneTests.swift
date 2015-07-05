@@ -48,7 +48,7 @@ class Item: RowModel {
     }
 }
 
-class PrimaryKeyNoneTests: RowModelTests {
+class PrimaryKeyNoneTests: RowModelTestCase {
 
     func testInsert() {
         // Models with None primary key should be able to be inserted.

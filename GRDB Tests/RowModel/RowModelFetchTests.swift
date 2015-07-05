@@ -24,7 +24,7 @@
 
 import XCTest
 
-class RowModelFetchTests: RowModelTests {
+class RowModelFetchTests: RowModelTestCase {
     
     func testSelectStatement() {
         assertNoError {

@@ -62,7 +62,7 @@ class Citizenship: RowModel {
 }
 
 
-class PrimaryKeyMultipleTests: RowModelTests {
+class PrimaryKeyMultipleTests: RowModelTestCase {
     
     func testInsert() {
         // Models with Multiple primary key should be able to be inserted when

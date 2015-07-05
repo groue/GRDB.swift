@@ -25,7 +25,7 @@
 import XCTest
 import GRDB
 
-class RowModelTests : GRDBTestCase {
+class RowModelTestCase : GRDBTestCase {
     override func setUp() {
         super.setUp()
         
