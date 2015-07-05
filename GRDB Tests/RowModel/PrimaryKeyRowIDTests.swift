@@ -49,13 +49,17 @@ class Person: RowModel {
     }
     
     override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("id") { id = row.value(named: "id") }
-        if row.hasColumn("name") { name = row.value(named: "name") }
-        if row.hasColumn("age") { age = row.value(named: "age") }
-        if row.hasColumn("creationTimestamp") {
-            let dbDate: DBDate? = row.value(named: "creationTimestamp")
-            creationDate = dbDate?.date
-        }
+//        // V1
+//        if row.hasColumn("id") { id = row.value(named: "id") }
+//        if row.hasColumn("name") { name = row.value(named: "name") }
+//        if row.hasColumn("age") { age = row.value(named: "age") }
+//        if row.hasColumn("creationTimestamp") { creationDate = (row.value(named: "creationTimestamp") as DBDate?)?.date }
+        
+        // V2
+        if let v = row.sqliteValue(named: "id") { id = v.value() }
+        if let v = row.sqliteValue(named: "name") { name = v.value() }
+        if let v = row.sqliteValue(named: "age") { age = v.value() }
+        if let v = row.sqliteValue(named: "creationTimestamp") { creationDate = (v.value() as DBDate?)?.date }
     }
     
     override func insert(db: Database) throws {
@@ -106,6 +110,9 @@ class PrimaryKeyRowIDTests: RowModelTests {
                 // After insertion, ID should be set
                 XCTAssertTrue(arthur.id != nil)
                 
+                // After insertion, creationDate should be set
+                XCTAssertTrue(arthur.creationDate != nil)
+                
                 return .Commit
             }
             
@@ -113,7 +120,10 @@ class PrimaryKeyRowIDTests: RowModelTests {
             dbQueue.inDatabase { db in
                 let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(persons.count, 1)
-                XCTAssertEqual(persons.first!.name!, "Arthur")
+                let person = persons.first!
+                XCTAssertEqual(person.name!, "Arthur")
+                XCTAssertEqual(person.age!, 41)
+                XCTAssertTrue(abs(person.creationDate!.timeIntervalSinceDate(NSDate())) < 1)
             }
         }
     }

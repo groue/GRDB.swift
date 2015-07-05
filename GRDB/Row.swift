@@ -227,6 +227,15 @@ public struct Row: CollectionType {
         return impl.sqliteValue(atIndex: index)
     }
     
+    /// Experimental
+    public func sqliteValue(named columnName: String) -> SQLiteValue? {
+        if let index = impl.indexForColumn(named: columnName) {
+            return impl.sqliteValue(atIndex: index)
+        } else {
+            return nil
+        }
+    }
+    
     
     // MARK: Initializers
     
