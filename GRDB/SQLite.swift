@@ -166,6 +166,20 @@ public enum SQLiteValue {
 }
 
 
+// MARK: - SQLite identifier quoting
+
+extension String {
+    /// Returns the receiver, quoted for safe insertion in an SQL query as an
+    /// identifier.
+    ///
+    ///     db.execute("SELECT * FROM \(tableName.sqliteQuotedIdentifier)")
+    public var sqliteQuotedIdentifier: String {
+        // See https://www.sqlite.org/lang_keywords.html
+        return "\"\(self)\""
+    }
+}
+
+
 // MARK: - Not public
 
 /// A nicer name than COpaquePointer for SQLite connection handle

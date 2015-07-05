@@ -100,9 +100,9 @@ public class RowModel {
         // INSERT INTO table ([id, ]name) VALUES ([:id, ]:name)
         
         let columns = insertedDic.keys
-        let columnSQL = ",".join(columns)
+        let columnSQL = ",".join(columns.map { $0.sqliteQuotedIdentifier })
         let valuesSQL = ",".join([String](count: columns.count, repeatedValue: "?"))
-        let sql = "INSERT INTO \(tableName) (\(columnSQL)) VALUES (\(valuesSQL))"
+        let sql = "INSERT INTO \(tableName.sqliteQuotedIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
         try db.execute(sql, bindings: Bindings(insertedDic.values))
         
         
@@ -154,10 +154,10 @@ public class RowModel {
         
         // "UPDATE table SET name = ? WHERE id = ?"
         
-        let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column)=?" })
-        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column)=?" })
+        let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
         let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
-        let sql = "UPDATE \(tableName) SET \(updateSQL) WHERE \(whereSQL)"
+        let sql = "UPDATE \(tableName.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
         try db.execute(sql, bindings: bindings)
     }
     
@@ -178,7 +178,7 @@ public class RowModel {
             if let value = databaseDictionary[column]!
             {
                 // Update if and only if the primary key exists in the database.
-                saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value])!
+                saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?", bindings: [value])!
             }
             else
             {
@@ -190,7 +190,7 @@ public class RowModel {
             if let value = databaseDictionary[column]!
             {
                 // Update if and only if the primary key exists in the database.
-                saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(column) = ?", bindings: [value])!
+                saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?", bindings: [value])!
             }
             else
             {
@@ -209,9 +209,9 @@ public class RowModel {
             }
             
             // Update if and only if the primary key exists in the database.
-            let whereSQL = " AND ".join(columns.map { column in "\(column)=?" })
+            let whereSQL = " AND ".join(columns.map { column in "\(column.sqliteQuotedIdentifier)=?" })
             let bindings = Bindings(columns.map { column in databaseDictionary[column]! })
-            saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName) WHERE \(whereSQL)", bindings: bindings)!
+            saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)", bindings: bindings)!
         }
         
         if saveIsUpdate {
@@ -236,9 +236,9 @@ public class RowModel {
         }
         
         // "DELETE FROM table WHERE id = ?"
-        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column)=?" })
+        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
         let bindings = Bindings(Array(primaryKeyDictionary.values))
-        let sql = "DELETE FROM \(tableName) WHERE \(whereSQL)"
+        let sql = "DELETE FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
         try db.execute(sql, bindings: bindings)
     }
     
@@ -315,9 +315,9 @@ extension Database {
             keyDictionary = bindings.dictionary(defaultColumnNames: columns)
         }
         
-        let whereSQL = " AND ".join(keyDictionary.keys.map { column in "\(column)=?" })
+        let whereSQL = " AND ".join(keyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
         let bindings = Bindings(Array(keyDictionary.values))
-        let sql = "SELECT * FROM \(tableName) WHERE \(whereSQL)"
+        let sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
         return fetchOne(type, sql, bindings: bindings)
     }
     
@@ -332,12 +332,12 @@ extension Database {
         case .None:
             fatalError("Missing primary key")
         case .SQLiteRowID(let column):
-            sql = "SELECT * FROM \(tableName) WHERE \(column) = ?"
+            sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
         case .Single(let column):
-            sql = "SELECT * FROM \(tableName) WHERE \(column) = ?"
+            sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
         case .Multiple(let columns):
             if columns.count == 1 {
-                sql = "SELECT * FROM \(tableName) WHERE \(columns.first!) = ?"
+                sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(columns.first!.sqliteQuotedIdentifier) = ?"
             } else {
                 fatalError("Primary key columns count mismatch.")
             }
