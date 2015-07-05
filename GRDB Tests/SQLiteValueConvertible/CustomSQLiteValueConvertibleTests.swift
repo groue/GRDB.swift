@@ -43,7 +43,7 @@ class CustomSQLiteValueConvertibleTests : GRDBTestCase {
         }
     }
 
-    func testExample() {
+    func testDBDate() {
         assertNoError {
             try dbQueue.inTransaction { db in
                 
