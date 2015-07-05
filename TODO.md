@@ -1,1 +1,2 @@
 - Escape table & column names
+- RowModel.reload(db)
