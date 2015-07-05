@@ -47,6 +47,7 @@ SQLite API:
 - [Swift Enums](#swift-enums)
 - [Custom Types](#custom-types)
 - [Statements](#statements)
+- [Error Handling](#error-handling)
 
 Application tools:
 
@@ -419,6 +420,18 @@ try dbQueue.inDatabase { db in
 ```
 
 Note that the `Database.selectStatement()` function is the **only** function of GRDB.swift that may throw an error when building a SELECT statement. All other fetching functions prefer dying in a loud and verbose crash when given an invalid SELECT statement.
+
+
+## Error Handling
+
+**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a SQLiteError error, and some crash with a fatal error.
+
+**The rule** is:
+
+- All methods that *read* data crash.
+- All methods that *write* data throw an error.
+
+The only exception is the function that creates reusable select statements `db.selectStatement("SELECT ...")`. This method is your only way to catch an SQLiteError when building a select statement.
 
 Compare:
 
