@@ -24,12 +24,12 @@
 
 typealias DatabaseQueueID = UnsafeMutablePointer<Void>
 
-public class DatabaseQueue {
-    public var database: Database { return _database! }
+public final class DatabaseQueue {
+    private var database: Database { return _database! }
     private let queue: dispatch_queue_t
     private var _database: Database! = nil
     static var databaseQueueIDKey = unsafeBitCast(DatabaseQueue.self, UnsafePointer<Void>.self)
-    lazy var databaseQueueID: DatabaseQueueID = unsafeBitCast(self, DatabaseQueueID.self)
+    private lazy var databaseQueueID: DatabaseQueueID = unsafeBitCast(self, DatabaseQueueID.self)
     
     public convenience init(path: String, configuration: Configuration = Configuration()) throws {
         try self.init(database: Database(path: path, configuration: configuration))
