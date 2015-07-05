@@ -502,7 +502,7 @@ class Person : RowModel {
 
 ### Loading
 
-By overriding `updateFromDatabaseRow`, you can load persons:
+By overriding `updateFromDatabaseRow`, you can load persons from the database:
 
 ```swift
 class Person : RowModel {
@@ -522,9 +522,13 @@ class Person : RowModel {
         }
     }
 }
+```
+
+Fetch **lazy sequences** of row models, **arrays**, or a **single** instance:
+
+```swift
 
 dbQueue.inDatabase { db in
-    
     db.fetch(Person.self, "SELECT ...", bindings:...)    // AnySequence<Person>
     db.fetchAll(Person.self, "SELECT ...", bindings:...) // [Person]
     db.fetchOne(Person.self, "SELECT ...", bindings:...) // Person?
@@ -537,8 +541,19 @@ dbQueue.inDatabase { db in
 }
 ```
 
+Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
 
-Declare a **Primary Key** and a **Table name** in order to fetch a specific row model:
+```swift
+let persons = dbQueue.inDatabase { db in
+    return db.fetchAll(Person.self, "SELECT name ...")             // [Person?]
+    return Array(db.fetch(Person.self, "SELECT name ..."))         // [Person?]
+    return db.fetch(Person.self, "SELECT name ...").filter { ... } // [Person?]
+}
+for person in persons { ... } // OK
+```
+
+
+Declare a **Primary Key** and a **Table name** in order to fetch row models by primary key:
 
 ```swift
 class Person : RowModel {
@@ -549,7 +564,7 @@ class Person : RowModel {
     }
     
     override class var databasePrimaryKey: PrimaryKey {
-        return .SQLiteRowID("id")
+        return .RowID("id")
     }
 }
 
@@ -561,12 +576,12 @@ dbQueue.inDatabase { db in
 There are four kinds of primary keys:
 
 - **None**: the default
-- **SQLiteRowID**: use it when you rely on SQLite to automatically generate IDs (see https://www.sqlite.org/autoinc.html).
+- **RowID**: use it when you rely on SQLite to automatically generate IDs (see https://www.sqlite.org/autoinc.html).
     
     ```swift
     class Person : RowModel {
         override class var databasePrimaryKey: PrimaryKey {
-            return .SQLiteRowID("id")
+            return .RowID("id")
         }
     }
     db.fetchOne(Person.self, primaryKey: 123)
@@ -678,12 +693,12 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Models that declare a `SQLiteRowID` primary key have their id automatically set after insertion:
+Models that declare a `RowID` primary key have their id automatically set after insertion:
 
 ```swift
 class Person : RowModel {
     override class var databasePrimaryKey: PrimaryKey {
-        return .SQLiteRowID("id")
+        return .RowID("id")
     }
 }
 
