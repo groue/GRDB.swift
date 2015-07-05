@@ -336,7 +336,7 @@ struct DBDate: SQLiteValueConvertible {
     
     // SQLiteValue conversion
     //
-    // Represents the date as a timestamp in the database
+    // DBDate represents the date as a timestamp in the database.
     
     var sqliteValue: SQLiteValue {
         return .Real(date.timeIntervalSince1970)
