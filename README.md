@@ -19,6 +19,8 @@ Usage
 -----
 
 ```swift
+import GRDB
+
 let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
 
 let person = Person(name: "Arthur")
@@ -155,9 +157,15 @@ dbQueue.inDatabase { db in
         let bookCount: Int = row.value(named: "bookCount")!
         let bookCount64: Int64 = row.value(named: "bookCount")!
         let hasBooks: Bool = row.value(named: "bookCount")!  // 0 is false
+        
+        // WARNING: type inference requires a very careful use of the `as`
+        // operator (see rdar://problem/21676393):
+        row.value(named: "bookCount") as Int?   // good
+        row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
     }
 }
 ```
+
 
 **Rows are collections** of tuples (column name, value):
 
