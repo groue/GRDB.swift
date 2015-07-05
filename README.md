@@ -175,7 +175,7 @@ dbQueue.inDatabase { db in
 let row = db.fetchOneRow("SELECT firstName, lastName FROM persons")!
 for (columnName, sqliteValue) in row {
     columnName                      // "firstName", then "lastName".
-    sqliteValue.value() as? String  // the first name, then the last name.
+    sqliteValue.value() as String?  // the first name, then the last name.
 }
 ```
 
