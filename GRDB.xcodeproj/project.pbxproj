@@ -22,7 +22,7 @@
 		56C9E65E1B468EB200DDC541 /* PrimaryKeyMultipleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6531B468EB200DDC541 /* PrimaryKeyMultipleTests.swift */; };
 		56C9E65F1B468EB200DDC541 /* PrimaryKeyNoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6541B468EB200DDC541 /* PrimaryKeyNoneTests.swift */; };
 		56C9E6601B468EB200DDC541 /* PrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6551B468EB200DDC541 /* PrimaryKeySingleTests.swift */; };
-		56C9E6611B468EB200DDC541 /* PrimaryKeySQLiteRowIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6561B468EB200DDC541 /* PrimaryKeySQLiteRowIDTests.swift */; };
+		56C9E6611B468EB200DDC541 /* PrimaryKeyRowIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6561B468EB200DDC541 /* PrimaryKeyRowIDTests.swift */; };
 		56C9E6621B468EB200DDC541 /* RowModelSubClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6571B468EB200DDC541 /* RowModelSubClassTests.swift */; };
 		56C9E6631B468EB200DDC541 /* RowModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E6581B468EB200DDC541 /* RowModelTests.swift */; };
 		56C9E6641B468EB200DDC541 /* UpdateStatementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C9E65A1B468EB200DDC541 /* UpdateStatementTests.swift */; };
@@ -69,7 +69,7 @@
 		56C9E6531B468EB200DDC541 /* PrimaryKeyMultipleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeyMultipleTests.swift; sourceTree = "<group>"; };
 		56C9E6541B468EB200DDC541 /* PrimaryKeyNoneTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeyNoneTests.swift; sourceTree = "<group>"; };
 		56C9E6551B468EB200DDC541 /* PrimaryKeySingleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeySingleTests.swift; sourceTree = "<group>"; };
-		56C9E6561B468EB200DDC541 /* PrimaryKeySQLiteRowIDTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeySQLiteRowIDTests.swift; sourceTree = "<group>"; };
+		56C9E6561B468EB200DDC541 /* PrimaryKeyRowIDTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrimaryKeyRowIDTests.swift; sourceTree = "<group>"; };
 		56C9E6571B468EB200DDC541 /* RowModelSubClassTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelSubClassTests.swift; sourceTree = "<group>"; };
 		56C9E6581B468EB200DDC541 /* RowModelTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelTests.swift; sourceTree = "<group>"; };
 		56C9E65A1B468EB200DDC541 /* UpdateStatementTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateStatementTests.swift; sourceTree = "<group>"; };
@@ -158,7 +158,7 @@
 				56C9E6531B468EB200DDC541 /* PrimaryKeyMultipleTests.swift */,
 				56C9E6541B468EB200DDC541 /* PrimaryKeyNoneTests.swift */,
 				56C9E6551B468EB200DDC541 /* PrimaryKeySingleTests.swift */,
-				56C9E6561B468EB200DDC541 /* PrimaryKeySQLiteRowIDTests.swift */,
+				56C9E6561B468EB200DDC541 /* PrimaryKeyRowIDTests.swift */,
 				56C9E6571B468EB200DDC541 /* RowModelSubClassTests.swift */,
 				56CC3CA41B48289200A9A534 /* RowModelFetchTests.swift */,
 				56C9E6581B468EB200DDC541 /* RowModelTests.swift */,
@@ -394,7 +394,7 @@
 				56C9E65E1B468EB200DDC541 /* PrimaryKeyMultipleTests.swift in Sources */,
 				56C9E6641B468EB200DDC541 /* UpdateStatementTests.swift in Sources */,
 				56C9E6621B468EB200DDC541 /* RowModelSubClassTests.swift in Sources */,
-				56C9E6611B468EB200DDC541 /* PrimaryKeySQLiteRowIDTests.swift in Sources */,
+				56C9E6611B468EB200DDC541 /* PrimaryKeyRowIDTests.swift in Sources */,
 				56C9E65F1B468EB200DDC541 /* PrimaryKeyNoneTests.swift in Sources */,
 				56C9E6681B4696E100DDC541 /* SelectStatementTests.swift in Sources */,
 				5623E08A1B494A8A00B20B7F /* RawRepresentableTests.swift in Sources */,

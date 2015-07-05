@@ -28,7 +28,7 @@ public class RowModel {
     
     public enum PrimaryKey {
         case None
-        case SQLiteRowID(String)
+        case RowID(String)
         case Single(String)
         case Multiple([String])
     }
@@ -77,7 +77,7 @@ public class RowModel {
         
         let rowIDColumn: String?
         switch primaryKey {
-        case .SQLiteRowID(let column):
+        case .RowID(let column):
             if let _ = insertedDic[column]! {
                 rowIDColumn = nil
             } else {
@@ -174,7 +174,7 @@ public class RowModel {
             // No primary key? Insert.
             saveIsUpdate = false
             
-        case .SQLiteRowID(let column):
+        case .RowID(let column):
             if let value = databaseDictionary[column]!
             {
                 // Update if and only if the primary key exists in the database.
@@ -247,7 +247,7 @@ public class RowModel {
         switch primaryKey {
         case .None:
             return nil
-        case .SQLiteRowID(let column):
+        case .RowID(let column):
             return [column: dictionary[column]!]
         case .Single(let column):
             return [column: dictionary[column]!]
@@ -307,7 +307,7 @@ extension Database {
         switch RowModel.databasePrimaryKey {
         case .None:
             keyDictionary = bindings.dictionary(defaultColumnNames: nil)
-        case .SQLiteRowID(let column):
+        case .RowID(let column):
             keyDictionary = bindings.dictionary(defaultColumnNames: [column])
         case .Single(let column):
             keyDictionary = bindings.dictionary(defaultColumnNames: [column])
@@ -331,7 +331,7 @@ extension Database {
         switch RowModel.databasePrimaryKey {
         case .None:
             fatalError("Missing primary key")
-        case .SQLiteRowID(let column):
+        case .RowID(let column):
             sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
         case .Single(let column):
             sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"

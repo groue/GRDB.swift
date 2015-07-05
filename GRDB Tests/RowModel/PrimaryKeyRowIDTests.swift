@@ -36,7 +36,7 @@ class Person: RowModel {
     }
     
     override class var databasePrimaryKey: PrimaryKey {
-        return .SQLiteRowID("id")
+        return .RowID("id")
     }
     
     override var databaseDictionary: [String: SQLiteValueConvertible?] {
@@ -88,12 +88,12 @@ class Person: RowModel {
     }
 }
 
-class PrimaryKeySQLiteRowIDTests: RowModelTests {
+class PrimaryKeyRowIDTests: RowModelTests {
 
     func testInsert() {
-        // Models with SQLiteRowID primary key should be able to be inserted
-        // with a nil primary key. After the insertion, they have their primary
-        // key set.
+        // Models with RowID primary key should be able to be inserted with a
+        // nil primary key. After the insertion, they have their primary key
+        // set.
         
         assertNoError {
             let arthur = Person(name: "Arthur", age: 41)
@@ -119,9 +119,9 @@ class PrimaryKeySQLiteRowIDTests: RowModelTests {
     }
     
     func testInsertTwice() {
-        // Models with SQLiteRowID primary key should be able to be inserted
-        // with a nil primary key. After the insertion, they have their primary
-        // key set.
+        // Models with RowID primary key should be able to be inserted with a
+        // nil primary key. After the insertion, they have their primary key
+        // set.
         //
         // The second insertion should fail because the primary key is already
         // taken.

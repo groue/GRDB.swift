@@ -46,7 +46,7 @@ class Person: RowModel {
     }
     
     override class var databasePrimaryKey: PrimaryKey {
-        return .SQLiteRowID("id")
+        return .RowID("id")
     }
     
     override var databaseDictionary: [String: SQLiteValueConvertible?] {

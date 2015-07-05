@@ -1,1 +1,2 @@
 - [ ] RowModel.reload(db)
+- [ ] RowModel support for implicit RowID column.
