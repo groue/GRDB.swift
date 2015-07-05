@@ -125,7 +125,8 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Bindings are optional arrays or dictionaries that fill the `?` and `:name` parameters in the query:
+Bindings are optional arrays or dictionaries that fill the positional `?` and named parameters like `:name` in the query. GRDB.swift only supports colon-prefixed named parameters, even though SQLite supports [other syntaxes](https://www.sqlite.org/lang_expr.html#varparam).
+
 
 ```swift
 db.fetchRows("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])

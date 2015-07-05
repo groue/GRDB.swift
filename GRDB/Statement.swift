@@ -22,12 +22,13 @@
 // THE SOFTWARE.
 
 
-private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
+/**
+A statement represents the execution of a SQL query.
 
+It is the base class of UpdateStatement that executes *update statements*, and
+SelectStatement that fetches rows.
+*/
 public class Statement {
-    let database: Database
-    let sqliteStatement = SQLiteStatement()
-    let databaseQueueID: DatabaseQueueID
     public lazy var sql: String = String.fromCString(UnsafePointer<Int8>(sqlite3_sql(self.sqliteStatement)))!
     public var bindings: Bindings? {
         didSet {
@@ -38,6 +39,17 @@ public class Statement {
             }
         }
     }
+    
+    // MARK: - Not public
+    
+    /// The database
+    let database: Database
+    
+    /// The SQLite statement handle
+    let sqliteStatement = SQLiteStatement()
+    
+    /// The identity of the DatabaseQueue where the statement was created.
+    let databaseQueueID: DatabaseQueueID
     
     init(database: Database, sql: String, bindings: Bindings?) throws {
         // See https://www.sqlite.org/c3ref/prepare.html
@@ -86,7 +98,6 @@ public class Statement {
         }
     }
     
-    // TODO: document that we only support the colon prefix (like FMDB).
     // Exposed for Bindings. Don't make this one public unless we keep the bindings property in sync.
     final func bind(value: SQLiteValueConvertible?, forKey key: String) {
         let index = Int(sqlite3_bind_parameter_index(sqliteStatement, ":\(key)"))
@@ -117,3 +128,5 @@ public class Statement {
         }
     }
 }
+
+private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)

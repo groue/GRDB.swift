@@ -172,7 +172,7 @@ public final class Database {
     - returns: true if the table exists.
     */
     public func tableExists(tableName: String) -> Bool {
-        if let _ = fetchOneRow("SELECT [sql] FROM sqlite_master WHERE [type] = 'table' AND LOWER(name) = ?", bindings: [tableName.lowercaseString]) {
+        if let _ = fetchOneRow("SELECT \"sql\" FROM sqlite_master WHERE \"type\" = 'table' AND LOWER(name) = ?", bindings: [tableName.lowercaseString]) {
             return true
         } else {
             return false
@@ -182,6 +182,7 @@ public final class Database {
     
     // MARK: - Non public
     
+    /// The SQLite connection handle
     let sqliteConnection = SQLiteConnection()
     
     init(path: String, configuration: Configuration) throws {

@@ -44,10 +44,9 @@ Dictionary literals are automatically converted to Bindings:
 
     db.execute("INSERT ... (:name, :age)", bindings: ["name": "Arthur", "age": 41])
 
-SQLite supports other syntaxes for named parameters. GRDB.swift only supports
-the colon-prefixed ones.
-
-See https://www.sqlite.org/lang_expr.html#varparam for more information.
+GRDB.swift only supports colon-prefixed named parameters, even though SQLite
+supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam for
+more information.
 */
 public struct Bindings {
     
@@ -122,6 +121,10 @@ public struct Bindings {
         let values: [String: String?] = ["firstName": nil, "lastName": "Miller"]
         db.execute("INSERT ... (:firstName, :lastName)", bindings: Bindings(values))
     
+    GRDB.swift only supports colon-prefixed named parameters, even though SQLite
+    supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
+    for more information.
+    
     - parameter dictionary: A dictionary of optional values that adopt the
                             SQLiteValueConvertible protocol.
     - returns: A Bindings.
@@ -138,6 +141,10 @@ public struct Bindings {
     
         let values: NSDictionary = ["firstName": "Arthur", "lastName": "Miller"]
         db.execute("INSERT ... (?,?,?)", bindings: Bindings(values))
+    
+    GRDB.swift only supports colon-prefixed named parameters, even though SQLite
+    supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
+    for more information.
     
     - parameter dictionary: An NSDictionary
     - returns: A Bindings.

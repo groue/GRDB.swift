@@ -24,7 +24,7 @@
 
 import Foundation
 
-/// A subclass of Statement that implements SELECT statements.
+/// A subclass of Statement that fetches database rows.
 public final class SelectStatement : Statement {
     
     /// The number of columns in the results.
