@@ -26,8 +26,17 @@
 Configuration are arguments to the DatabaseQueue initializers.
 */
 public struct Configuration {
+    
+    /// A tracing function that logs SQL statements
+    public static func logSQL(sql: String, bindings: Bindings?) {
+        NSLog("GRDB: %@", sql)
+        if let bindings = bindings {
+            NSLog("GRDB: bindings %@", bindings.description)
+        }
+    }
+    
     /// A tracing function.
-    public typealias TraceFunction = (String) -> Void
+    public typealias TraceFunction = (sql: String, bindings: Bindings?) -> Void
     
     /// If true, the database has support for foreign keys.
     public var foreignKeysEnabled: Bool

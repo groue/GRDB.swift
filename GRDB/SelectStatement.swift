@@ -85,7 +85,7 @@ extension SelectStatement {
                 }
                 
                 if let appliedTrace = trace {
-                    appliedTrace(self.sql)
+                    appliedTrace(sql: self.sql, bindings: self.bindings)
                     trace = nil
                 }
                 let code = sqlite3_step(self.sqliteStatement)

@@ -211,6 +211,22 @@ public struct Bindings {
             }
             return dictionary
         }
+        
+        var description: String {
+            return "[" + ", ".join(array.map { value in
+                if var string = value as? String {
+                    string = string.stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
+                    string = string.stringByReplacingOccurrencesOfString("\n", withString: "\\n")
+                    string = string.stringByReplacingOccurrencesOfString("\r", withString: "\\r")
+                    string = string.stringByReplacingOccurrencesOfString("\t", withString: "\\t")
+                    string = string.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+                    return "\"\(string)\""
+                } else if let value = value {
+                    return "\(value)"
+                } else {
+                    return "nil"
+                }}) + "]"
+        }
     }
     
     // Support for dictionary-based bindings
@@ -226,6 +242,22 @@ public struct Bindings {
         }
         func dictionary( defaultColumnNames defaultColumnNames: [String]?) -> [String : SQLiteValueConvertible?] {
             return dictionary
+        }
+        
+        var description: String {
+            return "[" + ", ".join(dictionary.map { (key, value) in
+                if var string = value as? String {
+                    string = string.stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
+                    string = string.stringByReplacingOccurrencesOfString("\n", withString: "\\n")
+                    string = string.stringByReplacingOccurrencesOfString("\r", withString: "\\r")
+                    string = string.stringByReplacingOccurrencesOfString("\t", withString: "\\t")
+                    string = string.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+                    return "\(key): \"\(string)\""
+                } else if let value = value {
+                    return "\(key): \(value)"
+                } else {
+                    return "\(key): nil"
+                }}) + "]"
         }
     }
     
@@ -285,7 +317,7 @@ public struct Bindings {
 
 
 // The protocol for Bindings underlying implementation
-protocol BindingsImpl {
+protocol BindingsImpl : CustomStringConvertible {
     func bindInStatement(statement: Statement)
     func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: SQLiteValueConvertible?]
 }
@@ -319,5 +351,15 @@ extension Bindings : DictionaryLiteralConvertible {
             dictionary[key] = value
         }
         self.init(dictionary)
+    }
+}
+
+
+// MARK: - CustomStringConvertible
+
+extension Bindings : CustomStringConvertible {
+    /// A String description of self
+    public var description: String {
+        return impl.description
     }
 }

@@ -63,9 +63,10 @@ Configure databases:
 
 ```swift
 let configuration = Configuration(
-    foreignKeysEnabled: true,   // default true, because, come on
-    readonly: false,            // default false
-    trace: { print($0) }        // default nil
+    foreignKeysEnabled: true,   // Default true, because, come on
+    readonly: false,            // Default false
+    trace: Configuration.logSQL // An optional trace function.
+                                // Configuration.logSQL logs all SQL statements.
 )
 let dbQueue = try DatabaseQueue(
     path: "/tmp/GRDB.sqlite",

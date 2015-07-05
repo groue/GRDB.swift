@@ -31,7 +31,7 @@ public final class UpdateStatement : Statement {
         }
         reset()
         if let trace = database.configuration.trace {
-            trace(sql)
+            trace(sql: sql, bindings: self.bindings)
         }
         let code = sqlite3_step(sqliteStatement)
         switch code {

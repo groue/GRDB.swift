@@ -67,7 +67,7 @@ class GRDBTestCase: XCTestCase {
         
         self.databasePath = "/tmp/GRDB.sqlite"
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
-        let configuration = Configuration(trace: { NSLog("%@", $0) })
+        let configuration = Configuration(trace: Configuration.logSQL)
         self.dbQueue = try! DatabaseQueue(path: databasePath, configuration: configuration)
     }
     
