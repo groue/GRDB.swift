@@ -532,12 +532,6 @@ dbQueue.inDatabase { db in
     db.fetch(Person.self, "SELECT ...", bindings:...)    // AnySequence<Person>
     db.fetchAll(Person.self, "SELECT ...", bindings:...) // [Person]
     db.fetchOne(Person.self, "SELECT ...", bindings:...) // Person?
-    
-    let statement = db.selectStatement("SELECT ...")
-
-    statement.fetch(Person.self, bindings:...)          // AnySequence<Person>
-    statement.fetchAll(Person.self, bindings:...)       // [Person]
-    statement.fetchOne(Person.self, bindings:...)       // Person?
 }
 ```
 
@@ -545,9 +539,9 @@ Lazy sequences can not be consumed outside of a database queue, but arrays are O
 
 ```swift
 let persons = dbQueue.inDatabase { db in
-    return db.fetchAll(Person.self, "SELECT name ...")             // [Person?]
-    return Array(db.fetch(Person.self, "SELECT name ..."))         // [Person?]
-    return db.fetch(Person.self, "SELECT name ...").filter { ... } // [Person?]
+    return db.fetchAll(Person.self, "SELECT name ...")             // [Person]
+    return Array(db.fetch(Person.self, "SELECT name ..."))         // [Person]
+    return db.fetch(Person.self, "SELECT name ...").filter { ... } // [Person]
 }
 for person in persons { ... } // OK
 ```
