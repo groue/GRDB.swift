@@ -148,25 +148,21 @@ for row in rows { ... } // OK
 **Read row values** by index or column name:
 
 ```swift
-dbQueue.inDatabase { db in
-    for row in db.fetchRows("SELECT ...") {
-        let name: String? = row.value(atIndex: 0)
-        let name: String? = row.value(named: "name")
-        
-        // Force unwrap when value is not NULL
-        let id: Int64 = row.value(named: "id")!
-        
-        // Extract the desired Swift type from the column value:
-        let bookCount: Int = row.value(named: "bookCount")!
-        let bookCount64: Int64 = row.value(named: "bookCount")!
-        let hasBooks: Bool = row.value(named: "bookCount")!  // 0 is false
-        
-        // WARNING: type inference requires a very careful use of the `as`
-        // operator (see rdar://problem/21676393):
-        row.value(named: "bookCount") as Int?   // good
-        row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
-    }
-}
+let name: String? = row.value(atIndex: 0)
+let name: String? = row.value(named: "name")
+
+// Force unwrap when value is not NULL
+let id: Int64 = row.value(named: "id")!
+
+// Extract the desired Swift type from the column value:
+let bookCount: Int = row.value(named: "bookCount")!
+let bookCount64: Int64 = row.value(named: "bookCount")!
+let hasBooks: Bool = row.value(named: "bookCount")!     // false when 0
+
+// WARNING: type inference requires a very careful use of the `as`
+// operator (see rdar://problem/21676393):
+row.value(named: "bookCount") as Int?   // good
+row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
 ```
 
 The subscript operator returns SQLiteValue, an intermediate type between SQLite storage and your values:
@@ -177,7 +173,7 @@ if let sqliteValue = row["bookCount"] {
     // Extract the desired Swift type from the SQLite value:
     let bookCount: Int = sqliteValue.value()!
     let bookCount64: Int64 = sqliteValue.value()!
-    let hasBooks: Bool = sqliteValue.value()!  // 0 is false
+    let hasBooks: Bool = sqliteValue.value()!     // false when 0
 }
 ```
 
