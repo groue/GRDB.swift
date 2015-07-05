@@ -32,12 +32,12 @@ public struct Row: CollectionType {
     
     /// Helper method for tests.
     /// Public experimental (TODO: document)
-    public func sqliteValue(atIndex index: Int) -> SQLiteValue {
+    public subscript(index: Int) -> SQLiteValue {
         return impl.sqliteValue(atIndex: index)
     }
     
     /// Public Experimental (TODO: document)
-    public func sqliteValue(named columnName: String) -> SQLiteValue? {
+    public subscript(columnName: String) -> SQLiteValue? {
         if let index = impl.indexForColumn(named: columnName) {
             return impl.sqliteValue(atIndex: index)
         } else {
@@ -62,7 +62,6 @@ public struct Row: CollectionType {
     - parameter index: The index of a column.
     - returns: An optional SQLiteValueConvertible.
     */
-    // if row.value(atIndex:0) == nil { ... }
     public func value(atIndex index: Int) -> SQLiteValueConvertible? {
         return impl.sqliteValue(atIndex: index).value()
     }
@@ -98,7 +97,6 @@ public struct Row: CollectionType {
     - parameter index: The index of a column.
     - returns: An optional *Value*.
     */
-    // let name:String? = row.value(atIndex: 0)
     public func value<Value: SQLiteValueConvertible>(atIndex index: Int) -> Value? {
         return impl.sqliteValue(atIndex: index).value()
     }
@@ -366,20 +364,6 @@ protocol RowImpl {
 
 /// Used to access the (columnName, sqliteValue) pairs in a Row.
 public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIndexType {
-    
-    // IMPLEMENTATION NOTE
-    //
-    // RowIndex is the index type that lets Row adopt CollectionType.
-    //
-    // We use a custom index, so that we eventually can provide a subscript(Int)
-    // that returns a SQLiteValueConvertible. It is impossible right now,
-    // because Swift subscript does not support generics, which are required to
-    // implement on-the-fly type conversions to user-requested types. Yet it may
-    // become possible in the future, and we reserve Int for this potential use
-    // case.
-    //
-    // See Row.value(atIndex:) and Row.value(named:)
-    
     let index: Int
     init(_ index: Int) { self.index = index }
     public func successor() -> RowIndex { return RowIndex(index + 1) }

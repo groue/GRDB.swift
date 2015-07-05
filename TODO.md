@@ -1,3 +1,4 @@
 - [ ] RowModel.reload(db)
 - [ ] RowModel support for implicit RowID column (see https://www.sqlite.org/autoinc.html)
 - [ ] db.fetch(RowModel.type, primaryKeys:[...])    // several primary keys
+- [ ] Investigate INSERT OR REPLACE

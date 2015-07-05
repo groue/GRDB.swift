@@ -107,7 +107,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", bindings: [0])
-                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
@@ -125,7 +125,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", bindings: [0.0])
-                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
@@ -143,7 +143,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", bindings: ["3.0e+5"])
-                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
@@ -161,7 +161,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", bindings: ["foo"])
-                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
@@ -179,7 +179,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", bindings: [Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))])
-                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT textAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check built-in conversions from Blob storage:
@@ -248,7 +248,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", bindings: [0])
-                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage
@@ -266,7 +266,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", bindings: [3.0e5])
-                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage
@@ -284,7 +284,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", bindings: [1.0e20])
-                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage (avoid Int and Int64 since 1.0e20 does not fit)
@@ -300,7 +300,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", bindings: ["3.0e+5"])
-                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage
@@ -318,7 +318,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", bindings: ["1.0e+20"])
-                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage: (avoid Int and Int64 since 1.0e20 does not fit)
@@ -334,7 +334,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", bindings: ["foo"])
-                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
@@ -352,7 +352,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", bindings: [Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))])
-                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT realAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check built-in conversions from Blob storage:
@@ -381,7 +381,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", bindings: [0])
-                let sqliteValue = db.fetchOneRow("SELECT noneAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT noneAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check built-in conversions from Integer storage
@@ -399,7 +399,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", bindings: [0.0])
-                let sqliteValue = db.fetchOneRow("SELECT noneAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT noneAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage
@@ -417,7 +417,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", bindings: ["3.0e+5"])
-                let sqliteValue = db.fetchOneRow("SELECT noneAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT noneAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage
@@ -435,7 +435,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", bindings: [Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))])
-                let sqliteValue = db.fetchOneRow("SELECT noneAffinity FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT noneAffinity FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check built-in conversions from Blob storage
@@ -478,7 +478,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", bindings: [0])
-                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check built-in conversions from Integer storage
@@ -496,7 +496,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", bindings: [3.0e5])
-                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check built-in conversions from Integer storage
@@ -514,7 +514,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", bindings: [1.0e20])
-                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage (avoid Int and Int64 since 1.0e20 does not fit)
@@ -530,7 +530,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", bindings: ["3.0e+5"])
-                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check built-in conversions from Integer storage
@@ -548,7 +548,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", bindings: ["1.0e+20"])
-                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Real)
                 
                 // Check built-in conversions from Real storage: (avoid Int and Int64 since 1.0e20 does not fit)
@@ -564,7 +564,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", bindings: ["foo"])
-                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Text)
                 
                 // Check built-in conversions from Text storage:
@@ -582,7 +582,7 @@ class SQLiteValueConvertibleTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", bindings: [Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))])
-                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")!.sqliteValue(atIndex: 0)
+                let sqliteValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")![0]
                 XCTAssertEqual(sqliteValue.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check built-in conversions from Blob storage:

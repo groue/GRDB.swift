@@ -37,7 +37,7 @@ class Item: RowModel {
     }
     
     override func updateFromDatabaseRow(row: Row) {
-        if let v = row.sqliteValue(named: "name") { name = v.value() }
+        if let v = row["name"] { name = v.value() }
     }
     
     static func setupInDatabase(db: Database) throws {

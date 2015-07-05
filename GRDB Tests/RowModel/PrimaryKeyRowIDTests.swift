@@ -49,10 +49,10 @@ class Person: RowModel {
     }
     
     override func updateFromDatabaseRow(row: Row) {
-        if let v = row.sqliteValue(named: "id") { id = v.value() }
-        if let v = row.sqliteValue(named: "name") { name = v.value() }
-        if let v = row.sqliteValue(named: "age") { age = v.value() }
-        if let v = row.sqliteValue(named: "creationTimestamp") { creationDate = (v.value() as DBDate?)?.date }
+        if let v = row["id"] { id = v.value() }
+        if let v = row["name"] { name = v.value() }
+        if let v = row["age"] { age = v.value() }
+        if let v = row["creationTimestamp"] { creationDate = (v.value() as DBDate?)?.date }
     }
     
     override func insert(db: Database) throws {

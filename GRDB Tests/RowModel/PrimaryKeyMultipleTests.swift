@@ -43,9 +43,9 @@ class Citizenship: RowModel {
     }
     
     override func updateFromDatabaseRow(row: Row) {
-        if let v = row.sqliteValue(named: "personID") { personID = v.value() }
-        if let v = row.sqliteValue(named: "countryName") { countryName = v.value() }
-        if let v = row.sqliteValue(named: "grantedTimestamp") { grantedDate = (v.value() as DBDate?)?.date }
+        if let v = row["personID"] { personID = v.value() }
+        if let v = row["countryName"] { countryName = v.value() }
+        if let v = row["grantedTimestamp"] { grantedDate = (v.value() as DBDate?)?.date }
     }
     
     static func setupInDatabase(db: Database) throws {

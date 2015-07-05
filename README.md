@@ -156,7 +156,7 @@ dbQueue.inDatabase { db in
         // Force unwrap when value is not NULL
         let id: Int64 = row.value(named: "id")!
         
-        // Use Swift type inference to fetch the data type you need:
+        // Extract the desired Swift type from the column value:
         let bookCount: Int = row.value(named: "bookCount")!
         let bookCount64: Int64 = row.value(named: "bookCount")!
         let hasBooks: Bool = row.value(named: "bookCount")!  // 0 is false
@@ -166,6 +166,18 @@ dbQueue.inDatabase { db in
         row.value(named: "bookCount") as Int?   // good
         row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
     }
+}
+```
+
+The subscript operator returns SQLiteValue, an intermediate type between SQLite storage and your values:
+
+```swift
+// Test if the column `bookCount` is defined:
+if let sqliteValue = row["bookCount"] {
+    // Extract the desired Swift type from the SQLite value:
+    let bookCount: Int = sqliteValue.value()!
+    let bookCount64: Int64 = sqliteValue.value()!
+    let hasBooks: Bool = sqliteValue.value()!  // 0 is false
 }
 ```
 
@@ -498,7 +510,10 @@ class Person : RowModel {
 
 ### Loading
 
-By overriding `updateFromDatabaseRow`, you can load persons from the database:
+By overriding `updateFromDatabaseRow(row: Row)`, you can load row models from the database.
+
+In this method, use the subscript operator to load SQLite values that you can assign to your properties (see the [Row Queries](#row-queries) chapter for more information).
+
 
 ```swift
 class Person : RowModel {
@@ -507,14 +522,15 @@ class Person : RowModel {
     var age: Int?             // matches "age" columnn
     var creationDate: NSDate? // matches "creationTimestamp" column
     
-    // Boring, but straightforward:
     override func updateFromDatabaseRow(row: Row) {
-        if let v = row.sqliteValue(named: "id") { id = v.value() }     // Int64
-        if let v = row.sqliteValue(named: "name") { name = v.value() } // Int
-        if let v = row.sqliteValue(named: "age") { age = v.value() }   // String
-        if let v = row.sqliteValue(named: "creationTimestamp") {       // NSDate
+        // Set the `id` property if the row has an "id" column:
+        if let v = row["id"]   { id = v.value() }     // Int64
+        if let v = row["name"] { name = v.value() }   // Int
+        if let v = row["age"]  { age = v.value() }    // String
+        if let v = row["creationTimestamp"] {         // NSDate
             // Use the DBDate custom type declared above:
-            creationDate = (v.value() as DBDate?)?.date
+            let dbDate = v.value() as DBDate?
+            creationDate = dbDate?.date
         }
     }
 }
