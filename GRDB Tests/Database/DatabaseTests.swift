@@ -331,6 +331,27 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
+    func testFetchedRowsSequenceCanBeIteratedTwice() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                try db.execute("CREATE TABLE persons (name TEXT)")
+                try db.execute("INSERT INTO persons (name) VALUES (:name)", bindings: ["name": "Arthur"])
+                try db.execute("INSERT INTO persons (name) VALUES (:name)", bindings: ["name": "Barbara"])
+                
+                let rows = db.fetchRows("SELECT * FROM persons ORDER BY name")
+                var names1: [String?] = rows.map { $0.value(named: "name")! as String }
+                var names2: [String?] = rows.map { $0.value(named: "name")! as String }
+                
+                XCTAssertEqual(names1[0]!, "Arthur")
+                XCTAssertEqual(names1[1]!, "Barbara")
+                XCTAssertEqual(names2[0]!, "Arthur")
+                XCTAssertEqual(names2[1]!, "Barbara")
+                
+                return .Commit
+            }
+        }
+    }
+    
     func testREADME() {
         assertNoError {
             // DatabaseMigrator sets up migrations:

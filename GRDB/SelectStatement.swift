@@ -121,6 +121,9 @@ extension SelectStatement {
         }
         
         return AnySequence { () -> AnyGenerator<Row> in
+            // Let row sequences be iterated several times.
+            self.reset()
+            
             return anyGenerator { () -> Row? in
                 // Make sure values are consumed in the correct queue.
                 //
