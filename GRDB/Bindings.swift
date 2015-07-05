@@ -27,6 +27,33 @@ protocol BindingsImpl {
     func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: SQLiteValueConvertible?]
 }
 
+/**
+Bindings hold values for SQLite parameters:
+
+    INSERT INTO persons (name, age) VALUES (?, ?)
+    INSERT INTO persons (name, age) VALUES (:name, :age)
+
+To fill question mark parameters, feed Bindings with an array:
+
+    db.execute("INSERT ... (?, ?)", bindings: Bindings(["Arthur", 41]))
+
+Array literals are automatically converted to Bindings:
+
+    db.execute("INSERT ... (?, ?)", bindings: ["Arthur", 41])
+
+To fill named parameters, feed Bindings with a dictionary:
+
+    db.execute("INSERT ... (:name, :age)", bindings: Bindings(["name": "Arthur", "age": 41]))
+
+Dictionary literals are automatically converted to Bindings:
+
+    db.execute("INSERT ... (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+
+SQLite supports other syntaxes for named parameters. GRDB.swift only supports
+the colon-prefixed ones.
+
+See https://www.sqlite.org/lang_expr.html#varparam for more information.
+*/
 public struct Bindings {
     let impl: BindingsImpl
     

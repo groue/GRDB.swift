@@ -22,13 +22,34 @@
 // THE SOFTWARE.
 
 
+/**
+Configuration are arguments to the DatabaseQueue initializers.
+*/
 public struct Configuration {
+    /// A tracing function.
     public typealias TraceFunction = (String) -> Void
     
+    /// If true, the database has support for foreign keys.
     public var foreignKeysEnabled: Bool
+    
+    /// If true, the database is opened readonly.
     public var readonly: Bool
+    
+    /// A tracing function that you can use for any purpose.
     public var trace: TraceFunction?
     
+    /**
+    Setup a configuration.
+    
+    - parameter foreignKeysEnabled: If true (the default), the database has
+                                    support for foreign keys.
+    - parameter readonly:           If false (the default), the database will be
+                                    created and opened for writing. If true, the
+                                    database is opened readonly.
+    - parameter trace:              An optional tracing function (default nil).
+    
+    - returns: A Configuration
+    */
     public init(foreignKeysEnabled: Bool = true, readonly: Bool = false, trace: TraceFunction? = nil) {
         self.foreignKeysEnabled = foreignKeysEnabled
         self.readonly = readonly
