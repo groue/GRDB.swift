@@ -508,15 +508,15 @@ By overriding `updateFromDatabaseRow`, you can load persons from the database:
 class Person : RowModel {
     ...
     
-    // Boring and not DRY, but straightforward:
+    // Boring but straightforward:
     
     override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("id")   { id = row.value(named: "id") }     // Int64
-        if row.hasColumn("age")  { age = row.value(named: "age") }   // Int
-        if row.hasColumn("name") { name = row.value(named: "name") } // String
-        if row.hasColumn("creationTimestamp") {                      // NSDate
+        if let v = row.sqliteValue(named: "id") { id = v.value() }     // Int64
+        if let v = row.sqliteValue(named: "name") { name = v.value() } // Int
+        if let v = row.sqliteValue(named: "age") { age = v.value() }   // String
+        if let v = row.sqliteValue(named: "creationTimestamp") {       // NSDate
             // Use the DBDate custom type declared above:
-            creationDate = (row.value(named: "creationTimestamp") as DBDate?)?.date
+            creationDate = (v.value() as DBDate?)?.date
         }
     }
 }

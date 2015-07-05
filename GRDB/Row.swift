@@ -27,26 +27,26 @@ A row is the result of a database query.
 */
 public struct Row: CollectionType {
     
-    // MARK: - Columns
     
-    /**
-    Return whether the row contains a column named *name*.
+    // MARK: - SQLiteValue
     
-    Usage:
+    /// Helper method for tests.
+    /// Public experimental (TODO: document)
+    public func sqliteValue(atIndex index: Int) -> SQLiteValue {
+        return impl.sqliteValue(atIndex: index)
+    }
     
-        if row.hasColumn("name") {
-            let name: String? = row.value(named:"name")
+    /// Public Experimental (TODO: document)
+    public func sqliteValue(named columnName: String) -> SQLiteValue? {
+        if let index = impl.indexForColumn(named: columnName) {
+            return impl.sqliteValue(atIndex: index)
+        } else {
+            return nil
         }
-
-    - parameter name: A column name.
-    - returns: true if the row has such column.
-    */
-    public func hasColumn(name: String) -> Bool {
-        return impl.sqliteDictionary.indexForKey(name) != nil
     }
     
     
-    // MARK: - Values by column index
+    // MARK: - SQLiteValueConvertible value
     
     /**
     Returns the value at given index.
@@ -104,9 +104,6 @@ public struct Row: CollectionType {
     public func value<Value: SQLiteValueConvertible>(atIndex index: Int) -> Value? {
         return impl.sqliteValue(atIndex: index).value()
     }
-    
-    
-    // MARK: - Values by column name
     
     /**
     Returns the value for the given column.
@@ -221,20 +218,6 @@ public struct Row: CollectionType {
     - UnsafeRowImpl
     */
     let impl: RowImpl
-    
-    /// Helper method for tests.
-    func sqliteValue(atIndex index: Int) -> SQLiteValue {
-        return impl.sqliteValue(atIndex: index)
-    }
-    
-    /// Experimental
-    public func sqliteValue(named columnName: String) -> SQLiteValue? {
-        if let index = impl.indexForColumn(named: columnName) {
-            return impl.sqliteValue(atIndex: index)
-        } else {
-            return nil
-        }
-    }
     
     
     // MARK: Initializers

@@ -30,7 +30,7 @@ class PersonWithPet: Person {
     
     override func updateFromDatabaseRow(row: Row) {
         super.updateFromDatabaseRow(row)
-        if row.hasColumn("petCount") { petCount = row.value(named: "petCount") }
+        if let v = row.sqliteValue(named: "petCount") { petCount = v.value() }
     }
 }
 

@@ -49,13 +49,6 @@ class Person: RowModel {
     }
     
     override func updateFromDatabaseRow(row: Row) {
-//        // V1
-//        if row.hasColumn("id") { id = row.value(named: "id") }
-//        if row.hasColumn("name") { name = row.value(named: "name") }
-//        if row.hasColumn("age") { age = row.value(named: "age") }
-//        if row.hasColumn("creationTimestamp") { creationDate = (row.value(named: "creationTimestamp") as DBDate?)?.date }
-        
-        // V2
         if let v = row.sqliteValue(named: "id") { id = v.value() }
         if let v = row.sqliteValue(named: "name") { name = v.value() }
         if let v = row.sqliteValue(named: "age") { age = v.value() }

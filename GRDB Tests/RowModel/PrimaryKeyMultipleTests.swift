@@ -39,19 +39,13 @@ class Citizenship: RowModel {
     }
     
     override var databaseDictionary: [String: SQLiteValueConvertible?] {
-        return ["personID": personID, "countryName": countryName, "grantedTimestamp": grantedDate?.timeIntervalSince1970]
+        return ["personID": personID, "countryName": countryName, "grantedTimestamp": DBDate(grantedDate)]
     }
     
     override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("personID") { personID = row.value(named: "personID") }
-        if row.hasColumn("countryName") { countryName = row.value(named: "countryName") }
-        if row.hasColumn("grantedTimestamp") {
-            if let timestamp: NSTimeInterval = row.value(named: "grantedTimestamp") {
-                grantedDate = NSDate(timeIntervalSince1970: timestamp)
-            } else {
-                grantedDate = nil
-            }
-        }
+        if let v = row.sqliteValue(named: "personID") { personID = v.value() }
+        if let v = row.sqliteValue(named: "countryName") { countryName = v.value() }
+        if let v = row.sqliteValue(named: "grantedTimestamp") { grantedDate = (v.value() as DBDate?)?.date }
     }
     
     static func setupInDatabase(db: Database) throws {

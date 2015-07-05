@@ -43,9 +43,9 @@ class Pet: RowModel {
     }
     
     override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("UUID") { UUID = row.value(named: "UUID") }
-        if row.hasColumn("name") { name = row.value(named: "name") }
-        if row.hasColumn("masterID") { masterID = row.value(named: "masterID") }
+        if let v = row.sqliteValue(named: "UUID") { UUID = v.value() }
+        if let v = row.sqliteValue(named: "name") { name = v.value() }
+        if let v = row.sqliteValue(named: "masterID") { masterID = v.value() }
     }
     
     init (UUID: String? = nil, name: String? = nil, masterID: Int64? = nil) {
