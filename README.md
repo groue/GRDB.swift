@@ -504,6 +504,7 @@ class Person : RowModel {
 ```
 
 - [Loading](#loading)
+- [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Primary Keys](#primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
 
@@ -561,7 +562,9 @@ for person in persons { ... } // OK
 ```
 
 
-**Subclass with ad-hoc classes** when iterating custom queries.
+### Ad Hoc Subclasses
+
+Swift makes it very easy to create small and private types. This is a wonderful opportunity to create **ad hoc subclasses** that provide support for custom queries.
 
 We think that this is the killer feature of GRDB.swift :bowtie:. For example:
 
