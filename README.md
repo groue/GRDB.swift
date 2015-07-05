@@ -522,7 +522,7 @@ class Person : RowModel {
     var creationDate: NSDate? // matches "creationTimestamp" column
     
     override func updateFromDatabaseRow(row: Row) {
-        // Set the `id` property if the row has an "id" column:
+        // If the row has an "id" column, set the `id` property:
         if let v = row["id"]   { id = v.value() }
         if let v = row["name"] { name = v.value() }
         if let v = row["age"]  { age = v.value() }
