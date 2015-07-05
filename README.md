@@ -518,6 +518,9 @@ class Person : RowModel {
 }
 ```
 
+For more information about the supported types, check [Value Queries](#value-queries), [Swift Enums](#swift-enums), and [Custom Types](#custom-types) chapters.
+
+
 Fetch **lazy sequences** of row models, **arrays**, or a **single** instance:
 
 ```swift
