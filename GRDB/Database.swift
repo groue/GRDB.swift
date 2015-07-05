@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 
 
-public class Database {
+public final class Database {
     
     public enum TransactionType {
         case Deferred
