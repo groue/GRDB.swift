@@ -1,3 +1,4 @@
 - [ ] RowModel.reload(db)
 - [ ] RowModel support for implicit RowID column.
 - [ ] RowModel.description
+- [ ] Extract Bools from Int only. And document why.
