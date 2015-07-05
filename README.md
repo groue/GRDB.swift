@@ -120,13 +120,6 @@ dbQueue.inDatabase { db in
     db.fetchAllRows("SELECT ...", bindings: ...)  // [Row]
     db.fetchOneRow("SELECT ...", bindings: ...)   // Row?
 }
-
-// Extract arrays (not sequences) out of database blocks, so that the SQLite
-// results are iterated in the database queue:
-//
-let rows = dbQueue.inDatabase { db in
-    db.fetchAllRows("SELECT ...")                 // [Row]
-}
 ```
 
 Bindings are optional arrays or dictionaries that fill the `?` and `:name` parameters in the query:
@@ -136,8 +129,18 @@ db.fetchRows("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
 db.fetchRows("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Arthur"])
 ```
 
+Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
 
-**Extract row values** by index or column name:
+```swift
+let rows = dbQueue.inDatabase { db in
+    return db.fetchAllRows("SELECT ...")          // [Row]
+    return Array(fetchRows("SELECT ..."))         // [Row]
+    return fetchRows("SELECT ...").filter { ... } // [Row]
+}
+```
+
+
+**Read row values** by index or column name:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -156,7 +159,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-**Rows themselves are sequences** of (column name, value) tuples:
+**Rows are collections** of tuples (column name, value):
 
 ```swift
 let row = db.fetchOneRow("SELECT firstName, lastName FROM persons")!
@@ -179,12 +182,15 @@ dbQueue.inDatabase { db in
     db.fetchAll(Int.self, "SELECT ...", bindings: ...)   // [Int?]
     db.fetchOne(Int.self, "SELECT ...", bindings: ...)   // Int?
 }
+```
 
-// Extract arrays (not sequences) out of database blocks, so that the SQLite
-// results are iterated in the database queue:
-//
+Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
+
+```swift
 let names = dbQueue.inDatabase { db in
-    db.fetchAll(String.self, "SELECT name FROM persons") // [String?]
+    return db.fetchAll(String.self, "SELECT name ...")             // [String?]
+    return Array(db.fetch(String.self, "SELECT name ..."))         // [String?]
+    return db.fetch(String.self, "SELECT name ...").filter { ... } // [String?]
 }
 ```
 
