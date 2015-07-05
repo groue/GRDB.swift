@@ -515,10 +515,8 @@ class Person : RowModel {
         if row.hasColumn("age")  { age = row.value(named: "age") }   // Int
         if row.hasColumn("name") { name = row.value(named: "name") } // String
         if row.hasColumn("creationTimestamp") {                      // NSDate
-            // The custom type DBDate that we have declared above turns
-            // out handy:
-            let dbDate: DBDate? = row.value(named: "creationTimestamp")
-            creationDate = dbDate?.date
+            // Use the DBDate custom type declared above:
+            creationDate = (row.value(named: "creationTimestamp") as DBDate?)?.date
         }
     }
 }
