@@ -633,10 +633,7 @@ class PersonsViewController: UITableViewController {
         
         override func updateFromDatabaseRow(row: Row) {
             super.updateFromDatabaseRow(row)
-            
-            if row.hasColumn("bookCount") {
-                bookCount = row.value(named: "bookCount")
-            }
+            if let v = row["bookCount"] { bookCount = v.value() }
         }
     }
     
