@@ -128,6 +128,7 @@ public final class Database {
     - returns: true if the table exists.
     */
     public func tableExists(tableName: String) -> Bool {
+        // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         if let _ = fetchOneRow("SELECT \"sql\" FROM sqlite_master WHERE \"type\" = 'table' AND LOWER(name) = ?", bindings: [tableName.lowercaseString]) {
             return true
         } else {
