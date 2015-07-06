@@ -500,12 +500,12 @@ Subclasses opt in RowModel features by overriding all or part of the base method
 
 In the table below, we see that **fetch** only requires the updateFromDatabaseRow method:
 
-Methods               | fetch | insert | save | update | reload | delete |
---------------------- |:-----:|:------:|:----:|:------:|:------:|:------:|
-updateFromDatabaseRow |   X   |        |      |        |   X    |        |
-databaseTableName     |       |   X    |  X   |   X    |   X    |   X    |
-databasePrimaryKey    |       |   ¹    |  ¹   |   X    |   X    |   X    |
-databaseDictionary    |       |   X    |  X   |   X    |   X    |   X    |
+| Methods               | fetch | insert | save | update | reload | delete |
+|:--------------------- |:-----:|:------:|:----:|:------:|:------:|:------:|
+| updateFromDatabaseRow |   X   |        |      |        |   X    |        |
+| databaseTableName     |       |   X    |  X   |   X    |   X    |   X    |
+| databasePrimaryKey    |       |   ¹    |  ¹   |   X    |   X    |   X    |
+| databaseDictionary    |       |   X    |  X   |   X    |   X    |   X    |
 
 ¹ See [primary keys](#primary-keys) below for more information.
 
