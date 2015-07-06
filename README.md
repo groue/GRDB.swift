@@ -259,7 +259,7 @@ For reference:
     
     The only falsey real is 0.0.
 
-- **TEXT** storage class can be converted to String.
+- **TEXT** storage class can be converted to String and String-based [Swift enums](#swift-enums).
 
 - **BLOB** storage class can be converted to Blob.
 
