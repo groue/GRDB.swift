@@ -553,7 +553,7 @@ See [General Row Processing](#general-row-processing) for more information about
 Your properties can be assigned if they are `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [Swift enums](#swift-enums), or custom types through the [SQLiteValueConvertible protocol](#custom-types). NSObject can't adopt SQLiteValueConvertible and that's why we use the DBDate helper to set the NSDate property.
 
 
-Fetch **lazy sequences** of row models, **arrays**, or a **single** instance:
+Now you can fetch **lazy sequences** of row models, **arrays**, or **single** instances:
 
 ```swift
 
