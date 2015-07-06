@@ -502,12 +502,12 @@ In the table below, we see that fetching row models only requires the updateFrom
 
 Required methods      | fetch | insert | save | update | reload | delete |
 --------------------- |:-----:|:------:|:----:|:------:|:------:|:------:|
-updateFromDatabaseRow |  [X]  |  [ ]   | [ ]  |  [ ]   |  [X]   |  [ ]   |
-databaseTableName     |  [ ]  |  [X]   | [X]  |  [X]   |  [X]   |  [X]   |
-databasePrimaryKey    |  [ ]  | [-](*) |[-](*)|  [X]   |  [X]   |  [X]   |
-databaseDictionary    |  [ ]  |  [X]   | [X]  |  [X]   |  [X]   |  [X]   |
+updateFromDatabaseRow |   X   |        |      |        |   X    |        |
+databaseTableName     |       |   X    |  X   |   X    |   X    |   X    |
+databasePrimaryKey    |       |  (†)   | (†)  |   X    |   X    |   X    |
+databaseDictionary    |       |   X    |  X   |   X    |   X    |   X    |
 
-(*) See [primary keys](#primary-keys) below for more information.
+(†) See [primary keys](#primary-keys) below for more information.
 
 The Person subclass below will help us illustrate RowModel features. Note how it declares properties for the `persons` table seen above:
 
