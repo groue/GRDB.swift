@@ -606,7 +606,7 @@ class PersonsViewController: UITableViewController {
         }
     }
     
-    let persons: [PersonViewModel]?
+    var persons: [PersonViewModel]!
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
