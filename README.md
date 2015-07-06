@@ -25,7 +25,7 @@ import GRDB
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
 // Fetch and insert values:
-let redWinesCount = db.inDatabase { db in
+let redWinesCount = dbQueue.inDatabase { db in
     db.fetchOne(Int.self, "SELECT COUNT(*) FROM wines WHERE color = ?",
                 bindings: [Color.Red])  // Int?
 }
