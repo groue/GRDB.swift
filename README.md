@@ -166,7 +166,7 @@ let bookCount64: Int64 = row.value(named: "bookCount")!
 let hasBooks: Bool = row.value(named: "bookCount")!     // false when 0
 ```
 
-**WARNING**: type casting requires a very careful use of the `as` operator (see rdar://problem/21676393):
+**WARNING**: type casting requires a very careful use of the `as` operator (see [rdar://problem/21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
 
 ```swift
 row.value(named: "bookCount") as Int?   // good
