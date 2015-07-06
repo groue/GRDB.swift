@@ -498,9 +498,9 @@ try migrator.migrate(dbQueue)
 
 Subclasses opt in RowModel features by overriding all or part of the base methods that define their relationship with the SQLite database.
 
-In the table below, we see that fetching row models only requires the updateFromDatabaseRow method:
+In the table below, we see that **fetch** only requires the updateFromDatabaseRow method:
 
-Required methods      | fetch | insert | save | update | reload | delete |
+Methods               | fetch | insert | save | update | reload | delete |
 --------------------- |:-----:|:------:|:----:|:------:|:------:|:------:|
 updateFromDatabaseRow |   X   |        |      |        |   X    |        |
 databaseTableName     |       |   X    |  X   |   X    |   X    |   X    |
