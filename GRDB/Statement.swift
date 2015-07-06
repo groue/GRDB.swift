@@ -56,7 +56,9 @@ public class Statement {
         self.database = database
         self.databaseQueueID = dispatch_get_specific(DatabaseQueue.databaseQueueIDKey)
         let code = sqlite3_prepare_v2(database.sqliteConnection, sql, -1, &sqliteStatement, nil)
-        try throwUnlessSQLITE_OK(code, sqliteConnection: database.sqliteConnection, sql: sql)
+        if code != SQLITE_OK {
+            throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql)
+        }
         
         // Set bingins. Duplicate the didSet property observer since it is not
         // called during initialization.
@@ -93,7 +95,7 @@ public class Statement {
         
         if code != SQLITE_OK {
             verboseFailOnError { () -> Void in
-                throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+                throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql)
             }
         }
     }
@@ -113,7 +115,7 @@ public class Statement {
         let code = sqlite3_reset(sqliteStatement)
         if code != SQLITE_OK {
             verboseFailOnError { () -> Void in
-                throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+                throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql)
             }
         }
     }
@@ -123,7 +125,7 @@ public class Statement {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {
             verboseFailOnError { () -> Void in
-                throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+                throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql)
             }
         }
     }

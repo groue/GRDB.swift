@@ -152,12 +152,17 @@ public final class Database {
     /// The SQLite connection handle
     let sqliteConnection = SQLiteConnection()
     
+    /// The last error message
+    var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
+    
     init(path: String, configuration: Configuration) throws {
         self.configuration = configuration
         
         // See https://www.sqlite.org/c3ref/open.html
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
-        try throwUnlessSQLITE_OK(code, sqliteConnection: sqliteConnection)
+        if code != SQLITE_OK {
+            throw SQLiteError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
+        }
         
         if configuration.foreignKeysEnabled {
             try execute("PRAGMA foreign_keys = ON")
@@ -259,14 +264,6 @@ func verboseFailOnError<Result>(@noescape block: (Void) throws -> Result) -> Res
         fatalError(error.description)
     } catch {
         fatalError("error: \(error)")
-    }
-}
-
-
-/// Throws if code is not SQLITE_OK.
-func throwUnlessSQLITE_OK(code: Int32, sqliteConnection: SQLiteConnection, sql: String? = nil) throws {
-    if code != SQLITE_OK {
-        throw SQLiteError(code: code, sqliteConnection: sqliteConnection, sql: sql)
     }
 }
 

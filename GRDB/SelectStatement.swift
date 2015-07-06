@@ -152,7 +152,7 @@ extension SelectStatement {
                     return Row(statement: self, unsafe: self.unsafe)
                 default:
                     verboseFailOnError { () -> Void in
-                        throw SQLiteError(code: code, sqliteConnection: self.database.sqliteConnection, sql: self.sql)
+                        throw SQLiteError(code: code, message: self.database.lastErrorMessage, sql: self.sql, bindings: self.bindings)
                     }
                     return nil
                 }

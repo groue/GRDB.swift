@@ -24,22 +24,20 @@
 
 public final class UpdateStatement : Statement {
     
-    // TODO: document this reset
     public func execute(bindings bindings: Bindings? = nil) throws {
         if let bindings = bindings {
             self.bindings = bindings
         }
+        
         reset()
+        
         if let trace = database.configuration.trace {
             trace(sql: sql, bindings: self.bindings)
         }
+        
         let code = sqlite3_step(sqliteStatement)
-        switch code {
-        case SQLITE_DONE:
-            // the statement has finished executing successfully
-            break
-        default:
-            try throwUnlessSQLITE_OK(code, sqliteConnection: database.sqliteConnection, sql: sql)
+        if code != SQLITE_DONE {
+            throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql, bindings: self.bindings)
         }
     }
 }

@@ -47,21 +47,15 @@ public struct SQLiteError : ErrorType {
     
     // MARK: Not public
     
-    init(code: Int32, message: String? = nil, sql: String? = nil) {
+    /// The bindings that yielded the error (if relevant).
+    /// Not public because the Bindings class has no public method.
+    let bindings: Bindings?
+    
+    init(code: Int32, message: String? = nil, sql: String? = nil, bindings: Bindings? = nil) {
         self.code = Int(code)
         self.message = message
         self.sql = sql
-    }
-    
-    init(code: Int32, sqliteConnection: SQLiteConnection, sql: String? = nil) {
-        let message: String?
-        let cString = sqlite3_errmsg(sqliteConnection)
-        if cString == nil {
-            message = nil
-        } else {
-            message = String.fromCString(cString)
-        }
-        self.init(code: code, message: message, sql: sql)
+        self.bindings = bindings
     }
 }
 
@@ -71,15 +65,23 @@ extension SQLiteError: CustomStringConvertible {
         // How to write this with a switch?
         if let sql = sql {
             if let message = message {
-                fatalError("SQLite error \(code) with statement `\(sql)`: \(message)")
+                if let bindings = bindings {
+                    return "SQLite error \(code) with statement `\(sql)` bindings \(bindings): \(message)"
+                } else {
+                    return "SQLite error \(code) with statement `\(sql)`: \(message)"
+                }
             } else {
-                fatalError("SQLite error \(code) with statement `\(sql)`")
+                if let bindings = bindings {
+                    return "SQLite error \(code) with statement `\(sql)` bindings \(bindings)"
+                } else {
+                    return "SQLite error \(code) with statement `\(sql)`"
+                }
             }
         } else {
             if let message = message {
-                fatalError("SQLite error \(code): \(message)")
+                return "SQLite error \(code): \(message)"
             } else {
-                fatalError("SQLite error \(code)")
+                return "SQLite error \(code)"
             }
         }
     }
