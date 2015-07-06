@@ -705,14 +705,14 @@ try dbQueue.inTransaction { db in
     
     // Insert
     let person = Person(name: "Arthur", age: 41)
-    try person.insert(db)
+    try person.save(db) // Same as insert(db) when primary key is not set
     
     // Update
     person.age = 42
-    try person.update(db)
+    try person.save(db) // Same as update(db) when primary key is set
     
-    // Delete
-    try person.delete(db)
+    person.age = 666
+    person.reload(db)
     
     return .Commit
 }
@@ -729,7 +729,7 @@ class Person : RowModel {
 
 let arthur = Person(name: "Arthur")
 arthur.id   // nil
-try arthur.insert(db)
+try arthur.save(db)
 arthur.id   // some value
 ```
 

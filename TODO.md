@@ -3,3 +3,5 @@
 - [ ] Investigate INSERT OR REPLACE
 - [ ] Add bindings to SQLiteError, so that one known the value that could not be updated/inserted.
 - [ ] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that.
+- [ ] Seriously question what RowModel.save() should do when primary key is set, and yet the object does not exists in the database. What does ActiveRecord do?
+- [ ] RowModel.update() should return true if it actually did update something.
