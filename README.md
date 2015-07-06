@@ -67,20 +67,20 @@ Application tools:
 You access SQLite databases through thread-safe database queues (inspired by [ccgus/FMDB](https://github.com/ccgus/fmdb)):
 
 ```swift
-let dbQueue = try DatabaseQueue(path: "/tmp/GRDB.sqlite")
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 ```
 
 Configure databases:
 
 ```swift
 let configuration = Configuration(
-    foreignKeysEnabled: true,   // Default true, because, come on
+    foreignKeysEnabled: true,   // Default true
     readonly: false,            // Default false
     trace: Configuration.logSQL // An optional trace function.
                                 // Configuration.logSQL logs all SQL statements.
 )
 let dbQueue = try DatabaseQueue(
-    path: "/tmp/GRDB.sqlite",
+    path: "/path/to/database.sqlite",
     configuration: configuration)
 ```
 
