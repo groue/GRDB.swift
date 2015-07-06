@@ -171,20 +171,22 @@ class PrimaryKeySingleTests: RowModelTestCase {
             try dbQueue.inTransaction { db in
                 let arthur = Person(name: "Arthur", age: 41)
                 try arthur.insert(db)
-                let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.id)
+                
+                var pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.id)
                 try pet.insert(db)
                 
                 pet.name = "Karl"
-                try pet.update(db)  // The tested method
+                var updated = try pet.update(db)  // The tested method
+                XCTAssertTrue(updated)
+                
+                pet = db.fetchOne(Pet.self, primaryKey: pet.UUID!)!
+                XCTAssertEqual(pet.name!, "Karl")
+                
+                try pet.delete(db)
+                updated = try pet.update(db)  // The tested method
+                XCTAssertFalse(updated)
+                
                 return .Commit
-            }
-            
-            // After insertion, model should be present in the database
-            dbQueue.inDatabase { db in
-                let pets = db.fetchAll(Pet.self, "SELECT * FROM pets ORDER BY name")
-                XCTAssertEqual(pets.count, 1)
-                XCTAssertEqual(pets.first!.UUID!, "BobbyID")
-                XCTAssertEqual(pets.first!.name!, "Karl")
             }
         }
     }

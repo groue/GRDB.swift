@@ -26,6 +26,8 @@ import Cocoa
 
 public class RowModel {
     
+    // MARK: - Core methods
+    
     public enum PrimaryKey {
         case None
         case RowID(String)
@@ -48,6 +50,9 @@ public class RowModel {
     public func updateFromDatabaseRow(row: Row) {
     }
     
+    
+    // MARK: - Initializers
+    
     public init() {
     }
     
@@ -56,10 +61,10 @@ public class RowModel {
     }
     
     
+    // MARK: - CRUD
+    
+    /// Inserts
     public func insert(db: Database) throws {
-        // TODO: validation
-        // TODO: dirty
-        // TODO?: table modification notification
         
         // Table name
         
@@ -116,11 +121,9 @@ public class RowModel {
         }
     }
     
-    
-    public func update(db: Database) throws {
-        // TODO: validation
-        // TODO: dirty
-        // TODO?: table modification notification
+    /// Throws an error if the model has no table name, or no primary key.
+    /// Returns true if the model still exists in the database and has been updated.
+    public func update(db: Database) throws -> Bool {
         
         // Table name
         
@@ -162,39 +165,23 @@ public class RowModel {
         let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
         let sql = "UPDATE \(tableName.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
         try db.execute(sql, bindings: bindings)
+        
+        return db.changes > 0
     }
     
     
     /// Updates if model has a primary key with at least one non-nil value,
     /// or inserts.
-    final public func save(db: Database) throws {
-        
-        // Table name
-        
-        guard let tableName = self.dynamicType.databaseTableName else {
-            fatalError("Missing table name")
-        }
-        
-        
-        // Extract primary key
-        
-        if let primaryKeyDictionary = self.dynamicType.primaryKeyDictionary(databaseDictionary) {
-            
-            // Update or insert depending on the result of SELECT 1 FROM table WHERE id = ?.
-            
-            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-            let bindings = Bindings(Array(primaryKeyDictionary.values))
-            let sql = "SELECT 1 FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
-            
-            if db.fetchOne(Bool.self, sql, bindings: bindings)! {
-                try update(db)
-            } else {
-                try insert(db)
-            }
-            
+    ///
+    /// Returns true if the model has been inserted, or if it still exists in
+    /// the database and has been updated.
+    final public func save(db: Database) throws -> Bool {
+        if let _ = self.dynamicType.primaryKeyDictionary(databaseDictionary) {
+            return try update(db)
         } else {
             // No primary key: insert
             try insert(db)
+            return true
         }
     }
     
@@ -221,7 +208,7 @@ public class RowModel {
         try db.execute(sql, bindings: bindings)
     }
     
-    /// Throws an error if the model has no table name, or no primary key
+    /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been reloaded.
     final public func reload(db: Database) -> Bool {
         
@@ -255,6 +242,7 @@ public class RowModel {
         }
     }
     
+    // MARK: - Not public
     
     // Attempts to build a primary key dictionary [String: SQLiteValueConvertible?].
     //
@@ -305,6 +293,9 @@ public class RowModel {
     }
 }
 
+
+// MARK: - CustomStringConvertible
+
 extension RowModel : CustomStringConvertible {
     public var description: String {
         return "<\(reflect(self.dynamicType).summary)" + "".join(databaseDictionary.map { (key, value) in
@@ -324,6 +315,11 @@ extension RowModel : CustomStringConvertible {
 }
 
 
+// MARK: - Feching Row Models
+
+/**
+The Database methods that fetch rows.
+*/
 extension Database {
 
     // let persons = db.fetch(Person.self, "SELECT ...", bindings: ...)
@@ -356,9 +352,6 @@ extension Database {
             return nil
         }
     }
-}
-
-extension Database {
     
     // let person = db.fetchOne(Person.self, primaryKey: ...)
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey primaryKeyDictionary: [String: SQLiteValueConvertible?]) -> RowModel? {
@@ -404,6 +397,10 @@ extension Database {
     }
 }
 
+
+/**
+The SelectStatement methods that fetch rows.
+*/
 extension SelectStatement {
     
     // let persons = statement.fetch(Person.self, bindings: ...)

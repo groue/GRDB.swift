@@ -156,23 +156,25 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 let arthur = Person(name: "Arthur", age: 41)
                 try arthur.insert(db)
                 
-                let citizenship = Citizenship()
+                var citizenship = Citizenship()
                 citizenship.personID = arthur.id
                 citizenship.countryName = "France"
                 citizenship.grantedDate = date1
                 try citizenship.insert(db)
                 
                 citizenship.grantedDate = date2
-                try citizenship.update(db)  // The tested method
+                var updated = try citizenship.update(db)  // The tested method
+                XCTAssertTrue(updated)
+                
+                citizenship = db.fetchOne(Citizenship.self, primaryKey: ["personID": citizenship.personID, "countryName": citizenship.countryName])!
+                XCTAssertEqual(citizenship.countryName!, "France")
+                XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: citizenship.grantedDate!), 2000)
+                
+                try citizenship.delete(db)
+                updated = try citizenship.update(db)      // The tested method
+                XCTAssertFalse(false)
+                
                 return .Commit
-            }
-            
-            // After insertion, model should be present in the database
-            dbQueue.inDatabase { db in
-                let citizenships = db.fetchAll(Citizenship.self, "SELECT * FROM citizenships")
-                XCTAssertEqual(citizenships.count, 1)
-                XCTAssertEqual(citizenships.first!.countryName!, "France")
-                XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: citizenships.first!.grantedDate!), 2000)
             }
         }
     }

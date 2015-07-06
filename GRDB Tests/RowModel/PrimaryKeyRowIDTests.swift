@@ -148,21 +148,24 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     
     func testUpdate() {
         assertNoError {
-            let arthur = Person(name: "Arthur", age: 41)
-            
-            XCTAssertTrue(arthur.id == nil)
             try dbQueue.inTransaction { db in
+                var arthur = Person(name: "Arthur", age: 41)
+                XCTAssertTrue(arthur.id == nil)
+                
                 try arthur.insert(db)
+                
                 arthur.age = 42
-                try arthur.update(db)   // The tested method
+                var updated = try arthur.update(db)   // The tested method
+                XCTAssertTrue(updated)
+                
+                arthur = db.fetchOne(Person.self, primaryKey: arthur.id)!
+                XCTAssertEqual(arthur.age, 42)
+                
+                try arthur.delete(db)
+                updated = try arthur.update(db)   // The tested method
+                XCTAssertFalse(updated)
+
                 return .Commit
-            }
-            
-            dbQueue.inDatabase { db in
-                let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
-                XCTAssertEqual(persons.count, 1)
-                XCTAssertEqual(persons.first!.name!, "Arthur")
-                XCTAssertEqual(persons.first!.age!, 42)
             }
         }
     }
@@ -174,14 +177,16 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
             XCTAssertTrue(arthur.id == nil)
             try dbQueue.inTransaction { db in
                 // Initial save should insert
-                try arthur.save(db)
+                let saved = try arthur.save(db)
+                XCTAssertTrue(saved)
                 return .Commit
             }
             XCTAssertTrue(arthur.id != nil)
             arthur.age = 42
             try dbQueue.inTransaction { db in
                 // Initial save should update
-                try arthur.save(db)
+                let saved = try arthur.save(db)
+                XCTAssertTrue(saved)
                 return .Commit
             }
             

@@ -122,6 +122,17 @@ public final class Database {
     }
     
     /**
+    The number of rows changed by the most recent INSERT, UPDATE or DELETE
+    statement.
+    
+    See [sqlite3_changes()](http://sqlite.org/c3ref/changes.html).
+    */
+    public var changes: Int {
+        return Int(sqlite3_changes(sqliteConnection))
+    }
+
+    
+    /**
     Returns whether a table exists.
     
     - parameter tableName: A table name.
