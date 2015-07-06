@@ -6,3 +6,4 @@
 - [ ] Seriously question what RowModel.save() should do when primary key is set, and yet the object does not exists in the database. What does ActiveRecord do?
 - [ ] RowModel.update() should return true if it actually did update something.
 - [ ] Make sure RowModel.init(row: Row) can be overriden independently from init(). People must be able to perform some initialization work when fetching row models from the database.
+- [ ] Database.tableExists: does this methods need to be case-insensitive?
