@@ -540,9 +540,9 @@ class Person : RowModel {
 }
 ```
 
-**The first thing to notice is that all properties are optional.** This is because RowModel does not want to restrain you from feeding it with custom SQL queries, including queries that "lack" columns. *You know better*.
+> TIP: Use implicitly unwrapped optionals for not null columns, like `id: Int64!`, and optionals for nullable columns: `age: Int?`.
 
-The `updateFromDatabaseRow(row: Row)` method indeed only assigns available SQLite values to properties:
+The `updateFromDatabaseRow(row: Row)` method assigns available SQLite values to properties:
 
 ```swift
 class Person : RowModel {
@@ -559,6 +559,8 @@ class Person : RowModel {
     }
 }
 ```
+
+> TIP: avoid assuming that the row contains a column for all properties. Consider this method as a general-purpose way to update the RowModel, not only exposed to your own code, but also to the rest of the world, including the base class RowModel itself.
 
 See [General Row Processing](#general-row-processing) for more information about the `row[columnName]` subscript operator, and [Values](#values) about the supported property types.
 
@@ -600,7 +602,7 @@ class PersonsViewController: UITableViewController {
         
         override func updateFromDatabaseRow(row: Row) {
             super.updateFromDatabaseRow(row)
-            bookCount = row.value(named:"bookCount")
+            if let v = row["bookCount"] { bookCount = v.value() }
         }
     }
     
@@ -723,7 +725,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Models that declare a `RowID` primary key have their id automatically set after insertion:
+Models that declare a `RowID` primary key have their id automatically set after insertion (the id is set with the `updateFromDatabaseRow` method):
 
 ```swift
 let arthur = Person(name: "Arthur")
