@@ -53,7 +53,7 @@ SQLite API:
 - [Fetch Queries](#fetch-queries)
 - [Swift Enums](#swift-enums)
 - [Custom Types](#custom-types)
-- [Statements](#statements)
+- [Prepared Statements](#prepared-statements)
 - [Error Handling](#error-handling)
 
 Application tools:
@@ -381,7 +381,7 @@ db.fetchOne(DBDate.self, "SELECT ...", bindings: ...) // DBDate?
 ```
 
 
-## Statements
+## Prepared Statements
 
 SQLite supports **Prepared Statements** that can be reused.
 
@@ -422,8 +422,6 @@ try dbQueue.inDatabase { db in
     statement.fetchOne(Int.self, bindings: ...) // Int?
 }
 ```
-
-Note that the `Database.selectStatement()` function is the **only** function of GRDB.swift that may throw an error when building a SELECT statement. All other fetching functions prefer dying in a loud and verbose crash when given an invalid SELECT statement.
 
 
 ## Error Handling
