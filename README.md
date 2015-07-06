@@ -232,7 +232,7 @@ The `db.fetchOne(type:sql:bindings:)` function returns an optional value which i
 
 ## Values
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, and [Swift enums](#swift-enums). Custom types are supported as well through the [SQLiteValueConvertible protocol](#custom-types).
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, and [Swift enums](#swift-enums). Custom types are supported as well through the [SQLiteValueConvertible](#custom-types) protocol.
 
 
 ### Swift Enums
@@ -513,14 +513,14 @@ try migrator.migrate(dbQueue)
 
 Subclasses opt in RowModel features by overriding all or part of the base methods that define their relationship with the SQLite database.
 
-In the table below, we see that **fetch** only requires the updateFromDatabaseRow method:
+For example, we see below that **fetching** only requires the updateFromDatabaseRow method:
 
-| Methods               | fetch | insert | save | update | reload | delete |
-|:--------------------- |:-----:|:------:|:----:|:------:|:------:|:------:|
-| updateFromDatabaseRow |   X   |        |      |        |   X    |        |
-| databaseTableName     |       |   X    |  X   |   X    |   X    |   X    |
-| databasePrimaryKey    |       |   ¹    |  ¹   |   X    |   X    |   X    |
-| databaseDictionary    |       |   X    |  X   |   X    |   X    |   X    |
+| Methods               | fetch | insert | update | delete |
+|:--------------------- |:-----:|:------:|:------:|:------:|
+| updateFromDatabaseRow |   X   |        |        |        |
+| databaseTableName     |       |   X    |   X    |   X    |
+| databasePrimaryKey    |       |   ¹    |   X    |   X    |
+| databaseDictionary    |       |   X    |   X    |   X    |
 
 ¹ See [primary keys](#primary-keys) below for more information.
 
