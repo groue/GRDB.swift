@@ -462,7 +462,8 @@ do {
     error.sql
     
     // The full error message
-    // "SQLite error 19 with statement `INSERT INTO pets (masterId, name) VALUES (?, ?)` bindings [1, \"Bobby\"]: FOREIGN KEY constraint failed"
+    // "SQLite error 19 with statement `INSERT INTO pets (masterId, name)
+    // VALUES (?, ?)` bindings [1, \"Bobby\"]: FOREIGN KEY constraint failed"
     error.description
 }
 ```
