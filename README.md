@@ -21,22 +21,26 @@ Usage
 ```swift
 import GRDB
 
+// Open database connection
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
-let person = Person(name: "Arthur")
+// Fetch and insert values:
+let redWinesCount = db.inDatabase { db in
+    db.fetchOne(Int.self, "SELECT COUNT(*) FROM wines WHERE color = ?",
+                bindings: [Color.Red])  // Int?
+}
+
+// Insert and fetch row models:
 try dbQueue.inTransaction { db in
-    try person.insert(db)
+    try Person(name: "Arthur").insert(db)
     return .Commit
 }
 
-let persons = dbQueue.inDatabase { db in
-    db.fetchAll(Person.type, "SELECT * FROM persons")
-}
-
-let redWinesCount = db.inDatabase { db in
-    db.fetchOne(Int.self,
-                "SELECT COUNT(*) FROM wines WHERE color = ?",
-                bindings: [Color.Red])
+dbQueue.inDatabase { db in
+    persons = db.fetchAll(Person.type, "SELECT ...") // [Person]
+    for wine in db.fetch(Wine.type, "SELECT ...") {  // AnySequence<Wine>
+        ...
+    }
 }
 ```
 
