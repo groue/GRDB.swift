@@ -537,7 +537,7 @@ class Person : RowModel {
 }
 ```
 
-**The first thing to notice is that all properties are optional.** This is because RowModel does not want to restrain you from feeding it with custom SQL queries, including queries that "lack" columns.
+**The first thing to notice is that all properties are optional.** This is because RowModel does not want to restrain you from feeding it with custom SQL queries, including queries that "lack" columns. *You know better*.
 
 The `updateFromDatabaseRow(row: Row)` method indeed only assigns available SQLite values to properties:
 
