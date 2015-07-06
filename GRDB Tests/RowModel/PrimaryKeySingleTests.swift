@@ -237,30 +237,6 @@ class PrimaryKeySingleTests: RowModelTestCase {
         }
     }
     
-    func testSelectWithArrayPrimaryKey() {
-        assertNoError {
-            let petUUID = "BobbyID"
-            
-            try dbQueue.inTransaction { db in
-                let arthur = Person(name: "Arthur", age: 41)
-                try arthur.insert(db)
-                
-                let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.id)
-                try pet.insert(db)
-                
-                return .Commit
-            }
-            
-            
-            dbQueue.inDatabase { db in
-                let pet = db.fetchOne(Pet.self, primaryKey: [petUUID])!   // The tested method
-                
-                XCTAssertEqual(pet.UUID!, petUUID)
-                XCTAssertEqual(pet.name!, "Bobby")
-            }
-        }
-    }
-    
     func testDelete() {
         assertNoError {
             try dbQueue.inTransaction { db in
@@ -282,6 +258,32 @@ class PrimaryKeySingleTests: RowModelTestCase {
                 let pets = db.fetchAll(Pet.self, "SELECT * FROM pets ORDER BY name")
                 XCTAssertEqual(pets.count, 1)
                 XCTAssertEqual(pets.first!.name!, "Karl")
+            }
+        }
+    }
+    
+    func testReload() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+                
+                let bobby = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.id)
+                try bobby.insert(db)
+                
+                bobby.name = "Karl"
+                XCTAssertEqual(bobby.name!, "Karl")
+                XCTAssertTrue(bobby.reload(db))         // object no longer in database
+                XCTAssertEqual(bobby.name!, "Bobby")
+                
+                try bobby.delete(db)
+                
+                bobby.name = "Karl"
+                XCTAssertEqual(bobby.name!, "Karl")
+                XCTAssertFalse(bobby.reload(db))        // object still in database
+                XCTAssertEqual(bobby.name!, "Karl")
+                
+                return .Commit
             }
         }
     }

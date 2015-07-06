@@ -61,6 +61,8 @@ public class RowModel {
         // TODO: dirty
         // TODO?: table modification notification
         
+        // Table name
+        
         guard let tableName = self.dynamicType.databaseTableName else {
             fatalError("Missing table name")
         }
@@ -120,6 +122,8 @@ public class RowModel {
         // TODO: dirty
         // TODO?: table modification notification
         
+        // Table name
+        
         guard let tableName = self.dynamicType.databaseTableName else {
             fatalError("Missing table name")
         }
@@ -130,11 +134,10 @@ public class RowModel {
         var updatedDictionary = databaseDictionary
         
         
-        // Extract primary key values
+        // Extract primary key
         
-        let primaryKey = self.dynamicType.databasePrimaryKey
-        guard let primaryKeyDictionary = RowModel.primaryKeyDictionary(primaryKey, dictionary: updatedDictionary) else {
-            fatalError("Missing primaryKey")
+        guard let primaryKeyDictionary = self.dynamicType.primaryKeyDictionary(updatedDictionary) else {
+            fatalError("No primaryKey")
         }
         
         
@@ -162,101 +165,142 @@ public class RowModel {
     }
     
     
+    /// Updates if model has a primary key with at least one non-nil value,
+    /// or inserts.
     final public func save(db: Database) throws {
+        
+        // Table name
         
         guard let tableName = self.dynamicType.databaseTableName else {
             fatalError("Missing table name")
         }
         
-        let saveIsUpdate: Bool
-        pk: switch self.dynamicType.databasePrimaryKey {
-        case .None:
-            // No primary key? Insert.
-            saveIsUpdate = false
-            
-        case .RowID(let column):
-            if let value = databaseDictionary[column]!
-            {
-                // Update if and only if the primary key exists in the database.
-                saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?", bindings: [value])!
-            }
-            else
-            {
-                // Primary key not set? Insert.
-                saveIsUpdate = false
-            }
-            
-        case .Column(let column):
-            if let value = databaseDictionary[column]!
-            {
-                // Update if and only if the primary key exists in the database.
-                saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?", bindings: [value])!
-            }
-            else
-            {
-                // Primary key not set? Insert.
-                saveIsUpdate = false
-            }
-            
-        case .Columns(let columns):
-            let databaseDictionary = self.databaseDictionary
-            for column in columns {
-                if databaseDictionary[column]! == nil {
-                    // One item of the primary key is not set? Insert.
-                    saveIsUpdate = false
-                    break pk
-                }
-            }
-            
-            // Update if and only if the primary key exists in the database.
-            let whereSQL = " AND ".join(columns.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-            let bindings = Bindings(columns.map { column in databaseDictionary[column]! })
-            saveIsUpdate = db.fetchOne(Bool.self, "SELECT 1 FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)", bindings: bindings)!
-        }
         
-        if saveIsUpdate {
-            try update(db)
+        // Extract primary key
+        
+        if let primaryKeyDictionary = self.dynamicType.primaryKeyDictionary(databaseDictionary) {
+            
+            // Update or insert depending on the result of SELECT 1 FROM table WHERE id = ?.
+            
+            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+            let bindings = Bindings(Array(primaryKeyDictionary.values))
+            let sql = "SELECT 1 FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
+            
+            if db.fetchOne(Bool.self, sql, bindings: bindings)! {
+                try update(db)
+            } else {
+                try insert(db)
+            }
+            
         } else {
+            // No primary key: insert
             try insert(db)
         }
     }
     
-    
+    /// Throws an error if the model has no table name, or no primary key
     final public func delete(db: Database) throws {
         
         guard let tableName = self.dynamicType.databaseTableName else {
             fatalError("Missing table name")
         }
         
-        // Extract primary key values, and remove primary key columns from the updated columns
         
-        let primaryKey = self.dynamicType.databasePrimaryKey
-        guard let primaryKeyDictionary = RowModel.primaryKeyDictionary(primaryKey, dictionary: databaseDictionary) else {
-            fatalError("Missing primaryKey")
+        // Extract primary key
+        
+        guard let primaryKeyDictionary = self.dynamicType.primaryKeyDictionary(databaseDictionary) else {
+            fatalError("No primaryKey")
         }
         
+        
         // "DELETE FROM table WHERE id = ?"
+        
         let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
         let bindings = Bindings(Array(primaryKeyDictionary.values))
         let sql = "DELETE FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
         try db.execute(sql, bindings: bindings)
     }
     
+    /// Throws an error if the model has no table name, or no primary key
+    /// Returns true if the model still exists in the database and has been reloaded.
+    final public func reload(db: Database) -> Bool {
+        
+        guard let tableName = self.dynamicType.databaseTableName else {
+            fatalError("Missing table name")
+        }
+        
+        
+        // Extract primary key
+        
+        guard let primaryKeyDictionary = self.dynamicType.primaryKeyDictionary(databaseDictionary) else {
+            fatalError("No primaryKey")
+        }
+        
+        
+        // "SELECT * FROM table WHERE id = ?"
+        
+        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+        let bindings = Bindings(Array(primaryKeyDictionary.values))
+        let sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
+        let row = db.fetchOneRow(sql, bindings: bindings)
+        
+        
+        // Reload
+        
+        if let row = row {
+            updateFromDatabaseRow(row)
+            return true
+        } else {
+            return false
+        }
+    }
     
-    private static func primaryKeyDictionary(primaryKey: PrimaryKey, dictionary: [String: SQLiteValueConvertible?]) -> [String: SQLiteValueConvertible?]? {
-        switch primaryKey {
+    
+    // Attempts to build a primary key dictionary [String: SQLiteValueConvertible?].
+    //
+    // Result values come from the *dictionary* argument.
+    // Result keys come from the *primaryKey* argument.
+    //
+    // The result is nil if:
+    // - *primaryKey* is not .None
+    // - and *dictionary* contains a non-nil value for at least one primary key.
+    //
+    // Otherwise the result is nil.
+    private class func primaryKeyDictionary(dictionary: [String: SQLiteValueConvertible?]) -> [String: SQLiteValueConvertible?]? {
+        switch databasePrimaryKey {
         case .None:
             return nil
+            
         case .RowID(let column):
-            return [column: dictionary[column]!]
-        case .Column(let column):
-            return [column: dictionary[column]!]
-        case .Columns(let columns):
-            var dic = [String: SQLiteValueConvertible?]()
-            for column in columns {
-                dic[column] = dictionary[column]!
+            if let optionalValue = dictionary[column], let value = optionalValue {
+                return [column: value]
+            } else {
+                return nil
             }
-            return dic
+            
+        case .Column(let column):
+            if let optionalValue = dictionary[column], let value = optionalValue {
+                return [column: value]
+            } else {
+                return nil
+            }
+            
+        case .Columns(let columns):
+            var primaryKeyDictionary = [String: SQLiteValueConvertible?]()
+            var oneValueIsNotNil = false
+            for column in columns {
+                if let optionalValue = dictionary[column], let value = optionalValue {
+                    oneValueIsNotNil = true
+                    primaryKeyDictionary[column] = value
+                } else {
+                    primaryKeyDictionary[column] = nil
+                }
+            }
+            if oneValueIsNotNil {
+                return primaryKeyDictionary
+            } else {
+                return nil
+            }
         }
     }
 }
@@ -278,6 +322,7 @@ extension RowModel : CustomStringConvertible {
             }}) + ">"
     }
 }
+
 
 extension Database {
 
@@ -316,25 +361,19 @@ extension Database {
 extension Database {
     
     // let person = db.fetchOne(Person.self, primaryKey: ...)
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey bindings: Bindings) -> RowModel? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey primaryKeyDictionary: [String: SQLiteValueConvertible?]) -> RowModel? {
+        
+        // Table name
+        
         guard let tableName = RowModel.databaseTableName else {
             fatalError("Missing table name")
         }
         
-        let keyDictionary: [String: SQLiteValueConvertible?]
-        switch RowModel.databasePrimaryKey {
-        case .None:
-            keyDictionary = bindings.dictionary(defaultColumnNames: nil)
-        case .RowID(let column):
-            keyDictionary = bindings.dictionary(defaultColumnNames: [column])
-        case .Column(let column):
-            keyDictionary = bindings.dictionary(defaultColumnNames: [column])
-        case .Columns(let columns):
-            keyDictionary = bindings.dictionary(defaultColumnNames: columns)
-        }
         
-        let whereSQL = " AND ".join(keyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-        let bindings = Bindings(Array(keyDictionary.values))
+        // "SELECT * FROM table WHERE id = ?"
+        
+        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+        let bindings = Bindings(Array(primaryKeyDictionary.values))
         let sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
         return fetchOne(type, sql, bindings: bindings)
     }

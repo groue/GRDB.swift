@@ -232,25 +232,6 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
         }
     }
     
-    func testSelectWithArrayPrimaryKey() {
-        assertNoError {
-            var arthurID: Int64? = nil
-            try dbQueue.inTransaction { db in
-                let arthur = Person(name: "Arthur", age: 41)
-                try arthur.insert(db)
-                arthurID = arthur.id
-                return .Commit
-            }
-            
-            dbQueue.inDatabase { db in
-                let arthur = db.fetchOne(Person.self, primaryKey: [arthurID])! // The tested method
-                XCTAssertEqual(arthur.id!, arthurID!)
-                XCTAssertEqual(arthur.name!, "Arthur")
-                XCTAssertEqual(arthur.age!, 41)
-            }
-        }
-    }
-    
     func testDelete() {
         assertNoError {
             try dbQueue.inTransaction { db in
@@ -269,6 +250,29 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(persons.count, 1)
                 XCTAssertEqual(persons.first!.name!, "Barbara")
+            }
+        }
+    }
+    
+    func testReload() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                let arthur = Person(name: "Arthur")
+                try arthur.insert(db)
+                
+                arthur.name = "Bobby"
+                XCTAssertEqual(arthur.name!, "Bobby")
+                XCTAssertTrue(arthur.reload(db))        // object still in database
+                XCTAssertEqual(arthur.name!, "Arthur")
+                
+                try arthur.delete(db)
+                
+                arthur.name = "Bobby"
+                XCTAssertEqual(arthur.name!, "Bobby")
+                XCTAssertFalse(arthur.reload(db))       // object no longer in database
+                XCTAssertEqual(arthur.name!, "Bobby")
+                
+                return .Commit
             }
         }
     }
