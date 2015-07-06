@@ -263,7 +263,7 @@ For reference:
 
 - **BLOB** storage class can be converted to Blob.
 
-Your custom types can perform their own conversions to and from SQLite storage classes (see [below](#custom-types)).
+Your [custom types](#custom-types) can perform their own conversions to and from SQLite storage classes.
 
 
 ## Swift Enums
