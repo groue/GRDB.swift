@@ -37,8 +37,8 @@ try dbQueue.inTransaction { db in
 }
 
 dbQueue.inDatabase { db in
-    persons = db.fetchAll(Person.type, "SELECT ...") // [Person]
-    for wine in db.fetch(Wine.type, "SELECT ...") {  // AnySequence<Wine>
+    let persons = db.fetchAll(Person.type, "SELECT ...") // [Person]
+    for wine in db.fetch(Wine.type, "SELECT ...") {      // AnySequence<Wine>
         ...
     }
 }
