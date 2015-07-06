@@ -560,7 +560,7 @@ class Person : RowModel {
 }
 ```
 
-> TIP: avoid assuming that the row contains a column for all properties. Consider this method as a general-purpose way to update the RowModel, not only exposed to your own code, but also to the rest of the world, including the base class RowModel itself.
+> TIP: avoid assuming that the row contains a column for all properties. Consider this method as a general-purpose way to update the RowModel, not only exposed to your own code, but also to the rest of the world, including the base class RowModel itself. Accept what is given, no more.
 
 See [General Row Processing](#general-row-processing) for more information about the `row[columnName]` subscript operator, and [Values](#values) about the supported property types.
 
