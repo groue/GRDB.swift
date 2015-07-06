@@ -27,22 +27,25 @@ A row is the result of a database query.
 */
 public struct Row: CollectionType {
     
+    /**
+    Builds a row from an dictionary of SQLite values.
     
-    // MARK: - SQLiteValue
+        let dic = [
+            "name": .Text("Arthur"),
+            "booksCount": .Integer(0)]
+        let row = Row(sqliteDictionary: dic)
     
-    /// Helper method for tests.
-    /// Public experimental (TODO: document)
-    public subscript(index: Int) -> SQLiteValue {
-        return impl.sqliteValue(atIndex: index)
-    }
-    
-    /// Public Experimental (TODO: document)
-    public subscript(columnName: String) -> SQLiteValue? {
-        if let index = impl.indexForColumn(named: columnName) {
-            return impl.sqliteValue(atIndex: index)
-        } else {
-            return nil
-        }
+    - parameter sqliteDictionary: A dictionary of SQLiteValue.
+    */
+    public init(sqliteDictionary: [String: SQLiteValue]) {
+        // IMPLEMENTATION NODE
+        //
+        // This initializer is used by RowModel.insert() so that it can call
+        // RowModel.updateFromDatabaseRow() to set the ID after the insertion.
+        //
+        // It is made public because it is important to let the user experiment
+        // with rows and models.
+        self.impl = DictionaryRowImpl(sqliteDictionary: sqliteDictionary)
     }
     
     
@@ -157,7 +160,27 @@ public struct Row: CollectionType {
     }
     
     
-    // MARK: - Collection of (columnName, sqliteValue)
+    // MARK: - SQLiteValue
+    
+    /**
+    Returns a SQLiteValue, the intermediate type between SQLite storage and your
+    values, if and only if the row contains the requested column.
+    
+        // Test if the column `name` is present:
+        if let sqliteValue = row["name"] {
+            let name: String? = sqliteValue.value()
+        }
+
+    - parameter columnName: A column name.
+    - returns: A SQLiteValue if the row contains the requested column.
+    */
+    public subscript(columnName: String) -> SQLiteValue? {
+        if let index = impl.indexForColumn(named: columnName) {
+            return impl.sqliteValue(atIndex: index)
+        } else {
+            return nil
+        }
+    }
     
     /**
     Row is a *collection* of (columnName, sqliteValue) pairs, ordered from left
@@ -213,9 +236,6 @@ public struct Row: CollectionType {
     */
     let impl: RowImpl
     
-    
-    // MARK: Initializers
-    
     /**
     Builds a row from the *current state* of the SQLite statement.
     
@@ -235,14 +255,9 @@ public struct Row: CollectionType {
         }
     }
     
-    /**
-    Builds a row from an ad-hoc dictionary.
-
-    This initializer is used by RowModel.insert() so that it can call
-    RowModel.updateFromDatabaseRow() to set the ID after the insertion.
-    */
-    public init(sqliteDictionary: [String: SQLiteValue]) {
-        self.impl = DictionaryRowImpl(sqliteDictionary: sqliteDictionary)
+    /// Helper method for tests.
+    subscript(index: Int) -> SQLiteValue {
+        return impl.sqliteValue(atIndex: index)
     }
     
     

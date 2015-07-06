@@ -166,26 +166,25 @@ row.value(named: "bookCount") as Int?   // good
 row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
 ```
 
-The subscript operator returns SQLiteValue, an intermediate type between SQLite storage and your values:
+**General row processing**
+
+The `row.value(atIndex:)` and `row.value(named:)` functions above require that you know the row structure: which columns are available, in which order.
+
+When you process an unknwown row, you will prefer the subscript operator which returns `SQLiteValue`, an intermediate type between SQLite storage and your values:
 
 ```swift
-// Test if the column `bookCount` is defined:
-if let sqliteValue = row["bookCount"] {
+// Test if the column `name` is present:
+if let sqliteValue = row["name"] {
     // Extract the desired Swift type from the SQLite value:
-    let bookCount: Int = sqliteValue.value()!
-    let bookCount64: Int64 = sqliteValue.value()!
-    let hasBooks: Bool = sqliteValue.value()!     // false when 0
+    let name: String? = sqliteValue.value()
 }
 ```
 
-
-**Rows are collections** of tuples (columnName, sqliteValue):
+You can also iterate all the tuples (columnName, sqliteValue) in a row:
 
 ```swift
-let row = db.fetchOneRow("SELECT firstName, lastName FROM persons")!
 for (columnName, sqliteValue) in row {
-    columnName                      // "firstName", then "lastName".
-    sqliteValue.value() as String?  // the first name, then the last name.
+    ...
 }
 ```
 
