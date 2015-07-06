@@ -51,8 +51,7 @@ SQLite API:
 - [Database](#database)
 - [Transactions](#transactions)
 - [Fetch Queries](#fetch-queries)
-- [Swift Enums](#swift-enums)
-- [Custom Types](#custom-types)
+- [Values](#values)
 - [Prepared Statements](#prepared-statements)
 - [Error Handling](#error-handling)
 
@@ -118,7 +117,6 @@ A rollback statement is issued if an error is thrown from the transaction block.
 
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
-- [A Note about SQLite Storage Classes](#a-note-about-sqlite-storage-classes)
 
 
 ### Row Queries
@@ -199,9 +197,7 @@ for (columnName, sqliteValue) in row {
 
 Instead of rows, you can directly fetch **values**, extracted from the first column of the resulting rows.
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, and [Swift enums](#swift-enums). Custom types are supported as well through the [SQLiteValueConvertible protocol](#custom-types).
-
-All those types can be fetched as **lazy sequences**, **arrays**, or **single** value:
+Just as rows, values can be fetched as **lazy sequences**, **arrays**, or **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -233,36 +229,12 @@ let names = dbQueue.inDatabase { db in
 The `db.fetchOne(type:sql:bindings:)` function returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value. If this ambiguity does not fit your need, use `db.fetchOneRow`.
 
 
-### A Note about SQLite Storage Classes
+## Values
 
-SQLite has a funny way to store values in the database. It is "funny" because it is a rather long read: https://www.sqlite.org/datatype3.html.
-
-The interested reader should know that GRDB.swift *does not* use SQLite built-in casting features when converting between types. Instead, it performs its *own conversions*, based on the storage class of database values. It has to do so because you generally consume database values long after the opportunity to use SQLite casting has passed.
-
-For reference:
-
-- **NULL** storage class is always extracted as the Swift nil.
-
-- **INTEGER** storage class can be converted to Bool, Int, Int64, Double, and Int-based [Swift enums](#swift-enums).
-
-    You will get a fatal error if you extract a value too big for Int. Int64 is safe.
-    
-    The only falsey integer is 0 (zero).
-
-- **REAL** storage class can be converted to Bool, Int, Int64, and Double.
-    
-    You will get a fatal error if you extract a value too big for Int or Int64.
-    
-    The only falsey real is 0.0.
-
-- **TEXT** storage class can be converted to String and String-based [Swift enums](#swift-enums).
-
-- **BLOB** storage class can be converted to Blob.
-
-Your [custom types](#custom-types) can perform their own conversions to and from SQLite storage classes.
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, and [Swift enums](#swift-enums). Custom types are supported as well through the [SQLiteValueConvertible protocol](#custom-types).
 
 
-## Swift Enums
+### Swift Enums
 
 **Swift enums** get full support from GRDB.swift as long as their raw values are Int or String.
 
@@ -309,11 +281,13 @@ db.fetchOne(Color.self, "SELECT ...", bindings: ...) // Color?
 ```
 
 
-## Custom Types
+### Custom Types
 
-Conversion to and from the database is based on the `SQLiteValueConvertible` protocol. Types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used, without any limitation or caveat.
+Conversion to and from the database is based on the `SQLiteValueConvertible` protocol.
 
-> Swift won't allow this protocol to be adopted by non-final classes, and this prevents all our NSObject fellows to enter the game. That's unfortunate.
+All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat.
+
+> Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt SQLiteValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
 As an example, let's define the `DBDate` type that stores NSDates as timestamps. It applies all the best practices for a great GRDB.swift integration:
 
@@ -379,6 +353,34 @@ db.fetch(DBDate.self, "SELECT ...", bindings: ...)    // AnySequence<DBDate?>
 db.fetchAll(DBDate.self, "SELECT ...", bindings: ...) // [DBDate?]
 db.fetchOne(DBDate.self, "SELECT ...", bindings: ...) // DBDate?
 ```
+
+### A Note about SQLite Storage Classes
+
+SQLite has a funny way to store values in the database. It is "funny" because it is a rather long read: https://www.sqlite.org/datatype3.html.
+
+The interested reader should know that GRDB.swift *does not* use SQLite built-in casting features when converting between types. Instead, it performs its *own conversions*, based on the storage class of database values. It has to do so because you generally consume database values long after the opportunity to use SQLite casting has passed.
+
+For reference:
+
+- **NULL** storage class is always extracted as the Swift nil.
+
+- **INTEGER** storage class can be converted to Bool, Int, Int64, Double, and Int-based [Swift enums](#swift-enums).
+
+    You will get a fatal error if you extract a value too big for Int. Int64 is safe.
+    
+    The only falsey integer is 0 (zero).
+
+- **REAL** storage class can be converted to Bool, Int, Int64, and Double.
+    
+    You will get a fatal error if you extract a value too big for Int or Int64.
+    
+    The only falsey real is 0.0.
+
+- **TEXT** storage class can be converted to String and String-based [Swift enums](#swift-enums).
+
+- **BLOB** storage class can be converted to Blob.
+
+Your [custom types](#custom-types) can perform their own conversions to and from SQLite storage classes.
 
 
 ## Prepared Statements
@@ -546,9 +548,7 @@ class Person : RowModel {
 }
 ```
 
-See [General Row Processing](#general-row-processing) for more information about the `row[columnName]` subscript operator.
-
-Your properties can be assigned if they are `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [Swift enums](#swift-enums), or custom types through the [SQLiteValueConvertible protocol](#custom-types). NSObject can't adopt SQLiteValueConvertible and that's why we use the DBDate helper to set the NSDate property.
+See [General Row Processing](#general-row-processing) for more information about the `row[columnName]` subscript operator, and [Values](#values) about the supported property types.
 
 
 Now you can fetch **lazy sequences** of row models, **arrays**, or **single** instances:
