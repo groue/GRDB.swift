@@ -65,6 +65,34 @@ public final class DatabaseQueue {
     
     // MARK: - Database access
     
+    // IMPLEMENTATON NOTE
+    //
+    // When one sees code like:
+    //
+    //      try dbQueue.inDatabase { db in
+    //          try db.execute("INSERT ...")
+    //      }
+    //
+    // One can wonder why there is no direct DatabaseQueue.execute() methods:
+    //
+    //      // Look, Ma! No block!
+    //      try dbQueue.execute("INSERT ...")
+    //
+    // Well, this is on purpose. Let's imagine what would happen if such method
+    // would exist:
+    //
+    //      try dbQueue.execute("INSERT ...")
+    //      let id = dbQueue.lastInsertedRowID
+    //
+    // Boom. The user feels like he can load the last inserted row ID, and he
+    // has just introduced a bug: between the two lines of code, some other
+    // statements may have been executed in other threads: the last inserted row
+    // ID may well be irrelevant.
+    //
+    // So until lastInsertedRowID is only accessible through the result of the
+    // statement execution, we don't provide any dbQueue.execute() function. And
+    // for consistency, no dbQueue.fetchXXX() method :-)
+    
     /**
     Executes a throwing block in the database queue.
     

@@ -3,6 +3,5 @@
 - [ ] db.fetch(RowModel.type, primaryKeys:[...])    // several primary keys
 - [ ] Investigate INSERT OR REPLACE
 - [ ] Add bindings to SQLiteError, so that one known the value that could not be updated/inserted.
-- [ ] Document why execute and fetch methods will never be added to DatabaseQueue, and one always has to execute a block. It is because code like `dbQueue.execute("INSERT..."); let id = dbQueue.lastInsertedRowID` would be *unsafe*.
 - [ ] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that.
 - [ ] db.fetch(RowModel.type, primaryKey: Bindings) in unsafe because there are chances that array bindings don't match the order of primary key columns. Rethink fetching by primary key for RowModels with primary keys that span accross multiple columns.
