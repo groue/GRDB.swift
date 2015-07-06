@@ -178,7 +178,7 @@ row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
 
 The `row.value(atIndex:)` and `row.value(named:)` functions above require that you know the row structure: which columns are available, in which order.
 
-When you process an unknwown row, you will prefer the subscript operator which returns `SQLiteValue`, an intermediate type between SQLite storage and your values:
+When you process an unknown row, you will prefer the subscript operator which returns `SQLiteValue`, an intermediate type between SQLite storage and your values:
 
 ```swift
 // Test if the column `name` is present:
