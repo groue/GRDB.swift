@@ -355,15 +355,13 @@ db.fetchAll(DBDate.self, "SELECT ...", bindings: ...) // [DBDate?]
 db.fetchOne(DBDate.self, "SELECT ...", bindings: ...) // DBDate?
 ```
 
-### A Note about SQLite Storage Classes
+### Value Extraction in Details
 
-SQLite has a funny way to store values in the database. It is "funny" because it is a rather long read: https://www.sqlite.org/datatype3.html.
+SQLite has a funny way to manage values. It is "funny" because it is a rather long read: https://www.sqlite.org/datatype3.html.
 
-The interested reader should know that GRDB.swift *does not* use SQLite built-in casting features when converting between types. Instead, it performs its *own conversions*, based on the storage class of database values. It has to do so because you generally consume database values long after the opportunity to use SQLite casting has passed.
+The interested reader should know that GRDB.swift *does not* use SQLite built-in casting features when extracting values. Instead, it performs its *own conversions*, based on the storage class of database values:
 
-For reference:
-
-| Storage class |   Bool  | Int ³   |  Int64   | Double | String ³  | Blob |
+| Storage class |  Bool   |  Int ³  |  Int64   | Double | String ³  | Blob |
 |:------------- |:-------:|:-------:|:--------:|:------:|:---------:|:----:|
 | NULL          |    -    |    -    |    -     |   -    |     -     |  -   |
 | INTEGER       |  Bool ¹ |  Int ²  |  Int64   | Double |     -     |  -   |
@@ -376,7 +374,6 @@ For reference:
 ² You will get a fatal error if the value is too big for Int or Int64.
 
 ³ Applies also to Int and String-based [enums](#swift-enums).
-
 
 Your [custom types](#custom-types) can perform their own conversions to and from SQLite storage classes.
 
