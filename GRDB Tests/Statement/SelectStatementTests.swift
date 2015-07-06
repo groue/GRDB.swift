@@ -53,8 +53,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testArrayBindingsWithSetter() {
         assertNoError {
-            try dbQueue.inDatabase { db in
-                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
                 let ages = [20, 30, 40, 50]
                 let counts = ages.map { age -> Int in
                     statement.bindings = [age]
@@ -67,8 +67,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testArrayBindingsInFetch() {
         assertNoError {
-            try dbQueue.inDatabase { db in
-                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
                 let ages = [20, 30, 40, 50]
                 let counts = ages.map { statement.fetchOne(Int.self, bindings: [$0])! }
                 XCTAssertEqual(counts, [1,2,2,3])
@@ -78,8 +78,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testDictionaryBindingsWithSetter() {
         assertNoError {
-            try dbQueue.inDatabase { db in
-                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: why is this explicit type declaration required?
                 let ageDicts: [[String: SQLiteValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { ageDict -> Int in
@@ -93,8 +93,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testDictionaryBindingsInFetch() {
         assertNoError {
-            try dbQueue.inDatabase { db in
-                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: why is this explicit type declaration required?
                 let ageDicts: [[String: SQLiteValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { statement.fetchOne(Int.self, bindings: Bindings($0))! }
@@ -105,8 +105,8 @@ class SelectStatementTests : GRDBTestCase {
 
     func testRowSequenceCanBeIteratedTwice() {
         assertNoError {
-            try dbQueue.inTransaction { db in
-                let statement = try db.selectStatement("SELECT * FROM persons ORDER BY name")
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
                 let rows = statement.fetchRows()
                 var names1: [String?] = rows.map { $0.value(named: "name") as String? }
                 var names2: [String?] = rows.map { $0.value(named: "name") as String? }
@@ -117,16 +117,14 @@ class SelectStatementTests : GRDBTestCase {
                 XCTAssertEqual(names2[0]!, "Arthur")
                 XCTAssertEqual(names2[1]!, "Barbara")
                 XCTAssertEqual(names2[2]!, "Craig")
-                
-                return .Commit
             }
         }
     }
     
     func testValueSequenceCanBeIteratedTwice() {
         assertNoError {
-            try dbQueue.inTransaction { db in
-                let statement = try db.selectStatement("SELECT name FROM persons ORDER BY name")
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
                 let nameSequence = statement.fetch(String.self)
                 var names1: [String?] = Array(nameSequence).map { $0 }
                 var names2: [String?] = Array(nameSequence).map { $0 }
@@ -137,8 +135,6 @@ class SelectStatementTests : GRDBTestCase {
                 XCTAssertEqual(names2[0]!, "Arthur")
                 XCTAssertEqual(names2[1]!, "Barbara")
                 XCTAssertEqual(names2[2]!, "Craig")
-                
-                return .Commit
             }
         }
     }

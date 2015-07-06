@@ -176,7 +176,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 // The tested function:
-                let statement = try db.selectStatement("SELECT * FROM persons")
+                let statement = db.selectStatement("SELECT * FROM persons")
                 
                 let rows = statement.fetchAllRows()
                 XCTAssertEqual(rows.count, 2)
@@ -191,7 +191,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
-                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?")
+                let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?")
                 // The tested function:
                 statement.bindings = ["Arthur"]
                 
@@ -208,7 +208,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
-                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name")
+                let statement = db.selectStatement("SELECT * FROM persons WHERE name = :name")
                 // The tested function:
                 statement.bindings = ["name": "Arthur"]
                 
@@ -226,7 +226,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 // The tested function:
-                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
+                let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
                 
                 let rows = statement.fetchAllRows()
                 XCTAssertEqual(rows.count, 1)
@@ -242,7 +242,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
                 // The tested function:
-                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Arthur"])
+                let statement = db.selectStatement("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Arthur"])
                 
                 let rows = statement.fetchAllRows()
                 XCTAssertEqual(rows.count, 1)

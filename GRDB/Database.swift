@@ -41,15 +41,9 @@ public final class Database {
     /**
     Returns a select statement that can be reused.
     
-        let statement = try db.selectStatement("SELECT * FROM persons WHERE age > ?")
+        let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
         let moreThanTwentyCount = statement.fetchOne(Int.self, bindings: [20])!
         let moreThanThirtyCount = statement.fetchOne(Int.self, bindings: [30])!
-    
-    This method may throw a SQLiteError.
-    
-    It is the only one throughout GRDB.swift which may throw an error when
-    building a select statement. All other methods fail with a fatal error when
-    given an invalid select statement.
     
     - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
@@ -57,8 +51,10 @@ public final class Database {
     
     - returns: A SelectStatement.
     */
-    public func selectStatement(sql: String, bindings: Bindings? = nil, unsafe: Bool = false) throws -> SelectStatement {
-        return try SelectStatement(database: self, sql: sql, bindings: bindings, unsafe: unsafe)
+    public func selectStatement(sql: String, bindings: Bindings? = nil, unsafe: Bool = false) -> SelectStatement {
+        return verboseFailOnError {
+            return try SelectStatement(database: self, sql: sql, bindings: bindings, unsafe: unsafe)
+        }
     }
     
     
@@ -293,10 +289,7 @@ extension Database {
     - returns: A lazy sequence of rows.
     */
     public func fetchRows(sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
-        return verboseFailOnError {
-            let statement = try selectStatement(sql, bindings: bindings)
-            return statement.fetchRows()
-        }
+        return selectStatement(sql, bindings: bindings).fetchRows()
     }
     
     /**
@@ -348,10 +341,7 @@ extension Database {
     - returns: A lazy sequence of values.
     */
     public func fetch<Value: SQLiteValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<Value?> {
-        return verboseFailOnError {
-            let statement = try selectStatement(sql, bindings: bindings)
-            return statement.fetch(type)
-        }
+        return selectStatement(sql, bindings: bindings).fetch(type)
     }
     
     /**

@@ -105,7 +105,7 @@ extension SelectStatement {
     /**
     Fetches a lazy sequence of rows.
     
-        let statement = try db.selectStatement("SELECT ...")
+        let statement = db.selectStatement("SELECT ...")
         let rows = statement.fetchRows()
     
     - parameter bindings: Optional bindings for query parameters.
@@ -163,7 +163,7 @@ extension SelectStatement {
     /**
     Fetches an array of rows.
     
-        let statement = try db.selectStatement("SELECT ...")
+        let statement = db.selectStatement("SELECT ...")
         let rows = statement.fetchAllRows()
     
     - parameter bindings: Optional bindings for query parameters.
@@ -176,7 +176,7 @@ extension SelectStatement {
     /**
     Fetches a single row.
     
-        let statement = try db.selectStatement("SELECT ...")
+        let statement = db.selectStatement("SELECT ...")
         let row = statement.fetchOneRow()
     
     - parameter sql:      An SQL query.

@@ -34,8 +34,8 @@ class RowModelFetchTests: RowModelTestCase {
                 return .Commit
             }
             
-            try dbQueue.inDatabase { db in
-                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?")
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?")
                 
                 for name in ["Arthur", "Barbara"] {
                     let person = statement.fetchOne(Person.self, bindings: [name])!
@@ -71,7 +71,7 @@ class RowModelFetchTests: RowModelTestCase {
                 try Person(name: "Arthur", age: 41).insert(db)
                 try Person(name: "Barbara", age: 37).insert(db)
 
-                let statement = try db.selectStatement("SELECT * FROM persons ORDER BY name")
+                let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
                 let personSequence = statement.fetch(Person.self)
                 var names1: [String?] = personSequence.map { $0.name }
                 var names2: [String?] = personSequence.map { $0.name }

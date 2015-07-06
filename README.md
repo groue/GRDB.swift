@@ -411,9 +411,9 @@ try dbQueue.inTransaction { db in
 Select statements can fetch rows and values:
 
 ```swift
-try dbQueue.inDatabase { db in
+dbQueue.inDatabase { db in
     
-    let statement = try db.selectStatement("SELECT ...")
+    let statement = db.selectStatement("SELECT ...")
     
     statement.fetchRows(bindings: ...)          // AnySequence<Row>
     statement.fetchAllRows(bindings: ...)       // [Row]
@@ -435,9 +435,9 @@ try dbQueue.inDatabase { db in
 - All methods that *read* data crash.
 - All methods that *write* data throw an error.
 
-The only exception is the function that creates reusable select statements `db.selectStatement("SELECT ...")`. This method is your only way to catch an SQLiteError when building a select statement.
-
-Compare:
+> Rationale: we assume that *all* reading errors are either SQL errors that the developer should fix (a syntax error, a wrong column name), or external I/O errors that are beyond repair and better hidden behind a crash. Write errors may be relational errors (violated unique index, missing reference) and you may want to handle relational errors yourselves.
+>
+> Please open an [issue](https://github.com/groue/GRDB.swift/issues) if you need fine tuning of select errors.
 
 ```swift
 // fatal error: SQLite error 1 with statement `SELECT foo FROM bar`:
@@ -445,12 +445,19 @@ Compare:
 db.fetchAllRows("SELECT foo FROM bar")
 
 do {
-    let statement = try db.selectStatement("SELECT foo FROM bar")
+    try db.update("INSERT INTO bar (foo) VALUE (?)", bindings: [1])
 } catch let error as SQLiteError {
-    error.code        // 1: the SQLite error code
-    error.message     // "no such table: bar": the eventual SQLite message
-    error.sql         // "SELECT foo FROM bar": the eventual erroneous SQL query
-    error.description // "SQLite error 1 with statement `SELECT foo FROM bar`: no such table: bar"
+    // The SQLite error code: 1
+    error.code
+    
+    // The eventual SQLite message: "no such table: bar"
+    error.message
+    
+    // The eventual erroneous SQL query: "INSERT INTO bar (foo) VALUE (?)"
+    error.sql
+    
+    // "SQLite error 1 with statement `INSERT INTO bar (foo) VALUE (?)`: no such table: bar"
+    error.description
 }
 ```
 
