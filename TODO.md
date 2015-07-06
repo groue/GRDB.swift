@@ -3,3 +3,4 @@
 - [ ] db.fetch(RowModel.type, primaryKeys:[...])    // several primary keys
 - [ ] Investigate INSERT OR REPLACE
 - [ ] Add bindings to SQLiteError, so that one known the value that could not be updated/inserted.
+- [ ] Consider adding execute and fetch methods to DatabaseQueue.
