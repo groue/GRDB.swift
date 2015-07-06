@@ -509,17 +509,6 @@ In the table below, we see that **fetch** only requires the updateFromDatabaseRo
 
 ¹ See [primary keys](#primary-keys) below for more information.
 
-The Person subclass below will help us illustrate RowModel features. Note how it declares properties for the `persons` table seen above:
-
-```swift
-class Person : RowModel {
-    var id: Int64?            // matches "id" column
-    var name: String?         // matches "name" column
-    var age: Int?             // matches "age" columnn
-    var creationDate: NSDate? // matches "creationTimestamp" column
-}
-```
-
 - [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Primary Keys](#primary-keys)
@@ -528,22 +517,28 @@ class Person : RowModel {
 
 ### Fetching Row Models
 
-By overriding `updateFromDatabaseRow(row: Row)`, you can load row models from the database.
-
-In this method, load the available SQLite values and assign them to your properties:
+The Person subclass below will be our guinea pig. It declares properties for the `persons` table:
 
 ```swift
 class Person : RowModel {
-    var id: Int64?            // matches "id" column
-    var name: String?         // matches "name" column
+    var id: Int64!            // matches "id" not null column
     var age: Int?             // matches "age" columnn
+    var name: String?         // matches "name" column
     var creationDate: NSDate? // matches "creationTimestamp" column
-    
+}
+```
+
+**The first thing to notice is that all properties are optional.** This is because RowModel does not want to restrain you from feeding it with custom SQL queries, including queries that "lack" columns.
+
+The `updateFromDatabaseRow(row: Row)` method indeed only assigns available SQLite values to properties:
+
+```swift
+class Person : RowModel {
     override func updateFromDatabaseRow(row: Row) {
         // If the row has an "id" column, set the `id` property:
         if let v = row["id"]   { id = v.value() }
-        if let v = row["name"] { name = v.value() }
         if let v = row["age"]  { age = v.value() }
+        if let v = row["name"] { name = v.value() }
         if let v = row["creationTimestamp"] {
             // Use the DBDate custom type declared above:
             let dbDate = v.value() as DBDate?
@@ -573,8 +568,8 @@ Lazy sequences can not be consumed outside of a database queue, but arrays are O
 
 ```swift
 let persons = dbQueue.inDatabase { db in
-    return db.fetchAll(Person.self, "SELECT name ...")             // [Person]
-    return db.fetch(Person.self, "SELECT name ...").filter { ... } // [Person]
+    return db.fetchAll(Person.self, "SELECT ...")             // [Person]
+    return db.fetch(Person.self, "SELECT ...").filter { ... } // [Person]
 }
 for person in persons { ... } // OK
 ```
@@ -582,7 +577,7 @@ for person in persons { ... } // OK
 
 ### Ad Hoc Subclasses
 
-Swift makes it very easy to create small and private types. This is a wonderful opportunity to create **ad hoc subclasses** that provide support for custom queries.
+Swift makes it very easy to create small and private types. This is a wonderful opportunity to create **ad hoc subclasses** that provide support for custom queries with extra columns.
 
 We think that this is the killer feature of GRDB.swift :bowtie:. For example:
 
