@@ -723,15 +723,8 @@ try dbQueue.inTransaction { db in
 Models that declare a `RowID` primary key have their id automatically set after insertion:
 
 ```swift
-class Person : RowModel {
-    override class var databasePrimaryKey: PrimaryKey {
-        return .RowID("id")
-    }
-}
-
 let arthur = Person(name: "Arthur")
-arthur.id   // nil
-try arthur.save(db)
+try arthur.insert(db)
 arthur.id   // some value
 ```
 
