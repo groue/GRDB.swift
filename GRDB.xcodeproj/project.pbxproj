@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		560DB2901B4AD49300B14958 /* RowModelInitializersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560DB28F1B4AD49300B14958 /* RowModelInitializersTests.swift */; };
 		5610C2091B483AA500F8B4EC /* InMemoryDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5610C2081B483AA500F8B4EC /* InMemoryDatabaseTests.swift */; };
 		5610C20E1B4852D600F8B4EC /* RowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5610C20D1B4852D600F8B4EC /* RowTests.swift */; };
 		5623E08A1B494A8A00B20B7F /* RawRepresentableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0891B494A8A00B20B7F /* RawRepresentableTests.swift */; };
@@ -55,6 +56,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		560DB28F1B4AD49300B14958 /* RowModelInitializersTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelInitializersTests.swift; sourceTree = "<group>"; };
 		5610C2081B483AA500F8B4EC /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = "<group>"; };
 		5610C20D1B4852D600F8B4EC /* RowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowTests.swift; sourceTree = "<group>"; };
 		5623E0891B494A8A00B20B7F /* RawRepresentableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RawRepresentableTests.swift; sourceTree = "<group>"; };
@@ -163,6 +165,7 @@
 				56C9E6551B468EB200DDC541 /* PrimaryKeySingleTests.swift */,
 				5623E08B1B49970E00B20B7F /* RowModelDescriptionTests.swift */,
 				56CC3CA41B48289200A9A534 /* RowModelFetchTests.swift */,
+				560DB28F1B4AD49300B14958 /* RowModelInitializersTests.swift */,
 				56C9E6571B468EB200DDC541 /* RowModelSubClassTests.swift */,
 				56C9E6581B468EB200DDC541 /* RowModelTestCase.swift */,
 			);
@@ -401,6 +404,7 @@
 				56C9E65F1B468EB200DDC541 /* PrimaryKeyNoneTests.swift in Sources */,
 				56C9E6681B4696E100DDC541 /* SelectStatementTests.swift in Sources */,
 				5623E08A1B494A8A00B20B7F /* RawRepresentableTests.swift in Sources */,
+				560DB2901B4AD49300B14958 /* RowModelInitializersTests.swift in Sources */,
 				56CC3CA51B48289200A9A534 /* RowModelFetchTests.swift in Sources */,
 				56CC3CA31B47D19F00A9A534 /* SQLiteValueConvertibleTests.swift in Sources */,
 				56CC3C991B445DDB00A9A534 /* GRDBTestCase.swift in Sources */,
