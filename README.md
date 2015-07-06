@@ -166,7 +166,7 @@ row.value(named: "bookCount") as Int?   // good
 row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
 ```
 
-**General row processing**
+#### General Row Processing
 
 The `row.value(atIndex:)` and `row.value(named:)` functions above require that you know the row structure: which columns are available, in which order.
 
@@ -535,7 +535,9 @@ class Person : RowModel {
 }
 ```
 
-Your properties can be assigned if they are `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, or [Swift enums](#swift-enums). Custom types like `DBDate` are supported through the [SQLiteValueConvertible protocol](#custom-types).
+See [General Row Processing](#general-row-processing) for more information about the `row[columnName]` subscript operator.
+
+Your properties can be assigned if they are `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [Swift enums](#swift-enums), or custom types through the [SQLiteValueConvertible protocol](#custom-types). NSObject can't adopt SQLiteValueConvertible and that's why we use the DBDate helper to set the NSDate property.
 
 
 Fetch **lazy sequences** of row models, **arrays**, or a **single** instance:
