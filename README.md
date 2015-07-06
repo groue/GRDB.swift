@@ -441,23 +441,28 @@ dbQueue.inDatabase { db in
 > Please open an [issue](https://github.com/groue/GRDB.swift/issues) if you need fine tuning of select errors.
 
 ```swift
-// fatal error: SQLite error 1 with statement `SELECT foo FROM bar`:
-// no such table: bar
+// fatal error:
+// SQLite error 1 with statement `SELECT foo FROM bar`: no such table: bar
 db.fetchAllRows("SELECT foo FROM bar")
 
 do {
-    try db.update("INSERT INTO bar (foo) VALUE (?)", bindings: [1])
+    try db.execute(
+        "INSERT INTO pets (masterId, name) VALUES (?, ?)",
+        bindings: [1, "Bobby"])
 } catch let error as SQLiteError {
-    // The SQLite result code: 1
+    // The SQLite result code: 19 (SQLITE_CONSTRAINT)
     error.code
     
-    // The eventual SQLite message: "no such table: bar"
+    // The eventual SQLite message
+    // "FOREIGN KEY constraint failed"
     error.message
     
-    // The eventual erroneous SQL query: "INSERT INTO bar (foo) VALUE (?)"
+    // The eventual erroneous SQL query
+    // "INSERT INTO pets (masterId, name) VALUES (?, ?)"
     error.sql
     
-    // "SQLite error 1 with statement `INSERT INTO bar (foo) VALUE (?)`: no such table: bar"
+    // The full error message
+    // "SQLite error 19 with statement `INSERT INTO pets (masterId, name) VALUES (?, ?)` bindings [1, \"Bobby\"]: FOREIGN KEY constraint failed"
     error.description
 }
 ```
