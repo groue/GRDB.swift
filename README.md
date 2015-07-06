@@ -447,7 +447,7 @@ db.fetchAllRows("SELECT foo FROM bar")
 do {
     try db.update("INSERT INTO bar (foo) VALUE (?)", bindings: [1])
 } catch let error as SQLiteError {
-    // The SQLite error code: 1
+    // The SQLite result code: 1
     error.code
     
     // The eventual SQLite message: "no such table: bar"
@@ -461,6 +461,7 @@ do {
 }
 ```
 
+See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 ## Migrations
 
