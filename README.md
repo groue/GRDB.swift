@@ -496,7 +496,20 @@ try migrator.migrate(dbQueue)
 
 **RowModel** is a convenience class that wraps a table row, or the result of any query.
 
-We'll illustrate its features with the Person subclass below. Note how it declares properties for the `persons` table seen above:
+Subclasses opt in RowModel features by overriding all or part of the base methods that define their relationship with the SQLite database.
+
+In the table below, we see that fetching row models only requires the updateFromDatabaseRow method:
+
+Required methods      | fetch | insert | save | update | reload | delete |
+--------------------- |:-----:|:------:|:----:|:------:|:------:|:------:|
+updateFromDatabaseRow |  [X]  |  [ ]   | [ ]  |  [ ]   |  [X]   |  [ ]   |
+databaseTableName     |  [ ]  |  [X]   | [X]  |  [X]   |  [X]   |  [X]   |
+databasePrimaryKey    |  [ ]  | [-](*) |[-](*)|  [X]   |  [X]   |  [X]   |
+databaseDictionary    |  [ ]  |  [X]   | [X]  |  [X]   |  [X]   |  [X]   |
+
+(*) See [primary keys](#primary-keys) below for more information.
+
+The Person subclass below will help us illustrate RowModel features. Note how it declares properties for the `persons` table seen above:
 
 ```swift
 class Person : RowModel {
@@ -507,13 +520,13 @@ class Person : RowModel {
 }
 ```
 
-- [Loading](#loading)
+- [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Primary Keys](#primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
 
 
-### Loading
+### Fetching Row Models
 
 By overriding `updateFromDatabaseRow(row: Row)`, you can load row models from the database.
 
@@ -609,7 +622,7 @@ class PersonsViewController: UITableViewController {
 
 ### Primary Keys
 
-Declare a **Primary Key** and a **Table name** in order to fetch row models by primary key:
+Declare a **Primary Key** and a **Table name** in order to identify row models by primary key:
 
 ```swift
 class Person : RowModel {
@@ -617,8 +630,12 @@ class Person : RowModel {
     override class var databasePrimaryKey: PrimaryKey { return .RowID("id") }
 }
 
-dbQueue.inDatabase { db in
-    db.fetchOne(Person.self, primaryKey: 123)           // Person?
+try dbQueue.inDatabase { db in
+    // Fetch
+    let person = db.fetchOne(Person.self, primaryKey: 123)  // Person?
+    
+    // Delete
+    try person!.delete(db)
 }
 ```
 
@@ -664,9 +681,9 @@ There are four kinds of primary keys:
 The kind of primary key impacts the insert/update/delete methods that we will see below.
 
 
-### Insert, Update and Delete
+### Storage
 
-Those operations require one more method:
+With one more method, you get the `insert`, `update`, `save` and `reload` methods.
 
 ```swift
 class Person : RowModel {
@@ -717,6 +734,7 @@ arthur.id   // some value
 ```
 
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself.
+
 
 You can for example **override primitive methods**:
 
