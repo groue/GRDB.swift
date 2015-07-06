@@ -247,21 +247,21 @@ For reference:
 
 - **NULL** storage class is always extracted as the Swift nil.
 
-- **INTEGER** storage class can be converted to `Bool`, `Int`, `Int64`, and `Double`.
+- **INTEGER** storage class can be converted to Bool, Int, Int64, Double, and Int-based [Swift enums](#swift-enums).
 
-    You will get a fatal error if you extract a value too big for `Int`.
+    You will get a fatal error if you extract a value too big for Int. Int64 is safe.
     
-    The only falsey integer is 0.
+    The only falsey integer is 0 (zero).
 
-- **REAL** storage class can be converted to `Bool`, `Int`, `Int64`, and `Double`.
+- **REAL** storage class can be converted to Bool, Int, Int64, and Double.
     
-    You will get a fatal error if you extract a value too big for `Int` or `Int64`.
+    You will get a fatal error if you extract a value too big for Int or Int64.
     
     The only falsey real is 0.0.
 
-- **TEXT** storage class can be converted to `String`.
+- **TEXT** storage class can be converted to String.
 
-- **BLOB** storage class can be converted to `Blob`.
+- **BLOB** storage class can be converted to Blob.
 
 Your custom types can perform their own conversions to and from SQLite storage classes (see [below](#custom-types)).
 
