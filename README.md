@@ -363,19 +363,20 @@ The interested reader should know that GRDB.swift *does not* use SQLite built-in
 
 For reference:
 
-| Storage class | Bool | Int(†) | Int64  | Double | String(†) | Blob |
-|:------------- |:----:|:------:|:------:|:------:|:---------:|:----:|
-| NULL          | nil  |  nil   |  nil   |  nil   |    nil    | nil  |
-| INTEGER       |  ¹   |  Int²  | Int64  | Double |    nil    | nil  |
-| REAL          |  ¹   |  Int²  | Int64² | Double |    nil    | nil  |
-| TEXT          | nil  |  nil   |  nil   |  nil   |  String   | nil  |
-| BLOB          | nil  |  nil   |  nil   |  nil   |    nil    | Blob |
-
-† Applies also to Int and String-based [enums](#swift-enums).
+| Storage class |   Bool  | Int ³   |  Int64   | Double | String ³  | Blob |
+|:------------- |:-------:|:-------:|:--------:|:------:|:---------:|:----:|
+| NULL          |   nil   |   nil   |   nil    |  nil   |    nil    | nil  |
+| INTEGER       |  Bool ¹ |  Int ²  |  Int64   | Double |    nil    | nil  |
+| REAL          |  Bool ¹ |  Int ²  | Int64 ²  | Double |    nil    | nil  |
+| TEXT          |   nil   |   nil   |   nil    |  nil   |  String   | nil  |
+| BLOB          |   nil   |   nil   |   nil    |  nil   |    nil    | Blob |
 
 ¹ The only false numbers are 0 (integer) and 0.0 (real).
 
 ² You will get a fatal error if the value is too big for Int or Int64.
+
+³ Applies also to Int and String-based [enums](#swift-enums).
+
 
 Your [custom types](#custom-types) can perform their own conversions to and from SQLite storage classes.
 
