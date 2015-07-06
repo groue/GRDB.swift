@@ -584,7 +584,7 @@ class PersonsViewController: UITableViewController {
         
         override func updateFromDatabaseRow(row: Row) {
             super.updateFromDatabaseRow(row)
-            if let v = row["bookCount"] { bookCount = v.value() }
+            bookCount = row.value(named:"bookCount")
         }
     }
     
