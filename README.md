@@ -504,10 +504,10 @@ Required methods      | fetch | insert | save | update | reload | delete |
 --------------------- |:-----:|:------:|:----:|:------:|:------:|:------:|
 updateFromDatabaseRow |   X   |        |      |        |   X    |        |
 databaseTableName     |       |   X    |  X   |   X    |   X    |   X    |
-databasePrimaryKey    |       |  (†)   | (†)  |   X    |   X    |   X    |
+databasePrimaryKey    |       |   ¹    |  ¹   |   X    |   X    |   X    |
 databaseDictionary    |       |   X    |  X   |   X    |   X    |   X    |
 
-(†) See [primary keys](#primary-keys) below for more information.
+¹ See [primary keys](#primary-keys) below for more information.
 
 The Person subclass below will help us illustrate RowModel features. Note how it declares properties for the `persons` table seen above:
 
