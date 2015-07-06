@@ -30,8 +30,10 @@ try dbQueue.inTransaction { db in
     return .Commit
 }
 
-let persons = dbQueue.inDatabase { db in
-    db.fetchAll(Person.type, "SELECT * FROM persons")
+let (personCount, persons) = dbQueue.inDatabase { db in
+    let personCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM persons")
+    let persons = db.fetchAll(Person.type, "SELECT * FROM persons")
+    return (personCount, persons)
 }
 ```
 
