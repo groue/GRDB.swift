@@ -26,10 +26,10 @@ import XCTest
 import GRDB
 
 class Person: RowModel {
-    var id: Int64?
-    var name: String?
-    var age: Int?
-    var creationDate: NSDate?
+    var id: Int64!
+    var name: String!
+    var age: Int!
+    var creationDate: NSDate!
     
     override class var databaseTableName: String? {
         return "persons"
