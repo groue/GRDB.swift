@@ -27,6 +27,12 @@ A Database Queue serializes access to an SQLite database.
 */
 public final class DatabaseQueue {
     
+    // MARK: - Configuration
+    
+    /// The database configuration
+    public var configuration: Configuration { return database.configuration }
+    
+    
     // MARK: - Initializers
     
     /**

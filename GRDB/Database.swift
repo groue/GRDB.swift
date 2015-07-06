@@ -36,12 +36,6 @@ You don't create a database directly. Instead, you use a DatabaseQueue:
 */
 public final class Database {
     
-    // MARK: - Configuration
-    
-    /// The database configuration
-    public let configuration: Configuration
-    
-    
     // MARK: - Select Statements
     
     /**
@@ -143,6 +137,9 @@ public final class Database {
     
     
     // MARK: - Non public
+    
+    /// The database configuration
+    let configuration: Configuration
     
     /// The SQLite connection handle
     let sqliteConnection = SQLiteConnection()
