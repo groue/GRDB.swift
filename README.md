@@ -148,7 +148,6 @@ Lazy sequences can not be consumed outside of a database queue, but arrays are O
 ```swift
 let rows = dbQueue.inDatabase { db in
     return db.fetchAllRows("SELECT ...")          // [Row]
-    return Array(fetchRows("SELECT ..."))         // [Row]
     return fetchRows("SELECT ...").filter { ... } // [Row]
 }
 for row in rows { ... } // OK
@@ -219,7 +218,6 @@ Lazy sequences can not be consumed outside of a database queue, but arrays are O
 ```swift
 let names = dbQueue.inDatabase { db in
     return db.fetchAll(String.self, "SELECT name ...")             // [String?]
-    return Array(db.fetch(String.self, "SELECT name ..."))         // [String?]
     return db.fetch(String.self, "SELECT name ...").filter { ... } // [String?]
 }
 for name in names { ... } // OK
@@ -565,7 +563,6 @@ Lazy sequences can not be consumed outside of a database queue, but arrays are O
 ```swift
 let persons = dbQueue.inDatabase { db in
     return db.fetchAll(Person.self, "SELECT name ...")             // [Person]
-    return Array(db.fetch(Person.self, "SELECT name ..."))         // [Person]
     return db.fetch(Person.self, "SELECT name ...").filter { ... } // [Person]
 }
 for person in persons { ... } // OK
