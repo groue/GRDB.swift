@@ -363,23 +363,19 @@ The interested reader should know that GRDB.swift *does not* use SQLite built-in
 
 For reference:
 
-- **NULL** storage class is always extracted as the Swift nil.
+| Storage class | Bool | Int(†) | Int64  | Double | String(†) | Blob |
+|:------------- |:----:|:------:|:------:|:------:|:---------:|:----:|
+| NULL          | nil  |  nil   |  nil   |  nil   |    nil    | nil  |
+| INTEGER       |  ¹   |  Int²  | Int64  | Double |    nil    | nil  |
+| REAL          |  ¹   |  Int²  | Int64² | Double |    nil    | nil  |
+| TEXT          | nil  |  nil   |  nil   |  nil   |  String   | nil  |
+| BLOB          | nil  |  nil   |  nil   |  nil   |    nil    | Blob |
 
-- **INTEGER** storage class can be converted to Bool, Int, Int64, Double, and Int-based [Swift enums](#swift-enums).
+† Applies also to Int and String-based [enums](#swift-enums).
 
-    You will get a fatal error if you extract a value too big for Int. Int64 is safe.
-    
-    The only falsey integer is 0 (zero).
+¹ The only false numbers are 0 (integer) and 0.0 (real).
 
-- **REAL** storage class can be converted to Bool, Int, Int64, and Double.
-    
-    You will get a fatal error if you extract a value too big for Int or Int64.
-    
-    The only falsey real is 0.0.
-
-- **TEXT** storage class can be converted to String and String-based [Swift enums](#swift-enums).
-
-- **BLOB** storage class can be converted to Blob.
+² You will get a fatal error if the value is too big for Int or Int64.
 
 Your [custom types](#custom-types) can perform their own conversions to and from SQLite storage classes.
 
