@@ -542,7 +542,7 @@ class Person : RowModel {
 
 > TIP: Use implicitly unwrapped optionals for not null columns, like `id: Int64!`, and optionals for nullable columns: `age: Int?`.
 
-The `updateFromDatabaseRow(row: Row)` method assigns available SQLite values to properties:
+The `updateFromDatabaseRow` method assigns available SQLite values to properties:
 
 ```swift
 class Person : RowModel {
