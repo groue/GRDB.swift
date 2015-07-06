@@ -365,11 +365,11 @@ For reference:
 
 | Storage class |   Bool  | Int ³   |  Int64   | Double | String ³  | Blob |
 |:------------- |:-------:|:-------:|:--------:|:------:|:---------:|:----:|
-| NULL          |   nil   |   nil   |   nil    |  nil   |    nil    | nil  |
-| INTEGER       |  Bool ¹ |  Int ²  |  Int64   | Double |    nil    | nil  |
-| REAL          |  Bool ¹ |  Int ²  | Int64 ²  | Double |    nil    | nil  |
-| TEXT          |   nil   |   nil   |   nil    |  nil   |  String   | nil  |
-| BLOB          |   nil   |   nil   |   nil    |  nil   |    nil    | Blob |
+| NULL          |    -    |    -    |    -     |   -    |     -     |  -   |
+| INTEGER       |  Bool ¹ |  Int ²  |  Int64   | Double |     -     |  -   |
+| REAL          |  Bool ¹ |  Int ²  | Int64 ²  | Double |     -     |  -   |
+| TEXT          |    -    |    -    |    -     |   -    |  String   |  -   |
+| BLOB          |    -    |    -    |    -     |   -    |     -     | Blob |
 
 ¹ The only false numbers are 0 (integer) and 0.0 (real).
 
