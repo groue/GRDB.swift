@@ -704,9 +704,9 @@ Other primary keys (single or multiple columns) are not managed by GRDB: you hav
 
 ### RowModel Errors
 
-All RowModel methods can throw [SQLiteError](#error-handling) and also RowModelError:
+RowModel methods can throw [SQLiteError](#error-handling) and also specific errors of type RowModelError:
 
-- **RowModelError.InvalidPrimaryKey**: throw by `update`, `delete` and `reload` when the primary key is invalid (nil).
+- **RowModelError.InvalidPrimaryKey**: thrown by `update`, `delete` and `reload` when the primary key is invalid (nil).
 
 - **rowModelError.NotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
 
