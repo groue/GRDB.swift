@@ -201,7 +201,7 @@ for (columnName, sqliteValue) in row {
 
 Instead of rows, you can directly fetch **values**, extracted from the first column of the resulting rows.
 
-Just as rows, values can be fetched as **lazy sequences**, **arrays**, or **single** value:
+Like rows, values can be fetched as **lazy sequences**, **arrays**, or **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
