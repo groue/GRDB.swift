@@ -165,41 +165,20 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 citizenship.grantedDate = date2
                 try citizenship.update(db)          // object still in database
                 
-                citizenship = db.fetchOne(Citizenship.self, primaryKey: ["personID": citizenship.personID, "countryName": citizenship.countryName])!
+                citizenship = db.fetchOne(Citizenship.self, "SELECT * FROM citizenships WHERE personID = ? AND countryName = ?", bindings: [citizenship.personID, citizenship.countryName])!
                 XCTAssertEqual(citizenship.countryName!, "France")
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: citizenship.grantedDate!), 2000)
                 
                 do {
                     try citizenship.delete(db)
                     try citizenship.update(db)      // object no longer in database
-                    XCTFail("Expected Error")
+                    XCTFail("Expected RowModelError.NotFound")
                 } catch RowModelError.NotFound {
+                } catch {
+                    XCTFail("Expected RowModelError.NotFound, not \(error)")
                 }
                 
                 return .Commit
-            }
-        }
-    }
-    
-    func testSelectWithDictionaryPrimaryKey() {
-        assertNoError {
-            var citizenshipKey: [String: SQLiteValueConvertible?]? = nil
-            try dbQueue.inTransaction { db in
-                let arthur = Person(name: "Arthur", age: 41)
-                try arthur.insert(db)
-                
-                let citizenship = Citizenship()
-                citizenship.personID = arthur.id
-                citizenship.countryName = "France"
-                try citizenship.insert(db)
-                
-                citizenshipKey = ["personID": citizenship.personID, "countryName": citizenship.countryName] // tested key
-                return .Commit
-            }
-            
-            dbQueue.inDatabase { db in
-                let citizenship = db.fetchOne(Citizenship.self, primaryKey: citizenshipKey!)!
-                XCTAssertEqual(citizenship.countryName!, "France")
             }
         }
     }
@@ -256,8 +235,10 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 XCTAssertEqual(citizenship.native!, false)
                 do {
                     try citizenship.reload(db)              // object no longer in database
-                    XCTFail()
+                    XCTFail("Expected RowModelError.NotFound")
                 } catch RowModelError.NotFound {
+                } catch {
+                    XCTFail("Expected RowModelError.NotFound, not \(error)")
                 }
                 XCTAssertEqual(citizenship.native!, false)
                 

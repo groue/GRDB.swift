@@ -184,8 +184,10 @@ class PrimaryKeySingleTests: RowModelTestCase {
                 do {
                     try pet.delete(db)
                     try pet.update(db)      // object no longer in database
-                    XCTFail()
+                    XCTFail("Expected RowModelError.NotFound")
                 } catch RowModelError.NotFound {
+                } catch {
+                    XCTFail("Expected RowModelError.NotFound, not \(error)")
                 }
                 
                 return .Commit
@@ -210,30 +212,6 @@ class PrimaryKeySingleTests: RowModelTestCase {
             
             dbQueue.inDatabase { db in
                 let pet = db.fetchOne(Pet.self, primaryKey: petUUID)!   // The tested method
-                
-                XCTAssertEqual(pet.UUID!, petUUID)
-                XCTAssertEqual(pet.name!, "Bobby")
-            }
-        }
-    }
-    
-    func testSelectWithDictionaryPrimaryKey() {
-        assertNoError {
-            let petUUID = "BobbyID"
-            
-            try dbQueue.inTransaction { db in
-                let arthur = Person(name: "Arthur", age: 41)
-                try arthur.insert(db)
-                
-                let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: arthur.id)
-                try pet.insert(db)
-                
-                return .Commit
-            }
-            
-            
-            dbQueue.inDatabase { db in
-                let pet = db.fetchOne(Pet.self, primaryKey: ["UUID": petUUID])!   // The tested method
                 
                 XCTAssertEqual(pet.UUID!, petUUID)
                 XCTAssertEqual(pet.name!, "Bobby")
@@ -286,8 +264,10 @@ class PrimaryKeySingleTests: RowModelTestCase {
                 XCTAssertEqual(bobby.name!, "Karl")
                 do {
                     try bobby.reload(db)                // object no longer in database
-                    XCTFail()
+                    XCTFail("Expected RowModelError.NotFound")
                 } catch RowModelError.NotFound {
+                } catch {
+                    XCTFail("Expected RowModelError.NotFound, not \(error)")
                 }
                 XCTAssertEqual(bobby.name!, "Karl")
                 

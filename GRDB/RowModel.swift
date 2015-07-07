@@ -493,24 +493,6 @@ extension Database {
     }
     
     // let person = db.fetchOne(Person.self, primaryKey: ...)
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey primaryKeyDictionary: [String: SQLiteValueConvertible?]) -> RowModel? {
-        
-        // Table name
-        
-        guard let tableName = RowModel.databaseTableName else {
-            fatalError("Override databaseTableName and return a table name.")
-        }
-        
-        
-        // "SELECT * FROM table WHERE id = ?"
-        
-        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-        let bindings = Bindings(Array(primaryKeyDictionary.values))
-        let sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
-        return fetchOne(type, sql, bindings: bindings)
-    }
-    
-    // let person = db.fetchOne(Person.self, primaryKey: ...)
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: SQLiteValueConvertible) -> RowModel? {
         guard let tableName = RowModel.databaseTableName else {
             fatalError("Override databaseTableName and return a table name.")

@@ -163,8 +163,10 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 do {
                     try arthur.delete(db)
                     try arthur.update(db)           // object no longer in database
-                    XCTFail()
+                    XCTFail("Expected RowModelError.NotFound")
                 } catch RowModelError.NotFound {
+                } catch {
+                    XCTFail("Expected RowModelError.NotFound, not \(error)")
                 }
 
                 return .Commit
@@ -195,8 +197,10 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 try arthur2.delete(db)
                 do {
                     try arthur.save(db)         // object no longer in database
-                    XCTFail()
+                    XCTFail("Expected RowModelError.NotFound")
                 } catch RowModelError.NotFound {
+                } catch {
+                    XCTFail("Expected RowModelError.NotFound, not \(error)")
                 }
             }
         }
@@ -214,26 +218,6 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
             
             dbQueue.inDatabase { db in
                 let arthur = db.fetchOne(Person.self, primaryKey: arthurID!)! // The tested method
-                
-                XCTAssertEqual(arthur.id!, arthurID!)
-                XCTAssertEqual(arthur.name!, "Arthur")
-                XCTAssertEqual(arthur.age!, 41)
-            }
-        }
-    }
-    
-    func testSelectWithDictionaryPrimaryKey() {
-        assertNoError {
-            var arthurID: Int64? = nil
-            try dbQueue.inTransaction { db in
-                let arthur = Person(name: "Arthur", age: 41)
-                try arthur.insert(db)
-                arthurID = arthur.id
-                return .Commit
-            }
-            
-            dbQueue.inDatabase { db in
-                let arthur = db.fetchOne(Person.self, primaryKey: ["id": arthurID])! // The tested method
                 
                 XCTAssertEqual(arthur.id!, arthurID!)
                 XCTAssertEqual(arthur.name!, "Arthur")
@@ -281,8 +265,10 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 XCTAssertEqual(arthur.name!, "Bobby")
                 do {
                     try arthur.reload(db)               // object no longer in database
-                    XCTFail()
+                    XCTFail("Expected RowModelError.NotFound")
                 } catch RowModelError.NotFound {
+                } catch {
+                    XCTFail("Expected RowModelError.NotFound, not \(error)")
                 }
                 XCTAssertEqual(arthur.name!, "Bobby")
                 
