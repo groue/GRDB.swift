@@ -28,41 +28,72 @@ public class RowModel {
     
     // MARK: - Core methods
     
+    /// The type of the primary key
     public enum PrimaryKey {
+        /// No primary key.
         case None
+        
+        /// A primary key managed by SQLite.
         case RowID(String)
+        
+        /// A primary key not managed by SQLite.
         case Column(String)
+        
+        /// A primary key that spans accross several columns.
         case Columns([String])
     }
     
+    /// The table name used by insert, update, save, delete and reload methods.
+    /// The base class RowModel returns nil.
     public class var databaseTableName : String? {
         return nil
     }
     
+    /// The primary key used by insert, update, save, delete and reload methods.
+    /// The base class RowModel returns PrimaryKey.None (no primary key).
     public class var databasePrimaryKey: PrimaryKey {
         return .None
     }
     
+    /// The values stored by insert, update, and save methods.
+    /// The base class RowModel returns an empty dictionary.
     public var databaseDictionary: [String: SQLiteValueConvertible?] {
         return [:]
     }
     
+    /// Updates the RowModel from a Row.
+    /// The implementation of the base class RowModel does nothing.
     public func updateFromDatabaseRow(row: Row) {
     }
     
     
     // MARK: - Initializers
     
+    /// Initializes a RowModel.
     public init() {
+        // IMPLEMENTATION NOTE
+        //
+        // This initializer is defined so that a subclass can be defined
+        // without any custom initializer.
     }
     
+    /// Initializes a RowModel from a row. Used by all fetching methods.
     required public init(row: Row) {
+        // IMPLEMENTATION NOTE
+        //
+        // This initializer is defined so that subclasses can distinguish
+        // the simple init() from init(row: Row), and perform distinct
+        // initialization for fetched models.
+        
         updateFromDatabaseRow(row)
     }
     
     
     // MARK: - CRUD
     
+    /// An enum that specifies an alternative constraint conflict resolution
+    /// algorithm to use during INSERT and UPDATE commands.
+    /// See https://www.sqlite.org/lang_insert.html & https://www.sqlite.org/lang_update.html
     public enum ConflictResolution {
         case Replace
         case Rollback
