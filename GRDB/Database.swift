@@ -85,10 +85,11 @@ public final class Database {
     
     This method may throw a SQLiteError.
     
-    - parameter sql:      An SQL query.
+    - parameter sql: An SQL query.
     - parameter bindings: Optional bindings for query parameters.
+    - returns: A UpdateStatement.Changes.
     */
-    public func execute(sql: String, bindings: Bindings? = nil) throws {
+    public func execute(sql: String, bindings: Bindings? = nil) throws -> UpdateStatement.Changes {
         return try updateStatement(sql, bindings: bindings).execute()
     }
     
@@ -110,23 +111,6 @@ public final class Database {
     
     
     // MARK: - Miscellaneous
-    
-    /// The last inserted Row ID
-    public var lastInsertedRowID: Int64? {
-        let rowid = sqlite3_last_insert_rowid(sqliteConnection)
-        return rowid == 0 ? nil : rowid
-    }
-    
-    /**
-    The number of rows changed by the most recent INSERT, UPDATE or DELETE
-    statement.
-    
-    See [sqlite3_changes()](http://sqlite.org/c3ref/changes.html).
-    */
-    public var changes: Int {
-        return Int(sqlite3_changes(sqliteConnection))
-    }
-
     
     /**
     Returns whether a table exists.

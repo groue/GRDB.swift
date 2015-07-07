@@ -166,13 +166,13 @@ public class RowModel {
             verb = "INSERT"
         }
         let sql = "\(verb) INTO \(tableName.sqliteQuotedIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
-        try db.execute(sql, bindings: Bindings(insertedDic.values))
+        let changes = try db.execute(sql, bindings: Bindings(insertedDic.values))
         
         
         // Update RowID column
         
-        if let rowIDColumn = rowIDColumn, let lastInsertedRowID = db.lastInsertedRowID {
-            let row = Row(sqliteDictionary: [rowIDColumn: SQLiteValue.Integer(lastInsertedRowID)])
+        if let rowIDColumn = rowIDColumn, let rowID = changes.insertedRowID {
+            let row = Row(sqliteDictionary: [rowIDColumn: SQLiteValue.Integer(rowID)])
             updateFromDatabaseRow(row)
         }
     }
@@ -238,8 +238,7 @@ public class RowModel {
             verb = "UPDATE"
         }
         let sql = "\(verb) \(tableName.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
-        try db.execute(sql, bindings: bindings)
-        return db.changes > 0
+        return try db.execute(sql, bindings: bindings).changedRowCount > 0
     }
     
     

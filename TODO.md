@@ -2,4 +2,3 @@
 - [ ] db.fetch(RowModel.type, primaryKeys:[...])    // several primary keys
 - [ ] Let Bindings eat arrays, or make it easy to generate series of ?,?,?,?
 - [ ] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that.
-- [ ] Have update statements return a result that holds (changes, lastInsertedRowID).
