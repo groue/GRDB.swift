@@ -111,7 +111,6 @@ public class Statement {
     }
     
     // Not public until a need for it.
-    // Today the only place where a statement is reset is in the bindings didSet observer.
     final func reset() {
         let code = sqlite3_reset(sqliteStatement)
         if code != SQLITE_OK {
