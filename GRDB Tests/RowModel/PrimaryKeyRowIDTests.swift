@@ -55,13 +55,13 @@ class Person: RowModel {
         if let v = row["creationTimestamp"] { creationDate = (v.value() as DBDate?)?.date }
     }
     
-    override func insert(db: Database) throws {
+    override func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         // TODO: test
         if creationDate == nil {
             creationDate = NSDate()
         }
         
-        try super.insert(db)
+        try super.insert(db, conflictResolution: conflictResolution)
     }
     
     init (name: String? = nil, age: Int? = nil) {

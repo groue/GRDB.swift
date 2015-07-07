@@ -63,8 +63,16 @@ public class RowModel {
     
     // MARK: - CRUD
     
+    public enum ConflictResolution {
+        case Replace
+        case Rollback
+        case Abort
+        case Fail
+        case Ignore
+    }
+    
     /// Inserts
-    public func insert(db: Database) throws {
+    public func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         
         // Table name
         
@@ -109,7 +117,24 @@ public class RowModel {
         let columns = insertedDic.keys
         let columnSQL = ",".join(columns.map { $0.sqliteQuotedIdentifier })
         let valuesSQL = ",".join([String](count: columns.count, repeatedValue: "?"))
-        let sql = "INSERT INTO \(tableName.sqliteQuotedIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
+        let verb: String
+        if let conflictResolution = conflictResolution {
+            switch conflictResolution {
+            case .Replace:
+                verb = "INSERT OR REPLACE"
+            case .Rollback:
+                verb = "INSERT OR ROLLBACK"
+            case .Abort:
+                verb = "INSERT OR ABORT"
+            case .Fail:
+                verb = "INSERT OR FAIL"
+            case .Ignore:
+                verb = "INSERT OR IGNORE"
+            }
+        } else {
+            verb = "INSERT"
+        }
+        let sql = "\(verb) INTO \(tableName.sqliteQuotedIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
         try db.execute(sql, bindings: Bindings(insertedDic.values))
         
         
@@ -123,7 +148,8 @@ public class RowModel {
     
     /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been updated.
-    public func update(db: Database) throws -> Bool {
+    /// See https://www.sqlite.org/lang_update.html
+    public func update(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
         
         // Table name
         
@@ -163,9 +189,25 @@ public class RowModel {
         let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
         let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
         let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
-        let sql = "UPDATE \(tableName.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+        let verb: String
+        if let conflictResolution = conflictResolution {
+            switch conflictResolution {
+            case .Replace:
+                verb = "UPDATE OR REPLACE"
+            case .Rollback:
+                verb = "UPDATE OR ROLLBACK"
+            case .Abort:
+                verb = "UPDATE OR ABORT"
+            case .Fail:
+                verb = "UPDATE OR FAIL"
+            case .Ignore:
+                verb = "UPDATE OR IGNORE"
+            }
+        } else {
+            verb = "UPDATE"
+        }
+        let sql = "\(verb) \(tableName.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
         try db.execute(sql, bindings: bindings)
-        
         return db.changes > 0
     }
     
@@ -175,12 +217,13 @@ public class RowModel {
     ///
     /// Returns true if the model has been inserted, or if it still exists in
     /// the database and has been updated.
-    final public func save(db: Database) throws -> Bool {
+    final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
         if let _ = self.dynamicType.primaryKeyDictionary(databaseDictionary) {
-            return try update(db)
+            // Primary key set: insert
+            return try update(db, conflictResolution: conflictResolution)
         } else {
             // No primary key: insert
-            try insert(db)
+            try insert(db, conflictResolution: conflictResolution)
             return true
         }
     }

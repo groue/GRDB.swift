@@ -1,5 +1,4 @@
 - [ ] RowModel support for implicit RowID column (see https://www.sqlite.org/autoinc.html)
 - [ ] db.fetch(RowModel.type, primaryKeys:[...])    // several primary keys
 - [ ] Let Bindings eat arrays, or make it easy to generate series of ?,?,?,?
-- [ ] Investigate INSERT OR REPLACE
 - [ ] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that.

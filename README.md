@@ -743,7 +743,7 @@ class Book : RowModel {
     ...
     
     // Before insertion, set uuid primary key if not set yet.
-    override func insert(db: Database) throws {
+    override func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws { {
         if uuid == nil {
             uuid = NSUUID().UUIDString
         }
@@ -759,7 +759,7 @@ There are a lot of possible customizations:
 class Person : RowModel {
     ...
     
-    override func insert(db: Database) throws {
+    override func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws { {
         creationDate = NSDate()
         try validate()
         try super.insert(db)
