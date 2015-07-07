@@ -112,42 +112,17 @@ public class RowModel {
         }
         
         
-        // The inserted values, and the primary key
+        // The inserted values
         
-        var insertedDic = databaseDictionary
-        let primaryKey = self.dynamicType.databasePrimaryKey
-        
-        
-        // Should we include the primary key in the insert statement?
-        // We do, unless the key is a SQLite RowID, without any value.
-        
-        let rowIDColumn: String?
-        switch primaryKey {
-        case .RowID(let column):
-            if let _ = insertedDic[column]! {
-                rowIDColumn = nil
-            } else {
-                insertedDic.removeValueForKey(column)
-                rowIDColumn = column
-            }
-        default:
-            rowIDColumn = nil
-        }
+        let version = Version(self)
+        let insertedDic = version.databaseDictionary
         
         
-        // If there is nothing to insert, and primary key is not managed,
-        // something is wrong.
+        // INSERT INTO table (id, name) VALUES (:id, :name)
         
-        guard insertedDic.count > 0 || rowIDColumn != nil else {
-            fatalError("Nothing to insert")
-        }
-        
-        
-        // INSERT INTO table ([id, ]name) VALUES ([:id, ]:name)
-        
-        let columns = insertedDic.keys
-        let columnSQL = ",".join(columns.map { $0.sqliteQuotedIdentifier })
-        let valuesSQL = ",".join([String](count: columns.count, repeatedValue: "?"))
+        let columnNames = insertedDic.keys
+        let columnSQL = ",".join(columnNames.map { $0.sqliteQuotedIdentifier })
+        let valuesSQL = ",".join([String](count: columnNames.count, repeatedValue: "?"))
         let verb: String
         if let conflictResolution = conflictResolution {
             switch conflictResolution {
@@ -169,12 +144,9 @@ public class RowModel {
         let changes = try db.execute(sql, bindings: Bindings(insertedDic.values))
         
         
-        // Update RowID column
+        // Update RowID column if needed
         
-        if let rowIDColumn = rowIDColumn, let rowID = changes.insertedRowID {
-            let row = Row(sqliteDictionary: [rowIDColumn: SQLiteValue.Integer(rowID)])
-            updateFromDatabaseRow(row)
-        }
+        version.updateRowModelWithInsertionChanges(changes)
     }
     
     /// Throws an error if the model has no table name, or no primary key.
@@ -189,29 +161,15 @@ public class RowModel {
         }
         
         
-        // The updated values
-        
-        var updatedDictionary = databaseDictionary
-        
-        
-        // Extract primary key
-        
-        guard let primaryKeyDictionary = self.dynamicType.primaryKeyDictionary(updatedDictionary) else {
-            fatalError("No primaryKey")
-        }
-        
-        
         // Don't update primary key columns
         
+        let version = Version(self)
+        guard let primaryKeyDictionary = version.strongPrimaryKeyDictionary else {
+            fatalError("No primaryKey")
+        }
+        var updatedDictionary = version.databaseDictionary
         for column in primaryKeyDictionary.keys {
             updatedDictionary.removeValueForKey(column)
-        }
-        
-        
-        // If there is nothing to update, something is wrong.
-        
-        guard updatedDictionary.count > 0 else {
-            fatalError("Nothing to update")
         }
         
         
@@ -248,8 +206,9 @@ public class RowModel {
     /// Returns true if the model has been inserted, or if it still exists in
     /// the database and has been updated.
     final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
-        if let _ = self.dynamicType.primaryKeyDictionary(databaseDictionary) {
-            // Primary key set: insert
+        let version = Version(self)
+        if let _ = version.strongPrimaryKeyDictionary {
+            // Primary key set: update
             return try update(db, conflictResolution: conflictResolution)
         } else {
             // No primary key: insert
@@ -266,9 +225,10 @@ public class RowModel {
         }
         
         
-        // Extract primary key
+        // Extract strong primary key
         
-        guard let primaryKeyDictionary = self.dynamicType.primaryKeyDictionary(databaseDictionary) else {
+        let version = Version(self)
+        guard let primaryKeyDictionary = version.strongPrimaryKeyDictionary else {
             fatalError("No primaryKey")
         }
         
@@ -290,9 +250,10 @@ public class RowModel {
         }
         
         
-        // Extract primary key
+        // Extract strong primary key
         
-        guard let primaryKeyDictionary = self.dynamicType.primaryKeyDictionary(databaseDictionary) else {
+        let version = Version(self)
+        guard let primaryKeyDictionary = version.strongPrimaryKeyDictionary else {
             fatalError("No primaryKey")
         }
         
@@ -316,6 +277,80 @@ public class RowModel {
     }
     
     // MARK: - Not public
+    
+    private class Version {
+        let rowModel: RowModel
+        
+        lazy var databasePrimaryKey: PrimaryKey = self.rowModel.dynamicType.databasePrimaryKey
+        lazy var databaseDictionary: [String: SQLiteValueConvertible?] = self.rowModel.databaseDictionary
+        
+        // A primary key dictionary. Its values may be nil.
+        lazy var weakPrimaryKeyDictionary: [String: SQLiteValueConvertible?]? = {
+            switch self.databasePrimaryKey {
+            case .None:
+                return nil
+                
+            case .RowID(let column):
+                let databaseDictionary = self.databaseDictionary
+                if let value = databaseDictionary[column] {
+                    return [column: value]
+                } else {
+                    return nil
+                }
+                
+            case .Column(let column):
+                let databaseDictionary = self.databaseDictionary
+                if let value = databaseDictionary[column] {
+                    return [column: value]
+                } else {
+                    return nil
+                }
+                
+            case .Columns(let columns):
+                let databaseDictionary = self.databaseDictionary
+                var primaryKeyDictionary = [String: SQLiteValueConvertible?]()
+                for column in columns {
+                    if let value = databaseDictionary[column] {
+                        primaryKeyDictionary[column] = value
+                    } else {
+                        primaryKeyDictionary[column] = nil
+                    }
+                }
+                return primaryKeyDictionary
+            }
+        }()
+        
+        // A primary key dictionary. At least one of its values is not nil.
+        lazy var strongPrimaryKeyDictionary: [String: SQLiteValueConvertible?]? = {
+            guard let dictionary = self.weakPrimaryKeyDictionary else {
+                return nil
+            }
+            for case let value? in dictionary.values {
+                return dictionary // At least one non-nil value in the primary key dictionary is OK.
+            }
+            return nil
+        }()
+        
+        func updateRowModelWithInsertionChanges(changes: UpdateStatement.Changes) {
+            switch databasePrimaryKey {
+            case .RowID(let column):
+                if let optionalValue = databaseDictionary[column] {
+                    if optionalValue == nil {
+                        let row = Row(sqliteDictionary: [column: SQLiteValue.Integer(changes.insertedRowID!)])
+                        rowModel.updateFromDatabaseRow(row)
+                    }
+                } else {
+                    fatalError("databaseDictionary must return the value for the primary key `(column)`")
+                }
+            default:
+                return
+            }
+        }
+        
+        init(_ rowModel: RowModel) {
+            self.rowModel = rowModel
+        }
+    }
     
     // Attempts to build a primary key dictionary [String: SQLiteValueConvertible?].
     //
