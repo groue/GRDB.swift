@@ -104,99 +104,14 @@ public class RowModel {
     
     /// Inserts
     public func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
-        
-        // Table name
-        
-        guard let tableName = self.dynamicType.databaseTableName else {
-            fatalError("Missing table name")
-        }
-        
-        
-        // The inserted values
-        
-        let version = Version(self)
-        let insertedDic = version.databaseDictionary
-        
-        
-        // INSERT INTO table (id, name) VALUES (:id, :name)
-        
-        let columnNames = insertedDic.keys
-        let columnSQL = ",".join(columnNames.map { $0.sqliteQuotedIdentifier })
-        let valuesSQL = ",".join([String](count: columnNames.count, repeatedValue: "?"))
-        let verb: String
-        if let conflictResolution = conflictResolution {
-            switch conflictResolution {
-            case .Replace:
-                verb = "INSERT OR REPLACE"
-            case .Rollback:
-                verb = "INSERT OR ROLLBACK"
-            case .Abort:
-                verb = "INSERT OR ABORT"
-            case .Fail:
-                verb = "INSERT OR FAIL"
-            case .Ignore:
-                verb = "INSERT OR IGNORE"
-            }
-        } else {
-            verb = "INSERT"
-        }
-        let sql = "\(verb) INTO \(tableName.sqliteQuotedIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
-        let changes = try db.execute(sql, bindings: Bindings(insertedDic.values))
-        
-        
-        // Update RowID column if needed
-        
-        version.updateRowModelWithInsertionChanges(changes)
+        try Version(self).insert(db, conflictResolution: conflictResolution)
     }
     
     /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been updated.
     /// See https://www.sqlite.org/lang_update.html
     public func update(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
-        
-        // Table name
-        
-        guard let tableName = self.dynamicType.databaseTableName else {
-            fatalError("Missing table name")
-        }
-        
-        
-        // Don't update primary key columns
-        
-        let version = Version(self)
-        guard let primaryKeyDictionary = version.strongPrimaryKeyDictionary else {
-            fatalError("No primaryKey")
-        }
-        var updatedDictionary = version.databaseDictionary
-        for column in primaryKeyDictionary.keys {
-            updatedDictionary.removeValueForKey(column)
-        }
-        
-        
-        // "UPDATE table SET name = ? WHERE id = ?"
-        
-        let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-        let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
-        let verb: String
-        if let conflictResolution = conflictResolution {
-            switch conflictResolution {
-            case .Replace:
-                verb = "UPDATE OR REPLACE"
-            case .Rollback:
-                verb = "UPDATE OR ROLLBACK"
-            case .Abort:
-                verb = "UPDATE OR ABORT"
-            case .Fail:
-                verb = "UPDATE OR FAIL"
-            case .Ignore:
-                verb = "UPDATE OR IGNORE"
-            }
-        } else {
-            verb = "UPDATE"
-        }
-        let sql = "\(verb) \(tableName.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
-        return try db.execute(sql, bindings: bindings).changedRowCount > 0
+        return try Version(self).update(db, conflictResolution: conflictResolution)
     }
     
     
@@ -206,81 +121,26 @@ public class RowModel {
     /// Returns true if the model has been inserted, or if it still exists in
     /// the database and has been updated.
     final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
-        let version = Version(self)
-        if let _ = version.strongPrimaryKeyDictionary {
-            // Primary key set: update
-            return try update(db, conflictResolution: conflictResolution)
-        } else {
-            // No primary key: insert
-            try insert(db, conflictResolution: conflictResolution)
-            return true
-        }
+        return try Version(self).save(db, conflictResolution: conflictResolution)
     }
     
     /// Throws an error if the model has no table name, or no primary key
     final public func delete(db: Database) throws {
-        
-        guard let tableName = self.dynamicType.databaseTableName else {
-            fatalError("Missing table name")
-        }
-        
-        
-        // Extract strong primary key
-        
-        let version = Version(self)
-        guard let primaryKeyDictionary = version.strongPrimaryKeyDictionary else {
-            fatalError("No primaryKey")
-        }
-        
-        
-        // "DELETE FROM table WHERE id = ?"
-        
-        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-        let bindings = Bindings(Array(primaryKeyDictionary.values))
-        let sql = "DELETE FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
-        try db.execute(sql, bindings: bindings)
+        try Version(self).delete(db)
     }
     
     /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been reloaded.
     final public func reload(db: Database) -> Bool {
-        
-        guard let tableName = self.dynamicType.databaseTableName else {
-            fatalError("Missing table name")
-        }
-        
-        
-        // Extract strong primary key
-        
-        let version = Version(self)
-        guard let primaryKeyDictionary = version.strongPrimaryKeyDictionary else {
-            fatalError("No primaryKey")
-        }
-        
-        
-        // "SELECT * FROM table WHERE id = ?"
-        
-        let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-        let bindings = Bindings(Array(primaryKeyDictionary.values))
-        let sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
-        let row = db.fetchOneRow(sql, bindings: bindings)
-        
-        
-        // Reload
-        
-        if let row = row {
-            updateFromDatabaseRow(row)
-            return true
-        } else {
-            return false
-        }
+        return Version(self).reload(db)
     }
     
-    // MARK: - Not public
+    // MARK: - Version
     
     private class Version {
         let rowModel: RowModel
         
+        lazy var databaseTableName: String? = self.rowModel.dynamicType.databaseTableName
         lazy var databasePrimaryKey: PrimaryKey = self.rowModel.dynamicType.databasePrimaryKey
         lazy var databaseDictionary: [String: SQLiteValueConvertible?] = self.rowModel.databaseDictionary
         
@@ -331,7 +191,52 @@ public class RowModel {
             return nil
         }()
         
-        func updateRowModelWithInsertionChanges(changes: UpdateStatement.Changes) {
+        init(_ rowModel: RowModel) {
+            self.rowModel = rowModel
+        }
+
+        func insert(db: Database, conflictResolution: ConflictResolution?) throws {
+            
+            // Table name
+            
+            guard let tableName = databaseTableName else {
+                fatalError("Missing table name")
+            }
+            
+            
+            // The inserted values
+            
+            let insertedDic = databaseDictionary
+            
+            
+            // INSERT INTO table (id, name) VALUES (:id, :name)
+            
+            let columnNames = insertedDic.keys
+            let columnSQL = ",".join(columnNames.map { $0.sqliteQuotedIdentifier })
+            let valuesSQL = ",".join([String](count: columnNames.count, repeatedValue: "?"))
+            let verb: String
+            if let conflictResolution = conflictResolution {
+                switch conflictResolution {
+                case .Replace:
+                    verb = "INSERT OR REPLACE"
+                case .Rollback:
+                    verb = "INSERT OR ROLLBACK"
+                case .Abort:
+                    verb = "INSERT OR ABORT"
+                case .Fail:
+                    verb = "INSERT OR FAIL"
+                case .Ignore:
+                    verb = "INSERT OR IGNORE"
+                }
+            } else {
+                verb = "INSERT"
+            }
+            let sql = "\(verb) INTO \(tableName.sqliteQuotedIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
+            let changes = try db.execute(sql, bindings: Bindings(insertedDic.values))
+            
+            
+            // Update RowID column if needed
+            
             switch databasePrimaryKey {
             case .RowID(let column):
                 if let optionalValue = databaseDictionary[column] {
@@ -346,9 +251,115 @@ public class RowModel {
                 return
             }
         }
+
+        func update(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
+            
+            // Table name
+            
+            guard let tableName = databaseTableName else {
+                fatalError("Missing table name")
+            }
+            
+            
+            // Don't update primary key columns
+            
+            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+                fatalError("No primaryKey")
+            }
+            
+            var updatedDictionary = databaseDictionary
+            for column in primaryKeyDictionary.keys {
+                updatedDictionary.removeValueForKey(column)
+            }
+            
+            
+            // "UPDATE table SET name = ? WHERE id = ?"
+            
+            let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+            let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
+            let verb: String
+            if let conflictResolution = conflictResolution {
+                switch conflictResolution {
+                case .Replace:
+                    verb = "UPDATE OR REPLACE"
+                case .Rollback:
+                    verb = "UPDATE OR ROLLBACK"
+                case .Abort:
+                    verb = "UPDATE OR ABORT"
+                case .Fail:
+                    verb = "UPDATE OR FAIL"
+                case .Ignore:
+                    verb = "UPDATE OR IGNORE"
+                }
+            } else {
+                verb = "UPDATE"
+            }
+            let sql = "\(verb) \(tableName.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+            return try db.execute(sql, bindings: bindings).changedRowCount > 0
+        }
         
-        init(_ rowModel: RowModel) {
-            self.rowModel = rowModel
+        func save(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
+            if let _ = strongPrimaryKeyDictionary {
+                return try update(db, conflictResolution: conflictResolution)
+            } else {
+                try insert(db, conflictResolution: conflictResolution)
+                return true
+            }
+        }
+        
+        func delete(db: Database) throws {
+            
+            guard let tableName = databaseTableName else {
+                fatalError("Missing table name")
+            }
+            
+            
+            // Extract strong primary key
+            
+            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+                fatalError("No primaryKey")
+            }
+            
+            
+            // "DELETE FROM table WHERE id = ?"
+            
+            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+            let bindings = Bindings(Array(primaryKeyDictionary.values))
+            let sql = "DELETE FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
+            try db.execute(sql, bindings: bindings)
+        }
+
+        func reload(db: Database) -> Bool {
+            
+            guard let tableName = databaseTableName else {
+                fatalError("Missing table name")
+            }
+            
+            
+            // Extract strong primary key
+            
+            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+                fatalError("No primaryKey")
+            }
+            
+            
+            // "SELECT * FROM table WHERE id = ?"
+            
+            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+            let bindings = Bindings(Array(primaryKeyDictionary.values))
+            let sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
+            let row = db.fetchOneRow(sql, bindings: bindings)
+            
+            
+            // Reload
+            
+            if let row = row {
+                rowModel.updateFromDatabaseRow(row)
+                return true
+            } else {
+                return false
+            }
         }
     }
     
