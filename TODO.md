@@ -2,3 +2,5 @@
 - [ ] Fetch with a collection of primary keys: db.fetch(RowModel.type, primaryKeys:[...]). Problem: users will often want to sort, so the plain SELECT * FROM persons WHERE id IN (?,?,?) won't be appreciated. Needs more thought.
 - [ ] Let Bindings eat arrays, or make it easy to generate series of ?,?,?,?
 - [ ] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that.
+- [ ] RowModel methods that return a Bool should throw a RowModelError
+- [ ] Investigate RowModel.Version (or some name) that provides: a single call to databaseDictionary, the (lazy) primaryKeyDictionary property, and the lazy isUniquelyIdentifiedInDatabase property which is false if and only if the primaryKeyDictionary only contains nils.
