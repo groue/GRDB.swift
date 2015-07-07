@@ -642,9 +642,6 @@ class Person : RowModel {
 try dbQueue.inDatabase { db in
     // Fetch
     let person = db.fetchOne(Person.self, primaryKey: 123)  // Person?
-    
-    // Delete
-    try person!.delete(db)
 }
 ```
 
@@ -654,36 +651,9 @@ There are four kinds of primary keys:
 
 - **RowID**: use it when you rely on SQLite to automatically generate IDs (see https://www.sqlite.org/autoinc.html).
     
-    ```swift
-    class Person : RowModel {
-        override class var databasePrimaryKey: PrimaryKey {
-            return .RowID("id")
-        }
-    }
-    db.fetchOne(Person.self, primaryKey: 123)
-    ```
-    
 - **Column**: for single-column primary keys that are not managed by SQLite.
     
-    ```swift
-    class Book : RowModel {
-        override class var databasePrimaryKey: PrimaryKey {
-            return .Column("uuid")
-        }
-    }
-    db.fetchOne(Book.self, primaryKey: "b3fc...")
-    ```
-    
 - **Columns**: for primary keys that span accross several columns.
-    
-    ```swift
-    class Citizenship : RowModel {
-        override class var databasePrimaryKey: PrimaryKey {
-            return .Columns("personID", "countryID")
-        }
-    }
-    db.fetchOne(Citizenship.self, primaryKey: ["personID": arthur.id, "countryID": france.id])
-    ```
     
 
 The kind of primary key impacts the insert/update/delete methods that we will see below.
@@ -691,20 +661,17 @@ The kind of primary key impacts the insert/update/delete methods that we will se
 
 ### Storage
 
-With one more method, you get the `insert`, `update`, `save` and `reload` methods.
+With one more method, you get the `insert`, `update`, `delete` methods, plus the convenience `save` and `reload` methods.
 
 ```swift
 class Person : RowModel {
-    ...
-    
     // The values stored in the database:
     override var databaseDictionary: [String: SQLiteValueConvertible?] {
         return [
             "id": id,
             "name": name,
             "age": age,
-            // The custom type DBDate has been declared above.
-            "creationTimestamp": DBDate(creationDate),
+            "creationTimestamp": DBDate(creationDate),  // See DBDate above
         ]
     }
 }
@@ -713,60 +680,36 @@ try dbQueue.inTransaction { db in
     
     // Insert
     let person = Person(name: "Arthur", age: 41)
-    try person.save(db) // Same as insert(db) when primary key is not set
+    try person.insert(db)
     
     // Update
     person.age = 42
-    try person.save(db) // Same as update(db) when primary key is set
+    try person.update(db)
     
+    // Reload
     person.age = 666
-    person.reload(db)
+    try person.reload(db)
+    
+    // Delete
+    try person.delete(db)
     
     return .Commit
 }
 ```
 
-Models that declare a `RowID` primary key have their id automatically set after insertion (the id is set with the `updateFromDatabaseRow` method):
+Models that declare a `RowID` primary key have their id automatically set after successful insertion (with the `updateFromDatabaseRow` method).
 
-```swift
-let arthur = Person(name: "Arthur")
-try arthur.insert(db)
-arthur.id   // some value
-```
-
-Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself.
+Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example **override** the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 
 
-You can for example **override primitive methods**:
+### RowModel Errors
 
-```swift
-class Book : RowModel {
-    ...
-    
-    // Before insertion, set uuid primary key if not set yet.
-    override func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws { {
-        if uuid == nil {
-            uuid = NSUUID().UUIDString
-        }
-        
-        try super.insert(db)
-    }
-}
-```
+All RowModel methods can throw [SQLiteError](#error-handling) and also RowModelError:
 
-There are a lot of possible customizations:
+- **RowModelError.InvalidPrimaryKey**: throw by `update`, `delete` and `reload` when the primary key is invalid (nil).
 
-```swift
-class Person : RowModel {
-    ...
-    
-    override func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws { {
-        creationDate = NSDate()
-        try validate()
-        try super.insert(db)
-    }
-}
-```
+- **rowModelError.NotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
+
 
 
 ## Thanks
