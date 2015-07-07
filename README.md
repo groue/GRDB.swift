@@ -399,7 +399,9 @@ try dbQueue.inTransaction { db in
     ]
     
     for person in persons {
-        try statement.execute(bindings: Bindings(person))
+        let changes = try statement.execute(bindings: Bindings(person))
+        changes.changedRowCount // The number of rows changed by the statement.
+        changes.insertedRowID   // The inserted Row ID.
     }
     
     return .Commit

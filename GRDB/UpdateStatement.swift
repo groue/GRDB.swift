@@ -29,7 +29,7 @@ public final class UpdateStatement : Statement {
         /// The number of rows changed by the statement.
         let changedRowCount: Int
         
-        /// The last inserted Row ID. Relevant if and only if the statement is
+        /// The inserted Row ID. Relevant if and only if the statement is
         /// an INSERT statement.
         let insertedRowID: Int64?
     }
