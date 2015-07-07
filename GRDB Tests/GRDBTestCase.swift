@@ -82,11 +82,11 @@ class GRDBTestCase: XCTestCase {
         do {
             try test()
         } catch let error as SQLiteError {
-            fatalError(error.description)
+            XCTFail(error.description)
         } catch let error as RowModelError {
-            fatalError(error.description)
+            XCTFail(error.description)
         } catch {
-            fatalError("error: \(error)")
+            XCTFail("error: \(error)")
         }
     }
 }
