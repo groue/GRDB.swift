@@ -29,7 +29,7 @@ It is the base class of UpdateStatement that executes *update statements*, and
 SelectStatement that fetches rows.
 */
 public class Statement {
-    public lazy var sql: String = String.fromCString(UnsafePointer<Int8>(sqlite3_sql(self.sqliteStatement)))!
+    public var sql: String
     public var bindings: Bindings? {
         didSet {
             reset() // necessary before applying new bindings
@@ -55,6 +55,7 @@ public class Statement {
         // See https://www.sqlite.org/c3ref/prepare.html
         self.database = database
         self.databaseQueueID = dispatch_get_specific(DatabaseQueue.databaseQueueIDKey)
+        self.sql = sql
         let code = sqlite3_prepare_v2(database.sqliteConnection, sql, -1, &sqliteStatement, nil)
         if code != SQLITE_OK {
             throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql)
