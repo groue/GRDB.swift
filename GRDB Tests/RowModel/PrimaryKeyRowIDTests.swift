@@ -226,6 +226,17 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
         }
     }
     
+    // TODO: make this code nicer
+    func testSelectWithMultiplePrimaryKeys() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                let ids = [1,2,3]
+                let questionMarks = ",".join(Array(count: ids.count, repeatedValue: "?"))
+                db.fetchAll(Person.self, "SELECT * FROM persons WHERE id IN (\(questionMarks))", bindings: Bindings(ids))
+            }
+        }
+    }
+    
     func testDelete() {
         assertNoError {
             try dbQueue.inTransaction { db in
