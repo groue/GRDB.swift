@@ -46,13 +46,13 @@ public final class UpdateStatement : Statement {
         }
         
         let code = sqlite3_step(sqliteStatement)
-        if code == SQLITE_DONE {
-            let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
-            let lastInsertedRowID = sqlite3_last_insert_rowid(database.sqliteConnection)
-            let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
-            return Changes(changedRowCount: changedRowCount, insertedRowID: insertedRowID)
-        } else {
+        guard code == SQLITE_DONE else {
             throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql, bindings: self.bindings)
         }
+        
+        let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
+        let lastInsertedRowID = sqlite3_last_insert_rowid(database.sqliteConnection)
+        let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
+        return Changes(changedRowCount: changedRowCount, insertedRowID: insertedRowID)
     }
 }
