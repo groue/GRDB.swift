@@ -682,7 +682,6 @@ There are four kinds of primary keys:
             return .Columns("personID", "countryID")
         }
     }
-    db.fetchOne(Citizenship.self, primaryKey: [arthur.id, france.id])
     db.fetchOne(Citizenship.self, primaryKey: ["personID": arthur.id, "countryID": france.id])
     ```
     
