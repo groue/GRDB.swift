@@ -264,7 +264,7 @@ public class RowModel {
             }
             
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
-                throw RowModelError.InvalidPrimaryKey(rowModel)
+                throw RowModelError.InvalidPrimaryKey
             }
             
             
@@ -303,7 +303,7 @@ public class RowModel {
             
             
             if changedRowCount == 0 {
-                throw RowModelError.NotFound(rowModel)
+                throw RowModelError.NotFound
             }
         }
         
@@ -322,7 +322,7 @@ public class RowModel {
             }
             
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
-                throw RowModelError.InvalidPrimaryKey(rowModel)
+                throw RowModelError.InvalidPrimaryKey
             }
             
             
@@ -340,7 +340,7 @@ public class RowModel {
             }
             
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
-                throw RowModelError.InvalidPrimaryKey(rowModel)
+                throw RowModelError.InvalidPrimaryKey
             }
             
             
@@ -352,7 +352,7 @@ public class RowModel {
             if let row = db.fetchOneRow(sql, bindings: bindings) {
                 return row
             } else {
-                throw RowModelError.NotFound(rowModel)
+                throw RowModelError.NotFound
             }
         }
     }
@@ -434,21 +434,21 @@ extension RowModel : CustomStringConvertible {
 public enum RowModelError: ErrorType {
     /// RowModel could not be identified: either the databaseTableName class
     /// method return .None, or the RowModel has nil primary key.
-    case InvalidPrimaryKey(RowModel)
+    case InvalidPrimaryKey
     
     /// Failed update or reload because the RowModel could not be found in the
     /// database.
-    case NotFound(RowModel)
+    case NotFound
 }
 
 extension RowModelError : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         switch self {
-        case .InvalidPrimaryKey(let rowModel):
-            return "Invalid primary key in RowModel: \(rowModel)"
-        case .NotFound(let rowModel):
-            return "RowModel not found: \(rowModel)"
+        case .InvalidPrimaryKey:
+            return "Invalid primary key"
+        case .NotFound:
+            return "RowModel not found"
         }
     }
 }
