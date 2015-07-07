@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 
 
-import Cocoa
+// MARK: - RowModel
 
 public class RowModel {
     
@@ -104,24 +104,31 @@ public class RowModel {
     
     /// Inserts
     public func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
-        try Version(self).insert(db, conflictResolution: conflictResolution)
+        let insertionResult = try Version(self).insert(db, conflictResolution: conflictResolution)
+        
+        if let (column, insertedRowID) = insertionResult {
+            let row = Row(sqliteDictionary: [column: SQLiteValue.Integer(insertedRowID)])
+            updateFromDatabaseRow(row)
+        }
     }
     
     /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been updated.
     /// See https://www.sqlite.org/lang_update.html
-    public func update(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
+    public func update(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         return try Version(self).update(db, conflictResolution: conflictResolution)
     }
-    
     
     /// Updates if model has a primary key with at least one non-nil value,
     /// or inserts.
     ///
     /// Returns true if the model has been inserted, or if it still exists in
     /// the database and has been updated.
-    final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
-        return try Version(self).save(db, conflictResolution: conflictResolution)
+    final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws {
+        if let (column, insertedRowID) = try Version(self).save(db, conflictResolution: conflictResolution) {
+            let row = Row(sqliteDictionary: [column: SQLiteValue.Integer(insertedRowID)])
+            updateFromDatabaseRow(row)
+        }
     }
     
     /// Throws an error if the model has no table name, or no primary key
@@ -131,13 +138,16 @@ public class RowModel {
     
     /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been reloaded.
-    final public func reload(db: Database) -> Bool {
-        return Version(self).reload(db)
+    final public func reload(db: Database) throws {
+        let row = try Version(self).fetchRow(db)
+        updateFromDatabaseRow(row)
     }
+    
     
     // MARK: - Version
     
     private class Version {
+        /// Version makes the promise that it will NEVER change the rowModel.
         let rowModel: RowModel
         
         lazy var databaseTableName: String? = self.rowModel.dynamicType.databaseTableName
@@ -194,23 +204,18 @@ public class RowModel {
         init(_ rowModel: RowModel) {
             self.rowModel = rowModel
         }
-
-        func insert(db: Database, conflictResolution: ConflictResolution?) throws {
-            
-            // Table name
-            
+        
+        /// Returns an optional (columnName, insertedRowID) if and only if the
+        /// row model should be updated.
+        func insert(db: Database, conflictResolution: ConflictResolution?) throws -> (String, Int64)? {
             guard let tableName = databaseTableName else {
-                fatalError("Missing table name")
+                fatalError("Override databaseTableName and return a table name.")
             }
-            
-            
-            // The inserted values
-            
-            let insertedDic = databaseDictionary
             
             
             // INSERT INTO table (id, name) VALUES (:id, :name)
             
+            let insertedDic = databaseDictionary
             let columnNames = insertedDic.keys
             let columnSQL = ",".join(columnNames.map { $0.sqliteQuotedIdentifier })
             let valuesSQL = ",".join([String](count: columnNames.count, repeatedValue: "?"))
@@ -240,32 +245,30 @@ public class RowModel {
             switch databasePrimaryKey {
             case .RowID(let column):
                 if let optionalValue = databaseDictionary[column] {
-                    if optionalValue == nil {
-                        let row = Row(sqliteDictionary: [column: SQLiteValue.Integer(changes.insertedRowID!)])
-                        rowModel.updateFromDatabaseRow(row)
+                    if optionalValue == nil {   // ID was not set
+                        return (column, changes.insertedRowID!)
+                    } else {
+                        return nil
                     }
                 } else {
                     fatalError("databaseDictionary must return the value for the primary key `(column)`")
                 }
             default:
-                return
+                return nil
             }
         }
 
-        func update(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
-            
-            // Table name
-            
+        func update(db: Database, conflictResolution: ConflictResolution? = nil) throws {
             guard let tableName = databaseTableName else {
-                fatalError("Missing table name")
+                fatalError("Override databaseTableName and return a table name.")
+            }
+            
+            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+                throw RowModelError.InvalidPrimaryKey(rowModel)
             }
             
             
             // Don't update primary key columns
-            
-            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
-                fatalError("No primaryKey")
-            }
             
             var updatedDictionary = databaseDictionary
             for column in primaryKeyDictionary.keys {
@@ -296,29 +299,30 @@ public class RowModel {
                 verb = "UPDATE"
             }
             let sql = "\(verb) \(tableName.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
-            return try db.execute(sql, bindings: bindings).changedRowCount > 0
+            let changedRowCount = try db.execute(sql, bindings: bindings).changedRowCount
+            
+            
+            if changedRowCount == 0 {
+                throw RowModelError.NotFound(rowModel)
+            }
         }
         
-        func save(db: Database, conflictResolution: ConflictResolution? = nil) throws -> Bool {
+        func save(db: Database, conflictResolution: ConflictResolution? = nil) throws -> (String, Int64)? {
             if let _ = strongPrimaryKeyDictionary {
-                return try update(db, conflictResolution: conflictResolution)
+                try update(db, conflictResolution: conflictResolution)
+                return nil
             } else {
-                try insert(db, conflictResolution: conflictResolution)
-                return true
+                return try insert(db, conflictResolution: conflictResolution)
             }
         }
         
         func delete(db: Database) throws {
-            
             guard let tableName = databaseTableName else {
-                fatalError("Missing table name")
+                fatalError("Override databaseTableName and return a table name.")
             }
             
-            
-            // Extract strong primary key
-            
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
-                fatalError("No primaryKey")
+                throw RowModelError.InvalidPrimaryKey(rowModel)
             }
             
             
@@ -330,17 +334,13 @@ public class RowModel {
             try db.execute(sql, bindings: bindings)
         }
 
-        func reload(db: Database) -> Bool {
-            
+        func fetchRow(db: Database) throws -> Row {
             guard let tableName = databaseTableName else {
-                fatalError("Missing table name")
+                fatalError("Override databaseTableName and return a table name.")
             }
             
-            
-            // Extract strong primary key
-            
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
-                fatalError("No primaryKey")
+                throw RowModelError.InvalidPrimaryKey(rowModel)
             }
             
             
@@ -349,16 +349,10 @@ public class RowModel {
             let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
             let bindings = Bindings(Array(primaryKeyDictionary.values))
             let sql = "SELECT * FROM \(tableName.sqliteQuotedIdentifier) WHERE \(whereSQL)"
-            let row = db.fetchOneRow(sql, bindings: bindings)
-            
-            
-            // Reload
-            
-            if let row = row {
-                rowModel.updateFromDatabaseRow(row)
-                return true
+            if let row = db.fetchOneRow(sql, bindings: bindings) {
+                return row
             } else {
-                return false
+                throw RowModelError.NotFound(rowModel)
             }
         }
     }
@@ -434,6 +428,32 @@ extension RowModel : CustomStringConvertible {
 }
 
 
+// MARK: - RowModelError
+
+/// A RowModel-specific error
+public enum RowModelError: ErrorType {
+    /// RowModel could not be identified: either the databaseTableName class
+    /// method return .None, or the RowModel has nil primary key.
+    case InvalidPrimaryKey(RowModel)
+    
+    /// Failed update or reload because the RowModel could not be found in the
+    /// database.
+    case NotFound(RowModel)
+}
+
+extension RowModelError : CustomStringConvertible {
+    /// A textual representation of `self`.
+    public var description: String {
+        switch self {
+        case .InvalidPrimaryKey(let rowModel):
+            return "Invalid primary key in RowModel: \(rowModel)"
+        case .NotFound(let rowModel):
+            return "RowModel not found: \(rowModel)"
+        }
+    }
+}
+
+
 // MARK: - Feching Row Models
 
 /**
@@ -478,7 +498,7 @@ extension Database {
         // Table name
         
         guard let tableName = RowModel.databaseTableName else {
-            fatalError("Missing table name")
+            fatalError("Override databaseTableName and return a table name.")
         }
         
         
@@ -493,7 +513,7 @@ extension Database {
     // let person = db.fetchOne(Person.self, primaryKey: ...)
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: SQLiteValueConvertible) -> RowModel? {
         guard let tableName = RowModel.databaseTableName else {
-            fatalError("Missing table name")
+            fatalError("Override databaseTableName and return a table name.")
         }
         
         let sql: String

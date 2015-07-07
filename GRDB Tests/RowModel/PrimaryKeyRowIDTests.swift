@@ -155,15 +155,17 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 try arthur.insert(db)
                 
                 arthur.age = 42
-                var updated = try arthur.update(db)   // The tested method
-                XCTAssertTrue(updated)
+                try arthur.update(db)               // object still in database
                 
                 arthur = db.fetchOne(Person.self, primaryKey: arthur.id)!
                 XCTAssertEqual(arthur.age, 42)
                 
-                try arthur.delete(db)
-                updated = try arthur.update(db)   // The tested method
-                XCTAssertFalse(updated)
+                do {
+                    try arthur.delete(db)
+                    try arthur.update(db)           // object no longer in database
+                    XCTFail()
+                } catch RowModelError.NotFound {
+                }
 
                 return .Commit
             }
@@ -176,23 +178,26 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
             
             XCTAssertTrue(arthur.id == nil)
             try dbQueue.inTransaction { db in
-                // Initial save should insert
-                let saved = try arthur.save(db)
-                XCTAssertTrue(saved)
+                try arthur.save(db)             // insert
                 return .Commit
             }
             XCTAssertTrue(arthur.id != nil)
-            arthur.age = 42
+            arthur.age = 18
             try dbQueue.inTransaction { db in
-                // Initial save should update
-                let saved = try arthur.save(db)
-                XCTAssertTrue(saved)
+                try arthur.save(db)             // update
                 return .Commit
             }
             
-            dbQueue.inDatabase { db in
+            try dbQueue.inDatabase{ db in
                 let arthur2 = db.fetchOne(Person.self, primaryKey: arthur.id!)!
-                XCTAssertEqual(arthur2.age!, 42)
+                XCTAssertEqual(arthur2.age!, 18)
+                
+                try arthur2.delete(db)
+                do {
+                    try arthur.save(db)         // object no longer in database
+                    XCTFail()
+                } catch RowModelError.NotFound {
+                }
             }
         }
     }
@@ -267,14 +272,18 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 
                 arthur.name = "Bobby"
                 XCTAssertEqual(arthur.name!, "Bobby")
-                XCTAssertTrue(arthur.reload(db))        // object still in database
+                try arthur.reload(db)                   // object still in database
                 XCTAssertEqual(arthur.name!, "Arthur")
                 
                 try arthur.delete(db)
                 
                 arthur.name = "Bobby"
                 XCTAssertEqual(arthur.name!, "Bobby")
-                XCTAssertFalse(arthur.reload(db))       // object no longer in database
+                do {
+                    try arthur.reload(db)               // object no longer in database
+                    XCTFail()
+                } catch RowModelError.NotFound {
+                }
                 XCTAssertEqual(arthur.name!, "Bobby")
                 
                 return .Commit

@@ -163,16 +163,18 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 try citizenship.insert(db)
                 
                 citizenship.grantedDate = date2
-                var updated = try citizenship.update(db)  // The tested method
-                XCTAssertTrue(updated)
+                try citizenship.update(db)          // object still in database
                 
                 citizenship = db.fetchOne(Citizenship.self, primaryKey: ["personID": citizenship.personID, "countryName": citizenship.countryName])!
                 XCTAssertEqual(citizenship.countryName!, "France")
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: citizenship.grantedDate!), 2000)
                 
-                try citizenship.delete(db)
-                updated = try citizenship.update(db)      // The tested method
-                XCTAssertFalse(false)
+                do {
+                    try citizenship.delete(db)
+                    try citizenship.update(db)      // object no longer in database
+                    XCTFail("Expected Error")
+                } catch RowModelError.NotFound {
+                }
                 
                 return .Commit
             }
@@ -245,14 +247,18 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 
                 citizenship.native = false
                 XCTAssertEqual(citizenship.native!, false)
-                XCTAssertTrue(citizenship.reload(db))       // object still in database
+                try citizenship.reload(db)                  // object still in database
                 XCTAssertEqual(citizenship.native!, true)
                 
                 try citizenship.delete(db)
                 
                 citizenship.native = false
                 XCTAssertEqual(citizenship.native!, false)
-                XCTAssertFalse(citizenship.reload(db))      // object no longer in database
+                do {
+                    try citizenship.reload(db)              // object no longer in database
+                    XCTFail()
+                } catch RowModelError.NotFound {
+                }
                 XCTAssertEqual(citizenship.native!, false)
                 
                 return .Commit

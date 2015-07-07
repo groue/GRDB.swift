@@ -176,15 +176,17 @@ class PrimaryKeySingleTests: RowModelTestCase {
                 try pet.insert(db)
                 
                 pet.name = "Karl"
-                var updated = try pet.update(db)  // The tested method
-                XCTAssertTrue(updated)
+                try pet.update(db)          // object still in database
                 
                 pet = db.fetchOne(Pet.self, primaryKey: pet.UUID!)!
                 XCTAssertEqual(pet.name!, "Karl")
                 
-                try pet.delete(db)
-                updated = try pet.update(db)  // The tested method
-                XCTAssertFalse(updated)
+                do {
+                    try pet.delete(db)
+                    try pet.update(db)      // object no longer in database
+                    XCTFail()
+                } catch RowModelError.NotFound {
+                }
                 
                 return .Commit
             }
@@ -275,14 +277,18 @@ class PrimaryKeySingleTests: RowModelTestCase {
                 
                 bobby.name = "Karl"
                 XCTAssertEqual(bobby.name!, "Karl")
-                XCTAssertTrue(bobby.reload(db))         // object no longer in database
+                try bobby.reload(db)                    // object still in database
                 XCTAssertEqual(bobby.name!, "Bobby")
                 
                 try bobby.delete(db)
                 
                 bobby.name = "Karl"
                 XCTAssertEqual(bobby.name!, "Karl")
-                XCTAssertFalse(bobby.reload(db))        // object still in database
+                do {
+                    try bobby.reload(db)                // object no longer in database
+                    XCTFail()
+                } catch RowModelError.NotFound {
+                }
                 XCTAssertEqual(bobby.name!, "Karl")
                 
                 return .Commit

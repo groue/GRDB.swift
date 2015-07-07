@@ -83,6 +83,8 @@ class GRDBTestCase: XCTestCase {
             try test()
         } catch let error as SQLiteError {
             fatalError(error.description)
+        } catch let error as RowModelError {
+            fatalError(error.description)
         } catch {
             fatalError("error: \(error)")
         }
