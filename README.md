@@ -667,11 +667,11 @@ try dbQueue.inTransaction { db in
     
     // Insert
     let person = Person(name: "Arthur", age: 41)
-    try person.insert(db)   // save(db) inserts when the primary key is not set.
+    try person.insert(db) // save(db) would insert when the primary key is not set.
     
     // Update
     person.age = 42
-    try person.update(db)   // save(db) updates when the primary key is set.
+    try person.update(db) // save(db) would update when the primary key is set.
     
     // Reload
     person.age = 666
