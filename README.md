@@ -541,8 +541,6 @@ class Person : RowModel {
 }
 ```
 
-> TIP: Use implicitly unwrapped optionals for not null columns, like `id: Int64!`, and optionals for nullable columns: `age: Int?`.
-
 The `setSQLiteValue(_:forColumn:)` method assigns SQLite values to properties:
 
 ```swift
