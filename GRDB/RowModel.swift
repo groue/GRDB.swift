@@ -28,9 +28,6 @@ public class RowModel {
     
     /// A primary key
     public enum PrimaryKey {
-        /// No primary key.
-        case None
-        
         /// A primary key managed by SQLite.
         case RowID(String)
         
@@ -47,10 +44,10 @@ public class RowModel {
         public let name: String
         
         /// The primary key
-        public let primaryKey: PrimaryKey
+        public let primaryKey: PrimaryKey?
         
-        /// Creates a Table given its name and primary key (default .None)
-        public init(named name: String, primaryKey: PrimaryKey = .None) {
+        /// Creates a Table given its name and primary key (default nil)
+        public init(named name: String, primaryKey: PrimaryKey? = nil) {
             self.name = name
             self.primaryKey = primaryKey
         }
@@ -177,9 +174,6 @@ public class RowModel {
                 return nil
             }
             switch primaryKey {
-            case .None:
-                return nil
-                
             case .RowID(let column):
                 if let value = self.storedDatabaseDictionary[column] {
                     return [column: value]
@@ -257,7 +251,10 @@ public class RowModel {
             let changes = try db.execute(sql, bindings: Bindings(insertedDic.values))
             
             // Update RowID column if needed
-            switch table.primaryKey {
+            guard let primaryKey = table.primaryKey else {
+                return nil
+            }
+            switch primaryKey {
             case .RowID(let column):
                 if let optionalValue = storedDatabaseDictionary[column] {
                     if optionalValue == nil {   // ID was not set
@@ -441,10 +438,12 @@ extension Database {
             fatalError("Missing databaseTable.")
         }
         
-        let sql: String
-        switch table.primaryKey {
-        case .None:
+        guard let tablePrimaryKey = table.primaryKey else {
             fatalError("Missing primary key")
+        }
+        
+        let sql: String
+        switch tablePrimaryKey {
         case .RowID(let column):
             sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
         case .Column(let column):

@@ -514,15 +514,16 @@ Subclasses opt in RowModel features by overriding all or part of the core method
 
 For example, we see below that **fetching** does not require any coupling to a specific database table:
 
-| Core Methods                   | fetch | insert | update | delete |
-|:------------------------------ |:-----:|:------:|:------:|:------:|
-| `setSQLiteValue(_:forColumn:)` |   X   |        |        |        |
-| `databaseTable`                |       |   X    |   X    |   X    |
-| `storedDatabaseDictionary`     |       |   X    |   X    |   X    |
+| Core Methods                        | fetch | insert | update | delete |
+|:----------------------------------- |:-----:|:------:|:------:|:------:|
+| `setSQLiteValue(_:forColumn:)  `    |   X   |        |        |        |
+| `databaseTable`                     |       |   X    |        |        |
+| `databaseTable` with primary key    |       |        |   X    |   X    |
+| `storedDatabaseDictionary`          |       |   X    |   X    |   X    |
 
 - [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
-- [Primary Keys](#primary-keys)
+- [Tables and Primary Keys](#tables-and-primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
 - [RowModel Errors](#rowmodels-errors)
 - [Full List of RowModel methods](full-list-of-rowmodel-methods)
@@ -627,7 +628,7 @@ class PersonsViewController: UITableViewController {
 ```
 
 
-### Primary Keys
+### Tables and Primary Keys
 
 Declare a **Table** given its **name** and **primary key** in order to fetch row models by ID:
 
@@ -644,9 +645,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-There are four kinds of primary keys:
-
-- **None** (the default): no primary key
+There are three kinds of primary keys:
 
 - **RowID**: use it when you rely on SQLite to automatically generate IDs (see https://www.sqlite.org/autoinc.html).
     
