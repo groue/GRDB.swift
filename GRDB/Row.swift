@@ -27,28 +27,6 @@ A row is the result of a database query.
 */
 public struct Row: CollectionType {
     
-    /**
-    Builds a row from an dictionary of SQLite values.
-    
-        let dic = [
-            "name": .Text("Arthur"),
-            "booksCount": .Integer(0)]
-        let row = Row(sqliteDictionary: dic)
-    
-    - parameter sqliteDictionary: A dictionary of SQLiteValue.
-    */
-    public init(sqliteDictionary: [String: SQLiteValue]) {
-        // IMPLEMENTATION NODE
-        //
-        // This initializer is used by RowModel.insert() so that it can call
-        // RowModel.updateFromDatabaseRow() to set the ID after the insertion.
-        //
-        // It is made public because it is important to let the user experiment
-        // with rows and models.
-        self.impl = DictionaryRowImpl(sqliteDictionary: sqliteDictionary)
-    }
-    
-    
     // MARK: - SQLiteValueConvertible value
     
     /**
@@ -225,6 +203,34 @@ public struct Row: CollectionType {
     }
     
     
+    // MARK: - Not Public, dedicated to tests
+    
+    /**
+    Builds a row from an dictionary of SQLite values.
+    
+        let dic = [
+            "name": .Text("Arthur"),
+            "booksCount": .Integer(0)]
+        let row = Row(sqliteDictionary: dic)
+    
+    - parameter sqliteDictionary: A dictionary of SQLiteValue.
+    */
+    init(sqliteDictionary: [String: SQLiteValue]) {
+        // IMPLEMENTATION NODE
+        //
+        // This initializer is used by RowModel.insert() so that it can call
+        // RowModel.updateFromDatabaseRow() to set the ID after the insertion.
+        //
+        // It is made public because it is important to let the user experiment
+        // with rows and models.
+        self.impl = DictionaryRowImpl(sqliteDictionary: sqliteDictionary)
+    }
+    
+    subscript(index: Int) -> SQLiteValue {
+        return impl.sqliteValue(atIndex: index)
+    }
+    
+    
     // MARK: - Not Public
     
     /**
@@ -255,13 +261,8 @@ public struct Row: CollectionType {
         }
     }
     
-    /// Helper method for tests.
-    subscript(index: Int) -> SQLiteValue {
-        return impl.sqliteValue(atIndex: index)
-    }
     
-    
-    // MARK: DictionaryRowImpl
+    // MARK: - DictionaryRowImpl
     
     /// See Row.init(sqliteDictionary:)
     private struct DictionaryRowImpl : RowImpl {
@@ -293,7 +294,7 @@ public struct Row: CollectionType {
     }
     
     
-    // MARK: SafeRowImpl
+    // MARK: - SafeRowImpl
     
     /// See Row.init(statement:unsafe:)
     private struct SafeRowImpl : RowImpl {
@@ -330,7 +331,7 @@ public struct Row: CollectionType {
     }
     
     
-    // MARK: UnsafeRowImpl
+    // MARK: - UnsafeRowImpl
     
     /// See Row.init(statement:unsafe:)
     private struct UnsafeRowImpl : RowImpl {
