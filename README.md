@@ -538,7 +538,6 @@ class Person : RowModel {
     var id: Int64!            // matches "id" not null column
     var age: Int?             // matches "age" columnn
     var name: String?         // matches "name" column
-    var creationDate: NSDate? // matches "creationTimestamp" column
 }
 ```
 
@@ -548,15 +547,10 @@ The `setSQLiteValue(_:forColumn:)` method assigns SQLite values to properties:
 class Person : RowModel {
     override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
         switch column {
-        case "id":      id = sqliteValue.value()    // Extract Int64!
-        case "name":    name = sqliteValue.value()  // Extract String?
-        case "age":     age = sqliteValue.value()   // Extract Int?
-        case "creationTimestamp":                   // Extract NSDate?
-            // Use the DBDate custom type declared above
-            let dbDate = sqliteValue.value() as DBDate?
-            creationDate = dbDate?.date
-        default:
-            super.setSQLiteValue(sqliteValue, forColumn: column)
+        case "id":   id = sqliteValue.value()    // Extract Int64!
+        case "name": name = sqliteValue.value()  // Extract String?
+        case "age":  age = sqliteValue.value()   // Extract Int?
+        default:     super.setSQLiteValue(sqliteValue, forColumn: column)
         }
     }
 }
@@ -668,9 +662,7 @@ class Person : RowModel {
         return [
             "id": id,
             "name": name,
-            "age": age,
-            "creationTimestamp": DBDate(creationDate),  // See DBDate above
-        ]
+            "age": age]
     }
 }
 
