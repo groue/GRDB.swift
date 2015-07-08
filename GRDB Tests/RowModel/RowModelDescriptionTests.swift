@@ -15,7 +15,7 @@ class EmptyRowModel : RowModel {
 class SingleColumnRowModel : RowModel {
     var name: String?
     
-    override var databaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
         return ["name": name]
     }
 }
@@ -24,7 +24,7 @@ class DoubleColumnRowModel : RowModel {
     var name: String?
     var age: Int?
     
-    override var databaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
         return ["name": name, "age": age]
     }
 }

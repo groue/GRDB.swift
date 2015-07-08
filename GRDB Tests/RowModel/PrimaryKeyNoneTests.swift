@@ -28,11 +28,11 @@ import GRDB
 class Item: RowModel {
     var name: String?
     
-    override class var databaseTableName: String? {
-        return "items"
+    override class var databaseTable: Table? {
+        return Table(named: "items", primaryKey: .None)
     }
     
-    override var databaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
         return ["name": name]
     }
     

@@ -30,16 +30,15 @@ class Pet: RowModel {
     var masterID: Int64?
     var name: String?
     
-    override class var databaseTableName: String? {
-        return "pets"
+    override class var databaseTable: Table? {
+        return Table(named: "pets", primaryKey: .Column("UUID"))
     }
     
-    override class var databasePrimaryKey: PrimaryKey {
-        return .Column("UUID")
-    }
-    
-    override var databaseDictionary: [String: SQLiteValueConvertible?] {
-        return ["UUID": UUID, "name": name, "masterID": masterID]
+    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
+        return [
+            "UUID": UUID,
+            "name": name,
+            "masterID": masterID]
     }
     
     override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {

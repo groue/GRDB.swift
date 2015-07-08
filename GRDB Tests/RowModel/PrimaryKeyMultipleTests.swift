@@ -31,16 +31,16 @@ class Citizenship: RowModel {
     var grantedDate: NSDate?
     var native: Bool?
     
-    override class var databaseTableName: String? {
-        return "citizenships"
+    override class var databaseTable: Table? {
+        return Table(named: "citizenships", primaryKey: .Columns(["personID", "countryName"]))
     }
     
-    override class var databasePrimaryKey: PrimaryKey {
-        return .Columns(["personID", "countryName"])
-    }
-    
-    override var databaseDictionary: [String: SQLiteValueConvertible?] {
-        return ["personID": personID, "countryName": countryName, "grantedTimestamp": DBDate(grantedDate), "native": native]
+    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
+        return [
+            "personID": personID,
+            "countryName": countryName,
+            "grantedTimestamp": DBDate(grantedDate),
+            "native": native]
     }
     
     override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {

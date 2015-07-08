@@ -31,15 +31,11 @@ class Person: RowModel {
     var age: Int!
     var creationDate: NSDate!
     
-    override class var databaseTableName: String? {
-        return "persons"
+    override class var databaseTable: Table? {
+        return Table(named: "persons", primaryKey: .RowID("id"))
     }
     
-    override class var databasePrimaryKey: PrimaryKey {
-        return .RowID("id")
-    }
-    
-    override var databaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
         return [
             "id": id,
             "name": name,

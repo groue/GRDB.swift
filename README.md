@@ -508,7 +508,7 @@ try migrator.migrate(dbQueue)
 
 ## Row Models
 
-**RowModel** is a convenience class that wraps a table row, or the result of any query.
+**RowModel** is a class that wraps a table row, or the result of any query. It is designed to be subclassed.
 
 Subclasses opt in RowModel features by overriding all or part of the base methods that define their relationship with the SQLite database.
 
@@ -517,16 +517,15 @@ For example, we see below that **fetching** only requires the `setSQLiteValue(_:
 | Methods                        | fetch | insert | update | delete |
 |:------------------------------ |:-----:|:------:|:------:|:------:|
 | `setSQLiteValue(_:forColumn:)` |   X   |        |        |        |
-| `databasePrimaryKey`           |       |   ¹    |   X    |   X    |
-| `databaseTableName`            |       |   X    |   X    |   X    |
-| `databaseDictionary`           |       |   X    |   X    |   X    |
-
-¹ See [primary keys](#primary-keys) below for more information.
+| `databaseTable`                |       |   X    |   X    |   X    |
+| `storedDatabaseDictionary`     |       |   X    |   X    |   X    |
 
 - [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Primary Keys](#primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
+- [RowModel Errors](#rowmodels-errors)
+- [Full List of RowModel methods](full-list-of-rowmodel-methods)
 
 
 ### Fetching Row Models
@@ -601,9 +600,13 @@ class PersonsViewController: UITableViewController {
     private class PersonViewModel : Person {
         var bookCount: Int!
         
-        override func updateFromDatabaseRow(row: Row) {
-            super.updateFromDatabaseRow(row)
-            if let v = row["bookCount"] { bookCount = v.value() }
+        override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+            switch column {
+            case "bookCount":
+                bookCount = sqliteValue.value()
+            default:
+                super.setSQLiteValue(sqliteValue, forColumn: column)
+            }
         }
     }
     
@@ -630,12 +633,13 @@ class PersonsViewController: UITableViewController {
 
 ### Primary Keys
 
-Declare a **Primary Key** and a **Table name** in order to identify row models by primary key:
+Declare a **Table** given its **name** and **primary key** in order to fetch row models by ID:
 
 ```swift
 class Person : RowModel {
-    override class var databaseTableName: String? { return "persons" }
-    override class var databasePrimaryKey: PrimaryKey { return .RowID("id") }
+    override class var databaseTable: Table? {
+        return Table(named:"persons", primaryKey: .RowID("id"))
+    }
 }
 
 try dbQueue.inDatabase { db in
@@ -655,17 +659,17 @@ There are four kinds of primary keys:
 - **Columns**: for primary keys that span accross several columns.
     
 
-The kind of primary key impacts the insert/update/delete methods that we will see below.
+The kind of primary key has consequences on the insert/update/delete methods that we will see below.
 
 
-### Storage
+### Insert, Update and Delete
 
 With one more method, you get the `insert`, `update`, `delete` methods, plus the convenience `save` and `reload` methods.
 
 ```swift
 class Person : RowModel {
     // The values stored in the database:
-    override var databaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
         return [
             "id": id,
             "name": name,
@@ -679,11 +683,11 @@ try dbQueue.inTransaction { db in
     
     // Insert
     let person = Person(name: "Arthur", age: 41)
-    try person.insert(db)
+    try person.insert(db)   // save(db) inserts when the primary key is not set.
     
     // Update
     person.age = 42
-    try person.update(db)
+    try person.update(db)   // save(db) updates when the primary key is set.
     
     // Reload
     person.age = 666
@@ -696,19 +700,84 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Models that declare a `RowID` primary key have their id automatically set after successful insertion (with the `updateFromDatabaseRow` method).
+Models that declare a `RowID` primary key have their id automatically set after successful insertion (with the `setSQLiteValue(_:forColumn:)` method).
 
-Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example **override** the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
+Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 
 
 ### RowModel Errors
 
-RowModel methods can throw [SQLiteError](#error-handling) and also specific errors of type RowModelError:
+RowModel methods can throw [SQLiteError](#error-handling) and also specific errors of type **RowModelError**:
 
 - **RowModelError.InvalidPrimaryKey**: thrown by `update`, `delete` and `reload` when the primary key is invalid (nil).
 
-- **rowModelError.NotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
+- **RowModelError.NotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
 
+
+### Full List of RowModel methods
+
+**Core methods**
+
+- `class var databaseTable: Table?`
+
+    The table, with its name and primary key. Required by `insert`, `update`, `save`, `delete`, `reload`. Tables without primary key are OK only for `insert`.
+    
+- `var storedDatabaseDictionary: [String: SQLiteValueConvertible?]`
+
+    The values stored in the database.
+
+- `func setSQLiteValue(_:forColumn:)`
+    
+    Updates the RowModel with a fetched SQLite value.
+
+
+**Initializers**
+
+- `init()`
+
+    Initializes an empty RowModel
+
+- `init(row:)`
+
+    Initializes a RowModel from a database Row. Invokes `updateWithRow`
+
+
+**CRUD**
+
+- `final func updateWithRow(row: Row)`
+    
+    Repeatedly calls `setSQLiteValue(_:forColumn:)`
+
+- `func insert(db:conflictResolution:) throws`
+    
+    Inserts the RowModel
+
+- `func update(db:conflictResolution:) throws`
+    
+    Updates the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil, or RowModelError.NotFound if the primary key does not match any row in the database.
+
+- `final func save(db:conflictResolution:) throws`
+    
+    Inserts if primary key is nil, updates otherwise. Throws RowModelError.NotFound if the primary key does not match any row in the database.
+
+- `public func delete(db: Database) throws`
+    
+    Deletes the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil.
+
+- `public func reload(db: Database) throws`
+    
+    Reloads the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil, or RowModelError.NotFound if the primary key does not match any row in the database.
+
+
+**Fetching**
+
+- `Database.fetch(type:sql:bindings:) -> AnySequence<Type>`
+- `Database.fetchAll(type:sql:bindings:) -> [Type]`
+- `Database.fetchOne(type:sql:bindings:) -> Type?`
+- `Database.fetchOne(type:primaryKey:) -> Type?`
+- `SelectStatement.fetch(type:bindings:) -> AnySequence<Type>`
+- `SelectStatement.fetchAll(type:bindings:) -> [Type]`
+- `SelectStatement.fetchOne(type:bindings:) -> Type?`- 
 
 
 ## Thanks
