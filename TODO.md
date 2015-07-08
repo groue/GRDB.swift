@@ -6,3 +6,4 @@
 - [ ] Carthage
 - [ ] When one calls modelRow.insert(db), and has defined the table, but forgets to override storedDatabaseDictionary, he gets "SQLite error 1 with statement `INSERT INTO "persons" () VALUES ()`: near ")": syntax error" which does not tell him to override storedDatabaseDictionary.
 - [ ] When one forgets to set the primaryKey in setSQLiteValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
+- [ ] Remove as many "SQLite" from public functions and types as possible. SQLiteValue -> DatabaseValue, for instance. Or DBValue.
