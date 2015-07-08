@@ -175,13 +175,31 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 do {
                     try citizenship.delete(db)
                     try citizenship.update(db)      // object no longer in database
-                    XCTFail("Expected RowModelError.NotFound")
-                } catch RowModelError.NotFound {
+                    XCTFail("Expected RowModelError.RowModelNotFound")
+                } catch RowModelError.RowModelNotFound {
                 } catch {
-                    XCTFail("Expected RowModelError.NotFound, not \(error)")
+                    XCTFail("Expected RowModelError.RowModelNotFound, not \(error)")
                 }
                 
                 return .Commit
+            }
+        }
+    }
+    
+    func testSelectWithKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let arthur = Person(name: "Arthur", age: 41)
+                try arthur.insert(db)
+                
+                var citizenship = Citizenship()
+                citizenship.personID = arthur.id
+                citizenship.countryName = "France"
+                try citizenship.insert(db)
+                
+                citizenship = db.fetchOne(Citizenship.self, key: ["countryName": "France", "personID": arthur.id])!
+                XCTAssertEqual(citizenship.countryName!, "France")
+                XCTAssertEqual(citizenship.personID!, arthur.id)
             }
         }
     }
@@ -238,10 +256,10 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 XCTAssertEqual(citizenship.native!, false)
                 do {
                     try citizenship.reload(db)              // object no longer in database
-                    XCTFail("Expected RowModelError.NotFound")
-                } catch RowModelError.NotFound {
+                    XCTFail("Expected RowModelError.RowModelNotFound")
+                } catch RowModelError.RowModelNotFound {
                 } catch {
-                    XCTFail("Expected RowModelError.NotFound, not \(error)")
+                    XCTFail("Expected RowModelError.RowModelNotFound, not \(error)")
                 }
                 XCTAssertEqual(citizenship.native!, false)
                 

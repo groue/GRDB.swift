@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import GRDB
+@testable import GRDB
 
 // Tests about how minimal can class go regarding their initializers
 

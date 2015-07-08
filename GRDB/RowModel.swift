@@ -122,10 +122,8 @@ public class RowModel {
     /// Inserts
     public func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         let insertionResult = try Version(self).insert(db, conflictResolution: conflictResolution)
-        
-        if let (column, insertedRowID) = insertionResult {
-            let row = Row(sqliteDictionary: [column: SQLiteValue.Integer(insertedRowID)])
-            updateWithRow(row)
+        if let (rowIDColumn, insertedRowID) = insertionResult {
+            setSQLiteValue(SQLiteValue.Integer(insertedRowID), forColumn: rowIDColumn)
         }
     }
     
@@ -142,9 +140,9 @@ public class RowModel {
     /// Returns true if the model has been inserted, or if it still exists in
     /// the database and has been updated.
     final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws {
-        if let (column, insertedRowID) = try Version(self).save(db, conflictResolution: conflictResolution) {
-            let row = Row(sqliteDictionary: [column: SQLiteValue.Integer(insertedRowID)])
-            updateWithRow(row)
+        let insertionResult = try Version(self).save(db, conflictResolution: conflictResolution)
+        if let (rowIDColumn, insertedRowID) = insertionResult {
+            setSQLiteValue(SQLiteValue.Integer(insertedRowID), forColumn: rowIDColumn)
         }
     }
     
@@ -156,15 +154,18 @@ public class RowModel {
     /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been reloaded.
     public func reload(db: Database) throws {
-        let row = try Version(self).fetchRow(db)
-        updateWithRow(row)
+        if let row = try Version(self).fetchOneRow(db) {
+            updateWithRow(row)
+        } else {
+            throw RowModelError.RowModelNotFound
+        }
     }
     
     
     // MARK: - Version
     
     private class Version {
-        /// Version makes the promise that it will NEVER change the rowModel.
+        /// Version will NEVER change the rowModel.
         let rowModel: RowModel
         
         lazy var databaseTable: Table? = self.rowModel.dynamicType.databaseTable
@@ -222,15 +223,15 @@ public class RowModel {
             self.rowModel = rowModel
         }
         
-        /// Returns an optional (columnName, insertedRowID) if and only if the
+        /// Returns an optional (rowIDColumn, insertedRowID) if and only if the
         /// row model should be updated.
         func insert(db: Database, conflictResolution: ConflictResolution?) throws -> (String, Int64)? {
+            // Check class requirement before instance requirements.
             guard let table = databaseTable else {
-                fatalError("Missing databaseTable.")
+                throw RowModelError.UnspecifiedTable
             }
             
             // INSERT INTO table (id, name) VALUES (:id, :name)
-            
             let insertedDic = storedDatabaseDictionary
             let columnNames = insertedDic.keys
             let columnSQL = ",".join(columnNames.map { $0.sqliteQuotedIdentifier })
@@ -255,9 +256,7 @@ public class RowModel {
             let sql = "\(verb) INTO \(table.name.sqliteQuotedIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
             let changes = try db.execute(sql, bindings: Bindings(insertedDic.values))
             
-            
             // Update RowID column if needed
-            
             switch table.primaryKey {
             case .RowID(let column):
                 if let optionalValue = storedDatabaseDictionary[column] {
@@ -275,25 +274,23 @@ public class RowModel {
         }
 
         func update(db: Database, conflictResolution: ConflictResolution? = nil) throws {
+            // Check class requirement before instance requirements.
             guard let table = databaseTable else {
-                fatalError("Missing databaseTable.")
+                throw RowModelError.UnspecifiedTable
             }
             
+            // Update requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 throw RowModelError.InvalidPrimaryKey
             }
             
-            
             // Don't update primary key columns
-            
             var updatedDictionary = storedDatabaseDictionary
             for column in primaryKeyDictionary.keys {
                 updatedDictionary.removeValueForKey(column)
             }
             
-            
             // "UPDATE table SET name = ? WHERE id = ?"
-            
             let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
             let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
             let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
@@ -317,9 +314,9 @@ public class RowModel {
             let sql = "\(verb) \(table.name.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
             let changedRowCount = try db.execute(sql, bindings: bindings).changedRowCount
             
-            
+            // Check is some row was actually changed
             if changedRowCount == 0 {
-                throw RowModelError.NotFound
+                throw RowModelError.RowModelNotFound
             }
         }
         
@@ -333,43 +330,36 @@ public class RowModel {
         }
         
         func delete(db: Database) throws {
+            // Check class requirement before instance requirements.
             guard let table = databaseTable else {
-                fatalError("Missing databaseTable.")
+                throw RowModelError.UnspecifiedTable
             }
             
+            // Delete requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 throw RowModelError.InvalidPrimaryKey
             }
             
-            
             // "DELETE FROM table WHERE id = ?"
-            
             let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
             let bindings = Bindings(Array(primaryKeyDictionary.values))
             let sql = "DELETE FROM \(table.name.sqliteQuotedIdentifier) WHERE \(whereSQL)"
             try db.execute(sql, bindings: bindings)
         }
 
-        func fetchRow(db: Database) throws -> Row {
-            guard let table = databaseTable else {
-                fatalError("Missing databaseTable.")
+        func fetchOneRow(db: Database) throws -> Row? {
+            // Check class requirement before instance requirements.
+            guard databaseTable != nil else {
+                throw RowModelError.UnspecifiedTable
             }
             
+            // fetchOneRow requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 throw RowModelError.InvalidPrimaryKey
             }
             
-            
-            // "SELECT * FROM table WHERE id = ?"
-            
-            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-            let bindings = Bindings(Array(primaryKeyDictionary.values))
-            let sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(whereSQL)"
-            if let row = db.fetchOneRow(sql, bindings: bindings) {
-                return row
-            } else {
-                throw RowModelError.NotFound
-            }
+            // Fetch
+            return db.selectStatement(rowModel.dynamicType, dictionary: primaryKeyDictionary).fetchOneRow()
         }
     }
 }
@@ -400,22 +390,27 @@ extension RowModel : CustomStringConvertible {
 
 /// A RowModel-specific error
 public enum RowModelError: ErrorType {
+    /// RowModel.databaseTable is not defined
+    case UnspecifiedTable
+    
     /// RowModel could not be identified: either the databaseTableName class
     /// method return .None, or the RowModel has nil primary key.
     case InvalidPrimaryKey
     
     /// Failed update or reload because the RowModel could not be found in the
     /// database.
-    case NotFound
+    case RowModelNotFound
 }
 
 extension RowModelError : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         switch self {
+        case .UnspecifiedTable:
+            return "Unspecified Table"
         case .InvalidPrimaryKey:
             return "Invalid primary key"
-        case .NotFound:
+        case .RowModelNotFound:
             return "RowModel not found"
         }
     }
@@ -425,23 +420,55 @@ extension RowModelError : CustomStringConvertible {
 // MARK: - Feching Row Models
 
 /**
+The Database methods that build RowModel select statements.
+*/
+extension Database {
+    
+    func selectStatement<RowModel: GRDB.RowModel>(type: RowModel.Type, dictionary: [String: SQLiteValueConvertible?]) -> SelectStatement {
+        // Select methods crash when there is an issue
+        guard let table = type.databaseTable else {
+            fatalError("Missing databaseTable.")
+        }
+        
+        let whereSQL = " AND ".join(dictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+        let sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(whereSQL)"
+        return selectStatement(sql, bindings: Bindings(dictionary.values))
+    }
+    
+    func selectStatement<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: SQLiteValueConvertible) -> SelectStatement {
+        // Select methods crash when there is an issue
+        guard let table = type.databaseTable else {
+            fatalError("Missing databaseTable.")
+        }
+        
+        let sql: String
+        switch table.primaryKey {
+        case .None:
+            fatalError("Missing primary key")
+        case .RowID(let column):
+            sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
+        case .Column(let column):
+            sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
+        case .Columns(let columns):
+            if columns.count == 1 {
+                sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(columns.first!.sqliteQuotedIdentifier) = ?"
+            } else {
+                fatalError("Primary key columns count mismatch.")
+            }
+        }
+        
+        return selectStatement(sql, bindings: [primaryKey])
+    }
+}
+
+/**
 The Database methods that fetch rows.
 */
 extension Database {
-
+    
     // let persons = db.fetch(Person.self, "SELECT ...", bindings: ...)
     public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<RowModel> {
-        let rowSequence = fetchRows(sql, bindings: bindings)
-        return AnySequence { () -> AnyGenerator<RowModel> in
-            let rowGenerator = rowSequence.generate()
-            return anyGenerator { () -> RowModel? in
-                if let row = rowGenerator.next() {
-                    return RowModel.init(row: row)
-                } else {
-                    return nil
-                }
-            }
-        }
+        return selectStatement(sql, bindings: bindings).fetch(type)
     }
 
     // let persons = db.fetchAll(Person.self, "SELECT ...", bindings: ...)
@@ -462,27 +489,12 @@ extension Database {
     
     // let person = db.fetchOne(Person.self, primaryKey: ...)
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: SQLiteValueConvertible) -> RowModel? {
-        guard let table = RowModel.databaseTable else {
-            fatalError("Missing databaseTable.")
-        }
-        
-        let sql: String
-        switch table.primaryKey {
-        case .None:
-            fatalError("Missing primary key")
-        case .RowID(let column):
-            sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
-        case .Column(let column):
-            sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
-        case .Columns(let columns):
-            if columns.count == 1 {
-                sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(columns.first!.sqliteQuotedIdentifier) = ?"
-            } else {
-                fatalError("Primary key columns count mismatch.")
-            }
-        }
-        
-        return fetchOne(type, sql, bindings: [primaryKey])
+        return selectStatement(type, primaryKey: primaryKey).fetchOne(type)
+    }
+    
+    // let person = db.fetchOne(Person.self, key: ...)
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, key dictionary: [String: SQLiteValueConvertible?]) -> RowModel? {
+        return selectStatement(type, dictionary: dictionary).fetchOne(type)
     }
 }
 

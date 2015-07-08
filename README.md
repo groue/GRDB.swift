@@ -707,9 +707,11 @@ Other primary keys (single or multiple columns) are not managed by GRDB: you hav
 
 RowModel methods can throw [SQLiteError](#error-handling) and also specific errors of type **RowModelError**:
 
-- **RowModelError.InvalidPrimaryKey**: thrown by `update`, `delete` and `reload` when the primary key is invalid (nil).
+- **RowModelError.UnspecifiedTable**: thrown by `insert`, `update`, `delete` and `reload` when the databaseTable class method returns nil.
 
-- **RowModelError.NotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
+- **RowModelError.InvalidPrimaryKey**: thrown by `update`, `delete` and `reload` when the primary key is nil.
+
+- **RowModelError.RowModelNotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
 
 
 ### Full List of RowModel methods
@@ -752,11 +754,11 @@ RowModel methods can throw [SQLiteError](#error-handling) and also specific erro
 
 - `func update(db:conflictResolution:) throws`
     
-    Updates the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil, or RowModelError.NotFound if the primary key does not match any row in the database.
+    Updates the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil, or RowModelError.RowModelNotFound if the primary key does not match any row in the database.
 
 - `final func save(db:conflictResolution:) throws`
     
-    Inserts if primary key is nil, updates otherwise. Throws RowModelError.NotFound if the primary key does not match any row in the database.
+    Inserts if primary key is nil, updates otherwise. Throws RowModelError.RowModelNotFound if the primary key does not match any row in the database.
 
 - `public func delete(db: Database) throws`
     
@@ -764,7 +766,7 @@ RowModel methods can throw [SQLiteError](#error-handling) and also specific erro
 
 - `public func reload(db: Database) throws`
     
-    Reloads the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil, or RowModelError.NotFound if the primary key does not match any row in the database.
+    Reloads the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil, or RowModelError.RowModelNotFound if the primary key does not match any row in the database.
 
 
 **Fetching**
@@ -773,6 +775,7 @@ RowModel methods can throw [SQLiteError](#error-handling) and also specific erro
 - `Database.fetchAll(type:sql:bindings:) -> [Type]`
 - `Database.fetchOne(type:sql:bindings:) -> Type?`
 - `Database.fetchOne(type:primaryKey:) -> Type?`
+- `Database.fetchOne(type:key:) -> Type?`
 - `SelectStatement.fetch(type:bindings:) -> AnySequence<Type>`
 - `SelectStatement.fetchAll(type:bindings:) -> [Type]`
 - `SelectStatement.fetchOne(type:bindings:) -> Type?`- 

@@ -103,4 +103,16 @@ class PrimaryKeyNoneTests: RowModelTestCase {
         }
     }
     
+    func testSelectWithKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                var item = Item()
+                item.name = "foo"
+                try item.insert(db)
+                
+                item = db.fetchOne(Item.self, key: ["name": "foo"])!
+                XCTAssertEqual(item.name!, "foo")
+            }
+        }
+    }
 }
