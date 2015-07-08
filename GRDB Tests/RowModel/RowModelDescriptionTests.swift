@@ -33,20 +33,20 @@ class RowModelDescriptionTests: RowModelTestCase {
 
     func testEmptyRowModelDescription() {
         let model = EmptyRowModel()
-        XCTAssertEqual(model.description, "<GRDB_Tests.EmptyRowModel>")
+        XCTAssertEqual(model.description, "<GRDBTests.EmptyRowModel>")
     }
     
     func testSimpleRowModelDescription() {
         let model = SingleColumnRowModel()
         model.name = "foo"
-        XCTAssertEqual(model.description, "<GRDB_Tests.SingleColumnRowModel name:\"foo\">")
+        XCTAssertEqual(model.description, "<GRDBTests.SingleColumnRowModel name:\"foo\">")
     }
     
     func testDoubleColumnRowModelDescription() {
         let model = DoubleColumnRowModel()
         model.name = "foo"
         model.age = 35
-        XCTAssertTrue(["<GRDB_Tests.DoubleColumnRowModel name:\"foo\" age:35>", "<GRDB_Tests.DoubleColumnRowModel age:35 name:\"foo\">"].indexOf(model.description) != nil)
+        XCTAssertTrue(["<GRDBTests.DoubleColumnRowModel name:\"foo\" age:35>", "<GRDBTests.DoubleColumnRowModel age:35 name:\"foo\">"].indexOf(model.description) != nil)
     }
 
 }
