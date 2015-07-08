@@ -602,10 +602,8 @@ class PersonsViewController: UITableViewController {
         
         override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
             switch column {
-            case "bookCount":
-                bookCount = sqliteValue.value()
-            default:
-                super.setSQLiteValue(sqliteValue, forColumn: column)
+            case "bookCount": bookCount = sqliteValue.value()
+            default:          super.setSQLiteValue(sqliteValue, forColumn: column)
             }
         }
     }
