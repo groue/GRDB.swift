@@ -563,9 +563,13 @@ Now you can fetch **lazy sequences** of row models, **arrays**, or **single** in
 ```swift
 
 dbQueue.inDatabase { db in
+    // With custom SQL:
     db.fetch(Person.self, "SELECT ...", bindings:...)    // AnySequence<Person>
     db.fetchAll(Person.self, "SELECT ...", bindings:...) // [Person]
     db.fetchOne(Person.self, "SELECT ...", bindings:...) // Person?
+    
+    // With a key dictionary:
+    db.fetchOne(Person.self, key: ["id": 123])           // Person?
 }
 ```
 
@@ -578,6 +582,8 @@ let persons = dbQueue.inDatabase { db in
 }
 for person in persons { ... } // OK
 ```
+
+The `db.fetchOne(type:key:)` eats any dictionary, and just returns the first RowModel with matching values. Its result is undefined unless the dictionary is actually... a key.
 
 
 ### Ad Hoc Subclasses
