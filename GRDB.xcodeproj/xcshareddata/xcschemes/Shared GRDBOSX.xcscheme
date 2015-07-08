@@ -20,20 +20,6 @@
                ReferencedContainer = "container:GRDB.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "56E5D7F81B4D422D00430942"
-               BuildableName = "GRDBTests.xctest"
-               BlueprintName = "GRDBOSXTests"
-               ReferencedContainer = "container:GRDB.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -42,16 +28,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       buildConfiguration = "Debug">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "56E5D7F81B4D422D00430942"
-               BuildableName = "GRDBTests.xctest"
-               BlueprintName = "GRDBOSXTests"
-               ReferencedContainer = "container:GRDB.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
