@@ -4,3 +4,5 @@
 - [ ] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that. Experiment with a setSQLiteValueForKey API.
 - [ ] CocoaPod
 - [ ] Carthage
+- [ ] When one calls modelRow.insert(db), and has defined the table, but forgets to override storedDatabaseDictionary, he gets "SQLite error 1 with statement `INSERT INTO "persons" () VALUES ()`: near ")": syntax error" which does not tell him to override storedDatabaseDictionary.
+- [ ] When one forgets to set the primaryKey in setSQLiteValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
