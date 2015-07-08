@@ -659,10 +659,7 @@ With one more method, you get the `insert`, `update`, `delete` methods, plus the
 class Person : RowModel {
     // The values stored in the database:
     override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
-        return [
-            "id": id,
-            "name": name,
-            "age": age]
+        return ["id": id, "name": name, "age": age]
     }
 }
 
