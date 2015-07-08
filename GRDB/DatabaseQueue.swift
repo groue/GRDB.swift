@@ -168,7 +168,7 @@ public final class DatabaseQueue {
     
     
     /**
-    Executes a block in the database queue, wrapped inside an SQLite transaction.
+    Executes a block in the database queue, wrapped inside a transaction.
     
     If the block throws an error, the transaction is rollbacked and the error is
     rethrown.

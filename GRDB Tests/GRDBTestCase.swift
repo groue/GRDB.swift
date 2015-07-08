@@ -25,14 +25,14 @@
 import XCTest
 import GRDB
 
-struct DBDate: SQLiteValueConvertible {
+struct DBDate: DatabaseValueConvertible {
     
     // MARK: - DBDate <-> NSDate conversion
     
     let date: NSDate
     
     // Define a failable initializer in order to consistently use nil as the
-    // NULL marker throughout the conversions NSDate <-> DBDate <-> SQLite
+    // NULL marker throughout the conversions NSDate <-> DBDate <-> Database
     init?(_ date: NSDate?) {
         if let date = date {
             self.date = date
@@ -41,16 +41,16 @@ struct DBDate: SQLiteValueConvertible {
         }
     }
     
-    // MARK: - DBDate <-> SQLiteValue conversion
+    // MARK: - DBDate <-> DatabaseValue conversion
     
-    var sqliteValue: SQLiteValue {
+    var databaseValue: DatabaseValue {
         return .Real(date.timeIntervalSince1970)
     }
     
-    init?(sqliteValue: SQLiteValue) {
-        // Don't handle the raw SQLiteValue unless you know what you do.
+    init?(databaseValue: DatabaseValue) {
+        // Don't handle the raw DatabaseValue unless you know what you do.
         // It is recommended to use GRDB built-in conversions instead:
-        if let timestamp = Double(sqliteValue: sqliteValue) {
+        if let timestamp = Double(databaseValue: databaseValue) {
             self.init(NSDate(timeIntervalSince1970: timestamp))
         } else {
             return nil
@@ -81,7 +81,7 @@ class GRDBTestCase: XCTestCase {
     func assertNoError(@noescape test: (Void) throws -> Void) {
         do {
             try test()
-        } catch let error as SQLiteError {
+        } catch let error as DatabaseError {
             XCTFail(error.description)
         } catch let error as RowModelError {
             XCTFail(error.description)

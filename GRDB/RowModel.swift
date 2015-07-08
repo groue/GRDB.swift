@@ -65,11 +65,11 @@ public class RowModel {
     
     /// The values stored by insert, update, and save methods.
     /// The base class RowModel returns an empty dictionary.
-    public var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
+    public var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [:]
     }
     
-    public func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+    public func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
     }
     
     
@@ -109,10 +109,10 @@ public class RowModel {
     }
     
     /// Updates the RowModel from a Row.
-    /// Calls setSQLiteValue(_:forColumn:) for each (column, sqliteValue) in the row
+    /// Calls setDatabaseValue(_:forColumn:) for each (column, databaseValue) in the row
     public final func updateWithRow(row: Row) {
-        for (column, sqliteValue) in row {
-            setSQLiteValue(sqliteValue, forColumn: column)
+        for (column, databaseValue) in row {
+            setDatabaseValue(databaseValue, forColumn: column)
         }
     }
     
@@ -120,7 +120,7 @@ public class RowModel {
     public func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         let insertionResult = try Version(self).insert(db, conflictResolution: conflictResolution)
         if let (rowIDColumn, insertedRowID) = insertionResult {
-            setSQLiteValue(SQLiteValue.Integer(insertedRowID), forColumn: rowIDColumn)
+            setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
         }
     }
     
@@ -139,7 +139,7 @@ public class RowModel {
     final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         let insertionResult = try Version(self).save(db, conflictResolution: conflictResolution)
         if let (rowIDColumn, insertedRowID) = insertionResult {
-            setSQLiteValue(SQLiteValue.Integer(insertedRowID), forColumn: rowIDColumn)
+            setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
         }
     }
     
@@ -166,10 +166,10 @@ public class RowModel {
         let rowModel: RowModel
         
         lazy var databaseTable: Table? = self.rowModel.dynamicType.databaseTable
-        lazy var storedDatabaseDictionary: [String: SQLiteValueConvertible?] = self.rowModel.storedDatabaseDictionary
+        lazy var storedDatabaseDictionary: [String: DatabaseValueConvertible?] = self.rowModel.storedDatabaseDictionary
         
         // A primary key dictionary. Its values may be nil.
-        lazy var weakPrimaryKeyDictionary: [String: SQLiteValueConvertible?]? = {
+        lazy var weakPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
             guard let primaryKey = self.databaseTable?.primaryKey else {
                 return nil
             }
@@ -190,7 +190,7 @@ public class RowModel {
                 
             case .Columns(let columns):
                 let storedDatabaseDictionary = self.storedDatabaseDictionary
-                var primaryKeyDictionary = [String: SQLiteValueConvertible?]()
+                var primaryKeyDictionary = [String: DatabaseValueConvertible?]()
                 for column in columns {
                     if let value = storedDatabaseDictionary[column] {
                         primaryKeyDictionary[column] = value
@@ -203,7 +203,7 @@ public class RowModel {
         }()
         
         // A primary key dictionary. At least one of its values is not nil.
-        lazy var strongPrimaryKeyDictionary: [String: SQLiteValueConvertible?]? = {
+        lazy var strongPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
             guard let dictionary = self.weakPrimaryKeyDictionary else {
                 return nil
             }
@@ -228,7 +228,7 @@ public class RowModel {
             // INSERT INTO table (id, name) VALUES (:id, :name)
             let insertedDic = storedDatabaseDictionary
             let columnNames = insertedDic.keys
-            let columnSQL = ",".join(columnNames.map { $0.sqliteQuotedIdentifier })
+            let columnSQL = ",".join(columnNames.map { $0.quotedDatabaseIdentifier })
             let valuesSQL = ",".join([String](count: columnNames.count, repeatedValue: "?"))
             let verb: String
             if let conflictResolution = conflictResolution {
@@ -247,7 +247,7 @@ public class RowModel {
             } else {
                 verb = "INSERT"
             }
-            let sql = "\(verb) INTO \(table.name.sqliteQuotedIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
+            let sql = "\(verb) INTO \(table.name.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
             let changes = try db.execute(sql, bindings: Bindings(insertedDic.values))
             
             // Update RowID column if needed
@@ -288,8 +288,8 @@ public class RowModel {
             }
             
             // "UPDATE table SET name = ? WHERE id = ?"
-            let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+            let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
+            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
             let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
             let verb: String
             if let conflictResolution = conflictResolution {
@@ -308,7 +308,7 @@ public class RowModel {
             } else {
                 verb = "UPDATE"
             }
-            let sql = "\(verb) \(table.name.sqliteQuotedIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+            let sql = "\(verb) \(table.name.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
             let changedRowCount = try db.execute(sql, bindings: bindings).changedRowCount
             
             // Check is some row was actually changed
@@ -338,9 +338,9 @@ public class RowModel {
             }
             
             // "DELETE FROM table WHERE id = ?"
-            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
+            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
             let bindings = Bindings(Array(primaryKeyDictionary.values))
-            let sql = "DELETE FROM \(table.name.sqliteQuotedIdentifier) WHERE \(whereSQL)"
+            let sql = "DELETE FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
             try db.execute(sql, bindings: bindings)
         }
 
@@ -421,18 +421,18 @@ The Database methods that build RowModel select statements.
 */
 extension Database {
     
-    func selectStatement<RowModel: GRDB.RowModel>(type: RowModel.Type, dictionary: [String: SQLiteValueConvertible?]) -> SelectStatement {
+    func selectStatement<RowModel: GRDB.RowModel>(type: RowModel.Type, dictionary: [String: DatabaseValueConvertible?]) -> SelectStatement {
         // Select methods crash when there is an issue
         guard let table = type.databaseTable else {
             fatalError("Missing databaseTable.")
         }
         
-        let whereSQL = " AND ".join(dictionary.keys.map { column in "\(column.sqliteQuotedIdentifier)=?" })
-        let sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(whereSQL)"
+        let whereSQL = " AND ".join(dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
+        let sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
         return selectStatement(sql, bindings: Bindings(dictionary.values))
     }
     
-    func selectStatement<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: SQLiteValueConvertible) -> SelectStatement {
+    func selectStatement<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValueConvertible) -> SelectStatement {
         // Select methods crash when there is an issue
         guard let table = type.databaseTable else {
             fatalError("Missing databaseTable.")
@@ -445,12 +445,12 @@ extension Database {
         let sql: String
         switch tablePrimaryKey {
         case .RowID(let column):
-            sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
+            sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
         case .Column(let column):
-            sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(column.sqliteQuotedIdentifier) = ?"
+            sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
         case .Columns(let columns):
             if columns.count == 1 {
-                sql = "SELECT * FROM \(table.name.sqliteQuotedIdentifier) WHERE \(columns.first!.sqliteQuotedIdentifier) = ?"
+                sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
             } else {
                 fatalError("Primary key columns count mismatch.")
             }
@@ -487,12 +487,12 @@ extension Database {
     }
     
     // let person = db.fetchOne(Person.self, primaryKey: ...)
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: SQLiteValueConvertible) -> RowModel? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValueConvertible) -> RowModel? {
         return selectStatement(type, primaryKey: primaryKey).fetchOne(type)
     }
     
     // let person = db.fetchOne(Person.self, key: ...)
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, key dictionary: [String: SQLiteValueConvertible?]) -> RowModel? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, key dictionary: [String: DatabaseValueConvertible?]) -> RowModel? {
         return selectStatement(type, dictionary: dictionary).fetchOne(type)
     }
 }

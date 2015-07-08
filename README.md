@@ -178,20 +178,20 @@ row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
 
 The `row.value(atIndex:)` and `row.value(named:)` functions above require that you know the row structure: which columns are available, in which order.
 
-When you process an unknown row, you will prefer the subscript operator which returns `SQLiteValue`, an intermediate type between SQLite storage and your values:
+When you process an unknown row, you will prefer the subscript operator which returns `DatabaseValue`, an intermediate type between SQLite and your values:
 
 ```swift
 // Test if the column `name` is present:
-if let sqliteValue = row["name"] {
-    // Extract the desired Swift type from the SQLite value:
-    let name: String? = sqliteValue.value()
+if let databaseValue = row["name"] {
+    // Extract the desired Swift type from the database value:
+    let name: String? = databaseValue.value()
 }
 ```
 
-You can also iterate all the tuples (columnName, sqliteValue) in a row:
+You can also iterate all the tuples (columnName, databaseValue) in a row:
 
 ```swift
-for (columnName, sqliteValue) in row {
+for (columnName, databaseValue) in row {
     ...
 }
 ```
@@ -235,7 +235,7 @@ The `db.fetchOne(type:sql:bindings:)` function returns an optional value which i
 
 ## Values
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, and [Swift enums](#swift-enums). Custom types are supported as well through the [SQLiteValueConvertible](#custom-types) protocol.
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, and [Swift enums](#swift-enums). Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
 
 
 ### Swift Enums
@@ -261,8 +261,8 @@ enum Grape : String {
 Simply add those two lines:
 
 ```swift
-extension Color : SQLiteIntRepresentable { }
-extension Grape : SQLiteStringRepresentable { }
+extension Color : DatabaseIntRepresentable { }
+extension Grape : DatabaseStringRepresentable { }
 ```
 
 And both types gain database powers:
@@ -287,16 +287,16 @@ db.fetchOne(Color.self, "SELECT ...", bindings: ...) // Color?
 
 ### Custom Types
 
-Conversion to and from the database is based on the `SQLiteValueConvertible` protocol.
+Conversion to and from the database is based on the `DatabaseValueConvertible` protocol.
 
 All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat.
 
-> Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt SQLiteValueConvertible, and this prevents all our NSObject fellows to enter the game.**
+> Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
 As an example, let's define the `DBDate` type that stores NSDates as timestamps. It applies all the best practices for a great GRDB.swift integration:
 
 ```swift
-struct DBDate: SQLiteValueConvertible {
+struct DBDate: DatabaseValueConvertible {
     
     // NSDate conversion
     //
@@ -317,18 +317,18 @@ struct DBDate: SQLiteValueConvertible {
         }
     }
     
-    // SQLiteValue conversion
+    // DatabaseValue conversion
     //
     // DBDate represents the date as a timestamp in the database.
     
-    var sqliteValue: SQLiteValue {
+    var databaseValue: DatabaseValue {
         return .Real(date.timeIntervalSince1970)
     }
     
-    init?(sqliteValue: SQLiteValue) {
-        // Don't handle the raw SQLiteValue unless you know what you do.
+    init?(databaseValue: DatabaseValue) {
+        // Don't handle the raw DatabaseValue unless you know what you do.
         // It is recommended to use GRDB built-in conversions instead:
-        if let timestamp = Double(sqliteValue: sqliteValue) {
+        if let timestamp = Double(databaseValue: databaseValue) {
             self.init(NSDate(timeIntervalSince1970: timestamp))
         } else {
             return nil
@@ -383,7 +383,7 @@ Your [custom types](#custom-types) can perform their own conversions to and from
 
 ## Prepared Statements
 
-SQLite supports **Prepared Statements** that can be reused.
+**Prepared Statements** can be reused.
 
 Update statements:
 
@@ -428,7 +428,7 @@ dbQueue.inDatabase { db in
 
 ## Error Handling
 
-**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a SQLiteError error, and some crash with a fatal error.
+**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error.
 
 **The rule** is:
 
@@ -448,7 +448,7 @@ do {
     try db.execute(
         "INSERT INTO pets (masterId, name) VALUES (?, ?)",
         bindings: [1, "Bobby"])
-} catch let error as SQLiteError {
+} catch let error as DatabaseError {
     // The SQLite result code: 19 (SQLITE_CONSTRAINT)
     error.code
     
@@ -510,16 +510,16 @@ try migrator.migrate(dbQueue)
 
 **RowModel** is a class that wraps a table row, or the result of any query. It is designed to be subclassed.
 
-Subclasses opt in RowModel features by overriding all or part of the core methods that define their relationship with the SQLite database.
+Subclasses opt in RowModel features by overriding all or part of the core methods that define their relationship with the database.
 
 For example, we see below that **fetching** does not require any coupling to a specific database table:
 
-| Core Methods                        | fetch | insert | update | delete |
-|:----------------------------------- |:-----:|:------:|:------:|:------:|
-| `setSQLiteValue(_:forColumn:)  `    |   X   |        |        |        |
-| `databaseTable`                     |       |   X    |        |        |
-| `databaseTable` with primary key    |       |        |   X    |   X    |
-| `storedDatabaseDictionary`          |       |   X    |   X    |   X    |
+| Core Methods                      | fetch | insert | update | delete |
+|:----------------------------------|:-----:|:------:|:------:|:------:|
+| `setDatabaseValue(_:forColumn:)`  |   X   |        |        |        |
+| `databaseTable`                   |       |   X    |        |        |
+| `databaseTable` with primary key  |       |        |   X    |   X    |
+| `storedDatabaseDictionary`        |       |   X    |   X    |   X    |
 
 - [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
@@ -541,22 +541,22 @@ class Person : RowModel {
 }
 ```
 
-The `setSQLiteValue(_:forColumn:)` method assigns SQLite values to properties:
+The `setDatabaseValue(_:forColumn:)` method assigns database values to properties:
 
 ```swift
 class Person : RowModel {
-    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "id":   id = sqliteValue.value()    // Extract Int64!
-        case "name": name = sqliteValue.value()  // Extract String?
-        case "age":  age = sqliteValue.value()   // Extract Int?
-        default:     super.setSQLiteValue(sqliteValue, forColumn: column)
+        case "id":   id = dbv.value()    // Extract Int64!
+        case "name": name = dbv.value()  // Extract String?
+        case "age":  age = dbv.value()   // Extract Int?
+        default:     super.setDatabaseValue(dbv, forColumn: column)
         }
     }
 }
 ```
 
-See [General Row Processing](#general-row-processing) for more information about the `SQLiteValue` type, and [Values](#values) about the supported property types.
+See [General Row Processing](#general-row-processing) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
 
 Now you can fetch **lazy sequences** of row models, **arrays**, or **single** instances:
 
@@ -599,10 +599,10 @@ class PersonsViewController: UITableViewController {
     private class PersonViewModel : Person {
         var bookCount: Int!
         
-        override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+        override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
             switch column {
-            case "bookCount": bookCount = sqliteValue.value()
-            default:          super.setSQLiteValue(sqliteValue, forColumn: column)
+            case "bookCount": bookCount = dbv.value()
+            default:          super.setDatabaseValue(dbv, forColumn: column)
             }
         }
     }
@@ -664,7 +664,7 @@ With one more method, you get the `insert`, `update`, `delete` methods, plus the
 ```swift
 class Person : RowModel {
     // The values stored in the database:
-    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name, "age": age]
     }
 }
@@ -690,14 +690,14 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Models that declare a `RowID` primary key have their id automatically set after successful insertion (with the `setSQLiteValue(_:forColumn:)` method).
+Models that declare a `RowID` primary key have their id automatically set after successful insertion (with the `setDatabaseValue(_:forColumn:)` method).
 
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 
 
 ### RowModel Errors
 
-RowModel methods can throw [SQLiteError](#error-handling) and also specific errors of type **RowModelError**:
+RowModel methods can throw [DatabaseError](#error-handling) and also specific errors of type **RowModelError**:
 
 - **RowModelError.UnspecifiedTable**: thrown by `insert`, `update`, `delete` and `reload` when the databaseTable class method returns nil.
 
@@ -714,13 +714,13 @@ RowModel methods can throw [SQLiteError](#error-handling) and also specific erro
 
     The table, with its name and primary key. Required by `insert`, `update`, `save`, `delete`, `reload`. Tables without primary key are OK only for `insert`.
     
-- `var storedDatabaseDictionary: [String: SQLiteValueConvertible?]`
+- `var storedDatabaseDictionary: [String: DatabaseValueConvertible?]`
 
     The values stored in the database.
 
-- `func setSQLiteValue(_:forColumn:)`
+- `func setDatabaseValue(_:forColumn:)`
     
-    Updates the RowModel with a fetched SQLite value.
+    Updates the RowModel with a fetched database value.
 
 
 **Initializers**
@@ -738,7 +738,7 @@ RowModel methods can throw [SQLiteError](#error-handling) and also specific erro
 
 - `final func updateWithRow(row: Row)`
     
-    Repeatedly calls `setSQLiteValue(_:forColumn:)`
+    Repeatedly calls `setDatabaseValue(_:forColumn:)`
 
 - `func insert(db:conflictResolution:) throws`
     

@@ -1,9 +1,10 @@
 - [ ] RowModel support for implicit RowID column (see https://www.sqlite.org/autoinc.html)
 - [ ] Fetch with a collection of primary keys: db.fetch(RowModel.type, primaryKeys:[...]). Problem: users will often want to sort, so the plain SELECT * FROM persons WHERE id IN (?,?,?) won't be appreciated. Needs more thought.
 - [ ] Let Bindings eat arrays, or make it easy to generate series of ?,?,?,?
-- [ ] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that. Experiment with a setSQLiteValueForKey API.
+- [ ] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that. Experiment with a setDatabaseValueForKey API.
 - [ ] CocoaPod
 - [ ] Carthage
 - [ ] When one calls modelRow.insert(db), and has defined the table, but forgets to override storedDatabaseDictionary, he gets "SQLite error 1 with statement `INSERT INTO "persons" () VALUES ()`: near ")": syntax error" which does not tell him to override storedDatabaseDictionary.
-- [ ] When one forgets to set the primaryKey in setSQLiteValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
-- [ ] Remove as many "SQLite" from public functions and types as possible. SQLiteValue -> DatabaseValue, for instance. Or DBValue.
+- [ ] When one forgets to set the primaryKey in setDatabaseValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
+- [ ] Remove as many "SQLite" from public functions and types as possible. DatabaseValue -> DatabaseValue, for instance. Or DBValue.
+- [ ] quotedDatabaseIdentifier -> quotedDatabaseIdentifier

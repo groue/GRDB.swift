@@ -27,7 +27,7 @@ A row is the result of a database query.
 */
 public struct Row: CollectionType {
     
-    // MARK: - SQLiteValueConvertible value
+    // MARK: - DatabaseValueConvertible value
     
     /**
     Returns the value at given index.
@@ -41,10 +41,10 @@ public struct Row: CollectionType {
         let value = row.value(atIndex: 0)
     
     - parameter index: The index of a column.
-    - returns: An optional SQLiteValueConvertible.
+    - returns: An optional DatabaseValueConvertible.
     */
-    public func value(atIndex index: Int) -> SQLiteValueConvertible? {
-        return impl.sqliteValue(atIndex: index).value()
+    public func value(atIndex index: Int) -> DatabaseValueConvertible? {
+        return impl.databaseValue(atIndex: index).value()
     }
     
     /**
@@ -60,7 +60,7 @@ public struct Row: CollectionType {
         let value: Int? = row.value(atIndex: 0)
         let value: Double? = row.value(atIndex: 0)
     
-    Your custom types that adopt the SQLiteValueConvertible protocol handle
+    Your custom types that adopt the DatabaseValueConvertible protocol handle
     their own conversion from raw SQLite values. Yet, here is the reference for
     built-in types:
     
@@ -78,8 +78,8 @@ public struct Row: CollectionType {
     - parameter index: The index of a column.
     - returns: An optional *Value*.
     */
-    public func value<Value: SQLiteValueConvertible>(atIndex index: Int) -> Value? {
-        return impl.sqliteValue(atIndex: index).value()
+    public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
+        return impl.databaseValue(atIndex: index).value()
     }
     
     /**
@@ -91,11 +91,11 @@ public struct Row: CollectionType {
         let value = row.value(named: "name")
     
     - parameter name: A column name.
-    - returns: An optional SQLiteValueConvertible.
+    - returns: An optional DatabaseValueConvertible.
     */
-    public func value(named columnName: String) -> SQLiteValueConvertible? {
+    public func value(named columnName: String) -> DatabaseValueConvertible? {
         if let index = impl.indexForColumn(named: columnName) {
-            return impl.sqliteValue(atIndex: index).value()
+            return impl.databaseValue(atIndex: index).value()
         } else {
             return nil
         }
@@ -111,7 +111,7 @@ public struct Row: CollectionType {
         let value: Int? = row.value(named: "count")
         let value: Double? = row.value(named: "count")
     
-    Your custom types that adopt the SQLiteValueConvertible protocol handle
+    Your custom types that adopt the DatabaseValueConvertible protocol handle
     their own conversion from raw SQLite values. Yet, here is the reference for
     built-in types:
     
@@ -129,40 +129,40 @@ public struct Row: CollectionType {
     - parameter name: A column name.
     - returns: An optional *Value*.
     */
-    public func value<Value: SQLiteValueConvertible>(named columnName: String) -> Value? {
+    public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
         if let index = impl.indexForColumn(named: columnName) {
-            return impl.sqliteValue(atIndex: index).value()
+            return impl.databaseValue(atIndex: index).value()
         } else {
             return nil
         }
     }
     
     
-    // MARK: - SQLiteValue
+    // MARK: - DatabaseValue
     
     /**
-    Returns a SQLiteValue, the intermediate type between SQLite storage and your
+    Returns a DatabaseValue, the intermediate type between SQLite and your
     values, if and only if the row contains the requested column.
     
         // Test if the column `name` is present:
-        if let sqliteValue = row["name"] {
-            let name: String? = sqliteValue.value()
+        if let databaseValue = row["name"] {
+            let name: String? = databaseValue.value()
         }
 
     - parameter columnName: A column name.
-    - returns: A SQLiteValue if the row contains the requested column.
+    - returns: A DatabaseValue if the row contains the requested column.
     */
-    public subscript(columnName: String) -> SQLiteValue? {
+    public subscript(columnName: String) -> DatabaseValue? {
         if let index = impl.indexForColumn(named: columnName) {
-            return impl.sqliteValue(atIndex: index)
+            return impl.databaseValue(atIndex: index)
         } else {
             return nil
         }
     }
     
     /**
-    Row is a *collection* of (columnName, sqliteValue) pairs, ordered from left
-    to right.
+    Row is a *collection* of (columnName, databaseValue) pairs, ordered from
+    left to right.
 
     Returns a *generator* over elements.
     */
@@ -171,8 +171,8 @@ public struct Row: CollectionType {
     }
     
     /**
-    Row is a *collection* of (columnName, sqliteValue) pairs, ordered from left
-    to right.
+    Row is a *collection* of (columnName, databaseValue) pairs, ordered from
+    left to right.
 
     The index of the first element.
     */
@@ -181,8 +181,8 @@ public struct Row: CollectionType {
     }
     
     /**
-    Row is a *collection* of (columnName, sqliteValue) pairs, ordered from left
-    to right.
+    Row is a *collection* of (columnName, databaseValue) pairs, ordered from
+    left to right.
 
     Return the "past-the-end" index, successor of the index of the last element.
     */
@@ -191,31 +191,31 @@ public struct Row: CollectionType {
     }
     
     /**
-    Row is a *collection* of (columnName, sqliteValue) pairs, ordered from left
-    to right.
+    Row is a *collection* of (columnName, databaseValue) pairs, ordered from
+    left to right.
     
     Returns the element at given index.
     */
-    public subscript(index: RowIndex) -> (String, SQLiteValue) {
+    public subscript(index: RowIndex) -> (String, DatabaseValue) {
         return (
             self.impl.columnName(atIndex: index.index),
-            self.impl.sqliteValue(atIndex: index.index))
+            self.impl.databaseValue(atIndex: index.index))
     }
     
     
     // MARK: - Not Public, dedicated to tests
     
     /**
-    Builds a row from an dictionary of SQLite values.
+    Builds a row from an dictionary of database values.
     
         let dic = [
             "name": .Text("Arthur"),
             "booksCount": .Integer(0)]
-        let row = Row(sqliteDictionary: dic)
+        let row = Row(databaseDictionary: dic)
     
-    - parameter sqliteDictionary: A dictionary of SQLiteValue.
+    - parameter databaseDictionary: A dictionary of DatabaseValue.
     */
-    init(sqliteDictionary: [String: SQLiteValue]) {
+    init(databaseDictionary: [String: DatabaseValue]) {
         // IMPLEMENTATION NODE
         //
         // This initializer is used by RowModel.insert() so that it can call
@@ -223,11 +223,11 @@ public struct Row: CollectionType {
         //
         // It is made public because it is important to let the user experiment
         // with rows and models.
-        self.impl = DictionaryRowImpl(sqliteDictionary: sqliteDictionary)
+        self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
     }
     
-    subscript(index: Int) -> SQLiteValue {
-        return impl.sqliteValue(atIndex: index)
+    subscript(index: Int) -> DatabaseValue {
+        return impl.databaseValue(atIndex: index)
     }
     
     
@@ -264,29 +264,29 @@ public struct Row: CollectionType {
     
     // MARK: - DictionaryRowImpl
     
-    /// See Row.init(sqliteDictionary:)
+    /// See Row.init(databaseDictionary:)
     private struct DictionaryRowImpl : RowImpl {
-        let sqliteDictionary: [String: SQLiteValue]
+        let databaseDictionary: [String: DatabaseValue]
         
         var columnCount: Int {
-            return sqliteDictionary.count
+            return databaseDictionary.count
         }
         
-        init (sqliteDictionary: [String: SQLiteValue]) {
-            self.sqliteDictionary = sqliteDictionary
+        init (databaseDictionary: [String: DatabaseValue]) {
+            self.databaseDictionary = databaseDictionary
         }
         
-        func sqliteValue(atIndex index: Int) -> SQLiteValue {
-            return sqliteDictionary[advance(sqliteDictionary.startIndex, index)].1
+        func databaseValue(atIndex index: Int) -> DatabaseValue {
+            return databaseDictionary[advance(databaseDictionary.startIndex, index)].1
         }
         
         func columnName(atIndex index: Int) -> String {
-            return sqliteDictionary[advance(sqliteDictionary.startIndex, index)].0
+            return databaseDictionary[advance(databaseDictionary.startIndex, index)].0
         }
         
         func indexForColumn(named name: String) -> Int? {
-            if let index = sqliteDictionary.indexForKey(name) {
-                return distance(sqliteDictionary.startIndex, index)
+            if let index = databaseDictionary.indexForKey(name) {
+                return distance(databaseDictionary.startIndex, index)
             } else {
                 return nil
             }
@@ -298,27 +298,27 @@ public struct Row: CollectionType {
     
     /// See Row.init(statement:unsafe:)
     private struct SafeRowImpl : RowImpl {
-        let sqliteValues: [SQLiteValue]
+        let databaseValues: [DatabaseValue]
         let columnNames: [String]
-        let sqliteDictionary: [String: SQLiteValue]
+        let databaseDictionary: [String: DatabaseValue]
         
         init(statement: SelectStatement) {
-            self.sqliteValues = (0..<statement.columnCount).map { index in statement.sqliteValue(atIndex: index) }
+            self.databaseValues = (0..<statement.columnCount).map { index in statement.databaseValue(atIndex: index) }
             self.columnNames = statement.columnNames
 
-            var sqliteDictionary = [String: SQLiteValue]()
-            for (sqliteValue, columnName) in zip(sqliteValues, columnNames) {
-                sqliteDictionary[columnName] = sqliteValue
+            var databaseDictionary = [String: DatabaseValue]()
+            for (databaseValue, columnName) in zip(databaseValues, columnNames) {
+                databaseDictionary[columnName] = databaseValue
             }
-            self.sqliteDictionary = sqliteDictionary
+            self.databaseDictionary = databaseDictionary
         }
         
         var columnCount: Int {
             return columnNames.count
         }
         
-        func sqliteValue(atIndex index: Int) -> SQLiteValue {
-            return sqliteValues[index]
+        func databaseValue(atIndex index: Int) -> DatabaseValue {
+            return databaseValues[index]
         }
         
         func columnName(atIndex index: Int) -> String {
@@ -345,8 +345,8 @@ public struct Row: CollectionType {
             return statement.columnCount
         }
         
-        func sqliteValue(atIndex index: Int) -> SQLiteValue {
-            return statement.sqliteValue(atIndex: index)
+        func databaseValue(atIndex index: Int) -> DatabaseValue {
+            return statement.databaseValue(atIndex: index)
         }
         
         func columnName(atIndex index: Int) -> String {
@@ -357,11 +357,11 @@ public struct Row: CollectionType {
             return statement.columnNames.indexOf(name)
         }
         
-        var sqliteDictionary: [String: SQLiteValue] {
-            var dic = [String: SQLiteValue]()
+        var databaseDictionary: [String: DatabaseValue] {
+            var dic = [String: DatabaseValue]()
             for index in 0..<statement.columnCount {
                 let columnName = String.fromCString(sqlite3_column_name(statement.sqliteStatement, Int32(index)))!
-                dic[columnName] = statement.sqliteValue(atIndex: index)
+                dic[columnName] = statement.databaseValue(atIndex: index)
             }
             return dic
         }
@@ -371,14 +371,14 @@ public struct Row: CollectionType {
 // The protocol for Row underlying implementation
 protocol RowImpl {
     var columnCount: Int { get }
-    func sqliteValue(atIndex index: Int) -> SQLiteValue
+    func databaseValue(atIndex index: Int) -> DatabaseValue
     func columnName(atIndex index: Int) -> String
     func indexForColumn(named name: String) -> Int?
-    var sqliteDictionary: [String: SQLiteValue] { get }
+    var databaseDictionary: [String: DatabaseValue] { get }
 }
 
 
-/// Used to access the (columnName, sqliteValue) pairs in a Row.
+/// Used to access the (columnName, databaseValue) pairs in a Row.
 public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIndexType {
     let index: Int
     init(_ index: Int) { self.index = index }

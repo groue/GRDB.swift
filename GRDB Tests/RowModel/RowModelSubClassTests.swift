@@ -28,10 +28,10 @@ import GRDB
 class PersonWithPet: Person {
     var petCount: Int?
     
-    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "petCount":    petCount = sqliteValue.value()
-        default:            super.setSQLiteValue(sqliteValue, forColumn: column)
+        case "petCount":    petCount = dbv.value()
+        default:            super.setDatabaseValue(dbv, forColumn: column)
         }
     }
 }

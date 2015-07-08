@@ -32,14 +32,14 @@ class Item: RowModel {
         return Table(named: "items")
     }
     
-    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["name": name]
     }
     
-    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "name":    name = sqliteValue.value()
-        default:        super.setSQLiteValue(sqliteValue, forColumn: column)
+        case "name":    name = dbv.value()
+        default:        super.setDatabaseValue(dbv, forColumn: column)
         }
     }
     

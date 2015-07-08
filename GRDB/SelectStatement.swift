@@ -37,11 +37,7 @@ public final class SelectStatement : Statement {
     
     // MARK: - Not public
     
-    /**
-    If true, the fetched rows are *unsafe*.
-    
-    See Row(statement:unsafe:) for details.
-    */
+    /// If true, the fetched rows are *unsafe*. See Row(statement:unsafe:) for details.
     let unsafe: Bool
     
     init(database: Database, sql: String, bindings: Bindings?, unsafe: Bool) throws {
@@ -53,7 +49,7 @@ public final class SelectStatement : Statement {
     }
     
     /**
-    Returns the SQLiteValue at given index.
+    Returns the DatabaseValue at given index.
     
     It is the *only* method which loads data straight from SQLite.
     
@@ -71,11 +67,8 @@ public final class SelectStatement : Statement {
         for row in rows {
             let age: Int = row.value(atIndex:0)     // the conversion actually happens in GRDB.
         }
-    
-    The only known caveat (so far) of snubbing SQLite built-in casting is the
-    String to Bool conversion. See Row.value(atIndex:) for more information.
     */
-    func sqliteValue(atIndex index: Int) -> SQLiteValue {
+    func databaseValue(atIndex index: Int) -> DatabaseValue {
         switch sqlite3_column_type(sqliteStatement, Int32(index)) {
         case SQLITE_NULL:
             return .Null;
@@ -97,9 +90,7 @@ public final class SelectStatement : Statement {
     }
 }
 
-/**
-The SelectStatement methods that fetch rows.
-*/
+/// The SelectStatement methods that fetch rows.
 extension SelectStatement {
     
     /**
@@ -152,7 +143,7 @@ extension SelectStatement {
                     return Row(statement: self, unsafe: self.unsafe)
                 default:
                     verboseFailOnError { () -> Void in
-                        throw SQLiteError(code: code, message: self.database.lastErrorMessage, sql: self.sql, bindings: self.bindings)
+                        throw DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, bindings: self.bindings)
                     }
                     return nil
                 }
@@ -179,7 +170,6 @@ extension SelectStatement {
         let statement = db.selectStatement("SELECT ...")
         let row = statement.fetchOneRow()
     
-    - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
     
     - returns: An optional row.
@@ -189,10 +179,22 @@ extension SelectStatement {
     }
 }
 
+/// The SelectStatement methods that fetch values.
 extension SelectStatement {
     
-    // let names = statement.fetch(String.self)
-    public func fetch<Value: SQLiteValueConvertible>(type: Value.Type, bindings: Bindings? = nil) -> AnySequence<Value?> {
+    /**
+    Fetches a lazy sequence of values.
+
+        let statement = db.selectStatement("SELECT name FROM ...")
+        let names = statement.fetch(String.self)
+
+    - parameter type:     The type of fetched values. It must adopt
+                          DatabaseValueConvertible.
+    - parameter bindings: Optional bindings for query parameters.
+    
+    - returns: A lazy sequence of values.
+    */
+    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, bindings: Bindings? = nil) -> AnySequence<Value?> {
         let rowSequence = fetchRows(bindings: bindings)
         return AnySequence { () -> AnyGenerator<Value?> in
             let rowGenerator = rowSequence.generate()
@@ -206,13 +208,35 @@ extension SelectStatement {
         }
     }
     
-    // let names = statement.fetchAll(String.self)
-    public func fetchAll<Value: SQLiteValueConvertible>(type: Value.Type, bindings: Bindings? = nil) -> [Value?] {
+    /**
+    Fetches an array of values.
+
+        let statement = db.selectStatement("SELECT name FROM ...")
+        let names = db.fetchAll(String.self)
+
+    - parameter type:     The type of fetched values. It must adopt
+                          DatabaseValueConvertible.
+    - parameter bindings: Optional bindings for query parameters.
+    
+    - returns: An array of values.
+    */
+    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, bindings: Bindings? = nil) -> [Value?] {
         return Array(fetch(type, bindings: bindings))
     }
     
-    // let name = statement.fetchOne(String.self)
-    public func fetchOne<Value: SQLiteValueConvertible>(type: Value.Type, bindings: Bindings? = nil) -> Value? {
+    /**
+    Fetches a single value.
+
+        let statement = db.selectStatement("SELECT name FROM ...")
+        let name = db.fetchOne(String.self)
+
+    - parameter type:     The type of fetched values. It must adopt
+                          DatabaseValueConvertible.
+    - parameter bindings: Optional bindings for query parameters.
+    
+    - returns: An optional value.
+    */
+    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, bindings: Bindings? = nil) -> Value? {
         if let optionalValue = fetch(type, bindings: bindings).generate().next() {
             // one row containing an optional value
             return optionalValue

@@ -34,6 +34,11 @@ public final class UpdateStatement : Statement {
         let insertedRowID: Int64?
     }
     
+    /**
+    Executes the update statement.
+    
+    - parameter bindings: Optional bindings for query parameters.
+    */
     public func execute(bindings bindings: Bindings? = nil) throws -> Changes {
         if let bindings = bindings {
             self.bindings = bindings
@@ -47,7 +52,7 @@ public final class UpdateStatement : Statement {
         
         let code = sqlite3_step(sqliteStatement)
         guard code == SQLITE_DONE else {
-            throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql, bindings: self.bindings)
+            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, bindings: self.bindings)
         }
         
         let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))

@@ -2,7 +2,7 @@
 
 import GRDB
 
-struct DBDate: SQLiteValueConvertible {
+struct DBDate: DatabaseValueConvertible {
     
     // MARK: - DBDate <-> NSDate conversion
     
@@ -18,16 +18,16 @@ struct DBDate: SQLiteValueConvertible {
         }
     }
     
-    // MARK: - DBDate <-> SQLiteValue conversion
+    // MARK: - DBDate <-> DatabaseValue conversion
     
-    var sqliteValue: SQLiteValue {
+    var databaseValue: DatabaseValue {
         return .Real(date.timeIntervalSince1970)
     }
     
-    init?(sqliteValue: SQLiteValue) {
-        // Don't handle the raw SQLiteValue unless you know what you do.
+    init?(databaseValue: DatabaseValue) {
+        // Don't handle the raw DatabaseValue unless you know what you do.
         // It is recommended to use GRDB built-in conversions instead:
-        if let timestamp = Double(sqliteValue: sqliteValue) {
+        if let timestamp = Double(databaseValue: databaseValue) {
             self.init(NSDate(timeIntervalSince1970: timestamp))
         } else {
             return nil
@@ -49,7 +49,7 @@ class Person: RowModel {
         return .RowID("id")
     }
     
-    override var databaseDictionary: [String: SQLiteValueConvertible?] {
+    override var databaseDictionary: [String: DatabaseValueConvertible?] {
         return [
             "id": id,
             "name": name,
@@ -109,7 +109,7 @@ class Pet: RowModel {
         return .Column("UUID")
     }
     
-    override var databaseDictionary: [String: SQLiteValueConvertible?] {
+    override var databaseDictionary: [String: DatabaseValueConvertible?] {
         return ["UUID": UUID, "name": name, "masterID": masterID]
     }
     
@@ -186,6 +186,4 @@ pets.count
 for person in persons {
     print(person)
 }
-for pet in pets {
-    print(pet)
-}
+for pet in pe

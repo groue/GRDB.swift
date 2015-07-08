@@ -35,7 +35,7 @@ class Citizenship: RowModel {
         return Table(named: "citizenships", primaryKey: .Columns(["personID", "countryName"]))
     }
     
-    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [
             "personID": personID,
             "countryName": countryName,
@@ -43,13 +43,13 @@ class Citizenship: RowModel {
             "native": native]
     }
     
-    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "personID":            personID = sqliteValue.value()
-        case "countryName":         countryName = sqliteValue.value()
-        case "grantedTimestamp":    grantedDate = (sqliteValue.value() as DBDate?)?.date
-        case "native":              native = sqliteValue.value()
-        default:                    super.setSQLiteValue(sqliteValue, forColumn: column)
+        case "personID":            personID = dbv.value()
+        case "countryName":         countryName = dbv.value()
+        case "grantedTimestamp":    grantedDate = (dbv.value() as DBDate?)?.date
+        case "native":              native = dbv.value()
+        default:                    super.setDatabaseValue(dbv, forColumn: column)
         }
     }
     
@@ -137,7 +137,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                     return .Commit
                 }
                 XCTFail("Expected error")
-            } catch is SQLiteError {
+            } catch is DatabaseError {
                 // OK, this is expected
             }
         }

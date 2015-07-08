@@ -302,7 +302,7 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
-    func testFetchRowsCacheSQLiteResults() {
+    func testRowSequenceCanBeIteratedIndependentlyFromSQLiteStatement() {
         assertNoError {
             var rows: [Row] = []
             try dbQueue.inTransaction { db in
@@ -310,7 +310,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
-                rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
+                rows = Array(db.fetchRows("SELECT * FROM persons ORDER BY name"))
                 return .Commit
             }
             

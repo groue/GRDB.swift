@@ -34,19 +34,19 @@ class Pet: RowModel {
         return Table(named: "pets", primaryKey: .Column("UUID"))
     }
     
-    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [
             "UUID": UUID,
             "name": name,
             "masterID": masterID]
     }
     
-    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "UUID":        UUID = sqliteValue.value()
-        case "name":        name = sqliteValue.value()
-        case "masterID":    masterID = sqliteValue.value()
-        default:            super.setSQLiteValue(sqliteValue, forColumn: column)
+        case "UUID":        UUID = dbv.value()
+        case "name":        name = dbv.value()
+        case "masterID":    masterID = dbv.value()
+        default:            super.setDatabaseValue(dbv, forColumn: column)
         }
     }
     
@@ -130,7 +130,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
                     return .Commit
                 }
                 XCTFail("Expected error")
-            } catch is SQLiteError {
+            } catch is DatabaseError {
                 // OK, this is expected
             }
         }
@@ -162,7 +162,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
                     return .Commit
                 }
                 XCTFail("Expected error")
-            } catch is SQLiteError {
+            } catch is DatabaseError {
                 // OK, this is expected
             }
         }

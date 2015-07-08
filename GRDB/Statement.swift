@@ -22,8 +22,14 @@
 // THE SOFTWARE.
 
 
+
+/// A nicer name than COpaquePointer for SQLite statement handle
+typealias SQLiteStatement = COpaquePointer
+
+private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
+
 /**
-A statement represents the execution of a SQL query.
+A statement represents a SQL query.
 
 It is the base class of UpdateStatement that executes *update statements*, and
 SelectStatement that fetches rows.
@@ -58,7 +64,7 @@ public class Statement {
         self.sql = sql
         let code = sqlite3_prepare_v2(database.sqliteConnection, sql, -1, &sqliteStatement, nil)
         if code != SQLITE_OK {
-            throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql)
+            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
         
         // Set bingins. Duplicate the didSet property observer since it is not
@@ -76,11 +82,11 @@ public class Statement {
     }
     
     // Exposed for Bindings. Don't make this one public unless we keep the bindings property in sync.
-    final func bind(value: SQLiteValueConvertible?, atIndex index: Int) {
-        let sqliteValue = value?.sqliteValue ?? .Null
+    final func bind(value: DatabaseValueConvertible?, atIndex index: Int) {
+        let databaseValue = value?.databaseValue ?? .Null
         let code: Int32
         
-        switch sqliteValue {
+        switch databaseValue {
         case .Null:
             code = sqlite3_bind_null(sqliteStatement, Int32(index))
         case .Integer(let int64):
@@ -96,13 +102,13 @@ public class Statement {
         
         if code != SQLITE_OK {
             verboseFailOnError { () -> Void in
-                throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql)
+                throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
             }
         }
     }
     
     // Exposed for Bindings. Don't make this one public unless we keep the bindings property in sync.
-    final func bind(value: SQLiteValueConvertible?, forKey key: String) {
+    final func bind(value: DatabaseValueConvertible?, forKey key: String) {
         let index = Int(sqlite3_bind_parameter_index(sqliteStatement, ":\(key)"))
         guard index > 0 else {
             fatalError("Key not found in SQLite statement: `:\(key)`")
@@ -115,7 +121,7 @@ public class Statement {
         let code = sqlite3_reset(sqliteStatement)
         if code != SQLITE_OK {
             verboseFailOnError { () -> Void in
-                throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql)
+                throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
             }
         }
     }
@@ -125,10 +131,21 @@ public class Statement {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {
             verboseFailOnError { () -> Void in
-                throw SQLiteError(code: code, message: database.lastErrorMessage, sql: sql)
+                throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
             }
         }
     }
 }
 
-private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
+// MARK: - SQLite identifier quoting
+
+extension String {
+    /// Returns the receiver, quoted for safe insertion in an SQL query as an
+    /// identifier.
+    ///
+    ///     db.execute("SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
+    public var quotedDatabaseIdentifier: String {
+        // See https://www.sqlite.org/lang_keywords.html
+        return "\"\(self)\""
+    }
+}

@@ -35,7 +35,7 @@ class Person: RowModel {
         return Table(named: "persons", primaryKey: .RowID("id"))
     }
     
-    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [
             "id": id,
             "name": name,
@@ -44,13 +44,13 @@ class Person: RowModel {
         ]
     }
     
-    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "id":                  id = sqliteValue.value()
-        case "name":                name = sqliteValue.value()
-        case "age":                 age = sqliteValue.value()
-        case "creationTimestamp":   creationDate = (sqliteValue.value() as DBDate?)?.date
-        default:                    super.setSQLiteValue(sqliteValue, forColumn: column)
+        case "id":                  id = dbv.value()
+        case "name":                name = dbv.value()
+        case "age":                 age = dbv.value()
+        case "creationTimestamp":   creationDate = (dbv.value() as DBDate?)?.date
+        default:                    super.setDatabaseValue(dbv, forColumn: column)
         }
     }
     
@@ -139,7 +139,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                     return .Commit
                 }
                 XCTFail("Expected error")
-            } catch is SQLiteError {
+            } catch is DatabaseError {
                 // OK, this is expected
             }
         }

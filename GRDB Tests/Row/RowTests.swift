@@ -37,9 +37,9 @@ class RowTests: GRDBTestCase {
                 
                 var columnNames = [String]()
                 var texts = [String]()
-                for (columnName, sqliteValue) in row {
+                for (columnName, databaseValue) in row {
                     columnNames.append(columnName)
-                    texts.append(sqliteValue.value()! as String)
+                    texts.append(databaseValue.value()! as String)
                 }
                 
                 XCTAssertEqual(columnNames, ["a", "b", "c"])

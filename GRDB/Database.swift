@@ -22,6 +22,9 @@
 // THE SOFTWARE.
 
 
+/// A nicer name than COpaquePointer for SQLite connection handle
+typealias SQLiteConnection = COpaquePointer
+
 /**
 A Database connection.
 
@@ -67,7 +70,7 @@ public final class Database {
         try statement.execute(bindings: ["Arthur"])
         try statement.execute(bindings: ["Barbara"])
     
-    This method may throw a SQLiteError.
+    This method may throw a DatabaseError.
     
     - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
@@ -83,7 +86,7 @@ public final class Database {
     
         db.excute("INSERT INTO persons (name) VALUES (?)", bindings: ["Arthur"])
     
-    This method may throw a SQLiteError.
+    This method may throw a DatabaseError.
     
     - parameter sql: An SQL query.
     - parameter bindings: Optional bindings for query parameters.
@@ -145,7 +148,7 @@ public final class Database {
         // See https://www.sqlite.org/c3ref/open.html
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
         if code != SQLITE_OK {
-            throw SQLiteError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
+            throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
         if configuration.foreignKeysEnabled {
@@ -165,7 +168,7 @@ public final class Database {
     }
     
     /**
-    Executes a block inside an SQLite transaction.
+    Executes a block inside a database transaction.
     
         try dbQueue.inTransaction do {
             try db.execute("INSERT ...")
@@ -244,7 +247,7 @@ Convenience function that calls fatalError in case of error
 func verboseFailOnError<Result>(@noescape block: (Void) throws -> Result) -> Result {
     do {
         return try block()
-    } catch let error as SQLiteError {
+    } catch let error as DatabaseError {
         fatalError(error.description)
     } catch {
         fatalError("error: \(error)")
@@ -254,9 +257,7 @@ func verboseFailOnError<Result>(@noescape block: (Void) throws -> Result) -> Res
 
 // MARK: - Feching Rows
 
-/**
-The Database methods that fetch rows.
-*/
+/// The Database methods that fetch rows.
 extension Database {
     
     /**
@@ -305,54 +306,54 @@ extension Database {
 
 // MARK: - Feching Values
 
-/**
-The Database methods that fetch values.
-*/
+/// The Database methods that fetch values.
 extension Database {
     
     /**
     Fetches a lazy sequence of values.
 
-        let names = db.fetch(String.self, "SELECT ...")
+        let names = db.fetch(String.self, "SELECT name FROM ...")
 
-    - parameter type:     The type of fetched values. It must adopt SQLiteValueConvertible.
+    - parameter type:     The type of fetched values. It must adopt
+                          DatabaseValueConvertible.
     - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
     
     - returns: A lazy sequence of values.
     */
-    public func fetch<Value: SQLiteValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<Value?> {
+    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<Value?> {
         return selectStatement(sql, bindings: bindings).fetch(type)
     }
     
     /**
     Fetches an array of values.
 
-        let names = db.fetchAll(String.self, "SELECT ...")
+        let names = db.fetchAll(String.self, "SELECT name FROM ...")
 
-    - parameter type:     The type of fetched values. It must adopt SQLiteValueConvertible.
+    - parameter type:     The type of fetched values. It must adopt
+                          DatabaseValueConvertible.
     - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
     
     - returns: An array of values.
     */
-    public func fetchAll<Value: SQLiteValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> [Value?] {
+    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> [Value?] {
         return Array(fetch(type, sql, bindings: bindings))
     }
-    
     
     /**
     Fetches a single value.
 
-        let name = db.fetchOne(String.self, "SELECT ...")
+        let name = db.fetchOne(String.self, "SELECT name FROM ...")
 
-    - parameter type:     The type of fetched values. It must adopt SQLiteValueConvertible.
+    - parameter type:     The type of fetched values. It must adopt
+                          DatabaseValueConvertible.
     - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
     
     - returns: An optional value.
     */
-    public func fetchOne<Value: SQLiteValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> Value? {
+    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> Value? {
         if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
             return first

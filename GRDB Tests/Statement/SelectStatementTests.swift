@@ -81,7 +81,7 @@ class SelectStatementTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: why is this explicit type declaration required?
-                let ageDicts: [[String: SQLiteValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
+                let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { ageDict -> Int in
                     statement.bindings = Bindings(ageDict)
                     return statement.fetchOne(Int.self)!
@@ -96,7 +96,7 @@ class SelectStatementTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: why is this explicit type declaration required?
-                let ageDicts: [[String: SQLiteValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
+                let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { statement.fetchOne(Int.self, bindings: Bindings($0))! }
                 XCTAssertEqual(counts, [1,2,2,3])
             }

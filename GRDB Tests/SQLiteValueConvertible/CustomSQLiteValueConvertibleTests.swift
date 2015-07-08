@@ -25,7 +25,7 @@
 import XCTest
 import GRDB
 
-class CustomSQLiteValueConvertibleTests : GRDBTestCase {
+class CustomDatabaseValueConvertibleTests : GRDBTestCase {
     
     override func setUp() {
         super.setUp()
