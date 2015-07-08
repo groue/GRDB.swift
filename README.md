@@ -512,7 +512,7 @@ try migrator.migrate(dbQueue)
 
 Subclasses opt in RowModel features by overriding all or part of the core methods that define their relationship with the SQLite database.
 
-For example, we see below that **fetching** only requires the `setSQLiteValue(_:forColumn:)` method:
+For example, we see below that **fetching** does not require any coupling to a specific database table:
 
 | Core Methods                   | fetch | insert | update | delete |
 |:------------------------------ |:-----:|:------:|:------:|:------:|
