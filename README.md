@@ -510,11 +510,11 @@ try migrator.migrate(dbQueue)
 
 **RowModel** is a class that wraps a table row, or the result of any query. It is designed to be subclassed.
 
-Subclasses opt in RowModel features by overriding all or part of the base methods that define their relationship with the SQLite database.
+Subclasses opt in RowModel features by overriding all or part of the core methods that define their relationship with the SQLite database.
 
 For example, we see below that **fetching** only requires the `setSQLiteValue(_:forColumn:)` method:
 
-| Methods                        | fetch | insert | update | delete |
+| Core Methods                   | fetch | insert | update | delete |
 |:------------------------------ |:-----:|:------:|:------:|:------:|
 | `setSQLiteValue(_:forColumn:)` |   X   |        |        |        |
 | `databaseTable`                |       |   X    |   X    |   X    |
