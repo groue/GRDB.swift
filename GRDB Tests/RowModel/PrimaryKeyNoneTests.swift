@@ -36,8 +36,11 @@ class Item: RowModel {
         return ["name": name]
     }
     
-    override func updateFromDatabaseRow(row: Row) {
-        if let v = row["name"] { name = v.value() }
+    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+        switch column {
+        case "name":    name = sqliteValue.value()
+        default:        super.setSQLiteValue(sqliteValue, forColumn: column)
+        }
     }
     
     static func setupInDatabase(db: Database) throws {

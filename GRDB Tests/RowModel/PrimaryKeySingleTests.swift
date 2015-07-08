@@ -42,10 +42,13 @@ class Pet: RowModel {
         return ["UUID": UUID, "name": name, "masterID": masterID]
     }
     
-    override func updateFromDatabaseRow(row: Row) {
-        if let v = row["UUID"] { UUID = v.value() }
-        if let v = row["name"] { name = v.value() }
-        if let v = row["masterID"] { masterID = v.value() }
+    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+        switch column {
+        case "UUID":        UUID = sqliteValue.value()
+        case "name":        name = sqliteValue.value()
+        case "masterID":    masterID = sqliteValue.value()
+        default:            super.setSQLiteValue(sqliteValue, forColumn: column)
+        }
     }
     
     init (UUID: String? = nil, name: String? = nil, masterID: Int64? = nil) {

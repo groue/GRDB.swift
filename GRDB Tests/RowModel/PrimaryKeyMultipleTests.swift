@@ -43,11 +43,14 @@ class Citizenship: RowModel {
         return ["personID": personID, "countryName": countryName, "grantedTimestamp": DBDate(grantedDate), "native": native]
     }
     
-    override func updateFromDatabaseRow(row: Row) {
-        if let v = row["personID"] { personID = v.value() }
-        if let v = row["countryName"] { countryName = v.value() }
-        if let v = row["grantedTimestamp"] { grantedDate = (v.value() as DBDate?)?.date }
-        if let v = row["native"] { native = v.value() }
+    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+        switch column {
+        case "personID":            personID = sqliteValue.value()
+        case "countryName":         countryName = sqliteValue.value()
+        case "grantedTimestamp":    grantedDate = (sqliteValue.value() as DBDate?)?.date
+        case "native":              native = sqliteValue.value()
+        default:                    super.setSQLiteValue(sqliteValue, forColumn: column)
+        }
     }
     
     static func setupInDatabase(db: Database) throws {

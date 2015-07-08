@@ -61,9 +61,7 @@ public class RowModel {
         return [:]
     }
     
-    /// Updates the RowModel from a Row.
-    /// The implementation of the base class RowModel does nothing.
-    public func updateFromDatabaseRow(row: Row) {
+    public func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
     }
     
     
@@ -85,7 +83,7 @@ public class RowModel {
         // the simple init() from init(row: Row), and perform distinct
         // initialization for fetched models.
         
-        updateFromDatabaseRow(row)
+        updateWithRow(row)
     }
     
     
@@ -102,13 +100,21 @@ public class RowModel {
         case Ignore
     }
     
+    /// Updates the RowModel from a Row.
+    /// Calls setSQLiteValue(_:forColumn:) for each (column, sqliteValue) in the row
+    public final func updateWithRow(row: Row) {
+        for (column, sqliteValue) in row {
+            setSQLiteValue(sqliteValue, forColumn: column)
+        }
+    }
+    
     /// Inserts
     public func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         let insertionResult = try Version(self).insert(db, conflictResolution: conflictResolution)
         
         if let (column, insertedRowID) = insertionResult {
             let row = Row(sqliteDictionary: [column: SQLiteValue.Integer(insertedRowID)])
-            updateFromDatabaseRow(row)
+            updateWithRow(row)
         }
     }
     
@@ -127,7 +133,7 @@ public class RowModel {
     final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         if let (column, insertedRowID) = try Version(self).save(db, conflictResolution: conflictResolution) {
             let row = Row(sqliteDictionary: [column: SQLiteValue.Integer(insertedRowID)])
-            updateFromDatabaseRow(row)
+            updateWithRow(row)
         }
     }
     
@@ -140,7 +146,7 @@ public class RowModel {
     /// Returns true if the model still exists in the database and has been reloaded.
     final public func reload(db: Database) throws {
         let row = try Version(self).fetchRow(db)
-        updateFromDatabaseRow(row)
+        updateWithRow(row)
     }
     
     

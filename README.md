@@ -512,14 +512,14 @@ try migrator.migrate(dbQueue)
 
 Subclasses opt in RowModel features by overriding all or part of the base methods that define their relationship with the SQLite database.
 
-For example, we see below that **fetching** only requires the updateFromDatabaseRow method:
+For example, we see below that **fetching** only requires the `setSQLiteValue(_:forColumn:)` method:
 
-| Methods               | fetch | insert | update | delete |
-|:--------------------- |:-----:|:------:|:------:|:------:|
-| updateFromDatabaseRow |   X   |        |        |        |
-| databaseTableName     |       |   X    |   X    |   X    |
-| databasePrimaryKey    |       |   ¹    |   X    |   X    |
-| databaseDictionary    |       |   X    |   X    |   X    |
+| Methods                        | fetch | insert | update | delete |
+|:------------------------------ |:-----:|:------:|:------:|:------:|
+| `setSQLiteValue(_:forColumn:)` |   X   |        |        |        |
+| `databasePrimaryKey`           |       |   ¹    |   X    |   X    |
+| `databaseTableName`            |       |   X    |   X    |   X    |
+| `databaseDictionary`           |       |   X    |   X    |   X    |
 
 ¹ See [primary keys](#primary-keys) below for more information.
 
@@ -544,28 +544,27 @@ class Person : RowModel {
 
 > TIP: Use implicitly unwrapped optionals for not null columns, like `id: Int64!`, and optionals for nullable columns: `age: Int?`.
 
-The `updateFromDatabaseRow` method assigns available SQLite values to properties:
+The `setSQLiteValue(_:forColumn:)` method assigns SQLite values to properties:
 
 ```swift
 class Person : RowModel {
-    override func updateFromDatabaseRow(row: Row) {
-        // If the row has an "id" column, set the `id` property:
-        if let v = row["id"]   { id = v.value() }
-        if let v = row["age"]  { age = v.value() }
-        if let v = row["name"] { name = v.value() }
-        if let v = row["creationTimestamp"] {
-            // Use the DBDate custom type declared above:
-            let dbDate = v.value() as DBDate?
+    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+        switch column {
+        case "id":      id = sqliteValue.value()    // Extract Int64!
+        case "name":    name = sqliteValue.value()  // Extract String?
+        case "age":     age = sqliteValue.value()   // Extract Int?
+        case "creationTimestamp":                   // Extract NSDate?
+            // Use the DBDate custom type declared above
+            let dbDate = sqliteValue.value() as DBDate?
             creationDate = dbDate?.date
+        default:
+            super.setSQLiteValue(sqliteValue, forColumn: column)
         }
     }
 }
 ```
 
-> TIP: avoid assuming that the row contains a column for all properties. Consider this method as a general-purpose way to update the RowModel, not only exposed to your own code, but also to the rest of the world, including the base class RowModel itself. Accept what is given, no more.
-
-See [General Row Processing](#general-row-processing) for more information about the `row[columnName]` subscript operator, and [Values](#values) about the supported property types.
-
+See [General Row Processing](#general-row-processing) for more information about the `SQLiteValue` type, and [Values](#values) about the supported property types.
 
 Now you can fetch **lazy sequences** of row models, **arrays**, or **single** instances:
 

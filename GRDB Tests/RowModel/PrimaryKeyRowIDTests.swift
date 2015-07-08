@@ -48,11 +48,14 @@ class Person: RowModel {
         ]
     }
     
-    override func updateFromDatabaseRow(row: Row) {
-        if let v = row["id"] { id = v.value() }
-        if let v = row["name"] { name = v.value() }
-        if let v = row["age"] { age = v.value() }
-        if let v = row["creationTimestamp"] { creationDate = (v.value() as DBDate?)?.date }
+    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+        switch column {
+        case "id":                  id = sqliteValue.value()
+        case "name":                name = sqliteValue.value()
+        case "age":                 age = sqliteValue.value()
+        case "creationTimestamp":   creationDate = (sqliteValue.value() as DBDate?)?.date
+        default:                    super.setSQLiteValue(sqliteValue, forColumn: column)
+        }
     }
     
     override func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
