@@ -390,8 +390,8 @@ Update statements:
 ```swift
 try dbQueue.inTransaction { db in
     
-    let statement = try db.updateStatement("INSERT INTO persons (name, age) " +
-                                           "VALUES (:name, :age)")
+    let sql = "INSERT INTO persons (name, age) VALUES (:name, :age)"
+    let statement = try db.updateStatement(sql)
     
     let persons = [
         ["name": "Arthur", "age": 41],
@@ -602,7 +602,7 @@ class PersonsViewController: UITableViewController {
         override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
             switch column {
             case "bookCount": bookCount = dbv.value()
-            default:          super.setDatabaseValue(dbv, forColumn: column)
+            default: super.setDatabaseValue(dbv, forColumn: column)
             }
         }
     }
