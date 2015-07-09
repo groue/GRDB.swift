@@ -29,16 +29,16 @@ class Person : RowModel {
         return Table(named: "persons", primaryKey: .RowID("id"))
     }
     
-    override func setSQLiteValue(sqliteValue: SQLiteValue, forColumn column: String) {
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "id": id = sqliteValue.value()
-        case "firstName": firstName = sqliteValue.value()
-        case "lastName": lastName = sqliteValue.value()
-        default: super.setSQLiteValue(sqliteValue, forColumn: column)
+        case "id": id = dbv.value()
+        case "firstName": firstName = dbv.value()
+        case "lastName": lastName = dbv.value()
+        default: super.setDatabaseValue(dbv, forColumn: column)
         }
     }
     
-    override var storedDatabaseDictionary: [String: SQLiteValueConvertible?] {
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [
             "id": id,
             "firstName": firstName,
