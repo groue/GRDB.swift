@@ -749,7 +749,9 @@ Other primary keys (single or multiple columns) are not managed by GRDB: you hav
 
 RowModel methods can throw [DatabaseError](#error-handling) and also specific errors of type **RowModelError**:
 
-- **RowModelError.UnspecifiedTable**: thrown by `insert`, `update`, `delete` and `reload` when the databaseTable class method returns nil.
+- **RowModelError.UnspecifiedTable**: thrown by `insert`, `update`, `delete` and `reload` when the databaseTable class method returns nil (typically when it has not been overriden yet).
+
+- **RowModelError.InvalidDatabaseDictionary**: thrown by `ìnsert`, `update`, `delete` and `reload` when the storedDatabaseDictionary does not contain enough values (typically when it has not been overriden yet).
 
 - **RowModelError.InvalidPrimaryKey**: thrown by `update`, `delete` and `reload` when the primary key is nil.
 

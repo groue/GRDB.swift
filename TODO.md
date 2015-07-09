@@ -1,11 +1,13 @@
 - [ ] RowModel support for implicit RowID column (see https://www.sqlite.org/autoinc.html)
 - [ ] Fetch with a collection of primary keys: db.fetch(RowModel.type, primaryKeys:[...]). Problem: users will often want to sort, so the plain SELECT * FROM persons WHERE id IN (?,?,?) won't be appreciated. Needs more thought.
 - [ ] Let Bindings eat arrays, or make it easy to generate series of ?,?,?,?
-- [ ] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that. Experiment with a setDatabaseValueForKey API.
-- [ ] CocoaPod
-- [ ] Carthage
-- [ ] When one calls modelRow.insert(db), and has defined the table, but forgets to override storedDatabaseDictionary, he gets "SQLite error 1 with statement `INSERT INTO "persons" () VALUES ()`: near ")": syntax error" which does not tell him to override storedDatabaseDictionary.
-- [ ] When one forgets to set the primaryKey in setDatabaseValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
+- [X] Pierlo complains that databaseDictionary returns a dictionary of values when updateFromDatabaseRow eats a Row. See if we can do something about that. Experiment with a setDatabaseValueForKey API.
+- [X] CocoaPod
+- [X] Carthage
+- [X] When one calls modelRow.insert(db), and has defined the table, but forgets to override storedDatabaseDictionary, he gets "SQLite error 1 with statement `INSERT INTO "persons" () VALUES ()`: near ")": syntax error" which does not tell him to override storedDatabaseDictionary.
+- [ ] Test for the item above
+- [X] When one forgets to set the primaryKey in setDatabaseValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
+- [ ] Test for the item above
 - [ ] Beta 3: remove strings behind enum cases: "If an element of an enum with string raw type does not have an explicit raw value, it will default to the text of the enum’s name".
 - [ ] Beta 3: leading dot is now possible: foo\n.bar\n.baz
 - [ ] Beta 3: "Errors trapped by a try! expression, or unhandled at the top level of a script or playground, now display the error value in the trap message"
