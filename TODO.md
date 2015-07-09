@@ -8,6 +8,3 @@
 - [ ] Test for the item above
 - [X] When one forgets to set the primaryKey in setDatabaseValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
 - [ ] Test for the item above
-- [X] Beta 3: remove strings behind enum cases: "If an element of an enum with string raw type does not have an explicit raw value, it will default to the text of the enum’s name".
-- [X] Beta 3: leading dot is now possible: foo\n.bar\n.baz
-- [ ] Beta 3: "Errors trapped by a try! expression, or unhandled at the top level of a script or playground, now display the error value in the trap message". RowModelError are OK. Test DatabaseError.
