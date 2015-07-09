@@ -1,7 +1,7 @@
 GRDB.swift
 ==========
 
-GRDB.swift is a Swift 2 library built around [SQLite](https://www.sqlite.org), from the author of [GRMustache](https://github.com/groue/GRMustache).
+GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the author of [GRMustache](https://github.com/groue/GRMustache).
 
 It ships with a low-level database API, plus application-level tools.
 
