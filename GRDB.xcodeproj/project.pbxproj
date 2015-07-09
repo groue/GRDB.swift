@@ -16,6 +16,8 @@
 		5699AE5B1B42D3DC00C35172 /* SelectStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */; };
 		5699AE5D1B42D49C00C35172 /* UpdateStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5C1B42D49C00C35172 /* UpdateStatement.swift */; };
 		5699AE5F1B42E59F00C35172 /* DatabaseValueConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5E1B42E59F00C35172 /* DatabaseValueConvertible.swift */; };
+		56B8F4491B4E1C7800C24296 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E0B131B4D8FC100EBC9F6 /* DatabaseError.swift */; };
+		56B8F44A1B4E1C8600C24296 /* DatabaseValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E0B151B4D901300EBC9F6 /* DatabaseValue.swift */; };
 		56CC3C8F1B43A5A700A9A534 /* DatabaseQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C8E1B43A5A700A9A534 /* DatabaseQueue.swift */; };
 		56CC3C931B43BF0100A9A534 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C921B43BF0100A9A534 /* Configuration.swift */; };
 		56CC3C951B43C0E600A9A534 /* DatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */; };
@@ -542,9 +544,11 @@
 				56E5D82E1B4D43FA00430942 /* Bindings.swift in Sources */,
 				56E5D8341B4D43FA00430942 /* RowModel.swift in Sources */,
 				56E5D8311B4D43FA00430942 /* DatabaseMigrator.swift in Sources */,
+				56B8F4491B4E1C7800C24296 /* DatabaseError.swift in Sources */,
 				56E5D8351B4D43FA00430942 /* SelectStatement.swift in Sources */,
 				56E5D8371B4D43FA00430942 /* DatabaseValueConvertible.swift in Sources */,
 				56E5D8391B4D43FA00430942 /* UpdateStatement.swift in Sources */,
+				56B8F44A1B4E1C8600C24296 /* DatabaseValue.swift in Sources */,
 				56E5D8331B4D43FA00430942 /* Row.swift in Sources */,
 				56E5D8321B4D43FA00430942 /* DatabaseQueue.swift in Sources */,
 				56E5D8381B4D43FA00430942 /* Statement.swift in Sources */,
