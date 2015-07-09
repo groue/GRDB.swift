@@ -202,7 +202,7 @@ public struct Blob : DatabaseValueConvertible {
     public let data: NSData
     
     /// Create a Blob from NSData. Returns nil if and only if *data* is nil.
-    init?(_ data: NSData?) {
+    public init?(_ data: NSData?) {
         if let data = data {
             self.data = data
         } else {
