@@ -302,9 +302,9 @@ enum Color : Int {
 }
 
 enum Grape : String {
-    case Chardonnay = "Chardonnay"
-    case Merlot = "Merlot"
-    case Riesling = "Riesling"
+    case Chardonnay
+    case Merlot
+    case Riesling
 }
 ```
 

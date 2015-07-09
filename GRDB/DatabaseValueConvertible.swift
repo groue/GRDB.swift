@@ -278,9 +278,9 @@ DatabaseValueConvertible adoption.
     
     // A String enum:
     enum Color : String {
-        case Red = "red"
-        case White = "white"
-        case Rose = "rose"
+        case Red
+        case White
+        case Rose
     }
     
     // Declare DatabaseIntRepresentable adoption:
