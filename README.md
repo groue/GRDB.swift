@@ -5,6 +5,12 @@ GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the 
 
 It ships with a low-level database API, plus application-level tools.
 
+Jump to:
+
+- [Usage](#usage)
+- [Installation](#installation)
+- [Documentation](#documentation)
+
 
 Features
 --------
@@ -42,6 +48,50 @@ dbQueue.inDatabase { db in
     }
 }
 ```
+
+
+Installation
+------------
+
+### iOS7
+
+To use GRDB.swift in a project targetting iOS7, you must include the source files directly in your project.
+
+
+### CocoaPods
+
+[CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
+
+To use GRDB.swift with Cocoapods, specify in your Podfile:
+
+```ruby
+source 'https://github.com/CocoaPods/Specs.git'
+use_frameworks!
+
+pod 'GRDB.swift', '0.1.0'
+```
+
+
+### Carthage
+
+[Carthage](https://github.com/Carthage/Carthage) is another dependency manager for Xcode projects.
+
+To use GRDB.swift with Carthage, specify in your Cartfile:
+
+```
+github "groue/GRDB.swift" == 0.1.0
+```
+
+Before running `carthage update`, select Xcode-beta as the active developer directory by running the following command:
+
+```
+sudo xcode-select  -s /Applications/Xcode-beta.app
+```
+
+
+### Manually
+
+Download a copy of GRDB.swift, embed the `GRDB.xcodeproj` project in your own project, and add the `GRDBOSX` or `GRDBiOS` target as a dependency of your own target.
 
 
 Documentation
