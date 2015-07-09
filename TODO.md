@@ -6,5 +6,6 @@
 - [ ] Carthage
 - [ ] When one calls modelRow.insert(db), and has defined the table, but forgets to override storedDatabaseDictionary, he gets "SQLite error 1 with statement `INSERT INTO "persons" () VALUES ()`: near ")": syntax error" which does not tell him to override storedDatabaseDictionary.
 - [ ] When one forgets to set the primaryKey in setDatabaseValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
-- [ ] Remove as many "SQLite" from public functions and types as possible. DatabaseValue -> DatabaseValue, for instance. Or DBValue.
-- [ ] quotedDatabaseIdentifier -> quotedDatabaseIdentifier
+- [ ] Beta 3: remove strings behind enum cases: "If an element of an enum with string raw type does not have an explicit raw value, it will default to the text of the enum’s name".
+- [ ] Beta 3: leading dot is now possible: foo\n.bar\n.baz
+- [ ] Beta 3: "Errors trapped by a try! expression, or unhandled at the top level of a script or playground, now display the error value in the trap message"
