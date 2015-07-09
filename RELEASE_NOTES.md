@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Future release
+
+**New**
+
+- A... public constructor for Blob. I know, I'm sorry.
+
+
 ## v0.2.0
 
 **Breaking changes**
@@ -10,6 +17,7 @@ Release Notes
 **New**
 
 - `RowModelError.InvalidDatabaseDictionary`: new error case that helps you designing a fine RowModel subclass.
+
 
 ## v0.1.0
 
