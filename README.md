@@ -68,7 +68,7 @@ To use GRDB.swift with Cocoapods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '0.1.0'
+pod 'GRDB.swift', '0.2.0'
 ```
 
 
@@ -79,7 +79,7 @@ pod 'GRDB.swift', '0.1.0'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" == 0.1.0
+github "groue/GRDB.swift" == 0.2.0
 ```
 
 Before running `carthage update`, select Xcode-beta as the active developer directory by running the following command:
