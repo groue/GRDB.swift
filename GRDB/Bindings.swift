@@ -221,13 +221,14 @@ public struct Bindings {
         
         var description: String {
             return "[" + ", ".join(values.map { value in
-                if var string = value as? String {
-                    string = string.stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
-                    string = string.stringByReplacingOccurrencesOfString("\n", withString: "\\n")
-                    string = string.stringByReplacingOccurrencesOfString("\r", withString: "\\r")
-                    string = string.stringByReplacingOccurrencesOfString("\t", withString: "\\t")
-                    string = string.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
-                    return "\"\(string)\""
+                if let string = value as? String {
+                    let escapedString = string
+                        .stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
+                        .stringByReplacingOccurrencesOfString("\n", withString: "\\n")
+                        .stringByReplacingOccurrencesOfString("\r", withString: "\\r")
+                        .stringByReplacingOccurrencesOfString("\t", withString: "\\t")
+                        .stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+                    return "\"\(escapedString)\""
                 } else if let value = value {
                     return "\(value)"
                 } else {
@@ -253,13 +254,14 @@ public struct Bindings {
         
         var description: String {
             return "[" + ", ".join(dictionary.map { (key, value) in
-                if var string = value as? String {
-                    string = string.stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
-                    string = string.stringByReplacingOccurrencesOfString("\n", withString: "\\n")
-                    string = string.stringByReplacingOccurrencesOfString("\r", withString: "\\r")
-                    string = string.stringByReplacingOccurrencesOfString("\t", withString: "\\t")
-                    string = string.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
-                    return "\(key): \"\(string)\""
+                if let string = value as? String {
+                    let escapedString = string
+                        .stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
+                        .stringByReplacingOccurrencesOfString("\n", withString: "\\n")
+                        .stringByReplacingOccurrencesOfString("\r", withString: "\\r")
+                        .stringByReplacingOccurrencesOfString("\t", withString: "\\t")
+                        .stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+                    return "\(key): \"\(escapedString)\""
                 } else if let value = value {
                     return "\(key): \(value)"
                 } else {

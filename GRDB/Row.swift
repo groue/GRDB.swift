@@ -44,7 +44,9 @@ public struct Row: CollectionType {
     - returns: An optional DatabaseValueConvertible.
     */
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
-        return impl.databaseValue(atIndex: index).value()
+        return impl
+            .databaseValue(atIndex: index)
+            .value()
     }
     
     /**
@@ -79,7 +81,9 @@ public struct Row: CollectionType {
     - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
-        return impl.databaseValue(atIndex: index).value()
+        return impl
+            .databaseValue(atIndex: index)
+            .value()
     }
     
     /**
