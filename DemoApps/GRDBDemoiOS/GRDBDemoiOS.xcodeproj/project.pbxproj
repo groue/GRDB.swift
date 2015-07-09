@@ -1,0 +1,519 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 47;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		56B8F4581B4E22B200C24296 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4571B4E22B200C24296 /* AppDelegate.swift */; };
+		56B8F45A1B4E22B200C24296 /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4591B4E22B200C24296 /* MasterViewController.swift */; };
+		56B8F45C1B4E22B200C24296 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F45B1B4E22B200C24296 /* DetailViewController.swift */; };
+		56B8F45F1B4E22B200C24296 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B8F45D1B4E22B200C24296 /* Main.storyboard */; };
+		56B8F4611B4E22B200C24296 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56B8F4601B4E22B200C24296 /* Assets.xcassets */; };
+		56B8F4641B4E22B200C24296 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B8F4621B4E22B200C24296 /* LaunchScreen.storyboard */; };
+		56B8F46F1B4E22B200C24296 /* GRDBDemoiOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F46E1B4E22B200C24296 /* GRDBDemoiOSTests.swift */; };
+		56B8F47A1B4E22B200C24296 /* GRDBDemoiOSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4791B4E22B200C24296 /* GRDBDemoiOSUITests.swift */; };
+		56B8F4991B4E23AA00C24296 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4981B4E23AA00C24296 /* Person.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		56B8F46B1B4E22B200C24296 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B8F44C1B4E22B200C24296 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 56B8F4531B4E22B200C24296;
+			remoteInfo = GRDBDemoiOS;
+		};
+		56B8F4761B4E22B200C24296 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B8F44C1B4E22B200C24296 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 56B8F4531B4E22B200C24296;
+			remoteInfo = GRDBDemoiOS;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		56B8F4541B4E22B200C24296 /* GRDBDemoiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		56B8F4571B4E22B200C24296 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		56B8F4591B4E22B200C24296 /* MasterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterViewController.swift; sourceTree = "<group>"; };
+		56B8F45B1B4E22B200C24296 /* DetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
+		56B8F45E1B4E22B200C24296 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		56B8F4601B4E22B200C24296 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		56B8F4631B4E22B200C24296 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		56B8F4651B4E22B200C24296 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		56B8F46A1B4E22B200C24296 /* GRDBDemoiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBDemoiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56B8F46E1B4E22B200C24296 /* GRDBDemoiOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRDBDemoiOSTests.swift; sourceTree = "<group>"; };
+		56B8F4701B4E22B200C24296 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		56B8F4751B4E22B200C24296 /* GRDBDemoiOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBDemoiOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56B8F4791B4E22B200C24296 /* GRDBDemoiOSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRDBDemoiOSUITests.swift; sourceTree = "<group>"; };
+		56B8F47B1B4E22B200C24296 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		56B8F4871B4E235C00C24296 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../../GRDB.xcodeproj; sourceTree = "<group>"; };
+		56B8F4981B4E23AA00C24296 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		56B8F4511B4E22B200C24296 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56B8F4671B4E22B200C24296 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56B8F4721B4E22B200C24296 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		56B8F44B1B4E22B200C24296 = {
+			isa = PBXGroup;
+			children = (
+				56B8F4561B4E22B200C24296 /* GRDBDemoiOS */,
+				56B8F46D1B4E22B200C24296 /* GRDBDemoiOSTests */,
+				56B8F4781B4E22B200C24296 /* GRDBDemoiOSUITests */,
+				56B8F4551B4E22B200C24296 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		56B8F4551B4E22B200C24296 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				56B8F4541B4E22B200C24296 /* GRDBDemoiOS.app */,
+				56B8F46A1B4E22B200C24296 /* GRDBDemoiOSTests.xctest */,
+				56B8F4751B4E22B200C24296 /* GRDBDemoiOSUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		56B8F4561B4E22B200C24296 /* GRDBDemoiOS */ = {
+			isa = PBXGroup;
+			children = (
+				56B8F4871B4E235C00C24296 /* GRDB.xcodeproj */,
+				56B8F4571B4E22B200C24296 /* AppDelegate.swift */,
+				56B8F4591B4E22B200C24296 /* MasterViewController.swift */,
+				56B8F45B1B4E22B200C24296 /* DetailViewController.swift */,
+				56B8F4981B4E23AA00C24296 /* Person.swift */,
+				56B8F45D1B4E22B200C24296 /* Main.storyboard */,
+				56B8F4601B4E22B200C24296 /* Assets.xcassets */,
+				56B8F4621B4E22B200C24296 /* LaunchScreen.storyboard */,
+				56B8F4651B4E22B200C24296 /* Info.plist */,
+			);
+			path = GRDBDemoiOS;
+			sourceTree = "<group>";
+		};
+		56B8F46D1B4E22B200C24296 /* GRDBDemoiOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				56B8F46E1B4E22B200C24296 /* GRDBDemoiOSTests.swift */,
+				56B8F4701B4E22B200C24296 /* Info.plist */,
+			);
+			path = GRDBDemoiOSTests;
+			sourceTree = "<group>";
+		};
+		56B8F4781B4E22B200C24296 /* GRDBDemoiOSUITests */ = {
+			isa = PBXGroup;
+			children = (
+				56B8F4791B4E22B200C24296 /* GRDBDemoiOSUITests.swift */,
+				56B8F47B1B4E22B200C24296 /* Info.plist */,
+			);
+			path = GRDBDemoiOSUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		56B8F4531B4E22B200C24296 /* GRDBDemoiOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56B8F47E1B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOS" */;
+			buildPhases = (
+				56B8F4501B4E22B200C24296 /* Sources */,
+				56B8F4511B4E22B200C24296 /* Frameworks */,
+				56B8F4521B4E22B200C24296 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GRDBDemoiOS;
+			productName = GRDBDemoiOS;
+			productReference = 56B8F4541B4E22B200C24296 /* GRDBDemoiOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		56B8F4691B4E22B200C24296 /* GRDBDemoiOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56B8F4811B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOSTests" */;
+			buildPhases = (
+				56B8F4661B4E22B200C24296 /* Sources */,
+				56B8F4671B4E22B200C24296 /* Frameworks */,
+				56B8F4681B4E22B200C24296 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				56B8F46C1B4E22B200C24296 /* PBXTargetDependency */,
+			);
+			name = GRDBDemoiOSTests;
+			productName = GRDBDemoiOSTests;
+			productReference = 56B8F46A1B4E22B200C24296 /* GRDBDemoiOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		56B8F4741B4E22B200C24296 /* GRDBDemoiOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56B8F4841B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOSUITests" */;
+			buildPhases = (
+				56B8F4711B4E22B200C24296 /* Sources */,
+				56B8F4721B4E22B200C24296 /* Frameworks */,
+				56B8F4731B4E22B200C24296 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				56B8F4771B4E22B200C24296 /* PBXTargetDependency */,
+			);
+			name = GRDBDemoiOSUITests;
+			productName = GRDBDemoiOSUITests;
+			productReference = 56B8F4751B4E22B200C24296 /* GRDBDemoiOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		56B8F44C1B4E22B200C24296 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0700;
+				ORGANIZATIONNAME = "Gwendal Roué";
+				TargetAttributes = {
+					56B8F4531B4E22B200C24296 = {
+						CreatedOnToolsVersion = 7.0;
+					};
+					56B8F4691B4E22B200C24296 = {
+						CreatedOnToolsVersion = 7.0;
+						TestTargetID = 56B8F4531B4E22B200C24296;
+					};
+					56B8F4741B4E22B200C24296 = {
+						CreatedOnToolsVersion = 7.0;
+						TestTargetID = 56B8F4531B4E22B200C24296;
+					};
+				};
+			};
+			buildConfigurationList = 56B8F44F1B4E22B200C24296 /* Build configuration list for PBXProject "GRDBDemoiOS" */;
+			compatibilityVersion = "Xcode 6.3";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 56B8F44B1B4E22B200C24296;
+			productRefGroup = 56B8F4551B4E22B200C24296 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				56B8F4531B4E22B200C24296 /* GRDBDemoiOS */,
+				56B8F4691B4E22B200C24296 /* GRDBDemoiOSTests */,
+				56B8F4741B4E22B200C24296 /* GRDBDemoiOSUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		56B8F4521B4E22B200C24296 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56B8F4641B4E22B200C24296 /* LaunchScreen.storyboard in Resources */,
+				56B8F4611B4E22B200C24296 /* Assets.xcassets in Resources */,
+				56B8F45F1B4E22B200C24296 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56B8F4681B4E22B200C24296 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56B8F4731B4E22B200C24296 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		56B8F4501B4E22B200C24296 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56B8F45C1B4E22B200C24296 /* DetailViewController.swift in Sources */,
+				56B8F45A1B4E22B200C24296 /* MasterViewController.swift in Sources */,
+				56B8F4991B4E23AA00C24296 /* Person.swift in Sources */,
+				56B8F4581B4E22B200C24296 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56B8F4661B4E22B200C24296 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56B8F46F1B4E22B200C24296 /* GRDBDemoiOSTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56B8F4711B4E22B200C24296 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56B8F47A1B4E22B200C24296 /* GRDBDemoiOSUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		56B8F46C1B4E22B200C24296 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 56B8F4531B4E22B200C24296 /* GRDBDemoiOS */;
+			targetProxy = 56B8F46B1B4E22B200C24296 /* PBXContainerItemProxy */;
+		};
+		56B8F4771B4E22B200C24296 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 56B8F4531B4E22B200C24296 /* GRDBDemoiOS */;
+			targetProxy = 56B8F4761B4E22B200C24296 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		56B8F45D1B4E22B200C24296 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				56B8F45E1B4E22B200C24296 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		56B8F4621B4E22B200C24296 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				56B8F4631B4E22B200C24296 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		56B8F47C1B4E22B200C24296 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		56B8F47D1B4E22B200C24296 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		56B8F47F1B4E22B200C24296 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		56B8F4801B4E22B200C24296 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		56B8F4821B4E22B200C24296 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				INFOPLIST_FILE = GRDBDemoiOSTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GRDBDemoiOS.app/GRDBDemoiOS";
+			};
+			name = Debug;
+		};
+		56B8F4831B4E22B200C24296 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				INFOPLIST_FILE = GRDBDemoiOSTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GRDBDemoiOS.app/GRDBDemoiOS";
+			};
+			name = Release;
+		};
+		56B8F4851B4E22B200C24296 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = GRDBDemoiOSUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = GRDBDemoiOS;
+				USES_XCTRUNNER = YES;
+			};
+			name = Debug;
+		};
+		56B8F4861B4E22B200C24296 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = GRDBDemoiOSUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = GRDBDemoiOS;
+				USES_XCTRUNNER = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		56B8F44F1B4E22B200C24296 /* Build configuration list for PBXProject "GRDBDemoiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56B8F47C1B4E22B200C24296 /* Debug */,
+				56B8F47D1B4E22B200C24296 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		56B8F47E1B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56B8F47F1B4E22B200C24296 /* Debug */,
+				56B8F4801B4E22B200C24296 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		56B8F4811B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56B8F4821B4E22B200C24296 /* Debug */,
+				56B8F4831B4E22B200C24296 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		56B8F4841B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56B8F4851B4E22B200C24296 /* Debug */,
+				56B8F4861B4E22B200C24296 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 56B8F44C1B4E22B200C24296 /* Project object */;
+}

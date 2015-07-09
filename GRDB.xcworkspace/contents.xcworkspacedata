@@ -7,4 +7,7 @@
    <FileRef
       location = "group:GRDB.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj">
+   </FileRef>
 </Workspace>
