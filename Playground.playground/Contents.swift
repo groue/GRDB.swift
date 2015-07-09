@@ -1,189 +1,80 @@
-//: Playground - noun: a place where people can play
+// To run this playground, select and build the GRDBOSX scheme.
 
 import GRDB
 
-struct DBDate: DatabaseValueConvertible {
-    
-    // MARK: - DBDate <-> NSDate conversion
-    
-    let date: NSDate
-    
-    // Define a failable initializer in order to consistently use nil as the
-    // NULL marker throughout the conversions NSDate <-> DBDate <-> SQLite
-    init?(_ date: NSDate?) {
-        if let date = date {
-            self.date = date
-        } else {
-            return nil
-        }
-    }
-    
-    // MARK: - DBDate <-> DatabaseValue conversion
-    
-    var databaseValue: DatabaseValue {
-        return .Real(date.timeIntervalSince1970)
-    }
-    
-    init?(databaseValue: DatabaseValue) {
-        // Don't handle the raw DatabaseValue unless you know what you do.
-        // It is recommended to use GRDB built-in conversions instead:
-        if let timestamp = Double(databaseValue: databaseValue) {
-            self.init(NSDate(timeIntervalSince1970: timestamp))
-        } else {
-            return nil
-        }
-    }
-}
 
-class Person: RowModel {
-    var id: Int64?
-    var name: String?
-    var age: Int?
-    var creationDate: NSDate?
-    
-    override class var databaseTableName: String? {
-        return "persons"
+// Create the databsae
+
+let dbQueue = DatabaseQueue()
+var migrator = DatabaseMigrator()
+migrator.registerMigration("createPersons") { db in
+    try db.execute("CREATE TABLE persons (" +
+        "id INTEGER PRIMARY KEY, " +
+        "firstName TEXT, " +
+        "lastName TEXT" +
+        ")")
+}
+try! migrator.migrate(dbQueue)
+
+
+// Define a RowModel
+
+class Person : RowModel {
+    var id: Int64!
+    var firstName: String?
+    var lastName: String?
+    var fullName: String {
+        return " ".join([firstName, lastName].filter { $0 != nil }.map { $0! })
     }
     
-    override class var databasePrimaryKey: PrimaryKey {
-        return .RowID("id")
+    init(firstName: String? = nil, lastName: String? = nil) {
+        self.firstName = firstName
+        self.lastName = lastName
+        super.init()
     }
     
-    override var databaseDictionary: [String: DatabaseValueConvertible?] {
+    // RowModel overrides
+    
+    override class var databaseTable: Table? {
+        return Table(named: "persons", primaryKey: .RowID("id"))
+    }
+    
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
+        switch column {
+        case "id": id = dbv.value()
+        case "firstName": firstName = dbv.value()
+        case "lastName": lastName = dbv.value()
+        default: super.setDatabaseValue(dbv, forColumn: column)
+        }
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [
             "id": id,
-            "name": name,
-            "age": age,
-            "creationTimestamp": DBDate(creationDate),
-        ]
-    }
-    
-    override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("id") { id = row.value(named: "id") }
-        if row.hasColumn("name") { name = row.value(named: "name") }
-        if row.hasColumn("age") { age = row.value(named: "age") }
-        if row.hasColumn("creationTimestamp") {
-            let dbDate: DBDate? = row.value(named: "creationTimestamp")
-            creationDate = dbDate?.date
-        }
-    }
-    
-    override func insert(db: Database) throws {
-        if creationDate == nil {
-            creationDate = NSDate()
-        }
-        
-        try super.insert(db)
-    }
-    
-    init (name: String? = nil, age: Int? = nil) {
-        self.name = name
-        self.age = age
-        super.init()
+            "firstName": firstName,
+            "lastName": lastName]
     }
     
     required init(row: Row) {
         super.init(row: row)
     }
-    
-    static func setupDatabase(db: Database) throws {
-        try db.execute(
-            "CREATE TABLE persons (" +
-                "id INTEGER PRIMARY KEY, " +
-                "name TEXT, " +
-                "creationTimestamp DOUBLE" +
-            ")")
-    }
 }
 
-class Pet: RowModel {
-    var UUID: String?
-    var masterID: Int64?
-    var name: String?
-    
-    override class var databaseTableName: String? {
-        return "pets"
-    }
-    
-    override class var databasePrimaryKey: PrimaryKey {
-        return .Column("UUID")
-    }
-    
-    override var databaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["UUID": UUID, "name": name, "masterID": masterID]
-    }
-    
-    override func updateFromDatabaseRow(row: Row) {
-        if row.hasColumn("UUID") { UUID = row.value(named: "UUID") }
-        if row.hasColumn("name") { name = row.value(named: "name") }
-        if row.hasColumn("masterID") { masterID = row.value(named: "masterID") }
-    }
-    
-    init (UUID: String? = nil, name: String? = nil, masterID: Int64? = nil) {
-        self.UUID = UUID
-        self.name = name
-        self.masterID = masterID
-        super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
-    }
-    
-    override func insert(db: Database) throws {
-        if UUID == nil {
-            UUID = NSUUID().UUIDString
-        }
-        
-        try super.insert(db)
-    }
-    
-    static func setupDatabase(db: Database) throws {
-        try db.execute(
-            "CREATE TABLE pets (" +
-                "UUID TEXT NOT NULL PRIMARY KEY, " +
-                "masterID INTEGER NOT NULL " +
-                "         REFERENCES persons(ID) " +
-                "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-                "name TEXT" +
-            ")")
-    }
-}
 
-let dbQueue = try DatabaseQueue()
+// Insert and fetch persons from the database
 
-let p = Person()
-
-var migrator = DatabaseMigrator()
-migrator.registerMigration("createPersons", Person.setupDatabase)
-migrator.registerMigration("createPets", Pet.setupDatabase)
-try migrator.migrate(dbQueue)
-
-let arthur = Person(name: "Arthur", age: 41)
-let barbara = Person(name: "Barbara", age: 27)
-
-try dbQueue.inTransaction { db in
-    try arthur.save(db)
-    try barbara.save(db)
+try! dbQueue.inTransaction { db in
+    try Person(firstName: "Arthur", lastName: "Miller").insert(db)
+    try Person(firstName: "Barbara", lastName: "Streisand").insert(db)
+    try Person(firstName: "Cinderella").insert(db)
     return .Commit
 }
 
-let bobby = Pet(name: "Bobby", masterID: arthur.id)
-
-try dbQueue.inTransaction { db in
-    try bobby.save(db)
-    return .Commit
+let persons = dbQueue.inDatabase { db in
+    db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY firstName, lastName")
 }
 
-let (persons, pets) = dbQueue.inDatabase { db in
-    (db.fetchAll(Person.self, "SELECT * FROM persons"),
-     db.fetchAll(Pet.self, "SELECT * FROM pets"))
-}
+print(persons)
+print(persons.map { $0.fullName })
 
-persons.count
-pets.count
 
-for person in persons {
-    print(person)
-}
-for pet in pe
