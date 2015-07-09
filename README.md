@@ -707,6 +707,8 @@ There are three kinds of primary keys:
     
 - **Columns**: for primary keys that span accross several columns.
     
+    RowModels with a multi-column primary key are not supported by `Database.fetchOne(type:primaryKey:)`, which accepts a single value as a key. Instead, use `Database.fetchOne(type:key:)` that uses a dictionary.
+    
 
 The kind of primary key has consequences on the insert/update/delete methods that we will see below.
 
