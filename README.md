@@ -701,7 +701,7 @@ try dbQueue.inDatabase { db in
 
 There are three kinds of primary keys:
 
-- **RowID**: use it when you rely on SQLite to automatically generate IDs (see https://www.sqlite.org/autoinc.html).
+- **RowID**: use it when you rely on automatically generated IDs in an `INTEGER PRIMARY KEY` column. Beware GRDB.swift does not support the special `ROWID` column (see https://www.sqlite.org/autoinc.html for more information).
     
 - **Column**: for single-column primary keys that are not managed by SQLite.
     
