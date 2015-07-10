@@ -5,8 +5,8 @@ Release Notes
 
 **New**
 
-- A... public constructor for Blob. I know, I'm sorry.
-- RowModel.isDirty. Updating non dirty models does not touch the database.
+- `Blob.init?(NSData?)`. It returns nil for empty data, because SQLite can't store zero-length blobs.
+- `RowModel.isDirty`. Updating non dirty models does not touch the database.
 
 
 ## v0.2.0
