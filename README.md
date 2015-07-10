@@ -579,8 +579,8 @@ For example, we see below that **fetching** does not require any coupling to a s
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Tables and Primary Keys](#tables-and-primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
+- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
 - [RowModel Errors](#rowmodels-errors)
-- [Full List of RowModel methods](#full-list-of-rowmodel-methods)
 
 
 ### Fetching Row Models
@@ -748,6 +748,33 @@ Models that declare a `RowID` primary key have their id automatically set after 
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 
 
+### Preventing Useless UPDATE Statements
+
+The update() method always executes an UPDATE statement. When the row model has not been edited, this database access is generally useless.
+
+Avoid it with the `isEdited` property, which returns whether the row model has changes that have not been saved:
+
+```swift
+let json = ...
+try dbQueue.inTransaction { db in
+    // Fetches or create a new person given its ID:
+    let person = db.fetchOne(Person.self, primaryKey: json["id"]) ?? Person()
+    
+    // Apply json payload:
+    person.updateFromJSON(json)
+                 
+    // Saves the person if it is edited (fetched then modified, or created):
+    if person.isEdited {
+        person.save(db) // inserts or updates
+    }
+    
+    return .Commit
+}
+```
+
+Note that `isEdited` is based on value comparison: **setting a property to the same value does not set the edited flag**.
+
+
 ### RowModel Errors
 
 RowModel methods can throw [DatabaseError](#error-handling) and also specific errors of type **RowModelError**:
@@ -759,90 +786,6 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 - **RowModelError.InvalidPrimaryKey**: thrown by `update`, `delete` and `reload` when the primary key is nil.
 
 - **RowModelError.RowModelNotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
-
-
-### Full List of RowModel methods
-
-**Core methods**
-
-- `class var databaseTable: Table?`
-
-    The table, with its name and primary key. Required by `insert`, `update`, `save`, `delete`, `reload`. Tables without primary key are OK only for `insert`.
-    
-- `var storedDatabaseDictionary: [String: DatabaseValueConvertible?]`
-
-    The values stored in the database.
-
-- `func setDatabaseValue(_:forColumn:)`
-    
-    Updates the RowModel with a fetched database value.
-
-
-**Initializers**
-
-- `init()`
-
-    Initializes an empty RowModel
-
-- `init(row:)`
-
-    Initializes a RowModel from a database Row. Repeatedly calls `setDatabaseValue(_:forColumn:)` for each column.
-
-
-**Copy**
-
-- `copyDatabaseValuesFrom(other: RowModel)`
-
-
-**Row Model Status**
-
-- `isEdited`
-
-    A boolean that indicates whether the row model has changes that have not been saved. Use this property in order to avoid useless UPDATE statements:
-    
-    ```swift
-    person.updateFromJSON(json)
-    if person.isEdited { person.save(db) }
-    ```
-    
-- `setEdited`
-    
-    Forces the edited flag.
-    
-    
-**CRUD**
-
-- `func insert(db:conflictResolution:) throws`
-    
-    Inserts the RowModel
-
-- `func update(db:conflictResolution:) throws`
-    
-    Updates the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil, or RowModelError.RowModelNotFound if the primary key does not match any row in the database.
-
-- `final func save(db:conflictResolution:) throws`
-    
-    Inserts if primary key is nil, updates otherwise. Throws RowModelError.RowModelNotFound if the primary key does not match any row in the database.
-
-- `public func delete(db: Database) throws`
-    
-    Deletes the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil.
-
-- `public func reload(db: Database) throws`
-    
-    Reloads the RowModel. Throws RowModelError.InvalidPrimaryKey if the primary ey is nil, or RowModelError.RowModelNotFound if the primary key does not match any row in the database.
-
-
-**Fetching**
-
-- `Database.fetch(type:sql:bindings:) -> AnySequence<Type>`
-- `Database.fetchAll(type:sql:bindings:) -> [Type]`
-- `Database.fetchOne(type:sql:bindings:) -> Type?`
-- `Database.fetchOne(type:primaryKey:) -> Type?`
-- `Database.fetchOne(type:key:) -> Type?`
-- `SelectStatement.fetch(type:bindings:) -> AnySequence<Type>`
-- `SelectStatement.fetchAll(type:bindings:) -> [Type]`
-- `SelectStatement.fetchOne(type:bindings:) -> Type?`- 
 
 
 ## Thanks
