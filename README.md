@@ -786,7 +786,7 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 
 - `init(row:)`
 
-    Initializes a RowModel from a database Row. Invokes `updateWithRow`
+    Initializes a RowModel from a database Row. Repeatedly calls `setDatabaseValue(_:forColumn:)` for each column.
 
 
 **Copy**
@@ -806,10 +806,6 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 
 
 **CRUD**
-
-- `final func updateWithRow(row: Row)`
-    
-    Repeatedly calls `setDatabaseValue(_:forColumn:)`
 
 - `func insert(db:conflictResolution:) throws`
     
