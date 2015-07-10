@@ -28,7 +28,7 @@ DatabaseValue is the intermediate type between SQLite and your values.
 It has five cases that match the SQLite "storage classes":
 https://www.sqlite.org/datatype3.html
 */
-public enum DatabaseValue {
+public enum DatabaseValue : Equatable {
     
     /// The NULL storage class.
     case Null
@@ -96,5 +96,23 @@ public enum DatabaseValue {
     */
     public func value<Value: DatabaseValueConvertible>() -> Value? {
         return Value(databaseValue: self)
+    }
+}
+
+/// Equatable implementation for DatabaseValue
+public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
+    switch (lhs, rhs) {
+    case (.Null, .Null):
+        return true
+    case (.Integer(let lhs), .Integer(let rhs)):
+        return lhs == rhs
+    case (.Real(let lhs), .Real(let rhs)):
+        return lhs == rhs
+    case (.Text(let lhs), .Text(let rhs)):
+        return lhs == rhs
+    case (.Blob(let lhs), .Blob(let rhs)):
+        return lhs.data.isEqualToData(rhs.data)
+    default:
+        return false
     }
 }

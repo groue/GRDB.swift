@@ -91,11 +91,54 @@ public class RowModel {
         // the simple init() from init(row: Row), and perform distinct
         // initialization for fetched models.
         
-        updateWithRow(row)
+        for (column, databaseValue) in row {
+            setDatabaseValue(databaseValue, forColumn: column)
+        }
+        
+        // Not dirty
+        cleanVersion = Version(self, knownColumns: row.map { $0.0 })
     }
     
     
     // MARK: - CRUD
+    
+    /// Return true if the stored database dictionary has been modified since
+    /// last synchronization with the database.
+    public var isDirty: Bool {
+        guard let cleanVersion = cleanVersion else {
+            return true
+        }
+        
+        let cleanDictionary = cleanVersion.storedDatabaseDictionary
+        let currentDictionary = storedDatabaseDictionary
+        
+        guard cleanDictionary.count == currentDictionary.count else {
+            return true
+        }
+        
+        for (key, cleanValue) in cleanDictionary {
+            guard let currentValue = currentDictionary[key] else {
+                return true
+            }
+            
+            // Compare databaseValues, not values.
+            // This avoid forcing Equatable on to DatabaseValueConvertible.
+            // And nobody wants to force a protocol with Self requirement because
+            // everything may break.
+            switch (cleanValue?.databaseValue, currentValue?.databaseValue) {
+            case (.None, .None):
+                break;
+            case (.Some(let cleanDatabaseValue), .Some(let currentDatabaseValue)):
+                if cleanDatabaseValue != currentDatabaseValue {
+                    return true
+                }
+            default:
+                return true
+            }
+        }
+        
+        return false
+    }
     
     /// An enum that specifies an alternative constraint conflict resolution
     /// algorithm to use during INSERT and UPDATE commands.
@@ -108,27 +151,33 @@ public class RowModel {
         case Ignore
     }
     
-    /// Updates the RowModel from a Row.
-    /// Calls setDatabaseValue(_:forColumn:) for each (column, databaseValue) in the row
-    public final func updateWithRow(row: Row) {
-        for (column, databaseValue) in row {
-            setDatabaseValue(databaseValue, forColumn: column)
-        }
-    }
-    
     /// Inserts
     public func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
-        let insertionResult = try Version(self).insert(db, conflictResolution: conflictResolution)
+        let version = Version(self)
+        let insertionResult = try version.insert(db, conflictResolution: conflictResolution)
+        
+        // Update RowID column if needed
         if let (rowIDColumn, insertedRowID) = insertionResult {
             setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
         }
+        
+        // Not dirty any longer
+        cleanVersion = Version(self)
     }
     
     /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been updated.
     /// See https://www.sqlite.org/lang_update.html
     public func update(db: Database, conflictResolution: ConflictResolution? = nil) throws {
-        return try Version(self).update(db, conflictResolution: conflictResolution)
+        guard isDirty else {
+            return
+        }
+        
+        let version = Version(self)
+        try version.update(db, conflictResolution: conflictResolution)
+        
+        // Not dirty any longer
+        cleanVersion = version
     }
     
     /// Updates if model has a primary key with at least one non-nil value,
@@ -137,6 +186,10 @@ public class RowModel {
     /// Returns true if the model has been inserted, or if it still exists in
     /// the database and has been updated.
     final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws {
+        guard isDirty else {
+            return
+        }
+        
         let insertionResult = try Version(self).save(db, conflictResolution: conflictResolution)
         if let (rowIDColumn, insertedRowID) = insertionResult {
             setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
@@ -146,17 +199,28 @@ public class RowModel {
     /// Throws an error if the model has no table name, or no primary key
     public func delete(db: Database) throws {
         try Version(self).delete(db)
+        
+        // Future calls to update and save MUST throw RowModelNotFound.
+        // A way to achieve this is to set rowModel dirty.
+        cleanVersion = nil
     }
     
     /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been reloaded.
     public func reload(db: Database) throws {
         if let row = try Version(self).fetchOneRow(db) {
-            updateWithRow(row)
+            for (column, databaseValue) in row {
+                setDatabaseValue(databaseValue, forColumn: column)
+            }
+            
+            // Not dirty any longer
+            cleanVersion = Version(self)
         } else {
             throw RowModelError.RowModelNotFound(self)
         }
     }
+    
+    private var cleanVersion: Version?
     
     
     // MARK: - Version
@@ -165,8 +229,9 @@ public class RowModel {
         /// Version will NEVER change the rowModel.
         let rowModel: RowModel
         
+        let storedDatabaseDictionary: [String: DatabaseValueConvertible?]
+        
         lazy var databaseTable: Table? = self.rowModel.dynamicType.databaseTable
-        lazy var storedDatabaseDictionary: [String: DatabaseValueConvertible?] = self.rowModel.storedDatabaseDictionary
         
         // A primary key dictionary. Its values may be nil.
         lazy var weakPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
@@ -213,8 +278,17 @@ public class RowModel {
             return nil
         }()
         
-        init(_ rowModel: RowModel) {
+        // Only keep knownColumns
+        init(_ rowModel: RowModel, knownColumns: [String]? = nil) {
             self.rowModel = rowModel
+            var dictionary = rowModel.storedDatabaseDictionary
+            if let knownColumns = knownColumns {
+                let unknownKeys = dictionary.keys.filter { knownColumns.indexOf($0) == nil }
+                for column in unknownKeys {
+                    dictionary.removeValueForKey(column)
+                }
+            }
+            storedDatabaseDictionary = dictionary
         }
         
         /// Returns an optional (rowIDColumn, insertedRowID) if and only if the
@@ -261,14 +335,18 @@ public class RowModel {
             }
             switch primaryKey {
             case .RowID(let column):
-                if let optionalValue = storedDatabaseDictionary[column] {
-                    if optionalValue == nil {   // ID was not set
-                        return (column, changes.insertedRowID!)
-                    } else {
-                        return nil
-                    }
+                guard let currentID = storedDatabaseDictionary[column] else {
+                    fatalError("\(rowModel.dynamicType).storedDatabaseDictionary must return the value for the primary key `(column)`")
+                }
+                if let _ = currentID {
+                    // RowID is already set.
+                    return nil
                 } else {
-                    fatalError("storedDatabaseDictionary must return the value for the primary key `(column)`")
+                    // RowID is not set yet.
+                    let insertedRowID = changes.insertedRowID!
+                    
+                    // Tell RowModel
+                    return (column, insertedRowID)
                 }
             default:
                 return nil
@@ -390,6 +468,7 @@ public class RowModel {
 // MARK: - CustomStringConvertible
 
 extension RowModel : CustomStringConvertible {
+    /// A textual representation of `self`.
     public var description: String {
         return "<\(reflect(self.dynamicType).summary)" + "".join(storedDatabaseDictionary.map { (key, value) in
             if let string = value as? String {

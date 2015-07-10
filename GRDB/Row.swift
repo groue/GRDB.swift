@@ -392,7 +392,7 @@ public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIn
     public func advancedBy(n: Int) -> RowIndex { return RowIndex(index + n) }
 }
 
-// Equatable implementation for RowIndex
+/// Equatable implementation for RowIndex
 public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
     return lhs.index == rhs.index
 }

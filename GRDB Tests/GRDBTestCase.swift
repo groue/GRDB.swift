@@ -61,20 +61,28 @@ struct DBDate: DatabaseValueConvertible {
 class GRDBTestCase: XCTestCase {
     var databasePath: String!
     var dbQueue: DatabaseQueue!
+    var sqlQueries: [String]!
     
     override func setUp() {
         super.setUp()
         
-        self.databasePath = "/tmp/GRDB.sqlite"
+        sqlQueries = []
+        databasePath = "/tmp/GRDB.sqlite"
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
-        let configuration = Configuration(trace: Configuration.logSQL)
-        self.dbQueue = try! DatabaseQueue(path: databasePath, configuration: configuration)
+        let configuration = Configuration(trace: { (sql, bindings) in
+            self.sqlQueries.append(sql)
+            NSLog("GRDB: %@", sql)
+            if let bindings = bindings {
+                NSLog("GRDB: bindings %@", bindings.description)
+            }
+        })
+        dbQueue = try! DatabaseQueue(path: databasePath, configuration: configuration)
     }
     
     override func tearDown() {
         super.tearDown()
         
-        self.dbQueue = nil
+        dbQueue = nil
         try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
     }
     
