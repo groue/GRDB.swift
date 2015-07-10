@@ -5,8 +5,9 @@ Release Notes
 
 **New**
 
-- `Blob.init?(NSData?)`. It returns nil for empty data, because SQLite can't store zero-length blobs.
+- `Blob.init?(NSData?)`.
 - `RowModel.isDirty`. Updating non dirty models does not touch the database.
+- `RowModel.copyDatabaseValuesFrom(_:)` copies a RowModel into another.
 
 
 ## v0.2.0

@@ -8,4 +8,4 @@
 - [X] When one forgets to set the primaryKey in setDatabaseValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
 - [ ] Test for the item above
 - [X] Check the behavior of Blob regarding NSData of size zero which are stored as NULL if I'm not mistaken.
-- [ ] How to copy a RowModel?
+- [ ] Document RowModel.isDirty

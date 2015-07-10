@@ -100,10 +100,27 @@ public class RowModel {
     }
     
     
-    // MARK: - CRUD
+    // MARK: - Copy
     
-    /// Return true if the stored database dictionary has been modified since
-    /// last synchronization with the database.
+    /// Updates a RowModel from another one.
+    public func copyDatabaseValuesFrom(other: RowModel) {
+        for (column, value) in other.storedDatabaseDictionary {
+            if let value = value {
+                setDatabaseValue(value.databaseValue, forColumn: column)
+            } else {
+                setDatabaseValue(.Null, forColumn: column)
+            }
+        }
+        
+        // Primary key may have been updated: set dirty.
+        cleanRow = nil
+    }
+    
+    
+    /// MARK: - Dirty
+    
+    /// Return false if the stored database dictionary is known to be not been
+    /// modified since last synchronization with the database (save or reload).
     public var isDirty: Bool {
         guard let cleanRow = cleanRow else {
             // No known clean row => dirty
@@ -112,6 +129,9 @@ public class RowModel {
         
         return cleanRow.containsSameColumnsAndValuesAsRow(Row(dictionary: storedDatabaseDictionary))
     }
+    
+    
+    // MARK: - CRUD
     
     /// An enum that specifies an alternative constraint conflict resolution
     /// algorithm to use during INSERT and UPDATE commands.
