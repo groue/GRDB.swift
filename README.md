@@ -580,7 +580,7 @@ For example, we see below that **fetching** does not require any coupling to a s
 - [Tables and Primary Keys](#tables-and-primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
 - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
-- [RowModel Errors](#rowmodels-errors)
+- [RowModel Errors](#rowmodel-errors)
 
 
 ### Fetching Row Models
