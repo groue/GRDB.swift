@@ -572,10 +572,13 @@ For example, we see below that **fetching** does not require any coupling to a s
 
 | Core Methods                       | fetch | insert | update | delete | reload |
 |:---------------------------------- |:-----:|:------:|:------:|:------:|:------:|
-| `setDatabaseValue(_:forColumn:)`   |   X   |        |        |        |   X    |
-| `databaseTable`                    |       |   X    |        |        |        |
-| `databaseTable` (with primary key) |       |        |   X    |   X    |   X    |
+| `setDatabaseValue(_:forColumn:)`   |   X   |   X¹   |        |        |   X    |
+| `databaseTable`                    |       |   X    |   X²   |   X²   |   X²   |
 | `storedDatabaseDictionary`         |       |   X    |   X    |   X    |   X    |
+
+¹ Insertion requires `setDatabaseValue(_:forColumn:)` when SQLite automatically generates row IDs.
+
+² Update, delete & reload require a primary key.
 
 - [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
