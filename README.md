@@ -605,8 +605,8 @@ class Person : RowModel {
     override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
         case "id":   id = dbv.value()    // Extract Int64!
-        case "name": name = dbv.value()  // Extract String?
         case "age":  age = dbv.value()   // Extract Int?
+        case "name": name = dbv.value()  // Extract String?
         default:     super.setDatabaseValue(dbv, forColumn: column)
         }
     }
