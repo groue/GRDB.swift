@@ -96,7 +96,7 @@ public class RowModel {
         }
         
         // Not dirty
-        cleanVersion = Version(self, knownColumns: row.map { $0.0 })
+        cleanRow = row
     }
     
     
@@ -105,39 +105,12 @@ public class RowModel {
     /// Return true if the stored database dictionary has been modified since
     /// last synchronization with the database.
     public var isDirty: Bool {
-        guard let cleanVersion = cleanVersion else {
+        guard let cleanRow = cleanRow else {
+            // No known clean row => dirty
             return true
         }
         
-        let cleanDictionary = cleanVersion.storedDatabaseDictionary
-        let currentDictionary = storedDatabaseDictionary
-        
-        guard cleanDictionary.count == currentDictionary.count else {
-            return true
-        }
-        
-        for (key, cleanValue) in cleanDictionary {
-            guard let currentValue = currentDictionary[key] else {
-                return true
-            }
-            
-            // Compare databaseValues, not values.
-            // This avoid forcing Equatable on to DatabaseValueConvertible.
-            // And nobody wants to force a protocol with Self requirement because
-            // everything may break.
-            switch (cleanValue?.databaseValue, currentValue?.databaseValue) {
-            case (.None, .None):
-                break;
-            case (.Some(let cleanDatabaseValue), .Some(let currentDatabaseValue)):
-                if cleanDatabaseValue != currentDatabaseValue {
-                    return true
-                }
-            default:
-                return true
-            }
-        }
-        
-        return false
+        return cleanRow.containsSameColumnsAndValuesAsRow(Row(dictionary: storedDatabaseDictionary))
     }
     
     /// An enum that specifies an alternative constraint conflict resolution
@@ -162,7 +135,7 @@ public class RowModel {
         }
         
         // Not dirty any longer
-        cleanVersion = Version(self)
+        cleanRow = Row(dictionary: storedDatabaseDictionary)
     }
     
     /// Throws an error if the model has no table name, or no primary key.
@@ -177,7 +150,7 @@ public class RowModel {
         try version.update(db, conflictResolution: conflictResolution)
         
         // Not dirty any longer
-        cleanVersion = version
+        cleanRow = Row(dictionary: storedDatabaseDictionary)
     }
     
     /// Updates if model has a primary key with at least one non-nil value,
@@ -202,7 +175,7 @@ public class RowModel {
         
         // Future calls to update and save MUST throw RowModelNotFound.
         // A way to achieve this is to set rowModel dirty.
-        cleanVersion = nil
+        cleanRow = nil
     }
     
     /// Throws an error if the model has no table name, or no primary key.
@@ -214,13 +187,14 @@ public class RowModel {
             }
             
             // Not dirty any longer
-            cleanVersion = Version(self)
+            cleanRow = Row(dictionary: storedDatabaseDictionary)
         } else {
             throw RowModelError.RowModelNotFound(self)
         }
     }
     
-    private var cleanVersion: Version?
+    /// Reference row for isDirty.
+    private var cleanRow: Row?
     
     
     // MARK: - Version
@@ -278,17 +252,9 @@ public class RowModel {
             return nil
         }()
         
-        // Only keep knownColumns
-        init(_ rowModel: RowModel, knownColumns: [String]? = nil) {
+        init(_ rowModel: RowModel) {
             self.rowModel = rowModel
-            var dictionary = rowModel.storedDatabaseDictionary
-            if let knownColumns = knownColumns {
-                let unknownKeys = dictionary.keys.filter { knownColumns.indexOf($0) == nil }
-                for column in unknownKeys {
-                    dictionary.removeValueForKey(column)
-                }
-            }
-            storedDatabaseDictionary = dictionary
+            storedDatabaseDictionary = rowModel.storedDatabaseDictionary
         }
         
         /// Returns an optional (rowIDColumn, insertedRowID) if and only if the
