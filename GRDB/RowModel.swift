@@ -24,10 +24,22 @@
 
 // MARK: - RowModel
 
+/**
+RowModel is a class that wraps a table row, or the result of any query. It is
+designed to be subclassed.
+
+Subclasses opt in RowModel features by overriding all or part of the core
+methods that define their relationship with the database:
+
+- setDatabaseValue(_:forColumn:)
+- databaseTable
+- storedDatabaseDictionary
+*/
 public class RowModel {
     
-    /// A primary key
+    /// A primary key.
     public enum PrimaryKey {
+        
         /// A primary key managed by SQLite.
         case RowID(String)
         
@@ -38,15 +50,17 @@ public class RowModel {
         case Columns([String])
     }
     
-    /// A table used by the insert, update, save, delete and reload methods.
+    /// A table definition.
     public struct Table {
+        
         /// The table name
         public let name: String
         
         /// The primary key
         public let primaryKey: PrimaryKey?
         
-        /// Creates a Table given its name and primary key (default nil)
+        /// Creates a Table given its name and primary key (default nil, meaning
+        /// that the table has no primary key.
         public init(named name: String, primaryKey: PrimaryKey? = nil) {
             self.name = name
             self.primaryKey = primaryKey
@@ -56,26 +70,49 @@ public class RowModel {
     
     // MARK: - Core methods
     
-    /// The table used by the insert, update, save, delete and reload methods.
-    /// The base class RowModel returns nil, which means that those methods
-    /// are not available.
+    /**
+    Returns an optional table definition.
+    
+    This definition is required by the insert, update, save, delete and reload
+    methods: they throw RowModelError.UnspecifiedTable if databaseTable is nil.
+    
+    The implementation of the base class RowModel returns nil.
+    */
     public class var databaseTable: Table? {
         return nil
     }
     
-    /// The values stored by insert, update, and save methods.
-    /// The base class RowModel returns an empty dictionary.
+    /**
+    Returns the values that should be stored in the database.
+    
+    Subclasses that define a primary key must include that column(s) in the
+    returned dictionary.
+    
+    The implementation of the base class RowModel returns an empty dictionary.
+    */
     public var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [:]
     }
     
+    /**
+    Updates `self` with a database value.
+    
+    The implementation of the base class RowModel does nothing.
+    
+    - parameter dbv: A DatabaseValue.
+    - parameter column: A column name.
+    */
     public func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
     }
     
     
     // MARK: - Initializers
     
-    /// Initializes a RowModel.
+    /**
+    Initializes a RowModel.
+    
+    The returned RowModel is flagged as *edited*.
+    */
     public init() {
         // IMPLEMENTATION NOTE
         //
@@ -83,7 +120,16 @@ public class RowModel {
         // without any custom initializer.
     }
     
-    /// Initializes a RowModel from a row. Used by all fetching methods.
+    /**
+    Initializes a RowModel from a row.
+    
+    This initializer is used for all fetched models.
+    
+    The returned RowModel is flagged as *not edited* if and only if the row
+    contains all columns of storedDatabaseDictionary.
+    
+    - parameter row: A Row
+    */
     required public init(row: Row) {
         // IMPLEMENTATION NOTE
         //
@@ -102,7 +148,9 @@ public class RowModel {
     
     // MARK: - Copy
     
-    /// Updates a RowModel from another one.
+    /**
+    Updates `self` with another row model.
+    */
     public func copyDatabaseValuesFrom(other: RowModel) {
         for (column, value) in other.storedDatabaseDictionary {
             if let value = value {
@@ -119,8 +167,10 @@ public class RowModel {
     
     // MARK: - Changes
     
-    /// A boolean that indicates whether the row model has changes that have not
-    /// been saved.
+    /**
+    A boolean that indicates whether the `self` has changes that have not been
+    saved.
+    */
     public var isEdited: Bool {
         guard let referenceRow = referenceRow else {
             // No reference row => edited
@@ -131,6 +181,7 @@ public class RowModel {
         return referenceRow.containsSameColumnsAndValuesAsRow(currentRow)
     }
     
+    /// Flags `self` as edited.
     public func setEdited() {
         referenceRow = nil
     }
@@ -152,7 +203,11 @@ public class RowModel {
         case Ignore
     }
     
-    /// Inserts
+    /**
+    Executes an INSERT statement to insert the row model.
+    
+    - parameter db: A Database.
+    */
     public func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         let version = Version(self)
         let insertionResult = try version.insert(db, conflictResolution: conflictResolution)
@@ -166,8 +221,11 @@ public class RowModel {
         referenceRow = Row(dictionary: storedDatabaseDictionary)
     }
     
-    /// Throws an error if the model has no table name, or no primary key.
-    /// See https://www.sqlite.org/lang_update.html
+    /**
+    Executes an UPDATE statement to update the row model.
+    
+    - parameter db: A Database.
+    */
     public func update(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         let version = Version(self)
         try version.update(db, conflictResolution: conflictResolution)
@@ -176,8 +234,12 @@ public class RowModel {
         referenceRow = Row(dictionary: storedDatabaseDictionary)
     }
     
-    /// Updates if model has a primary key with at least one non-nil value,
-    /// or inserts.
+    /**
+    Updates if row model has a primary key with at least one non-nil value, or
+    inserts otherwise.
+    
+    - parameter db: A Database.
+    */
     final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         let insertionResult = try Version(self).save(db, conflictResolution: conflictResolution)
         if let (rowIDColumn, insertedRowID) = insertionResult {
@@ -185,7 +247,11 @@ public class RowModel {
         }
     }
     
-    /// Throws an error if the model has no table name, or no primary key
+    /**
+    Executes a DELETE statement to delete the row model.
+    
+    - parameter db: A Database.
+    */
     public func delete(db: Database) throws {
         try Version(self).delete(db)
         
@@ -194,7 +260,11 @@ public class RowModel {
         setEdited()
     }
     
-    /// Throws an error if the model has no table name, or no primary key.
+    /**
+    Executes a SELECT statetement to reload the row model.
+
+    - parameter db: A Database.
+    */
     public func reload(db: Database) throws {
         if let row = try Version(self).fetchOneRow(db) {
             for (column, databaseValue) in row {
@@ -470,6 +540,7 @@ extension RowModel : CustomStringConvertible {
 
 /// A RowModel-specific error
 public enum RowModelError: ErrorType {
+    
     /// RowModel.databaseTable returns nil
     case UnspecifiedTable(RowModel.Type)
     
@@ -547,21 +618,54 @@ extension Database {
 }
 
 /**
-The Database methods that fetch rows.
+The Database methods that fetch RowModels.
 */
 extension Database {
     
-    // let persons = db.fetch(Person.self, "SELECT ...", bindings: ...)
+    /**
+    Fetches a lazy sequence of RowModels.
+
+        let persons = db.fetch(Person.self, "SELECT * FROM persons")
+
+    - parameter type:     The type of fetched row models. It must be a subclass
+                          of RowModel.
+    - parameter sql:      An SQL query.
+    - parameter bindings: Optional bindings for query parameters.
+    
+    - returns: A lazy sequence of row models.
+    */
     public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<RowModel> {
         return selectStatement(sql, bindings: bindings).fetch(type)
     }
 
-    // let persons = db.fetchAll(Person.self, "SELECT ...", bindings: ...)
+    /**
+    Fetches an array sequence of RowModels.
+
+        let persons = db.fetchAll(Person.self, "SELECT * FROM persons")
+
+    - parameter type:     The type of fetched row models. It must be a subclass
+                          of RowModel.
+    - parameter sql:      An SQL query.
+    - parameter bindings: Optional bindings for query parameters.
+    
+    - returns: An array of row models.
+    */
     public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> [RowModel] {
         return Array(fetch(type, sql, bindings: bindings))
     }
 
-    // let person = db.fetchOne(Person.self, "SELECT ...", bindings: ...)
+    /**
+    Fetches a single RowModel.
+
+        let person = db.fetchOne(Person.self, "SELECT * FROM persons")
+
+    - parameter type:     The type of fetched row model. It must be a subclass
+                          of RowModel.
+    - parameter sql:      An SQL query.
+    - parameter bindings: Optional bindings for query parameters.
+    
+    - returns: An optional row model.
+    */
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> RowModel? {
         if let first = fetch(type, sql, bindings: bindings).generate().next() {
             // one row containing an optional value
@@ -571,8 +675,17 @@ extension Database {
             return nil
         }
     }
-    
-    // let person = db.fetchOne(Person.self, primaryKey: ...)
+
+    /**
+    Fetches a single RowModel by primary key.
+
+        let person = db.fetchOne(Person.self, primaryKey: 123)
+
+    - parameter type:       The type of fetched row model. It must be a subclass
+                            of RowModel.
+    - parameter primaryKey: A value.
+    - returns: An optional row model.
+    */
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValueConvertible?) -> RowModel? {
         guard let primaryKey = primaryKey else {
             return nil
@@ -580,7 +693,16 @@ extension Database {
         return selectStatement(type, primaryKey: primaryKey).fetchOne(type)
     }
     
-    // let person = db.fetchOne(Person.self, key: ...)
+    /**
+    Fetches a single RowModel given a key.
+
+        let person = db.fetchOne(Person.self, key: ["name": Arthur"])
+
+    - parameter type: The type of fetched row model. It must be a subclass of
+                      RowModel.
+    - parameter key:  A dictionary of value.
+    - returns: An optional row model.
+    */
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, key dictionary: [String: DatabaseValueConvertible?]?) -> RowModel? {
         guard let dictionary = dictionary else {
             return nil
@@ -591,11 +713,22 @@ extension Database {
 
 
 /**
-The SelectStatement methods that fetch rows.
+The SelectStatement methods that fetch RowModels.
 */
 extension SelectStatement {
     
-    // let persons = statement.fetch(Person.self, bindings: ...)
+    /**
+    Fetches a lazy sequence of RowModels.
+        
+        let statement = db.selectStatement("SELECT * FROM persons")
+        let persons = statement.fetch(Person.self)
+
+    - parameter type:     The type of fetched row models. It must be a subclass
+                          of RowModel.
+    - parameter bindings: Optional bindings for query parameters.
+    
+    - returns: A lazy sequence of row models.
+    */
     public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings? = nil) -> AnySequence<RowModel> {
         let rowSequence = fetchRows(bindings: bindings)
         return AnySequence { () -> AnyGenerator<RowModel> in
@@ -610,12 +743,34 @@ extension SelectStatement {
         }
     }
     
-    // let persons = statement.fetchAll(Person.self, bindings: ...)
+    /**
+    Fetches an array of RowModels.
+        
+        let statement = db.selectStatement("SELECT * FROM persons")
+        let persons = statement.fetchAll(Person.self)
+
+    - parameter type:     The type of fetched row models. It must be a subclass
+                          of RowModel.
+    - parameter bindings: Optional bindings for query parameters.
+    
+    - returns: An array of row models.
+    */
     public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings? = nil) -> [RowModel] {
         return Array(fetch(type, bindings: bindings))
     }
     
-    // let person = statement.fetchOne(Person.self, bindings: ...)
+    /**
+    Fetches a single RowModel.
+        
+        let statement = db.selectStatement("SELECT * FROM persons")
+        let persons = statement.fetchOne(Person.self)
+
+    - parameter type:     The type of fetched row models. It must be a subclass
+                          of RowModel.
+    - parameter bindings: Optional bindings for query parameters.
+    
+    - returns: An optional row model.
+    */
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings? = nil) -> RowModel? {
         if let first = fetch(type, bindings: bindings).generate().next() {
             // one row containing an optional value
