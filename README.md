@@ -575,7 +575,7 @@ For example, we see below that **fetching** does not require any coupling to a s
 | `setDatabaseValue(_:forColumn:)`   |   X   |        |        |        |   X    |
 | `databaseTable`                    |       |   X    |        |        |        |
 | `databaseTable` (with primary key) |       |        |   X    |   X    |   X    |
-| `storedDatabaseDictionary`         |       |   X    |   X    |   X    |        |
+| `storedDatabaseDictionary`         |       |   X    |   X    |   X    |   X    |
 
 - [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
