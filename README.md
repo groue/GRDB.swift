@@ -789,6 +789,22 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
     Initializes a RowModel from a database Row. Invokes `updateWithRow`
 
 
+**Copy**
+
+- `copyDatabaseValuesFrom(other: RowModel)`
+
+
+**Dirtyness**
+
+- `isDirty`
+
+    Tells whether the update() method actually needs to execute an update SQL statement. The decision is taken from the point of view of the row model, regardless of the global database state. (TODO: I don't like this notice. True but worrying.)
+
+- `setDirty()`
+    
+    Forces the dirty flag.
+
+
 **CRUD**
 
 - `final func updateWithRow(row: Row)`
