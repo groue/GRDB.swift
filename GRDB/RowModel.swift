@@ -113,11 +113,11 @@ public class RowModel {
         }
         
         // Primary key may have been updated: set dirty.
-        cleanRow = nil
+        setDirty()
     }
     
     
-    /// MARK: - Dirty
+    // MARK: - Dirty
     
     /// Return false if the stored database dictionary is known to be not been
     /// modified since last synchronization with the database (save or reload).
@@ -130,7 +130,15 @@ public class RowModel {
         return cleanRow.containsSameColumnsAndValuesAsRow(Row(dictionary: storedDatabaseDictionary))
     }
     
+    /// Forces the dirty flag
+    public func setDirty() {
+        cleanRow = nil
+    }
     
+    /// Reference row for isDirty.
+    private var cleanRow: Row?
+    
+
     // MARK: - CRUD
     
     /// An enum that specifies an alternative constraint conflict resolution
@@ -195,7 +203,7 @@ public class RowModel {
         
         // Future calls to update and save MUST throw RowModelNotFound.
         // A way to achieve this is to set rowModel dirty.
-        cleanRow = nil
+        setDirty()
     }
     
     /// Throws an error if the model has no table name, or no primary key.
@@ -212,9 +220,6 @@ public class RowModel {
             throw RowModelError.RowModelNotFound(self)
         }
     }
-    
-    /// Reference row for isDirty.
-    private var cleanRow: Row?
     
     
     // MARK: - Version
