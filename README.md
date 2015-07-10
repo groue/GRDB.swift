@@ -572,8 +572,8 @@ For example, we see below that **fetching** does not require any coupling to a s
 
 | Core Methods                       | fetch | insert | update | delete | reload |
 |:---------------------------------- |:-----:|:------:|:------:|:------:|:------:|
-| `setDatabaseValue(_:forColumn:)`   |   X   |   X¹   |        |        |   X    |
-| `databaseTable`                    |       |   X    |   X²   |   X²   |   X²   |
+| `setDatabaseValue(_:forColumn:)`   |   X   |   X ¹  |        |        |   X    |
+| `databaseTable`                    |       |   X    |   X ²  |   X ²  |   X ²  |
 | `storedDatabaseDictionary`         |       |   X    |   X    |   X    |   X    |
 
 ¹ Insertion requires `setDatabaseValue(_:forColumn:)` when SQLite automatically generates row IDs.
