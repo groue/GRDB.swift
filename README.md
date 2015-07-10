@@ -566,9 +566,7 @@ try migrator.migrate(dbQueue)
 
 **RowModel** is a class that wraps a table row, or the result of any query. It is designed to be subclassed.
 
-Subclasses opt in RowModel features by overriding all or part of the core methods that define their relationship with the database.
-
-For example, we see below that **fetching** does not require any coupling to a specific database table:
+Subclasses opt in RowModel features by overriding all or part of the core methods that define their relationship with the database:
 
 | Core Methods                       | fetch | insert | update | delete | reload |
 |:---------------------------------- |:-----:|:------:|:------:|:------:|:------:|
