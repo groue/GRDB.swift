@@ -54,13 +54,13 @@ class Person: RowModel {
         }
     }
     
-    override func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
+    override func insert(db: Database) throws {
         // TODO: test
         if creationDate == nil {
             creationDate = NSDate()
         }
         
-        try super.insert(db, conflictResolution: conflictResolution)
+        try super.insert(db)
     }
     
     init (name: String? = nil, age: Int? = nil) {

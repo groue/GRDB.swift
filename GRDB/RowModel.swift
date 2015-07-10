@@ -192,25 +192,14 @@ public class RowModel {
 
     // MARK: - CRUD
     
-    /// An enum that specifies an alternative constraint conflict resolution
-    /// algorithm to use during INSERT and UPDATE commands.
-    /// See https://www.sqlite.org/lang_insert.html & https://www.sqlite.org/lang_update.html
-    public enum ConflictResolution {
-        case Replace
-        case Rollback
-        case Abort
-        case Fail
-        case Ignore
-    }
-    
     /**
     Executes an INSERT statement to insert the row model.
     
     - parameter db: A Database.
     */
-    public func insert(db: Database, conflictResolution: ConflictResolution? = nil) throws {
+    public func insert(db: Database) throws {
         let version = Version(self)
-        let insertionResult = try version.insert(db, conflictResolution: conflictResolution)
+        let insertionResult = try version.insert(db)
         
         // Update RowID column if needed
         if let (rowIDColumn, insertedRowID) = insertionResult {
@@ -226,9 +215,9 @@ public class RowModel {
     
     - parameter db: A Database.
     */
-    public func update(db: Database, conflictResolution: ConflictResolution? = nil) throws {
+    public func update(db: Database) throws {
         let version = Version(self)
-        try version.update(db, conflictResolution: conflictResolution)
+        try version.update(db)
         
         // Not edited any longer
         referenceRow = Row(dictionary: storedDatabaseDictionary)
@@ -240,8 +229,8 @@ public class RowModel {
     
     - parameter db: A Database.
     */
-    final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws {
-        let insertionResult = try Version(self).save(db, conflictResolution: conflictResolution)
+    final public func save(db: Database) throws {
+        let insertionResult = try Version(self).save(db)
         if let (rowIDColumn, insertedRowID) = insertionResult {
             setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
         }
@@ -341,7 +330,7 @@ public class RowModel {
         
         /// Returns an optional (rowIDColumn, insertedRowID) if and only if the
         /// row model should be updated.
-        func insert(db: Database, conflictResolution: ConflictResolution?) throws -> (String, Int64)? {
+        func insert(db: Database) throws -> (String, Int64)? {
             // Fail early if databaseTable is nil (not overriden)
             guard let table = databaseTable else {
                 throw RowModelError.UnspecifiedTable(rowModel.dynamicType)
@@ -357,24 +346,7 @@ public class RowModel {
             let columnNames = insertedDic.keys
             let columnSQL = ",".join(columnNames.map { $0.quotedDatabaseIdentifier })
             let valuesSQL = ",".join([String](count: columnNames.count, repeatedValue: "?"))
-            let verb: String
-            if let conflictResolution = conflictResolution {
-                switch conflictResolution {
-                case .Replace:
-                    verb = "INSERT OR REPLACE"
-                case .Rollback:
-                    verb = "INSERT OR ROLLBACK"
-                case .Abort:
-                    verb = "INSERT OR ABORT"
-                case .Fail:
-                    verb = "INSERT OR FAIL"
-                case .Ignore:
-                    verb = "INSERT OR IGNORE"
-                }
-            } else {
-                verb = "INSERT"
-            }
-            let sql = "\(verb) INTO \(table.name.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
+            let sql = "INSERT INTO \(table.name.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
             let changes = try db.execute(sql, bindings: Bindings(insertedDic.values))
             
             // Update RowID column if needed
@@ -401,7 +373,7 @@ public class RowModel {
             }
         }
 
-        func update(db: Database, conflictResolution: ConflictResolution? = nil) throws {
+        func update(db: Database) throws {
             // Fail early if databaseTable is nil (not overriden)
             guard let table = databaseTable else {
                 throw RowModelError.UnspecifiedTable(rowModel.dynamicType)
@@ -432,24 +404,7 @@ public class RowModel {
             let updateSQL = ",".join(updatedDictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
             let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
             let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
-            let verb: String
-            if let conflictResolution = conflictResolution {
-                switch conflictResolution {
-                case .Replace:
-                    verb = "UPDATE OR REPLACE"
-                case .Rollback:
-                    verb = "UPDATE OR ROLLBACK"
-                case .Abort:
-                    verb = "UPDATE OR ABORT"
-                case .Fail:
-                    verb = "UPDATE OR FAIL"
-                case .Ignore:
-                    verb = "UPDATE OR IGNORE"
-                }
-            } else {
-                verb = "UPDATE"
-            }
-            let sql = "\(verb) \(table.name.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+            let sql = "UPDATE \(table.name.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
             let changedRowCount = try db.execute(sql, bindings: bindings).changedRowCount
             
             // Check is some row was actually changed
@@ -458,12 +413,12 @@ public class RowModel {
             }
         }
         
-        func save(db: Database, conflictResolution: ConflictResolution? = nil) throws -> (String, Int64)? {
+        func save(db: Database) throws -> (String, Int64)? {
             if let _ = strongPrimaryKeyDictionary {
-                try update(db, conflictResolution: conflictResolution)
+                try update(db)
                 return nil
             } else {
-                return try insert(db, conflictResolution: conflictResolution)
+                return try insert(db)
             }
         }
         
