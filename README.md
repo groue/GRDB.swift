@@ -750,7 +750,7 @@ Other primary keys (single or multiple columns) are not managed by GRDB: you hav
 
 ### Preventing Useless UPDATE Statements
 
-The update() method always executes an UPDATE statement. When the row model has not been edited, this database access is generally useless.
+The `update()` method always executes an UPDATE statement. When the row model has not been edited, this database access is generally useless.
 
 Avoid it with the `isEdited` property, which returns whether the row model has changes that have not been saved:
 
