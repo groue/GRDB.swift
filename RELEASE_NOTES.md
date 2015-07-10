@@ -6,8 +6,8 @@ Release Notes
 **New**
 
 - `Blob.init?(NSData?)`.
-- `RowModel.isDirty`. Updating non dirty models does not touch the database.
-- `RowModel.copyDatabaseValuesFrom(_:)` copies a RowModel into another.
+- `RowModel.isEdited`.
+- `RowModel.copyDatabaseValuesFrom(_:)`
 
 
 ## v0.2.0
