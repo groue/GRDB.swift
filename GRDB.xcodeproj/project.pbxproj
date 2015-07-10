@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		56105B121B4F18CC002CD224 /* RowModelDirtyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56105B111B4F18CC002CD224 /* RowModelDirtyTests.swift */; };
-		56105B131B4F18CC002CD224 /* RowModelDirtyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56105B111B4F18CC002CD224 /* RowModelDirtyTests.swift */; };
+		56105B121B4F18CC002CD224 /* RowModelIsEditedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56105B111B4F18CC002CD224 /* RowModelIsEditedTests.swift */; };
+		56105B131B4F18CC002CD224 /* RowModelIsEditedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56105B111B4F18CC002CD224 /* RowModelIsEditedTests.swift */; };
 		56105B151B4F9D86002CD224 /* RowModelCopyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56105B141B4F9D86002CD224 /* RowModelCopyTests.swift */; };
 		56105B161B4F9D86002CD224 /* RowModelCopyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56105B141B4F9D86002CD224 /* RowModelCopyTests.swift */; };
 		564E0B141B4D8FC100EBC9F6 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E0B131B4D8FC100EBC9F6 /* DatabaseError.swift */; };
@@ -106,7 +106,7 @@
 
 /* Begin PBXFileReference section */
 		560DB28F1B4AD49300B14958 /* RowModelInitializersTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelInitializersTests.swift; sourceTree = "<group>"; };
-		56105B111B4F18CC002CD224 /* RowModelDirtyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelDirtyTests.swift; sourceTree = "<group>"; };
+		56105B111B4F18CC002CD224 /* RowModelIsEditedTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelIsEditedTests.swift; sourceTree = "<group>"; };
 		56105B141B4F9D86002CD224 /* RowModelCopyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelCopyTests.swift; sourceTree = "<group>"; };
 		5610C2081B483AA500F8B4EC /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = "<group>"; };
 		5610C20D1B4852D600F8B4EC /* RowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowTests.swift; sourceTree = "<group>"; };
@@ -244,7 +244,7 @@
 				56C9E6551B468EB200DDC541 /* PrimaryKeySingleTests.swift */,
 				56105B141B4F9D86002CD224 /* RowModelCopyTests.swift */,
 				5623E08B1B49970E00B20B7F /* RowModelDescriptionTests.swift */,
-				56105B111B4F18CC002CD224 /* RowModelDirtyTests.swift */,
+				56105B111B4F18CC002CD224 /* RowModelIsEditedTests.swift */,
 				56CC3CA41B48289200A9A534 /* RowModelFetchTests.swift */,
 				560DB28F1B4AD49300B14958 /* RowModelInitializersTests.swift */,
 				56C9E6571B468EB200DDC541 /* RowModelSubClassTests.swift */,
@@ -569,7 +569,7 @@
 				56E5D81E1B4D435D00430942 /* PrimaryKeyNoneTests.swift in Sources */,
 				56E5D8261B4D435D00430942 /* CustomDatabaseValueConvertibleTests.swift in Sources */,
 				56E5D8231B4D435D00430942 /* RowModelInitializersTests.swift in Sources */,
-				56105B131B4F18CC002CD224 /* RowModelDirtyTests.swift in Sources */,
+				56105B131B4F18CC002CD224 /* RowModelIsEditedTests.swift in Sources */,
 				56E5D8211B4D435D00430942 /* RowModelDescriptionTests.swift in Sources */,
 				56E5D8251B4D435D00430942 /* RowModelTestCase.swift in Sources */,
 				56E5D8201B4D435D00430942 /* PrimaryKeySingleTests.swift in Sources */,
@@ -598,7 +598,7 @@
 				56E5D8101B4D424400430942 /* RowModelSubClassTests.swift in Sources */,
 				56E5D8061B4D424400430942 /* InMemoryDatabaseTests.swift in Sources */,
 				56E5D80F1B4D424400430942 /* RowModelInitializersTests.swift in Sources */,
-				56105B121B4F18CC002CD224 /* RowModelDirtyTests.swift in Sources */,
+				56105B121B4F18CC002CD224 /* RowModelIsEditedTests.swift in Sources */,
 				56E5D80C1B4D424400430942 /* PrimaryKeySingleTests.swift in Sources */,
 				56E5D8151B4D424400430942 /* DatabaseErrorTests.swift in Sources */,
 				56E5D8161B4D424400430942 /* UpdateStatementTests.swift in Sources */,

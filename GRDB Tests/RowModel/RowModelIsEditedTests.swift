@@ -25,127 +25,102 @@
 import XCTest
 import GRDB
 
-class RowModelDirtyTests: RowModelTestCase {
+class RowModelIsEditedTests: RowModelTestCase {
     
-    func testRowModelIsDirtyAfterInit() {
+    func testRowModelIsEditedAfterInit() {
         // Create a RowModel. No fetch has happen, so we don't know if it is
-        // identical to its eventual row in the database. So it is dirty.
+        // identical to its eventual row in the database. So it is edited.
         let person = Person(name: "Arthur", age: 41)
-        XCTAssertTrue(person.isDirty)
+        XCTAssertTrue(person.isEdited)
     }
     
-    func testRowModelIsNotDirtyAfterFullFetch() {
+    func testRowModelIsNotEditedAfterFullFetch() {
         // Fetch a model from a row that contains all the columns in
         // storedDatabaseDictionary: An update statement, which only saves the
         // columns in storedDatabaseDictionary would perform no change. So the
-        // model is not dirty.
+        // model is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = db.fetchOne(Person.self, "SELECT * FROM persons")!
-                XCTAssertFalse(person.isDirty)
+                XCTAssertFalse(person.isEdited)
             }
         }
     }
     
-    func testRowModelIsDirtyAfterPartialFetch() {
+    func testRowModelIsEditedAfterPartialFetch() {
         // Fetch a model from a row that does not contain all the columns in
-        // storedDatabaseDictionary: An update statement, which only saves the
-        // columns in storedDatabaseDictionary may perform unpredictable change.
-        // So the model is dirty.
+        // storedDatabaseDictionary: An update statement saves the columns in
+        // storedDatabaseDictionary, so it may perform unpredictable change.
+        // So the model is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person =  db.fetchOne(Person.self, "SELECT name FROM persons")!
-                XCTAssertTrue(person.isDirty)
+                XCTAssertTrue(person.isEdited)
             }
         }
     }
     
-    func testRowModelIsNotDirtyAfterInsert() {
-        // After insertion, a model is not dirty since an update would update
-        // nothing.
+    func testRowModelIsNotEditedAfterInsert() {
+        // After insertion, a model is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
-                XCTAssertFalse(person.isDirty)
+                XCTAssertFalse(person.isEdited)
             }
         }
     }
     
-    func testRowModelIsDirtyAfterValueChange() {
+    func testRowModelIsEditedAfterValueChange() {
         // Any change in a value exposed in storedDatabaseDictionary yields a
-        // dirty row model.
+        // row model that is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
                 
                 person.name = "Bobby"           // non-nil vs. non-nil
-                XCTAssertTrue(person.isDirty)
+                XCTAssertTrue(person.isEdited)
                 try person.reload(db)
                 
                 person.name = nil               // non-nil vs. nil
-                XCTAssertTrue(person.isDirty)
+                XCTAssertTrue(person.isEdited)
                 try person.reload(db)
                 
                 person.creationDate = NSDate()  // nil vs. non-nil
-                XCTAssertTrue(person.isDirty)
+                XCTAssertTrue(person.isEdited)
                 try person.reload(db)
             }
         }
     }
     
-    func testRowModelIsNotDirtyAfterUpdate() {
-        // After update, a model is not dirty since another update would update
-        // nothing.
+    func testRowModelIsNotEditedAfterUpdate() {
+        // After update, a model is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
                 person.name = "Bobby"
                 try person.update(db)
-                XCTAssertFalse(person.isDirty)
+                XCTAssertFalse(person.isEdited)
             }
         }
     }
     
-    func testNotDirtyModelPreventsSQLUpdateFromBothUpdateAndSaveMethods() {
-        // Updating a non-dirty model is a no-op
-        
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                try person.update(db)
-                try person.save(db)
-                try person.delete(db)
-                
-                let insertQueries = self.sqlQueries.filter { sql in sql.rangeOfString("INSERT INTO .*persons", options: [.CaseInsensitiveSearch, .RegularExpressionSearch]) != nil }
-                XCTAssertEqual(insertQueries.count, 1)
-                
-                let updateQueries = self.sqlQueries.filter { sql in sql.rangeOfString("UPDATE .*persons", options: [.CaseInsensitiveSearch, .RegularExpressionSearch]) != nil }
-                XCTAssertEqual(updateQueries.count, 0)
-                
-                // This is the only use of self.sqlQueries. So let's test it as well by making sure the DELETE has been recorded.
-                let deleteQueries = self.sqlQueries.filter { sql in sql.rangeOfString("DELETE FROM .*persons", options: [.CaseInsensitiveSearch, .RegularExpressionSearch]) != nil }
-                XCTAssertEqual(deleteQueries.count, 1)
-            }
-        }
-    }
-    
-    func testRowModelIsDirtyAfterReload() {
+    func testRowModelIsNotEditedAfterReload() {
+        // After reload, a model is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
                 
                 person.name = "Bobby"
-                XCTAssertTrue(person.isDirty)
+                XCTAssertTrue(person.isEdited)
                 
                 try person.reload(db)
-                XCTAssertFalse(person.isDirty)
+                XCTAssertFalse(person.isEdited)
             }
         }
     }

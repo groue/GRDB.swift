@@ -580,7 +580,7 @@ For example, we see below that **fetching** does not require any coupling to a s
 - [Tables and Primary Keys](#tables-and-primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
 - [RowModel Errors](#rowmodels-errors)
-- [Full List of RowModel methods](full-list-of-rowmodel-methods)
+- [Full List of RowModel methods](#full-list-of-rowmodel-methods)
 
 
 ### Fetching Row Models
@@ -794,17 +794,22 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 - `copyDatabaseValuesFrom(other: RowModel)`
 
 
-**Dirtyness**
+**Row Model Status**
 
-- `isDirty`
+- `isEdited`
 
-    Tells whether the update() method actually needs to execute an update SQL statement. The decision is taken from the point of view of the row model, regardless of the global database state. (TODO: I don't like this notice. True but worrying.)
-
-- `setDirty()`
+    A boolean that indicates whether the row model has changes that have not been saved. Use this property in order to avoid useless UPDATE statements:
     
-    Forces the dirty flag.
-
-
+    ```swift
+    person.updateFromJSON(json)
+    if person.isEdited { person.save(db) }
+    ```
+    
+- `setEdited`
+    
+    Forces the edited flag.
+    
+    
 **CRUD**
 
 - `func insert(db:conflictResolution:) throws`

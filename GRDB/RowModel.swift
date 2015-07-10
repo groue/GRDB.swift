@@ -95,8 +95,8 @@ public class RowModel {
             setDatabaseValue(databaseValue, forColumn: column)
         }
         
-        // Not dirty
-        cleanRow = row
+        // For isEdited
+        referenceRow = row
     }
     
     
@@ -112,31 +112,31 @@ public class RowModel {
             }
         }
         
-        // Primary key may have been updated: set dirty.
-        setDirty()
+        // Primary key may have been updated: row model may be edited.
+        setEdited()
     }
     
     
-    // MARK: - Dirty
+    // MARK: - Changes
     
-    /// Return false if the stored database dictionary is known to be not been
-    /// modified since last synchronization with the database (save or reload).
-    public var isDirty: Bool {
-        guard let cleanRow = cleanRow else {
-            // No known clean row => dirty
+    /// A boolean that indicates whether the row model has changes that have not
+    /// been saved.
+    public var isEdited: Bool {
+        guard let referenceRow = referenceRow else {
+            // No reference row => edited
             return true
         }
         
-        return cleanRow.containsSameColumnsAndValuesAsRow(Row(dictionary: storedDatabaseDictionary))
+        let currentRow = Row(dictionary: storedDatabaseDictionary)
+        return referenceRow.containsSameColumnsAndValuesAsRow(currentRow)
     }
     
-    /// Forces the dirty flag
-    public func setDirty() {
-        cleanRow = nil
+    public func setEdited() {
+        referenceRow = nil
     }
     
-    /// Reference row for isDirty.
-    private var cleanRow: Row?
+    /// Reference row for isEdited.
+    private var referenceRow: Row?
     
 
     // MARK: - CRUD
@@ -162,23 +162,19 @@ public class RowModel {
             setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
         }
         
-        // Not dirty any longer
-        cleanRow = Row(dictionary: storedDatabaseDictionary)
+        // Not edited any longer
+        referenceRow = Row(dictionary: storedDatabaseDictionary)
     }
     
     /// Throws an error if the model has no table name, or no primary key.
     /// Returns true if the model still exists in the database and has been updated.
     /// See https://www.sqlite.org/lang_update.html
     public func update(db: Database, conflictResolution: ConflictResolution? = nil) throws {
-        guard isDirty else {
-            return
-        }
-        
         let version = Version(self)
         try version.update(db, conflictResolution: conflictResolution)
         
-        // Not dirty any longer
-        cleanRow = Row(dictionary: storedDatabaseDictionary)
+        // Not edited any longer
+        referenceRow = Row(dictionary: storedDatabaseDictionary)
     }
     
     /// Updates if model has a primary key with at least one non-nil value,
@@ -187,10 +183,6 @@ public class RowModel {
     /// Returns true if the model has been inserted, or if it still exists in
     /// the database and has been updated.
     final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws {
-        guard isDirty else {
-            return
-        }
-        
         let insertionResult = try Version(self).save(db, conflictResolution: conflictResolution)
         if let (rowIDColumn, insertedRowID) = insertionResult {
             setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
@@ -203,7 +195,7 @@ public class RowModel {
         
         // Future calls to update and save MUST throw RowModelNotFound.
         // A way to achieve this is to set rowModel dirty.
-        setDirty()
+        setEdited()
     }
     
     /// Throws an error if the model has no table name, or no primary key.
@@ -214,8 +206,8 @@ public class RowModel {
                 setDatabaseValue(databaseValue, forColumn: column)
             }
             
-            // Not dirty any longer
-            cleanRow = Row(dictionary: storedDatabaseDictionary)
+            // Not edited any longer
+            referenceRow = Row(dictionary: storedDatabaseDictionary)
         } else {
             throw RowModelError.RowModelNotFound(self)
         }
