@@ -167,7 +167,6 @@ public class RowModel {
     }
     
     /// Throws an error if the model has no table name, or no primary key.
-    /// Returns true if the model still exists in the database and has been updated.
     /// See https://www.sqlite.org/lang_update.html
     public func update(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         let version = Version(self)
@@ -179,9 +178,6 @@ public class RowModel {
     
     /// Updates if model has a primary key with at least one non-nil value,
     /// or inserts.
-    ///
-    /// Returns true if the model has been inserted, or if it still exists in
-    /// the database and has been updated.
     final public func save(db: Database, conflictResolution: ConflictResolution? = nil) throws {
         let insertionResult = try Version(self).save(db, conflictResolution: conflictResolution)
         if let (rowIDColumn, insertedRowID) = insertionResult {
@@ -199,7 +195,6 @@ public class RowModel {
     }
     
     /// Throws an error if the model has no table name, or no primary key.
-    /// Returns true if the model still exists in the database and has been reloaded.
     public func reload(db: Database) throws {
         if let row = try Version(self).fetchOneRow(db) {
             for (column, databaseValue) in row {
@@ -578,12 +573,18 @@ extension Database {
     }
     
     // let person = db.fetchOne(Person.self, primaryKey: ...)
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValueConvertible) -> RowModel? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValueConvertible?) -> RowModel? {
+        guard let primaryKey = primaryKey else {
+            return nil
+        }
         return selectStatement(type, primaryKey: primaryKey).fetchOne(type)
     }
     
     // let person = db.fetchOne(Person.self, key: ...)
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, key dictionary: [String: DatabaseValueConvertible?]) -> RowModel? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, key dictionary: [String: DatabaseValueConvertible?]?) -> RowModel? {
+        guard let dictionary = dictionary else {
+            return nil
+        }
         return selectStatement(type, dictionary: dictionary).fetchOne(type)
     }
 }
