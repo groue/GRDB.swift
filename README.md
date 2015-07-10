@@ -146,6 +146,8 @@ let inMemoryDBQueue = DatabaseQueue()
 
 Database connections get closed when the database queue gets deallocated.
 
+To create tables, we recommend using [migrations](#migrations).
+
 
 ## Transactions
 
@@ -568,12 +570,12 @@ Subclasses opt in RowModel features by overriding all or part of the core method
 
 For example, we see below that **fetching** does not require any coupling to a specific database table:
 
-| Core Methods                      | fetch | insert | update | delete |
-|:----------------------------------|:-----:|:------:|:------:|:------:|
-| `setDatabaseValue(_:forColumn:)`  |   X   |        |        |        |
-| `databaseTable`                   |       |   X    |        |        |
-| `databaseTable` with primary key  |       |        |   X    |   X    |
-| `storedDatabaseDictionary`        |       |   X    |   X    |   X    |
+| Core Methods                       | fetch | insert | update | delete | reload |
+|:---------------------------------- |:-----:|:------:|:------:|:------:|:------:|
+| `setDatabaseValue(_:forColumn:)`   |   X   |        |        |        |   X    |
+| `databaseTable`                    |       |   X    |        |        |        |
+| `databaseTable` (with primary key) |       |        |   X    |   X    |   X    |
+| `storedDatabaseDictionary`         |       |   X    |   X    |   X    |        |
 
 - [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
