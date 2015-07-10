@@ -8,4 +8,5 @@
 - [X] When one forgets to set the primaryKey in setDatabaseValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
 - [ ] Test for the item above
 - [X] Check the behavior of Blob regarding NSData of size zero which are stored as NULL if I'm not mistaken.
-- [ ] Rename RowModel.isDirty -> hasChanges, and make it an informational property (don't use it in update())
+- [X] Rename RowModel.isDirty -> isEdited, and make it an informational property (don't use it in update())
+- [ ] RowModel documentation
