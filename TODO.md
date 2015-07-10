@@ -10,3 +10,4 @@
 - [X] Check the behavior of Blob regarding NSData of size zero which are stored as NULL if I'm not mistaken.
 - [X] Rename RowModel.isDirty -> isEdited, and make it an informational property (don't use it in update())
 - [ ] RowModel documentation
+- [ ] Is conflict resolution in update/insert/save methods really necessary?
