@@ -72,10 +72,10 @@ public class RowModel {
     // MARK: - Core methods
     
     /**
-    Returns an optional table definition.
+    Returns a table definition.
     
-    This definition is required by the insert, update, save, delete and reload
-    methods: they throw RowModelError.UnspecifiedTable if databaseTable is nil.
+    The insert, update, save, delete and reload methods require it: they raise
+    a fatal error if databaseTable is nil.
     
     The implementation of the base class RowModel returns nil.
     */
@@ -86,8 +86,8 @@ public class RowModel {
     /**
     Returns the values that should be stored in the database.
     
-    Subclasses that define a primary key must include that column(s) in the
-    returned dictionary.
+    Subclasses must include primary key columns, if any, in the returned
+    dictionary.
     
     The implementation of the base class RowModel returns an empty dictionary.
     */
@@ -167,10 +167,10 @@ public class RowModel {
     A boolean that indicates whether the row model has changes that have not
     been saved.
     
-    This flag is purely informative, and does not alter the behavior of other
-    methods.
+    This flag is purely informative: it does not alter the behavior the update()
+    method, which executes an UPDATE statement in every cases.
     
-    A typical usage of this flag is to prevent useless UPDATE statements, as in
+    But you can prevent UPDATE statements that are known to be pointless, as in
     the following example:
         
         let json = ...
@@ -213,10 +213,6 @@ public class RowModel {
     /**
     Executes an INSERT statement to insert the row model.
     
-    - RowModelError.UnspecifiedTable is thrown if the `databaseTable` is nil.
-    - RowModelError.InvalidDatabaseDictionary is thrown if
-      `storedDatabaseDictionary` is empty.
-    
     - parameter db: A Database.
     */
     public func insert(db: Database) throws {
@@ -235,13 +231,11 @@ public class RowModel {
     /**
     Executes an UPDATE statement to update the row model.
     
-    - RowModelError.UnspecifiedTable is thrown if the `databaseTable` is nil.
-    - RowModelError.InvalidDatabaseDictionary is thrown if
-      `storedDatabaseDictionary` is empty.
-    - RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
-      contains nil for the primary key.
-    - RowModelError.RowModelNotFound is thrown if the primary key does not match
-      any row in the database and row model could not be updated.
+    RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
+    contains nil for the primary key.
+    
+    RowModelError.RowModelNotFound is thrown if the primary key does not match
+    any row in the database and row model could not be updated.
     
     - parameter db: A Database.
     */
@@ -268,10 +262,7 @@ public class RowModel {
     /**
     Executes a DELETE statement to delete the row model.
     
-    - RowModelError.UnspecifiedTable is thrown if the `databaseTable` is nil.
-    - RowModelError.InvalidDatabaseDictionary is thrown if
-    `storedDatabaseDictionary` is empty.
-    - RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
+    RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
     contains nil for the primary key.
     
     - parameter db: A Database.
@@ -287,12 +278,10 @@ public class RowModel {
     /**
     Executes a SELECT statetement to reload the row model.
     
-    - RowModelError.UnspecifiedTable is thrown if the `databaseTable` is nil.
-    - RowModelError.InvalidDatabaseDictionary is thrown if
-    `storedDatabaseDictionary` is empty.
-    - RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
+    RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
     contains nil for the primary key.
-    - RowModelError.RowModelNotFound is thrown if the primary key does not match
+    
+    RowModelError.RowModelNotFound is thrown if the primary key does not match
     any row in the database and row model could not be reloaded.
     
     - parameter db: A Database.
@@ -376,13 +365,13 @@ public class RowModel {
         func insert(db: Database) throws -> (String, Int64)? {
             // Fail early if databaseTable is nil (not overriden)
             guard let table = databaseTable else {
-                throw RowModelError.UnspecifiedTable(rowModel.dynamicType)
+                fatalError("Nil Table returned from \(rowModel.dynamicType).databaseTable")
             }
             
             // We need something to insert
             let insertedDic = storedDatabaseDictionary
             guard insertedDic.count > 0 else {
-                throw RowModelError.InvalidDatabaseDictionary(rowModel)
+                fatalError("Invalid empty dictionary returned from \(rowModel.dynamicType).storedDatabaseDictionary")
             }
             
             // INSERT INTO table (id, name) VALUES (:id, :name)
@@ -419,12 +408,12 @@ public class RowModel {
         func update(db: Database) throws {
             // Fail early if databaseTable is nil (not overriden)
             guard let table = databaseTable else {
-                throw RowModelError.UnspecifiedTable(rowModel.dynamicType)
+                fatalError("Nil Table returned from \(rowModel.dynamicType).databaseTable")
             }
             
             // Fail early if storedDatabaseDictionary is empty (not overriden)
             guard storedDatabaseDictionary.count > 0 else {
-                throw RowModelError.InvalidDatabaseDictionary(rowModel)
+                fatalError("Invalid empty dictionary returned from \(rowModel.dynamicType).storedDatabaseDictionary")
             }
             
             // Update requires strongPrimaryKeyDictionary
@@ -438,9 +427,28 @@ public class RowModel {
                 updatedDictionary.removeValueForKey(column)
             }
             
-            // We need something to update
+            // We need something to update.
             guard updatedDictionary.count > 0 else {
-                throw RowModelError.InvalidDatabaseDictionary(rowModel)
+                // The RowModel is made of a primary key, without any other
+                // column: we can't update anything.
+                //
+                // Three options:
+                //
+                // 1. throw some RowModelError, assuming this error is
+                //    recoverable.
+                // 2. fatalError, assuming it is a programmer error to "forget"
+                //    keys from storedDatabaseDictionary.
+                // 3. do nothing and return.
+                //
+                // Option 1 is not OK, because this error couldn't be recovered
+                // at runtime: the implementation of storedDatabaseDictionary
+                // must be changed.
+                //
+                // I remember opening rdar://problem/10236982, based on a Core
+                // Data entity without any attribute. It was for testing
+                // purpose, and the test did not require any attribute, so the
+                // Core Data entity had no attribute. So let's choose option 3:
+                return
             }
             
             // "UPDATE table SET name = ? WHERE id = ?"
@@ -468,12 +476,12 @@ public class RowModel {
         func delete(db: Database) throws {
             // Fail early if databaseTable is nil (not overriden)
             guard let table = databaseTable else {
-                throw RowModelError.UnspecifiedTable(rowModel.dynamicType)
+                fatalError("Nil Table returned from \(rowModel.dynamicType).databaseTable")
             }
             
             // Fail early if storedDatabaseDictionary is empty (not overriden)
             guard storedDatabaseDictionary.count > 0 else {
-                throw RowModelError.InvalidDatabaseDictionary(rowModel)
+                fatalError("Invalid empty dictionary returned from \(rowModel.dynamicType).storedDatabaseDictionary")
             }
             
             // Delete requires strongPrimaryKeyDictionary
@@ -491,12 +499,12 @@ public class RowModel {
         func fetchOneRow(db: Database) throws -> Row? {
             // Fail early if databaseTable is nil (not overriden)
             guard databaseTable != nil else {
-                throw RowModelError.UnspecifiedTable(rowModel.dynamicType)
+                fatalError("Nil Table returned from \(rowModel.dynamicType).databaseTable")
             }
             
             // Fail early if storedDatabaseDictionary is empty (not overriden)
             guard storedDatabaseDictionary.count > 0 else {
-                throw RowModelError.InvalidDatabaseDictionary(rowModel)
+                fatalError("Invalid empty dictionary returned from \(rowModel.dynamicType).storedDatabaseDictionary")
             }
             
             // fetchOneRow requires strongPrimaryKeyDictionary
@@ -539,31 +547,29 @@ extension RowModel : CustomStringConvertible {
 /// A RowModel-specific error
 public enum RowModelError: ErrorType {
     
-    /// RowModel.databaseTable returns nil
-    case UnspecifiedTable(RowModel.Type)
-    
-    /// RowModel.databaseDictionary returns an invalid dictionary.
-    case InvalidDatabaseDictionary(RowModel)
-    
     /// Primary key does not uniquely identifies a database row.
     case InvalidPrimaryKey(RowModel)
     
     /// No matching row could be found in the database.
     case RowModelNotFound(RowModel)
+
+    /// This error is never thrown. Its mere existence prevents
+    /// rdar://problem/21707972, which makes thrown RowModelNotFound be catched
+    /// as InvalidPrimaryKey.
+    case Dummy(String)
+    
 }
 
 extension RowModelError : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         switch self {
-        case .UnspecifiedTable(let type):
-            return "Nil Table returned from \(type).databaseTable"
-        case .InvalidDatabaseDictionary(let rowModel):
-            return "Invalid database dictionary returned from \(rowModel.dynamicType).storedDatabaseDictionary"
         case .InvalidPrimaryKey(let rowModel):
             return "Invalid primary key in \(rowModel)"
         case .RowModelNotFound(let rowModel):
             return "RowModel not found: \(rowModel)"
+        case .Dummy:
+            return "Dummy"
         }
     }
 }

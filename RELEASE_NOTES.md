@@ -9,6 +9,9 @@ Release Notes
 - `RowModel.isEdited`.
 - `RowModel.copyDatabaseValuesFrom(_:)`
 
+**Breaking changes**
+
+- `RowModelError.UnspecifiedTable` and `RowModelError.InvalidDatabaseDictionary` have been replaced with fatal errors that point a programming error.
 
 ## v0.2.0
 

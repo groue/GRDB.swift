@@ -4,3 +4,5 @@
 - [ ] Test for the item above
 - [X] When one forgets to set the primaryKey in setDatabaseValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
 - [ ] Test for the item above
+- [ ] Test RowModels made of a primary key and nothing else.
+- [ ] Remove RowModelError.Dummy when rdar://problem/21707972 is fixed.
