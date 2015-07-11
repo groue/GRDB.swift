@@ -8,6 +8,7 @@ Release Notes
 - `Blob.init?(NSData?)`.
 - `RowModel.isEdited`.
 - `RowModel.copyDatabaseValuesFrom(_:)`
+- `DatabaseValue` adopts Equatable.
 
 **Breaking changes**
 

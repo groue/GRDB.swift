@@ -27,7 +27,7 @@ A row is the result of a database query.
 */
 public struct Row: CollectionType {
     
-    // MARK: - DatabaseValueConvertible value
+    // MARK: - DatabaseValueConvertible Values
     
     /**
     Returns the value at given index.
