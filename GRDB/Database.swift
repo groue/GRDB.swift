@@ -50,13 +50,12 @@ public final class Database {
     
     - parameter sql:      An SQL query.
     - parameter bindings: Optional bindings for query parameters.
-    - parameter unsafe:   TODO.
     
     - returns: A SelectStatement.
     */
-    public func selectStatement(sql: String, bindings: Bindings? = nil, unsafe: Bool = false) -> SelectStatement {
+    public func selectStatement(sql: String, bindings: Bindings? = nil) -> SelectStatement {
         return verboseFailOnError {
-            return try SelectStatement(database: self, sql: sql, bindings: bindings, unsafe: unsafe)
+            return try SelectStatement(database: self, sql: sql, bindings: bindings, unsafe: false)
         }
     }
     
