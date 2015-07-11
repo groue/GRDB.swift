@@ -30,7 +30,9 @@ public final class DatabaseQueue {
     // MARK: - Configuration
     
     /// The database configuration
-    public var configuration: Configuration { return database.configuration }
+    public var configuration: Configuration {
+        return database.configuration
+    }
     
     
     // MARK: - Initializers

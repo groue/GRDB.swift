@@ -526,7 +526,7 @@ extension RowModelError : CustomStringConvertible {
 }
 
 
-// MARK: - Feching Row Models
+// MARK: - Fetching Row Models
 
 /**
 The Database methods that build RowModel select statements.

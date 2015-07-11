@@ -254,7 +254,7 @@ func verboseFailOnError<Result>(@noescape block: (Void) throws -> Result) -> Res
 }
 
 
-// MARK: - Feching Rows
+// MARK: - Fetching Rows
 
 /// The Database methods that fetch rows.
 extension Database {
@@ -303,7 +303,7 @@ extension Database {
 }
 
 
-// MARK: - Feching Values
+// MARK: - Fetching Values
 
 /// The Database methods that fetch values.
 extension Database {
