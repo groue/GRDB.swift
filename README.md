@@ -421,8 +421,7 @@ try db.execute("INSERT INTO persons (date, ...) " +
 
 // Extract from row:
 for rows in db.fetchRows("SELECT ...") {
-    let dbDate: DBDate? = row.value(named: "date")
-    let date = dbDate?.date
+    let date = (row.value(named: "date") as DBDate?)?.date
 }
 
 // Direct fetch:
