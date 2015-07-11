@@ -704,7 +704,7 @@ extension Database {
 
     - parameter type: The type of fetched row model. It must be a subclass of
                       RowModel.
-    - parameter key:  A dictionary of value.
+    - parameter key:  A dictionary of values.
     - returns: An optional row model.
     */
     public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, key dictionary: [String: DatabaseValueConvertible?]?) -> RowModel? {
