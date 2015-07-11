@@ -195,8 +195,22 @@ extension String: DatabaseValueConvertible {
     }
 }
 
-/// Blob is convertible to and from DatabaseValue.
-extension Blob : DatabaseValueConvertible {
+
+/// A Database Blob
+public struct Blob : DatabaseValueConvertible {
+    
+    /// The data. Its length is guaranteed to be greater than zero.
+    public let data: NSData
+    
+    /// Creates a Blob from NSData. Returns nil if and only if *data* is nil or
+    /// zero-length (SQLite can't store empty blobs).
+    public init?(_ data: NSData?) {
+        if let data = data where data.length > 0 {
+            self.data = data
+        } else {
+            return nil
+        }
+    }
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
