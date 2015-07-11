@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Future release
+## v0.3.0
+
+Released July 11, 2015
 
 **New**
 
@@ -16,6 +18,8 @@ Release Notes
 
 ## v0.2.0
 
+Released July 9, 2015
+
 **Breaking changes**
 
 - Requires Xcode 7.0 beta 3
@@ -26,5 +30,7 @@ Release Notes
 
 
 ## v0.1.0
+
+Released July 9, 2015
 
 Initial release
