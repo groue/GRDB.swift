@@ -35,7 +35,7 @@ class CustomDatabaseValueConvertibleTests : GRDBTestCase {
             try db.execute(
                 "CREATE TABLE stuffs (" +
                     "ID INTEGER PRIMARY KEY, " +
-                    "creationTimestamp DOUBLE" +
+                    "creationDate TEXT" +
                 ")")
         }
         assertNoError {
@@ -54,18 +54,18 @@ class CustomDatabaseValueConvertibleTests : GRDBTestCase {
                     dateComponents.month = 09
                     dateComponents.day = 18
                     let date = calendar.dateFromComponents(dateComponents)!
-                    try db.execute("INSERT INTO stuffs (creationTimestamp) VALUES (?)", bindings: [DBDate(date)])
+                    try db.execute("INSERT INTO stuffs (creationDate) VALUES (?)", bindings: [DBDate(date)])
                 }
                 
                 do {
-                    let row = db.fetchOneRow("SELECT creationTimestamp FROM stuffs")!
+                    let row = db.fetchOneRow("SELECT creationDate FROM stuffs")!
                     let date: DBDate = row.value(atIndex: 0)!
                     let year = calendar.component(NSCalendarUnit.Year, fromDate: date.date)
                     XCTAssertEqual(year, 1973)
                 }
                 
                 do {
-                    let date = db.fetchOne(DBDate.self, "SELECT creationTimestamp FROM stuffs")!
+                    let date = db.fetchOne(DBDate.self, "SELECT creationDate FROM stuffs")!
                     let year = calendar.component(NSCalendarUnit.Year, fromDate: date.date)
                     XCTAssertEqual(year, 1973)
                 }

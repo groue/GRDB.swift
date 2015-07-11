@@ -36,7 +36,7 @@ class SelectStatementTests : GRDBTestCase {
             try db.execute(
                 "CREATE TABLE persons (" +
                     "id INTEGER PRIMARY KEY, " +
-                    "creationTimestamp DOUBLE, " +
+                    "creationDate TEXT, " +
                     "name TEXT NOT NULL, " +
                     "age INT" +
                 ")")

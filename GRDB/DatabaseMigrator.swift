@@ -39,7 +39,7 @@ Usage:
         try db.execute(
             "CREATE TABLE persons (" +
                 "id INTEGER PRIMARY KEY, " +
-                "creationTimestamp DOUBLE, " +
+                "creationDate TEXT, " +
                 "name TEXT NOT NULL" +
             ")")
     }
@@ -76,7 +76,7 @@ public struct DatabaseMigrator {
             try db.execute(
                 "CREATE TABLE persons (" +
                     "id INTEGER PRIMARY KEY, " +
-                    "creationTimestamp DOUBLE, " +
+                    "creationDate TEXT, " +
                     "name TEXT NOT NULL" +
                 ")")
         }

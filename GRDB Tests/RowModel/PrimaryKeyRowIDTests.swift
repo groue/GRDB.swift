@@ -40,17 +40,17 @@ class Person: RowModel {
             "id": id,
             "name": name,
             "age": age,
-            "creationTimestamp": DBDate(creationDate),
+            "creationDate": DBDate(creationDate),
         ]
     }
     
     override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "id":                  id = dbv.value()
-        case "name":                name = dbv.value()
-        case "age":                 age = dbv.value()
-        case "creationTimestamp":   creationDate = (dbv.value() as DBDate?)?.date
-        default:                    super.setDatabaseValue(dbv, forColumn: column)
+        case "id":              id = dbv.value()
+        case "name":            name = dbv.value()
+        case "age":             age = dbv.value()
+        case "creationDate":    creationDate = (dbv.value() as DBDate?)?.date
+        default:                super.setDatabaseValue(dbv, forColumn: column)
         }
     }
     
@@ -77,7 +77,7 @@ class Person: RowModel {
         try db.execute(
             "CREATE TABLE persons (" +
                 "id INTEGER PRIMARY KEY, " +
-                "creationTimestamp DOUBLE, " +
+                "creationDate TEXT, " +
                 "name TEXT NOT NULL, " +
                 "age INT" +
             ")")

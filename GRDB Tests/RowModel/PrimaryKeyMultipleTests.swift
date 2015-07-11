@@ -39,17 +39,17 @@ class Citizenship: RowModel {
         return [
             "personID": personID,
             "countryName": countryName,
-            "grantedTimestamp": DBDate(grantedDate),
+            "grantedDate": DBDate(grantedDate),
             "native": native]
     }
     
     override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "personID":            personID = dbv.value()
-        case "countryName":         countryName = dbv.value()
-        case "grantedTimestamp":    grantedDate = (dbv.value() as DBDate?)?.date
-        case "native":              native = dbv.value()
-        default:                    super.setDatabaseValue(dbv, forColumn: column)
+        case "personID":    personID = dbv.value()
+        case "countryName": countryName = dbv.value()
+        case "grantedDate": grantedDate = (dbv.value() as DBDate?)?.date
+        case "native":      native = dbv.value()
+        default:            super.setDatabaseValue(dbv, forColumn: column)
         }
     }
     
@@ -60,7 +60,7 @@ class Citizenship: RowModel {
                 "         REFERENCES persons(ID) " +
                 "         ON DELETE CASCADE ON UPDATE CASCADE, " +
                 "countryName TEXT NOT NULL, " +
-                "grantedTimestamp DOUBLE, " +
+                "grantedDate TEXT, " +
                 "native BOOLEAN, " +
                 "PRIMARY KEY (personID, countryName)" +
             ")")
