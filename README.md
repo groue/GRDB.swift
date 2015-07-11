@@ -357,7 +357,7 @@ All types that adopt this protocol can be used wherever the built-in types `Int`
 
 > Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
-As an example, let's define the `DBDate` type that stores NSDates as ISO-8601 strings (a format understood by [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)). It applies all the best practices for a great GRDB.swift integration:
+As an example, let's define the `DBDate` type that stores NSDates as ISO-8601 strings (a format understood by [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)). DBDate applies all the best practices for a great GRDB.swift integration:
 
 ```swift
 struct DBDate: DatabaseValueConvertible {
