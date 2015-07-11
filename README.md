@@ -105,7 +105,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 **Reference**
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.3.0/index.html) on cocoadocs
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.3.0/index.html) on cocoadocs.org
 
 **Guides**
 
