@@ -38,19 +38,21 @@ Usage:
     migrator.registerMigration("createPersons") { db in
         try db.execute(
             "CREATE TABLE persons (" +
-            "id INTEGER PRIMARY KEY, " +
-            "creationTimestamp DOUBLE, " +
-            "name TEXT NOT NULL)")
+                "id INTEGER PRIMARY KEY, " +
+                "creationTimestamp DOUBLE, " +
+                "name TEXT NOT NULL" +
+            ")")
     }
 
     migrator.registerMigration("createBooks") { db in
         try db.execute(
             "CREATE TABLE books (" +
-            "uuid TEXT PRIMARY KEY, " +
-            "ownerID INTEGER NOT NULL " +
-            "        REFERENCES persons(id) " +
-            "        ON DELETE CASCADE ON UPDATE CASCADE, " +
-            "title TEXT NOT NULL)")
+                "uuid TEXT PRIMARY KEY, " +
+                "ownerID INTEGER NOT NULL " +
+                "        REFERENCES persons(id) " +
+                "        ON DELETE CASCADE ON UPDATE CASCADE, " +
+                "title TEXT NOT NULL" +
+            ")")
     }
 
     // v2.0 database
@@ -69,6 +71,16 @@ public struct DatabaseMigrator {
     
     /**
     Registers a migration.
+    
+        migrator.registerMigration("createPersons") { db in
+            try db.execute(
+                "CREATE TABLE persons (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "creationTimestamp DOUBLE, " +
+                    "name TEXT NOT NULL" +
+                ")")
+        }
+
     
     - parameter identifier: The migration identifier. It must be unique.
     - parameter block:      The migration block that performs SQL statements.
