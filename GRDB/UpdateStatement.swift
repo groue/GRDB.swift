@@ -22,20 +22,33 @@
 // THE SOFTWARE.
 
 
+/**
+A subclass of Statement that executes SQL queries.
+
+You create UpdateStatement with the Database.updateStatement() method:
+
+    try dbQueue.inTransaction { db in
+        let statement = try db.updateStatement("INSERT INTO persons (name) VALUES (?)")
+        try statement.execute(bindings: ["Arthur"])
+        try statement.execute(bindings: ["Barbara"])
+        return .Commit
+    }
+*/
 public final class UpdateStatement : Statement {
     
     /// The changes performed by an UpdateStatement.
     public struct Changes {
+        
         /// The number of rows changed by the statement.
         let changedRowCount: Int
         
-        /// The inserted Row ID. Relevant if and only if the statement is
-        /// an INSERT statement.
+        /// The inserted Row ID. Relevant if and only if the statement is an
+        /// INSERT statement.
         let insertedRowID: Int64?
     }
     
     /**
-    Executes the update statement.
+    Executes the SQL query.
     
     - parameter bindings: Optional bindings for query parameters.
     */

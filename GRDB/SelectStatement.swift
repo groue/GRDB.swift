@@ -24,10 +24,20 @@
 
 import Foundation
 
-/// A subclass of Statement that fetches database rows.
+/**
+A subclass of Statement that fetches database rows.
+
+You create SelectStatement with the Database.selectStatement() method:
+
+    dbQueue.inDatabase { db in
+        let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
+        let moreThanTwentyCount = statement.fetchOne(Int.self, bindings: [20])!
+        let moreThanThirtyCount = statement.fetchOne(Int.self, bindings: [30])!
+    }
+*/
 public final class SelectStatement : Statement {
     
-    /// The number of columns in the results.
+    /// The number of columns in the resulting rows.
     public lazy var columnCount: Int = Int(sqlite3_column_count(self.sqliteStatement))
     
     /// The names of columns, ordered from left to right.

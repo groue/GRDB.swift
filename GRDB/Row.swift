@@ -35,8 +35,8 @@ public struct Row: CollectionType {
     Indexes span from 0 for the leftmost column to (row.count - 1) for the
     righmost column.
     
-    If not nil (for NULL), its type is guaranteed to be one of the following:
-    Int64, Double, String, and Blob.
+    If not nil (for the database NULL), its type is guaranteed to be one of the
+    following: Int64, Double, String, and Blob.
     
         let value = row.value(atIndex: 0)
     
@@ -61,6 +61,13 @@ public struct Row: CollectionType {
         let value: Bool? = row.value(atIndex: 0)
         let value: Int? = row.value(atIndex: 0)
         let value: Double? = row.value(atIndex: 0)
+    
+    **WARNING**: type casting requires a very careful use of the `as` operator
+    (see [rdar://problem/21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+    
+        row.value(atIndex: 0)! as Int   // OK: Int
+        row.value(atIndex: 0) as Int?   // OK: Int?
+        row.value(atIndex: 0) as? Int   // NO NO NO DON'T DO THAT!
     
     Your custom types that adopt the DatabaseValueConvertible protocol handle
     their own conversion from raw SQLite values. Yet, here is the reference for
@@ -89,8 +96,8 @@ public struct Row: CollectionType {
     /**
     Returns the value for the given column.
     
-    If not nil (for NULL), its type is guaranteed to be one of the following:
-    Int64, Double, String, and Blob.
+    If not nil (for the database NULL), its type is guaranteed to be one of the
+    following: Int64, Double, String, and Blob.
     
         let value = row.value(named: "name")
     
@@ -114,6 +121,13 @@ public struct Row: CollectionType {
         let value: Bool? = row.value(named: "count")
         let value: Int? = row.value(named: "count")
         let value: Double? = row.value(named: "count")
+    
+    **WARNING**: type casting requires a very careful use of the `as` operator
+    (see [rdar://problem/21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+    
+        row.value(named: "count")! as Int   // OK: Int
+        row.value(named: "count") as Int?   // OK: Int?
+        row.value(named: "count") as? Int   // NO NO NO DON'T DO THAT!
     
     Your custom types that adopt the DatabaseValueConvertible protocol handle
     their own conversion from raw SQLite values. Yet, here is the reference for

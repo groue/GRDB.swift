@@ -35,7 +35,11 @@ It is the base class of UpdateStatement that executes *update statements*, and
 SelectStatement that fetches rows.
 */
 public class Statement {
+    
+    /// The SQL query
     public var sql: String
+    
+    /// The bindings for positional and named parameters in the SQL query.
     public var bindings: Bindings? {
         didSet {
             reset() // necessary before applying new bindings

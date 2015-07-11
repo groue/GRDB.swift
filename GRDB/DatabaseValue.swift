@@ -48,8 +48,8 @@ public enum DatabaseValue : Equatable {
     /**
     Returns the wrapped value.
     
-    If not nil (for NULL), its type is guaranteed to be one of the following:
-    Int64, Double, String, and Blob.
+    If not nil (for the database NULL), its type is guaranteed to be one of the
+    following: Int64, Double, String, and Blob.
     
     let value = databaseValue.value()
     */
@@ -74,9 +74,16 @@ public enum DatabaseValue : Equatable {
     The conversion returns nil if the SQLite value is NULL, or can't be
     converted to the requested type:
     
-    let value: Bool? = databaseValue.value()
-    let value: Int? = databaseValue.value()
-    let value: Double? = databaseValue.value()
+        let value: Bool? = databaseValue.value()
+        let value: Int? = databaseValue.value()
+        let value: Double? = databaseValue.value()
+    
+    **WARNING**: type casting requires a very careful use of the `as` operator
+    (see [rdar://problem/21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+    
+        databaseValue.value()! as Int   // OK: Int
+        databaseValue.value() as Int?   // OK: Int?
+        databaseValue.value() as? Int   // NO NO NO DON'T DO THAT!
     
     Your custom types that adopt the DatabaseValueConvertible protocol handle
     their own conversion from raw SQLite values. Yet, here is the reference for
