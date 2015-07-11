@@ -357,7 +357,7 @@ All types that adopt this protocol can be used wherever the built-in types `Int`
 
 > Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
-As an example, let's define the `DBDate` type that stores NSDates as timestamps. It applies all the best practices for a great GRDB.swift integration:
+As an example, let's define the `DBDate` type that stores NSDates as ISO-8601 strings (a format understood by [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)). It applies all the best practices for a great GRDB.swift integration:
 
 ```swift
 struct DBDate: DatabaseValueConvertible {
@@ -383,17 +383,26 @@ struct DBDate: DatabaseValueConvertible {
     
     // DatabaseValue conversion
     //
-    // DBDate represents the date as a timestamp in the database.
+    // DBDate represents the date as an ISO-8601 string in the database.
+    
+    // An ISO-8601 date formatter
+    static let dateFormatter: NSDateFormatter = {
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+        formatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
+        formatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+        return formatter
+    }()
     
     var databaseValue: DatabaseValue {
-        return .Real(date.timeIntervalSince1970)
+        return .Text(DBDate.dateFormatter.stringFromDate(date))
     }
     
     init?(databaseValue: DatabaseValue) {
         // Don't handle the raw DatabaseValue unless you know what you do.
         // It is recommended to use GRDB built-in conversions instead:
-        if let timestamp = Double(databaseValue: databaseValue) {
-            self.init(NSDate(timeIntervalSince1970: timestamp))
+        if let string = String(databaseValue: databaseValue) {
+            self.init(DBDate.dateFormatter.dateFromString(string))
         } else {
             return nil
         }
@@ -406,13 +415,13 @@ DBDate can now be stored and fetched from the database just like built-in types:
 ```swift
 // Store:
 let date = NSDate()
-try db.execute("INSERT INTO persons (timestamp, ...) " +
+try db.execute("INSERT INTO persons (date, ...) " +
                             "VALUES (?, ...)",
                           bindings: [DBDate(date), ...])
 
 // Extract from row:
 for rows in db.fetchRows("SELECT ...") {
-    let dbDate: DBDate? = row.value(named: "timestamp")
+    let dbDate: DBDate? = row.value(named: "date")
     let date = dbDate?.date
 }
 
@@ -547,7 +556,7 @@ migrator.registerMigration("createPersons") { db in
     try db.execute(
         "CREATE TABLE persons (" +
         "id INTEGER PRIMARY KEY, " +
-        "creationTimestamp DOUBLE, " +
+        "creationDate TEXT, " +
         "name TEXT NOT NULL)")
 }
 
