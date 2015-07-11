@@ -505,7 +505,7 @@ dbQueue.inDatabase { db in
 **The rule** is:
 
 - All methods that *read* data crash.
-- All methods that *write* data throw an error.
+- All methods that *write* data throw.
 
 > Rationale: we assume that *all* reading errors are either SQL errors that the developer should fix (a syntax error, a wrong column name), or external I/O errors that are beyond repair and better hidden behind a crash. Write errors may be relational errors (violated unique index, missing reference) and you may want to handle relational errors yourselves.
 >
