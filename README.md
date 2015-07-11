@@ -101,19 +101,27 @@ Download a copy of GRDB.swift, embed the `GRDB.xcodeproj` project in your own pr
 Documentation
 =============
 
-SQLite API:
+To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a GRDB-enabled Playground at the top of the files list.
 
-- [Database](#database)
-- [Transactions](#transactions)
-- [Fetch Queries](#fetch-queries)
-- [Values](#values)
-- [Prepared Statements](#prepared-statements)
-- [Error Handling](#error-handling)
+Reference:
 
-Application tools:
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.3.0/index.html) on cocoadocs
 
-- [Migrations](#migrations)
-- [Row Models](#row-models)
+Guides:
+
+- SQLite API:
+    
+    - [Database](#database)
+    - [Transactions](#transactions)
+    - [Fetch Queries](#fetch-queries)
+    - [Values](#values)
+    - [Prepared Statements](#prepared-statements)
+    - [Error Handling](#error-handling)
+
+- Application tools:
+    
+    - [Migrations](#migrations)
+    - [Row Models](#row-models)
 
 
 ## Database
