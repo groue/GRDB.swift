@@ -240,7 +240,7 @@ row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
 
 #### Rows as Dictionaries
 
-The `row.value(atIndex:)` and `row.value(named:)` functions above require that you know the row structure: which columns are available, in which order.
+The `row.value(named:)` and `row.value(atIndex:)` methods above require that you know the row structure: which columns are available, in which order.
 
 When you process an unknown row, you will prefer thinking of it as a dictionary of `DatabaseValue`, an intermediate type between SQLite and your values:
 
