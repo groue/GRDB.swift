@@ -413,13 +413,13 @@ struct DBDate: DatabaseValueConvertible {
 DBDate can now be stored and fetched from the database just like built-in types:
 
 ```swift
-// Store:
+// Store NSDate
 let date = NSDate()
 try db.execute("INSERT INTO persons (date, ...) " +
                             "VALUES (?, ...)",
                           bindings: [DBDate(date), ...])
 
-// Extract from row:
+// Extract NSDate from row:
 for rows in db.fetchRows("SELECT ...") {
     let date = (row.value(named: "date") as DBDate?)?.date
 }
