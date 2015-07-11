@@ -46,7 +46,7 @@ public enum DatabaseValue : Equatable {
     case Blob(GRDB.Blob)
     
     
-    // MARK: - DatabaseValueConvertible Values
+    // MARK: - Extracting Swift Value
     
     /**
     Returns the wrapped value.

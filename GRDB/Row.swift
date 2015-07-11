@@ -27,7 +27,7 @@ A row is the result of a database query.
 */
 public struct Row: CollectionType {
     
-    // MARK: - DatabaseValueConvertible Values
+    // MARK: - Extracting Swift Values
     
     /**
     Returns the value at given index.
@@ -156,7 +156,7 @@ public struct Row: CollectionType {
     }
     
     
-    // MARK: - DatabaseValue
+    // MARK: - Extracting DatabaseValue
     
     /**
     Returns a DatabaseValue, the intermediate type between SQLite and your
@@ -178,42 +178,27 @@ public struct Row: CollectionType {
         }
     }
     
-    /**
-    Row is a *collection* of (columnName, databaseValue) pairs, ordered from
-    left to right.
-
-    Returns a *generator* over elements.
-    */
+    
+    // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
+    
+    /// Returns a *generator* over (ColumnName, DatabaseValue) pairs, from left
+    /// to right.
     public func generate() -> IndexingGenerator<Row> {
         return IndexingGenerator(self)
     }
     
-    /**
-    Row is a *collection* of (columnName, databaseValue) pairs, ordered from
-    left to right.
-
-    The index of the first element.
-    */
+    /// The index of the first (ColumnName, DatabaseValue) pair.
     public var startIndex: RowIndex {
         return Index(0)
     }
     
-    /**
-    Row is a *collection* of (columnName, databaseValue) pairs, ordered from
-    left to right.
-
-    Return the "past-the-end" index, successor of the index of the last element.
-    */
+    /// The "past-the-end" index, successor of the index of the last
+    /// (ColumnName, DatabaseValue) pair.
     public var endIndex: RowIndex {
         return Index(impl.columnCount)
     }
     
-    /**
-    Row is a *collection* of (columnName, databaseValue) pairs, ordered from
-    left to right.
-    
-    Returns the element at given index.
-    */
+    /// Returns the (ColumnName, DatabaseValue) pair at given index.
     public subscript(index: RowIndex) -> (String, DatabaseValue) {
         return (
             self.impl.columnName(atIndex: index.index),
