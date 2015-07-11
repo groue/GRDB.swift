@@ -238,11 +238,11 @@ row.value(named: "bookCount") as Int?   // OK: Int?
 row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
 ```
 
-#### General Row Processing
+#### Rows as Dictionaries
 
 The `row.value(atIndex:)` and `row.value(named:)` functions above require that you know the row structure: which columns are available, in which order.
 
-When you process an unknown row, you will prefer the subscript operator which returns `DatabaseValue`, an intermediate type between SQLite and your values:
+When you process an unknown row, you will prefer thinking of it as a dictionary of `DatabaseValue`, an intermediate type between SQLite and your values:
 
 ```swift
 // Test if the column `name` is present:
@@ -630,7 +630,7 @@ class Person : RowModel {
 }
 ```
 
-See [General Row Processing](#general-row-processing) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
+See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
 
 Now you can fetch **lazy sequences** of row models, **arrays**, or **single** instances:
 
