@@ -411,13 +411,22 @@ protocol RowImpl {
 }
 
 
-/// Used to access the (columnName, databaseValue) pairs in a Row.
+/// Indexes to (columnName, databaseValue) pairs in a database row.
 public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIndexType {
     let index: Int
     init(_ index: Int) { self.index = index }
+    
+    /// The index of the next (ColumnName, DatabaseValue) pair in a row.
     public func successor() -> RowIndex { return RowIndex(index + 1) }
+
+    /// The index of the previous (ColumnName, DatabaseValue) pair in a row.
     public func predecessor() -> RowIndex { return RowIndex(index - 1) }
+
+    /// The number of columns between two (ColumnName, DatabaseValue) pairs in
+    /// a row.
     public func distanceTo(other: RowIndex) -> Int { return other.index - index }
+    
+    /// Return `self` offset by `n` steps.
     public func advancedBy(n: Int) -> RowIndex { return RowIndex(index + n) }
 }
 
