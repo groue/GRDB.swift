@@ -38,7 +38,7 @@ public final class DatabaseQueue {
     // MARK: - Initializers
     
     /**
-    Opens the SQLite database at path *path*, according to the configuration.
+    Opens the SQLite database at path *path*.
     
         let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
     
@@ -52,7 +52,7 @@ public final class DatabaseQueue {
     }
     
     /**
-    Opens an in-memory SQLite database, according to the configuration.
+    Opens an in-memory SQLite database.
     
         let dbQueue = DatabaseQueue()
     

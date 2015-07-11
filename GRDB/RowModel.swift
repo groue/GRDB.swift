@@ -37,26 +37,27 @@ methods that define their relationship with the database:
 */
 public class RowModel {
     
-    /// A primary key.
+    /// A primary key. See RowModel.databaseTable and Table type.
     public enum PrimaryKey {
         
-        /// A primary key managed by SQLite.
+        /// A primary key managed by SQLite. Associated string is a column name.
         case RowID(String)
         
-        /// A primary key not managed by SQLite.
+        /// A primary key not managed by SQLite. Associated string is a column name.
         case Column(String)
         
-        /// A primary key that spans accross several columns.
+        /// A primary key that spans accross several columns. Associated strings
+        /// are column names.
         case Columns([String])
     }
     
-    /// A table definition.
+    /// A table definition returned by RowModel.databaseTable.
     public struct Table {
         
         /// The table name
         public let name: String
         
-        /// The primary key
+        /// The eventual primary key
         public let primaryKey: PrimaryKey?
         
         /// Creates a Table given its name and primary key (default nil, meaning
@@ -110,8 +111,6 @@ public class RowModel {
     
     /**
     Initializes a RowModel.
-    
-    The returned RowModel is flagged as *edited*.
     */
     public init() {
         // IMPLEMENTATION NOTE
@@ -124,9 +123,6 @@ public class RowModel {
     Initializes a RowModel from a row.
     
     This initializer is used for all fetched models.
-    
-    The returned RowModel is flagged as *not edited* if and only if the row
-    contains all columns of storedDatabaseDictionary.
     
     - parameter row: A Row
     */
@@ -168,8 +164,28 @@ public class RowModel {
     // MARK: - Changes
     
     /**
-    A boolean that indicates whether the `self` has changes that have not been
-    saved.
+    A boolean that indicates whether the row model has changes that have not
+    been saved.
+    
+    This flag is purely informative, and does not alter the behavior of other
+    methods.
+    
+    A typical usage of this flag is to prevent useless UPDATE statements, as in
+    the following example:
+        
+        let json = ...
+    
+        // Fetches or create a new person given its ID:
+        let person = db.fetchOne(Person.self, primaryKey: json["id"]) ?? Person()
+    
+        // Apply json payload:
+        person.updateFromJSON(json)
+                 
+        // Saves the person if it is edited (fetched then modified, or created):
+        if person.isEdited {
+            person.save(db) // inserts or updates
+        }
+    
     */
     public var isEdited: Bool {
         guard let referenceRow = referenceRow else {
@@ -181,7 +197,9 @@ public class RowModel {
         return referenceRow.containsSameColumnsAndValuesAsRow(currentRow)
     }
     
-    /// Flags `self` as edited.
+    /**
+    Flags `self` as edited.
+    */
     public func setEdited() {
         referenceRow = nil
     }
@@ -194,6 +212,10 @@ public class RowModel {
     
     /**
     Executes an INSERT statement to insert the row model.
+    
+    - RowModelError.UnspecifiedTable is thrown if the `databaseTable` is nil.
+    - RowModelError.InvalidDatabaseDictionary is thrown if
+      `storedDatabaseDictionary` is empty.
     
     - parameter db: A Database.
     */
@@ -213,6 +235,14 @@ public class RowModel {
     /**
     Executes an UPDATE statement to update the row model.
     
+    - RowModelError.UnspecifiedTable is thrown if the `databaseTable` is nil.
+    - RowModelError.InvalidDatabaseDictionary is thrown if
+      `storedDatabaseDictionary` is empty.
+    - RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
+      contains nil for the primary key.
+    - RowModelError.RowModelNotFound is thrown if the primary key does not match
+      any row in the database and row model could not be updated.
+    
     - parameter db: A Database.
     */
     public func update(db: Database) throws {
@@ -224,8 +254,7 @@ public class RowModel {
     }
     
     /**
-    Updates if row model has a primary key with at least one non-nil value, or
-    inserts otherwise.
+    Updates if row model has a non-nil primary key, and inserts otherwise.
     
     - parameter db: A Database.
     */
@@ -239,6 +268,12 @@ public class RowModel {
     /**
     Executes a DELETE statement to delete the row model.
     
+    - RowModelError.UnspecifiedTable is thrown if the `databaseTable` is nil.
+    - RowModelError.InvalidDatabaseDictionary is thrown if
+    `storedDatabaseDictionary` is empty.
+    - RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
+    contains nil for the primary key.
+    
     - parameter db: A Database.
     */
     public func delete(db: Database) throws {
@@ -251,7 +286,15 @@ public class RowModel {
     
     /**
     Executes a SELECT statetement to reload the row model.
-
+    
+    - RowModelError.UnspecifiedTable is thrown if the `databaseTable` is nil.
+    - RowModelError.InvalidDatabaseDictionary is thrown if
+    `storedDatabaseDictionary` is empty.
+    - RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
+    contains nil for the primary key.
+    - RowModelError.RowModelNotFound is thrown if the primary key does not match
+    any row in the database and row model could not be reloaded.
+    
     - parameter db: A Database.
     */
     public func reload(db: Database) throws {
@@ -288,14 +331,14 @@ public class RowModel {
                 if let value = self.storedDatabaseDictionary[column] {
                     return [column: value]
                 } else {
-                    return nil
+                    return [column: nil]
                 }
                 
             case .Column(let column):
                 if let value = self.storedDatabaseDictionary[column] {
                     return [column: value]
                 } else {
-                    return nil
+                    return [column: nil]
                 }
                 
             case .Columns(let columns):
