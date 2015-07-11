@@ -27,6 +27,8 @@ Configuration are arguments to the DatabaseQueue initializers.
 */
 public struct Configuration {
     
+    // MARK: - Utilities
+    
     /// A tracing function that logs SQL statements
     public static func logSQL(sql: String, bindings: Bindings?) {
         NSLog("GRDB: %@", sql)
@@ -35,7 +37,14 @@ public struct Configuration {
         }
     }
     
-    /// A tracing function.
+    // MARK: - Configuration options
+    
+    /**
+    A tracing function.
+
+    - parameter sql: An SQL query
+    - parameter bindings: Eventual bindings that hold SQL parameters.
+    */
     public typealias TraceFunction = (sql: String, bindings: Bindings?) -> Void
     
     /// If true, the database has support for foreign keys.
@@ -44,11 +53,22 @@ public struct Configuration {
     /// If true, the database is opened readonly.
     public var readonly: Bool
     
-    /// A tracing function that you can use for any purpose.
+    /**
+    An optional tracing function.
+
+    You can use Configuration.logSQL as a tracing function: it logs all SQL
+    statements with NSLog().
+    */
     public var trace: TraceFunction?
+    
+    
+    // MARK: - Initialization
     
     /**
     Setup a configuration.
+    
+    You can use Configuration.logSQL as a tracing function: it logs all SQL
+    statements with NSLog().
     
     - parameter foreignKeysEnabled: If true (the default), the database has
                                     support for foreign keys.
@@ -64,6 +84,9 @@ public struct Configuration {
         self.readonly = readonly
         self.trace = trace
     }
+    
+    
+    // MARK: - Not public
     
     var sqliteOpenFlags: Int32 {
         // See https://www.sqlite.org/c3ref/open.html
