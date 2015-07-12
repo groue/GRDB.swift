@@ -248,7 +248,7 @@ public class RowModel {
     }
     
     /**
-    Stores the row model in the database.
+    Saves the row model in the database.
     
     If the row model has a non-nil primary key and a matching row in the
     database, this method performs an update.

@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Future release
+
+**Breaking changes**
+
+- `RowModel.save(db)` inserts a row when there is no matching row in the database. It used to throw RowModelNotFound.
+
+
 ## v0.3.0
 
 Released July 11, 2015
