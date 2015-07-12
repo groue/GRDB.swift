@@ -585,7 +585,7 @@ extension Database {
     func selectStatement<RowModel: GRDB.RowModel>(type: RowModel.Type, dictionary: [String: DatabaseValueConvertible?]) -> SelectStatement {
         // Select methods crash when there is an issue
         guard let table = type.databaseTable else {
-            fatalError("Missing databaseTable.")
+            fatalError("Nil Table returned from \(type).databaseTable")
         }
         
         let whereSQL = " AND ".join(dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
@@ -596,11 +596,11 @@ extension Database {
     func selectStatement<RowModel: GRDB.RowModel>(type: RowModel.Type, primaryKey: DatabaseValueConvertible) -> SelectStatement {
         // Select methods crash when there is an issue
         guard let table = type.databaseTable else {
-            fatalError("Missing databaseTable.")
+            fatalError("Nil Table returned from \(type).databaseTable")
         }
         
         guard let tablePrimaryKey = table.primaryKey else {
-            fatalError("Missing primary key")
+            fatalError("Nil Primary Key in \(type).databaseTable")
         }
         
         let sql: String
@@ -610,11 +610,10 @@ extension Database {
         case .Column(let column):
             sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
         case .Columns(let columns):
-            if columns.count == 1 {
-                sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
-            } else {
-                fatalError("Primary key columns count mismatch.")
+            guard columns.count == 1 else {
+                fatalError("Primary key columns count mismatch in \(type).databaseTable")
             }
+            sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
         }
         
         return selectStatement(sql, bindings: [primaryKey])
