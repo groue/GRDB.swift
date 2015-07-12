@@ -105,11 +105,8 @@ public struct Row: CollectionType {
     - returns: An optional DatabaseValueConvertible.
     */
     public func value(named columnName: String) -> DatabaseValueConvertible? {
-        if let index = impl.indexForColumn(named: columnName) {
-            return impl.databaseValue(atIndex: index).value()
-        } else {
-            return nil
-        }
+        let index = impl.indexForColumn(named: columnName)!
+        return impl.databaseValue(atIndex: index).value()
     }
     
     /**
