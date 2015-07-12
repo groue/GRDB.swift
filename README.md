@@ -708,7 +708,7 @@ Declare a **Table** given its **name** and **primary key** in order to fetch row
 ```swift
 class Person : RowModel {
     override class var databaseTable: Table? {
-        return Table(named:"persons", primaryKey: .RowID("id"))
+        return Table(named: "persons", primaryKey: .RowID("id"))
     }
 }
 
