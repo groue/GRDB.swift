@@ -25,6 +25,7 @@
 import XCTest
 import GRDB
 
+// Item has no primary key.
 class Item: RowModel {
     var name: String?
     

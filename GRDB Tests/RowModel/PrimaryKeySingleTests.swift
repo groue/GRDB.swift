@@ -25,6 +25,7 @@
 import XCTest
 import GRDB
 
+// Pet has a non-RowID primary key, and a reference to Person.
 class Pet: RowModel {
     var UUID: String?
     var masterID: Int64?
@@ -183,8 +184,8 @@ class PrimaryKeySingleTests: RowModelTestCase {
                 pet = db.fetchOne(Pet.self, primaryKey: pet.UUID!)!
                 XCTAssertEqual(pet.name!, "Karl")
                 
+                try pet.delete(db)
                 do {
-                    try pet.delete(db)
                     try pet.update(db)      // object no longer in database
                     XCTFail("Expected RowModelError.RowModelNotFound")
                 } catch RowModelError.RowModelNotFound {
@@ -193,6 +194,39 @@ class PrimaryKeySingleTests: RowModelTestCase {
                 }
                 
                 return .Commit
+            }
+        }
+    }
+    
+    func testSave() {
+        assertNoError {
+            let person = Person(name: "Arthur", age: 41)
+            try dbQueue.inTransaction { db in
+                try person.insert(db)
+                return .Commit
+            }
+            
+            let pet = Pet(UUID: "BobbyID", name: "Bobby", masterID: person.id)
+            
+            try dbQueue.inTransaction { db in
+                try pet.save(db)       // insert
+                let petCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM pets")!
+                XCTAssertEqual(petCount, 1)
+                return .Commit
+            }
+            
+            try dbQueue.inTransaction { db in
+                try pet.save(db)       // update
+                let petCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM pets")!
+                XCTAssertEqual(petCount, 1)
+                return .Commit
+            }
+            
+            try dbQueue.inDatabase { db in
+                try pet.delete(db)
+                try pet.save(db)       // inserts
+                let petCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM pets")!
+                XCTAssertEqual(petCount, 1)
             }
         }
     }

@@ -25,6 +25,7 @@
 import XCTest
 import GRDB
 
+// Person has a RowID primary key, and a overriden insert() method.
 class Person: RowModel {
     var id: Int64!
     var name: String!
@@ -159,8 +160,8 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 arthur = db.fetchOne(Person.self, primaryKey: arthur.id)!
                 XCTAssertEqual(arthur.age, 42)
                 
+                try arthur.delete(db)
                 do {
-                    try arthur.delete(db)
                     try arthur.update(db)           // object no longer in database
                     XCTFail("Expected RowModelError.RowModelNotFound")
                 } catch RowModelError.RowModelNotFound {
@@ -175,32 +176,26 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     
     func testSave() {
         assertNoError {
-            let arthur = Person(name: "Arthur", age: 41)
+            let person = Person(name: "Arthur", age: 41)
             
-            XCTAssertTrue(arthur.id == nil)
+            XCTAssertTrue(person.id == nil)
             try dbQueue.inTransaction { db in
-                try arthur.save(db)             // insert
+                try person.save(db)             // insert
                 return .Commit
             }
-            XCTAssertTrue(arthur.id != nil)
-            arthur.age = 18
+            XCTAssertTrue(person.id != nil)
+            person.age = 18
             try dbQueue.inTransaction { db in
-                try arthur.save(db)             // update
+                try person.save(db)             // update
                 return .Commit
             }
             
-            try dbQueue.inDatabase{ db in
-                let arthur2 = db.fetchOne(Person.self, primaryKey: arthur.id!)!
-                XCTAssertEqual(arthur2.age!, 18)
-                
-                try arthur2.delete(db)
-                do {
-                    try arthur.save(db)         // object no longer in database
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                } catch {
-                    XCTFail("Expected RowModelError.RowModelNotFound, not \(error)")
-                }
+            
+            try dbQueue.inDatabase { db in
+                try person.delete(db)
+                try person.save(db)       // inserts
+                let persons = db.fetchAll(Person.self, "SELECT * FROM persons")
+                XCTAssertEqual(persons.count, 1)
             }
         }
     }

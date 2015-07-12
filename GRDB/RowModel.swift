@@ -248,7 +248,12 @@ public class RowModel {
     }
     
     /**
-    Updates if row model has a non-nil primary key, and inserts otherwise.
+    Stores the row model in the database.
+    
+    If the row model has a non-nil primary key and a matching row in the
+    database, this method performs an update.
+    
+    Otherwise, performs an insert.
     
     - parameter db: A Database.
     */
@@ -438,7 +443,7 @@ public class RowModel {
                 //    recoverable.
                 // 2. fatalError, assuming it is a programmer error to "forget"
                 //    keys from storedDatabaseDictionary.
-                // 3. do nothing and return.
+                // 3. do nothing.
                 //
                 // Option 1 is not OK, because this error couldn't be recovered
                 // at runtime: the implementation of storedDatabaseDictionary
@@ -447,7 +452,19 @@ public class RowModel {
                 // I remember opening rdar://problem/10236982, based on a Core
                 // Data entity without any attribute. It was for testing
                 // purpose, and the test did not require any attribute, so the
-                // Core Data entity had no attribute. So let's choose option 3:
+                // Core Data entity had no attribute. So let's choose option 3,
+                // and do nothing.
+                //
+                // But that's not quite ended: update() is supposed to throw
+                // RowModelNotFound when there is no matching row in the
+                // database. I mean, consistency is important. So:
+                
+                let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
+                let sql = "SELECT 1 FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
+                let row = db.fetchOneRow(sql, bindings: Bindings(primaryKeyDictionary.values))
+                guard row != nil else {
+                    throw RowModelError.RowModelNotFound(rowModel)
+                }
                 return
             }
             
@@ -466,8 +483,12 @@ public class RowModel {
         
         func save(db: Database) throws -> (String, Int64)? {
             if let _ = strongPrimaryKeyDictionary {
-                try update(db)
-                return nil
+                do {
+                    try update(db)
+                    return nil
+                } catch RowModelError.RowModelNotFound {
+                    return try insert(db)
+                }
             } else {
                 return try insert(db)
             }
@@ -495,7 +516,7 @@ public class RowModel {
             let sql = "DELETE FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
             try db.execute(sql, bindings: bindings)
         }
-
+        
         func fetchOneRow(db: Database) throws -> Row? {
             // Fail early if databaseTable is nil (not overriden)
             guard databaseTable != nil else {

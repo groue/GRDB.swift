@@ -17,6 +17,10 @@
 		5683C2691B4D445E00296494 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5683C2681B4D445E00296494 /* libsqlite3.dylib */; };
 		569978CB1B5243BB005EBEED /* DictionaryRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569978CA1B5243BB005EBEED /* DictionaryRowTests.swift */; };
 		569978CC1B5243BB005EBEED /* DictionaryRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569978CA1B5243BB005EBEED /* DictionaryRowTests.swift */; };
+		569978CF1B525CA9005EBEED /* MinimalPrimaryKeyRowIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569978CD1B525CA9005EBEED /* MinimalPrimaryKeyRowIDTests.swift */; };
+		569978D01B525CA9005EBEED /* MinimalPrimaryKeyRowIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569978CD1B525CA9005EBEED /* MinimalPrimaryKeyRowIDTests.swift */; };
+		569978D11B525CA9005EBEED /* MinimalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569978CE1B525CA9005EBEED /* MinimalPrimaryKeySingleTests.swift */; };
+		569978D21B525CA9005EBEED /* MinimalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569978CE1B525CA9005EBEED /* MinimalPrimaryKeySingleTests.swift */; };
 		5699AE571B42C34A00C35172 /* Statement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE561B42C34A00C35172 /* Statement.swift */; };
 		5699AE591B42CD7800C35172 /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE581B42CD7800C35172 /* Row.swift */; };
 		5699AE5B1B42D3DC00C35172 /* SelectStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */; };
@@ -121,6 +125,8 @@
 		565E191D1B42B2B600D32814 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		5683C2681B4D445E00296494 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk/usr/lib/libsqlite3.dylib; sourceTree = DEVELOPER_DIR; };
 		569978CA1B5243BB005EBEED /* DictionaryRowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DictionaryRowTests.swift; sourceTree = "<group>"; };
+		569978CD1B525CA9005EBEED /* MinimalPrimaryKeyRowIDTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MinimalPrimaryKeyRowIDTests.swift; sourceTree = "<group>"; };
+		569978CE1B525CA9005EBEED /* MinimalPrimaryKeySingleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MinimalPrimaryKeySingleTests.swift; sourceTree = "<group>"; };
 		5699AE561B42C34A00C35172 /* Statement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Statement.swift; sourceTree = "<group>"; };
 		5699AE581B42CD7800C35172 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
 		5699AE5A1B42D3DC00C35172 /* SelectStatement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectStatement.swift; sourceTree = "<group>"; };
@@ -242,6 +248,8 @@
 		56C9E6521B468EB200DDC541 /* RowModel */ = {
 			isa = PBXGroup;
 			children = (
+				569978CD1B525CA9005EBEED /* MinimalPrimaryKeyRowIDTests.swift */,
+				569978CE1B525CA9005EBEED /* MinimalPrimaryKeySingleTests.swift */,
 				56C9E6531B468EB200DDC541 /* PrimaryKeyMultipleTests.swift */,
 				56C9E6541B468EB200DDC541 /* PrimaryKeyNoneTests.swift */,
 				56C9E6561B468EB200DDC541 /* PrimaryKeyRowIDTests.swift */,
@@ -575,6 +583,7 @@
 				56E5D8261B4D435D00430942 /* CustomDatabaseValueConvertibleTests.swift in Sources */,
 				56E5D8231B4D435D00430942 /* RowModelInitializersTests.swift in Sources */,
 				56105B131B4F18CC002CD224 /* RowModelIsEditedTests.swift in Sources */,
+				569978D01B525CA9005EBEED /* MinimalPrimaryKeyRowIDTests.swift in Sources */,
 				56E5D8211B4D435D00430942 /* RowModelDescriptionTests.swift in Sources */,
 				56E5D8251B4D435D00430942 /* RowModelTestCase.swift in Sources */,
 				56E5D8201B4D435D00430942 /* PrimaryKeySingleTests.swift in Sources */,
@@ -586,6 +595,7 @@
 				56E5D82B1B4D435D00430942 /* SelectStatementTests.swift in Sources */,
 				56E5D8291B4D435D00430942 /* DatabaseErrorTests.swift in Sources */,
 				56E5D8271B4D435D00430942 /* RawRepresentableTests.swift in Sources */,
+				569978D21B525CA9005EBEED /* MinimalPrimaryKeySingleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -605,6 +615,7 @@
 				56E5D8061B4D424400430942 /* InMemoryDatabaseTests.swift in Sources */,
 				56E5D80F1B4D424400430942 /* RowModelInitializersTests.swift in Sources */,
 				56105B121B4F18CC002CD224 /* RowModelIsEditedTests.swift in Sources */,
+				569978CF1B525CA9005EBEED /* MinimalPrimaryKeyRowIDTests.swift in Sources */,
 				56E5D80C1B4D424400430942 /* PrimaryKeySingleTests.swift in Sources */,
 				56E5D8151B4D424400430942 /* DatabaseErrorTests.swift in Sources */,
 				56E5D8161B4D424400430942 /* UpdateStatementTests.swift in Sources */,
@@ -616,6 +627,7 @@
 				56E5D80D1B4D424400430942 /* RowModelDescriptionTests.swift in Sources */,
 				56E5D80B1B4D424400430942 /* PrimaryKeyRowIDTests.swift in Sources */,
 				56E5D8111B4D424400430942 /* RowModelTestCase.swift in Sources */,
+				569978D11B525CA9005EBEED /* MinimalPrimaryKeySingleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

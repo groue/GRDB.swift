@@ -25,6 +25,7 @@
 import XCTest
 import GRDB
 
+// Citizenship has a multiple-column primary key.
 class Citizenship: RowModel {
     var personID: Int64?
     var countryName: String?
@@ -172,8 +173,8 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 XCTAssertEqual(citizenship.countryName!, "France")
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: citizenship.grantedDate!), 2000)
                 
+                try citizenship.delete(db)
                 do {
-                    try citizenship.delete(db)
                     try citizenship.update(db)      // object no longer in database
                     XCTFail("Expected RowModelError.RowModelNotFound")
                 } catch RowModelError.RowModelNotFound {
@@ -182,6 +183,41 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 }
                 
                 return .Commit
+            }
+        }
+    }
+    
+    func testSave() {
+        assertNoError {
+            let person = Person(name: "Arthur", age: 41)
+            try dbQueue.inTransaction { db in
+                try person.insert(db)
+                return .Commit
+            }
+            
+            let citizenship = Citizenship()
+            citizenship.personID = person.id
+            citizenship.countryName = "France"
+            
+            try dbQueue.inTransaction { db in
+                try citizenship.save(db)       // insert
+                let citizenshipCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM citizenships")!
+                XCTAssertEqual(citizenshipCount, 1)
+                return .Commit
+            }
+            
+            try dbQueue.inTransaction { db in
+                try citizenship.save(db)       // update
+                let citizenshipCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM citizenships")!
+                XCTAssertEqual(citizenshipCount, 1)
+                return .Commit
+            }
+            
+            try dbQueue.inDatabase { db in
+                try citizenship.delete(db)
+                try citizenship.save(db)       // inserts
+                let citizenshipCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM citizenships")!
+                XCTAssertEqual(citizenshipCount, 1)
             }
         }
     }

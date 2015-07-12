@@ -35,6 +35,8 @@ class RowModelTestCase : GRDBTestCase {
         migrator.registerMigration("createPets", Pet.setupInDatabase)
         migrator.registerMigration("createItems", Item.setupInDatabase)
         migrator.registerMigration("createCitizenships", Citizenship.setupInDatabase)
+        migrator.registerMigration("createMinimalRowIDs", MinimalRowID.setupInDatabase)
+        migrator.registerMigration("createMinimalSingles", MinimalSingle.setupInDatabase)
         
         assertNoError {
             try migrator.migrate(dbQueue)
