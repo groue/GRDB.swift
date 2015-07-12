@@ -521,6 +521,10 @@ do {
         "INSERT INTO pets (masterId, name) VALUES (?, ?)",
         bindings: [1, "Bobby"])
 } catch let error as DatabaseError {
+    // SQLite error 19 with statement `INSERT INTO pets (masterId, name)
+    // VALUES (?, ?)` bindings [1, "Bobby"]: FOREIGN KEY constraint failed
+    error.description
+    
     // The SQLite result code: 19 (SQLITE_CONSTRAINT)
     error.code
     
@@ -531,11 +535,6 @@ do {
     // The eventual erroneous SQL query
     // "INSERT INTO pets (masterId, name) VALUES (?, ?)"
     error.sql
-    
-    // The full error message
-    // "SQLite error 19 with statement `INSERT INTO pets (masterId, name)
-    // VALUES (?, ?)` bindings [1, \"Bobby\"]: FOREIGN KEY constraint failed"
-    error.description
 }
 ```
 
