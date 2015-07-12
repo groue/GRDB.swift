@@ -187,36 +187,18 @@ public struct Bindings {
         impl.bindInStatement(statement)
     }
     
-    // Supported usage: loading of RowModel by multiple-columns primary keys:
-    //
-    //     let person = db.fetchOne(Person.self, primaryKey: Bindings)
-    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValueConvertible?] {
-        return impl.dictionary(defaultColumnNames: defaultColumnNames)
-    }
-    
     // Support for array-based bindings
     private struct BindingsArrayImpl : BindingsImpl {
         let values: [DatabaseValueConvertible?]
+        
         init(values: [DatabaseValueConvertible?]) {
             self.values = values
         }
+        
         func bindInStatement(statement: Statement) {
             for (index, value) in values.enumerate() {
                 statement.bind(value, atIndex: index + 1)
             }
-        }
-        func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValueConvertible?] {
-            guard let defaultColumnNames = defaultColumnNames else {
-                fatalError("Missing column names")
-            }
-            guard defaultColumnNames.count == values.count else {
-                fatalError("Columns count mismatch.")
-            }
-            var dictionary = [String : DatabaseValueConvertible?]()
-            for (column, value) in zip(defaultColumnNames, values) {
-                dictionary[column] = value
-            }
-            return dictionary
         }
         
         var description: String {
@@ -240,16 +222,15 @@ public struct Bindings {
     // Support for dictionary-based bindings
     private struct BindingsDictionaryImpl : BindingsImpl {
         let dictionary: [String: DatabaseValueConvertible?]
+        
         init(dictionary: [String: DatabaseValueConvertible?]) {
             self.dictionary = dictionary
         }
+        
         func bindInStatement(statement: Statement) {
             for (key, value) in dictionary {
                 statement.bind(value, forKey: key)
             }
-        }
-        func dictionary( defaultColumnNames defaultColumnNames: [String]?) -> [String : DatabaseValueConvertible?] {
-            return dictionary
         }
         
         var description: String {
@@ -328,7 +309,6 @@ public struct Bindings {
 // The protocol for Bindings underlying implementation
 protocol BindingsImpl : CustomStringConvertible {
     func bindInStatement(statement: Statement)
-    func dictionary(defaultColumnNames defaultColumnNames: [String]?) -> [String: DatabaseValueConvertible?]
 }
 
 
