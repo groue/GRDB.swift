@@ -67,86 +67,29 @@ public final class DatabaseQueue {
     
     // MARK: - Database access
     
-    // IMPLEMENTATON NOTE
-    //
-    // When one sees code like:
-    //
-    //      try dbQueue.inDatabase { db in
-    //          try db.execute("INSERT ...")
-    //      }
-    //
-    // One can wonder why there is no direct DatabaseQueue.execute() methods:
-    //
-    //      // Look, Ma! No block!
-    //      try dbQueue.execute("INSERT ...")
-    //
-    // Well, this is on purpose. Let's imagine what would happen if such method
-    // would exist:
-    //
-    //      try dbQueue.execute("INSERT ...")
-    //      let id = dbQueue.lastInsertedRowID
-    //
-    // Boom. The user feels like he can load the last inserted row ID, and he
-    // has just introduced a bug: between the two lines of code, some other
-    // statements may have been executed in other threads: the last inserted row
-    // ID may well be irrelevant.
-    //
-    // So until lastInsertedRowID is only accessible through the result of the
-    // statement execution, we don't provide any dbQueue.execute() function. And
-    // for consistency, no dbQueue.fetchXXX() method :-)
-    
     /**
-    Executes a throwing block in the database queue.
-    
-        try dbQueue.inDatabase { db in
-            try db.execute(...)
-        }
-    
-    This method is not reentrant.
-    
-    - parameter block: A block that accesses the databse.
-    */
-    public func inDatabase(block: (db: Database) throws -> Void) throws {
-        guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-            fatalError("DatabaseQueue.inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
-        }
-        
-        var dbError: ErrorType?
-        dispatch_sync(queue) { () -> Void in
-            do {
-                try block(db: self.database)
-            } catch {
-                dbError = error
-            }
-        }
-        if let dbError = dbError {
-            throw dbError
-        }
-    }
-    
-    /**
-    Executes a non-throwing block in the database queue.
+    Executes a block in the database queue.
     
         dbQueue.inDatabase { db in
             db.fetch(...)
         }
-    
+
     This method is not reentrant.
     
     - parameter block: A block that accesses the databse.
     */
-    public func inDatabase(block: (db: Database) -> Void) {
+    public func inDatabase(block: (db: Database) throws -> Void) rethrows {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
             fatalError("DatabaseQueue.inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
         }
         
-        dispatch_sync(queue) { () -> Void in
-            block(db: self.database)
+        try DatabaseQueue.performSync(queue) { () -> Void in
+            try block(db: self.database)
         }
     }
     
     /**
-    Executes a non-throwing block in the database queue, and returns its result.
+    Executes a block in the database queue, and returns its result.
     
         let rows = dbQueue.inDatabase { db in
             db.fetch(...)
@@ -154,20 +97,17 @@ public final class DatabaseQueue {
     
     This method is not reentrant.
     
-    - parameter block: A block that accesses the databse and returns some result.
+    - parameter block: A block that accesses the databse.
     */
-    public func inDatabase<Result>(block: (db: Database) -> Result) -> Result {
+    public func inDatabase<R>(block: (db: Database) throws -> R) rethrows -> R {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
             fatalError("DatabaseQueue.inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
         }
         
-        var result: Result? = nil
-        dispatch_sync(queue) { () -> Void in
-            result = block(db: self.database)
+        return try DatabaseQueue.performSync(queue) { () -> R in
+            return try block(db: self.database)
         }
-        return result!
     }
-    
     
     /**
     Executes a block in the database queue, wrapped inside a transaction.
@@ -192,19 +132,11 @@ public final class DatabaseQueue {
             fatalError("DatabaseQueue.inTransaction(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
         }
         
-        var dbError: ErrorType?
         let database = self.database
-        dispatch_sync(queue) { () -> Void in
-            do {
-                try database.inTransaction(type) { () in
-                    return try block(db: database)
-                }
-            } catch {
-                dbError = error
+        try DatabaseQueue.performSync(queue) { () -> Void in
+            try database.inTransaction(type) { () in
+                return try block(db: database)
             }
-        }
-        if let dbError = dbError {
-            throw dbError
         }
     }
     
@@ -237,6 +169,31 @@ public final class DatabaseQueue {
         dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
     }
     
+    // A function declared as rethrows that synchronously executes a throwing
+    // block in a dispatch_queue.
+    static func performSync<R>(queue: dispatch_queue_t, block: () throws -> R) rethrows -> R {
+        func rethrow(myerror:ErrorType) throws ->()
+        {
+            throw myerror
+        }
+        func perform_sync_impl(queue: dispatch_queue_t, block: () throws -> R, block2:((myerror:ErrorType) throws -> ()) ) rethrows -> R {
+            var result: R? = nil
+            var blockError: ErrorType? = nil
+            dispatch_sync(queue) {
+                do {
+                    result = try block()
+                } catch {
+                    blockError = error
+                }
+            }
+            if let blockError = blockError {
+                try block2(myerror: blockError)
+            }
+            return result!
+        }
+        return try perform_sync_impl(queue, block: block, block2: rethrow)
+    }
+
 }
 
 typealias DatabaseQueueID = UnsafeMutablePointer<Void>
