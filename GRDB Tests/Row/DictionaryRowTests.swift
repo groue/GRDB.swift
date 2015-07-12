@@ -65,5 +65,6 @@ class DictionaryRowTests: GRDBTestCase {
         
         // Expect fatal error:
         // row.value(named: "foo")
+        // row.value(named: "foo") as Int?
     }
 }
