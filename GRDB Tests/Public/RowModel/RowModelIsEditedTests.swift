@@ -109,6 +109,21 @@ class RowModelIsEditedTests: RowModelTestCase {
         }
     }
     
+    func testRowModelIsNotEditedAfterSave() {
+        // After save, a model is not edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = Person(name: "Arthur", age: 41)
+                try person.save(db)
+                XCTAssertFalse(person.isEdited)
+                person.name = "Bobby"
+                XCTAssertTrue(person.isEdited)
+                try person.save(db)
+                XCTAssertFalse(person.isEdited)
+            }
+        }
+    }
+    
     func testRowModelIsNotEditedAfterReload() {
         // After reload, a model is not edited.
         assertNoError {

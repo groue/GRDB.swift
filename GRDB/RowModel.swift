@@ -267,6 +267,9 @@ public class RowModel {
             if let (rowIDColumn, insertedRowID) = insertionResult {
                 setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
             }
+            
+            // Not edited any longer
+            referenceRow = Row(dictionary: storedDatabaseDictionary)
         }
     }
     
