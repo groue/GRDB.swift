@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Future release
+
+**Fixed**
+
+- `RowModel.save(db)` clears the edited flag of the row model.
+
+
 ## 0.4.0
 
 **Breaking changes**
