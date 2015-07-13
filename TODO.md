@@ -1,8 +1,3 @@
 - [ ] Fetch with a collection of primary keys: db.fetch(RowModel.type, primaryKeys:[...]). Problem: users will often want to sort, so the plain SELECT * FROM persons WHERE id IN (?,?,?) won't be appreciated. Needs more thought.
 - [ ] Let Bindings eat arrays, or make it easy to generate series of ?,?,?,?
-- [X] When one calls modelRow.insert(db), and has defined the table, but forgets to override storedDatabaseDictionary, he gets "SQLite error 1 with statement `INSERT INTO "persons" () VALUES ()`: near ")": syntax error" which does not tell him to override storedDatabaseDictionary.
-- [ ] Test for the item above
-- [X] When one forgets to set the primaryKey in setDatabaseValue(_:column:), he has issues later deleting or updating. It's difficult to know why the delete fails.
-- [ ] Test for the item above
-- [ ] Test RowModels made of a primary key and nothing else.
 - [ ] Remove RowModelError.Dummy when rdar://problem/21707972 is fixed.
