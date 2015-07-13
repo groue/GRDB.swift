@@ -23,7 +23,7 @@
 
 
 import XCTest
-@testable import GRDB
+import GRDB
 
 // Tests about how minimal can class go regarding their initializers
 
@@ -124,9 +124,7 @@ class RowModelInitializersTests : RowModelTestCase {
         // Here we test that RowModel.init(row: Row) can be overriden independently from RowModel.init().
         // People must be able to perform some initialization work when fetching row models from the database.
         
-        // The basics: test the initializedFromRow property:
         XCTAssertFalse(RowModelWithPedigree().initializedFromRow)
-        XCTAssertTrue(RowModelWithPedigree(row: Row(databaseDictionary: [:])).initializedFromRow)
         
         assertNoError {
             try dbQueue.inDatabase { db in

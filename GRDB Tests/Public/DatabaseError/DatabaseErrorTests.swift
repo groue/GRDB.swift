@@ -23,7 +23,7 @@
 
 
 import XCTest
-@testable import GRDB
+import GRDB
 
 class DatabaseErrorTests: GRDBTestCase {
     
@@ -78,22 +78,6 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertEqual(error.message!, "FOREIGN KEY constraint failed")
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
                 XCTAssertEqual(error.description, "SQLite error 19 with statement `INSERT INTO pets (masterId, name) VALUES (?, ?)` bindings [1, \"Bobby\"]: FOREIGN KEY constraint failed")
-            } catch {
-                XCTFail("\(error)")
-            }
-        }
-    }
-    
-    func testDatabaseErrorThrownBySelectStatementContainSQL() {
-        dbQueue.inDatabase { db in
-            do {
-                let _ = try SelectStatement(database: db, sql: "SELECT * FROM blah", bindings: nil, unsafe: false)
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 1)
-                XCTAssertEqual(error.message!, "no such table: blah")
-                XCTAssertEqual(error.sql!, "SELECT * FROM blah")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT * FROM blah`: no such table: blah")
             } catch {
                 XCTFail("\(error)")
             }
