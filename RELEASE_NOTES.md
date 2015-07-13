@@ -10,6 +10,8 @@ Release Notes
 
 ## 0.4.0
 
+Released July 12, 2015
+
 **Fixed**
 
 - `RowModel.save(db)` makes its best to store values in the database. In particular, when the row model has a non-nil primary key, it will insert when there is no row to update. It used to throw RowModelNotFound in this case.
