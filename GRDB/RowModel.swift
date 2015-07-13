@@ -307,15 +307,27 @@ public class RowModel {
     
     // MARK: - Version
     
+    /// A Version represents a state of a rowModel.
     private class Version {
-        /// Version will NEVER change the rowModel.
+        
+        /// The rowModel. The Version will never modify it.
         let rowModel: RowModel
         
+        /**
+        Version keeps a copy the rowModel's storedDatabaseDictionary, so that
+        this dictionary is built once whatever the database operation.
+        */
         let storedDatabaseDictionary: [String: DatabaseValueConvertible?]
         
         lazy var databaseTable: Table? = self.rowModel.dynamicType.databaseTable
         
-        // A primary key dictionary. Its values may be nil.
+        /**
+        A dictionary of primary key columns that may identify a row in the
+        database. Hence its "weak" name.
+        
+        It is nil when rowModel has no primary key. Its values come from the
+        storedDatabaseDictionary and may be nil.
+        */
         lazy var weakPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
             guard let primaryKey = self.databaseTable?.primaryKey else {
                 return nil
@@ -349,7 +361,12 @@ public class RowModel {
             }
         }()
         
-        // A primary key dictionary. At least one of its values is not nil.
+        /**
+        A dictionary of primary key columns that surely identifies a row in the
+        database. Hence its "strong" name.
+        
+        It is nil when the weakPrimaryKey is nil or only contains nil values.
+        */
         lazy var strongPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
             guard let dictionary = self.weakPrimaryKeyDictionary else {
                 return nil
@@ -365,8 +382,10 @@ public class RowModel {
             storedDatabaseDictionary = rowModel.storedDatabaseDictionary
         }
         
-        /// Returns an optional (rowIDColumn, insertedRowID) if and only if the
-        /// row model should be updated.
+        /**
+        Returns (rowIDColumn, insertedRowID) if the INSERT statement has
+        generated a new SQLite rowID, and nil otherwise.
+        */
         func insert(db: Database) throws -> (String, Int64)? {
             // Fail early if databaseTable is nil (not overriden)
             guard let table = databaseTable else {
@@ -409,7 +428,8 @@ public class RowModel {
                 return nil
             }
         }
-
+        
+        /// UPDATE
         func update(db: Database) throws {
             // Fail early if databaseTable is nil (not overriden)
             guard let table = databaseTable else {
@@ -481,6 +501,7 @@ public class RowModel {
             }
         }
         
+        /// UPDATE
         func save(db: Database) throws -> (String, Int64)? {
             if let _ = strongPrimaryKeyDictionary {
                 do {
@@ -494,6 +515,7 @@ public class RowModel {
             }
         }
         
+        /// DELETE
         func delete(db: Database) throws {
             // Fail early if databaseTable is nil (not overriden)
             guard let table = databaseTable else {
