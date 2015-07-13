@@ -118,47 +118,40 @@ final class DataMapper {
     
     // MARK: - CRUD
     
-    /**
-    Returns (rowIDColumn, insertedRowID) if the INSERT statement has
-    generated a new SQLite rowID, and nil otherwise.
-    */
+    /// INSERT
+    ///
+    /// Returns (rowIDColumn, insertedRowID) if the row model has a currently
+    /// nil RowID primary key, and nil otherwise.
     func insert(db: Database) throws -> (String, Int64)? {
         // Fail early if databaseTable is nil (not overriden)
         guard let table = databaseTable else {
             fatalError("Nil Table returned from \(rowModel.dynamicType).databaseTable")
         }
         
-        // We need something to insert
-        let insertedDic = storedDatabaseDictionary
-        guard insertedDic.count > 0 else {
+        // Fail early if storedDatabaseDictionary is empty (not overriden)
+        guard storedDatabaseDictionary.count > 0 else {
             fatalError("Invalid empty dictionary returned from \(rowModel.dynamicType).storedDatabaseDictionary")
         }
         
         // INSERT
-        let insertStatement = try DataMapper.insertStatement(db, tableName: table.name, insertedColumns: Array(insertedDic.keys))
-        let bindings = Bindings(insertedDic.values)
+        let insertStatement = try DataMapper.insertStatement(db, tableName: table.name, insertedColumns: Array(storedDatabaseDictionary.keys))
+        let bindings = Bindings(storedDatabaseDictionary.values)
         let changes = try insertStatement.execute(bindings: bindings)
         
-        // Update RowID column if needed
-        guard let primaryKey = table.primaryKey else {
-            return nil
-        }
-        switch primaryKey {
-        case .RowID(let column):
-            guard let currentID = storedDatabaseDictionary[column] else {
-                fatalError("\(rowModel.dynamicType).storedDatabaseDictionary must return the value for the primary key `(column)`")
+        // Return inserted RowID column if needed: currently nil RowID primary key.
+        if let primaryKey = table.primaryKey, case .RowID(let rowIDColumn) = primaryKey {
+            guard let rowID = storedDatabaseDictionary[rowIDColumn] else {
+                fatalError("\(rowModel.dynamicType).storedDatabaseDictionary must return the value for the primary key `(rowIDColumn)`")
             }
-            if let _ = currentID {
-                // RowID is already set.
-                return nil
+            if rowID == nil {
+                // RowID is not set yet: tell RowModel
+                return (rowIDColumn, changes.insertedRowID!)
             } else {
-                // RowID is not set yet.
-                let insertedRowID = changes.insertedRowID!
-                
-                // Tell RowModel
-                return (column, insertedRowID)
+                // RowID is already set: no need for RowID.
+                return nil
             }
-        default:
+        } else {
+            // No RowID primary Key: no need for RowID
             return nil
         }
     }
@@ -213,9 +206,8 @@ final class DataMapper {
             // RowNotFound when there is no matching row in the
             // database. I mean, consistency is important. So:
             
-            let whereSQL = " AND ".join(primaryKeyDictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
-            let sql = "SELECT 1 FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
-            let row = db.fetchOneRow(sql, bindings: Bindings(primaryKeyDictionary.values))
+            let existsStatement = DataMapper.existsStatement(db, tableName: table.name, conditionColumns: Array(primaryKeyDictionary.keys))
+            let row = existsStatement.fetchOneRow(bindings: Bindings(primaryKeyDictionary.values))
             guard row != nil else {
                 throw DataMapperError.RowNotFound
             }
@@ -235,14 +227,14 @@ final class DataMapper {
     
     /// UPDATE or INSERT
     func save(db: Database) throws -> (String, Int64)? {
-        if let _ = strongPrimaryKeyDictionary {
-            do {
-                try update(db)
-                return nil
-            } catch DataMapperError.RowNotFound {
-                return try insert(db)
-            }
-        } else {
+        if strongPrimaryKeyDictionary == nil {
+            return try insert(db)
+        }
+        
+        do {
+            try update(db)
+            return nil
+        } catch DataMapperError.RowNotFound {
             return try insert(db)
         }
     }
@@ -270,7 +262,7 @@ final class DataMapper {
         try deleteStatement.execute(bindings: bindings)
     }
     
-    // SELECT
+    /// SELECT
     func reloadStatement(db: Database) throws -> SelectStatement {
         // Fail early if databaseTable is nil (not overriden)
         guard let table = databaseTable else {
@@ -317,6 +309,13 @@ final class DataMapper {
         let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
         let sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
         return try db.updateStatement(sql)
+    }
+    
+    private class func existsStatement(db: Database, tableName: String, conditionColumns: [String]) -> SelectStatement {
+        // "SELECT 1 FROM table WHERE id = ?"
+        let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+        let sql = "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
+        return db.selectStatement(sql)
     }
 
     private class func selectStatement(db: Database, tableName: String, conditionColumns: [String]) -> SelectStatement {
