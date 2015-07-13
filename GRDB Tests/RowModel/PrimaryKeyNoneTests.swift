@@ -104,6 +104,27 @@ class PrimaryKeyNoneTests: RowModelTestCase {
         }
     }
     
+    func testSave() {
+        assertNoError {
+            let item = Item()
+            item.name = "foo"
+            
+            try dbQueue.inTransaction { db in
+                try item.save(db)       // insert
+                let itemCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM items")!
+                XCTAssertEqual(itemCount, 1)
+                return .Commit
+            }
+            
+            try dbQueue.inTransaction { db in
+                try item.save(db)       // insert
+                let itemCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM items")!
+                XCTAssertEqual(itemCount, 2)
+                return .Commit
+            }
+        }
+    }
+    
     func testSelectWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
