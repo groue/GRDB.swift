@@ -216,8 +216,8 @@ public class RowModel {
     - parameter db: A Database.
     */
     public func insert(db: Database) throws {
-        try withDataMapperErrorTranslation {
-            let insertionResult = try DataMapper(self).insert(db)
+        try withDataMapper { dataMapper in
+            let insertionResult = try dataMapper.insert(db)
             
             // Update RowID column if needed
             if let (rowIDColumn, insertedRowID) = insertionResult {
@@ -241,8 +241,8 @@ public class RowModel {
     - parameter db: A Database.
     */
     public func update(db: Database) throws {
-        try withDataMapperErrorTranslation {
-            try DataMapper(self).update(db)
+        try withDataMapper { dataMapper in
+            try dataMapper.update(db)
             
             // Not edited any longer
             referenceRow = Row(dictionary: storedDatabaseDictionary)
@@ -260,8 +260,8 @@ public class RowModel {
     - parameter db: A Database.
     */
     final public func save(db: Database) throws {
-        try withDataMapperErrorTranslation {
-            let insertionResult = try DataMapper(self).save(db)
+        try withDataMapper { dataMapper in
+            let insertionResult = try dataMapper.save(db)
             
             // Update RowID column if needed
             if let (rowIDColumn, insertedRowID) = insertionResult {
@@ -282,8 +282,8 @@ public class RowModel {
     - parameter db: A Database.
     */
     public func delete(db: Database) throws {
-        try withDataMapperErrorTranslation {
-            try DataMapper(self).delete(db)
+        try withDataMapper { dataMapper in
+            try dataMapper.delete(db)
             
             // Future calls to update will throw RowModelNotFound. Make the user
             // a favor and make sure this error is thrown even if she checks the
@@ -304,8 +304,8 @@ public class RowModel {
     - parameter db: A Database.
     */
     public func reload(db: Database) throws {
-        try withDataMapperErrorTranslation {
-            let statement = try DataMapper(self).reloadStatement(db)
+        try withDataMapper { dataMapper in
+            let statement = try dataMapper.reloadStatement(db)
             if let row = statement.fetchOneRow() {
                 for (column, databaseValue) in row {
                     setDatabaseValue(databaseValue, forColumn: column)
@@ -320,11 +320,12 @@ public class RowModel {
     }
     
     
-    // MARK: - DataMapper Support
+    // MARK: - DataMapper
     
-    private func withDataMapperErrorTranslation(@noescape block: () throws -> Void) throws {
+    /// Creates a DataMapper, and translates DataMapperError into RowModelError.
+    private func withDataMapper(@noescape block: (DataMapper) throws -> Void) throws {
         do {
-            try block()
+            try block(DataMapper(self))
         } catch let error as DataMapperError {
             switch error {
             case .InvalidPrimaryKey:
@@ -334,10 +335,285 @@ public class RowModel {
             }
         }
     }
+
+    /// DataMapper takes care of RowModel CRUD
+    private final class DataMapper {
+        
+        /// The rowModel type
+        let rowModel: RowModelType
+        
+        /// DataMapper keeps a copy the rowModel's storedDatabaseDictionary, so
+        /// that this dictionary is built once whatever the database operation.
+        /// It is guaranteed to have at least one (key, value) pair.
+        let storedDatabaseDictionary: [String: DatabaseValueConvertible?]
+        
+        /// The table definition
+        let databaseTable: RowModel.Table
+        
+        
+        // MARK: - Primary Key
+        
+        /**
+        A dictionary of primary key columns that may or not identify a row in
+        the database because its values may all be nil. Hence its "weak" name.
+        
+        It is nil when rowModel has no primary key. Its values come from the
+        storedDatabaseDictionary.
+        */
+        lazy var weakPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
+            guard let primaryKey = self.databaseTable.primaryKey else {
+                return nil
+            }
+            switch primaryKey {
+            case .RowID(let column):
+                if let value = self.storedDatabaseDictionary[column] {
+                    return [column: value]
+                } else {
+                    return [column: nil]
+                }
+                
+            case .Column(let column):
+                if let value = self.storedDatabaseDictionary[column] {
+                    return [column: value]
+                } else {
+                    return [column: nil]
+                }
+                
+            case .Columns(let columns):
+                let storedDatabaseDictionary = self.storedDatabaseDictionary
+                var primaryKeyDictionary = [String: DatabaseValueConvertible?]()
+                for column in columns {
+                    if let value = storedDatabaseDictionary[column] {
+                        primaryKeyDictionary[column] = value
+                    } else {
+                        primaryKeyDictionary[column] = nil
+                    }
+                }
+                return primaryKeyDictionary
+            }
+            }()
+        
+        /**
+        A dictionary of primary key columns that surely identifies a row in the
+        database because not all its values are nil. Hence its "strong" name.
+        
+        It is nil when the weakPrimaryKey is nil or only contains nil values.
+        */
+        lazy var strongPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
+            guard let dictionary = self.weakPrimaryKeyDictionary else {
+                return nil
+            }
+            for case let value? in dictionary.values {
+                return dictionary // At least one non-nil value in the primary key dictionary is OK.
+            }
+            return nil
+            }()
+        
+        
+        // MARK: - Initializer
+        
+        init(_ rowModel: RowModelType) {
+            // Fail early if databaseTable is nil (not overriden)
+            guard let databaseTable = rowModel.dynamicType.databaseTable else {
+                fatalError("Nil Table returned from \(rowModel.dynamicType).databaseTable")
+            }
+            
+            // Fail early if storedDatabaseDictionary is empty (not overriden)
+            let storedDatabaseDictionary = rowModel.storedDatabaseDictionary
+            guard storedDatabaseDictionary.count > 0 else {
+                fatalError("Invalid empty dictionary returned from \(rowModel.dynamicType).storedDatabaseDictionary")
+            }
+            
+            self.rowModel = rowModel
+            self.storedDatabaseDictionary = storedDatabaseDictionary
+            self.databaseTable = databaseTable
+        }
+        
+        
+        // MARK: - CRUD
+        
+        /// INSERT
+        ///
+        /// Returns (rowIDColumn, insertedRowID) if the row model has a
+        /// currently nil RowID primary key, and nil otherwise.
+        func insert(db: Database) throws -> (String, Int64)? {
+            // INSERT
+            let insertStatement = try DataMapper.insertStatement(db, tableName: databaseTable.name, insertedColumns: Array(storedDatabaseDictionary.keys))
+            let bindings = Bindings(storedDatabaseDictionary.values)
+            let changes = try insertStatement.execute(bindings: bindings)
+            
+            // Return inserted RowID column if needed: currently nil RowID primary key.
+            if let primaryKey = databaseTable.primaryKey, case .RowID(let rowIDColumn) = primaryKey {
+                guard let rowID = storedDatabaseDictionary[rowIDColumn] else {
+                    fatalError("\(rowModel.dynamicType).storedDatabaseDictionary must return the value for the primary key `(rowIDColumn)`")
+                }
+                if rowID == nil {
+                    // RowID is not set yet: tell RowModel
+                    return (rowIDColumn, changes.insertedRowID!)
+                } else {
+                    // RowID is already set: no need for RowID.
+                    return nil
+                }
+            } else {
+                // No RowID primary Key: no need for RowID
+                return nil
+            }
+        }
+        
+        /// UPDATE
+        func update(db: Database) throws {
+            // Update requires strongPrimaryKeyDictionary
+            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+                throw DataMapperError.InvalidPrimaryKey
+            }
+            
+            // Don't update primary key columns
+            var updatedDictionary = storedDatabaseDictionary
+            for column in primaryKeyDictionary.keys {
+                updatedDictionary.removeValueForKey(column)
+            }
+            
+            // We need something to update.
+            guard updatedDictionary.count > 0 else {
+                // The RowModel is made of a primary key, without any other
+                // column: we can't update anything.
+                //
+                // Three options:
+                //
+                // 1. throw some RowModelError, assuming this error is
+                //    recoverable.
+                // 2. fatalError, assuming it is a programmer error to "forget"
+                //    keys from storedDatabaseDictionary.
+                // 3. do nothing.
+                //
+                // Option 1 is not OK, because this error couldn't be recovered
+                // at runtime: the implementation of storedDatabaseDictionary
+                // must be changed.
+                //
+                // I remember opening rdar://problem/10236982, based on a Core
+                // Data entity without any attribute. It was for testing
+                // purpose, and the test did not require any attribute, so the
+                // Core Data entity had no attribute. So let's choose option 3,
+                // and do nothing.
+                //
+                // But that's not quite ended: update() is supposed to throw
+                // RowNotFound when there is no matching row in the
+                // database. Consistency is important:
+                
+                let existsStatement = DataMapper.existsStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
+                let row = existsStatement.fetchOneRow(bindings: Bindings(primaryKeyDictionary.values))
+                guard row != nil else {
+                    throw DataMapperError.RowNotFound
+                }
+                return
+            }
+            
+            // Update
+            let updateStatement = try DataMapper.updateStatement(db, tableName: databaseTable.name, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys))
+            let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
+            let changes = try updateStatement.execute(bindings: bindings)
+            
+            // Check is some row was actually changed
+            if changes.changedRowCount == 0 {
+                throw DataMapperError.RowNotFound
+            }
+        }
+        
+        /// UPDATE or INSERT
+        func save(db: Database) throws -> (String, Int64)? {
+            if strongPrimaryKeyDictionary == nil {
+                return try insert(db)
+            }
+            
+            do {
+                try update(db)
+                return nil
+            } catch DataMapperError.RowNotFound {
+                return try insert(db)
+            }
+        }
+        
+        /// DELETE
+        func delete(db: Database) throws {
+            // Delete requires strongPrimaryKeyDictionary
+            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+                throw DataMapperError.InvalidPrimaryKey
+            }
+            
+            // Delete
+            let deleteStatement = try DataMapper.deleteStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
+            let bindings = Bindings(Array(primaryKeyDictionary.values))
+            try deleteStatement.execute(bindings: bindings)
+        }
+        
+        /// SELECT
+        func reloadStatement(db: Database) throws -> SelectStatement {
+            // fetchOneRow requires strongPrimaryKeyDictionary
+            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+                throw DataMapperError.InvalidPrimaryKey
+            }
+            
+            // Fetch
+            let selectStatement = DataMapper.selectStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
+            selectStatement.bindings = Bindings(primaryKeyDictionary.values)
+            return selectStatement
+        }
+        
+        
+        // MARK: - SQL statements
+        
+        private class func insertStatement(db: Database, tableName: String, insertedColumns: [String]) throws -> UpdateStatement {
+            // INSERT INTO table (id, name) VALUES (?, ?)
+            let columnSQL = ",".join(insertedColumns.map { $0.quotedDatabaseIdentifier })
+            let valuesSQL = ",".join([String](count: insertedColumns.count, repeatedValue: "?"))
+            let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
+            return try db.updateStatement(sql)
+        }
+        
+        private class func updateStatement(db: Database, tableName: String, updatedColumns: [String], conditionColumns: [String]) throws -> UpdateStatement {
+            // "UPDATE table SET name = ? WHERE id = ?"
+            let updateSQL = ",".join(updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+            let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+            let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(conditionSQL)"
+            return try db.updateStatement(sql)
+        }
+        
+        private class func deleteStatement(db: Database, tableName: String, conditionColumns: [String]) throws -> UpdateStatement {
+            // "DELETE FROM table WHERE id = ?"
+            let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+            let sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
+            return try db.updateStatement(sql)
+        }
+        
+        private class func existsStatement(db: Database, tableName: String, conditionColumns: [String]) -> SelectStatement {
+            // "SELECT 1 FROM table WHERE id = ?"
+            let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+            let sql = "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
+            return db.selectStatement(sql)
+        }
+
+        private class func selectStatement(db: Database, tableName: String, conditionColumns: [String]) -> SelectStatement {
+            // "SELECT * FROM table WHERE id = ?"
+            let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+            let sql = "SELECT * FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
+            return db.selectStatement(sql)
+        }
+    }
+
+    private enum DataMapperError : ErrorType {
+        case InvalidPrimaryKey
+        case RowNotFound
+    }
 }
 
 
-// MARK: - DataMapper Support
+// MARK: - RowModelType
+
+/// An immutable view to RowModel
+protocol RowModelType {
+    static var databaseTable: RowModel.Table? { get }
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
+}
 
 extension RowModel : RowModelType { }
 
