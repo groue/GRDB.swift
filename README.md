@@ -126,7 +126,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 ## Database
 
-You access SQLite databases through thread-safe database queues (inspired by [ccgus/FMDB](https://github.com/ccgus/fmdb)):
+You access SQLite databases through thread-safe database queues (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
@@ -807,4 +807,4 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 - [Pierlis](http://pierlis.com), where we write great software.
 - [@pierlo](https://github.com/pierlo) for his feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
-- [ccgus/FMDB](https://github.com/ccgus/fmdb) for its excellency.
+- [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
