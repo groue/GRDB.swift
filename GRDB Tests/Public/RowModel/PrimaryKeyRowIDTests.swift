@@ -457,7 +457,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 let rowModel = Person(name: "Arthur")
                 try rowModel.insert(db)
                 
-                let fetchedRowModel = db.fetchOne(Person.self, key: ["name": "Arthur"])!
+                let fetchedRowModel = db.fetchOne(Person.self, key: ["name": rowModel.name])!
                 XCTAssertTrue(fetchedRowModel.id == rowModel.id)
                 XCTAssertTrue(fetchedRowModel.name == rowModel.name)
                 XCTAssertTrue(fetchedRowModel.age == rowModel.age)
@@ -465,6 +465,4 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
             }
         }
     }
-    
-    // TODO: fetch sequence & fetch array
 }

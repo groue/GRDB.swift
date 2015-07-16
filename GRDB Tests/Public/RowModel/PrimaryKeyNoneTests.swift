@@ -44,6 +44,15 @@ class Item: RowModel {
         }
     }
     
+    init (name: String? = nil) {
+        self.name = name
+        super.init()
+    }
+    
+    required init(row: Row) {
+        super.init(row: row)
+    }
+    
     static func setupInDatabase(db: Database) throws {
         try db.execute(
             "CREATE TABLE items (" +
@@ -53,87 +62,50 @@ class Item: RowModel {
 }
 
 class PrimaryKeyNoneTests: RowModelTestCase {
-
-    func testInsert() {
-        // Models with None primary key should be able to be inserted.
-        
+    
+    
+    // MARK:- Insert
+    
+    func testInsertInsertsARow() {
         assertNoError {
-            let item = Item()
-            item.name = "foo"
-            
-            try dbQueue.inTransaction { db in
-                // The tested method
-                try item.insert(db)
+            try dbQueue.inDatabase { db in
+                let rowModel = Item(name: "Table")
+                try rowModel.insert(db)
+                try rowModel.insert(db)
                 
-                return .Commit
-            }
-            
-            // After insertion, model should be present in the database
-            dbQueue.inDatabase { db in
-                let items = db.fetchAll(Item.self, "SELECT * FROM items ORDER BY name")
-                XCTAssertEqual(items.count, 1)
-                XCTAssertEqual(items.first!.name!, "foo")
+                let names = db.fetchAll(String.self, "SELECT name FROM items").map { $0! }
+                XCTAssertEqual(names, ["Table", "Table"])
             }
         }
     }
     
-    func testInsertTwice() {
-        // Models with None primary key should be able to be inserted.
-        //
-        // The second insertion simply inserts a second row.
-        
+    
+    // MARK:- Save
+    
+    func testSaveInsertsARow() {
         assertNoError {
-            let item = Item()
-            item.name = "foo"
-            
-            try dbQueue.inTransaction { db in
-                // The tested method
-                try item.insert(db)
-                try item.insert(db)
+            try dbQueue.inDatabase { db in
+                let rowModel = Item(name: "Table")
+                try rowModel.save(db)
+                try rowModel.save(db)
                 
-                return .Commit
-            }
-            
-            // After insertion, model should be present in the database
-            dbQueue.inDatabase { db in
-                let items = db.fetchAll(Item.self, "SELECT * FROM items ORDER BY name")
-                XCTAssertEqual(items.count, 2)
-                XCTAssertEqual(items.first!.name!, "foo")
-                XCTAssertEqual(items.last!.name!, "foo")
+                let names = db.fetchAll(String.self, "SELECT name FROM items").map { $0! }
+                XCTAssertEqual(names, ["Table", "Table"])
             }
         }
     }
     
-    func testSave() {
-        assertNoError {
-            let item = Item()
-            item.name = "foo"
-            
-            try dbQueue.inTransaction { db in
-                try item.save(db)       // insert
-                let itemCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM items")!
-                XCTAssertEqual(itemCount, 1)
-                return .Commit
-            }
-            
-            try dbQueue.inTransaction { db in
-                try item.save(db)       // insert
-                let itemCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM items")!
-                XCTAssertEqual(itemCount, 2)
-                return .Commit
-            }
-        }
-    }
+    
+    // MARK: - Select
     
     func testSelectWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                var item = Item()
-                item.name = "foo"
-                try item.insert(db)
+                let rowModel = Item(name: "Table")
+                try rowModel.insert(db)
                 
-                item = db.fetchOne(Item.self, key: ["name": "foo"])!
-                XCTAssertEqual(item.name!, "foo")
+                let fetchedRowModel = db.fetchOne(Item.self, key: ["name": rowModel.name])!
+                XCTAssertTrue(fetchedRowModel.name == rowModel.name)
             }
         }
     }

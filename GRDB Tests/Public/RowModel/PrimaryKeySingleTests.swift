@@ -426,7 +426,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
                 let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try rowModel.insert(db)
                 
-                let fetchedRowModel = db.fetchOne(Pet.self, key: ["name": "Bobby"])!
+                let fetchedRowModel = db.fetchOne(Pet.self, key: ["name": rowModel.name])!
                 XCTAssertTrue(fetchedRowModel.UUID == rowModel.UUID)
                 XCTAssertTrue(fetchedRowModel.name == rowModel.name)
             }
