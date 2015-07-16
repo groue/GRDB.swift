@@ -5,7 +5,7 @@ Release Notes
 
 **Fixed**
 
-- `RowModel.save(db)` clears the edited flag of the row model.
+- `RowModel.save(db)` calls `RowModel.insert(db)` or `RowModel.update(db)` so that eventual overridden versions of `insert` or `update` are invoked.
 - `Bindings(_ array: NSArray)` and `Bindings(_ array: NSDictionary)` now accept NSData elements.
 
 
