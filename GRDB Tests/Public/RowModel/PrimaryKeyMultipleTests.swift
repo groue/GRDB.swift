@@ -77,7 +77,7 @@ class Citizenship: RowModel {
 class PrimaryKeyMultipleTests: RowModelTestCase {
     
     
-    // MARK:- Insert
+    // MARK: - Insert
     
     func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
@@ -148,7 +148,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Update
+    // MARK: - Update
     
     func testUpdateWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -216,7 +216,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Save
+    // MARK: - Save
     
     func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
@@ -250,7 +250,6 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
             }
         }
     }
-    
     
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
@@ -293,7 +292,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Delete
+    // MARK: - Delete
     
     func testDeleteWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -344,7 +343,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Reload
+    // MARK: - Reload
     
     func testReloadWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {

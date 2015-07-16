@@ -89,7 +89,7 @@ class Person: RowModel {
 class PrimaryKeyRowIDTests: RowModelTestCase {
     
     
-    // MARK:- Insert
+    // MARK: - Insert
     
     func testInsertWithNilPrimaryKeyInsertsARowAndSetsPrimaryKey() {
         assertNoError {
@@ -165,7 +165,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     
-    // MARK:- Update
+    // MARK: - Update
     
     func testUpdateWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -233,7 +233,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     
-    // MARK:- Save
+    // MARK: - Save
     
     func testSaveWithNilPrimaryKeyInsertsARowAndSetsPrimaryKey() {
         assertNoError {
@@ -315,7 +315,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     
-    // MARK:- Delete
+    // MARK: - Delete
     
     func testDeleteWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -366,7 +366,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     
-    // MARK:- Reload
+    // MARK: - Reload
     
     func testReloadWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {

@@ -64,7 +64,7 @@ class Item: RowModel {
 class PrimaryKeyNoneTests: RowModelTestCase {
     
     
-    // MARK:- Insert
+    // MARK: - Insert
     
     func testInsertInsertsARow() {
         assertNoError {
@@ -80,7 +80,7 @@ class PrimaryKeyNoneTests: RowModelTestCase {
     }
     
     
-    // MARK:- Save
+    // MARK: - Save
     
     func testSaveInsertsARow() {
         assertNoError {

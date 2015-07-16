@@ -54,7 +54,7 @@ class MinimalRowID: RowModel {
 class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
     
     
-    // MARK:- Insert
+    // MARK: - Insert
     
     func testInsertWithNilPrimaryKeyInsertsARowAndSetsPrimaryKey() {
         assertNoError {
@@ -131,7 +131,7 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     
-    // MARK:- Update
+    // MARK: - Update
     
     func testUpdateWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -199,7 +199,7 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     
-    // MARK:- Save
+    // MARK: - Save
     
     func testSaveWithNilPrimaryKeyInsertsARowAndSetsPrimaryKey() {
         assertNoError {
@@ -239,7 +239,6 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
             }
         }
     }
-    
     
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
@@ -281,7 +280,7 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     
-    // MARK:- Delete
+    // MARK: - Delete
     
     func testDeleteWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -333,7 +332,7 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     
-    // MARK:- Reload
+    // MARK: - Reload
     
     func testReloadWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {

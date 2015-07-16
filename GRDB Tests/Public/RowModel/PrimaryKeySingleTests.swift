@@ -70,7 +70,7 @@ class Pet: RowModel {
 class PrimaryKeySingleTests: RowModelTestCase {
     
     
-    // MARK:- Insert
+    // MARK: - Insert
     
     func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
@@ -141,7 +141,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Update
+    // MARK: - Update
     
     func testUpdateWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -209,7 +209,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Save
+    // MARK: - Save
     
     func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
@@ -243,7 +243,6 @@ class PrimaryKeySingleTests: RowModelTestCase {
             }
         }
     }
-    
     
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
@@ -286,7 +285,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Delete
+    // MARK: - Delete
     
     func testDeleteWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -337,7 +336,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Reload
+    // MARK: - Reload
     
     func testReloadWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {

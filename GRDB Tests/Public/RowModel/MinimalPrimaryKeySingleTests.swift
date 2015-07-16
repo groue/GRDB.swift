@@ -54,7 +54,7 @@ class MinimalSingle: RowModel {
 class MinimalPrimaryKeySingleTests: RowModelTestCase {
     
     
-    // MARK:- Insert
+    // MARK: - Insert
     
     func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
@@ -128,7 +128,7 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Update
+    // MARK: - Update
     
     func testUpdateWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -198,7 +198,7 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Save
+    // MARK: - Save
     
     func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
@@ -233,7 +233,6 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
             }
         }
     }
-    
     
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
@@ -277,7 +276,7 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Delete
+    // MARK: - Delete
     
     func testDeleteWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
@@ -331,7 +330,7 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
     }
     
     
-    // MARK:- Reload
+    // MARK: - Reload
     
     func testReloadWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
         assertNoError {
