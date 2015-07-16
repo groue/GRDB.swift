@@ -265,16 +265,17 @@ public class RowModel {
     - parameter db: A Database.
     */
     final public func save(db: Database) throws {
-        try withDataMapper { dataMapper in
-            let insertionResult = try dataMapper.save(db)
-            
-            // Update RowID column if needed
-            if let (rowIDColumn, insertedRowID) = insertionResult {
-                setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
-            }
-            
-            // Not edited any longer
-            referenceRow = Row(dictionary: storedDatabaseDictionary)
+        // Make sure we call self.insert and self.update so that classes that
+        // override insert or save have opportunity to perform their custom job.
+        
+        if DataMapper(self).strongPrimaryKeyDictionary == nil {
+            return try insert(db)
+        }
+        
+        do {
+            try update(db)
+        } catch RowModelError.RowModelNotFound {
+            return try insert(db)
         }
     }
     
@@ -521,20 +522,6 @@ public class RowModel {
             // Check is some row was actually changed
             if changes.changedRowCount == 0 {
                 throw DataMapperError.RowNotFound
-            }
-        }
-        
-        /// UPDATE or INSERT
-        func save(db: Database) throws -> (String, Int64)? {
-            if strongPrimaryKeyDictionary == nil {
-                return try insert(db)
-            }
-            
-            do {
-                try update(db)
-                return nil
-            } catch DataMapperError.RowNotFound {
-                return try insert(db)
             }
         }
         
