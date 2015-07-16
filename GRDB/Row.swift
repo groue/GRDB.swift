@@ -248,21 +248,6 @@ public struct Row: CollectionType {
         }
     }
     
-    func containsSameColumnsAndValuesAsRow(other: Row) -> Bool {
-        guard count == other.count else {
-            return true
-        }
-        for (key, dbv) in self {
-            guard let otherDbv = other[key] else {
-                return true
-            }
-            if dbv != otherDbv {
-                return true
-            }
-        }
-        return false
-    }
-    
     
     // MARK: - DictionaryRowImpl
     

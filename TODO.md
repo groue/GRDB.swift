@@ -1,4 +1,3 @@
 - [ ] Fetch with a collection of primary keys: db.fetch(RowModel.type, primaryKeys:[...]). Problem: users will often want to sort, so the plain SELECT * FROM persons WHERE id IN (?,?,?) won't be appreciated. Needs more thought.
 - [ ] Let Bindings eat arrays, or make it easy to generate series of ?,?,?,?
 - [ ] Remove RowModelError.Dummy when rdar://problem/21707972 is fixed.
-- [ ] Test that RowModel.isEdited returns false when rowmodel is fetched with more columns that it stores.

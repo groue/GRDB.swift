@@ -189,8 +189,17 @@ public class RowModel {
             return true
         }
         
-        let currentRow = Row(dictionary: storedDatabaseDictionary)
-        return referenceRow.containsSameColumnsAndValuesAsRow(currentRow)
+        // All stored database values must match reference database values
+        for (column, storedValue) in storedDatabaseDictionary {
+            guard let referenceDatabaseValue = referenceRow[column] else {
+                return true
+            }
+            let storedDatabaseValue = storedValue?.databaseValue ?? .Null
+            if storedDatabaseValue != referenceDatabaseValue {
+                return true
+            }
+        }
+        return false
     }
     
     /**

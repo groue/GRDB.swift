@@ -48,6 +48,20 @@ class RowModelIsEditedTests: RowModelTestCase {
         }
     }
     
+    func testRowModelIsNotEditedAfterWiderThanFullFetch() {
+        // Fetch a model from a row that contains all the columns in
+        // storedDatabaseDictionary, plus extra ones: An update statement, which
+        // only saves the columns in storedDatabaseDictionary would perform no
+        // change. So the model is not edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try Person(name: "Arthur", age: 41).insert(db)
+                let person = db.fetchOne(Person.self, "SELECT *, 1 AS foo FROM persons")!
+                XCTAssertFalse(person.isEdited)
+            }
+        }
+    }
+    
     func testRowModelIsEditedAfterPartialFetch() {
         // Fetch a model from a row that does not contain all the columns in
         // storedDatabaseDictionary: An update statement saves the columns in
