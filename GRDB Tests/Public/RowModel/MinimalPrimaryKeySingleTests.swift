@@ -77,7 +77,6 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
                 let rowModel = MinimalSingle()
                 rowModel.UUID = "theUUID"
                 try rowModel.insert(db)
-                XCTAssertEqual(rowModel.UUID, "theUUID")
                 
                 let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
@@ -222,7 +221,6 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
                 let rowModel = MinimalSingle()
                 rowModel.UUID = "theUUID"
                 try rowModel.save(db)
-                XCTAssertEqual(rowModel.UUID, "theUUID")
                 
                 let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])!
                 for (key, value) in rowModel.storedDatabaseDictionary {

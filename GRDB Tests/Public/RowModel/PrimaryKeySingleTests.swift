@@ -92,7 +92,6 @@ class PrimaryKeySingleTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try rowModel.insert(db)
-                XCTAssertEqual(rowModel.UUID, "BobbyUUID")
                 
                 let row = db.fetchOneRow("SELECT * FROM pets WHERE UUID = ?", bindings: [rowModel.UUID])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
@@ -232,7 +231,6 @@ class PrimaryKeySingleTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try rowModel.save(db)
-                XCTAssertEqual(rowModel.UUID, "BobbyUUID")
                 
                 let row = db.fetchOneRow("SELECT * FROM pets WHERE UUID = ?", bindings: [rowModel.UUID])!
                 for (key, value) in rowModel.storedDatabaseDictionary {

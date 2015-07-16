@@ -82,7 +82,6 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
                 let rowModel = MinimalRowID()
                 rowModel.id = 123456
                 try rowModel.insert(db)
-                XCTAssertEqual(rowModel.id, 123456)
                 
                 let row = db.fetchOneRow("SELECT * FROM minimalRowIDs WHERE id = ?", bindings: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
@@ -228,7 +227,6 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
                 let rowModel = MinimalRowID()
                 rowModel.id = 123456
                 try rowModel.save(db)
-                XCTAssertEqual(rowModel.id, 123456)
                 
                 let row = db.fetchOneRow("SELECT * FROM minimalRowIDs WHERE id = ?", bindings: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {

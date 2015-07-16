@@ -55,7 +55,8 @@ class Person: RowModel {
         }
     }
     
-    init (name: String? = nil, age: Int? = nil) {
+    init (id: Int64? = nil, name: String? = nil, age: Int? = nil) {
+        self.id = id
         self.name = name
         self.age = age
         super.init()
@@ -113,10 +114,8 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Person(name: "Arthur")
-                rowModel.id = 123456
+                let rowModel = Person(id: 123456, name: "Arthur")
                 try rowModel.insert(db)
-                XCTAssertEqual(rowModel.id, 123456)
                 
                 let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
@@ -186,8 +185,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Person(name: "Arthur")
-                rowModel.id = 123456
+                let rowModel = Person(id: 123456, name: "Arthur")
                 do {
                     try rowModel.update(db)
                     XCTFail("Expected RowModelError.RowModelNotFound")
@@ -260,10 +258,8 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Person(name: "Arthur")
-                rowModel.id = 123456
+                let rowModel = Person(id: 123456, name: "Arthur")
                 try rowModel.save(db)
-                XCTAssertEqual(rowModel.id, 123456)
                 
                 let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
@@ -339,8 +335,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Person(name: "Arthur")
-                rowModel.id = 123456
+                let rowModel = Person(id: 123456, name: "Arthur")
                 try rowModel.delete(db)
             }
         }
@@ -391,8 +386,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Person(name: "Arthur")
-                rowModel.id = 123456
+                let rowModel = Person(id: 123456, name: "Arthur")
                 do {
                     try rowModel.reload(db)
                     XCTFail("Expected RowModelError.RowModelNotFound")
