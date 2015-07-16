@@ -255,8 +255,8 @@
 		5699796D1B539038005EBEED /* DatabaseValueConvertible */ = {
 			isa = PBXGroup;
 			children = (
-				5699796E1B539038005EBEED /* DBDateTests.swift */,
 				5699796F1B539038005EBEED /* DatabaseValueConvertibleTests.swift */,
+				5699796E1B539038005EBEED /* DBDateTests.swift */,
 				569979701B539038005EBEED /* RawRepresentableTests.swift */,
 			);
 			path = DatabaseValueConvertible;
