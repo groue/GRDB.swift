@@ -55,15 +55,6 @@ class Person: RowModel {
         }
     }
     
-    override func insert(db: Database) throws {
-        // TODO: test
-        if creationDate == nil {
-            creationDate = NSDate()
-        }
-        
-        try super.insert(db)
-    }
-    
     init (name: String? = nil, age: Int? = nil) {
         self.name = name
         self.age = age
@@ -72,6 +63,15 @@ class Person: RowModel {
     
     required init(row: Row) {
         super.init(row: row)
+    }
+    
+    override func insert(db: Database) throws {
+        // TODO: test
+        if creationDate == nil {
+            creationDate = NSDate()
+        }
+        
+        try super.insert(db)
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -86,119 +86,240 @@ class Person: RowModel {
 }
 
 class PrimaryKeyRowIDTests: RowModelTestCase {
-
-    func testInsert() {
-        // Models with RowID primary key should be able to be inserted with a
-        // nil primary key. After the insertion, they have their primary key
-        // set.
-        
-        assertNoError {
-            let arthur = Person(name: "Arthur", age: 41)
-            
-            XCTAssertTrue(arthur.id == nil)
-            try dbQueue.inTransaction { db in
-                // The tested method
-                try arthur.insert(db)
-                
-                // After insertion, ID should be set
-                XCTAssertTrue(arthur.id != nil)
-                
-                // After insertion, creationDate should be set
-                XCTAssertTrue(arthur.creationDate != nil)
-                
-                return .Commit
-            }
-            
-            // After insertion, model should be present in the database
-            dbQueue.inDatabase { db in
-                let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
-                XCTAssertEqual(persons.count, 1)
-                let person = persons.first!
-                XCTAssertEqual(person.name!, "Arthur")
-                XCTAssertEqual(person.age!, 41)
-                XCTAssertTrue(abs(person.creationDate!.timeIntervalSinceDate(NSDate())) < 1)
-            }
-        }
-    }
     
-    func testInsertTwice() {
-        // Models with RowID primary key should be able to be inserted with a
-        // nil primary key. After the insertion, they have their primary key
-        // set.
-        //
-        // The second insertion should fail because the primary key is already
-        // taken.
-        
+    
+    // MARK:- Insert
+    
+    func testInsertWithNilPrimaryKeyInsertsARowAndSetsPrimaryKey() {
         assertNoError {
-            let arthur = Person(name: "Arthur", age: 41)
-            
-            XCTAssertTrue(arthur.id == nil)
-            do {
-                try dbQueue.inTransaction { db in
-                    try arthur.insert(db)
-                    try arthur.insert(db)
-                    return .Commit
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                XCTAssertTrue(rowModel.id == nil)
+                try rowModel.insert(db)
+                XCTAssertTrue(rowModel.id != nil)
+                
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
                 }
-                XCTFail("Expected error")
-            } catch is DatabaseError {
-                // OK, this is expected
             }
         }
     }
     
-    func testUpdate() {
+    func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
-            try dbQueue.inTransaction { db in
-                var arthur = Person(name: "Arthur", age: 41)
-                XCTAssertTrue(arthur.id == nil)
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                rowModel.id = 123456
+                try rowModel.insert(db)
+                XCTAssertEqual(rowModel.id, 123456)
                 
-                try arthur.insert(db)
-                
-                arthur.age = 42
-                try arthur.update(db)               // object still in database
-                
-                arthur = db.fetchOne(Person.self, primaryKey: arthur.id)!
-                XCTAssertEqual(arthur.age, 42)
-                
-                try arthur.delete(db)
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testInsertWithNotNilPrimaryKeyThatMatchesARowThrowsDatabaseError() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
                 do {
-                    try arthur.update(db)           // object no longer in database
+                    try rowModel.insert(db)
+                    XCTFail("Expected DatabaseError")
+                } catch is DatabaseError {
+                    // Expected DatabaseError
+                }
+            }
+        }
+    }
+    
+    func testInsertAfterDeleteInsertsARow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                try rowModel.insert(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    // MARK:- Update
+    
+    func testUpdateWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                do {
+                    try rowModel.update(db)
+                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
+                } catch RowModelError.InvalidPrimaryKey {
+                    // Expected RowModelError.InvalidPrimaryKey
+                }
+            }
+        }
+    }
+    
+    func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                rowModel.id = 123456
+                do {
+                    try rowModel.update(db)
                     XCTFail("Expected RowModelError.RowModelNotFound")
                 } catch RowModelError.RowModelNotFound {
-                } catch {
-                    XCTFail("Expected RowModelError.RowModelNotFound, not \(error)")
+                    // Expected RowModelError.RowModelNotFound
                 }
-
-                return .Commit
             }
         }
     }
     
-    func testSave() {
+    func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
-            let person = Person(name: "Arthur", age: 41)
-            
-            XCTAssertTrue(person.id == nil)
-            try dbQueue.inTransaction { db in
-                try person.save(db)             // insert
-                return .Commit
-            }
-            XCTAssertTrue(person.id != nil)
-            person.age = 18
-            try dbQueue.inTransaction { db in
-                try person.save(db)             // update
-                return .Commit
-            }
-            
-            
             try dbQueue.inDatabase { db in
-                try person.delete(db)
-                try person.save(db)       // inserts
-                let persons = db.fetchAll(Person.self, "SELECT * FROM persons")
-                XCTAssertEqual(persons.count, 1)
+                let rowModel = Person(name: "Arthur", age: 41)
+                try rowModel.insert(db)
+                rowModel.age = rowModel.age + 1
+                try rowModel.update(db)
+
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
             }
         }
     }
+    
+    func testUpdateAfterDeleteThrowsRowModelNotFound() {
+        // A consequence of testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                do {
+                    try rowModel.update(db)
+                    XCTFail("Expected RowModelError.RowModelNotFound")
+                } catch RowModelError.RowModelNotFound {
+                    // Expected RowModelError.RowModelNotFound
+                }
+            }
+        }
+    }
+    
+    
+    // MARK:- Save
+    
+    func testSaveWithNilPrimaryKeyInsertsARowAndSetsPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                XCTAssertTrue(rowModel.id == nil)
+                try rowModel.save(db)
+                XCTAssertTrue(rowModel.id != nil)
+                
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                rowModel.id = 123456
+                try rowModel.save(db)
+                XCTAssertEqual(rowModel.id, 123456)
+                
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+
+    
+    func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur", age: 41)
+                try rowModel.insert(db)
+                rowModel.age = rowModel.age + 1
+                try rowModel.save(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testSaveAfterDeleteInsertsARow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                try rowModel.save(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    // MARK: - Select
     
     func testSelectWithPrimaryKey() {
         assertNoError {
@@ -235,16 +356,19 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
         }
     }
     
-    // TODO: make this code nicer
     func testSelectWithMultiplePrimaryKeys() {
         assertNoError {
             dbQueue.inDatabase { db in
+                // TODO: make this code nicer
                 let ids = [1,2,3]
                 let questionMarks = ",".join(Array(count: ids.count, repeatedValue: "?"))
                 db.fetchAll(Person.self, "SELECT * FROM persons WHERE id IN (\(questionMarks))", bindings: Bindings(ids))
             }
         }
     }
+    
+    
+    // MARK: - Delete
     
     func testDelete() {
         assertNoError {
@@ -267,6 +391,9 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
             }
         }
     }
+    
+    
+    // MARK: - Reload
     
     func testReload() {
         assertNoError {
