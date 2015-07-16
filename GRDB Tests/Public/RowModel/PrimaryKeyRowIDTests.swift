@@ -347,9 +347,8 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Person(name: "Arthur", age: 41)
+                let rowModel = Person(name: "Arthur")
                 try rowModel.insert(db)
-                rowModel.age = rowModel.age! + 1
                 try rowModel.delete(db)
                 
                 let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])
@@ -447,8 +446,6 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 try rowModel.insert(db)
                 
                 let fetchedRowModel = db.fetchOne(Person.self, primaryKey: rowModel.id)!
-                XCTAssertEqual(fetchedRowModel.id, rowModel.id)
-                XCTAssertEqual(fetchedRowModel.name, rowModel.name)
                 XCTAssertTrue(fetchedRowModel.id == rowModel.id)
                 XCTAssertTrue(fetchedRowModel.name == rowModel.name)
                 XCTAssertTrue(fetchedRowModel.age == rowModel.age)
@@ -464,8 +461,6 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 try rowModel.insert(db)
                 
                 let fetchedRowModel = db.fetchOne(Person.self, key: ["name": "Arthur"])!
-                XCTAssertEqual(fetchedRowModel.id, rowModel.id)
-                XCTAssertEqual(fetchedRowModel.name, rowModel.name)
                 XCTAssertTrue(fetchedRowModel.id == rowModel.id)
                 XCTAssertTrue(fetchedRowModel.name == rowModel.name)
                 XCTAssertTrue(fetchedRowModel.age == rowModel.age)
