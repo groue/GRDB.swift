@@ -29,7 +29,7 @@ import GRDB
 class Person: RowModel {
     var id: Int64!
     var name: String!
-    var age: Int!
+    var age: Int?
     var creationDate: NSDate!
     
     override class var databaseTable: Table? {
@@ -66,7 +66,7 @@ class Person: RowModel {
     }
     
     override func insert(db: Database) throws {
-        // TODO: test
+        // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = NSDate()
         }
@@ -78,7 +78,7 @@ class Person: RowModel {
         try db.execute(
             "CREATE TABLE persons (" +
                 "id INTEGER PRIMARY KEY, " +
-                "creationDate TEXT, " +
+                "creationDate TEXT NOT NULL, " +
                 "name TEXT NOT NULL, " +
                 "age INT" +
             ")")
@@ -202,7 +202,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Person(name: "Arthur", age: 41)
                 try rowModel.insert(db)
-                rowModel.age = rowModel.age + 1
+                rowModel.age = rowModel.age! + 1
                 try rowModel.update(db)
 
                 let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
@@ -218,7 +218,6 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     func testUpdateAfterDeleteThrowsRowModelNotFound() {
-        // A consequence of testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound
         assertNoError {
             try dbQueue.inDatabase { db in
                 let rowModel = Person(name: "Arthur")
@@ -283,7 +282,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Person(name: "Arthur", age: 41)
                 try rowModel.insert(db)
-                rowModel.age = rowModel.age + 1
+                rowModel.age = rowModel.age! + 1
                 try rowModel.save(db)
                 
                 let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
@@ -319,24 +318,141 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     }
     
     
+    // MARK:- Delete
+    
+    func testDeleteWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                do {
+                    try rowModel.delete(db)
+                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
+                } catch RowModelError.InvalidPrimaryKey {
+                    // Expected RowModelError.InvalidPrimaryKey
+                }
+            }
+        }
+    }
+    
+    func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                rowModel.id = 123456
+                try rowModel.delete(db)
+            }
+        }
+    }
+    
+    func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur", age: 41)
+                try rowModel.insert(db)
+                rowModel.age = rowModel.age! + 1
+                try rowModel.delete(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])
+                XCTAssertTrue(row == nil)
+            }
+        }
+    }
+    
+    func testDeleteAfterDeleteDoesNothing() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                try rowModel.delete(db)
+            }
+        }
+    }
+    
+    
+    // MARK:- Reload
+    
+    func testReloadWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                do {
+                    try rowModel.reload(db)
+                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
+                } catch RowModelError.InvalidPrimaryKey {
+                    // Expected RowModelError.InvalidPrimaryKey
+                }
+            }
+        }
+    }
+    
+    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                rowModel.id = 123456
+                do {
+                    try rowModel.reload(db)
+                    XCTFail("Expected RowModelError.RowModelNotFound")
+                } catch RowModelError.RowModelNotFound {
+                    // Expected RowModelError.RowModelNotFound
+                }
+            }
+        }
+    }
+    
+    func testReloadWithNotNilPrimaryKeyThatMatchesARowFetchesThatRow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur", age: 41)
+                try rowModel.insert(db)
+                rowModel.age = rowModel.age! + 1
+                try rowModel.reload(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", bindings: [rowModel.id])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testReloadAfterDeleteThrowsRowModelNotFound() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                do {
+                    try rowModel.reload(db)
+                    XCTFail("Expected RowModelError.RowModelNotFound")
+                } catch RowModelError.RowModelNotFound {
+                    // Expected RowModelError.RowModelNotFound
+                }
+            }
+        }
+    }
+    
+    
     // MARK: - Select
     
     func testSelectWithPrimaryKey() {
         assertNoError {
-            var arthurID: Int64? = nil
-            try dbQueue.inTransaction { db in
-                let arthur = Person(name: "Arthur", age: 41)
-                try arthur.insert(db)
-                arthurID = arthur.id
-                return .Commit
-            }
-            
-            dbQueue.inDatabase { db in
-                let arthur = db.fetchOne(Person.self, primaryKey: arthurID!)! // The tested method
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
                 
-                XCTAssertEqual(arthur.id!, arthurID!)
-                XCTAssertEqual(arthur.name!, "Arthur")
-                XCTAssertEqual(arthur.age!, 41)
+                let fetchedRowModel = db.fetchOne(Person.self, primaryKey: rowModel.id)!
+                XCTAssertEqual(fetchedRowModel.id, rowModel.id)
+                XCTAssertEqual(fetchedRowModel.name, rowModel.name)
+                XCTAssertTrue(fetchedRowModel.id == rowModel.id)
+                XCTAssertTrue(fetchedRowModel.name == rowModel.name)
+                XCTAssertTrue(fetchedRowModel.age == rowModel.age)
+                XCTAssertTrue(abs(fetchedRowModel.creationDate.timeIntervalSinceDate(rowModel.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
             }
         }
     }
@@ -344,82 +460,16 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
     func testSelectWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                var person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                let personID = person.id
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
                 
-                person = db.fetchOne(Person.self, key: ["name": "Arthur"])! // The tested method
-                XCTAssertEqual(person.id!, personID!)
-                XCTAssertEqual(person.name!, "Arthur")
-                XCTAssertEqual(person.age!, 41)
-            }
-        }
-    }
-    
-    func testSelectWithMultiplePrimaryKeys() {
-        assertNoError {
-            dbQueue.inDatabase { db in
-                // TODO: make this code nicer
-                let ids = [1,2,3]
-                let questionMarks = ",".join(Array(count: ids.count, repeatedValue: "?"))
-                db.fetchAll(Person.self, "SELECT * FROM persons WHERE id IN (\(questionMarks))", bindings: Bindings(ids))
-            }
-        }
-    }
-    
-    
-    // MARK: - Delete
-    
-    func testDelete() {
-        assertNoError {
-            try dbQueue.inTransaction { db in
-                let arthur = Person(name: "Arthur")
-                try arthur.insert(db)
-                
-                let barbara = Person(name: "Barbara")
-                try barbara.insert(db)
-                
-                try arthur.delete(db)   // The tested method
-                
-                return .Commit
-            }
-            
-            dbQueue.inDatabase { db in
-                let persons = db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY name")
-                XCTAssertEqual(persons.count, 1)
-                XCTAssertEqual(persons.first!.name!, "Barbara")
-            }
-        }
-    }
-    
-    
-    // MARK: - Reload
-    
-    func testReload() {
-        assertNoError {
-            try dbQueue.inTransaction { db in
-                let arthur = Person(name: "Arthur")
-                try arthur.insert(db)
-                
-                arthur.name = "Bobby"
-                XCTAssertEqual(arthur.name!, "Bobby")
-                try arthur.reload(db)                   // object still in database
-                XCTAssertEqual(arthur.name!, "Arthur")
-                
-                try arthur.delete(db)
-                
-                arthur.name = "Bobby"
-                XCTAssertEqual(arthur.name!, "Bobby")
-                do {
-                    try arthur.reload(db)               // object no longer in database
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                } catch {
-                    XCTFail("Expected RowModelError.RowModelNotFound, not \(error)")
-                }
-                XCTAssertEqual(arthur.name!, "Bobby")
-                
-                return .Commit
+                let fetchedRowModel = db.fetchOne(Person.self, key: ["name": "Arthur"])!
+                XCTAssertEqual(fetchedRowModel.id, rowModel.id)
+                XCTAssertEqual(fetchedRowModel.name, rowModel.name)
+                XCTAssertTrue(fetchedRowModel.id == rowModel.id)
+                XCTAssertTrue(fetchedRowModel.name == rowModel.name)
+                XCTAssertTrue(fetchedRowModel.age == rowModel.age)
+                XCTAssertTrue(abs(fetchedRowModel.creationDate.timeIntervalSinceDate(rowModel.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
             }
         }
     }
