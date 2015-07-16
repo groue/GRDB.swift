@@ -254,7 +254,8 @@ public struct Bindings {
     // IMPLEMENTATION NOTE:
     //
     // NSNumber, NSString, NSNull can't adopt DatabaseValueConvertible because
-    // Swift 2 won't make it possible.
+    // DatabaseValueConvertible has a Self reference which prevents non-final
+    // classes to adopt it.
     //
     // This is why this method exists. As a convenience for init(NSArray)
     // and init(NSDictionary), themselves conveniences for the library user.
@@ -265,6 +266,8 @@ public struct Bindings {
             return value
         case _ as NSNull:
             return nil
+        case let data as NSData:
+            return Blob(data)
         case let string as NSString:
             return string as String
         case let number as NSNumber:
