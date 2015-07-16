@@ -19,8 +19,8 @@
 		56997A3A1B539038005EBEED /* DatabaseErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699796A1B539038005EBEED /* DatabaseErrorTests.swift */; };
 		56997A3B1B539038005EBEED /* DatabaseMigratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699796C1B539038005EBEED /* DatabaseMigratorTests.swift */; };
 		56997A3C1B539038005EBEED /* DatabaseMigratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699796C1B539038005EBEED /* DatabaseMigratorTests.swift */; };
-		56997A3D1B539038005EBEED /* CustomDatabaseValueConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699796E1B539038005EBEED /* CustomDatabaseValueConvertibleTests.swift */; };
-		56997A3E1B539038005EBEED /* CustomDatabaseValueConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699796E1B539038005EBEED /* CustomDatabaseValueConvertibleTests.swift */; };
+		56997A3D1B539038005EBEED /* DBDateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699796E1B539038005EBEED /* DBDateTests.swift */; };
+		56997A3E1B539038005EBEED /* DBDateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699796E1B539038005EBEED /* DBDateTests.swift */; };
 		56997A3F1B539038005EBEED /* DatabaseValueConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699796F1B539038005EBEED /* DatabaseValueConvertibleTests.swift */; };
 		56997A401B539038005EBEED /* DatabaseValueConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699796F1B539038005EBEED /* DatabaseValueConvertibleTests.swift */; };
 		56997A411B539038005EBEED /* RawRepresentableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569979701B539038005EBEED /* RawRepresentableTests.swift */; };
@@ -122,7 +122,7 @@
 		569979681B539038005EBEED /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = "<group>"; };
 		5699796A1B539038005EBEED /* DatabaseErrorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseErrorTests.swift; sourceTree = "<group>"; };
 		5699796C1B539038005EBEED /* DatabaseMigratorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseMigratorTests.swift; sourceTree = "<group>"; };
-		5699796E1B539038005EBEED /* CustomDatabaseValueConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomDatabaseValueConvertibleTests.swift; sourceTree = "<group>"; };
+		5699796E1B539038005EBEED /* DBDateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DBDateTests.swift; sourceTree = "<group>"; };
 		5699796F1B539038005EBEED /* DatabaseValueConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleTests.swift; sourceTree = "<group>"; };
 		569979701B539038005EBEED /* RawRepresentableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RawRepresentableTests.swift; sourceTree = "<group>"; };
 		569979731B539038005EBEED /* FetchedRowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRowTests.swift; sourceTree = "<group>"; };
@@ -255,7 +255,7 @@
 		5699796D1B539038005EBEED /* DatabaseValueConvertible */ = {
 			isa = PBXGroup;
 			children = (
-				5699796E1B539038005EBEED /* CustomDatabaseValueConvertibleTests.swift */,
+				5699796E1B539038005EBEED /* DBDateTests.swift */,
 				5699796F1B539038005EBEED /* DatabaseValueConvertibleTests.swift */,
 				569979701B539038005EBEED /* RawRepresentableTests.swift */,
 			);
@@ -629,7 +629,7 @@
 				56997A461B539038005EBEED /* FetchedRowTests.swift in Sources */,
 				56E5D8181B4D435D00430942 /* GRDBTestCase.swift in Sources */,
 				56997A641B539038005EBEED /* UpdateStatementTests.swift in Sources */,
-				56997A3E1B539038005EBEED /* CustomDatabaseValueConvertibleTests.swift in Sources */,
+				56997A3E1B539038005EBEED /* DBDateTests.swift in Sources */,
 				56997A501B539038005EBEED /* PrimaryKeyRowIDTests.swift in Sources */,
 				56997A3C1B539038005EBEED /* DatabaseMigratorTests.swift in Sources */,
 				56997A621B539038005EBEED /* SelectStatementTests.swift in Sources */,
@@ -662,7 +662,7 @@
 				56997A451B539038005EBEED /* FetchedRowTests.swift in Sources */,
 				56E5D8041B4D424400430942 /* GRDBTestCase.swift in Sources */,
 				56997A631B539038005EBEED /* UpdateStatementTests.swift in Sources */,
-				56997A3D1B539038005EBEED /* CustomDatabaseValueConvertibleTests.swift in Sources */,
+				56997A3D1B539038005EBEED /* DBDateTests.swift in Sources */,
 				56997A4F1B539038005EBEED /* PrimaryKeyRowIDTests.swift in Sources */,
 				56997A3B1B539038005EBEED /* DatabaseMigratorTests.swift in Sources */,
 				56997A611B539038005EBEED /* SelectStatementTests.swift in Sources */,
