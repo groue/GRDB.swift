@@ -48,26 +48,43 @@ class CustomDatabaseValueConvertibleTests : GRDBTestCase {
             try dbQueue.inTransaction { db in
                 
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
+                let dateComponents = NSDateComponents()
+                dateComponents.year = 1973
+                dateComponents.month = 9
+                dateComponents.day = 18
+                dateComponents.hour = 10
+                dateComponents.minute = 11
+                dateComponents.second = 12
+                dateComponents.nanosecond = 123_456_789
+                
                 do {
-                    let dateComponents = NSDateComponents()
-                    dateComponents.year = 1973
-                    dateComponents.month = 09
-                    dateComponents.day = 18
                     let date = calendar.dateFromComponents(dateComponents)!
                     try db.execute("INSERT INTO stuffs (creationDate) VALUES (?)", bindings: [DBDate(date)])
                 }
                 
                 do {
                     let row = db.fetchOneRow("SELECT creationDate FROM stuffs")!
-                    let date: DBDate = row.value(atIndex: 0)!
-                    let year = calendar.component(NSCalendarUnit.Year, fromDate: date.date)
-                    XCTAssertEqual(year, 1973)
+                    let date = (row.value(atIndex: 0)! as DBDate).date
+                    // All components must be preserved, but nanosecond since ISO-8601 stores milliseconds.
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), dateComponents.year)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Month, fromDate: date), dateComponents.month)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Day, fromDate: date), dateComponents.day)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Hour, fromDate: date), dateComponents.hour)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Minute, fromDate: date), dateComponents.minute)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Second, fromDate: date), dateComponents.second)
+                    XCTAssertEqual(round(Double(calendar.component(NSCalendarUnit.Nanosecond, fromDate: date)) / 1e6), round(Double(dateComponents.nanosecond) / 1e6))
                 }
                 
                 do {
-                    let date = db.fetchOne(DBDate.self, "SELECT creationDate FROM stuffs")!
-                    let year = calendar.component(NSCalendarUnit.Year, fromDate: date.date)
-                    XCTAssertEqual(year, 1973)
+                    let date = db.fetchOne(DBDate.self, "SELECT creationDate FROM stuffs")!.date
+                    // All components must be preserved, but nanosecond since ISO-8601 stores milliseconds.
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), dateComponents.year)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Month, fromDate: date), dateComponents.month)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Day, fromDate: date), dateComponents.day)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Hour, fromDate: date), dateComponents.hour)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Minute, fromDate: date), dateComponents.minute)
+                    XCTAssertEqual(calendar.component(NSCalendarUnit.Second, fromDate: date), dateComponents.second)
+                    XCTAssertEqual(round(Double(calendar.component(NSCalendarUnit.Nanosecond, fromDate: date)) / 1e6), round(Double(dateComponents.nanosecond) / 1e6))
                 }
                 
                 return .Rollback
