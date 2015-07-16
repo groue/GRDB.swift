@@ -53,118 +53,367 @@ class MinimalSingle: RowModel {
 
 class MinimalPrimaryKeySingleTests: RowModelTestCase {
     
-    func testInsert() {
-        // Models with RowID primary key should be able to be inserted with a
-        // nil primary key. After the insertion, they have their primary key
-        // set.
-        
-        assertNoError {
-            let minimalSingle = MinimalSingle()
-            minimalSingle.UUID = "foo"
-            
-            try dbQueue.inTransaction { db in
-                // The tested method
-                try minimalSingle.insert(db)
-                return .Commit
-            }
-            
-            // After insertion, model should be present in the database
-            dbQueue.inDatabase { db in
-                let minimalSingles = db.fetchAll(MinimalSingle.self, "SELECT * FROM minimalSingles")
-                XCTAssertEqual(minimalSingles.count, 1)
-            }
-        }
-    }
     
-    func testInsertTwice() {
-        // Models with RowID primary key should be able to be inserted with a
-        // nil primary key. After the insertion, they have their primary key
-        // set.
-        //
-        // The second insertion should fail because the primary key is already
-        // taken.
-        
-        assertNoError {
-            let minimalSingle = MinimalSingle()
-            minimalSingle.UUID = "foo"
-            
-            do {
-                try dbQueue.inTransaction { db in
-                    try minimalSingle.insert(db)
-                    try minimalSingle.insert(db)
-                    return .Commit
-                }
-                XCTFail("Expected error")
-            } catch is DatabaseError {
-                // OK, this is expected
-            }
-        }
-    }
+    // MARK:- Insert
     
-    func testUpdate() {
+    func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
-            try dbQueue.inTransaction { db in
-                var minimalSingle = MinimalSingle()
-                minimalSingle.UUID = "foo"
-                
-                try minimalSingle.insert(db)
-                
-                try minimalSingle.update(db)               // object still in database
-                
-                minimalSingle = db.fetchOne(MinimalSingle.self, primaryKey: minimalSingle.UUID)!
-                try minimalSingle.delete(db)
-                
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                XCTAssertTrue(rowModel.UUID == nil)
                 do {
-                    try minimalSingle.update(db)           // object no longer in database
+                    try rowModel.insert(db)
+                    XCTFail("Expected DatabaseError")
+                } catch is DatabaseError {
+                    // Expected DatabaseError
+                }
+            }
+        }
+    }
+    
+    func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                XCTAssertEqual(rowModel.UUID, "theUUID")
+                
+                let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testInsertWithNotNilPrimaryKeyThatMatchesARowThrowsDatabaseError() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                do {
+                    try rowModel.insert(db)
+                    XCTFail("Expected DatabaseError")
+                } catch is DatabaseError {
+                    // Expected DatabaseError
+                }
+            }
+        }
+    }
+    
+    func testInsertAfterDeleteInsertsARow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                try rowModel.insert(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    // MARK:- Update
+    
+    func testUpdateWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                XCTAssertTrue(rowModel.UUID == nil)
+                do {
+                    try rowModel.update(db)
+                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
+                } catch RowModelError.InvalidPrimaryKey {
+                    // Expected RowModelError.InvalidPrimaryKey
+                }
+            }
+        }
+    }
+    
+    func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                do {
+                    try rowModel.update(db)
                     XCTFail("Expected RowModelError.RowModelNotFound")
                 } catch RowModelError.RowModelNotFound {
-                } catch {
-                    XCTFail("Expected RowModelError.RowModelNotFound, not \(error)")
+                    // Expected RowModelError.RowModelNotFound
                 }
-                
-                return .Commit
             }
         }
     }
     
-    func testSave() {
+    func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
-            let minimalSingle = MinimalSingle()
-            minimalSingle.UUID = "foo"
-            
-            try dbQueue.inTransaction { db in
-                try minimalSingle.save(db)      // insert
-                let minimalSingleCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM minimalSingles")!
-                XCTAssertEqual(minimalSingleCount, 1)
-                return .Commit
-            }
-            try dbQueue.inTransaction { db in
-                try minimalSingle.save(db)      // update
-                let minimalSingleCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM minimalSingles")!
-                XCTAssertEqual(minimalSingleCount, 1)
-                return .Commit
-            }
-            
             try dbQueue.inDatabase { db in
-                try minimalSingle.delete(db)
-                try minimalSingle.save(db)      // inserts
-                let minimalSingleCount = db.fetchOne(Int.self, "SELECT COUNT(*) FROM minimalSingles")!
-                XCTAssertEqual(minimalSingleCount, 1)
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                try rowModel.update(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
             }
         }
     }
+    
+    func testUpdateAfterDeleteThrowsRowModelNotFound() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                do {
+                    try rowModel.update(db)
+                    XCTFail("Expected RowModelError.RowModelNotFound")
+                } catch RowModelError.RowModelNotFound {
+                    // Expected RowModelError.RowModelNotFound
+                }
+            }
+        }
+    }
+    
+    
+    // MARK:- Save
+    
+    func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                XCTAssertTrue(rowModel.UUID == nil)
+                do {
+                    try rowModel.save(db)
+                    XCTFail("Expected DatabaseError")
+                } catch is DatabaseError {
+                    // Expected DatabaseError
+                }
+            }
+        }
+    }
+    
+    func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.save(db)
+                XCTAssertEqual(rowModel.UUID, "theUUID")
+                
+                let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                try rowModel.save(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testSaveAfterDeleteInsertsARow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                try rowModel.save(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    // MARK:- Delete
+    
+    func testDeleteWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                XCTAssertTrue(rowModel.UUID == nil)
+                do {
+                    try rowModel.delete(db)
+                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
+                } catch RowModelError.InvalidPrimaryKey {
+                    // Expected RowModelError.InvalidPrimaryKey
+                }
+            }
+        }
+    }
+    
+    func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.delete(db)
+            }
+        }
+    }
+    
+    func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])
+                XCTAssertTrue(row == nil)
+            }
+        }
+    }
+    
+    func testDeleteAfterDeleteDoesNothing() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                try rowModel.delete(db)
+            }
+        }
+    }
+    
+    
+    // MARK:- Reload
+    
+    func testReloadWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                XCTAssertTrue(rowModel.UUID == nil)
+                do {
+                    try rowModel.reload(db)
+                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
+                } catch RowModelError.InvalidPrimaryKey {
+                    // Expected RowModelError.InvalidPrimaryKey
+                }
+            }
+        }
+    }
+    
+    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                do {
+                    try rowModel.reload(db)
+                    XCTFail("Expected RowModelError.RowModelNotFound")
+                } catch RowModelError.RowModelNotFound {
+                    // Expected RowModelError.RowModelNotFound
+                }
+            }
+        }
+    }
+    
+    func testReloadWithNotNilPrimaryKeyThatMatchesARowFetchesThatRow() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                try rowModel.reload(db)
+                
+                let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", bindings: [rowModel.UUID])!
+                for (key, value) in rowModel.storedDatabaseDictionary {
+                    if let dbv = row[key] {
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                    } else {
+                        XCTFail("Missing column \(key) in fetched row")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testReloadAfterDeleteThrowsRowModelNotFound() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                do {
+                    try rowModel.reload(db)
+                    XCTFail("Expected RowModelError.RowModelNotFound")
+                } catch RowModelError.RowModelNotFound {
+                    // Expected RowModelError.RowModelNotFound
+                }
+            }
+        }
+    }
+    
+    
+    // MARK: - Select
     
     func testSelectWithPrimaryKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let UUID = "foo"
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
                 
-                var minimalSingle = MinimalSingle()
-                minimalSingle.UUID = UUID
-                try minimalSingle.insert(db)
-
-                minimalSingle = db.fetchOne(MinimalSingle.self, primaryKey: UUID)! // The tested method
-                XCTAssertEqual(minimalSingle.UUID!, UUID)
+                let fetchedRowModel = db.fetchOne(MinimalSingle.self, primaryKey: rowModel.UUID)!
+                XCTAssertTrue(fetchedRowModel.UUID == rowModel.UUID)
             }
         }
     }
@@ -172,60 +421,12 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
     func testSelectWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let UUID = "foo"
+                let rowModel = MinimalSingle()
+                rowModel.UUID = "theUUID"
+                try rowModel.insert(db)
                 
-                var minimalSingle = MinimalSingle()
-                minimalSingle.UUID = UUID
-                try minimalSingle.insert(db)
-                
-                minimalSingle = db.fetchOne(MinimalSingle.self, key: ["UUID": UUID])! // The tested method
-                XCTAssertEqual(minimalSingle.UUID!, UUID)
-            }
-        }
-    }
-    
-    func testDelete() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let UUID1 = "foo"
-                let minimalSingle1 = MinimalSingle()
-                minimalSingle1.UUID = UUID1
-                try minimalSingle1.insert(db)
-                
-                let UUID2 = "bar"
-                let minimalSingle2 = MinimalSingle()
-                minimalSingle2.UUID = UUID2
-                try minimalSingle2.insert(db)
-                
-                try minimalSingle1.delete(db)   // The tested method
-                
-                let minimalSingles = db.fetchAll(MinimalSingle.self, "SELECT * FROM minimalSingles")
-                XCTAssertEqual(minimalSingles.count, 1)
-                XCTAssertEqual(minimalSingles.first!.UUID, UUID2)
-            }
-        }
-    }
-    
-    func testReload() {
-        assertNoError {
-            try dbQueue.inTransaction { db in
-                let minimalSingle = MinimalSingle()
-                minimalSingle.UUID = "foo"
-                try minimalSingle.insert(db)
-                
-                try minimalSingle.reload(db)                   // object still in database
-                
-                try minimalSingle.delete(db)
-                
-                do {
-                    try minimalSingle.reload(db)               // object no longer in database
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                } catch {
-                    XCTFail("Expected RowModelError.RowModelNotFound, not \(error)")
-                }
-                
-                return .Commit
+                let fetchedRowModel = db.fetchOne(MinimalSingle.self, key: ["UUID": rowModel.UUID])!
+                XCTAssertTrue(fetchedRowModel.UUID == rowModel.UUID)
             }
         }
     }

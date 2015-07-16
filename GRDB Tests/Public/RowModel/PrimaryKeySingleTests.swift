@@ -148,6 +148,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let rowModel = Pet(name: "Bobby")
+                XCTAssertTrue(rowModel.UUID == nil)
                 do {
                     try rowModel.update(db)
                     XCTFail("Expected RowModelError.InvalidPrimaryKey")
@@ -161,8 +162,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(name: "Bobby")
-                rowModel.UUID = "BobbyUUID"
+                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 do {
                     try rowModel.update(db)
                     XCTFail("Expected RowModelError.RowModelNotFound")
@@ -230,8 +230,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(name: "Bobby")
-                rowModel.UUID = "BobbyUUID"
+                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try rowModel.save(db)
                 XCTAssertEqual(rowModel.UUID, "BobbyUUID")
                 
@@ -295,6 +294,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let rowModel = Pet(name: "Bobby")
+                XCTAssertTrue(rowModel.UUID == nil)
                 do {
                     try rowModel.delete(db)
                     XCTFail("Expected RowModelError.InvalidPrimaryKey")
@@ -308,8 +308,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(name: "Bobby")
-                rowModel.UUID = "BobbyUUID"
+                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try rowModel.delete(db)
             }
         }
@@ -346,6 +345,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let rowModel = Pet(name: "Bobby")
+                XCTAssertTrue(rowModel.UUID == nil)
                 do {
                     try rowModel.reload(db)
                     XCTFail("Expected RowModelError.InvalidPrimaryKey")
@@ -359,8 +359,7 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(name: "Bobby")
-                rowModel.UUID = "BobbyUUID"
+                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 do {
                     try rowModel.reload(db)
                     XCTFail("Expected RowModelError.RowModelNotFound")

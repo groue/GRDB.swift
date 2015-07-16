@@ -172,6 +172,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let rowModel = Person(name: "Arthur")
+                XCTAssertTrue(rowModel.id == nil)
                 do {
                     try rowModel.update(db)
                     XCTFail("Expected RowModelError.InvalidPrimaryKey")
@@ -324,6 +325,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let rowModel = Person(name: "Arthur")
+                XCTAssertTrue(rowModel.id == nil)
                 do {
                     try rowModel.delete(db)
                     XCTFail("Expected RowModelError.InvalidPrimaryKey")
@@ -375,6 +377,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let rowModel = Person(name: "Arthur")
+                XCTAssertTrue(rowModel.id == nil)
                 do {
                     try rowModel.reload(db)
                     XCTFail("Expected RowModelError.InvalidPrimaryKey")
