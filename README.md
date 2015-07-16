@@ -235,6 +235,7 @@ let hasBooks: Bool = row.value(named: "bookCount")!     // false when 0
 ```swift
 row.value(named: "bookCount")! as Int   // OK: Int
 row.value(named: "bookCount") as Int?   // OK: Int?
+row.value(named: "bookCount") as! Int   // NO NO NO DON'T DO THAT!
 row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
 ```
 
