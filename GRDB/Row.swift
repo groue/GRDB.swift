@@ -234,27 +234,6 @@ public struct Row: CollectionType {
     }
     
     /**
-    Builds a row from an dictionary of database values.
-    
-        let dic = [
-            "name": .Text("Arthur"),
-            "booksCount": .Integer(0)]
-        let row = Row(databaseDictionary: dic)
-    
-    - parameter databaseDictionary: A dictionary of DatabaseValue.
-    */
-    init(databaseDictionary: [String: DatabaseValue]) {
-        // IMPLEMENTATION NODE
-        //
-        // This initializer is used by RowModel.insert() so that it can call
-        // RowModel.updateFromDatabaseRow() to set the ID after the insertion.
-        //
-        // It is made public because it is important to let the user experiment
-        // with rows and models.
-        self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
-    }
-    
-    /**
     Builds a row from the *current state* of the SQLite statement.
     
     If the *unsafe* argument is false, the row is implemented on top of
