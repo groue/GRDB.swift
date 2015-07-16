@@ -30,14 +30,15 @@ class RowModelCopyTests: RowModelTestCase {
     func testRowModelCopyDatabaseValuesFrom() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
+                let person = Person(name: "Arthur")
                 try person.insert(db)
                 
-                let clone = Person()
+                let clone = Person(age: 41)
                 clone.copyDatabaseValuesFrom(person)
                 XCTAssertEqual(clone.id, person.id)
                 XCTAssertEqual(clone.name, person.name)
-                XCTAssertEqual(clone.age, person.age)
+                XCTAssertTrue(person.age == nil)
+                XCTAssertTrue(clone.age == nil)
                 XCTAssertTrue(abs(clone.creationDate.timeIntervalSinceDate(person.creationDate)) < 1)
             }
         }
