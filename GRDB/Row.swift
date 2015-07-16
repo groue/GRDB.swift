@@ -224,11 +224,7 @@ public struct Row: CollectionType {
     init(dictionary: [String: DatabaseValueConvertible?]) {
         var databaseDictionary = [String: DatabaseValue]()
         for (key, value) in dictionary {
-            if let value = value {
-                databaseDictionary[key] = value.databaseValue
-            } else {
-                databaseDictionary[key] = .Null
-            }
+            databaseDictionary[key] = value?.databaseValue ?? .Null
         }
         self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
     }

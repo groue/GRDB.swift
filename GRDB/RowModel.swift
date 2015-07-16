@@ -149,11 +149,7 @@ public class RowModel {
     */
     public func copyDatabaseValuesFrom(other: RowModel) {
         for (column, value) in other.storedDatabaseDictionary {
-            if let value = value {
-                setDatabaseValue(value.databaseValue, forColumn: column)
-            } else {
-                setDatabaseValue(.Null, forColumn: column)
-            }
+            setDatabaseValue(value?.databaseValue ?? .Null, forColumn: column)
         }
         
         // Primary key may have been updated: row model may be edited.
