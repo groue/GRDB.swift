@@ -616,16 +616,8 @@ extension RowModel : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         return "<\(reflect(self.dynamicType).summary)" + "".join(storedDatabaseDictionary.map { (key, value) in
-            if let string = value as? String {
-                let escapedString = string
-                    .stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
-                    .stringByReplacingOccurrencesOfString("\n", withString: "\\n")
-                    .stringByReplacingOccurrencesOfString("\r", withString: "\\r")
-                    .stringByReplacingOccurrencesOfString("\t", withString: "\\t")
-                    .stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
-                return " \(key):\"\(escapedString)\""
-            } else if let value = value {
-                return " \(key):\(value)"
+            if let value = value {
+                return " \(key):\(String(reflecting: value))"
             } else {
                 return " \(key):nil"
             }}) + ">"

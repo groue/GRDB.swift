@@ -192,16 +192,8 @@ public struct Bindings {
         
         var description: String {
             return "[" + ", ".join(values.map { value in
-                if let string = value as? String {
-                    let escapedString = string
-                        .stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
-                        .stringByReplacingOccurrencesOfString("\n", withString: "\\n")
-                        .stringByReplacingOccurrencesOfString("\r", withString: "\\r")
-                        .stringByReplacingOccurrencesOfString("\t", withString: "\\t")
-                        .stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
-                    return "\"\(escapedString)\""
-                } else if let value = value {
-                    return "\(value)"
+                if let value = value {
+                    return String(reflecting: value)
                 } else {
                     return "nil"
                 }}) + "]"
@@ -227,18 +219,10 @@ public struct Bindings {
         
         var description: String {
             return "[" + ", ".join(dictionary.map { (key, value) in
-                if let string = value as? String {
-                    let escapedString = string
-                        .stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
-                        .stringByReplacingOccurrencesOfString("\n", withString: "\\n")
-                        .stringByReplacingOccurrencesOfString("\r", withString: "\\r")
-                        .stringByReplacingOccurrencesOfString("\t", withString: "\\t")
-                        .stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
-                    return "\(key): \"\(escapedString)\""
-                } else if let value = value {
-                    return "\(key): \(value)"
+                if let value = value {
+                    return "\(key):\(String(reflecting: value))"
                 } else {
-                    return "\(key): nil"
+                    return "\(key):nil"
                 }}) + "]"
         }
     }
