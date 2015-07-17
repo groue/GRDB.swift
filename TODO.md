@@ -2,3 +2,4 @@
 - [ ] Let Bindings eat arrays, or make it easy to generate series of ?,?,?,?
 - [ ] Remove RowModelError.Dummy when rdar://problem/21707972 is fixed.
 - [ ] Make DBDate public? Support both ISO-8601 and timestamps?
+- [ ] Question public access to reusable statements, and Statement.bindings setter

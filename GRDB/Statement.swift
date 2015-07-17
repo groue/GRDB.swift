@@ -40,7 +40,7 @@ public class Statement {
     public var sql: String
     
     /// The bindings for positional and named parameters in the SQL query.
-    public var bindings: Bindings? {
+    public internal(set) var bindings: Bindings? {
         didSet {
             reset() // necessary before applying new bindings
             clearBindings()
@@ -61,7 +61,7 @@ public class Statement {
     /// The identity of the DatabaseQueue where the statement was created.
     let databaseQueueID: DatabaseQueueID
     
-    init(database: Database, sql: String, bindings: Bindings?) throws {
+    init(database: Database, sql: String) throws {
         // See https://www.sqlite.org/c3ref/prepare.html
         self.database = database
         self.databaseQueueID = dispatch_get_specific(DatabaseQueue.databaseQueueIDKey)
@@ -69,13 +69,6 @@ public class Statement {
         let code = sqlite3_prepare_v2(database.sqliteConnection, sql, -1, &sqliteStatement, nil)
         if code != SQLITE_OK {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
-        }
-        
-        // Set bingins. Duplicate the didSet property observer since it is not
-        // called during initialization.
-        self.bindings = bindings
-        if let bindings = bindings {
-            bindings.bindInStatement(self)
         }
     }
     

@@ -50,12 +50,9 @@ public final class SelectStatement : Statement {
     /// If true, the fetched rows are *unsafe*. See Row(statement:unsafe:) for details.
     let unsafe: Bool
     
-    init(database: Database, sql: String, bindings: Bindings?, unsafe: Bool) throws {
+    init(database: Database, sql: String, unsafe: Bool) throws {
         self.unsafe = unsafe
-        try super.init(database: database, sql: sql, bindings: bindings)
-        
-        // Make sure the statement is created in a database queue:
-        assert(databaseQueueID != nil)
+        try super.init(database: database, sql: sql)
     }
     
     /**

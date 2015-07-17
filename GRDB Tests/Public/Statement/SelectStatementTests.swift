@@ -51,21 +51,7 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
-    func testArrayBindingsWithSetter() {
-        assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
-                let ages = [20, 30, 40, 50]
-                let counts = ages.map { age -> Int in
-                    statement.bindings = [age]
-                    return statement.fetchOne(Int.self)!
-                }
-                XCTAssertEqual(counts, [1,2,2,3])
-            }
-        }
-    }
-    
-    func testArrayBindingsInFetch() {
+    func testArrayBindings() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
@@ -76,22 +62,7 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
-    func testDictionaryBindingsWithSetter() {
-        assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
-                // TODO: why is this explicit type declaration required?
-                let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
-                let counts = ageDicts.map { ageDict -> Int in
-                    statement.bindings = Bindings(ageDict)
-                    return statement.fetchOne(Int.self)!
-                }
-                XCTAssertEqual(counts, [1,2,2,3])
-            }
-        }
-    }
-    
-    func testDictionaryBindingsInFetch() {
+    func testDictionaryBindings() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")

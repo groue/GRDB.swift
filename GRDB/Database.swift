@@ -53,9 +53,9 @@ public final class Database {
     
     - returns: A SelectStatement.
     */
-    public func selectStatement(sql: String, bindings: Bindings? = nil) -> SelectStatement {
+    public func selectStatement(sql: String) -> SelectStatement {
         return verboseFailOnError {
-            return try SelectStatement(database: self, sql: sql, bindings: bindings, unsafe: false)
+            return try SelectStatement(database: self, sql: sql, unsafe: false)
         }
     }
     
@@ -76,8 +76,8 @@ public final class Database {
     
     - returns: An UpdateStatement.
     */
-    public func updateStatement(sql: String, bindings: Bindings? = nil) throws -> UpdateStatement {
-        return try UpdateStatement(database: self, sql: sql, bindings: bindings)
+    public func updateStatement(sql: String) throws -> UpdateStatement {
+        return try UpdateStatement(database: self, sql: sql)
     }
     
     /**
@@ -92,7 +92,8 @@ public final class Database {
     - returns: A UpdateStatement.Changes.
     */
     public func execute(sql: String, bindings: Bindings? = nil) throws -> UpdateStatement.Changes {
-        return try updateStatement(sql, bindings: bindings).execute()
+        let statement = try updateStatement(sql)
+        return try statement.execute(bindings: bindings)
     }
     
     
@@ -270,7 +271,7 @@ extension Database {
     - returns: A lazy sequence of rows.
     */
     public func fetchRows(sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
-        return selectStatement(sql, bindings: bindings).fetchRows()
+        return selectStatement(sql).fetchRows(bindings: bindings)
     }
     
     /**
@@ -321,7 +322,7 @@ extension Database {
     - returns: A lazy sequence of values.
     */
     public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<Value?> {
-        return selectStatement(sql, bindings: bindings).fetch(type)
+        return selectStatement(sql).fetch(type, bindings: bindings)
     }
     
     /**

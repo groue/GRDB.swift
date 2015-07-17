@@ -678,7 +678,7 @@ extension Database {
     - returns: A lazy sequence of row models.
     */
     public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<RowModel> {
-        return selectStatement(sql, bindings: bindings).fetch(type)
+        return selectStatement(sql).fetch(type, bindings: bindings)
     }
 
     /**
@@ -756,7 +756,7 @@ extension Database {
             sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
         }
         
-        return selectStatement(sql, bindings: [primaryKey]).fetchOne(type)
+        return selectStatement(sql).fetchOne(type, bindings: [primaryKey])
     }
     
     /**
@@ -781,7 +781,7 @@ extension Database {
         
         let whereSQL = " AND ".join(dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
         let sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
-        return selectStatement(sql, bindings: Bindings(dictionary.values)).fetchOne(type)
+        return selectStatement(sql).fetchOne(type, bindings: Bindings(dictionary.values))
     }
 }
 

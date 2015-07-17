@@ -8,6 +8,10 @@ Release Notes
 - `RowModel.save(db)` calls `RowModel.insert(db)` or `RowModel.update(db)` so that eventual overridden versions of `insert` or `update` are invoked.
 - `Bindings(_ array: NSArray)` and `Bindings(_ array: NSDictionary)` now accept NSData elements.
 
+**Breaking changes**
+
+- Reusable statements no longer expose any setter for their bindings property, and no longer accept any bindings in their initializer. To apply bindings, give them to the execute() and fetch() methods.
+
 
 ## 0.4.0
 

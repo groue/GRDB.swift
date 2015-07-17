@@ -57,48 +57,13 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
-    func testUpdateStatementArrayBinding() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-                // The tested function:
-                statement.bindings = ["Arthur", 41]
-                try statement.execute()
-                
-                let row = db.fetchOneRow("SELECT * FROM persons")!
-                XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
-                XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
-            }
-        }
-    }
-    
-    func testUpdateStatementDictionaryBinding() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-                // The tested function:
-                statement.bindings = ["name": "Arthur", "age": 41]
-                try statement.execute()
-                
-                let row = db.fetchOneRow("SELECT * FROM persons")!
-                XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
-                XCTAssertEqual(row.value(atIndex: 1)! as Int, 41)
-            }
-        }
-    }
-    
     func testUpdateStatementWithArrayBinding() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                // The tested function:
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)", bindings: ["Arthur", 41])
-                try statement.execute()
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                try statement.execute(bindings: ["Arthur", 41])
                 
                 let row = db.fetchOneRow("SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
@@ -112,9 +77,8 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                // The tested function:
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
-                try statement.execute()
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                try statement.execute(bindings: ["name": "Arthur", "age": 41])
                 
                 let row = db.fetchOneRow("SELECT * FROM persons")!
                 XCTAssertEqual(row.value(atIndex: 0)! as String, "Arthur")
@@ -175,45 +139,9 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
-                // The tested function:
                 let statement = db.selectStatement("SELECT * FROM persons")
-                
                 let rows = statement.fetchAllRows()
                 XCTAssertEqual(rows.count, 2)
-            }
-        }
-    }
-    
-    func testSelectStatementArrayBinding() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
-                
-                let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?")
-                // The tested function:
-                statement.bindings = ["Arthur"]
-                
-                let rows = statement.fetchAllRows()
-                XCTAssertEqual(rows.count, 1)
-            }
-        }
-    }
-    
-    func testSelectStatementDictionaryBinding() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
-                
-                let statement = db.selectStatement("SELECT * FROM persons WHERE name = :name")
-                // The tested function:
-                statement.bindings = ["name": "Arthur"]
-                
-                let rows = statement.fetchAllRows()
-                XCTAssertEqual(rows.count, 1)
             }
         }
     }
@@ -225,10 +153,8 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
-                // The tested function:
-                let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
-                
-                let rows = statement.fetchAllRows()
+                let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?")
+                let rows = statement.fetchAllRows(bindings: ["Arthur"])
                 XCTAssertEqual(rows.count, 1)
             }
         }
@@ -241,10 +167,8 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Arthur", "age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", bindings: ["name": "Barbara"])
                 
-                // The tested function:
-                let statement = db.selectStatement("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Arthur"])
-                
-                let rows = statement.fetchAllRows()
+                let statement = db.selectStatement("SELECT * FROM persons WHERE name = :name")
+                let rows = statement.fetchAllRows(bindings: ["name": "Arthur"])
                 XCTAssertEqual(rows.count, 1)
             }
         }

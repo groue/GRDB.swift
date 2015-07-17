@@ -47,36 +47,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    func testArrayBindingsWithSetter() {
-        assertNoError {
-            
-            try dbQueue.inTransaction { db in
-                
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-                let persons = [
-                    ["Arthur", 41],
-                    ["Barbara"],
-                ]
-                for person in persons {
-                    statement.bindings = Bindings(person)
-                    try statement.execute()
-                }
-                
-                return .Commit
-            }
-            
-            dbQueue.inDatabase { db in
-                let rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
-                XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
-                XCTAssertTrue(rows[1].value(named: "age") == nil)
-            }
-        }
-    }
-    
-    func testArrayBindingsInExecute() {
+    func testArrayBindings() {
         assertNoError {
             
             try dbQueue.inTransaction { db in
@@ -104,36 +75,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    func testDictionaryBindingsWithSetter() {
-        assertNoError {
-            
-            try dbQueue.inTransaction { db in
-                
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-                let persons = [
-                    ["name": "Arthur", "age": 41],
-                    ["name": "Barbara"],
-                ]
-                for person in persons {
-                    statement.bindings = Bindings(person)
-                    try statement.execute()
-                }
-                
-                return .Commit
-            }
-            
-            dbQueue.inDatabase { db in
-                let rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
-                XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
-                XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
-                XCTAssertTrue(rows[1].value(named: "age") == nil)
-            }
-        }
-    }
-    
-    func testDictionaryBindingsInExecute() {
+    func testDictionaryBindings() {
         assertNoError {
             
             try dbQueue.inTransaction { db in
