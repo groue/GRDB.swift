@@ -256,8 +256,9 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try rowModel.insert(db)
+                try rowModel.save(db)   // Test that useless update succeeds. It is a proof that save() has performed an UPDATE statement, and not an INSERT statement: INSERT would have throw a database error for duplicated key.
                 rowModel.native = false
-                try rowModel.save(db)
+                try rowModel.save(db)   // Actual update
                 
                 let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])!
                 for (key, value) in rowModel.storedDatabaseDictionary {

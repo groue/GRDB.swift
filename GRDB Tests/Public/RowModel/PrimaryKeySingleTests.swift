@@ -249,8 +249,9 @@ class PrimaryKeySingleTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try rowModel.insert(db)
+                try rowModel.save(db)   // Test that useless update succeeds. It is a proof that save() has performed an UPDATE statement, and not an INSERT statement: INSERT would have throw a database error for duplicated key.
                 rowModel.name = "Carl"
-                try rowModel.save(db)
+                try rowModel.save(db)   // Actual update
                 
                 let row = db.fetchOneRow("SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])!
                 for (key, value) in rowModel.storedDatabaseDictionary {

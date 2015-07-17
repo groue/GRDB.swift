@@ -80,6 +80,23 @@ class PrimaryKeyNoneTests: RowModelTestCase {
     }
     
     
+    // MARK: - Update
+    
+    func testUpdateThrowsInvalidPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Item(name: "Table")
+                do {
+                    try rowModel.update(db)
+                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
+                } catch RowModelError.InvalidPrimaryKey {
+                    // Expected RowModelError.InvalidPrimaryKey
+                }
+            }
+        }
+    }
+    
+    
     // MARK: - Save
     
     func testSaveInsertsARow() {
@@ -91,6 +108,40 @@ class PrimaryKeyNoneTests: RowModelTestCase {
                 
                 let names = db.fetchAll(String.self, "SELECT name FROM items").map { $0! }
                 XCTAssertEqual(names, ["Table", "Table"])
+            }
+        }
+    }
+    
+    
+    // MARK: - Delete
+    
+    func testDeleteThrowsInvalidPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Item(name: "Table")
+                do {
+                    try rowModel.delete(db)
+                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
+                } catch RowModelError.InvalidPrimaryKey {
+                    // Expected RowModelError.InvalidPrimaryKey
+                }
+            }
+        }
+    }
+    
+    
+    // MARK: - Reload
+    
+    func testReloadThrowsInvalidPrimaryKey() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Item(name: "Table")
+                do {
+                    try rowModel.reload(db)
+                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
+                } catch RowModelError.InvalidPrimaryKey {
+                    // Expected RowModelError.InvalidPrimaryKey
+                }
             }
         }
     }
