@@ -132,7 +132,7 @@ public struct DatabaseMigrator {
             if appliedMigrationIdentifiers.indexOf(migration.identifier) == nil {
                 try dbQueue.inTransaction { db in
                     try migration.block(db: db)
-                    try db.execute("INSERT INTO grdb_migrations (position, identifier) VALUES (?, ?)", bindings: [position, migration.identifier])
+                    try db.execute("INSERT INTO grdb_migrations (position, identifier) VALUES (?, ?)", arguments: [position, migration.identifier])
                     return .Commit
                 }
             }

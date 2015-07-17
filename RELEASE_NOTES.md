@@ -10,7 +10,8 @@ Release Notes
 
 **Breaking changes**
 
-- Reusable statements no longer expose any setter for their bindings property, and no longer accept any bindings in their initializer. To apply bindings, give them to the execute() and fetch() methods.
+- "Bindings" has been renamed "QueryArguments", and `bindings` parameters renamed `arguments`.
+- Reusable statements no longer expose any setter for their `arguments` property, and no longer accept any arguments in their initializer. To apply arguments, give them to the execute() and fetch() methods.
 
 
 ## 0.4.0

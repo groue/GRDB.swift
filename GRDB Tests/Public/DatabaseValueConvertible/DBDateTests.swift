@@ -59,7 +59,7 @@ class DBDateTests : GRDBTestCase {
                 
                 do {
                     let date = calendar.dateFromComponents(dateComponents)!
-                    try db.execute("INSERT INTO stuffs (creationDate) VALUES (?)", bindings: [DBDate(date)])
+                    try db.execute("INSERT INTO stuffs (creationDate) VALUES (?)", arguments: [DBDate(date)])
                 }
                 
                 do {

@@ -100,7 +100,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 let rowModel = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try rowModel.insert(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", bindings: [rowModel.personName, rowModel.countryName])!
+                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -135,7 +135,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 try rowModel.delete(db)
                 try rowModel.insert(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", bindings: [rowModel.personName, rowModel.countryName])!
+                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -187,7 +187,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 rowModel.native = false
                 try rowModel.update(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", bindings: [rowModel.personName, rowModel.countryName])!
+                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -239,7 +239,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 let rowModel = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try rowModel.save(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", bindings: [rowModel.personName, rowModel.countryName])!
+                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -259,7 +259,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 rowModel.native = false
                 try rowModel.save(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", bindings: [rowModel.personName, rowModel.countryName])!
+                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -279,7 +279,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 try rowModel.delete(db)
                 try rowModel.save(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", bindings: [rowModel.personName, rowModel.countryName])!
+                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -325,7 +325,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 try rowModel.insert(db)
                 try rowModel.delete(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", bindings: [rowModel.personName, rowModel.countryName])
+                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])
                 XCTAssertTrue(row == nil)
             }
         }
@@ -382,7 +382,7 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
                 rowModel.native = false
                 try rowModel.reload(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", bindings: [rowModel.personName, rowModel.countryName])!
+                let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)

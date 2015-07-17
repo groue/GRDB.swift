@@ -29,8 +29,8 @@ You create UpdateStatement with the Database.updateStatement() method:
 
     try dbQueue.inTransaction { db in
         let statement = try db.updateStatement("INSERT INTO persons (name) VALUES (?)")
-        try statement.execute(bindings: ["Arthur"])
-        try statement.execute(bindings: ["Barbara"])
+        try statement.execute(arguments: ["Arthur"])
+        try statement.execute(arguments: ["Barbara"])
         return .Commit
     }
 */
@@ -50,22 +50,22 @@ public final class UpdateStatement : Statement {
     /**
     Executes the SQL query.
     
-    - parameter bindings: Optional bindings for query parameters.
+    - parameter arguments: Optional query arguments.
     */
-    public func execute(bindings bindings: Bindings? = nil) throws -> Changes {
-        if let bindings = bindings {
-            self.bindings = bindings
+    public func execute(arguments arguments: QueryArguments? = nil) throws -> Changes {
+        if let arguments = arguments {
+            self.arguments = arguments
         }
         
         reset()
         
         if let trace = database.configuration.trace {
-            trace(sql: sql, bindings: self.bindings)
+            trace(sql: sql, arguments: self.arguments)
         }
         
         let code = sqlite3_step(sqliteStatement)
         guard code == SQLITE_DONE else {
-            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, bindings: self.bindings)
+            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, arguments: self.arguments)
         }
         
         let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))

@@ -45,15 +45,15 @@ public struct DatabaseError : ErrorType {
     
     // MARK: Not public
     
-    /// The bindings that yielded the error (if relevant).
-    /// Not public because the Bindings class has no public method.
-    let bindings: Bindings?
+    /// The query arguments that yielded the error (if relevant).
+    /// Not public because the QueryArguments class has no public method.
+    let arguments: QueryArguments?
     
-    init(code: Int32, message: String? = nil, sql: String? = nil, bindings: Bindings? = nil) {
+    init(code: Int32, message: String? = nil, sql: String? = nil, arguments: QueryArguments? = nil) {
         self.code = Int(code)
         self.message = message
         self.sql = sql
-        self.bindings = bindings
+        self.arguments = arguments
     }
 }
 
@@ -63,14 +63,14 @@ extension DatabaseError: CustomStringConvertible {
         // How to write this with a switch?
         if let sql = sql {
             if let message = message {
-                if let bindings = bindings {
-                    return "SQLite error \(code) with statement `\(sql)` bindings \(bindings): \(message)"
+                if let arguments = arguments {
+                    return "SQLite error \(code) with statement `\(sql)` arguments \(arguments): \(message)"
                 } else {
                     return "SQLite error \(code) with statement `\(sql)`: \(message)"
                 }
             } else {
-                if let bindings = bindings {
-                    return "SQLite error \(code) with statement `\(sql)` bindings \(bindings)"
+                if let arguments = arguments {
+                    return "SQLite error \(code) with statement `\(sql)` arguments \(arguments)"
                 } else {
                     return "SQLite error \(code) with statement `\(sql)`"
                 }

@@ -60,9 +60,9 @@ class RawRepresentableTests: GRDBTestCase {
                 
                 do {
                     for color in [Color.Red, Color.White, Color.Rose] {
-                        try db.execute("INSERT INTO wines (color) VALUES (?)", bindings: [color])
+                        try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [color])
                     }
-                    try db.execute("INSERT INTO wines (color) VALUES (?)", bindings: [4])
+                    try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [4])
                 }
                 
                 do {
@@ -93,9 +93,9 @@ class RawRepresentableTests: GRDBTestCase {
                 
                 do {
                     for grape in [Grape.Chardonnay, Grape.Merlot, Grape.Riesling] {
-                        try db.execute("INSERT INTO wines (grape) VALUES (?)", bindings: [grape])
+                        try db.execute("INSERT INTO wines (grape) VALUES (?)", arguments: [grape])
                     }
-                    try db.execute("INSERT INTO wines (grape) VALUES (?)", bindings: ["Syrah"])
+                    try db.execute("INSERT INTO wines (grape) VALUES (?)", arguments: ["Syrah"])
                 }
                 
                 do {

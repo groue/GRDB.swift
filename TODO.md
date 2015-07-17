@@ -1,5 +1,5 @@
 - [ ] Fetch with a collection of primary keys: db.fetch(RowModel.type, primaryKeys:[...]). Problem: users will often want to sort, so the plain SELECT * FROM persons WHERE id IN (?,?,?) won't be appreciated. Needs more thought.
-- [ ] Let Bindings eat arrays, or make it easy to generate series of ?,?,?,?
+- [ ] Let QueryArguments eat arrays, or make it easy to generate series of ?,?,?,?
 - [ ] Remove RowModelError.Dummy when rdar://problem/21707972 is fixed.
 - [ ] Make DBDate public? Support both ISO-8601 and timestamps?
-- [ ] Question public access to reusable statements, and Statement.bindings setter
+- [ ] Question public access to reusable statements, and Statement.arguments setter

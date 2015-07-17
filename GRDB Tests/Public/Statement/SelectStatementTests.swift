@@ -41,9 +41,9 @@ class SelectStatementTests : GRDBTestCase {
                     "age INT" +
                 ")")
             
-            try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", bindings: ["Arthur", 41])
-            try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", bindings: ["Barbara", 26])
-            try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", bindings: ["Craig", 13])
+            try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Arthur", 41])
+            try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Barbara", 26])
+            try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Craig", 13])
         }
         
         assertNoError {
@@ -51,24 +51,24 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
-    func testArrayBindings() {
+    func testArrayQueryArguments() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
                 let ages = [20, 30, 40, 50]
-                let counts = ages.map { statement.fetchOne(Int.self, bindings: [$0])! }
+                let counts = ages.map { statement.fetchOne(Int.self, arguments: [$0])! }
                 XCTAssertEqual(counts, [1,2,2,3])
             }
         }
     }
     
-    func testDictionaryBindings() {
+    func testDictionaryQueryArguments() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: why is this explicit type declaration required?
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
-                let counts = ageDicts.map { statement.fetchOne(Int.self, bindings: Bindings($0))! }
+                let counts = ageDicts.map { statement.fetchOne(Int.self, arguments: QueryArguments($0))! }
                 XCTAssertEqual(counts, [1,2,2,3])
             }
         }

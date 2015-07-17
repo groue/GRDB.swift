@@ -38,7 +38,7 @@ class RowModelFetchTests: RowModelTestCase {
                 let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?")
                 
                 for name in ["Arthur", "Barbara"] {
-                    let person = statement.fetchOne(Person.self, bindings: [name])!
+                    let person = statement.fetchOne(Person.self, arguments: [name])!
                     XCTAssertEqual(person.name!, name)
                 }
             }

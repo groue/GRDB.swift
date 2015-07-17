@@ -39,13 +39,13 @@ public class Statement {
     /// The SQL query
     public var sql: String
     
-    /// The bindings for positional and named parameters in the SQL query.
-    public internal(set) var bindings: Bindings? {
+    /// The query arguments
+    public internal(set) var arguments: QueryArguments? {
         didSet {
-            reset() // necessary before applying new bindings
-            clearBindings()
-            if let bindings = bindings {
-                bindings.bindInStatement(self)
+            reset() // necessary before applying new arguments
+            clearQueryArguments()
+            if let arguments = arguments {
+                arguments.bindInStatement(self)
             }
         }
     }
@@ -78,7 +78,7 @@ public class Statement {
         }
     }
     
-    // Exposed for Bindings. Don't make this one public unless we keep the bindings property in sync.
+    // Exposed for QueryArguments. Don't make this one public unless we keep the arguments property in sync.
     final func bind(value: DatabaseValueConvertible?, atIndex index: Int) {
         let databaseValue = value?.databaseValue ?? .Null
         let code: Int32
@@ -104,7 +104,7 @@ public class Statement {
         }
     }
     
-    // Exposed for Bindings. Don't make this one public unless we keep the bindings property in sync.
+    // Exposed for QueryArguments. Don't make this one public unless we keep the arguments property in sync.
     final func bind(value: DatabaseValueConvertible?, forKey key: String) {
         let index = Int(sqlite3_bind_parameter_index(sqliteStatement, ":\(key)"))
         guard index > 0 else {
@@ -123,8 +123,8 @@ public class Statement {
         }
     }
     
-    // Don't make this one public or internal unless we keep the bindings property in sync.
-    private func clearBindings() {
+    // Don't make this one public or internal unless we keep the arguments property in sync.
+    private func clearQueryArguments() {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {
             verboseFailOnError { () -> Void in

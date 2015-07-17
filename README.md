@@ -37,7 +37,7 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
 let redWinesCount = dbQueue.inDatabase { db in            // Int
     db.fetchOne(Int.self, "SELECT COUNT(*) FROM wines WHERE color = ?",
-                bindings: [Color.Red])!
+                arguments: [Color.Red])!
 }
 
 try dbQueue.inTransaction { db in
@@ -165,11 +165,11 @@ To create tables, we recommend using [migrations](#migrations).
 try dbQueue.inTransaction { db in
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (?, ?)",
-        bindings: ["Arthur", 36])
+        arguments: ["Arthur", 36])
     
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (:name, :age)",
-        bindings: ["name": "Barbara", "age": 37])
+        arguments: ["name": "Barbara", "age": 37])
     
     return .Commit
 }
@@ -190,18 +190,18 @@ Fetch **lazy sequences** of rows, **arrays**, or a **single** row:
 
 ```swift
 dbQueue.inDatabase { db in
-    db.fetchRows("SELECT ...", bindings: ...)     // AnySequence<Row>
-    db.fetchAllRows("SELECT ...", bindings: ...)  // [Row]
-    db.fetchOneRow("SELECT ...", bindings: ...)   // Row?
+    db.fetchRows("SELECT ...", arguments: ...)     // AnySequence<Row>
+    db.fetchAllRows("SELECT ...", arguments: ...)  // [Row]
+    db.fetchOneRow("SELECT ...", arguments: ...)   // Row?
 }
 ```
 
-Bindings are optional arrays or dictionaries that fill the positional `?` and named parameters like `:name` in the query. GRDB.swift only supports colon-prefixed named parameters, even though SQLite supports [other syntaxes](https://www.sqlite.org/lang_expr.html#varparam).
+Arguments are optional arrays or dictionaries that fill the positional `?` and named parameters like `:name` in the query. GRDB.swift only supports colon-prefixed named parameters, even though SQLite supports [other syntaxes](https://www.sqlite.org/lang_expr.html#varparam).
 
 
 ```swift
-db.fetchRows("SELECT * FROM persons WHERE name = ?", bindings: ["Arthur"])
-db.fetchRows("SELECT * FROM persons WHERE name = :name", bindings: ["name": "Arthur"])
+db.fetchRows("SELECT * FROM persons WHERE name = ?", arguments: ["Arthur"])
+db.fetchRows("SELECT * FROM persons WHERE name = :name", arguments: ["name": "Arthur"])
 ```
 
 Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
@@ -270,9 +270,9 @@ Like rows, values can be fetched as **lazy sequences**, **arrays**, or **single*
 
 ```swift
 dbQueue.inDatabase { db in
-    db.fetch(Int.self, "SELECT ...", bindings: ...)      // AnySequence<Int?>
-    db.fetchAll(Int.self, "SELECT ...", bindings: ...)   // [Int?]
-    db.fetchOne(Int.self, "SELECT ...", bindings: ...)   // Int?
+    db.fetch(Int.self, "SELECT ...", arguments: ...)      // AnySequence<Int?>
+    db.fetchAll(Int.self, "SELECT ...", arguments: ...)   // [Int?]
+    db.fetchOne(Int.self, "SELECT ...", arguments: ...)   // Int?
 }
 ```
 
@@ -295,7 +295,7 @@ let names = dbQueue.inDatabase { db in
 }
 ```
 
-The `db.fetchOne(type:sql:bindings:)` function returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value. If this ambiguity does not fit your need, use `db.fetchOneRow`.
+The `db.fetchOne(type:sql:arguments:)` function returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value. If this ambiguity does not fit your need, use `db.fetchOneRow`.
 
 
 ## Values
@@ -335,7 +335,7 @@ And both types gain database powers:
 ```swift
 // Store:
 try db.execute("INSERT INTO wines (grape, color) VALUES (?, ?)",
-               bindings: [Grape.Merlot, Color.Red])
+               arguments: [Grape.Merlot, Color.Red])
 
 // Extract from row:
 for rows in db.fetchRows("SELECT * FROM wines") {
@@ -344,9 +344,9 @@ for rows in db.fetchRows("SELECT * FROM wines") {
 }
 
 // Direct fetch:
-db.fetch(Color.self, "SELECT ...", bindings: ...)    // AnySequence<Color?>
-db.fetchAll(Color.self, "SELECT ...", bindings: ...) // [Color?]
-db.fetchOne(Color.self, "SELECT ...", bindings: ...) // Color?
+db.fetch(Color.self, "SELECT ...", arguments: ...)    // AnySequence<Color?>
+db.fetchAll(Color.self, "SELECT ...", arguments: ...) // [Color?]
+db.fetchOne(Color.self, "SELECT ...", arguments: ...) // Color?
 ```
 
 
@@ -418,7 +418,7 @@ DBDate can now be stored and fetched from the database just like built-in types:
 let date = NSDate()
 try db.execute("INSERT INTO persons (date, ...) " +
                             "VALUES (?, ...)",
-                          bindings: [DBDate(date), ...])
+                          arguments: [DBDate(date), ...])
 
 // Extract NSDate from row:
 for rows in db.fetchRows("SELECT ...") {
@@ -426,9 +426,9 @@ for rows in db.fetchRows("SELECT ...") {
 }
 
 // Direct fetch:
-db.fetch(DBDate.self, "SELECT ...", bindings: ...)    // AnySequence<DBDate?>
-db.fetchAll(DBDate.self, "SELECT ...", bindings: ...) // [DBDate?]
-db.fetchOne(DBDate.self, "SELECT ...", bindings: ...) // DBDate?
+db.fetch(DBDate.self, "SELECT ...", arguments: ...)    // AnySequence<DBDate?>
+db.fetchAll(DBDate.self, "SELECT ...", arguments: ...) // [DBDate?]
+db.fetchOne(DBDate.self, "SELECT ...", arguments: ...) // DBDate?
 ```
 
 ### Value Extraction in Details
@@ -472,7 +472,7 @@ try dbQueue.inTransaction { db in
     ]
     
     for person in persons {
-        let changes = try statement.execute(bindings: Bindings(person))
+        let changes = try statement.execute(arguments: QueryArguments(person))
         changes.changedRowCount // The number of rows changed by the statement.
         changes.insertedRowID   // The inserted Row ID.
     }
@@ -488,13 +488,13 @@ dbQueue.inDatabase { db in
     
     let statement = db.selectStatement("SELECT ...")
     
-    statement.fetchRows(bindings: ...)          // AnySequence<Row>
-    statement.fetchAllRows(bindings: ...)       // [Row]
-    statement.fetchOneRow(bindings: ...)        // Row?
+    statement.fetchRows(arguments: ...)          // AnySequence<Row>
+    statement.fetchAllRows(arguments: ...)       // [Row]
+    statement.fetchOneRow(arguments: ...)        // Row?
     
-    statement.fetch(Int.self, bindings: ...)    // AnySequence<Int?>
-    statement.fetchAll(Int.self, bindings: ...) // [Int?]
-    statement.fetchOne(Int.self, bindings: ...) // Int?
+    statement.fetch(Int.self, arguments: ...)    // AnySequence<Int?>
+    statement.fetchAll(Int.self, arguments: ...) // [Int?]
+    statement.fetchOne(Int.self, arguments: ...) // Int?
 }
 ```
 
@@ -520,10 +520,10 @@ db.fetchAllRows("SELECT foo FROM bar")
 do {
     try db.execute(
         "INSERT INTO pets (masterId, name) VALUES (?, ?)",
-        bindings: [1, "Bobby"])
+        arguments: [1, "Bobby"])
 } catch let error as DatabaseError {
     // SQLite error 19 with statement `INSERT INTO pets (masterId, name)
-    // VALUES (?, ?)` bindings [1, "Bobby"]: FOREIGN KEY constraint failed
+    // VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed
     error.description
     
     // The SQLite result code: 19 (SQLITE_CONSTRAINT)
@@ -637,12 +637,12 @@ Now you can fetch **lazy sequences** of row models, **arrays**, or **single** in
 
 dbQueue.inDatabase { db in
     // With custom SQL:
-    db.fetch(Person.self, "SELECT ...", bindings:...)    // AnySequence<Person>
-    db.fetchAll(Person.self, "SELECT ...", bindings:...) // [Person]
-    db.fetchOne(Person.self, "SELECT ...", bindings:...) // Person?
+    db.fetch(Person.self, "SELECT ...", arguments:...)    // AnySequence<Person>
+    db.fetchAll(Person.self, "SELECT ...", arguments:...) // [Person]
+    db.fetchOne(Person.self, "SELECT ...", arguments:...) // Person?
     
     // With a key dictionary:
-    db.fetchOne(Person.self, key: ["id": 123])           // Person?
+    db.fetchOne(Person.self, key: ["id": 123])            // Person?
 }
 ```
 

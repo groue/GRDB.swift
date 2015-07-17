@@ -445,8 +445,8 @@ public class RowModel {
         func insert(db: Database) throws -> (String, Int64)? {
             // INSERT
             let insertStatement = try DataMapper.insertStatement(db, tableName: databaseTable.name, insertedColumns: Array(storedDatabaseDictionary.keys))
-            let bindings = Bindings(storedDatabaseDictionary.values)
-            let changes = try insertStatement.execute(bindings: bindings)
+            let arguments = QueryArguments(storedDatabaseDictionary.values)
+            let changes = try insertStatement.execute(arguments: arguments)
             
             // Return inserted RowID column if needed: currently nil RowID primary key.
             if let primaryKey = databaseTable.primaryKey, case .RowID(let rowIDColumn) = primaryKey {
@@ -507,7 +507,7 @@ public class RowModel {
                 // database. Consistency is important:
                 
                 let existsStatement = DataMapper.existsStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-                let row = existsStatement.fetchOneRow(bindings: Bindings(primaryKeyDictionary.values))
+                let row = existsStatement.fetchOneRow(arguments: QueryArguments(primaryKeyDictionary.values))
                 guard row != nil else {
                     throw DataMapperError.RowNotFound
                 }
@@ -516,8 +516,8 @@ public class RowModel {
             
             // Update
             let updateStatement = try DataMapper.updateStatement(db, tableName: databaseTable.name, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys))
-            let bindings = Bindings(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
-            let changes = try updateStatement.execute(bindings: bindings)
+            let arguments = QueryArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
+            let changes = try updateStatement.execute(arguments: arguments)
             
             // Check is some row was actually changed
             if changes.changedRowCount == 0 {
@@ -534,8 +534,8 @@ public class RowModel {
             
             // Delete
             let deleteStatement = try DataMapper.deleteStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-            let bindings = Bindings(primaryKeyDictionary.values)
-            try deleteStatement.execute(bindings: bindings)
+            let arguments = QueryArguments(primaryKeyDictionary.values)
+            try deleteStatement.execute(arguments: arguments)
         }
         
         /// SELECT
@@ -547,7 +547,7 @@ public class RowModel {
             
             // Fetch
             let selectStatement = DataMapper.selectStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-            selectStatement.bindings = Bindings(primaryKeyDictionary.values)
+            selectStatement.arguments = QueryArguments(primaryKeyDictionary.values)
             return selectStatement
         }
         
@@ -673,12 +673,12 @@ extension Database {
     - parameter type:     The type of fetched row models. It must be a subclass
                           of RowModel.
     - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
+    - parameter arguments: Optional query arguments.
     
     - returns: A lazy sequence of row models.
     */
-    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<RowModel> {
-        return selectStatement(sql).fetch(type, bindings: bindings)
+    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, arguments: QueryArguments? = nil) -> AnySequence<RowModel> {
+        return selectStatement(sql).fetch(type, arguments: arguments)
     }
 
     /**
@@ -689,12 +689,12 @@ extension Database {
     - parameter type:     The type of fetched row models. It must be a subclass
                           of RowModel.
     - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
+    - parameter arguments: Optional query arguments.
     
     - returns: An array of row models.
     */
-    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> [RowModel] {
-        return Array(fetch(type, sql, bindings: bindings))
+    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, arguments: QueryArguments? = nil) -> [RowModel] {
+        return Array(fetch(type, sql, arguments: arguments))
     }
 
     /**
@@ -705,12 +705,12 @@ extension Database {
     - parameter type:     The type of fetched row model. It must be a subclass
                           of RowModel.
     - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
+    - parameter arguments: Optional query arguments.
     
     - returns: An optional row model.
     */
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, bindings: Bindings? = nil) -> RowModel? {
-        if let first = fetch(type, sql, bindings: bindings).generate().next() {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, arguments: QueryArguments? = nil) -> RowModel? {
+        if let first = fetch(type, sql, arguments: arguments).generate().next() {
             // one row containing an optional value
             return first
         } else {
@@ -756,7 +756,7 @@ extension Database {
             sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
         }
         
-        return selectStatement(sql).fetchOne(type, bindings: [primaryKey])
+        return selectStatement(sql).fetchOne(type, arguments: [primaryKey])
     }
     
     /**
@@ -781,7 +781,7 @@ extension Database {
         
         let whereSQL = " AND ".join(dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
         let sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
-        return selectStatement(sql).fetchOne(type, bindings: Bindings(dictionary.values))
+        return selectStatement(sql).fetchOne(type, arguments: QueryArguments(dictionary.values))
     }
 }
 
@@ -799,12 +799,12 @@ extension SelectStatement {
 
     - parameter type:     The type of fetched row models. It must be a subclass
                           of RowModel.
-    - parameter bindings: Optional bindings for query parameters.
+    - parameter arguments: Optional query arguments.
     
     - returns: A lazy sequence of row models.
     */
-    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings? = nil) -> AnySequence<RowModel> {
-        let rowSequence = fetchRows(bindings: bindings)
+    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: QueryArguments? = nil) -> AnySequence<RowModel> {
+        let rowSequence = fetchRows(arguments: arguments)
         return AnySequence { () -> AnyGenerator<RowModel> in
             let rowGenerator = rowSequence.generate()
             return anyGenerator { () -> RowModel? in
@@ -825,12 +825,12 @@ extension SelectStatement {
 
     - parameter type:     The type of fetched row models. It must be a subclass
                           of RowModel.
-    - parameter bindings: Optional bindings for query parameters.
+    - parameter arguments: Optional query arguments.
     
     - returns: An array of row models.
     */
-    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings? = nil) -> [RowModel] {
-        return Array(fetch(type, bindings: bindings))
+    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: QueryArguments? = nil) -> [RowModel] {
+        return Array(fetch(type, arguments: arguments))
     }
     
     /**
@@ -841,12 +841,12 @@ extension SelectStatement {
 
     - parameter type:     The type of fetched row models. It must be a subclass
                           of RowModel.
-    - parameter bindings: Optional bindings for query parameters.
+    - parameter arguments: Optional query arguments.
     
     - returns: An optional row model.
     */
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, bindings: Bindings? = nil) -> RowModel? {
-        if let first = fetch(type, bindings: bindings).generate().next() {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: QueryArguments? = nil) -> RowModel? {
+        if let first = fetch(type, arguments: arguments).generate().next() {
             // one row containing an optional value
             return first
         } else {

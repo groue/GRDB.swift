@@ -85,11 +85,11 @@ class GRDBTestCase: XCTestCase {
         sqlQueries = []
         databasePath = "/tmp/GRDB.sqlite"
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
-        let configuration = Configuration(trace: { (sql, bindings) in
+        let configuration = Configuration(trace: { (sql, arguments) in
             self.sqlQueries.append(sql)
             NSLog("GRDB: %@", sql)
-            if let bindings = bindings {
-                NSLog("GRDB: bindings %@", bindings.description)
+            if let arguments = arguments {
+                NSLog("GRDB: arguments %@", arguments.description)
             }
         })
         dbQueue = try! DatabaseQueue(path: databasePath, configuration: configuration)

@@ -47,7 +47,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    func testArrayBindings() {
+    func testArrayQueryArguments() {
         assertNoError {
             
             try dbQueue.inTransaction { db in
@@ -58,7 +58,7 @@ class UpdateStatementTests : GRDBTestCase {
                     ["Barbara"],
                 ]
                 for person in persons {
-                    try statement.execute(bindings: Bindings(person))
+                    try statement.execute(arguments: QueryArguments(person))
                 }
                 
                 return .Commit
@@ -75,7 +75,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    func testDictionaryBindings() {
+    func testDictionaryQueryArguments() {
         assertNoError {
             
             try dbQueue.inTransaction { db in
@@ -86,7 +86,7 @@ class UpdateStatementTests : GRDBTestCase {
                     ["name": "Barbara"],
                 ]
                 for person in persons {
-                    try statement.execute(bindings: Bindings(person))
+                    try statement.execute(arguments: QueryArguments(person))
                 }
                 
                 return .Commit

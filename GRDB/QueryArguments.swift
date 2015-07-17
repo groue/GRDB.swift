@@ -23,60 +23,60 @@
 
 
 /**
-Bindings hold statement parameters:
+SQL queries can have arguments:
 
     INSERT INTO persons (name, age) VALUES (?, ?)
     INSERT INTO persons (name, age) VALUES (:name, :age)
 
-To fill question mark parameters, feed Bindings with an array:
+To fill question mark arguments, feed QueryArguments with an array:
 
-    db.execute("INSERT ... (?, ?)", bindings: Bindings(["Arthur", 41]))
+    db.execute("INSERT ... (?, ?)", arguments: QueryArguments(["Arthur", 41]))
 
-Array literals are automatically converted to Bindings:
+Array literals are automatically converted to QueryArguments:
 
-    db.execute("INSERT ... (?, ?)", bindings: ["Arthur", 41])
+    db.execute("INSERT ... (?, ?)", arguments: ["Arthur", 41])
 
-To fill named parameters, feed Bindings with a dictionary:
+To fill named arguments, feed QueryArguments with a dictionary:
 
-    db.execute("INSERT ... (:name, :age)", bindings: Bindings(["name": "Arthur", "age": 41]))
+    db.execute("INSERT ... (:name, :age)", arguments: QueryArguments(["name": "Arthur", "age": 41]))
 
-Dictionary literals are automatically converted to Bindings:
+Dictionary literals are automatically converted to QueryArguments:
 
-    db.execute("INSERT ... (:name, :age)", bindings: ["name": "Arthur", "age": 41])
+    db.execute("INSERT ... (:name, :age)", arguments: ["name": "Arthur", "age": 41])
 
-GRDB.swift only supports colon-prefixed named parameters, even though SQLite
+GRDB.swift only supports colon-prefixed named arguments, even though SQLite
 supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam for
 more information.
 */
-public struct Bindings {
+public struct QueryArguments {
     
-    // MARK: - Positional parameters
+    // MARK: - Positional Arguments
     
     /**
-    Initializes bindings from a sequence of optional values.
+    Initializes arguments from a sequence of optional values.
     
         let values: [String?] = ["foo", "bar", nil]
-        db.execute("INSERT ... (?,?,?)", bindings: Bindings(values))
+        db.execute("INSERT ... (?,?,?)", arguments: QueryArguments(values))
     
     - parameter sequence: A sequence of optional values that adopt the
                           DatabaseValueConvertible protocol.
-    - returns: A Bindings.
+    - returns: A QueryArguments.
     */
     public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<DatabaseValueConvertible>>(_ sequence: Sequence) {
-        impl = BindingsArrayImpl(values: Array(sequence))
+        impl = QueryArgumentsArrayImpl(values: Array(sequence))
     }
     
     /**
-    Initializes bindings from an NSArray.
+    Initializes arguments from an NSArray.
     
     The array must contain objects that adopt the DatabaseValueConvertible
     protocol, NSNull, NSNumber or NSString. A fatal error is thrown otherwise.
     
         let values: NSArray = ["foo", "bar", "baz"]
-        db.execute("INSERT ... (?,?,?)", bindings: Bindings(values))
+        db.execute("INSERT ... (?,?,?)", arguments: QueryArguments(values))
     
     - parameter array: An NSArray
-    - returns: A Bindings.
+    - returns: A QueryArguments.
     */
     public init(_ array: NSArray) {
         // IMPLEMENTATION NOTE
@@ -89,51 +89,51 @@ public struct Bindings {
         //        ["Barbara"],
         //    ]
         //    for person in persons {
-        //        try statement.execute(Bindings(person))   // Avoid an error here
+        //        try statement.execute(QueryArguments(person))   // Avoid an error here
         //    }
         var values = [DatabaseValueConvertible?]()
         for item in array {
-            values.append(Bindings.valueFromAnyObject(item))
+            values.append(QueryArguments.valueFromAnyObject(item))
         }
         self.init(values)
     }
     
     
-    // MARK: - Named Parameters
+    // MARK: - Named Arguments
     
     /**
-    Initializes bindings from a dictionary of optional values.
+    Initializes arguments from a dictionary of optional values.
     
         let values: [String: String?] = ["firstName": nil, "lastName": "Miller"]
-        db.execute("INSERT ... (:firstName, :lastName)", bindings: Bindings(values))
+        db.execute("INSERT ... (:firstName, :lastName)", arguments: QueryArguments(values))
     
-    GRDB.swift only supports colon-prefixed named parameters, even though SQLite
+    GRDB.swift only supports colon-prefixed named arguments, even though SQLite
     supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
     for more information.
     
     - parameter dictionary: A dictionary of optional values that adopt the
                             DatabaseValueConvertible protocol.
-    - returns: A Bindings.
+    - returns: A QueryArguments.
     */
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        impl = BindingsDictionaryImpl(dictionary: dictionary)
+        impl = QueryArgumentsDictionaryImpl(dictionary: dictionary)
     }
     
     /**
-    Initializes bindings from an NSDictionary.
+    Initializes arguments from an NSDictionary.
     
     The dictionary must contain objects that adopt the DatabaseValueConvertible
     protocol, NSNull, NSNumber or NSString. A fatal error is thrown otherwise.
     
         let values: NSDictionary = ["firstName": "Arthur", "lastName": "Miller"]
-        db.execute("INSERT ... (?,?,?)", bindings: Bindings(values))
+        db.execute("INSERT ... (?,?,?)", arguments: QueryArguments(values))
     
-    GRDB.swift only supports colon-prefixed named parameters, even though SQLite
+    GRDB.swift only supports colon-prefixed named arguments, even though SQLite
     supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
     for more information.
     
     - parameter dictionary: An NSDictionary
-    - returns: A Bindings.
+    - returns: A QueryArguments.
     */
     public init(_ dictionary: NSDictionary) {
         // IMPLEMENTATION NOTE
@@ -146,12 +146,12 @@ public struct Bindings {
         //        ["name": "Barbara"],
         //    ]
         //    for person in persons {
-        //        try statement.execute(Bindings(person))   // Avoid an error here
+        //        try statement.execute(QueryArguments(person))   // Avoid an error here
         //    }
         var values = [String: DatabaseValueConvertible?]()
         for (key, item) in dictionary {
             if let key = key as? String {
-                values[key] = Bindings.valueFromAnyObject(item)
+                values[key] = QueryArguments.valueFromAnyObject(item)
             } else {
                 fatalError("Not a String key: \(key)")
             }
@@ -162,22 +162,21 @@ public struct Bindings {
     
     // MARK: - Not Public
     
-    let impl: BindingsImpl
+    let impl: QueryArgumentsImpl
     
-    // Supported usage: Statement.bindings property
+    // Supported usage: Statement.arguments property
     //
     //     let statement = db.UpdateStatement("INSERT INTO persons (name, age) VALUES (?,?)"
-    //     statement.bindings = ["Arthur", 41]
-    //     statement.execute()
+    //     statement.execute(arguments: ["Arthur", 41])
     func bindInStatement(statement: Statement) {
         impl.bindInStatement(statement)
     }
     
     
-    // MARK: - BindingsArrayImpl
+    // MARK: - QueryArgumentsArrayImpl
     
-    /// Support for positional parameters
-    private struct BindingsArrayImpl : BindingsImpl {
+    /// Support for positional arguments
+    private struct QueryArgumentsArrayImpl : QueryArgumentsImpl {
         let values: [DatabaseValueConvertible?]
         
         init(values: [DatabaseValueConvertible?]) {
@@ -201,10 +200,10 @@ public struct Bindings {
     }
     
     
-    // MARK: - BindingsDictionaryImpl
+    // MARK: - QueryArgumentsDictionaryImpl
     
-    /// Support for named parameters
-    private struct BindingsDictionaryImpl : BindingsImpl {
+    /// Support for named arguments
+    private struct QueryArgumentsDictionaryImpl : QueryArgumentsImpl {
         let dictionary: [String: DatabaseValueConvertible?]
         
         init(dictionary: [String: DatabaseValueConvertible?]) {
@@ -285,19 +284,19 @@ public struct Bindings {
 }
 
 
-// The protocol for Bindings underlying implementation
-protocol BindingsImpl : CustomStringConvertible {
+// The protocol for QueryArguments underlying implementation
+protocol QueryArgumentsImpl : CustomStringConvertible {
     func bindInStatement(statement: Statement)
 }
 
 
 // MARK: - ArrayLiteralConvertible
 
-extension Bindings : ArrayLiteralConvertible {
+extension QueryArguments : ArrayLiteralConvertible {
     /**
-    Returns a Bindings from an array literal:
+    Returns a QueryArguments from an array literal:
 
-        db.selectRows("SELECT ...", bindings: ["Arthur", 41])
+        db.selectRows("SELECT ...", arguments: ["Arthur", 41])
     */
     public init(arrayLiteral elements: DatabaseValueConvertible?...) {
         self.init(elements)
@@ -307,11 +306,11 @@ extension Bindings : ArrayLiteralConvertible {
 
 // MARK: - DictionaryLiteralConvertible
 
-extension Bindings : DictionaryLiteralConvertible {
+extension QueryArguments : DictionaryLiteralConvertible {
     /**
-    Returns a Bindings from a dictionary literal:
+    Returns a QueryArguments from a dictionary literal:
     
-        db.selectRows("SELECT ...", bindings: ["name": "Arthur", "age": 41])
+        db.selectRows("SELECT ...", arguments: ["name": "Arthur", "age": 41])
     */
     public init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
         var dictionary = [String: DatabaseValueConvertible?]()
@@ -325,7 +324,7 @@ extension Bindings : DictionaryLiteralConvertible {
 
 // MARK: - CustomStringConvertible
 
-extension Bindings : CustomStringConvertible {
+extension QueryArguments : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         return impl.description

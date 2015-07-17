@@ -45,12 +45,10 @@ public final class Database {
     Returns a select statement that can be reused.
     
         let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
-        let moreThanTwentyCount = statement.fetchOne(Int.self, bindings: [20])!
-        let moreThanThirtyCount = statement.fetchOne(Int.self, bindings: [30])!
+        let moreThanTwentyCount = statement.fetchOne(Int.self, arguments: [20])!
+        let moreThanThirtyCount = statement.fetchOne(Int.self, arguments: [30])!
     
-    - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
-    
+    - parameter sql: An SQL query.
     - returns: A SelectStatement.
     */
     public func selectStatement(sql: String) -> SelectStatement {
@@ -66,14 +64,12 @@ public final class Database {
     Returns an update statement that can be reused.
     
         let statement = try db.updateStatement("INSERT INTO persons (name) VALUES (?)")
-        try statement.execute(bindings: ["Arthur"])
-        try statement.execute(bindings: ["Barbara"])
+        try statement.execute(arguments: ["Arthur"])
+        try statement.execute(arguments: ["Barbara"])
     
     This method may throw a DatabaseError.
     
-    - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
-    
+    - parameter sql: An SQL query.
     - returns: An UpdateStatement.
     */
     public func updateStatement(sql: String) throws -> UpdateStatement {
@@ -83,17 +79,17 @@ public final class Database {
     /**
     Executes an update statement.
     
-        db.excute("INSERT INTO persons (name) VALUES (?)", bindings: ["Arthur"])
+        db.excute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
     
     This method may throw a DatabaseError.
     
     - parameter sql: An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
+    - parameter arguments: Optional query arguments.
     - returns: A UpdateStatement.Changes.
     */
-    public func execute(sql: String, bindings: Bindings? = nil) throws -> UpdateStatement.Changes {
+    public func execute(sql: String, arguments: QueryArguments? = nil) throws -> UpdateStatement.Changes {
         let statement = try updateStatement(sql)
-        return try statement.execute(bindings: bindings)
+        return try statement.execute(arguments: arguments)
     }
     
     
@@ -123,7 +119,7 @@ public final class Database {
     */
     public func tableExists(tableName: String) -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        if let _ = fetchOneRow("SELECT \"sql\" FROM sqlite_master WHERE \"type\" = 'table' AND LOWER(name) = ?", bindings: [tableName.lowercaseString]) {
+        if let _ = fetchOneRow("SELECT \"sql\" FROM sqlite_master WHERE \"type\" = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercaseString]) {
             return true
         } else {
             return false
@@ -265,13 +261,12 @@ extension Database {
 
         let rows = db.fetchRows("SELECT ...")
 
-    - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
-    
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional query arguments.
     - returns: A lazy sequence of rows.
     */
-    public func fetchRows(sql: String, bindings: Bindings? = nil) -> AnySequence<Row> {
-        return selectStatement(sql).fetchRows(bindings: bindings)
+    public func fetchRows(sql: String, arguments: QueryArguments? = nil) -> AnySequence<Row> {
+        return selectStatement(sql).fetchRows(arguments: arguments)
     }
     
     /**
@@ -279,13 +274,12 @@ extension Database {
     
         let rows = db.fetchAllRows("SELECT ...")
     
-    - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
-    
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional query arguments.
     - returns: An array of rows.
     */
-    public func fetchAllRows(sql: String, bindings: Bindings? = nil) -> [Row] {
-        return Array(fetchRows(sql, bindings: bindings))
+    public func fetchAllRows(sql: String, arguments: QueryArguments? = nil) -> [Row] {
+        return Array(fetchRows(sql, arguments: arguments))
     }
     
     /**
@@ -293,13 +287,12 @@ extension Database {
     
         let row = db.fetchOneRow("SELECT ...")
     
-    - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
-    
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional query arguments.
     - returns: An optional row.
     */
-    public func fetchOneRow(sql: String, bindings: Bindings? = nil) -> Row? {
-        return fetchRows(sql, bindings: bindings).generate().next()
+    public func fetchOneRow(sql: String, arguments: QueryArguments? = nil) -> Row? {
+        return fetchRows(sql, arguments: arguments).generate().next()
     }
 }
 
@@ -314,15 +307,14 @@ extension Database {
 
         let names = db.fetch(String.self, "SELECT name FROM ...")
 
-    - parameter type:     The type of fetched values. It must adopt
-                          DatabaseValueConvertible.
-    - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
-    
+    - parameter type:      The type of fetched values. It must adopt
+                           DatabaseValueConvertible.
+    - parameter sql:       An SQL query.
+    - parameter arguments: Optional query arguments.
     - returns: A lazy sequence of values.
     */
-    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> AnySequence<Value?> {
-        return selectStatement(sql).fetch(type, bindings: bindings)
+    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: QueryArguments? = nil) -> AnySequence<Value?> {
+        return selectStatement(sql).fetch(type, arguments: arguments)
     }
     
     /**
@@ -330,15 +322,14 @@ extension Database {
 
         let names = db.fetchAll(String.self, "SELECT name FROM ...")
 
-    - parameter type:     The type of fetched values. It must adopt
-                          DatabaseValueConvertible.
-    - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
-    
+    - parameter type:      The type of fetched values. It must adopt
+                           DatabaseValueConvertible.
+    - parameter sql:       An SQL query.
+    - parameter arguments: Optional query arguments.
     - returns: An array of values.
     */
-    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> [Value?] {
-        return Array(fetch(type, sql, bindings: bindings))
+    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: QueryArguments? = nil) -> [Value?] {
+        return Array(fetch(type, sql, arguments: arguments))
     }
     
     /**
@@ -346,15 +337,14 @@ extension Database {
 
         let name = db.fetchOne(String.self, "SELECT name FROM ...")
 
-    - parameter type:     The type of fetched values. It must adopt
-                          DatabaseValueConvertible.
-    - parameter sql:      An SQL query.
-    - parameter bindings: Optional bindings for query parameters.
-    
+    - parameter type:      The type of fetched values. It must adopt
+                           DatabaseValueConvertible.
+    - parameter sql:       An SQL query.
+    - parameter arguments: Optional query arguments.
     - returns: An optional value.
     */
-    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, bindings: Bindings? = nil) -> Value? {
-        if let first = fetch(type, sql, bindings: bindings).generate().next() {
+    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: QueryArguments? = nil) -> Value? {
+        if let first = fetch(type, sql, arguments: arguments).generate().next() {
             // one row containing an optional value
             return first
         } else {

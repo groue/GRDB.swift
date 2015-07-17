@@ -30,10 +30,10 @@ public struct Configuration {
     // MARK: - Utilities
     
     /// A tracing function that logs SQL statements
-    public static func logSQL(sql: String, bindings: Bindings?) {
+    public static func logSQL(sql: String, arguments: QueryArguments?) {
         NSLog("GRDB: %@", sql)
-        if let bindings = bindings {
-            NSLog("GRDB: bindings %@", bindings.description)
+        if let arguments = arguments {
+            NSLog("GRDB: arguments %@", arguments.description)
         }
     }
     
@@ -43,9 +43,9 @@ public struct Configuration {
     A tracing function.
 
     - parameter sql: An SQL query
-    - parameter bindings: Eventual bindings that hold SQL parameters.
+    - parameter arguments: Eventual query arguments.
     */
-    public typealias TraceFunction = (sql: String, bindings: Bindings?) -> Void
+    public typealias TraceFunction = (sql: String, arguments: QueryArguments?) -> Void
     
     /// If true, the database has support for foreign keys.
     public var foreignKeysEnabled: Bool
