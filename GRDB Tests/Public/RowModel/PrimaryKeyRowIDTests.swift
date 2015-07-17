@@ -55,10 +55,11 @@ class Person: RowModel {
         }
     }
     
-    init (id: Int64? = nil, name: String? = nil, age: Int? = nil) {
+    init (id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
         self.id = id
         self.name = name
         self.age = age
+        self.creationDate = creationDate
         super.init()
     }
     
