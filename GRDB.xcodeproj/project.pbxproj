@@ -10,6 +10,8 @@
 		564E0B141B4D8FC100EBC9F6 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E0B131B4D8FC100EBC9F6 /* DatabaseError.swift */; };
 		564E0B161B4D901300EBC9F6 /* DatabaseValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E0B151B4D901300EBC9F6 /* DatabaseValue.swift */; };
 		565E191E1B42B2B600D32814 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565E191D1B42B2B600D32814 /* Database.swift */; };
+		56691D421B591FA100F6A9A6 /* MinimalPrimaryKeySingleWithReplaceConflictResolutionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56691D411B591FA100F6A9A6 /* MinimalPrimaryKeySingleWithReplaceConflictResolutionTests.swift */; };
+		56691D431B591FA100F6A9A6 /* MinimalPrimaryKeySingleWithReplaceConflictResolutionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56691D411B591FA100F6A9A6 /* MinimalPrimaryKeySingleWithReplaceConflictResolutionTests.swift */; };
 		5683C2691B4D445E00296494 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5683C2681B4D445E00296494 /* libsqlite3.dylib */; };
 		56997A351B539038005EBEED /* DatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569979671B539038005EBEED /* DatabaseTests.swift */; };
 		56997A361B539038005EBEED /* DatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569979671B539038005EBEED /* DatabaseTests.swift */; };
@@ -117,6 +119,7 @@
 		564E0B131B4D8FC100EBC9F6 /* DatabaseError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseError.swift; sourceTree = "<group>"; };
 		564E0B151B4D901300EBC9F6 /* DatabaseValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValue.swift; sourceTree = "<group>"; };
 		565E191D1B42B2B600D32814 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
+		56691D411B591FA100F6A9A6 /* MinimalPrimaryKeySingleWithReplaceConflictResolutionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MinimalPrimaryKeySingleWithReplaceConflictResolutionTests.swift; sourceTree = "<group>"; };
 		5683C2681B4D445E00296494 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk/usr/lib/libsqlite3.dylib; sourceTree = DEVELOPER_DIR; };
 		569979671B539038005EBEED /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
 		569979681B539038005EBEED /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = "<group>"; };
@@ -275,6 +278,7 @@
 			children = (
 				569979751B539038005EBEED /* MinimalPrimaryKeyRowIDTests.swift */,
 				569979761B539038005EBEED /* MinimalPrimaryKeySingleTests.swift */,
+				56691D411B591FA100F6A9A6 /* MinimalPrimaryKeySingleWithReplaceConflictResolutionTests.swift */,
 				569979771B539038005EBEED /* PrimaryKeyMultipleTests.swift */,
 				569979781B539038005EBEED /* PrimaryKeyNoneTests.swift */,
 				569979791B539038005EBEED /* PrimaryKeyRowIDTests.swift */,
@@ -608,6 +612,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56691D431B591FA100F6A9A6 /* MinimalPrimaryKeySingleWithReplaceConflictResolutionTests.swift in Sources */,
 				56997A601B539038005EBEED /* RowModelTestCase.swift in Sources */,
 				56997A8F1B5390D4005EBEED /* DatabaseErrorFromSelectStatementTests.swift in Sources */,
 				56997A381B539038005EBEED /* InMemoryDatabaseTests.swift in Sources */,
@@ -641,6 +646,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56691D421B591FA100F6A9A6 /* MinimalPrimaryKeySingleWithReplaceConflictResolutionTests.swift in Sources */,
 				56997A5F1B539038005EBEED /* RowModelTestCase.swift in Sources */,
 				56997A8E1B5390D4005EBEED /* DatabaseErrorFromSelectStatementTests.swift in Sources */,
 				56997A371B539038005EBEED /* InMemoryDatabaseTests.swift in Sources */,

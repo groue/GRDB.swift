@@ -3,4 +3,3 @@
 - [ ] Remove RowModelError.Dummy when rdar://problem/21707972 is fixed.
 - [ ] Make DBDate public? Support both ISO-8601 and timestamps?
 - [ ] Question public access to reusable statements, and Statement.arguments setter
-- [ ] Experiment with a RowModel that has a ON CONFLICT clause.
