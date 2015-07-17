@@ -4,3 +4,4 @@
 - [ ] Make DBDate public? Support both ISO-8601 and timestamps?
 - [ ] Question public access to reusable statements, and Statement.arguments setter
 - [ ] Support for UPSERT? Check http://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
+- [ ] Add in README comparison with other SQLite libs (as of date of writing)
