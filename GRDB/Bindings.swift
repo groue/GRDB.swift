@@ -173,7 +173,10 @@ public struct Bindings {
         impl.bindInStatement(statement)
     }
     
-    // Support for array-based bindings
+    
+    // MARK: - BindingsArrayImpl
+    
+    /// Support for positional parameters
     private struct BindingsArrayImpl : BindingsImpl {
         let values: [DatabaseValueConvertible?]
         
@@ -205,7 +208,10 @@ public struct Bindings {
         }
     }
     
-    // Support for dictionary-based bindings
+    
+    // MARK: - BindingsDictionaryImpl
+    
+    /// Support for named parameters
     private struct BindingsDictionaryImpl : BindingsImpl {
         let dictionary: [String: DatabaseValueConvertible?]
         
