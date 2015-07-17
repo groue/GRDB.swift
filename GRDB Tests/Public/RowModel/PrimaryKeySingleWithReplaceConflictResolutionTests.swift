@@ -48,7 +48,7 @@ class Email : RowModel {
     }
 }
 
-class MinimalPrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
+class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     
     override func setUp() {
         super.setUp()
