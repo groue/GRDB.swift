@@ -67,20 +67,6 @@ public struct Bindings {
     }
     
     /**
-    Initializes bindings from a sequence of values.
-    
-        let values: [String] = ["foo", "bar", "baz"]
-        db.execute("INSERT ... (?,?,?)", bindings: Bindings(values))
-    
-    - parameter sequence: A sequence of values that adopt the
-                          DatabaseValueConvertible protocol.
-    - returns: A Bindings.
-    */
-    public init<Sequence: SequenceType where Sequence.Generator.Element == DatabaseValueConvertible>(_ sequence: Sequence) {
-        impl = BindingsArrayImpl(values: sequence.map { $0 })
-    }
-    
-    /**
     Initializes bindings from an NSArray.
     
     The array must contain objects that adopt the DatabaseValueConvertible

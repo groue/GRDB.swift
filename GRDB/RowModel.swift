@@ -534,7 +534,7 @@ public class RowModel {
             
             // Delete
             let deleteStatement = try DataMapper.deleteStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-            let bindings = Bindings(Array(primaryKeyDictionary.values))
+            let bindings = Bindings(primaryKeyDictionary.values)
             try deleteStatement.execute(bindings: bindings)
         }
         
