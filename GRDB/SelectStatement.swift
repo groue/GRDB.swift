@@ -50,7 +50,7 @@ public final class SelectStatement : Statement {
     /// If true, the fetched rows are *unsafe*. See Row(statement:unsafe:) for details.
     let unsafe: Bool
     
-    init(database: Database, sql: String, unsafe: Bool) throws {
+    init(database: Database, sql: String, unsafe: Bool = false) throws {
         self.unsafe = unsafe
         try super.init(database: database, sql: sql)
     }
@@ -149,10 +149,7 @@ extension SelectStatement {
                 case SQLITE_ROW:
                     return Row(statement: self, unsafe: self.unsafe)
                 default:
-                    verboseFailOnError { () -> Void in
-                        throw DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments)
-                    }
-                    return nil
+                    fatalDatabaseError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments))
                 }
             }
         }

@@ -52,9 +52,7 @@ public final class Database {
     - returns: A SelectStatement.
     */
     public func selectStatement(sql: String) -> SelectStatement {
-        return verboseFailOnError {
-            return try SelectStatement(database: self, sql: sql, unsafe: false)
-        }
+        return try! SelectStatement(database: self, sql: sql)
     }
     
     
@@ -233,21 +231,12 @@ public final class Database {
 
 // MARK: - Error Management
 
-/**
-Convenience function that calls fatalError in case of error
-
-    let x = verboseFailOnError {
-        ...
+@noreturn func fatalDatabaseError(error: DatabaseError) {
+    func throwDataBasase(error: DatabaseError) throws {
+        throw error
     }
-*/
-func verboseFailOnError<Result>(@noescape block: (Void) throws -> Result) -> Result {
-    do {
-        return try block()
-    } catch let error as DatabaseError {
-        fatalError(error.description)
-    } catch {
-        fatalError("error: \(error)")
-    }
+    try! throwDataBasase(error)
+    fatalError("Should not happen")
 }
 
 

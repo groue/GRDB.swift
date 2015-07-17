@@ -98,9 +98,7 @@ public class Statement {
         }
         
         if code != SQLITE_OK {
-            verboseFailOnError { () -> Void in
-                throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
-            }
+            fatalDatabaseError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql))
         }
     }
     
@@ -117,9 +115,7 @@ public class Statement {
     final func reset() {
         let code = sqlite3_reset(sqliteStatement)
         if code != SQLITE_OK {
-            verboseFailOnError { () -> Void in
-                throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
-            }
+            fatalDatabaseError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql))
         }
     }
     
@@ -127,9 +123,7 @@ public class Statement {
     private func clearQueryArguments() {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {
-            verboseFailOnError { () -> Void in
-                throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
-            }
+            fatalDatabaseError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql))
         }
     }
 }
