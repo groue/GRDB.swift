@@ -137,7 +137,8 @@ public class RowModel {
             setDatabaseValue(databaseValue, forColumn: column)
         }
         
-        // For isEdited
+        // Not edited, unless the row misses columns present in
+        // storedDatabaseDictionary.
         referenceRow = row
     }
     
@@ -318,7 +319,7 @@ public class RowModel {
                 }
                 
                 // Not edited any longer
-                referenceRow = Row(dictionary: storedDatabaseDictionary)
+                referenceRow = row
             } else {
                 throw RowModelError.RowModelNotFound(self)
             }
