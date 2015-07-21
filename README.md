@@ -420,22 +420,22 @@ All types that adopt this protocol can be used wherever the built-in types `Int`
 
 > Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
-As an example, let's look at the implementation of the `GRDB.DateTime` type that stores NSDates as ISO-8601 strings. DateTime applies all the best practices for a great GRDB.swift integration:
+As an example, let's look at the implementation of the built-in [DateTime type](#nsdate-and-datetime). DateTime applies all the best practices for a great GRDB.swift integration:
 
 ```swift
 struct DateTime: DatabaseValueConvertible {
     
     // NSDate conversion
     //
-    // It is good to consistently use the Swift nil to represent the database
-    // NULL: the date property is a non-optional NSDate, and the NSDate
-    // initializer is failable:
+    // We consistently use the Swift nil to represent the database NULL: the
+    // date property is a non-optional NSDate, and the NSDate initializer is
+    // failable:
     
-    // The represented date
+    /// The represented date
     let date: NSDate
     
-    // Creates a DateTime from an NSDate.
-    // Returns nil if and only if the NSDate is nil.
+    /// Creates a DateTime from an NSDate.
+    /// The result is nil if and only if *date* is nil.
     init?(_ date: NSDate?) {
         if let date = date {
             self.date = date
@@ -444,31 +444,31 @@ struct DateTime: DatabaseValueConvertible {
         }
     }
     
-    // DatabaseValue conversion
-    //
-    // DateTime represents the date as an ISO-8601 string in the database.
     
-    // An ISO-8601 date formatter
+    // DatabaseValueConvertible adoption
+    
+    /// The DateTime date formatter.
     static let dateFormatter: NSDateFormatter = {
         let formatter = NSDateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
         formatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
         formatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
         return formatter
     }()
     
+    /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
         return .Text(DateTime.dateFormatter.stringFromDate(date))
     }
     
+    /// Create an instance initialized to `databaseValue`.
     init?(databaseValue: DatabaseValue) {
-        // Don't handle the raw DatabaseValue unless you know what you do.
-        // It is recommended to use GRDB built-in conversions instead:
-        if let string = String(databaseValue: databaseValue) {
-            self.init(DateTime.dateFormatter.dateFromString(string))
-        } else {
+        // Why handle the raw DatabaseValue when GRDB built-in String
+        // conversion does all the job for us?
+        guard let string = String(databaseValue: databaseValue) else {
             return nil
         }
+        self.init(DateTime.dateFormatter.dateFromString(string))
     }
 }
 ```

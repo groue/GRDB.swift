@@ -93,12 +93,7 @@ public struct DateTime: DatabaseValueConvertible {
     }
     
     
-    // MARK: - DatabaseValue conversion
-    //
-    // DateTime represents an NSDate as "yyyy-MM-dd HH:mm:ss.SSS", a format
-    // understood by [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)
-    // and comparable with the format "yyyy-MM-dd HH:mm:ss" used by SQLite's
-    // CURRENT_TIMESTAMP
+    // MARK: - DatabaseValueConvertible adoption
     
     /// The DateTime date formatter.
     public static let dateFormatter: NSDateFormatter = {
