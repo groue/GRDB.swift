@@ -300,8 +300,67 @@ The `db.fetchOne(type:sql:arguments:)` function returns an optional value which 
 
 ## Values
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, and [Swift enums](#swift-enums). Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-datetime), and [Swift enums](#swift-enums). Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
 
+
+### NSDate and DateTime
+
+**NSDate** can be stored and fetched from the database using the helper type `DateTime`.
+
+DateTime reads and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone. The maximum precision is the millisecond.
+
+*This format is not ISO-8601.* However it can be lexically compared with the format used by SQLite's `CURRENT_TIMESTAMP` ("yyyy-MM-dd HH:mm:ss"), which means that your `ORDER BY` sorts will perform well. This format is also understood by [SQLite's Date and Time Functions](https://www.sqlite.org/lang_datefunc.html).
+
+#### Usage
+
+Declare DateTime columns in your tables:
+
+```swift
+try db.execute(
+    "CREATE TABLE persons (" +
+    "birthDate DATETIME, " +
+    "creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP " +
+    "...)")
+```
+
+Store NSDate into the database:
+
+```swift
+let birthDate = NSDate()
+try db.execute("INSERT INTO persons (birthDate, ...) " +
+                            "VALUES (?, ...)",
+                         arguments: [DateTime(birthDate), ...])
+```
+
+Extract NSDate from the database:
+
+```swift
+let row in db.fetchOneRow("SELECT birthDate, ...")!
+let date = (row.value(named: "birthDate") as DateTime?)?.date    // NSDate?
+
+db.fetch(DateTime.self, "SELECT ...")                  // AnySequence<DateTime?>
+db.fetchAll(DateTime.self, "SELECT ...")               // [DateTime?]
+db.fetchOne(DateTime.self, "SELECT ...")               // DateTime?
+```
+
+Use NSDate in a [Row Model](#row-models):
+
+```swift
+class Person : RowModel {
+    var birthDate: NSDate?
+
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["birthDate": DateTime(birthDate), ...]
+    }
+
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
+        switch column {
+        case "birthDate": birthDate = (dbv.value() as DateTime?)?.date
+        case ...
+        default: super.setDatabaseValue(dbv, forColumn: column)
+    }
+}
+```
 
 ### Swift Enums
 
