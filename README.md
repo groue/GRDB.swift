@@ -305,15 +305,15 @@ The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `S
 
 ### NSDate and DateTime
 
-**NSDate** can be stored and fetched from the database using the helper type `DateTime`.
+**NSDate** can be stored and fetched from the database using the helper type **DateTime**.
 
 DateTime reads and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone. The maximum precision is the millisecond.
 
-*This format is not ISO-8601.* However it can be lexically compared with the format used by SQLite's `CURRENT_TIMESTAMP` ("yyyy-MM-dd HH:mm:ss"), which means that your `ORDER BY` sorts will perform well. This format is also understood by [SQLite's Date and Time Functions](https://www.sqlite.org/lang_datefunc.html).
+*This format is not ISO-8601.* However it can be lexically compared with the format used by SQLite's CURRENT_TIMESTAMP ("yyyy-MM-dd HH:mm:ss"), which means that your ORDER BY sorts will perform well. This format is also understood by [SQLite's Date and Time Functions](https://www.sqlite.org/lang_datefunc.html).
 
 #### Usage
 
-Declare DateTime columns in your tables:
+Declare DATETIME columns in your tables:
 
 ```swift
 try db.execute(
