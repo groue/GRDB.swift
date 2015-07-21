@@ -207,17 +207,11 @@ public struct Row: CollectionType {
     
     - DictionaryRowImpl
     - SafeRowImpl
-    - UnsafeRowImpl
     */
     let impl: RowImpl
     
     /**
     Builds a row from an dictionary of values.
-    
-        let dic = [
-            "name": .Text("Arthur"),
-            "booksCount": .Integer(0)]
-        let row = Row(databaseDictionary: dic)
     
     - parameter databaseDictionary: A dictionary of DatabaseValue.
     */
@@ -232,20 +226,12 @@ public struct Row: CollectionType {
     /**
     Builds a row from the *current state* of the SQLite statement.
     
-    If the *unsafe* argument is false, the row is implemented on top of
-    SafeRowImpl, which *copies* the SQLite values so that the SQLite statement
-    can be further iterated without corrupting the row.
-    
-    If the *unsafe* argument is true, the row is implemented on top of
-    UnsafeRowImpl, which *does not* copy the SQLite values. Such an unsafe row
-    is invalidated when the SQLite statement is further iterated.
+    The row is implemented on top of SafeRowImpl, which *copies* the values from
+    the SQLite statement so that it can be further iterated without corrupting
+    the row.
     */
-    init(statement: SelectStatement, unsafe: Bool) {
-        if unsafe {
-            self.impl = UnsafeRowImpl(statement: statement)
-        } else {
-            self.impl = SafeRowImpl(statement: statement)
-        }
+    init(statement: SelectStatement) {
+        self.impl = SafeRowImpl(statement: statement)
     }
     
     
@@ -314,43 +300,6 @@ public struct Row: CollectionType {
         
         func indexForColumn(named name: String) -> Int? {
             return columnNames.indexOf(name)
-        }
-    }
-    
-    
-    // MARK: - UnsafeRowImpl
-    
-    /// See Row.init(statement:unsafe:)
-    private struct UnsafeRowImpl : RowImpl {
-        let statement: SelectStatement
-        
-        init(statement: SelectStatement) {
-            self.statement = statement
-        }
-        
-        var columnCount: Int {
-            return statement.columnCount
-        }
-        
-        func databaseValue(atIndex index: Int) -> DatabaseValue {
-            return statement.databaseValue(atIndex: index)
-        }
-        
-        func columnName(atIndex index: Int) -> String {
-            return statement.columnNames[index]
-        }
-        
-        func indexForColumn(named name: String) -> Int? {
-            return statement.columnNames.indexOf(name)
-        }
-        
-        var databaseDictionary: [String: DatabaseValue] {
-            var dic = [String: DatabaseValue]()
-            for index in 0..<statement.columnCount {
-                let columnName = String.fromCString(sqlite3_column_name(statement.sqliteStatement, Int32(index)))!
-                dic[columnName] = statement.databaseValue(atIndex: index)
-            }
-            return dic
         }
     }
 }

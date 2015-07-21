@@ -47,14 +47,6 @@ public final class SelectStatement : Statement {
     
     // MARK: - Not public
     
-    /// If true, the fetched rows are *unsafe*. See Row(statement:unsafe:) for details.
-    let unsafe: Bool
-    
-    init(database: Database, sql: String, unsafe: Bool = false) throws {
-        self.unsafe = unsafe
-        try super.init(database: database, sql: sql)
-    }
-    
     /**
     Returns the DatabaseValue at given index.
     
@@ -147,7 +139,7 @@ extension SelectStatement {
                 case SQLITE_DONE:
                     return nil
                 case SQLITE_ROW:
-                    return Row(statement: self, unsafe: self.unsafe)
+                    return Row(statement: self)
                 default:
                     fatalDatabaseError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments))
                 }

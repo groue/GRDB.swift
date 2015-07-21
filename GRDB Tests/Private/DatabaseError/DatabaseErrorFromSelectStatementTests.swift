@@ -30,7 +30,7 @@ class DatabaseErrorFromSelectStatementTests: GRDBTestCase {
     func testDatabaseErrorThrownBySelectStatementContainSQL() {
         dbQueue.inDatabase { db in
             do {
-                let _ = try SelectStatement(database: db, sql: "SELECT * FROM blah", unsafe: false)
+                let _ = try SelectStatement(database: db, sql: "SELECT * FROM blah")
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 1)
