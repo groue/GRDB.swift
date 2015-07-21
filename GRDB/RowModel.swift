@@ -149,7 +149,9 @@ public class RowModel {
     // MARK: - Copy
     
     /**
-    Updates `self` with another row model.
+    Updates `self` with another row model by repeatedly calling the
+    `setDatabaseValue(_:forColumn:)` with all values from
+    `other.storedDatabaseDictionary`.
     */
     public func copyDatabaseValuesFrom(other: RowModel) {
         for (column, value) in other.storedDatabaseDictionary {
@@ -224,6 +226,8 @@ public class RowModel {
     /**
     Executes an INSERT statement to insert the row model.
     
+    On successful insert, this method sets the *edited* flag to false.
+    
     - parameter db: A Database.
     */
     public func insert(db: Database) throws {
@@ -235,7 +239,6 @@ public class RowModel {
                 setDatabaseValue(DatabaseValue.Integer(insertedRowID), forColumn: rowIDColumn)
             }
             
-            // Not edited any longer
             edited = false
         }
     }
@@ -249,13 +252,14 @@ public class RowModel {
     RowModelError.RowModelNotFound is thrown if the primary key does not match
     any row in the database and row model could not be updated.
     
+    On successful update, this method sets the *edited* flag to false.
+    
     - parameter db: A Database.
     */
     public func update(db: Database) throws {
         try withDataMapper { dataMapper in
             try dataMapper.update(db)
             
-            // Not edited any longer
             edited = false
         }
     }
@@ -267,6 +271,8 @@ public class RowModel {
     database, this method performs an update.
     
     Otherwise, performs an insert.
+    
+    On successful saving, this method sets the *edited* flag to false.
     
     - parameter db: A Database.
     */
@@ -291,6 +297,8 @@ public class RowModel {
     RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
     contains nil for the primary key.
     
+    On successful deletion, this method sets the *edited* flag to true.
+    
     - parameter db: A Database.
     */
     public func delete(db: Database) throws {
@@ -313,6 +321,8 @@ public class RowModel {
     RowModelError.RowModelNotFound is thrown if the primary key does not match
     any row in the database and row model could not be reloaded.
     
+    On successful reloading, this method sets the *edited* flag to false.
+    
     - parameter db: A Database.
     */
     public func reload(db: Database) throws {
@@ -323,7 +333,6 @@ public class RowModel {
                     setDatabaseValue(databaseValue, forColumn: column)
                 }
                 
-                // Not edited any longer
                 edited = false
             } else {
                 throw RowModelError.RowModelNotFound(self)
