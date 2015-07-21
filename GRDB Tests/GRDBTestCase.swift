@@ -25,55 +25,6 @@
 import XCTest
 import GRDB
 
-struct DBDate: DatabaseValueConvertible {
-    
-    // NSDate conversion
-    //
-    // It is good to consistently use the Swift nil to represent the database
-    // NULL: the date property is a non-optional NSDate, and the NSDate
-    // initializer is failable:
-    
-    // The represented date
-    let date: NSDate
-    
-    // Creates a DBDate from an NSDate.
-    // Returns nil if and only if the NSDate is nil.
-    init?(_ date: NSDate?) {
-        if let date = date {
-            self.date = date
-        } else {
-            return nil
-        }
-    }
-    
-    // DatabaseValue conversion
-    //
-    // DBDate represents the date as an ISO-8601 string in the database.
-    
-    // An ISO-8601 date formatter
-    static let dateFormatter: NSDateFormatter = {
-        let formatter = NSDateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
-        formatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
-        formatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
-        return formatter
-    }()
-    
-    var databaseValue: DatabaseValue {
-        return .Text(DBDate.dateFormatter.stringFromDate(date))
-    }
-    
-    init?(databaseValue: DatabaseValue) {
-        // Don't handle the raw DatabaseValue unless you know what you do.
-        // It is recommended to use GRDB built-in conversions instead:
-        if let string = String(databaseValue: databaseValue) {
-            self.init(DBDate.dateFormatter.dateFromString(string))
-        } else {
-            return nil
-        }
-    }
-}
-
 class GRDBTestCase: XCTestCase {
     var databasePath: String!
     var dbQueue: DatabaseQueue!

@@ -25,7 +25,7 @@
 import XCTest
 import GRDB
 
-class DBDateTests : GRDBTestCase {
+class DateTimeTests : GRDBTestCase {
     
     override func setUp() {
         super.setUp()
@@ -43,7 +43,7 @@ class DBDateTests : GRDBTestCase {
         }
     }
 
-    func testDBDate() {
+    func testDateTime() {
         assertNoError {
             try dbQueue.inTransaction { db in
                 
@@ -59,12 +59,12 @@ class DBDateTests : GRDBTestCase {
                 
                 do {
                     let date = calendar.dateFromComponents(dateComponents)!
-                    try db.execute("INSERT INTO stuffs (creationDate) VALUES (?)", arguments: [DBDate(date)])
+                    try db.execute("INSERT INTO stuffs (creationDate) VALUES (?)", arguments: [DateTime(date)])
                 }
                 
                 do {
                     let row = db.fetchOneRow("SELECT creationDate FROM stuffs")!
-                    let date = (row.value(atIndex: 0)! as DBDate).date
+                    let date = (row.value(atIndex: 0)! as DateTime).date
                     // All components must be preserved, but nanosecond since ISO-8601 stores milliseconds.
                     XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), dateComponents.year)
                     XCTAssertEqual(calendar.component(NSCalendarUnit.Month, fromDate: date), dateComponents.month)
@@ -76,7 +76,7 @@ class DBDateTests : GRDBTestCase {
                 }
                 
                 do {
-                    let date = db.fetchOne(DBDate.self, "SELECT creationDate FROM stuffs")!.date
+                    let date = db.fetchOne(DateTime.self, "SELECT creationDate FROM stuffs")!.date
                     // All components must be preserved, but nanosecond since ISO-8601 stores milliseconds.
                     XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), dateComponents.year)
                     XCTAssertEqual(calendar.component(NSCalendarUnit.Month, fromDate: date), dateComponents.month)

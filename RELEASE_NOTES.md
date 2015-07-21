@@ -3,6 +3,10 @@ Release Notes
 
 ## Future release
 
+**New**
+
+- `DateTime` performs ISO-8601 storage of NSDate in the database.
+
 **Fixed**
 
 - `RowModel.save(db)` calls `RowModel.insert(db)` or `RowModel.update(db)` so that eventual overridden versions of `insert` or `update` are invoked.

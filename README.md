@@ -358,10 +358,10 @@ All types that adopt this protocol can be used wherever the built-in types `Int`
 
 > Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
-As an example, let's define the `DBDate` type that stores NSDates as ISO-8601 strings (a format understood by [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)). DBDate applies all the best practices for a great GRDB.swift integration:
+As an example, let's look at the implementation of the `GRDB.DateTime` type that stores NSDates as ISO-8601 strings. DateTime applies all the best practices for a great GRDB.swift integration:
 
 ```swift
-struct DBDate: DatabaseValueConvertible {
+struct DateTime: DatabaseValueConvertible {
     
     // NSDate conversion
     //
@@ -372,7 +372,7 @@ struct DBDate: DatabaseValueConvertible {
     // The represented date
     let date: NSDate
     
-    // Creates a DBDate from an NSDate.
+    // Creates a DateTime from an NSDate.
     // Returns nil if and only if the NSDate is nil.
     init?(_ date: NSDate?) {
         if let date = date {
@@ -384,7 +384,7 @@ struct DBDate: DatabaseValueConvertible {
     
     // DatabaseValue conversion
     //
-    // DBDate represents the date as an ISO-8601 string in the database.
+    // DateTime represents the date as an ISO-8601 string in the database.
     
     // An ISO-8601 date formatter
     static let dateFormatter: NSDateFormatter = {
@@ -396,14 +396,14 @@ struct DBDate: DatabaseValueConvertible {
     }()
     
     var databaseValue: DatabaseValue {
-        return .Text(DBDate.dateFormatter.stringFromDate(date))
+        return .Text(DateTime.dateFormatter.stringFromDate(date))
     }
     
     init?(databaseValue: DatabaseValue) {
         // Don't handle the raw DatabaseValue unless you know what you do.
         // It is recommended to use GRDB built-in conversions instead:
         if let string = String(databaseValue: databaseValue) {
-            self.init(DBDate.dateFormatter.dateFromString(string))
+            self.init(DateTime.dateFormatter.dateFromString(string))
         } else {
             return nil
         }
@@ -411,24 +411,24 @@ struct DBDate: DatabaseValueConvertible {
 }
 ```
 
-DBDate can now be stored and fetched from the database just like built-in types:
+As a DatabaseValueConvertible adopter, DateTime can be stored and fetched from the database just like simple types Int and String:
 
 ```swift
 // Store NSDate
 let date = NSDate()
 try db.execute("INSERT INTO persons (date, ...) " +
                             "VALUES (?, ...)",
-                          arguments: [DBDate(date), ...])
+                          arguments: [DateTime(date), ...])
 
 // Extract NSDate from row:
 for rows in db.fetchRows("SELECT ...") {
-    let date = (row.value(named: "date") as DBDate?)?.date
+    let date = (row.value(named: "date") as DateTime?)?.date
 }
 
 // Direct fetch:
-db.fetch(DBDate.self, "SELECT ...", arguments: ...)    // AnySequence<DBDate?>
-db.fetchAll(DBDate.self, "SELECT ...", arguments: ...) // [DBDate?]
-db.fetchOne(DBDate.self, "SELECT ...", arguments: ...) // DBDate?
+db.fetch(DateTime.self, "SELECT ...", arguments: ...)    // AnySequence<DateTime?>
+db.fetchAll(DateTime.self, "SELECT ...", arguments: ...) // [DateTime?]
+db.fetchOne(DateTime.self, "SELECT ...", arguments: ...) // DateTime?
 ```
 
 ### Value Extraction in Details
