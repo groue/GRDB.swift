@@ -69,6 +69,7 @@ public final class Database {
     
     - parameter sql: An SQL query.
     - returns: An UpdateStatement.
+    - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public func updateStatement(sql: String) throws -> UpdateStatement {
         return try UpdateStatement(database: self, sql: sql)
@@ -84,6 +85,7 @@ public final class Database {
     - parameter sql: An SQL query.
     - parameter arguments: Optional query arguments.
     - returns: A UpdateStatement.Changes.
+    - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public func execute(sql: String, arguments: QueryArguments? = nil) throws -> UpdateStatement.Changes {
         let statement = try updateStatement(sql)
@@ -176,6 +178,8 @@ public final class Database {
                        See https://www.sqlite.org/lang_transaction.html
     - parameter block: A block that executes SQL statements and return either
                        .Commit or .Rollback.
+    - throws: The error thrown by the block, or a DatabaseError whenever a
+              SQLite error occurs.
     */
     func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) throws {
         var completion: TransactionCompletion = .Rollback

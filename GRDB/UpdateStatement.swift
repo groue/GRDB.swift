@@ -51,6 +51,7 @@ public final class UpdateStatement : Statement {
     Executes the SQL query.
     
     - parameter arguments: Optional query arguments.
+    - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public func execute(arguments arguments: QueryArguments? = nil) throws -> Changes {
         if let arguments = arguments {

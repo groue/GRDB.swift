@@ -97,6 +97,7 @@ public struct DatabaseMigrator {
     has not yet been applied, its block is executed in a transaction.
     
     - parameter dbQueue: The Database Queue where migrations should apply.
+    - throws: An eventual error thrown by the registered migration blocks.
     */
     public func migrate(dbQueue: DatabaseQueue) throws {
         try setupMigrations(dbQueue)

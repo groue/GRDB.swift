@@ -46,6 +46,7 @@ public final class DatabaseQueue {
     
     - parameter path: The path to the database file.
     - parameter configuration: A configuration
+    - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public convenience init(path: String, configuration: Configuration = Configuration()) throws {
         try self.init(database: Database(path: path, configuration: configuration))
@@ -77,6 +78,7 @@ public final class DatabaseQueue {
     This method is not reentrant.
     
     - parameter block: A block that accesses the databse.
+    - throws: The error thrown by the block.
     */
     public func inDatabase(block: (db: Database) throws -> Void) rethrows {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
@@ -98,6 +100,7 @@ public final class DatabaseQueue {
     This method is not reentrant.
     
     - parameter block: A block that accesses the databse.
+    - throws: The error thrown by the block.
     */
     public func inDatabase<R>(block: (db: Database) throws -> R) rethrows -> R {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
@@ -126,6 +129,8 @@ public final class DatabaseQueue {
                        See https://www.sqlite.org/lang_transaction.html
     - parameter block: A block that executes SQL statements and return either
                        .Commit or .Rollback.
+    - throws: The error thrown by the block, or a DatabaseError whenever a
+              SQLite error occurs.
     */
     public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) throws {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {

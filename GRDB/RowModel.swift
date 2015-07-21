@@ -235,6 +235,7 @@ public class RowModel {
     On successful insert, this method sets the *edited* flag to false.
     
     - parameter db: A Database.
+    - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public func insert(db: Database) throws {
         try withDataMapper { dataMapper in
@@ -252,15 +253,15 @@ public class RowModel {
     /**
     Executes an UPDATE statement to update the row model.
     
-    RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
-    contains nil for the primary key.
-    
-    RowModelError.RowModelNotFound is thrown if the primary key does not match
-    any row in the database and row model could not be updated.
-    
     On successful update, this method sets the *edited* flag to false.
     
     - parameter db: A Database.
+    - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+              RowModelError.InvalidPrimaryKey is thrown if
+              `storedDatabaseDictionary` contains nil for the primary key.
+              RowModelError.RowModelNotFound is thrown if the primary key does
+              not match any row in the database and row model could not be
+              updated.
     */
     public func update(db: Database) throws {
         try withDataMapper { dataMapper in
@@ -281,6 +282,8 @@ public class RowModel {
     On successful saving, this method sets the *edited* flag to false.
     
     - parameter db: A Database.
+    - throws: A DatabaseError whenever a SQLite error occurs, or errors thrown
+              by update().
     */
     final public func save(db: Database) throws {
         // Make sure we call self.insert and self.update so that classes that
@@ -300,12 +303,12 @@ public class RowModel {
     /**
     Executes a DELETE statement to delete the row model.
     
-    RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
-    contains nil for the primary key.
-    
     On successful deletion, this method sets the *edited* flag to true.
     
     - parameter db: A Database.
+    - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+              RowModelError.InvalidPrimaryKey is thrown if
+              `storedDatabaseDictionary` contains nil for the primary key.
     */
     public func delete(db: Database) throws {
         try withDataMapper { dataMapper in
@@ -321,15 +324,14 @@ public class RowModel {
     /**
     Executes a SELECT statetement to reload the row model.
     
-    RowModelError.InvalidPrimaryKey is thrown if `storedDatabaseDictionary`
-    contains nil for the primary key.
-    
-    RowModelError.RowModelNotFound is thrown if the primary key does not match
-    any row in the database and row model could not be reloaded.
-    
     On successful reloading, this method sets the *edited* flag to false.
     
     - parameter db: A Database.
+    - throws: RowModelError.InvalidPrimaryKey is thrown if
+              `storedDatabaseDictionary` contains nil for the primary key.
+              RowModelError.RowModelNotFound is thrown if the primary key does
+              not match any row in the database and row model could not be
+              reloaded.
     */
     public func reload(db: Database) throws {
         try withDataMapper { dataMapper in
