@@ -309,7 +309,7 @@ The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `S
 
 DateTime reads and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone. The maximum precision is the millisecond.
 
-*This format is not ISO-8601.* However it can be lexically compared with the format used by SQLite's CURRENT_TIMESTAMP ("yyyy-MM-dd HH:mm:ss"), which means that we chose the format that won't break your ORDER BY clauses. This format is also understood by [SQLite's Date and Time Functions](https://www.sqlite.org/lang_datefunc.html).
+This format is not ISO-8601. However it can be lexically compared with the format used by SQLite's CURRENT_TIMESTAMP ("yyyy-MM-dd HH:mm:ss"), which means that we chose the format that won't break your ORDER BY clauses. This format is also understood by [SQLite's Date and Time Functions](https://www.sqlite.org/lang_datefunc.html).
 
 If the format used by DateTime does not fit your needs, feel free to create your own helper type. The [implementation of DateTime](GRDB/DateTime.swift) is not difficult to adapt.
 
