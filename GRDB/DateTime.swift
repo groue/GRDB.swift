@@ -22,6 +22,49 @@
 // THE SOFTWARE.
 
 
+import Foundation
+
+/**
+DateTime reads and stores NSDate in the database using the format
+"yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
+
+This format *is not* ISO-8601. However it is lexically comparable with the
+format used by SQLite's `CURRENT_TIMESTAMP`: "yyyy-MM-dd HH:mm:ss".
+
+Usage:
+
+    // Store NSDate into the database:
+    let date = NSDate()
+    try db.execute("INSERT INTO persons (date, ...) " +
+                                "VALUES (?, ...)",
+                             arguments: [DateTime(date), ...])
+
+    // Extract NSDate from the database:
+    let row in db.fetchOneRow("SELECT ...")!
+    let date = (row.value(named: "date") as DateTime?)?.date
+
+    // Direct fetch:
+    db.fetch(DateTime.self, "SELECT ...", arguments: ...)    // AnySequence<DateTime?>
+    db.fetchAll(DateTime.self, "SELECT ...", arguments: ...) // [DateTime?]
+    db.fetchOne(DateTime.self, "SELECT ...", arguments: ...) // DateTime?
+    
+    // Use NSDate in a RowModel:
+    class Person : RowModel {
+        var birthDate: NSDate?
+
+        override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+            return ["birthDate": DateTime(birthDate), ...]
+        }
+    
+        override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
+            switch column {
+            case "birthDate": birthDate = (dbv.value() as DateTime?)?.date
+            case ...
+            default: super.setDatabaseValue(dbv, forColumn: column)
+        }
+    }
+
+*/
 public struct DateTime: DatabaseValueConvertible {
     
     // MARK: - NSDate conversion
@@ -33,8 +76,14 @@ public struct DateTime: DatabaseValueConvertible {
     /// The represented date
     public let date: NSDate
     
-    /// Creates a DateTime from an NSDate.
-    /// Returns nil if and only if the NSDate is nil.
+    /**
+    Creates a DateTime from an NSDate.
+    
+    The result is nil if and only if *date* is nil.
+    
+    - parameter date: An optional NSDate.
+    - returns: An optional DateTime.
+    */
     public init?(_ date: NSDate?) {
         if let date = date {
             self.date = date
@@ -46,29 +95,33 @@ public struct DateTime: DatabaseValueConvertible {
     
     // MARK: - DatabaseValue conversion
     //
-    // DateTime represents an NSDate as an ISO-8601 string.
+    // DateTime represents an NSDate as "yyyy-MM-dd HH:mm:ss.SSS", a format
+    // understood by [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)
+    // and comparable with the format "yyyy-MM-dd HH:mm:ss" used by SQLite's
+    // CURRENT_TIMESTAMP
     
-    // An ISO-8601 date formatter
-    static let dateFormatter: NSDateFormatter = {
+    /// The DateTime date formatter.
+    public static let dateFormatter: NSDateFormatter = {
         let formatter = NSDateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
         formatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
         formatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
         return formatter
     }()
     
+    /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         return .Text(DateTime.dateFormatter.stringFromDate(date))
     }
     
+    /// Create an instance initialized to `databaseValue`.
     public init?(databaseValue: DatabaseValue) {
-        // Don't handle the raw DatabaseValue since GRDB built-in conversions
-        // do all the job for us:
-        if let string = String(databaseValue: databaseValue) {
-            self.init(DateTime.dateFormatter.dateFromString(string))
-        } else {
+        // Why handle the raw DatabaseValue when GRDB built-in String
+        // conversion does all the job for us?
+        guard let string = String(databaseValue: databaseValue) else {
             return nil
         }
+        self.init(DateTime.dateFormatter.dateFromString(string))
     }
 }
 

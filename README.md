@@ -418,7 +418,7 @@ As a DatabaseValueConvertible adopter, DateTime can be stored and fetched from t
 let date = NSDate()
 try db.execute("INSERT INTO persons (date, ...) " +
                             "VALUES (?, ...)",
-                          arguments: [DateTime(date), ...])
+                         arguments: [DateTime(date), ...])
 
 // Extract NSDate from row:
 for rows in db.fetchRows("SELECT ...") {
