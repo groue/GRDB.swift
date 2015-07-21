@@ -169,11 +169,9 @@ public class RowModel {
     A boolean that indicates whether the row model has changes that have not
     been saved.
     
-    This flag is purely informative: it does not alter the behavior the update()
-    method, which executes an UPDATE statement in every cases.
-    
-    But you can prevent UPDATE statements that are known to be pointless, as in
-    the following example:
+    This flag is purely informative, and does not prevent insert(), update(),
+    save() and reload() to perform their database queries. Yet you can prevent
+    queries that are known to be pointless, as in the following example:
         
         let json = ...
     
@@ -188,6 +186,14 @@ public class RowModel {
             person.save(db) // inserts or updates
         }
     
+    Precisely speaking, a row model is edited if its *storedDatabaseDictionary*
+    has been changed since last database synchronization (fetch, update,
+    insert). Comparison is performed on *values*: setting a property to the same
+    value does not trigger the edited flag.
+    
+    You can rely on the RowModel base class to compute this flag for you, or you
+    may set it to true or false when you know better. Setting it to false does
+    not prevent it from turning true on subsequent modifications of the row model.
     */
     public var edited: Bool {
         get {
