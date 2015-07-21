@@ -111,6 +111,10 @@ public class RowModel {
     
     /**
     Initializes a RowModel.
+    
+    This initializer is not used for fetched models (see `init(row:)`).
+    
+    The returned rowModel is *edited*.
     */
     public init() {
         // IMPLEMENTATION NOTE
@@ -124,6 +128,9 @@ public class RowModel {
     
     This initializer is used for all fetched models.
     
+    The returned rowModel is *edited*. Fetched models are post-processed so that
+    their *edited* flag is false when the row contains enough columns.
+    
     - parameter row: A Row
     */
     required public init(row: Row) {
@@ -136,10 +143,6 @@ public class RowModel {
         for (column, databaseValue) in row {
             setDatabaseValue(databaseValue, forColumn: column)
         }
-        
-        // Not edited, unless the row misses columns present in
-        // storedDatabaseDictionary.
-        referenceRow = row
     }
     
     
@@ -154,7 +157,7 @@ public class RowModel {
         }
         
         // Primary key may have been updated: row model may be edited.
-        setEdited()
+        edited = true
     }
     
     
@@ -179,38 +182,40 @@ public class RowModel {
         person.updateFromJSON(json)
                  
         // Saves the person if it is edited (fetched then modified, or created):
-        if person.isEdited {
+        if person.edited {
             person.save(db) // inserts or updates
         }
     
     */
-    public var isEdited: Bool {
-        guard let referenceRow = referenceRow else {
-            // No reference row => edited
-            return true
-        }
-        
-        // All stored database values must match reference database values
-        for (column, storedValue) in storedDatabaseDictionary {
-            guard let referenceDatabaseValue = referenceRow[column] else {
+    public var edited: Bool {
+        get {
+            guard let referenceRow = referenceRow else {
+                // No reference row => edited
                 return true
             }
-            let storedDatabaseValue = storedValue?.databaseValue ?? .Null
-            if storedDatabaseValue != referenceDatabaseValue {
-                return true
+            
+            // All stored database values must match reference database values
+            for (column, storedValue) in storedDatabaseDictionary {
+                guard let referenceDatabaseValue = referenceRow[column] else {
+                    return true
+                }
+                let storedDatabaseValue = storedValue?.databaseValue ?? .Null
+                if storedDatabaseValue != referenceDatabaseValue {
+                    return true
+                }
+            }
+            return false
+        }
+        set {
+            if newValue {
+                referenceRow = nil
+            } else {
+                referenceRow = Row(dictionary: storedDatabaseDictionary)
             }
         }
-        return false
     }
     
-    /**
-    Flags `self` as edited.
-    */
-    public func setEdited() {
-        referenceRow = nil
-    }
-    
-    /// Reference row for isEdited.
+    /// Reference row for the *edited* property.
     private var referenceRow: Row?
     
 
@@ -231,7 +236,7 @@ public class RowModel {
             }
             
             // Not edited any longer
-            referenceRow = Row(dictionary: storedDatabaseDictionary)
+            edited = false
         }
     }
     
@@ -251,7 +256,7 @@ public class RowModel {
             try dataMapper.update(db)
             
             // Not edited any longer
-            referenceRow = Row(dictionary: storedDatabaseDictionary)
+            edited = false
         }
     }
     
@@ -295,7 +300,7 @@ public class RowModel {
             // Future calls to update will throw RowModelNotFound. Make the user
             // a favor and make sure this error is thrown even if she checks the
             // edited flag:
-            setEdited()
+            edited = true
         }
     }
     
@@ -319,7 +324,7 @@ public class RowModel {
                 }
                 
                 // Not edited any longer
-                referenceRow = row
+                edited = false
             } else {
                 throw RowModelError.RowModelNotFound(self)
             }
@@ -809,11 +814,18 @@ extension SelectStatement {
         return AnySequence { () -> AnyGenerator<RowModel> in
             let rowGenerator = rowSequence.generate()
             return anyGenerator { () -> RowModel? in
-                if let row = rowGenerator.next() {
-                    return RowModel.init(row: row)
-                } else {
+                guard let row = rowGenerator.next() else {
                     return nil
                 }
+                
+                // Build rowModel
+                let rowModel = RowModel.init(row: row)
+                
+                // RowModel is not edited, unless the row misses columns present
+                // in storedDatabaseDictionary.
+                rowModel.referenceRow = row
+                
+                return rowModel
             }
         }
     }

@@ -25,13 +25,13 @@
 import XCTest
 import GRDB
 
-class RowModelIsEditedTests: RowModelTestCase {
+class RowModelEditedTests: RowModelTestCase {
     
     func testRowModelIsEditedAfterInit() {
         // Create a RowModel. No fetch has happen, so we don't know if it is
         // identical to its eventual row in the database. So it is edited.
         let person = Person(name: "Arthur", age: 41)
-        XCTAssertTrue(person.isEdited)
+        XCTAssertTrue(person.edited)
     }
     
     func testRowModelIsNotEditedAfterFullFetch() {
@@ -43,7 +43,7 @@ class RowModelIsEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = db.fetchOne(Person.self, "SELECT * FROM persons")!
-                XCTAssertFalse(person.isEdited)
+                XCTAssertFalse(person.edited)
             }
         }
     }
@@ -57,7 +57,7 @@ class RowModelIsEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = db.fetchOne(Person.self, "SELECT *, 1 AS foo FROM persons")!
-                XCTAssertFalse(person.isEdited)
+                XCTAssertFalse(person.edited)
             }
         }
     }
@@ -71,7 +71,7 @@ class RowModelIsEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person =  db.fetchOne(Person.self, "SELECT name FROM persons")!
-                XCTAssertTrue(person.isEdited)
+                XCTAssertTrue(person.edited)
             }
         }
     }
@@ -82,7 +82,7 @@ class RowModelIsEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
-                XCTAssertFalse(person.isEdited)
+                XCTAssertFalse(person.edited)
             }
         }
     }
@@ -96,15 +96,15 @@ class RowModelIsEditedTests: RowModelTestCase {
                 try person.insert(db)
                 
                 person.name = "Bobby"           // non-nil vs. non-nil
-                XCTAssertTrue(person.isEdited)
+                XCTAssertTrue(person.edited)
                 try person.reload(db)
                 
                 person.name = nil               // non-nil vs. nil
-                XCTAssertTrue(person.isEdited)
+                XCTAssertTrue(person.edited)
                 try person.reload(db)
                 
                 person.creationDate = NSDate()  // nil vs. non-nil
-                XCTAssertTrue(person.isEdited)
+                XCTAssertTrue(person.edited)
                 try person.reload(db)
             }
         }
@@ -118,7 +118,7 @@ class RowModelIsEditedTests: RowModelTestCase {
                 try person.insert(db)
                 person.name = "Bobby"
                 try person.update(db)
-                XCTAssertFalse(person.isEdited)
+                XCTAssertFalse(person.edited)
             }
         }
     }
@@ -129,11 +129,11 @@ class RowModelIsEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.save(db)
-                XCTAssertFalse(person.isEdited)
+                XCTAssertFalse(person.edited)
                 person.name = "Bobby"
-                XCTAssertTrue(person.isEdited)
+                XCTAssertTrue(person.edited)
                 try person.save(db)
-                XCTAssertFalse(person.isEdited)
+                XCTAssertFalse(person.edited)
             }
         }
     }
@@ -146,10 +146,10 @@ class RowModelIsEditedTests: RowModelTestCase {
                 try person.insert(db)
                 
                 person.name = "Bobby"
-                XCTAssertTrue(person.isEdited)
+                XCTAssertTrue(person.edited)
                 
                 try person.reload(db)
-                XCTAssertFalse(person.isEdited)
+                XCTAssertFalse(person.edited)
             }
         }
     }

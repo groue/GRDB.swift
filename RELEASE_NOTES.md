@@ -12,6 +12,7 @@ Release Notes
 
 - "Bindings" has been renamed "QueryArguments", and `bindings` parameters renamed `arguments`.
 - Reusable statements no longer expose any setter for their `arguments` property, and no longer accept any arguments in their initializer. To apply arguments, give them to the execute() and fetch() methods.
+- `RowModel.isEdited()` and `RowModel.setEdited()` have been replaced by the `RowModel.edited` property.
 
 
 ## 0.4.0
