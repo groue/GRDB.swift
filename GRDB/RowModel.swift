@@ -656,12 +656,6 @@ public enum RowModelError: ErrorType {
     
     /// No matching row could be found in the database.
     case RowModelNotFound(RowModel)
-
-    /// This error is never thrown. Its mere existence prevents
-    /// rdar://problem/21707972, which makes thrown RowModelNotFound be catched
-    /// as InvalidPrimaryKey.
-    case Dummy(String)
-    
 }
 
 extension RowModelError : CustomStringConvertible {
@@ -672,8 +666,6 @@ extension RowModelError : CustomStringConvertible {
             return "Invalid primary key in \(rowModel)"
         case .RowModelNotFound(let rowModel):
             return "RowModel not found: \(rowModel)"
-        case .Dummy:
-            return "Dummy"
         }
     }
 }

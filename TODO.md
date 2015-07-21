@@ -1,4 +1,3 @@
-- [ ] Remove RowModelError.Dummy when rdar://problem/21707972 is fixed.
 - [ ] DateTime supports ISO-8601 format: document that comparison and sorting can't work with SQLite-generated values like CURRENT_TIMESTAMP.
 - [ ] Test edited flag with Int property backed by a REAL database column.
 - [ ] Use the new `- Throws:` comments
