@@ -65,7 +65,7 @@ Usage:
     }
 
 */
-public struct DateTime: DatabaseValueConvertible {
+public struct DateTime : DatabaseValueConvertible {
     
     // MARK: - NSDate conversion
     //
