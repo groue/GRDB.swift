@@ -636,7 +636,7 @@ extension RowModel : RowModelType { }
 extension RowModel : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        return "<\(reflect(self.dynamicType).summary)" + "".join(storedDatabaseDictionary.map { (key, value) in
+        return "<\(self.dynamicType)" + "".join(storedDatabaseDictionary.map { (key, value) in
             if let value = value {
                 return " \(key):\(String(reflecting: value))"
             } else {
