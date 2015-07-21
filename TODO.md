@@ -5,3 +5,4 @@
 - [ ] Should we keep the public API to reusable statements?
 - [ ] Is there anything we can do to support UPSERT? Check http://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
 - [ ] Try to have RowModel.init() take both a row and a dictionary, if possible.
+- [ ] Test edited flag with Int property backed by a REAL database column.
