@@ -646,6 +646,8 @@ dbQueue.inDatabase { db in
 }
 ```
 
+The `db.fetchOne(type:key:)` method eats any key dictionary, and returns the first RowModel with matching values. Its result is undefined unless the dictionary is *actually* a key.
+
 Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
 
 ```swift
@@ -655,8 +657,6 @@ let persons = dbQueue.inDatabase { db in
 }
 for person in persons { ... } // OK
 ```
-
-The `db.fetchOne(type:key:)` eats any dictionary, and just returns the first RowModel with matching values. Its result is undefined unless the dictionary is actually... a key.
 
 
 ### Ad Hoc Subclasses
