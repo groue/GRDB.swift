@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 
 
+import Foundation
+
 /**
 The protocol for values that can be stored and extracted from SQLite databases.
 */

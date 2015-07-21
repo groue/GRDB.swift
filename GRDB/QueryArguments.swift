@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 
 
+import Foundation
+
 /**
 SQL queries can have arguments:
 
