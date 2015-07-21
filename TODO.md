@@ -1,8 +1,3 @@
-- [ ] Fetch with a collection of primary keys: db.fetch(RowModel.type, primaryKeys:[...])? Problem: users will often want to sort, so the plain SELECT * FROM persons WHERE id IN (?,?,?) won't be much useful. Needs more thought.
-- [ ] Let QueryArguments eat arrays, or make it easy to generate series of ?,?,?,?
 - [ ] Remove RowModelError.Dummy when rdar://problem/21707972 is fixed.
-- [ ] Make DBDate public? Support both ISO-8601 and timestamps? Problem: our ISO8601 formatter does not use the format used by SQLite for its CURRENT_TIMESTAMP, which is "YYYY-MM-DD HH:MM:SS", and date sorting is jeopardized.
-- [ ] Should we keep the public API to reusable statements?
-- [ ] Is there anything we can do to support UPSERT? Check http://stackoverflow.com/questions/418898/sqlite-upsert-not-insert-or-replace
-- [ ] Try to have RowModel.init() take both a row and a dictionary, if possible.
+- [ ] Make DBDate public, with a better name. Support ISO-8601 format, but document that comparison and sorting can't work with SQLite-generated values like CURRENT_TIMESTAMP.
 - [ ] Test edited flag with Int property backed by a REAL database column.
