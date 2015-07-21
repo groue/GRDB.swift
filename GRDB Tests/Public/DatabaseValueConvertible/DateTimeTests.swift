@@ -31,11 +31,11 @@ class DateTimeTests : GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPersons") { db in
+        migrator.registerMigration("createStuffs") { db in
             try db.execute(
                 "CREATE TABLE stuffs (" +
                     "ID INTEGER PRIMARY KEY, " +
-                    "creationDate TEXT" +
+                    "creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP" +
                 ")")
         }
         assertNoError {
@@ -88,6 +88,19 @@ class DateTimeTests : GRDBTestCase {
                 }
                 
                 return .Rollback
+            }
+        }
+    }
+    
+    func testDateTimeIsLexicallyComparableToCURRENT_TIMESTAMP() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("INSERT INTO stuffs (id, creationDate) VALUES (?,?)", arguments: [1, DateTime(NSDate().dateByAddingTimeInterval(-1))])
+                try db.execute("INSERT INTO stuffs (id) VALUES (?)", arguments: [2])
+                try db.execute("INSERT INTO stuffs (id, creationDate) VALUES (?,?)", arguments: [3, DateTime(NSDate().dateByAddingTimeInterval(1))])
+                
+                let ids = db.fetchAll(Int.self, "SELECT id FROM stuffs ORDER BY creationDate").map { $0! }
+                XCTAssertEqual(ids, [1,2,3])
             }
         }
     }
