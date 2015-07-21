@@ -361,6 +361,7 @@ class Person : RowModel {
         case "birthDate": birthDate = (dbv.value() as DateTime?)?.date
         case ...
         default: super.setDatabaseValue(dbv, forColumn: column)
+        }
     }
 }
 ```
