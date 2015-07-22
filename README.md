@@ -307,7 +307,7 @@ Custom types are supported as well through the [DatabaseValueConvertible](#custo
 
 ### NSDate and NSDateComponents
 
-**NSDate** and **NSDateComponents** can be stored and fetched from the database using the helper types **DatabaseDate** and **DatabaseDateComponents**.
+**NSDate** and **NSDateComponents** can be stored and fetched from the database using the helper types DatabaseDate and DatabaseDateComponents.
 
 **DatabaseDate** reads dates from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
 
