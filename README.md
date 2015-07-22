@@ -472,16 +472,26 @@ db.fetchOne(Color.self, "SELECT ...", arguments: ...) // Color?
 
 ### Custom Types
 
-Conversion to and from the database is based on the `DatabaseValueConvertible` protocol.
+Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
+
+```swift
+public protocol DatabaseValueConvertible {
+    /// Returns a value that can be stored in the database.
+    var databaseValue: DatabaseValue { get }
+    
+    /// Create an instance initialized to `databaseValue`.
+    init?(databaseValue: DatabaseValue)
+}
+```
 
 All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat.
 
 > Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
-As an example, let's look at the implementation of the built-in [DatabaseDate type](#nsdate-and-nsdatecomponents). DatabaseDate applies all the best practices for a great GRDB.swift integration:
+As an example, let's write an alternative to the built-in [DatabaseDate](#nsdate-and-nsdatecomponents), which stores dates as timestamps. DatabaseTimestamp applies all the best practices for a great GRDB.swift integration:
 
 ```swift
-struct DatabaseDate: DatabaseValueConvertible {
+struct DatabaseTimestamp: DatabaseValueConvertible {
     
     // NSDate conversion
     //
@@ -492,7 +502,7 @@ struct DatabaseDate: DatabaseValueConvertible {
     /// The represented date
     let date: NSDate
     
-    /// Creates a DatabaseDate from an NSDate.
+    /// Creates a DatabaseTimestamp from an NSDate.
     /// The result is nil if and only if *date* is nil.
     init?(_ date: NSDate?) {
         if let date = date {
@@ -505,50 +515,41 @@ struct DatabaseDate: DatabaseValueConvertible {
     
     // DatabaseValueConvertible adoption
     
-    /// The DatabaseDate date formatter.
-    static let dateFormatter: NSDateFormatter = {
-        let formatter = NSDateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
-        formatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
-        formatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
-        return formatter
-    }()
-    
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
-        return .Text(DatabaseDate.dateFormatter.stringFromDate(date))
+        return .Real(date.timeIntervalSince1970)
     }
     
     /// Create an instance initialized to `databaseValue`.
     init?(databaseValue: DatabaseValue) {
-        // Why handle the raw DatabaseValue when GRDB built-in String
+        // Why handle the raw DatabaseValue when GRDB built-in Double
         // conversion does all the job for us?
-        guard let string = String(databaseValue: databaseValue) else {
+        guard let timeInterval = Double(databaseValue: databaseValue) else {
             return nil
         }
-        self.init(DatabaseDate.dateFormatter.dateFromString(string))
+        self.init(NSDate(timeIntervalSince1970: timeInterval))
     }
 }
 ```
 
-As a DatabaseValueConvertible adopter, DatabaseDate can be stored and fetched from the database just like simple types Int and String:
+As a DatabaseValueConvertible adopter, DatabaseTimestamp can be stored and fetched from the database just like simple types Int and String:
 
 ```swift
 // Store NSDate
 let date = NSDate()
 try db.execute("INSERT INTO persons (date, ...) " +
                             "VALUES (?, ...)",
-                         arguments: [DatabaseDate(date), ...])
+                         arguments: [DatabaseTimestamp(date), ...])
 
 // Extract NSDate from row:
 for rows in db.fetchRows("SELECT ...") {
-    let date = (row.value(named: "date") as DatabaseDate?)?.date
+    let date = (row.value(named: "date") as DatabaseTimestamp?)?.date
 }
 
 // Direct fetch:
-db.fetch(DatabaseDate.self, "SELECT ...")       // AnySequence<DatabaseDate?>
-db.fetchAll(DatabaseDate.self, "SELECT ...")    // [DatabaseDate?]
-db.fetchOne(DatabaseDate.self, "SELECT ...")    // DatabaseDate?
+db.fetch(DatabaseTimestamp.self, "SELECT ...")       // AnySequence<DatabaseTimestamp?>
+db.fetchAll(DatabaseTimestamp.self, "SELECT ...")    // [DatabaseTimestamp?]
+db.fetchOne(DatabaseTimestamp.self, "SELECT ...")    // DatabaseTimestamp?
 ```
 
 ### Value Extraction in Details
