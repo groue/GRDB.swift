@@ -253,6 +253,29 @@ class DatabaseDateComponentsTests : GRDBTestCase {
         }
     }
     
+    func testUndefinedDatabaseDateComponentsFormatYMD_HMSS() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                
+                let dateComponents = NSDateComponents()
+                try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HMSS)])
+                
+                let string = db.fetchOne(String.self, "SELECT creationDate from dates")!
+                XCTAssertEqual(string, "0000-01-01 00:00:00.000")
+                
+                let databaseDateComponents = db.fetchOne(DatabaseDateComponents.self, "SELECT creationDate FROM dates")!
+                XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.YMD_HMSS)
+                XCTAssertEqual(databaseDateComponents.dateComponents.year, 0)
+                XCTAssertEqual(databaseDateComponents.dateComponents.month, 1)
+                XCTAssertEqual(databaseDateComponents.dateComponents.day, 1)
+                XCTAssertEqual(databaseDateComponents.dateComponents.hour, 0)
+                XCTAssertEqual(databaseDateComponents.dateComponents.minute, 0)
+                XCTAssertEqual(databaseDateComponents.dateComponents.second, 0)
+                XCTAssertEqual(databaseDateComponents.dateComponents.nanosecond, 0)
+            }
+        }
+    }
+    
     func testDatabaseDateComponentsIsLexicallyComparableToCURRENT_TIMESTAMP() {
         assertNoError {
             try dbQueue.inDatabase { db in
