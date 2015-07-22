@@ -127,6 +127,13 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     
     - [Migrations](#migrations)
     - [Row Models](#row-models)
+        - [Fetching Row Models](#fetching-row-models)
+        - [Ad Hoc Subclasses](#ad-hoc-subclasses)
+        - [Tables and Primary Keys](#tables-and-primary-keys)
+        - [Insert, Update and Delete](#insert-update-and-delete)
+        - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+        - [RowModel Errors](#rowmodel-errors)
+        - [Advice](#advice)
 
 
 ## Database Queues
@@ -731,6 +738,7 @@ Subclasses opt in RowModel features by overriding all or part of the core method
 - [Insert, Update and Delete](#insert-update-and-delete)
 - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
 - [RowModel Errors](#rowmodel-errors)
+- [Advice](#advice)
 
 
 ### Fetching Row Models
@@ -932,6 +940,78 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 - **RowModelError.InvalidPrimaryKey**: thrown by `update`, `delete` and `reload` when the primary key is nil.
 
 - **RowModelError.RowModelNotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
+
+
+### Advice
+
+**RowModel is not a smart class.** It is no replacement for Core Data. It does not provide any uniquing. It does not perform any SQL request behind your back. It has no knowledge of your database schema, and no notion of external references and model relationships.
+
+Based on that facts, here are a few hints:
+
+- For "autoincremented" ids, declare your id column as INTEGER PRIMARY KEY, and declare a RowID primary key:
+    
+    ```sql
+    CREATE TABLE persons {
+        id INTEGER PRIMARY KEY,
+        ...
+    }
+    ```
+    
+    ```swift
+    class Person : RowModel {
+        override class var databaseTable: Table? {
+            return Table(named: "persons", primaryKey: .RowID("id"))
+        }
+    }
+    ```
+
+- RowModel does not provide any API which executes a INSERT OR REPLACE query. Instead, consider adding an ON CONFLICT clause to your table definition, and let the simple insert() method perform the eventual replacement:
+
+    ```sql
+    CREATE TABLE persons (
+        id INTEGER PRIMARY KEY,
+        name TEXT UNIQUE ON CONFLICT REPLACE,
+        ...
+    )
+    ```
+    
+    ```swift
+    let person = Person(name: "Arthur")
+    person.insert(db)   // Replace any existing person named "Arthur"
+    ```
+
+- Avoid default values in table declarations. RowModel doesn't know about them, and those default values won't be present in a row model after is has been inserted.
+    
+    For example, avoid the table below:
+    
+    ```sql
+    CREATE TABLE persons (
+        id INTEGER PRIMARY KEY,
+        creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        ...
+    )
+    ```
+    
+    Instead, override `insert()` and provide the default value there:
+    
+    ```sql
+    CREATE TABLE persons (
+        id INTEGER PRIMARY KEY,
+        creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        ...
+    )
+    ```
+    
+    ```swift
+    class Person : RowModel {
+        override func insert(db: Database) throws {
+            if creationDate == nil {
+                creationDate = NSDate()
+            }
+            try super.insert(db)
+        }
+    }
+    ```
 
 
 ## Thanks
