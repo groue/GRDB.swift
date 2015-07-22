@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- `DateTime` performs ISO-8601 storage of NSDate in the database.
+- `DateTime` handles storage of NSDate in the database.
 
 **Fixed**
 
