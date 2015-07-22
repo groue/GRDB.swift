@@ -389,7 +389,7 @@ public class RowModel {
         It is nil when rowModel has no primary key. Its values come from the
         storedDatabaseDictionary.
         */
-        lazy var weakPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
+        lazy var weakPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
             guard let primaryKey = self.databaseTable.primaryKey else {
                 return nil
             }
@@ -428,7 +428,7 @@ public class RowModel {
         
         It is nil when the weakPrimaryKey is nil or only contains nil values.
         */
-        lazy var strongPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
+        lazy var strongPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
             guard let dictionary = self.weakPrimaryKeyDictionary else {
                 return nil
             }

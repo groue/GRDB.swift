@@ -38,12 +38,16 @@ You create SelectStatement with the Database.selectStatement() method:
 public final class SelectStatement : Statement {
     
     /// The number of columns in the resulting rows.
-    public lazy var columnCount: Int = Int(sqlite3_column_count(self.sqliteStatement))
+    public lazy var columnCount: Int = { [unowned self] in
+        Int(sqlite3_column_count(self.sqliteStatement))
+    }()
     
     /// The names of columns, ordered from left to right.
-    public lazy var columnNames: [String] = (0..<self.columnCount).map { index in
-        return String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32(index)))!
-    }
+    public lazy var columnNames: [String] = { [unowned self] in
+        (0..<self.columnCount).map { index in
+            return String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32(index)))!
+        }
+    }()
     
     // MARK: - Not public
     
