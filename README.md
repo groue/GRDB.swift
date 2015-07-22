@@ -111,10 +111,15 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 - SQLite API:
     
-    - [Database](#database)
+    - [Database Queues](#database-queues)
     - [Transactions](#transactions)
     - [Fetch Queries](#fetch-queries)
+        - [Row Queries](#row-queries)
+        - [Value Queries](#value-queries)
     - [Values](#values)
+        - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
+        - [Swift enums](#swift-enums)
+        - [Custom types](#custom-types)
     - [Prepared Statements](#prepared-statements)
     - [Error Handling](#error-handling)
 
@@ -124,7 +129,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [Row Models](#row-models)
 
 
-## Database
+## Database Queues
 
 You access SQLite databases through thread-safe database queues (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
 
