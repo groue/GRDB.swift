@@ -307,18 +307,18 @@ Custom types are supported as well through the [DatabaseValueConvertible](#custo
 
 ### NSDate and NSDateComponents
 
-**NSDate** and **NSDateComponents** can be stored and fetched from the database using the helper types DatabaseDate and DatabaseDateComponents.
+[**NSDate**](#nsdate) and [**NSDateComponents**](#nsdatecomponents) can be stored and fetched from the database.
 
-**DatabaseDate** reads dates from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
+#### NSDate
+
+Support for NSDate is given by the **DatabaseDate** helper type.
+
+DatabaseDate reads dates from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
 
 > The storage format of DatabaseDate is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
 >
 > Of course, if this format does not fit your needs, feel free to create your own helper type: the [DatabaseValueConvertible](#custom-types) protocol is there to help you store dates as ISO-8601 strings, timestamp numbers, etc.
 
-**DatabaseDateComponents** reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from `HH:MM` to `YYYY-MM-DD HH:MM:SS.SSS`.
-
-
-#### NSDate
 
 Declare DATETIME columns in your tables:
 
@@ -372,6 +372,10 @@ class Person : RowModel {
 
 
 #### NSDateComponents
+
+Support for NSDateComponents is given by the **DatabaseDateComponents** helper type.
+
+DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from `HH:MM` to `YYYY-MM-DD HH:MM:SS.SSS`.
 
 Store NSDateComponents into the database:
 
