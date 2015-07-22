@@ -400,12 +400,12 @@
 			children = (
 				56CC3C921B43BF0100A9A534 /* Configuration.swift */,
 				565E191D1B42B2B600D32814 /* Database.swift */,
+				5645E69C1B5E76D30045DC8F /* DatabaseDate.swift */,
 				564E0B131B4D8FC100EBC9F6 /* DatabaseError.swift */,
 				56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */,
 				56CC3C8E1B43A5A700A9A534 /* DatabaseQueue.swift */,
 				564E0B151B4D901300EBC9F6 /* DatabaseValue.swift */,
 				5699AE5E1B42E59F00C35172 /* DatabaseValueConvertible.swift */,
-				5645E69C1B5E76D30045DC8F /* DatabaseDate.swift */,
 				56E4BB801B45373600FD324B /* QueryArguments.swift */,
 				5699AE581B42CD7800C35172 /* Row.swift */,
 				56CC3C9A1B4464AE00A9A534 /* RowModel.swift */,

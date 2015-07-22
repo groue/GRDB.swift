@@ -5,7 +5,8 @@ Release Notes
 
 **New**
 
-- `DateTime` handles storage of NSDate in the database.
+- `DatabaseDate` handles storage of NSDate in the database.
+- `DatabaseDateComponents` handles storage of NSDateComponents in the database.
 
 **Fixed**
 

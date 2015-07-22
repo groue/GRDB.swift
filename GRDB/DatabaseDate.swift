@@ -28,7 +28,7 @@ import Foundation
 DatabaseDate reads and stores NSDate in the database using the format
 "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
 
-This format *is not* ISO-8601. However it is lexically comparable with the
+This format is not ISO-8601. However it is lexically comparable with the
 format used by SQLite's `CURRENT_TIMESTAMP`: "yyyy-MM-dd HH:mm:ss".
 
 Usage:
@@ -141,26 +141,44 @@ public struct DatabaseDate : DatabaseValueConvertible {
     /// The DatabaseDate date formatter for stored dates.
     static let storageDateFormatter: NSDateFormatter = {
         let formatter = NSDateFormatter()
-        formatter.dateFormat = DatabaseDateComponents.Format.YMD_HMSS.rawValue
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
         formatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
         formatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
         return formatter
         }()
 }
 
+/**
+DatabaseDateComponents reads and stores NSDateComponents in the database.
+*/
 public struct DatabaseDateComponents : DatabaseValueConvertible {
     
-    // MARK: - NSDateComponents conversion
-    
+    /// The available formats
     public enum Format : String {
+        
+        /// YYYY-MM-DD
         case YMD = "yyyy-MM-dd"
+        
+        /// YYYY-MM-DD HH:MM
         case YMD_HM = "yyyy-MM-dd HH:mm"
+        
+        /// YYYY-MM-DD HH:MM:SS
         case YMD_HMS = "yyyy-MM-dd HH:mm:ss"
+        
+        /// YYYY-MM-DD HH:MM:SS.SSS
         case YMD_HMSS = "yyyy-MM-dd HH:mm:ss.SSS"
+        
+        /// HH:MM
         case HM = "HH:mm"
+        
+        /// HH:MM:SS
         case HMS = "HH:mm:ss"
+        
+        /// HH:MM:SS.SSS
         case HMSS = "HH:mm:ss.SSS"
     }
+    
+    // MARK: - NSDateComponents conversion
     
     /// The date components
     public let dateComponents: NSDateComponents
@@ -174,8 +192,8 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     The result is nil if and only if *dateComponents* is nil.
     
     - parameter dateComponents: An optional NSDateComponents.
-    - parameter format: A format that specifies which date components were
-                        loaded, or will be stored in the database.
+    - parameter format: The format used for storing the date components in the
+                        database.
     - returns: An optional DatabaseDateComponents.
     */
     public init?(_ dateComponents: NSDateComponents?, format: Format) {

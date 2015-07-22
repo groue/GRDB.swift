@@ -22,7 +22,7 @@ Features
 - **A low-level SQLite API** that leverages the Swift 2 standard library.
 - **No ORM, no smart query builder, no table introspection**. Your SQL skills are welcome here.
 - **A Model class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
-- **Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate. Declare Swift enums for discrete data types. Define your own database-convertible types.
+- **Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **Database Migrations**
 
 
@@ -300,21 +300,23 @@ The `db.fetchOne(type:sql:arguments:)` function returns an optional value which 
 
 ## Values
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-databasedate), and [Swift enums](#swift-enums). Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), and [Swift enums](#swift-enums). Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
 
 
-### NSDate and DatabaseDate
+### NSDate and NSDateComponents
 
-**NSDate** can be stored and fetched from the database using the helper type **DatabaseDate**.
+**NSDate** and **NSDateComponents** can be stored and fetched from the database using the helper types **DatabaseDate** and **DatabaseDateComponents**.
 
-DatabaseDate reads and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone. The maximum precision is the millisecond.
+DatabaseDate reads dates from all formats supported by SQLite, and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
 
-This format can be lexically compared with the format used by SQLite's CURRENT_TIMESTAMP ("yyyy-MM-dd HH:mm:ss"), which means that your ORDER BY clauses will behave as expected. Also, this format is understood by [SQLite's Date and Time Functions](https://www.sqlite.org/lang_datefunc.html).
+> The storage format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
+>
+> Of course, feel free to create your own helper type: the [DatabaseValueConvertible](#custom-types) protocol is there to help you store dates as ISO-8601 strings, timestamp numbers, etc.
 
-Of course, feel free to create your own helper type: the [implementation of DatabaseDate](GRDB/DatabaseDate.swift) is not difficult to adapt in order to store dates as ISO-8601 strings, timestamp numbers, etc.
+DatabaseDateComponents reads date components from all formats supported by SQLite, and stores them in the format of your choice, from `HH:MM` to `YYYY-MM-DD HH:MM:SS.SSS`.
 
 
-#### Usage
+#### NSDate
 
 Declare DATETIME columns in your tables:
 
@@ -338,7 +340,7 @@ try db.execute("INSERT INTO persons (birthDate, ...) " +
 Extract NSDate from the database:
 
 ```swift
-let row in db.fetchOneRow("SELECT birthDate, ...")!
+let row = db.fetchOneRow("SELECT birthDate, ...")!
 let date = (row.value(named: "birthDate") as DatabaseDate?)?.date    // NSDate?
 
 db.fetch(DatabaseDate.self, "SELECT ...")       // AnySequence<DatabaseDate?>
@@ -365,6 +367,61 @@ class Person : RowModel {
     }
 }
 ```
+
+
+#### NSDateComponents
+
+Store NSDateComponents into the database:
+
+```swift
+let components = NSDateComponents()
+components.year = 1973
+components.month = 9
+components.day = 18
+
+// The .YMD format stores "1973-09-18" in the database.
+let dbComponents = DatabaseDateComponents(components, format: .YMD)
+try db.execute("INSERT INTO persons (birthDate, ...) " +
+                            "VALUES (?, ...)",
+                         arguments: [dbComponents, ...])
+```
+
+Extract NSDateComponents from the database:
+
+```swift
+let row = db.fetchOneRow("SELECT birthDate, ...")!
+let dbComponents = row.value(named: "birthDate")! as DatabaseDateComponents
+dbComponents.format         // .YMD (the actual format found in the database)
+dbComponents.dateComponents // NSDateComponents
+
+db.fetch(DatabaseDateComponents.self, "SELECT ...")    // AnySequence<DatabaseDateComponents?>
+db.fetchAll(DatabaseDateComponents.self, "SELECT ...") // [DatabaseDateComponents?]
+db.fetchOne(DatabaseDateComponents.self, "SELECT ...") // DatabaseDateComponents?
+```
+
+Use NSDateComponents in a [Row Model](#row-models):
+
+```swift
+class Person : RowModel {
+    var birthDateComponents: NSDateComponents?
+
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        let dbComponents = DatabaseDateComponents(birthDateComponents, format: .YMD)
+        return ["birthDate": dbComponents, ...]
+    }
+
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
+        switch column {
+        case "birthDate":
+            let dbComponents: DatabaseDateComponents? = dbv.value()
+            birthDateComponents = dbComponents?.dateComponents
+        case ...
+        default: super.setDatabaseValue(dbv, forColumn: column)
+        }
+    }
+}
+```
+
 
 ### Swift Enums
 
@@ -421,7 +478,7 @@ All types that adopt this protocol can be used wherever the built-in types `Int`
 
 > Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
-As an example, let's look at the implementation of the built-in [DatabaseDate type](#nsdate-and-databasedate). DatabaseDate applies all the best practices for a great GRDB.swift integration:
+As an example, let's look at the implementation of the built-in [DatabaseDate type](#nsdate-and-nsdatecomponents). DatabaseDate applies all the best practices for a great GRDB.swift integration:
 
 ```swift
 struct DatabaseDate: DatabaseValueConvertible {
