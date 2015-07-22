@@ -507,11 +507,10 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     /// Creates a DatabaseTimestamp from an NSDate.
     /// The result is nil if and only if *date* is nil.
     init?(_ date: NSDate?) {
-        if let date = date {
-            self.date = date
-        } else {
+        guard let date = date else {
             return nil
         }
+        self.date = date
     }
     
     
