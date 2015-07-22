@@ -300,7 +300,9 @@ The `db.fetchOne(type:sql:arguments:)` function returns an optional value which 
 
 ## Values
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), and [Swift enums](#swift-enums). Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), and [Swift enums](#swift-enums).
+
+Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
 
 
 ### NSDate and NSDateComponents
@@ -311,7 +313,7 @@ DatabaseDate reads dates from all formats supported by SQLite, and stores dates 
 
 > The storage format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
 >
-> Of course, feel free to create your own helper type: the [DatabaseValueConvertible](#custom-types) protocol is there to help you store dates as ISO-8601 strings, timestamp numbers, etc.
+> Of course, if this format does not fit your needs, feel free to create your own helper type: the [DatabaseValueConvertible](#custom-types) protocol is there to help you store dates as ISO-8601 strings, timestamp numbers, etc.
 
 DatabaseDateComponents reads date components from all formats supported by SQLite, and stores them in the format of your choice, from `HH:MM` to `YYYY-MM-DD HH:MM:SS.SSS`.
 
