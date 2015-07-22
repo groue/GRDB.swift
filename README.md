@@ -524,8 +524,8 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     
     /// Create an instance initialized to `databaseValue`.
     init?(databaseValue: DatabaseValue) {
-        // Why handle the raw DatabaseValue when GRDB built-in Double
-        // conversion does all the job for us?
+        // Double itself adopts DatabaseValueConvertible. So let's avoid
+        // handling the raw DatabaseValue, and use built-in Double conversion:
         guard let timeInterval = Double(databaseValue: databaseValue) else {
             return nil
         }
