@@ -989,7 +989,7 @@ class Person : RowModel {
 
 let person = Person(...)
 person.id   // nil
-person.insert(db)
+try person.insert(db)
 person.id   // some value
 ```
 
