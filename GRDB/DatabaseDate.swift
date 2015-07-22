@@ -25,7 +25,7 @@
 import Foundation
 
 /**
-DateTime reads and stores NSDate in the database using the format
+DatabaseDate reads and stores NSDate in the database using the format
 "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
 
 This format *is not* ISO-8601. However it is lexically comparable with the
@@ -37,35 +37,35 @@ Usage:
     let date = NSDate()
     try db.execute("INSERT INTO persons (date, ...) " +
                                 "VALUES (?, ...)",
-                             arguments: [DateTime(date), ...])
+                             arguments: [DatabaseDate(date), ...])
 
     // Extract NSDate from the database:
     let row in db.fetchOneRow("SELECT ...")!
-    let date = (row.value(named: "date") as DateTime?)?.date
+    let date = (row.value(named: "date") as DatabaseDate?)?.date
 
     // Direct fetch:
-    db.fetch(DateTime.self, "SELECT ...", arguments: ...)    // AnySequence<DateTime?>
-    db.fetchAll(DateTime.self, "SELECT ...", arguments: ...) // [DateTime?]
-    db.fetchOne(DateTime.self, "SELECT ...", arguments: ...) // DateTime?
+    db.fetch(DatabaseDate.self, "SELECT ...", arguments: ...)    // AnySequence<DatabaseDate?>
+    db.fetchAll(DatabaseDate.self, "SELECT ...", arguments: ...) // [DatabaseDate?]
+    db.fetchOne(DatabaseDate.self, "SELECT ...", arguments: ...) // DatabaseDate?
     
     // Use NSDate in a RowModel:
     class Person : RowModel {
         var birthDate: NSDate?
 
         override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-            return ["birthDate": DateTime(birthDate), ...]
+            return ["birthDate": DatabaseDate(birthDate), ...]
         }
     
         override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
             switch column {
-            case "birthDate": birthDate = (dbv.value() as DateTime?)?.date
+            case "birthDate": birthDate = (dbv.value() as DatabaseDate?)?.date
             case ...
             default: super.setDatabaseValue(dbv, forColumn: column)
         }
     }
 
 */
-public struct DateTime : DatabaseValueConvertible {
+public struct DatabaseDate : DatabaseValueConvertible {
     
     // MARK: - NSDate conversion
     //
@@ -77,12 +77,12 @@ public struct DateTime : DatabaseValueConvertible {
     public let date: NSDate
     
     /**
-    Creates a DateTime from an NSDate.
+    Creates a DatabaseDate from an NSDate.
     
     The result is nil if and only if *date* is nil.
     
     - parameter date: An optional NSDate.
-    - returns: An optional DateTime.
+    - returns: An optional DatabaseDate.
     */
     public init?(_ date: NSDate?) {
         if let date = date {
@@ -97,7 +97,7 @@ public struct DateTime : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Text(DateTime.storageDateFormatter.stringFromDate(date))
+        return .Text(DatabaseDate.storageDateFormatter.stringFromDate(date))
     }
     
     /// Create an instance initialized to `databaseValue`.
@@ -108,7 +108,7 @@ public struct DateTime : DatabaseValueConvertible {
         }
         
         // We need date components:
-        guard let dateComponents = DateTime.dateComponentsFromSQLiteString(string) else {
+        guard let dateComponents = DatabaseDate.dateComponentsFromSQLiteString(string) else {
             return nil
         }
         
@@ -118,7 +118,7 @@ public struct DateTime : DatabaseValueConvertible {
         }
         
         // OK gimme the date
-        self.init(DateTime.UTCCalendar.dateFromComponents(dateComponents))
+        self.init(DatabaseDate.UTCCalendar.dateFromComponents(dateComponents))
     }
     
     
@@ -131,7 +131,7 @@ public struct DateTime : DatabaseValueConvertible {
         return calendar
     }()
     
-    /// The DateTime date formatter for stored dates.
+    /// The DatabaseDate date formatter for stored dates.
     static let storageDateFormatter: NSDateFormatter = {
         let formatter = NSDateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"

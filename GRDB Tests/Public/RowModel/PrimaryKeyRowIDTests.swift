@@ -41,7 +41,7 @@ class Person: RowModel {
             "id": id,
             "name": name,
             "age": age,
-            "creationDate": DateTime(creationDate),
+            "creationDate": DatabaseDate(creationDate),
         ]
     }
     
@@ -50,7 +50,7 @@ class Person: RowModel {
         case "id":              id = dbv.value()
         case "name":            name = dbv.value()
         case "age":             age = dbv.value()
-        case "creationDate":    creationDate = (dbv.value() as DateTime?)?.date
+        case "creationDate":    creationDate = (dbv.value() as DatabaseDate?)?.date
         default:                super.setDatabaseValue(dbv, forColumn: column)
         }
     }

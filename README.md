@@ -300,18 +300,18 @@ The `db.fetchOne(type:sql:arguments:)` function returns an optional value which 
 
 ## Values
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-datetime), and [Swift enums](#swift-enums). Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
+The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-databasedate), and [Swift enums](#swift-enums). Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
 
 
-### NSDate and DateTime
+### NSDate and DatabaseDate
 
-**NSDate** can be stored and fetched from the database using the helper type **DateTime**.
+**NSDate** can be stored and fetched from the database using the helper type **DatabaseDate**.
 
-DateTime reads and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone. The maximum precision is the millisecond.
+DatabaseDate reads and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone. The maximum precision is the millisecond.
 
 This format can be lexically compared with the format used by SQLite's CURRENT_TIMESTAMP ("yyyy-MM-dd HH:mm:ss"), which means that your ORDER BY clauses will behave as expected. Also, this format is understood by [SQLite's Date and Time Functions](https://www.sqlite.org/lang_datefunc.html).
 
-Of course, feel free to create your own helper type: the [implementation of DateTime](GRDB/DateTime.swift) is not difficult to adapt in order to store dates as ISO-8601 strings, timestamp numbers, etc.
+Of course, feel free to create your own helper type: the [implementation of DatabaseDate](GRDB/DatabaseDate.swift) is not difficult to adapt in order to store dates as ISO-8601 strings, timestamp numbers, etc.
 
 
 #### Usage
@@ -332,18 +332,18 @@ Store NSDate into the database:
 let birthDate = NSDate()
 try db.execute("INSERT INTO persons (birthDate, ...) " +
                             "VALUES (?, ...)",
-                         arguments: [DateTime(birthDate), ...])
+                         arguments: [DatabaseDate(birthDate), ...])
 ```
 
 Extract NSDate from the database:
 
 ```swift
 let row in db.fetchOneRow("SELECT birthDate, ...")!
-let date = (row.value(named: "birthDate") as DateTime?)?.date    // NSDate?
+let date = (row.value(named: "birthDate") as DatabaseDate?)?.date    // NSDate?
 
-db.fetch(DateTime.self, "SELECT ...")                  // AnySequence<DateTime?>
-db.fetchAll(DateTime.self, "SELECT ...")               // [DateTime?]
-db.fetchOne(DateTime.self, "SELECT ...")               // DateTime?
+db.fetch(DatabaseDate.self, "SELECT ...")       // AnySequence<DatabaseDate?>
+db.fetchAll(DatabaseDate.self, "SELECT ...")    // [DatabaseDate?]
+db.fetchOne(DatabaseDate.self, "SELECT ...")    // DatabaseDate?
 ```
 
 Use NSDate in a [Row Model](#row-models):
@@ -353,12 +353,12 @@ class Person : RowModel {
     var birthDate: NSDate?
 
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["birthDate": DateTime(birthDate), ...]
+        return ["birthDate": DatabaseDate(birthDate), ...]
     }
 
     override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "birthDate": birthDate = (dbv.value() as DateTime?)?.date
+        case "birthDate": birthDate = (dbv.value() as DatabaseDate?)?.date
         case ...
         default: super.setDatabaseValue(dbv, forColumn: column)
         }
@@ -421,10 +421,10 @@ All types that adopt this protocol can be used wherever the built-in types `Int`
 
 > Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
-As an example, let's look at the implementation of the built-in [DateTime type](#nsdate-and-datetime). DateTime applies all the best practices for a great GRDB.swift integration:
+As an example, let's look at the implementation of the built-in [DatabaseDate type](#nsdate-and-databasedate). DatabaseDate applies all the best practices for a great GRDB.swift integration:
 
 ```swift
-struct DateTime: DatabaseValueConvertible {
+struct DatabaseDate: DatabaseValueConvertible {
     
     // NSDate conversion
     //
@@ -435,7 +435,7 @@ struct DateTime: DatabaseValueConvertible {
     /// The represented date
     let date: NSDate
     
-    /// Creates a DateTime from an NSDate.
+    /// Creates a DatabaseDate from an NSDate.
     /// The result is nil if and only if *date* is nil.
     init?(_ date: NSDate?) {
         if let date = date {
@@ -448,7 +448,7 @@ struct DateTime: DatabaseValueConvertible {
     
     // DatabaseValueConvertible adoption
     
-    /// The DateTime date formatter.
+    /// The DatabaseDate date formatter.
     static let dateFormatter: NSDateFormatter = {
         let formatter = NSDateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
@@ -459,7 +459,7 @@ struct DateTime: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
-        return .Text(DateTime.dateFormatter.stringFromDate(date))
+        return .Text(DatabaseDate.dateFormatter.stringFromDate(date))
     }
     
     /// Create an instance initialized to `databaseValue`.
@@ -469,29 +469,29 @@ struct DateTime: DatabaseValueConvertible {
         guard let string = String(databaseValue: databaseValue) else {
             return nil
         }
-        self.init(DateTime.dateFormatter.dateFromString(string))
+        self.init(DatabaseDate.dateFormatter.dateFromString(string))
     }
 }
 ```
 
-As a DatabaseValueConvertible adopter, DateTime can be stored and fetched from the database just like simple types Int and String:
+As a DatabaseValueConvertible adopter, DatabaseDate can be stored and fetched from the database just like simple types Int and String:
 
 ```swift
 // Store NSDate
 let date = NSDate()
 try db.execute("INSERT INTO persons (date, ...) " +
                             "VALUES (?, ...)",
-                         arguments: [DateTime(date), ...])
+                         arguments: [DatabaseDate(date), ...])
 
 // Extract NSDate from row:
 for rows in db.fetchRows("SELECT ...") {
-    let date = (row.value(named: "date") as DateTime?)?.date
+    let date = (row.value(named: "date") as DatabaseDate?)?.date
 }
 
 // Direct fetch:
-db.fetch(DateTime.self, "SELECT ...", arguments: ...)    // AnySequence<DateTime?>
-db.fetchAll(DateTime.self, "SELECT ...", arguments: ...) // [DateTime?]
-db.fetchOne(DateTime.self, "SELECT ...", arguments: ...) // DateTime?
+db.fetch(DatabaseDate.self, "SELECT ...")       // AnySequence<DatabaseDate?>
+db.fetchAll(DatabaseDate.self, "SELECT ...")    // [DatabaseDate?]
+db.fetchOne(DatabaseDate.self, "SELECT ...")    // DatabaseDate?
 ```
 
 ### Value Extraction in Details
