@@ -946,7 +946,7 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 
 **RowModel is not a smart class.** It is no replacement for Core Data. It does not provide any uniquing. It does not perform any SQL request behind your back. It has no knowledge of your database schema, and no notion of external references and model relationships.
 
-Based on that facts, here are a few hints:
+Based on those facts, here are a few hints:
 
 - [Autoincrement](#autoincrement)
 - [INSERT OR REPLACE](#insert-or-replace)
