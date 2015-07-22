@@ -1021,7 +1021,7 @@ For example, avoid the table below:
 ```sql
 CREATE TABLE persons (
     id INTEGER PRIMARY KEY,
-    creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,   // Avoid
     ...
 )
 ```
@@ -1031,7 +1031,7 @@ Instead, override `insert()` and provide the default value there:
 ```sql
 CREATE TABLE persons (
     id INTEGER PRIMARY KEY,
-    creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    creationDate DATETIME NOT NULL,   // OK
     ...
 )
 ```
