@@ -10,13 +10,13 @@ Release Notes
 **Fixed**
 
 - `RowModel.save(db)` calls `RowModel.insert(db)` or `RowModel.update(db)` so that eventual overridden versions of `insert` or `update` are invoked.
-- `Bindings(_ array: NSArray)` and `Bindings(_ array: NSDictionary)` now accept NSData elements.
+- `QueryArguments(NSArray)` and `QueryArguments(NSDictionary)` now accept NSData elements.
 
 **Breaking changes**
 
 - "Bindings" has been renamed "QueryArguments", and `bindings` parameters renamed `arguments`.
 - Reusable statements no longer expose any setter for their `arguments` property, and no longer accept any arguments in their initializer. To apply arguments, give them to the `execute()` and `fetch()` methods.
-- `RowModel.isEdited()` and `RowModel.setEdited()` have been replaced by the `RowModel.edited` property.
+- `RowModel.isEdited` and `RowModel.setEdited()` have been replaced by the `RowModel.edited` property.
 
 
 ## 0.4.0
