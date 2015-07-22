@@ -948,92 +948,104 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 
 Based on that facts, here are a few hints:
 
-- For "autoincremented" ids, declare your id column as INTEGER PRIMARY KEY, and declare a RowID primary key:
+- [Autoincrement](#autoincrement)
+- [INSERT OR REPLACE](#insert-or-replace)
+- [Default Values](#default-values)
+
+#### Autoincrement
+
+**For "autoincremented" ids**, declare your id column as INTEGER PRIMARY KEY, and declare a RowID primary key:
+
+```sql
+CREATE TABLE persons {
+    id INTEGER PRIMARY KEY,
+    ...
+}
+```
+
+```swift
+class Person : RowModel {
+    id: Int64!
     
-    ```sql
-    CREATE TABLE persons {
-        id INTEGER PRIMARY KEY,
-        ...
-    }
-    ```
-    
-    ```swift
-    class Person : RowModel {
-        id: Int64!
-        
-        /// The table definition.
-        override class var databaseTable: Table? {
-            return Table(named: "persons", primaryKey: .RowID("id"))
-        }
-        
-        /// The values that should be stored in the database.
-        override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-            return ["id": id, ...]
-        }
-        
-        /// Updates `self` with a database value.
-        override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-            switch column {
-            case "id": id = dbv.value()
-            case ...
-            default:   super.setDatabaseValue(dbv, forColumn: column)
-            }
-        }
+    /// The table definition.
+    override class var databaseTable: Table? {
+        return Table(named: "persons", primaryKey: .RowID("id"))
     }
     
-    let person = Person(...)
-    person.id   // nil
-    person.insert(db)
-    person.id   // some value
-    ```
-
-- RowModel does not provide any API which executes a INSERT OR REPLACE query. Instead, consider adding an ON CONFLICT clause to your table definition, and let the simple insert() method perform the eventual replacement:
-
-    ```sql
-    CREATE TABLE persons (
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE ON CONFLICT REPLACE,
-        ...
-    )
-    ```
+    /// The values that should be stored in the database.
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, ...]
+    }
     
-    ```swift
-    let person = Person(name: "Arthur")
-    person.insert(db)   // Replace any existing person named "Arthur"
-    ```
-
-- Avoid default values in table declarations. RowModel doesn't know about them, and those default values won't be present in a row model after is has been inserted.
-    
-    For example, avoid the table below:
-    
-    ```sql
-    CREATE TABLE persons (
-        id INTEGER PRIMARY KEY,
-        creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        ...
-    )
-    ```
-    
-    Instead, override `insert()` and provide the default value there:
-    
-    ```sql
-    CREATE TABLE persons (
-        id INTEGER PRIMARY KEY,
-        creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        ...
-    )
-    ```
-    
-    ```swift
-    class Person : RowModel {
-        override func insert(db: Database) throws {
-            if creationDate == nil {
-                creationDate = NSDate()
-            }
-            try super.insert(db)
+    /// Updates `self` with a database value.
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
+        switch column {
+        case "id": id = dbv.value()
+        case ...
+        default:   super.setDatabaseValue(dbv, forColumn: column)
         }
     }
-    ```
+}
+
+let person = Person(...)
+person.id   // nil
+person.insert(db)
+person.id   // some value
+```
+
+
+#### INSERT OR REPLACE
+
+**RowModel does not provide any API which executes a INSERT OR REPLACE query.** Instead, consider adding an ON CONFLICT clause to your table definition, and let the simple insert() method perform the eventual replacement:
+
+```sql
+CREATE TABLE persons (
+    id INTEGER PRIMARY KEY,
+    name TEXT UNIQUE ON CONFLICT REPLACE,
+    ...
+)
+```
+
+```swift
+let person = Person(name: "Arthur")
+person.insert(db)   // Replace any existing person named "Arthur"
+```
+
+
+#### Default Values
+
+**Avoid default values in table declarations.** RowModel doesn't know about them, and those default values won't be present in a row model after is has been inserted.
+    
+For example, avoid the table below:
+
+```sql
+CREATE TABLE persons (
+    id INTEGER PRIMARY KEY,
+    creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ...
+)
+```
+
+Instead, override `insert()` and provide the default value there:
+
+```sql
+CREATE TABLE persons (
+    id INTEGER PRIMARY KEY,
+    creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ...
+)
+```
+
+```swift
+class Person : RowModel {
+    override func insert(db: Database) throws {
+        if creationDate == nil {
+            creationDate = NSDate()
+        }
+        try super.insert(db)
+    }
+}
+```
 
 
 ## Thanks
