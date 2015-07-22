@@ -959,10 +959,32 @@ Based on that facts, here are a few hints:
     
     ```swift
     class Person : RowModel {
+        id: Int64!
+        
+        /// The table definition.
         override class var databaseTable: Table? {
             return Table(named: "persons", primaryKey: .RowID("id"))
         }
+        
+        /// The values that should be stored in the database.
+        override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+            return ["id": id, ...]
+        }
+        
+        /// Updates `self` with a database value.
+        override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
+            switch column {
+            case "id": id = dbv.value()
+            case ...
+            default:   super.setDatabaseValue(dbv, forColumn: column)
+            }
+        }
     }
+    
+    let person = Person(...)
+    person.id   // nil
+    person.insert(db)
+    person.id   // some value
     ```
 
 - RowModel does not provide any API which executes a INSERT OR REPLACE query. Instead, consider adding an ON CONFLICT clause to your table definition, and let the simple insert() method perform the eventual replacement:
