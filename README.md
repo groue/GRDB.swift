@@ -996,7 +996,7 @@ person.id   // some value
 
 #### Default Values
 
-**Avoid default values in table declarations.** RowModel doesn't know about them, and those default values won't be present in a row model after is has been inserted.
+**Avoid default values in table declarations.** RowModel doesn't know about them, and those default values won't be present in a row model after it has been inserted.
     
 For example, avoid the table below:
 
