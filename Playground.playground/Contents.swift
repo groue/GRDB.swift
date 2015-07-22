@@ -24,7 +24,7 @@ class Person : RowModel {
     var firstName: String?
     var lastName: String?
     var fullName: String {
-        return " ".join([firstName, lastName].filter { $0 != nil }.map { $0! })
+        return " ".join([firstName, lastName].flatMap { $0 })
     }
     
     init(firstName: String? = nil, lastName: String? = nil) {

@@ -242,7 +242,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             timeString = nil
         }
         
-        return .Text(" ".join([dateString, timeString].filter { $0 != nil }.map { $0! }))
+        return .Text(" ".join([dateString, timeString].flatMap { $0 }))
     }
     
     /// Create an instance initialized to `databaseValue`.
