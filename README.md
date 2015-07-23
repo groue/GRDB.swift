@@ -358,8 +358,8 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 | HH:MM                    |        |        X         |
 | HH:MM:SS                 |        |        X         |
 | HH:MM:SS.SSS             |        |        X         |
-| now                      |        |                  |
 | Julian Day Number        |        |                  |
+| `now`                    |        |                  |
 
 
 #### NSDate
