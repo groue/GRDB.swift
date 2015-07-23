@@ -323,7 +323,7 @@ Custom types are supported as well through the [DatabaseValueConvertible](#custo
 
 Here is the support provided by GRDB.swift for the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
 
-| *Read* SQLite format           | NSDate | NSDateComponents |
+| Read SQLite format           | NSDate | NSDateComponents |
 |:---------------------------- |:------:|:----------------:|
 | YYYY-MM-DD                   |   X ¹  |        X         |
 | YYYY-MM-DD HH:MM             |   X ¹  |        X         |
@@ -342,7 +342,7 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 ² See https://en.wikipedia.org/wiki/Julian_day
 
-| *Written* SQLite format        | NSDate | NSDateComponents |
+| Written SQLite format        | NSDate | NSDateComponents |
 |:---------------------------- |:------:|:----------------:|
 | YYYY-MM-DD                   |        |        X         |
 | YYYY-MM-DD HH:MM             |        |        X         |
