@@ -465,7 +465,10 @@ class Person : RowModel {
     var birthDateComponents: NSDateComponents?
 
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        let dbComponents = DatabaseDateComponents(birthDateComponents, format: .YMD)
+        // Store birth date as YYYY-MM-DD:
+        let dbComponents = DatabaseDateComponents(
+            birthDateComponents,
+            format: .Iso8601Date)
         return ["birthDate": dbComponents, ...]
     }
 
