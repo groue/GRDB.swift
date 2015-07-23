@@ -1,2 +1,1 @@
 - [ ] Test edited flag with Int property backed by a REAL database column.
-- [ ] Add support for NSDateComponents.
