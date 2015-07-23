@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next release
+
+**New**
+
+- `DatabaseDate` supports Julian Day Numbers.
+
+
 ## 0.5.0
 
 Released July 22, 2015

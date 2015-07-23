@@ -321,11 +321,52 @@ Custom types are supported as well through the [DatabaseValueConvertible](#custo
 
 [**NSDate**](#nsdate) and [**NSDateComponents**](#nsdatecomponents) can be stored and fetched from the database.
 
+Here is the support provided by GRDB.swift for the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
+
+**Reading**:
+
+| SQLite format            | NSDate | NSDateComponents |
+|:------------------------ |:------:|:----------------:|
+| YYYY-MM-DD               |   X    |        X         |
+| YYYY-MM-DD HH:MM         |   X    |        X         |
+| YYYY-MM-DD HH:MM:SS      |   X    |        X         |
+| YYYY-MM-DD HH:MM:SS.SSS  |   X    |        X         |
+| YYYY-MM-DDTHH:MM         |   X    |        X         |
+| YYYY-MM-DDTHH:MM:SS      |   X    |        X         |
+| YYYY-MM-DDTHH:MM:SS.SSS  |   X    |        X         |
+| HH:MM                    |   ¹    |        X         |
+| HH:MM:SS                 |   ¹    |        X         |
+| HH:MM:SS.SSS             |   ¹    |        X         |
+| Julian Day Number ²      |   X    |                  |
+| `now`                    |        |                  |
+
+¹ SQLite assumes 2000-01-01 when year, month, and day are not provided. GRDB.swift does not, and won't extract NSDate from those formats.
+
+² See https://en.wikipedia.org/wiki/Julian_day
+
+**Writing**:
+
+| SQLite format            | NSDate | NSDateComponents |
+|:------------------------ |:------:|:----------------:|
+| YYYY-MM-DD               |        |        X         |
+| YYYY-MM-DD HH:MM         |        |        X         |
+| YYYY-MM-DD HH:MM:SS      |        |        X         |
+| YYYY-MM-DD HH:MM:SS.SSS  |   X    |        X         |
+| YYYY-MM-DDTHH:MM         |        |                  |
+| YYYY-MM-DDTHH:MM:SS      |        |                  |
+| YYYY-MM-DDTHH:MM:SS.SSS  |        |                  |
+| HH:MM                    |        |        X         |
+| HH:MM:SS                 |        |        X         |
+| HH:MM:SS.SSS             |        |        X         |
+| now                      |        |                  |
+| Julian Day Number        |        |                  |
+
+
 #### NSDate
 
 Support for NSDate is given by the **DatabaseDate** helper type.
 
-DatabaseDate reads dates from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
+DatabaseDate stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
 
 > The storage format of DatabaseDate is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
 >
