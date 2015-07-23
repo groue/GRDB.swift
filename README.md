@@ -327,20 +327,20 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 | SQLite format                | NSDate | NSDateComponents |
 |:---------------------------- |:------:|:----------------:|
-| YYYY-MM-DD                   |   X    |        X         |
-| YYYY-MM-DD HH:MM             |   X    |        X         |
-| YYYY-MM-DD HH:MM:SS          |   X    |        X         |
-| YYYY-MM-DD HH:MM:SS.SSS      |   X    |        X         |
-| YYYY-MM-DD**T**HH:MM         |   X    |        X         |
-| YYYY-MM-DD**T**HH:MM:SS      |   X    |        X         |
-| YYYY-MM-DD**T**HH:MM:SS.SSS  |   X    |        X         |
-| HH:MM                        |   ¹    |        X         |
-| HH:MM:SS                     |   ¹    |        X         |
-| HH:MM:SS.SSS                 |   ¹    |        X         |
+| YYYY-MM-DD                   |   X ¹  |        X         |
+| YYYY-MM-DD HH:MM             |   X ¹  |        X         |
+| YYYY-MM-DD HH:MM:SS          |   X ¹  |        X         |
+| YYYY-MM-DD HH:MM:SS.SSS      |   X ¹  |        X         |
+| YYYY-MM-DD**T**HH:MM         |   X ¹  |        X         |
+| YYYY-MM-DD**T**HH:MM:SS      |   X ¹  |        X         |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |   X ¹  |        X         |
+| HH:MM                        |        |        X         |
+| HH:MM:SS                     |        |        X         |
+| HH:MM:SS.SSS                 |        |        X         |
 | Julian Day Number ²          |   X    |                  |
 | `now`                        |        |                  |
 
-¹ SQLite assumes 2000-01-01 when year, month, and day are not provided. GRDB.swift does not, and won't extract NSDate from those formats.
+¹ NSDates are interpreted in the UTC time zone. Missing components are assumed to be zero.
 
 ² See https://en.wikipedia.org/wiki/Julian_day
 
@@ -351,7 +351,7 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 | YYYY-MM-DD                   |        |        X         |
 | YYYY-MM-DD HH:MM             |        |        X         |
 | YYYY-MM-DD HH:MM:SS          |        |        X         |
-| YYYY-MM-DD HH:MM:SS.SSS      |   X    |        X         |
+| YYYY-MM-DD HH:MM:SS.SSS      |   X ¹  |        X         |
 | YYYY-MM-DD**T**HH:MM         |        |                  |
 | YYYY-MM-DD**T**HH:MM:SS      |        |                  |
 | YYYY-MM-DD**T**HH:MM:SS.SSS  |        |                  |
@@ -360,6 +360,8 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 | HH:MM:SS.SSS                 |        |        X         |
 | Julian Day Number            |        |                  |
 | `now`                        |        |                  |
+
+¹ NSDates are stored in the UTC time zone.
 
 
 #### NSDate
