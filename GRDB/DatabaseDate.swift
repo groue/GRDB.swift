@@ -103,7 +103,7 @@ public struct DatabaseDate : DatabaseValueConvertible {
     /**
     Create an instance initialized to `databaseValue`.
     
-    Supported formats are:
+    Supported inputs are:
     
     - YYYY-MM-DD
     - YYYY-MM-DD HH:MM
@@ -112,18 +112,57 @@ public struct DatabaseDate : DatabaseValueConvertible {
     - YYYY-MM-DDTHH:MM
     - YYYY-MM-DDTHH:MM:SS
     - YYYY-MM-DDTHH:MM:SS.SSS
+    - Julian Day Number
     */
     public init?(databaseValue: DatabaseValue) {
-        // We need date components;
-        guard let databaseDateComponents = DatabaseDateComponents(databaseValue: databaseValue) else {
-            return nil
-        }
-        
-        // We need date components with year, month, and day:
-        switch databaseDateComponents.format {
-        case .YMD, .YMD_HM, .YMD_HMS, .YMD_HMSS:
-            self.init(DatabaseDate.UTCCalendar.dateFromComponents(databaseDateComponents.dateComponents))
-        default:
+        if let julianDayNumber = Double(databaseValue: databaseValue) {
+            // Julian day number
+            // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
+            let JD = Int64(julianDayNumber * 86400000)
+            let Z = Int(((JD + 43200000)/86400000))
+            var A = Int(((Double(Z) - 1867216.25)/36524.25))
+            A = Z + 1 + A - (A/4)
+            let B = A + 1524
+            let C = Int(((Double(B) - 122.1)/365.25))
+            let D = (36525*(C&32767))/100
+            let E = Int((Double(B-D)/30.6001))
+            let X1 = Int((30.6001*Double(E)))
+            let day = B - D - X1
+            let month = E<14 ? E-1 : E-13
+            let year = month>2 ? C - 4716 : C - 4715
+            var s = Int(((JD + 43200000) % 86400000))
+            var second = Double(s)/1000.0
+            s = Int(second)
+            second -= Double(s)
+            let hour = s/3600
+            s -= hour*3600
+            let minute = s/60
+            second += Double(s - minute*60)
+
+            let dateComponents = NSDateComponents()
+            dateComponents.year = year
+            dateComponents.month = month
+            dateComponents.day = day
+            dateComponents.hour = hour
+            dateComponents.minute = minute
+            dateComponents.second = Int(second)
+            dateComponents.nanosecond = Int((second - Double(Int(second))) * 1.0e9)
+            
+            self.init(DatabaseDate.UTCCalendar.dateFromComponents(dateComponents)!)
+            
+        } else if let databaseDateComponents = DatabaseDateComponents(databaseValue: databaseValue) {
+            // Date components
+
+            switch databaseDateComponents.format {
+            case .YMD, .YMD_HM, .YMD_HMS, .YMD_HMSS:
+                // Date is fully defined
+                self.init(DatabaseDate.UTCCalendar.dateFromComponents(databaseDateComponents.dateComponents))
+            default:
+                // SQLite assumes 2000-01-01 when YMD are not provided, but this is
+                // dangerous.
+                return nil
+            }
+        } else {
             return nil
         }
     }

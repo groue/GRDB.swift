@@ -103,6 +103,42 @@ class DatabaseDateTests : GRDBTestCase {
         XCTAssertTrue(databaseDate == nil)
     }
     
+    func testDatabaseDateDoesNotAcceptFormatHHMM() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute(
+                    "INSERT INTO dates (creationDate) VALUES (?)",
+                    arguments: ["01:02"])
+                let databaseDate = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")
+                XCTAssertTrue(databaseDate == nil)
+            }
+        }
+    }
+    
+    func testDatabaseDateDoesNotAcceptFormatHHMMSS() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute(
+                    "INSERT INTO dates (creationDate) VALUES (?)",
+                    arguments: ["01:02:03"])
+                let databaseDate = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")
+                XCTAssertTrue(databaseDate == nil)
+            }
+        }
+    }
+    
+    func testDatabaseDateDoesNotAcceptFormatHHMMSSSSS() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute(
+                    "INSERT INTO dates (creationDate) VALUES (?)",
+                    arguments: ["01:02:03.00456"])
+                let databaseDate = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")
+                XCTAssertTrue(databaseDate == nil)
+            }
+        }
+    }
+    
     func testDatabaseDateAcceptsFormatYYYYMMDD() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -243,24 +279,27 @@ class DatabaseDateTests : GRDBTestCase {
         }
     }
     
-//    func testDatabaseDateAcceptsJulianDayNumber() {
-//        assertNoError {
-//            try dbQueue.inDatabase { db in
-//                // 00:30:00.0 UT January 1, 2013 according to https://en.wikipedia.org/wiki/Julian_day
-//                try db.execute(
-//                    "INSERT INTO dates (creationDate) VALUES (?)",
-//                    arguments: [2_456_293.520833])
-//                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
-//                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-//                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
-//                XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2013)
-//                XCTAssertEqual(calendar.component(NSCalendarUnit.Month, fromDate: date), 1)
-//                XCTAssertEqual(calendar.component(NSCalendarUnit.Day, fromDate: date), 1)
-//                XCTAssertEqual(calendar.component(NSCalendarUnit.Hour, fromDate: date), 0)
-//                XCTAssertEqual(calendar.component(NSCalendarUnit.Minute, fromDate: date), 30)
-//                XCTAssertEqual(calendar.component(NSCalendarUnit.Second, fromDate: date), 0)
-//                XCTAssertEqual(calendar.component(NSCalendarUnit.Nanosecond, fromDate: date), 0)
-//            }
-//        }
-//    }
+    func testDatabaseDateAcceptsJulianDayNumber() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                // 00:30:00.0 UT January 1, 2013 according to https://en.wikipedia.org/wiki/Julian_day
+                try db.execute(
+                    "INSERT INTO dates (creationDate) VALUES (?)",
+                    arguments: [2_456_293.520833])
+                
+                let string = db.fetchOne(String.self, "SELECT datetime(creationDate) from dates")!
+                XCTAssertEqual(string, "2013-01-01 00:29:59")
+                
+                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
+                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
+                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2013)
+                XCTAssertEqual(calendar.component(NSCalendarUnit.Month, fromDate: date), 1)
+                XCTAssertEqual(calendar.component(NSCalendarUnit.Day, fromDate: date), 1)
+                XCTAssertEqual(calendar.component(NSCalendarUnit.Hour, fromDate: date), 0)
+                XCTAssertEqual(calendar.component(NSCalendarUnit.Minute, fromDate: date), 29)
+                XCTAssertEqual(calendar.component(NSCalendarUnit.Second, fromDate: date), 59)
+            }
+        }
+    }
 }
