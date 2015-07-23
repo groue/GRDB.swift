@@ -325,20 +325,20 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 **Reading**:
 
-| SQLite format            | NSDate | NSDateComponents |
-|:------------------------ |:------:|:----------------:|
-| YYYY-MM-DD               |   X    |        X         |
-| YYYY-MM-DD HH:MM         |   X    |        X         |
-| YYYY-MM-DD HH:MM:SS      |   X    |        X         |
-| YYYY-MM-DD HH:MM:SS.SSS  |   X    |        X         |
-| YYYY-MM-DDTHH:MM         |   X    |        X         |
-| YYYY-MM-DDTHH:MM:SS      |   X    |        X         |
-| YYYY-MM-DDTHH:MM:SS.SSS  |   X    |        X         |
-| HH:MM                    |   ¹    |        X         |
-| HH:MM:SS                 |   ¹    |        X         |
-| HH:MM:SS.SSS             |   ¹    |        X         |
-| Julian Day Number ²      |   X    |                  |
-| `now`                    |        |                  |
+| SQLite format                | NSDate | NSDateComponents |
+|:---------------------------- |:------:|:----------------:|
+| YYYY-MM-DD                   |   X    |        X         |
+| YYYY-MM-DD HH:MM             |   X    |        X         |
+| YYYY-MM-DD HH:MM:SS          |   X    |        X         |
+| YYYY-MM-DD HH:MM:SS.SSS      |   X    |        X         |
+| YYYY-MM-DD**T**HH:MM         |   X    |        X         |
+| YYYY-MM-DD**T**HH:MM:SS      |   X    |        X         |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |   X    |        X         |
+| HH:MM                        |   ¹    |        X         |
+| HH:MM:SS                     |   ¹    |        X         |
+| HH:MM:SS.SSS                 |   ¹    |        X         |
+| Julian Day Number ²          |   X    |                  |
+| `now`                        |        |                  |
 
 ¹ SQLite assumes 2000-01-01 when year, month, and day are not provided. GRDB.swift does not, and won't extract NSDate from those formats.
 
@@ -346,20 +346,20 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 **Writing**:
 
-| SQLite format            | NSDate | NSDateComponents |
-|:------------------------ |:------:|:----------------:|
-| YYYY-MM-DD               |        |        X         |
-| YYYY-MM-DD HH:MM         |        |        X         |
-| YYYY-MM-DD HH:MM:SS      |        |        X         |
-| YYYY-MM-DD HH:MM:SS.SSS  |   X    |        X         |
-| YYYY-MM-DDTHH:MM         |        |                  |
-| YYYY-MM-DDTHH:MM:SS      |        |                  |
-| YYYY-MM-DDTHH:MM:SS.SSS  |        |                  |
-| HH:MM                    |        |        X         |
-| HH:MM:SS                 |        |        X         |
-| HH:MM:SS.SSS             |        |        X         |
-| Julian Day Number        |        |                  |
-| `now`                    |        |                  |
+| SQLite format                | NSDate | NSDateComponents |
+|:---------------------------- |:------:|:----------------:|
+| YYYY-MM-DD                   |        |        X         |
+| YYYY-MM-DD HH:MM             |        |        X         |
+| YYYY-MM-DD HH:MM:SS          |        |        X         |
+| YYYY-MM-DD HH:MM:SS.SSS      |   X    |        X         |
+| YYYY-MM-DD**T**HH:MM         |        |                  |
+| YYYY-MM-DD**T**HH:MM:SS      |        |                  |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |        |                  |
+| HH:MM                        |        |        X         |
+| HH:MM:SS                     |        |        X         |
+| HH:MM:SS.SSS                 |        |        X         |
+| Julian Day Number            |        |                  |
+| `now`                        |        |                  |
 
 
 #### NSDate
