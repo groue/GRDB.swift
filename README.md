@@ -348,9 +348,9 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 | YYYY-MM-DD HH:MM             |        |        X         |
 | YYYY-MM-DD HH:MM:SS          |        |        X         |
 | YYYY-MM-DD HH:MM:SS.SSS      |   X ¹  |        X         |
-| YYYY-MM-DD**T**HH:MM         |        |                  |
-| YYYY-MM-DD**T**HH:MM:SS      |        |                  |
-| YYYY-MM-DD**T**HH:MM:SS.SSS  |        |                  |
+| YYYY-MM-DD**T**HH:MM         |        |        X ²       |
+| YYYY-MM-DD**T**HH:MM:SS      |        |        X ²       |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |        |        X ²       |
 | HH:MM                        |        |        X         |
 | HH:MM:SS                     |        |        X         |
 | HH:MM:SS.SSS                 |        |        X         |
@@ -358,6 +358,8 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 | `now`                        |        |                  |
 
 ¹ NSDates are stored in the UTC time zone.
+
+² Those formats are not lexically comparable with SQLite's CURRENT_TIMESTAMP, and may distort your ORDER BY clauses.
 
 
 #### NSDate
@@ -426,7 +428,7 @@ class Person : RowModel {
 
 Support for NSDateComponents is given by the **DatabaseDateComponents** helper type.
 
-DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from `HH:MM` to `YYYY-MM-DD HH:MM:SS.SSS`.
+DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to the ISO-8601 YYYY-MM-DD**T**HH:MM:SS.SSS.
 
 Store NSDateComponents into the database:
 
@@ -436,8 +438,8 @@ components.year = 1973
 components.month = 9
 components.day = 18
 
-// The .YMD format stores "1973-09-18" in the database.
-let dbComponents = DatabaseDateComponents(components, format: .YMD)
+// The .Iso8601Date format stores "1973-09-18" in the database.
+let dbComponents = DatabaseDateComponents(components, format: .Iso8601Date)
 try db.execute("INSERT INTO persons (birthDate, ...) " +
                             "VALUES (?, ...)",
                          arguments: [dbComponents, ...])
@@ -448,7 +450,7 @@ Extract NSDateComponents from the database:
 ```swift
 let row = db.fetchOneRow("SELECT birthDate, ...")!
 let dbComponents = row.value(named: "birthDate")! as DatabaseDateComponents
-dbComponents.format         // .YMD (the actual format found in the database)
+dbComponents.format         // .Iso8601Date (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
 
 db.fetch(DatabaseDateComponents.self, "SELECT ...")    // AnySequence<DatabaseDateComponents?>
@@ -603,9 +605,9 @@ for rows in db.fetchRows("SELECT ...") {
 }
 
 // Direct fetch:
-db.fetch(DatabaseTimestamp.self, "SELECT ...")       // AnySequence<DatabaseTimestamp?>
-db.fetchAll(DatabaseTimestamp.self, "SELECT ...")    // [DatabaseTimestamp?]
-db.fetchOne(DatabaseTimestamp.self, "SELECT ...")    // DatabaseTimestamp?
+db.fetch(DatabaseTimestamp.self, "SELECT ...")    // AnySequence<DatabaseTimestamp?>
+db.fetchAll(DatabaseTimestamp.self, "SELECT ...") // [DatabaseTimestamp?]
+db.fetchOne(DatabaseTimestamp.self, "SELECT ...") // DatabaseTimestamp?
 ```
 
 ### Value Extraction in Details
