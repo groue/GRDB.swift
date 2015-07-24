@@ -325,17 +325,17 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 | Read SQLite format           | NSDate | NSDateComponents |
 |:---------------------------- |:------:|:----------------:|
-| YYYY-MM-DD                   |   X ¹  |        X         |
-| YYYY-MM-DD HH:MM             |   X ¹  |        X         |
-| YYYY-MM-DD HH:MM:SS          |   X ¹  |        X         |
-| YYYY-MM-DD HH:MM:SS.SSS      |   X ¹  |        X         |
-| YYYY-MM-DD**T**HH:MM         |   X ¹  |        X         |
-| YYYY-MM-DD**T**HH:MM:SS      |   X ¹  |        X         |
-| YYYY-MM-DD**T**HH:MM:SS.SSS  |   X ¹  |        X         |
-| HH:MM                        |        |        X         |
-| HH:MM:SS                     |        |        X         |
-| HH:MM:SS.SSS                 |        |        X         |
-| Julian Day Number ²          |   X    |                  |
+| YYYY-MM-DD                   |   ✓ ¹  |        ✓         |
+| YYYY-MM-DD HH:MM             |   ✓ ¹  |        ✓         |
+| YYYY-MM-DD HH:MM:SS          |   ✓ ¹  |        ✓         |
+| YYYY-MM-DD HH:MM:SS.SSS      |   ✓ ¹  |        ✓         |
+| YYYY-MM-DD**T**HH:MM         |   ✓ ¹  |        ✓         |
+| YYYY-MM-DD**T**HH:MM:SS      |   ✓ ¹  |        ✓         |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |   ✓ ¹  |        ✓         |
+| HH:MM                        |        |        ✓         |
+| HH:MM:SS                     |        |        ✓         |
+| HH:MM:SS.SSS                 |        |        ✓         |
+| Julian Day Number ²          |   ✓    |                  |
 | `now`                        |        |                  |
 
 ¹ NSDates are interpreted in the UTC time zone. Missing components are assumed to be zero.
@@ -344,16 +344,16 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 | Written SQLite format        | NSDate | NSDateComponents |
 |:---------------------------- |:------:|:----------------:|
-| YYYY-MM-DD                   |        |        X         |
-| YYYY-MM-DD HH:MM             |        |        X         |
-| YYYY-MM-DD HH:MM:SS          |        |        X         |
-| YYYY-MM-DD HH:MM:SS.SSS      |   X ¹  |        X         |
-| YYYY-MM-DD**T**HH:MM         |        |        X ²       |
-| YYYY-MM-DD**T**HH:MM:SS      |        |        X ²       |
-| YYYY-MM-DD**T**HH:MM:SS.SSS  |        |        X ²       |
-| HH:MM                        |        |        X         |
-| HH:MM:SS                     |        |        X         |
-| HH:MM:SS.SSS                 |        |        X         |
+| YYYY-MM-DD                   |        |        ✓         |
+| YYYY-MM-DD HH:MM             |        |        ✓         |
+| YYYY-MM-DD HH:MM:SS          |        |        ✓         |
+| YYYY-MM-DD HH:MM:SS.SSS      |   ✓ ¹  |        ✓         |
+| YYYY-MM-DD**T**HH:MM         |        |        ✓ ²       |
+| YYYY-MM-DD**T**HH:MM:SS      |        |        ✓ ²       |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |        |        ✓ ²       |
+| HH:MM                        |        |        ✓         |
+| HH:MM:SS                     |        |        ✓         |
+| HH:MM:SS.SSS                 |        |        ✓         |
 | Julian Day Number            |        |                  |
 | `now`                        |        |                  |
 
@@ -768,7 +768,7 @@ Subclasses opt in RowModel features by overriding all or part of the core method
 
 | Core Methods                       | fetch | insert | update | delete | reload |
 |:---------------------------------- |:-----:|:------:|:------:|:------:|:------:|
-| `setDatabaseValue(_:forColumn:)`   |   ✓   |   ✓ ¹  |        |        |   ✓    |
+| `setDatabaseValue(_:forColumn:)`   |   ✓   |   ¹    |        |        |   ✓    |
 | `databaseTable`                    |       |   ✓    |   ✓ ²  |   ✓ ²  |   ✓ ²  |
 | `storedDatabaseDictionary`         |       |   ✓    |   ✓    |   ✓    |   ✓    |
 
