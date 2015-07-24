@@ -1,1 +1,0 @@
-- [ ] Test edited flag with Int property backed by a REAL database column.

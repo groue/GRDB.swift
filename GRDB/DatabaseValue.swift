@@ -118,6 +118,10 @@ public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
         return lhs == rhs
     case (.Real(let lhs), .Real(let rhs)):
         return lhs == rhs
+    case (.Integer(let lhs), .Real(let rhs)):
+        return round(rhs) == rhs && Double(lhs) == rhs
+    case (.Real(let lhs), .Integer(let rhs)):
+        return round(lhs) == lhs && Double(rhs) == lhs
     case (.Text(let lhs), .Text(let rhs)):
         return lhs == rhs
     case (.Blob(let lhs), .Blob(let rhs)):

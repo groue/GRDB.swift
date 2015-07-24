@@ -25,6 +25,21 @@
 import XCTest
 import GRDB
 
+class IntegerPropertyOnRealAffinityColumn : RowModel {
+    var value: Int!
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["value": value]
+    }
+    
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
+        switch column {
+        case "value": value = dbv.value()
+        default: super.setDatabaseValue(dbv, forColumn: column)
+        }
+    }
+}
+
 class RowModelEditedTests: RowModelTestCase {
     
     func testRowModelIsEditedAfterInit() {
@@ -44,6 +59,17 @@ class RowModelEditedTests: RowModelTestCase {
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = db.fetchOne(Person.self, "SELECT * FROM persons")!
                 XCTAssertFalse(person.edited)
+            }
+        }
+    }
+    
+    func testRowModelIsNotEditedAfterFullFetchWithIntegerPropertyOnRealAffinityColumn() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE t (value REAL)")
+                try db.execute("INSERT INTO t (value) VALUES (1)")
+                let rowModel = db.fetchOne(IntegerPropertyOnRealAffinityColumn.self, "SELECT * FROM t")!
+                XCTAssertFalse(rowModel.edited)
             }
         }
     }
