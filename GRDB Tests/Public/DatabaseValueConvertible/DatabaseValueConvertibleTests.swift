@@ -80,6 +80,9 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
     func int(databaseValue: DatabaseValue) -> Int? {
         return databaseValue.value()
     }
+    func int32(databaseValue: DatabaseValue) -> Int32? {
+        return databaseValue.value()
+    }
     func int64(databaseValue: DatabaseValue) -> Int64? {
         return databaseValue.value()
     }
@@ -119,6 +122,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Text storage:
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertEqual(self.string(databaseValue)!, "0")
@@ -137,6 +141,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Text storage:
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertEqual(self.string(databaseValue)!, "0.0")
@@ -155,6 +160,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Text storage:
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertEqual(self.string(databaseValue)!, "3.0e+5")
@@ -173,6 +179,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Text storage:
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertEqual(self.string(databaseValue)!, "foo")
@@ -191,6 +198,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Blob storage:
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -260,6 +268,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Real storage
                 XCTAssertEqual(self.bool(databaseValue)!, false)
                 XCTAssertEqual(self.int(databaseValue)!, 0)
+                XCTAssertEqual(self.int32(databaseValue)!, Int32(0))
                 XCTAssertEqual(self.int64(databaseValue)!, Int64(0))
                 XCTAssertEqual(self.double(databaseValue)!, 0.0)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -278,6 +287,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Real storage
                 XCTAssertEqual(self.bool(databaseValue)!, true)
                 XCTAssertEqual(self.int(databaseValue)!, 300000)
+                XCTAssertEqual(self.int32(databaseValue)!, Int32(300000))
                 XCTAssertEqual(self.int64(databaseValue)!, Int64(300000))
                 XCTAssertEqual(self.double(databaseValue)!, Double(300000))
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -293,7 +303,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 let databaseValue = db.fetchOneRow("SELECT realAffinity FROM `values`")!.first!.1   // first is (columnName, databaseValue)
                 XCTAssertEqual(databaseValue.storageClass, SQLiteStorageClass.Real)
                 
-                // Check built-in conversions from Real storage (avoid Int and Int64 since 1.0e20 does not fit)
+                // Check built-in conversions from Real storage (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
                 XCTAssertEqual(self.bool(databaseValue)!, true)
                 XCTAssertEqual(self.double(databaseValue)!, 1e20)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -312,6 +322,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Real storage
                 XCTAssertEqual(self.bool(databaseValue)!, true)
                 XCTAssertEqual(self.int(databaseValue)!, 300000)
+                XCTAssertEqual(self.int32(databaseValue)!, Int32(300000))
                 XCTAssertEqual(self.int64(databaseValue)!, Int64(300000))
                 XCTAssertEqual(self.double(databaseValue)!, Double(300000))
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -327,7 +338,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 let databaseValue = db.fetchOneRow("SELECT realAffinity FROM `values`")!.first!.1   // first is (columnName, databaseValue)
                 XCTAssertEqual(databaseValue.storageClass, SQLiteStorageClass.Real)
                 
-                // Check built-in conversions from Real storage: (avoid Int and Int64 since 1.0e20 does not fit)
+                // Check built-in conversions from Real storage: (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
                 XCTAssertEqual(self.bool(databaseValue)!, true)
                 XCTAssertEqual(self.double(databaseValue)!, 1e20)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -346,6 +357,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Text storage:
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertEqual(self.string(databaseValue)!, "foo")
@@ -364,6 +376,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Blob storage:
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -393,6 +406,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Integer storage
                 XCTAssertEqual(self.bool(databaseValue)!, false)
                 XCTAssertEqual(self.int(databaseValue)!, 0)
+                XCTAssertEqual(self.int32(databaseValue)!, Int32(0))
                 XCTAssertEqual(self.int64(databaseValue)!, Int64(0))
                 XCTAssertEqual(self.double(databaseValue)!, 0.0)
                 XCTAssertTrue(self.string(databaseValue) == nil)      
@@ -411,6 +425,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Real storage
                 XCTAssertEqual(self.bool(databaseValue)!, false)
                 XCTAssertEqual(self.int(databaseValue)!, 0)
+                XCTAssertEqual(self.int32(databaseValue)!, Int32(0))
                 XCTAssertEqual(self.int64(databaseValue)!, Int64(0))
                 XCTAssertEqual(self.double(databaseValue)!, 0.0)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -429,6 +444,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Text storage
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertEqual(self.string(databaseValue)!, "3.0e+5")
@@ -447,6 +463,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Blob storage
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -490,6 +507,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Integer storage
                 XCTAssertEqual(self.bool(databaseValue)!, false)
                 XCTAssertEqual(self.int(databaseValue)!, 0)
+                XCTAssertEqual(self.int32(databaseValue)!, Int32(0))
                 XCTAssertEqual(self.int64(databaseValue)!, Int64(0))
                 XCTAssertEqual(self.double(databaseValue)!, 0.0)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -508,6 +526,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Integer storage
                 XCTAssertEqual(self.bool(databaseValue)!, true)
                 XCTAssertEqual(self.int(databaseValue)!, 300000)
+                XCTAssertEqual(self.int32(databaseValue)!, Int32(300000))
                 XCTAssertEqual(self.int64(databaseValue)!, Int64(300000))
                 XCTAssertEqual(self.double(databaseValue)!, Double(300000))
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -523,7 +542,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 let databaseValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")!.first!.1   // first is (columnName, databaseValue)
                 XCTAssertEqual(databaseValue.storageClass, SQLiteStorageClass.Real)
                 
-                // Check built-in conversions from Real storage (avoid Int and Int64 since 1.0e20 does not fit)
+                // Check built-in conversions from Real storage (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
                 XCTAssertEqual(self.bool(databaseValue)!, true)
                 XCTAssertEqual(self.double(databaseValue)!, 1e20)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -542,6 +561,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Integer storage
                 XCTAssertEqual(self.bool(databaseValue)!, true)
                 XCTAssertEqual(self.int(databaseValue)!, 300000)
+                XCTAssertEqual(self.int32(databaseValue)!, Int32(300000))
                 XCTAssertEqual(self.int64(databaseValue)!, Int64(300000))
                 XCTAssertEqual(self.double(databaseValue)!, Double(300000))
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -557,7 +577,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 let databaseValue = db.fetchOneRow("SELECT \(columnName) FROM `values`")!.first!.1   // first is (columnName, databaseValue)
                 XCTAssertEqual(databaseValue.storageClass, SQLiteStorageClass.Real)
                 
-                // Check built-in conversions from Real storage: (avoid Int and Int64 since 1.0e20 does not fit)
+                // Check built-in conversions from Real storage: (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
                 XCTAssertEqual(self.bool(databaseValue)!, true)
                 XCTAssertEqual(self.double(databaseValue)!, 1e20)
                 XCTAssertTrue(self.string(databaseValue) == nil)
@@ -576,6 +596,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Text storage:
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertEqual(self.string(databaseValue)!, "foo")
@@ -594,6 +615,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 // Check built-in conversions from Blob storage:
                 XCTAssertTrue(self.bool(databaseValue) == nil)
                 XCTAssertTrue(self.int(databaseValue) == nil)
+                XCTAssertTrue(self.int32(databaseValue) == nil)
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertTrue(self.string(databaseValue) == nil)

@@ -136,6 +136,27 @@ extension Int: DatabaseValueConvertible {
     }
 }
 
+/// Int32 is convertible to and from DatabaseValue.
+extension Int32: DatabaseValueConvertible {
+    
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return .Integer(Int64(self))
+    }
+    
+    /// Create an instance initialized to `databaseValue`.
+    public init?(databaseValue: DatabaseValue) {
+        switch databaseValue {
+        case .Integer(let int64):
+            self.init(int64)
+        case .Real(let double):
+            self.init(double)
+        default:
+            return nil
+        }
+    }
+}
+
 /// Int64 is convertible to and from DatabaseValue.
 extension Int64: DatabaseValueConvertible {
     

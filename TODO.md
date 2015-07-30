@@ -1,0 +1,2 @@
+- [X] Support for Int32 (for ABRecordID, for example)
+- [ ] RowModel Validation errors?
