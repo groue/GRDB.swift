@@ -154,7 +154,7 @@ public struct DatabaseDate : DatabaseValueConvertible {
             // Date components
 
             switch databaseDateComponents.format {
-            case .Iso8601Date, .Iso8601DateHourMinute, .Iso8601DateHourMinuteSecond, .Iso8601DateHourMinuteSecondMillisecond, .SQLDateHourMinute, .SQLDateHourMinuteSecond, .SQLDateHourMinuteSecondMillisecond:
+            case .YMD, .YMD_HM, .YMD_HMS, .YMD_HMSS:
                 // Date is fully defined
                 self.init(DatabaseDate.UTCCalendar.dateFromComponents(databaseDateComponents.dateComponents))
             default:
@@ -195,47 +195,32 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     /// The available formats for reading and storing date components.
     public enum Format : String {
         
-        /// The ISO-8601 format "yyyy-MM-dd".
-        case Iso8601Date = "yyyy-MM-dd"
+        /// The format "yyyy-MM-dd".
+        case YMD = "yyyy-MM-dd"
         
-        /// The ISO-8601 format "yyyy-MM-dd'T'HH:mm".
-        ///
-        /// This format is not lexically comparable with SQLite's CURRENT_TIMESTAMP.
-        case Iso8601DateHourMinute = "yyyy-MM-dd'T'HH:mm"
-        
-        /// The ISO-8601 format "yyyy-MM-dd'T'HH:mm:ss".
-        ///
-        /// This format is not lexically comparable with SQLite's CURRENT_TIMESTAMP.
-        case Iso8601DateHourMinuteSecond = "yyyy-MM-dd'T'HH:mm:ss"
-        
-        /// The ISO-8601 format "yyyy-MM-dd'T'HH:mm:ss.SSS".
-        ///
-        /// This format is not lexically comparable with SQLite's CURRENT_TIMESTAMP.
-        case Iso8601DateHourMinuteSecondMillisecond = "yyyy-MM-dd'T'HH:mm:ss.SSS"
-        
-        /// The SQL format "yyyy-MM-dd HH:mm".
+        /// The format "yyyy-MM-dd HH:mm".
         ///
         /// This format is lexically comparable with SQLite's CURRENT_TIMESTAMP.
-        case SQLDateHourMinute = "yyyy-MM-dd HH:mm"
+        case YMD_HM = "yyyy-MM-dd HH:mm"
         
-        /// The SQL format "yyyy-MM-dd HH:mm:ss".
+        /// The format "yyyy-MM-dd HH:mm:ss".
         ///
         /// This format is lexically comparable with SQLite's CURRENT_TIMESTAMP.
-        case SQLDateHourMinuteSecond = "yyyy-MM-dd HH:mm:ss"
+        case YMD_HMS = "yyyy-MM-dd HH:mm:ss"
         
-        /// The SQL format "yyyy-MM-dd HH:mm:ss.SSS".
+        /// The format "yyyy-MM-dd HH:mm:ss.SSS".
         ///
         /// This format is lexically comparable with SQLite's CURRENT_TIMESTAMP.
-        case SQLDateHourMinuteSecondMillisecond = "yyyy-MM-dd HH:mm:ss.SSS"
+        case YMD_HMSS = "yyyy-MM-dd HH:mm:ss.SSS"
         
-        /// The ISO-8601 format "HH:mm".
-        case Iso8601HourMinute = "HH:mm"
+        /// The format "HH:mm".
+        case HM = "HH:mm"
         
-        /// The ISO-8601 format "HH:mm:ss".
-        case Iso8601HourMinuteSecond = "HH:mm:ss"
+        /// The format "HH:mm:ss".
+        case HMS = "HH:mm:ss"
         
-        /// The ISO-8601 format "HH:mm:ss.SSS".
-        case Iso8601HourMinuteSecondMillisecond = "HH:mm:ss.SSS"
+        /// The format "HH:mm:ss.SSS".
+        case HMSS = "HH:mm:ss.SSS"
     }
     
     // MARK: - NSDateComponents conversion
@@ -272,7 +257,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         let dateString: String?
         switch format {
-        case .SQLDateHourMinute, .SQLDateHourMinuteSecond, .SQLDateHourMinuteSecondMillisecond, .Iso8601Date, .Iso8601DateHourMinute, .Iso8601DateHourMinuteSecond, .Iso8601DateHourMinuteSecondMillisecond:
+        case .YMD_HM, .YMD_HMS, .YMD_HMSS, .YMD:
             let year = (dateComponents.year == NSDateComponentUndefined) ? 0 : dateComponents.year
             let month = (dateComponents.month == NSDateComponentUndefined) ? 1 : dateComponents.month
             let day = (dateComponents.day == NSDateComponentUndefined) ? 1 : dateComponents.day
@@ -283,16 +268,16 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         
         let timeString: String?
         switch format {
-        case .SQLDateHourMinute, .Iso8601DateHourMinute, .Iso8601HourMinute:
+        case .YMD_HM, .HM:
             let hour = (dateComponents.hour == NSDateComponentUndefined) ? 0 : dateComponents.hour
             let minute = (dateComponents.minute == NSDateComponentUndefined) ? 0 : dateComponents.minute
             timeString = NSString(format: "%02d:%02d", hour, minute) as String
-        case .SQLDateHourMinuteSecond, .Iso8601DateHourMinuteSecond, .Iso8601HourMinuteSecond:
+        case .YMD_HMS, .HMS:
             let hour = (dateComponents.hour == NSDateComponentUndefined) ? 0 : dateComponents.hour
             let minute = (dateComponents.minute == NSDateComponentUndefined) ? 0 : dateComponents.minute
             let second = (dateComponents.second == NSDateComponentUndefined) ? 0 : dateComponents.second
             timeString = NSString(format: "%02d:%02d:%02d", hour, minute, second) as String
-        case .SQLDateHourMinuteSecondMillisecond, .Iso8601DateHourMinuteSecondMillisecond, .Iso8601HourMinuteSecondMillisecond:
+        case .YMD_HMSS, .HMSS:
             let hour = (dateComponents.hour == NSDateComponentUndefined) ? 0 : dateComponents.hour
             let minute = (dateComponents.minute == NSDateComponentUndefined) ? 0 : dateComponents.minute
             let second = (dateComponents.second == NSDateComponentUndefined) ? 0 : dateComponents.second
@@ -303,7 +288,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         }
         
         switch format {
-        case .SQLDateHourMinute, .SQLDateHourMinuteSecond, .SQLDateHourMinuteSecondMillisecond:
+        case .YMD_HM, .YMD_HMS, .YMD_HMSS:
             return .Text(" ".join([dateString, timeString].flatMap { $0 }))
         default:
             return .Text("T".join([dateString, timeString].flatMap { $0 }))
@@ -337,7 +322,6 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         scanner.charactersToBeSkipped = NSCharacterSet()
         
         let hasDate: Bool
-        let iso8601: Bool
         
         // YYYY or HH
         var initialNumber: Int = 0
@@ -348,7 +332,6 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         case 2:
             // HH
             hasDate = false
-            iso8601 = true
             
             let hour = initialNumber
             if hour >= 0 && hour <= 23 {
@@ -396,16 +379,12 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             
             // YYYY-MM-DD
             if scanner.atEnd {
-                self.init(dateComponents, format: .Iso8601Date)
+                self.init(dateComponents, format: .YMD)
                 return
             }
             
             // T/space
-            if scanner.scanString("T", intoString: nil) {
-                iso8601 = true
-            } else if scanner.scanString(" ", intoString: nil) {
-                iso8601 = false
-            } else {
+            if !scanner.scanString("T", intoString: nil) && !scanner.scanString(" ", intoString: nil) {
                 return nil
             }
             
@@ -437,9 +416,9 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         // [YYYY-MM-DD] HH:MM
         if scanner.atEnd {
             if hasDate {
-                self.init(dateComponents, format: iso8601 ? .Iso8601DateHourMinute : .SQLDateHourMinute)
+                self.init(dateComponents, format: .YMD_HM)
             } else {
-                self.init(dateComponents, format: .Iso8601HourMinute)
+                self.init(dateComponents, format: .HM)
             }
             return
         }
@@ -460,9 +439,9 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         // [YYYY-MM-DD] HH:MM:SS
         if scanner.atEnd {
             if hasDate {
-                self.init(dateComponents, format: iso8601 ? .Iso8601DateHourMinuteSecond : .SQLDateHourMinuteSecond)
+                self.init(dateComponents, format: .YMD_HMS)
             } else {
-                self.init(dateComponents, format: .Iso8601HourMinuteSecond)
+                self.init(dateComponents, format: .HMS)
             }
             return
         }
@@ -486,9 +465,9 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         // [YYYY-MM-DD] HH:MM:SS.SSS
         if scanner.atEnd {
             if hasDate {
-                self.init(dateComponents, format: iso8601 ? .Iso8601DateHourMinuteSecondMillisecond : .SQLDateHourMinuteSecondMillisecond)
+                self.init(dateComponents, format: .YMD_HMSS)
             } else {
-                self.init(dateComponents, format: .Iso8601HourMinuteSecondMillisecond)
+                self.init(dateComponents, format: .HMSS)
             }
             return
         }

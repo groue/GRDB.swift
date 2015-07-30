@@ -323,43 +323,24 @@ Custom types are supported as well through the [DatabaseValueConvertible](#custo
 
 Here is the support provided by GRDB.swift for the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
 
-| Read SQLite format           | NSDate | NSDateComponents |
-|:---------------------------- |:------:|:----------------:|
-| YYYY-MM-DD                   |   ✓ ¹  |        ✓         |
-| YYYY-MM-DD HH:MM             |   ✓ ¹  |        ✓         |
-| YYYY-MM-DD HH:MM:SS          |   ✓ ¹  |        ✓         |
-| YYYY-MM-DD HH:MM:SS.SSS      |   ✓ ¹  |        ✓         |
-| YYYY-MM-DD**T**HH:MM         |   ✓ ¹  |        ✓         |
-| YYYY-MM-DD**T**HH:MM:SS      |   ✓ ¹  |        ✓         |
-| YYYY-MM-DD**T**HH:MM:SS.SSS  |   ✓ ¹  |        ✓         |
-| HH:MM                        |        |        ✓         |
-| HH:MM:SS                     |        |        ✓         |
-| HH:MM:SS.SSS                 |        |        ✓         |
-| Julian Day Number ²          |   ✓    |                  |
-| `now`                        |        |                  |
+| SQLite format                | NSDate       | NSDateComponents |
+|:---------------------------- |:------------:|:----------------:|
+| YYYY-MM-DD                   |     Read ¹   |    Read/Write    |
+| YYYY-MM-DD HH:MM             |     Read ¹   |    Read/Write    |
+| YYYY-MM-DD HH:MM:SS          |     Read ¹   |    Read/Write    |
+| YYYY-MM-DD HH:MM:SS.SSS      | Read/Write ¹ |    Read/Write    |
+| YYYY-MM-DD**T**HH:MM         |     Read ¹   |       Read       |
+| YYYY-MM-DD**T**HH:MM:SS      |     Read ¹   |       Read       |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |     Read ¹   |       Read       |
+| HH:MM                        |              |    Read/Write    |
+| HH:MM:SS                     |              |    Read/Write    |
+| HH:MM:SS.SSS                 |              |    Read/Write    |
+| Julian Day Number            |     Read ²   |                  |
+| `now`                        |              |                  |
 
-¹ NSDates are interpreted in the UTC time zone. Missing components are assumed to be zero.
+¹ NSDates are stored and read in the UTC time zone. Missing components are assumed to be zero.
 
 ² See https://en.wikipedia.org/wiki/Julian_day
-
-| Written SQLite format        | NSDate | NSDateComponents |
-|:---------------------------- |:------:|:----------------:|
-| YYYY-MM-DD                   |        |        ✓         |
-| YYYY-MM-DD HH:MM             |        |        ✓         |
-| YYYY-MM-DD HH:MM:SS          |        |        ✓         |
-| YYYY-MM-DD HH:MM:SS.SSS      |   ✓ ¹  |        ✓         |
-| YYYY-MM-DD**T**HH:MM         |        |        ✓ ²       |
-| YYYY-MM-DD**T**HH:MM:SS      |        |        ✓ ²       |
-| YYYY-MM-DD**T**HH:MM:SS.SSS  |        |        ✓ ²       |
-| HH:MM                        |        |        ✓         |
-| HH:MM:SS                     |        |        ✓         |
-| HH:MM:SS.SSS                 |        |        ✓         |
-| Julian Day Number            |        |                  |
-| `now`                        |        |                  |
-
-¹ NSDates are stored in the UTC time zone.
-
-² Those formats are not lexically comparable with SQLite's CURRENT_TIMESTAMP, and may distort your ORDER BY clauses.
 
 
 #### NSDate
@@ -438,8 +419,8 @@ components.year = 1973
 components.month = 9
 components.day = 18
 
-// The .Iso8601Date format stores "1973-09-18" in the database.
-let dbComponents = DatabaseDateComponents(components, format: .Iso8601Date)
+// The .YMD format stores "1973-09-18" in the database.
+let dbComponents = DatabaseDateComponents(components, format: .YMD)
 try db.execute("INSERT INTO persons (birthDate, ...) " +
                             "VALUES (?, ...)",
                          arguments: [dbComponents, ...])
@@ -450,7 +431,7 @@ Extract NSDateComponents from the database:
 ```swift
 let row = db.fetchOneRow("SELECT birthDate, ...")!
 let dbComponents = row.value(named: "birthDate")! as DatabaseDateComponents
-dbComponents.format         // .Iso8601Date (the actual format found in the database)
+dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
 
 db.fetch(DatabaseDateComponents.self, "SELECT ...")    // AnySequence<DatabaseDateComponents?>
@@ -468,7 +449,7 @@ class Person : RowModel {
         // Store birth date as YYYY-MM-DD:
         let dbComponents = DatabaseDateComponents(
             birthDateComponents,
-            format: .Iso8601Date)
+            format: .YMD)
         return ["birthDate": dbComponents, ...]
     }
 
