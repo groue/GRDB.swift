@@ -351,7 +351,7 @@ DatabaseDate stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC 
 
 > The storage format of DatabaseDate is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
 >
-> Of course, if this format does not fit your needs, feel free to create your own helper type: the [DatabaseValueConvertible](#custom-types) protocol is there to help you store dates as ISO-8601 strings, timestamp numbers, etc.
+> Of course, if this format does not fit your needs, feel free to create your own helper type: the [DatabaseValueConvertible](#custom-types) protocol is there to help you store dates as ISO-8601 strings, timestamp numbers, etc. We provide sample code for storing dates as timestamps [below](#custom-types).
 
 
 Declare DATETIME columns in your tables:
@@ -531,7 +531,7 @@ All types that adopt this protocol can be used wherever the built-in types `Int`
 
 > Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
-As an example, let's write an alternative to the built-in [DatabaseDate](#nsdate-and-nsdatecomponents), which stores dates as timestamps. DatabaseTimestamp applies all the best practices for a great GRDB.swift integration:
+As an example, let's write an alternative to the built-in [DatabaseDate](#nsdate-and-nsdatecomponents), and store dates as timestamps. DatabaseTimestamp applies all the best practices for a great GRDB.swift integration:
 
 ```swift
 struct DatabaseTimestamp: DatabaseValueConvertible {
