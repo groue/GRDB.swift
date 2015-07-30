@@ -1,3 +1,2 @@
 - [ ] RowModel Validation errors?
 - [ ] Have RowModel.delete return whether a row was deleted or not.
-- [ ] Replace RowModelError.InvalidPrimaryKey with a fatal error.

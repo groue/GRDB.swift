@@ -257,8 +257,6 @@ public class RowModel {
     
     - parameter db: A Database.
     - throws: A DatabaseError is thrown whenever a SQLite error occurs.
-              RowModelError.InvalidPrimaryKey is thrown if
-              `storedDatabaseDictionary` contains nil for the primary key.
               RowModelError.RowModelNotFound is thrown if the primary key does
               not match any row in the database and row model could not be
               updated.
@@ -307,8 +305,6 @@ public class RowModel {
     
     - parameter db: A Database.
     - throws: A DatabaseError is thrown whenever a SQLite error occurs.
-              RowModelError.InvalidPrimaryKey is thrown if
-              `storedDatabaseDictionary` contains nil for the primary key.
     */
     public func delete(db: Database) throws {
         try withDataMapper { dataMapper in
@@ -327,9 +323,7 @@ public class RowModel {
     On successful reloading, this method sets the *edited* flag to false.
     
     - parameter db: A Database.
-    - throws: RowModelError.InvalidPrimaryKey is thrown if
-              `storedDatabaseDictionary` contains nil for the primary key.
-              RowModelError.RowModelNotFound is thrown if the primary key does
+    - throws: RowModelError.RowModelNotFound is thrown if the primary key does
               not match any row in the database and row model could not be
               reloaded.
     */
@@ -357,8 +351,6 @@ public class RowModel {
             try block(DataMapper(self))
         } catch let error as DataMapperError {
             switch error {
-            case .InvalidPrimaryKey:
-                throw RowModelError.InvalidPrimaryKey(self)
             case .RowNotFound:
                 throw RowModelError.RowModelNotFound(self)
             }
@@ -493,7 +485,7 @@ public class RowModel {
         func update(db: Database) throws {
             // Update requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
-                throw DataMapperError.InvalidPrimaryKey
+                fatalError("Invalid primary key in \(rowModel)")
             }
             
             // Don't update primary key columns
@@ -552,7 +544,7 @@ public class RowModel {
         func delete(db: Database) throws {
             // Delete requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
-                throw DataMapperError.InvalidPrimaryKey
+                fatalError("Invalid primary key in \(rowModel)")
             }
             
             // Delete
@@ -565,7 +557,7 @@ public class RowModel {
         func reloadStatement(db: Database) throws -> SelectStatement {
             // fetchOneRow requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
-                throw DataMapperError.InvalidPrimaryKey
+                fatalError("Invalid primary key in \(rowModel)")
             }
             
             // Fetch
@@ -616,7 +608,6 @@ public class RowModel {
     }
 
     private enum DataMapperError : ErrorType {
-        case InvalidPrimaryKey
         case RowNotFound
     }
 }
@@ -653,9 +644,6 @@ extension RowModel : CustomStringConvertible {
 /// A RowModel-specific error
 public enum RowModelError: ErrorType {
     
-    /// Primary key does not uniquely identifies a database row.
-    case InvalidPrimaryKey(RowModel)
-    
     /// No matching row could be found in the database.
     case RowModelNotFound(RowModel)
 }
@@ -664,8 +652,6 @@ extension RowModelError : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         switch self {
-        case .InvalidPrimaryKey(let rowModel):
-            return "Invalid primary key in \(rowModel)"
         case .RowModelNotFound(let rowModel):
             return "RowModel not found: \(rowModel)"
         }

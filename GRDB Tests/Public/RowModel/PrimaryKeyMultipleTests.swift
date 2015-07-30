@@ -150,21 +150,6 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
     
     // MARK: - Update
     
-    func testUpdateWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let rowModel = Citizenship(native: true)
-                XCTAssertTrue(rowModel.personName == nil && rowModel.countryName == nil)
-                do {
-                    try rowModel.update(db)
-                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
-                } catch RowModelError.InvalidPrimaryKey {
-                    // Expected RowModelError.InvalidPrimaryKey
-                }
-            }
-        }
-    }
-    
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -295,21 +280,6 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
     
     // MARK: - Delete
     
-    func testDeleteWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let rowModel = Citizenship(native: true)
-                XCTAssertTrue(rowModel.personName == nil && rowModel.countryName == nil)
-                do {
-                    try rowModel.delete(db)
-                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
-                } catch RowModelError.InvalidPrimaryKey {
-                    // Expected RowModelError.InvalidPrimaryKey
-                }
-            }
-        }
-    }
-    
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -345,21 +315,6 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
     
     
     // MARK: - Reload
-    
-    func testReloadWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let rowModel = Citizenship(native: true)
-                XCTAssertTrue(rowModel.personName == nil && rowModel.countryName == nil)
-                do {
-                    try rowModel.reload(db)
-                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
-                } catch RowModelError.InvalidPrimaryKey {
-                    // Expected RowModelError.InvalidPrimaryKey
-                }
-            }
-        }
-    }
     
     func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
         assertNoError {

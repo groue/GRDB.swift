@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking changes**
+
+- RowModelError.InvalidPrimaryKey has been replaced by a fatal error.
+
+
 ## 0.6.0
 
 Released July 30, 2015

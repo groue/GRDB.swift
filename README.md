@@ -962,8 +962,6 @@ Note that `edited` is based on value comparison: **setting a property to the sam
 
 RowModel methods can throw [DatabaseError](#error-handling) and also specific errors of type **RowModelError**:
 
-- **RowModelError.InvalidPrimaryKey**: thrown by `update`, `delete` and `reload` when the primary key is nil.
-
 - **RowModelError.RowModelNotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
 
 

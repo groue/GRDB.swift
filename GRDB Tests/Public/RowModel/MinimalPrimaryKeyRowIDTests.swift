@@ -133,21 +133,6 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
     
     // MARK: - Update
     
-    func testUpdateWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let rowModel = MinimalRowID()
-                XCTAssertTrue(rowModel.id == nil)
-                do {
-                    try rowModel.update(db)
-                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
-                } catch RowModelError.InvalidPrimaryKey {
-                    // Expected RowModelError.InvalidPrimaryKey
-                }
-            }
-        }
-    }
-    
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -282,21 +267,6 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
     
     // MARK: - Delete
     
-    func testDeleteWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let rowModel = MinimalRowID()
-                XCTAssertTrue(rowModel.id == nil)
-                do {
-                    try rowModel.delete(db)
-                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
-                } catch RowModelError.InvalidPrimaryKey {
-                    // Expected RowModelError.InvalidPrimaryKey
-                }
-            }
-        }
-    }
-    
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -333,21 +303,6 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
     
     
     // MARK: - Reload
-    
-    func testReloadWithNilPrimaryKeyThrowsInvalidPrimaryKey() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let rowModel = MinimalRowID()
-                XCTAssertTrue(rowModel.id == nil)
-                do {
-                    try rowModel.reload(db)
-                    XCTFail("Expected RowModelError.InvalidPrimaryKey")
-                } catch RowModelError.InvalidPrimaryKey {
-                    // Expected RowModelError.InvalidPrimaryKey
-                }
-            }
-        }
-    }
     
     func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
         assertNoError {
