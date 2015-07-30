@@ -1,2 +1,3 @@
-- [X] Support for Int32 (for ABRecordID, for example)
 - [ ] RowModel Validation errors?
+- [ ] Have RowModel.delete return whether a row was deleted or not.
+- [ ] Replace RowModelError.InvalidPrimaryKey with a fatal error.
