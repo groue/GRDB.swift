@@ -7,6 +7,7 @@ Release Notes
 
 - `DatabaseDate` supports Julian Day Numbers.
 - `DatabaseDateComponents` can store dates in the ISO-8601 format.
+- Support for `Int32`.
 
 
 ## 0.5.0
