@@ -286,7 +286,8 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Email()
                 rowModel.email = "me@domain.com"
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }
@@ -297,7 +298,8 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
                 let rowModel = Email()
                 rowModel.email = "me@domain.com"
                 try rowModel.insert(db)
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
                 
                 let row = db.fetchOneRow("SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])
                 XCTAssertTrue(row == nil)
@@ -311,8 +313,10 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
                 let rowModel = Email()
                 rowModel.email = "me@domain.com"
                 try rowModel.insert(db)
-                try rowModel.delete(db)
-                try rowModel.delete(db)
+                var deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
+                deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }

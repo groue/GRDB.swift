@@ -284,7 +284,8 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let rowModel = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }
@@ -294,7 +295,8 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try rowModel.insert(db)
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
                 
                 let row = db.fetchOneRow("SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [rowModel.personName, rowModel.countryName])
                 XCTAssertTrue(row == nil)
@@ -307,8 +309,10 @@ class PrimaryKeyMultipleTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try rowModel.insert(db)
-                try rowModel.delete(db)
-                try rowModel.delete(db)
+                var deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
+                deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }

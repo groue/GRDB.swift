@@ -277,7 +277,8 @@ class PrimaryKeySingleTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }
@@ -287,7 +288,8 @@ class PrimaryKeySingleTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try rowModel.insert(db)
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
                 
                 let row = db.fetchOneRow("SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])
                 XCTAssertTrue(row == nil)
@@ -300,8 +302,10 @@ class PrimaryKeySingleTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try rowModel.insert(db)
-                try rowModel.delete(db)
-                try rowModel.delete(db)
+                var deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
+                deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }

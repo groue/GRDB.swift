@@ -272,7 +272,8 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = MinimalRowID()
                 rowModel.id = 123456
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }
@@ -282,7 +283,8 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = MinimalRowID()
                 try rowModel.insert(db)
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
                 
                 let row = db.fetchOneRow("SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [rowModel.id])
                 XCTAssertTrue(row == nil)
@@ -295,8 +297,10 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = MinimalRowID()
                 try rowModel.insert(db)
-                try rowModel.delete(db)
-                try rowModel.delete(db)
+                var deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
+                deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }

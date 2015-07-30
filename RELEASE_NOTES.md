@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Release
 
+**New**
+
+- `RowModel.delete(db)` returns whether a database row was deleted or not.
+
 **Breaking changes**
 
 - RowModelError.InvalidPrimaryKey has been replaced by a fatal error.

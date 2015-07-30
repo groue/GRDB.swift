@@ -268,7 +268,8 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let rowModel = MinimalSingle()
                 rowModel.UUID = "theUUID"
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }
@@ -279,7 +280,8 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
                 let rowModel = MinimalSingle()
                 rowModel.UUID = "theUUID"
                 try rowModel.insert(db)
-                try rowModel.delete(db)
+                let deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
                 
                 let row = db.fetchOneRow("SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [rowModel.UUID])
                 XCTAssertTrue(row == nil)
@@ -293,8 +295,10 @@ class MinimalPrimaryKeySingleTests: RowModelTestCase {
                 let rowModel = MinimalSingle()
                 rowModel.UUID = "theUUID"
                 try rowModel.insert(db)
-                try rowModel.delete(db)
-                try rowModel.delete(db)
+                var deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
+                deletionResult = try rowModel.delete(db)
+                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
             }
         }
     }
