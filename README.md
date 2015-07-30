@@ -312,7 +312,7 @@ The `db.fetchOne(type:sql:arguments:)` function returns an optional value which 
 
 ## Values
 
-The library ships with built-in support for `Bool`, `Int`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), and [Swift enums](#swift-enums).
+The library ships with built-in support for `Bool`, `Int`, `Int32`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), and [Swift enums](#swift-enums).
 
 Custom types are supported as well through the [DatabaseValueConvertible](#custom-types) protocol.
 
@@ -619,17 +619,17 @@ SQLite has a funny way to manage values. It is "funny" because it is a rather lo
 
 The interested reader should know that GRDB.swift *does not* use SQLite built-in casting features when extracting values. Instead, it performs its *own conversions*, based on the storage class of database values:
 
-| Storage class |  Bool   |  Int ³  |  Int64   | Double | String ³  | Blob |
-|:------------- |:-------:|:-------:|:--------:|:------:|:---------:|:----:|
-| NULL          |    -    |    -    |    -     |   -    |     -     |  -   |
-| INTEGER       |  Bool ¹ |  Int ²  |  Int64   | Double |     -     |  -   |
-| REAL          |  Bool ¹ |  Int ²  | Int64 ²  | Double |     -     |  -   |
-| TEXT          |    -    |    -    |    -     |   -    |  String   |  -   |
-| BLOB          |    -    |    -    |    -     |   -    |     -     | Blob |
+| Storage class |  Bool   |  Int ³  |  Int32  |  Int64   | Double | String ³  | Blob |
+|:------------- |:-------:|:-------:|:--------:|:--------:|:------:|:---------:|:----:|
+| NULL          |    -    |    -    |    -    |    -     |   -    |     -     |  -   |
+| INTEGER       |  Bool ¹ |  Int ²  | Int32 ² |  Int64   | Double |     -     |  -   |
+| REAL          |  Bool ¹ |  Int ²  | Int32 ² | Int64 ²  | Double |     -     |  -   |
+| TEXT          |    -    |    -    |    -    |    -     |   -    |  String   |  -   |
+| BLOB          |    -    |    -    |    -    |    -     |   -    |     -     | Blob |
 
 ¹ The only false numbers are 0 (integer) and 0.0 (real).
 
-² You will get a fatal error if the value is too big for Int or Int64.
+² You will get a fatal error if the value is too big for Int, Int32 or Int64.
 
 ³ Applies also to Int and String-based [enums](#swift-enums).
 
