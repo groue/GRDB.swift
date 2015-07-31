@@ -140,7 +140,7 @@ public final class DatabaseQueue {
         let database = self.database
         try DatabaseQueue.performSync(queue) { () -> Void in
             try database.inTransaction(type) { () in
-                return try block(db: database)
+                try block(db: database)
             }
         }
     }
@@ -179,11 +179,7 @@ public final class DatabaseQueue {
     // A function declared as rethrows that synchronously executes a throwing
     // block in a dispatch_queue.
     static func performSync<R>(queue: dispatch_queue_t, block: () throws -> R) rethrows -> R {
-        func rethrow(myerror:ErrorType) throws ->()
-        {
-            throw myerror
-        }
-        func perform_sync_impl(queue: dispatch_queue_t, block: () throws -> R, block2:((myerror:ErrorType) throws -> ()) ) rethrows -> R {
+        func performSyncImpl(queue: dispatch_queue_t, block: () throws -> R, block2: (ErrorType) throws -> Void) rethrows -> R {
             var result: R? = nil
             var blockError: ErrorType? = nil
             dispatch_sync(queue) {
@@ -194,11 +190,11 @@ public final class DatabaseQueue {
                 }
             }
             if let blockError = blockError {
-                try block2(myerror: blockError)
+                try block2(blockError)
             }
             return result!
         }
-        return try perform_sync_impl(queue, block: block, block2: rethrow)
+        return try performSyncImpl(queue, block: block, block2: { throw $0 })
     }
 
 }
