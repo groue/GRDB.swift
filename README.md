@@ -409,7 +409,7 @@ class Person : RowModel {
 
 Support for NSDateComponents is given by the **DatabaseDateComponents** helper type.
 
-DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to the ISO-8601 YYYY-MM-DD**T**HH:MM:SS.SSS.
+DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to YYYY-MM-DD HH:MM:SS.SSS.
 
 Store NSDateComponents into the database:
 
