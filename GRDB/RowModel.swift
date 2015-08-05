@@ -251,7 +251,7 @@ public class RowModel {
     */
     public func insert(db: Database) throws {
         let dataMapper = DataMapper(self)
-        let changes = try dataMapper.insert(db)
+        let changes = try dataMapper.insertStatement(db).execute()
         
         // Update RowID column if needed
         if let primaryKey = self.dynamicType.databaseTable?.primaryKey, case .RowID(let rowIDColumn) = primaryKey {
@@ -281,10 +281,22 @@ public class RowModel {
               updated.
     */
     public func update(db: Database) throws {
-        let changes = try DataMapper(self).update(db)
+        // We'll throw RowModelError.RowModelNotFound if rowModel does not exist.
+        let exists: Bool
         
-        // if no row was updated, we have a problem.
-        guard changes.changedRowCount > 0 else {
+        if let statement = try DataMapper(self).updateStatement(db) {
+            let changes = try statement.execute()
+            exists = changes.changedRowCount > 0
+        } else {
+            // No statement means that there is no column to update.
+            //
+            // I remember opening rdar://problem/10236982 because CoreData
+            // was crashing with entities without any attribute. So let's
+            // accept RowModel that don't have any column to update.
+            exists = self.exists(db)
+        }
+        
+        if !exists {
             throw RowModelError.RowModelNotFound(self)
         }
         
@@ -333,7 +345,7 @@ public class RowModel {
     - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     */
     public func delete(db: Database) throws -> DeletionResult {
-        let changes = try DataMapper(self).delete(db)
+        let changes = try DataMapper(self).deleteStatement(db).execute()
         
         // Future calls to update will throw RowModelNotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
@@ -358,7 +370,7 @@ public class RowModel {
               reloaded.
     */
     public func reload(db: Database) throws {
-        let statement = try DataMapper(self).reloadStatement(db)
+        let statement = DataMapper(self).reloadStatement(db)
         if let row = statement.fetchOneRow() {
             for (column, databaseValue) in row {
                 setDatabaseValue(databaseValue, forColumn: column)
@@ -367,6 +379,16 @@ public class RowModel {
         } else {
             throw RowModelError.RowModelNotFound(self)
         }
+    }
+    
+    /**
+    Returns true if and only if the primary key matches a row in the database.
+    
+    - parameter db: A Database.
+    - returns: Whether the primary key matches a row in the database.
+    */
+    public func exists(db: Database) -> Bool {
+        return (DataMapper(self).existsStatement(db).fetchOneRow() != nil)
     }
     
     
@@ -469,15 +491,15 @@ public class RowModel {
         // MARK: - CRUD
         
         /// INSERT
-        func insert(db: Database) throws -> UpdateStatement.Changes {
+        func insertStatement(db: Database) throws -> UpdateStatement {
             // INSERT
             let insertStatement = try DataMapper.insertStatement(db, tableName: databaseTable.name, insertedColumns: Array(storedDatabaseDictionary.keys))
-            let arguments = QueryArguments(storedDatabaseDictionary.values)
-            return try insertStatement.execute(arguments: arguments)
+            insertStatement.arguments = QueryArguments(storedDatabaseDictionary.values)
+            return insertStatement
         }
         
-        /// UPDATE
-        func update(db: Database) throws -> UpdateStatement.Changes {
+        /// UPDATE. Returns nil if there is no column to update
+        func updateStatement(db: Database) throws -> UpdateStatement? {
             // Update requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
@@ -491,42 +513,17 @@ public class RowModel {
             
             // We need something to update.
             guard updatedDictionary.count > 0 else {
-                // The RowModel is made of a primary key, without any other
-                // column: we can't update anything.
-                //
-                // Three options:
-                //
-                // 1. throw some RowModelError, assuming this error is
-                //    recoverable.
-                // 2. fatalError, assuming it is a programmer error to "forget"
-                //    keys from storedDatabaseDictionary.
-                // 3. do nothing.
-                //
-                // Option 1 is not OK, because this error couldn't be recovered
-                // at runtime: the implementation of storedDatabaseDictionary
-                // must be changed.
-                //
-                // I remember opening rdar://problem/10236982 because CoreData
-                // was crashing with entities without any attribute. So let's
-                // choose option 3, and do nothing.
-                //
-                // But that's not quite ended. RowModel throws
-                // RowModelError.RowModelNotFound when the row does not exist.
-                // We need to return a consistent Changes result:
-                
-                let existsStatement = DataMapper.existsStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-                let row = existsStatement.fetchOneRow(arguments: QueryArguments(primaryKeyDictionary.values))
-                return UpdateStatement.Changes(changedRowCount: (row == nil) ? 0 : 1, insertedRowID: nil)
+                return nil
             }
             
             // Update
             let updateStatement = try DataMapper.updateStatement(db, tableName: databaseTable.name, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys))
-            let arguments = QueryArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
-            return try updateStatement.execute(arguments: arguments)
+            updateStatement.arguments = QueryArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
+            return updateStatement
         }
         
         /// DELETE
-        func delete(db: Database) throws -> UpdateStatement.Changes {
+        func deleteStatement(db: Database) throws -> UpdateStatement {
             // Delete requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
@@ -534,12 +531,12 @@ public class RowModel {
             
             // Delete
             let deleteStatement = try DataMapper.deleteStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-            let arguments = QueryArguments(primaryKeyDictionary.values)
-            return try deleteStatement.execute(arguments: arguments)
+            deleteStatement.arguments = QueryArguments(primaryKeyDictionary.values)
+            return deleteStatement
         }
         
         /// SELECT
-        func reloadStatement(db: Database) throws -> SelectStatement {
+        func reloadStatement(db: Database) -> SelectStatement {
             // fetchOneRow requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
@@ -549,6 +546,20 @@ public class RowModel {
             let selectStatement = DataMapper.selectStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
             selectStatement.arguments = QueryArguments(primaryKeyDictionary.values)
             return selectStatement
+        }
+        
+        /// SELECT statement that returns a row if and only if the primary key
+        /// matchs a row in the database.
+        func existsStatement(db: Database) -> SelectStatement {
+            // fetchOneRow requires strongPrimaryKeyDictionary
+            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+                fatalError("Invalid primary key in \(rowModel)")
+            }
+            
+            // Fetch
+            let existsStatement = DataMapper.existsStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
+            existsStatement.arguments = QueryArguments(primaryKeyDictionary.values)
+            return existsStatement
         }
         
         
