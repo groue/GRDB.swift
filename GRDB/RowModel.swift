@@ -250,21 +250,20 @@ public class RowModel {
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public func insert(db: Database) throws {
-        try withDataMapper { dataMapper -> Void in
-            let changes = try dataMapper.insert(db)
-            
-            // Update RowID column if needed
-            if let primaryKey = self.dynamicType.databaseTable?.primaryKey, case .RowID(let rowIDColumn) = primaryKey {
-                guard let rowID = dataMapper.storedDatabaseDictionary[rowIDColumn] else {
-                    fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key `(rowIDColumn)`")
-                }
-                if rowID == nil {
-                    setDatabaseValue(DatabaseValue.Integer(changes.insertedRowID!), forColumn: rowIDColumn)
-                }
+        let dataMapper = DataMapper(self)
+        let changes = try dataMapper.insert(db)
+        
+        // Update RowID column if needed
+        if let primaryKey = self.dynamicType.databaseTable?.primaryKey, case .RowID(let rowIDColumn) = primaryKey {
+            guard let rowID = dataMapper.storedDatabaseDictionary[rowIDColumn] else {
+                fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key `(rowIDColumn)`")
             }
-            
-            edited = false
+            if rowID == nil {
+                setDatabaseValue(DatabaseValue.Integer(changes.insertedRowID!), forColumn: rowIDColumn)
+            }
         }
+        
+        edited = false
     }
     
     /**
@@ -282,10 +281,14 @@ public class RowModel {
               updated.
     */
     public func update(db: Database) throws {
-        try withDataMapper { dataMapper -> Void in
-            try dataMapper.update(db)
-            edited = false
+        let changes = try DataMapper(self).update(db)
+        
+        // if no row was updated, we have a problem.
+        guard changes.changedRowCount > 0 else {
+            throw RowModelError.RowModelNotFound(self)
         }
+        
+        edited = false
     }
     
     /**
@@ -330,19 +333,17 @@ public class RowModel {
     - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     */
     public func delete(db: Database) throws -> DeletionResult {
-        return try withDataMapper { dataMapper -> DeletionResult in
-            let changes = try dataMapper.delete(db)
-            
-            // Future calls to update will throw RowModelNotFound. Make the user
-            // a favor and make sure this error is thrown even if she checks the
-            // edited flag:
-            edited = true
-            
-            if changes.changedRowCount > 0 {
-                return .RowDeleted
-            } else {
-                return .NoRowDeleted
-            }
+        let changes = try DataMapper(self).delete(db)
+        
+        // Future calls to update will throw RowModelNotFound. Make the user
+        // a favor and make sure this error is thrown even if she checks the
+        // edited flag:
+        edited = true
+        
+        if changes.changedRowCount > 0 {
+            return .RowDeleted
+        } else {
+            return .NoRowDeleted
         }
     }
     
@@ -357,35 +358,20 @@ public class RowModel {
               reloaded.
     */
     public func reload(db: Database) throws {
-        try withDataMapper { dataMapper -> Void in
-            let statement = try dataMapper.reloadStatement(db)
-            if let row = statement.fetchOneRow() {
-                for (column, databaseValue) in row {
-                    setDatabaseValue(databaseValue, forColumn: column)
-                }
-                
-                edited = false
-            } else {
-                throw RowModelError.RowModelNotFound(self)
+        let statement = try DataMapper(self).reloadStatement(db)
+        if let row = statement.fetchOneRow() {
+            for (column, databaseValue) in row {
+                setDatabaseValue(databaseValue, forColumn: column)
             }
+            referenceRow = row
+        } else {
+            throw RowModelError.RowModelNotFound(self)
         }
     }
     
     
     // MARK: - DataMapper
     
-    /// Creates a DataMapper, and translates DataMapperError into RowModelError.
-    private func withDataMapper<R>(@noescape block: (DataMapper) throws -> R) throws -> R {
-        do {
-            return try block(DataMapper(self))
-        } catch let error as DataMapperError {
-            switch error {
-            case .RowNotFound:
-                throw RowModelError.RowModelNotFound(self)
-            }
-        }
-    }
-
     /// DataMapper takes care of RowModel CRUD
     private final class DataMapper {
         
@@ -483,9 +469,6 @@ public class RowModel {
         // MARK: - CRUD
         
         /// INSERT
-        ///
-        /// Returns (rowIDColumn, insertedRowID) if the row model has a
-        /// currently nil RowID primary key, and nil otherwise.
         func insert(db: Database) throws -> UpdateStatement.Changes {
             // INSERT
             let insertStatement = try DataMapper.insertStatement(db, tableName: databaseTable.name, insertedColumns: Array(storedDatabaseDictionary.keys))
@@ -523,39 +506,26 @@ public class RowModel {
                 // at runtime: the implementation of storedDatabaseDictionary
                 // must be changed.
                 //
-                // I remember opening rdar://problem/10236982, based on a Core
-                // Data entity without any attribute. It was for testing
-                // purpose, and the test did not require any attribute, so the
-                // Core Data entity had no attribute. So let's choose option 3,
-                // and do nothing.
+                // I remember opening rdar://problem/10236982 because CoreData
+                // was crashing with entities without any attribute. So let's
+                // choose option 3, and do nothing.
                 //
-                // But that's not quite ended: update() is supposed to throw
-                // RowNotFound when there is no matching row in the
-                // database. Consistency is important:
+                // But that's not quite ended. RowModel throws
+                // RowModelError.RowModelNotFound when the row does not exist.
+                // We need to return a consistent Changes result:
                 
                 let existsStatement = DataMapper.existsStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
                 let row = existsStatement.fetchOneRow(arguments: QueryArguments(primaryKeyDictionary.values))
-                guard row != nil else {
-                    throw DataMapperError.RowNotFound
-                }
-                return UpdateStatement.Changes(changedRowCount: 0, insertedRowID: nil)
+                return UpdateStatement.Changes(changedRowCount: (row == nil) ? 0 : 1, insertedRowID: nil)
             }
             
             // Update
             let updateStatement = try DataMapper.updateStatement(db, tableName: databaseTable.name, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys))
             let arguments = QueryArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
-            let changes = try updateStatement.execute(arguments: arguments)
-            
-            // Check is some row was actually changed
-            if changes.changedRowCount == 0 {
-                throw DataMapperError.RowNotFound
-            }
-            
-            return changes
+            return try updateStatement.execute(arguments: arguments)
         }
         
         /// DELETE
-        /// Returns whether a row was actually deleted
         func delete(db: Database) throws -> UpdateStatement.Changes {
             // Delete requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
@@ -620,10 +590,6 @@ public class RowModel {
             let sql = "SELECT * FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
             return db.selectStatement(sql)
         }
-    }
-
-    private enum DataMapperError : ErrorType {
-        case RowNotFound
     }
 }
 
