@@ -40,11 +40,11 @@ public final class UpdateStatement : Statement {
     public struct Changes {
         
         /// The number of rows changed by the statement.
-        let changedRowCount: Int
+        public let changedRowCount: Int
         
         /// The inserted Row ID. Relevant if and only if the statement is an
         /// INSERT statement.
-        let insertedRowID: Int64?
+        public let insertedRowID: Int64?
     }
     
     /**
