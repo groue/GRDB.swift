@@ -78,7 +78,7 @@ public final class Database {
     /**
     Executes an update statement.
     
-        db.excute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+        db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
     
     This method may throw a DatabaseError.
     
@@ -91,7 +91,47 @@ public final class Database {
         let statement = try updateStatement(sql)
         return try statement.execute(arguments: arguments)
     }
+
     
+    // MARK: - Multiple Statements
+    
+    /**
+    Returns a MultipleStatement that can be reused.
+    
+    let sql = "INSERT INTO persons (name) VALUES ('Harry');" +
+        "INSERT INTO persons (name) VALUES ('Ron')" +
+        "INSERT INTO persons (name) VALUES ('Hermione')"
+    let statement = try db.multipleStatement(sql)
+
+    This method may throw a DatabaseError.
+    
+    - parameter sql: An SQL query.
+    - returns: A MultipleStatement.
+    - throws: A DatabaseError whenever a SQLite error occurs.
+    */
+    public func multipleStatement(sql: String) throws -> MultipleStatement {
+        return try MultipleStatement(database: self, sql: sql)
+    }
+
+    /**
+    Executes raw SQL, which may include multiple statements separated by semi-colons.
+    
+        let sql = "INSERT INTO persons (name) VALUES ('Harry');" +
+            "INSERT INTO persons (name) VALUES ('Ron')" +
+            "INSERT INTO persons (name) VALUES ('Hermione')"
+        executeMultiple(sql)
+    
+    This method may throw a DatabaseError.
+    
+    - parameter sql: SQL containing multiple statements separated by semi-colons.
+    - returns: A MultipleStatement.Changes.
+    - throws: A DatabaseError whenever a SQLite error occurs.
+    */
+    public func executeMultiple(sql: String) throws -> MultipleStatement.Changes {
+        let statement = try multipleStatement(sql)
+        return try statement.execute()
+    }
+
     
     // MARK: - Transactions
     
