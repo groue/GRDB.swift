@@ -404,4 +404,38 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
             }
         }
     }
+    
+    
+    // MARK: - Exists
+    
+    func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
+        dbQueue.inDatabase { db in
+            let rowModel = Email()
+            rowModel.email = "me@domain.com"
+            XCTAssertFalse(rowModel.exists(db))
+        }
+    }
+    
+    func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Email()
+                rowModel.email = "me@domain.com"
+                try rowModel.insert(db)
+                XCTAssertTrue(rowModel.exists(db))
+            }
+        }
+    }
+    
+    func testExistsAfterDeleteReturnsTrue() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Email()
+                rowModel.email = "me@domain.com"
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                XCTAssertFalse(rowModel.exists(db))
+            }
+        }
+    }
 }
