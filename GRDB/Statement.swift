@@ -56,18 +56,36 @@ public class Statement {
     let database: Database
     
     /// The SQLite statement handle
-    let sqliteStatement = SQLiteStatement()
+    var sqliteStatement = SQLiteStatement()
     
     /// The identity of the DatabaseQueue where the statement was created.
     let databaseQueueID: DatabaseQueueID
     
     init(database: Database, sql: String) throws {
         // See https://www.sqlite.org/c3ref/prepare.html
+        
+        let sqlCodeUnits = sql.nulTerminatedUTF8
+        var sqliteStatement: SQLiteStatement = nil
+        var consumedCharactersCount: Int = 0
+        var code: Int32 = 0
+        sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
+            let sqlHead = UnsafePointer<Int8>(codeUnits.baseAddress)
+            var sqlTail: UnsafePointer<Int8> = nil
+            code = sqlite3_prepare_v2(database.sqliteConnection, sqlHead, -1, &sqliteStatement, &sqlTail)
+            consumedCharactersCount = sqlTail - sqlHead + 1
+        }
+        
         self.database = database
         self.databaseQueueID = dispatch_get_specific(DatabaseQueue.databaseQueueIDKey)
         self.sql = sql
-        let code = sqlite3_prepare_v2(database.sqliteConnection, sql, -1, &sqliteStatement, nil)
-        if code != SQLITE_OK {
+        self.sqliteStatement = sqliteStatement
+        
+        switch code {
+        case SQLITE_OK:
+            if consumedCharactersCount != sqlCodeUnits.count {
+                fatalError("Invalid SQL string: multiple statements found.")
+            }
+        default:
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
