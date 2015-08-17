@@ -102,6 +102,23 @@ class SelectStatementTests : GRDBTestCase {
             }
         }
     }
+    
+    func testRowSequenceCanBeFetchedTwice() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
+                var names1: [String?] = statement.fetchRows().map { $0.value(named: "name") as String? }
+                var names2: [String?] = statement.fetchRows().map { $0.value(named: "name") as String? }
+                
+                XCTAssertEqual(names1[0]!, "Arthur")
+                XCTAssertEqual(names1[1]!, "Barbara")
+                XCTAssertEqual(names1[2]!, "Craig")
+                XCTAssertEqual(names2[0]!, "Arthur")
+                XCTAssertEqual(names2[1]!, "Barbara")
+                XCTAssertEqual(names2[2]!, "Craig")
+            }
+        }
+    }
 
     func testRowSequenceCanBeIteratedTwice() {
         assertNoError {
@@ -121,13 +138,30 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
+    func testValueSequenceCanBeFetchedTwice() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
+                var names1: [String?] = Array(statement.fetch(String.self))
+                var names2: [String?] = Array(statement.fetch(String.self))
+                
+                XCTAssertEqual(names1[0]!, "Arthur")
+                XCTAssertEqual(names1[1]!, "Barbara")
+                XCTAssertEqual(names1[2]!, "Craig")
+                XCTAssertEqual(names2[0]!, "Arthur")
+                XCTAssertEqual(names2[1]!, "Barbara")
+                XCTAssertEqual(names2[2]!, "Craig")
+            }
+        }
+    }
+    
     func testValueSequenceCanBeIteratedTwice() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
                 let nameSequence = statement.fetch(String.self)
-                var names1: [String?] = Array(nameSequence).map { $0 }
-                var names2: [String?] = Array(nameSequence).map { $0 }
+                var names1: [String?] = Array(nameSequence)
+                var names2: [String?] = Array(nameSequence)
                 
                 XCTAssertEqual(names1[0]!, "Arthur")
                 XCTAssertEqual(names1[1]!, "Barbara")
