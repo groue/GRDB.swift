@@ -41,6 +41,20 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
+    func testMultipleStatementsWithoutArguments() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                XCTAssertFalse(db.tableExists("persons"))
+                XCTAssertFalse(db.tableExists("pets"))
+                try db.execute(
+                    "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);" +
+                    "CREATE TABLE pets (id INTEGER PRIMARY KEY, name TEXT, age INT);")
+                XCTAssertTrue(db.tableExists("persons"))
+                XCTAssertTrue(db.tableExists("pets"))
+            }
+        }
+    }
+    
     func testUpdateStatement() {
         assertNoError {
             try dbQueue.inDatabase { db in
