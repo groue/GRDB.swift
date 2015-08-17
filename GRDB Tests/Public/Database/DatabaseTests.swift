@@ -131,7 +131,6 @@ class DatabaseTests : GRDBTestCase {
                 
                 let changes3 = try db.execute("DELETE FROM persons")
                 XCTAssertEqual(changes3.changedRowCount, 2)
-                XCTAssertTrue(changes3.insertedRowID == nil)
             }
         }
     }
