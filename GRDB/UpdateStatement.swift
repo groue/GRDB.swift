@@ -35,25 +35,14 @@ You create UpdateStatement with the Database.updateStatement() method:
     }
 */
 public final class UpdateStatement : Statement {
-    
-    /// The changes performed by an UpdateStatement.
-    public struct Changes {
         
-        /// The number of rows changed by the statement.
-        public let changedRowCount: Int
-        
-        /// The inserted Row ID. Relevant if and only if the statement is an
-        /// INSERT statement.
-        public let insertedRowID: Int64?
-    }
-    
     /**
     Executes the SQL query.
     
     - parameter arguments: Optional query arguments.
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
-    public func execute(arguments arguments: QueryArguments? = nil) throws -> Changes {
+    public func execute(arguments arguments: QueryArguments? = nil) throws -> DatabaseChanges {
         if let arguments = arguments {
             self.arguments = arguments
         }
@@ -72,6 +61,6 @@ public final class UpdateStatement : Statement {
         let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
         let lastInsertedRowID = sqlite3_last_insert_rowid(database.sqliteConnection)
         let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
-        return Changes(changedRowCount: changedRowCount, insertedRowID: insertedRowID)
+        return DatabaseChanges(changedRowCount: changedRowCount, insertedRowID: insertedRowID)
     }
 }

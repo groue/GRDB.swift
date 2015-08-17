@@ -87,7 +87,7 @@ public final class Database {
     - returns: A UpdateStatement.Changes.
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
-    public func execute(sql: String, arguments: QueryArguments? = nil) throws -> UpdateStatement.Changes {
+    public func execute(sql: String, arguments: QueryArguments? = nil) throws -> DatabaseChanges {
         let statement = try updateStatement(sql)
         return try statement.execute(arguments: arguments)
     }
@@ -106,7 +106,7 @@ public final class Database {
     - returns: A UpdateStatement.Changes. Note that insertedRowID will always be nil.
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
-    public func executeMultiStatement(sql: String) throws -> UpdateStatement.Changes {
+    public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
 
         if let trace = self.configuration.trace {
             trace(sql: sql, arguments: nil)
@@ -122,7 +122,7 @@ public final class Database {
         
         let changedRowsAfter = sqlite3_total_changes(self.sqliteConnection)
         
-        let changes = UpdateStatement.Changes(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: nil)
+        let changes = DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: nil)
         
         return changes
     }
