@@ -116,6 +116,26 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
+    func testChangesReturnedByDatabaseExecute() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT)")
+                
+                let changes1 = try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
+                XCTAssertEqual(changes1.changedRowCount, 1)
+                XCTAssertEqual(changes1.insertedRowID, 1)
+                
+                let changes2 = try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
+                XCTAssertEqual(changes2.changedRowCount, 1)
+                XCTAssertEqual(changes2.insertedRowID, 2)
+                
+                let changes3 = try db.execute("DELETE FROM persons")
+                XCTAssertEqual(changes3.changedRowCount, 2)
+                XCTAssertTrue(changes3.insertedRowID == nil)
+            }
+        }
+    }
+    
     func testDatabaseExecuteWithArrayBinding() {
         assertNoError {
             try dbQueue.inDatabase { db in
