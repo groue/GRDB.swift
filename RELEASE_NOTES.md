@@ -3,9 +3,14 @@ Release Notes
 
 ## Next release
 
+**Fixed**
+
+- `UpdateStatement.Changes` members are now public ([#3](https://github.com/groue/GRDB.swift/pull/3))
+
 **New**
 
 - `RowModel.exists(db)` returns whether a row model has a matching row in the database.
+- `Statement.arguments` property gains a public setter.
 
 
 ## 0.7.0
@@ -70,7 +75,7 @@ Released July 11, 2015
 - `Blob.init?(NSData?)`
 
     Creates a Blob from NSData. Returns nil if and only if *data* is nil or zero-length (SQLite can't store empty blobs).
-    
+
 - `RowModel.isEdited`
 
     A boolean that indicates whether the row model has changes that have not been saved.
@@ -78,7 +83,7 @@ Released July 11, 2015
     This flag is purely informative: it does not alter the behavior the update() method, which executes an UPDATE statement in every cases.
 
     But you can prevent UPDATE statements that are known to be pointless, as in the following example:
-    
+
     ```swift
     let json = ...
 
@@ -87,7 +92,7 @@ Released July 11, 2015
 
     // Apply json payload:
     person.updateFromJSON(json)
-         
+
     // Saves the person if it is edited (fetched then modified, or created):
     if person.isEdited {
         person.save(db) // inserts or updates
@@ -95,9 +100,9 @@ Released July 11, 2015
     ```
 
 - `RowModel.copyDatabaseValuesFrom(_:)`
-    
+
     Updates a row model with values of another one.
-    
+
 - `DatabaseValue` adopts Equatable.
 
 **Breaking changes**

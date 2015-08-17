@@ -62,6 +62,20 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
+    func testQueryArgumentsSetterWithArray() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
+                let ages = [20, 30, 40, 50]
+                let counts = ages.map { (age: Int) -> Int in
+                    statement.arguments = [age]
+                    return statement.fetchOne(Int.self)!
+                }
+                XCTAssertEqual(counts, [1,2,2,3])
+            }
+        }
+    }
+    
     func testDictionaryQueryArguments() {
         assertNoError {
             dbQueue.inDatabase { db in
@@ -70,6 +84,38 @@ class SelectStatementTests : GRDBTestCase {
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { statement.fetchOne(Int.self, arguments: QueryArguments($0))! }
                 XCTAssertEqual(counts, [1,2,2,3])
+            }
+        }
+    }
+    
+    func testQueryArgumentsSetterWithDictionary() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
+                // TODO: why is this explicit type declaration required?
+                let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
+                let counts = ageDicts.map { (ageDict: [String: DatabaseValueConvertible?]) -> Int in
+                    statement.arguments = QueryArguments(ageDict)
+                    return statement.fetchOne(Int.self)!
+                }
+                XCTAssertEqual(counts, [1,2,2,3])
+            }
+        }
+    }
+    
+    func testRowSequenceCanBeFetchedTwice() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
+                var names1: [String?] = statement.fetchRows().map { $0.value(named: "name") as String? }
+                var names2: [String?] = statement.fetchRows().map { $0.value(named: "name") as String? }
+                
+                XCTAssertEqual(names1[0]!, "Arthur")
+                XCTAssertEqual(names1[1]!, "Barbara")
+                XCTAssertEqual(names1[2]!, "Craig")
+                XCTAssertEqual(names2[0]!, "Arthur")
+                XCTAssertEqual(names2[1]!, "Barbara")
+                XCTAssertEqual(names2[2]!, "Craig")
             }
         }
     }
@@ -92,13 +138,30 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
+    func testValueSequenceCanBeFetchedTwice() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
+                var names1: [String?] = Array(statement.fetch(String.self))
+                var names2: [String?] = Array(statement.fetch(String.self))
+                
+                XCTAssertEqual(names1[0]!, "Arthur")
+                XCTAssertEqual(names1[1]!, "Barbara")
+                XCTAssertEqual(names1[2]!, "Craig")
+                XCTAssertEqual(names2[0]!, "Arthur")
+                XCTAssertEqual(names2[1]!, "Barbara")
+                XCTAssertEqual(names2[2]!, "Craig")
+            }
+        }
+    }
+    
     func testValueSequenceCanBeIteratedTwice() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
                 let nameSequence = statement.fetch(String.self)
-                var names1: [String?] = Array(nameSequence).map { $0 }
-                var names2: [String?] = Array(nameSequence).map { $0 }
+                var names1: [String?] = Array(nameSequence)
+                var names2: [String?] = Array(nameSequence)
                 
                 XCTAssertEqual(names1[0]!, "Arthur")
                 XCTAssertEqual(names1[1]!, "Barbara")

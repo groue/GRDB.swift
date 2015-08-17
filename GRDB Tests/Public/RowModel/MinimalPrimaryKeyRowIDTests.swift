@@ -384,4 +384,36 @@ class MinimalPrimaryKeyRowIDTests: RowModelTestCase {
             }
         }
     }
+    
+    
+    // MARK: - Exists
+    
+    func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
+        dbQueue.inDatabase { db in
+            let rowModel = MinimalRowID()
+            rowModel.id = 123456
+            XCTAssertFalse(rowModel.exists(db))
+        }
+    }
+    
+    func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalRowID()
+                try rowModel.insert(db)
+                XCTAssertTrue(rowModel.exists(db))
+            }
+        }
+    }
+    
+    func testExistsAfterDeleteReturnsTrue() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = MinimalRowID()
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                XCTAssertFalse(rowModel.exists(db))
+            }
+        }
+    }
 }

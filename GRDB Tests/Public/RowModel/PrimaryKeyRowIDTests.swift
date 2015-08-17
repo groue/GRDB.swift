@@ -426,4 +426,35 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
             }
         }
     }
+    
+    
+    // MARK: - Exists
+    
+    func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
+        dbQueue.inDatabase { db in
+            let rowModel = Person(id: 123456, name: "Arthur")
+            XCTAssertFalse(rowModel.exists(db))
+        }
+    }
+    
+    func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
+                XCTAssertTrue(rowModel.exists(db))
+            }
+        }
+    }
+    
+    func testExistsAfterDeleteReturnsTrue() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let rowModel = Person(name: "Arthur")
+                try rowModel.insert(db)
+                try rowModel.delete(db)
+                XCTAssertFalse(rowModel.exists(db))
+            }
+        }
+    }
 }

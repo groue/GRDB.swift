@@ -500,7 +500,6 @@ public class RowModel {
         
         /// UPDATE. Returns nil if there is no column to update
         func updateStatement(db: Database) throws -> UpdateStatement? {
-            // Update requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
@@ -524,7 +523,6 @@ public class RowModel {
         
         /// DELETE
         func deleteStatement(db: Database) throws -> UpdateStatement {
-            // Delete requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
@@ -537,7 +535,6 @@ public class RowModel {
         
         /// SELECT
         func reloadStatement(db: Database) -> SelectStatement {
-            // fetchOneRow requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
@@ -551,7 +548,6 @@ public class RowModel {
         /// SELECT statement that returns a row if and only if the primary key
         /// matchs a row in the database.
         func existsStatement(db: Database) -> SelectStatement {
-            // fetchOneRow requires strongPrimaryKeyDictionary
             guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
