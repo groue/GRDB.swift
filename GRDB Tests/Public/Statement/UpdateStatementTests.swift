@@ -75,6 +75,35 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
+    func testQueryArgumentsSetterWithArray() {
+        assertNoError {
+            
+            try dbQueue.inTransaction { db in
+                
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let persons = [
+                    ["Arthur", 41],
+                    ["Barbara"],
+                ]
+                for person in persons {
+                    statement.arguments = QueryArguments(person)
+                    try statement.execute()
+                }
+                
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
+                XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
+                XCTAssertTrue(rows[1].value(named: "age") == nil)
+            }
+        }
+    }
+    
     func testDictionaryQueryArguments() {
         assertNoError {
             
@@ -87,6 +116,35 @@ class UpdateStatementTests : GRDBTestCase {
                 ]
                 for person in persons {
                     try statement.execute(arguments: QueryArguments(person))
+                }
+                
+                return .Commit
+            }
+            
+            dbQueue.inDatabase { db in
+                let rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
+                XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
+                XCTAssertTrue(rows[1].value(named: "age") == nil)
+            }
+        }
+    }
+    
+    func testQueryArgumentsSetterWithDictionary() {
+        assertNoError {
+            
+            try dbQueue.inTransaction { db in
+                
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let persons = [
+                    ["name": "Arthur", "age": 41],
+                    ["name": "Barbara"],
+                ]
+                for person in persons {
+                    statement.arguments = QueryArguments(person)
+                    try statement.execute()
                 }
                 
                 return .Commit

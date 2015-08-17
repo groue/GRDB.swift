@@ -40,7 +40,7 @@ public class Statement {
     public var sql: String
     
     /// The query arguments
-    public internal(set) var arguments: QueryArguments? {
+    public var arguments: QueryArguments? {
         didSet {
             reset() // necessary before applying new arguments
             clearQueryArguments()

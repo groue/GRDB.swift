@@ -1,2 +1,1 @@
 - [ ] RowModel Validation errors?
-- [ ] Make Statement.arguments setter public again. It is very useful in RowModel.DataMapper: why hide it?

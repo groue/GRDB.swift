@@ -10,6 +10,7 @@ Release Notes
 **New**
 
 - `RowModel.exists(db)` returns whether a row model has a matching row in the database.
+- `Statement.arguments` property gains a public setter.
 
 
 ## 0.7.0
