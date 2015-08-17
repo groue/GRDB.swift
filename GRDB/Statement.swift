@@ -56,7 +56,7 @@ public class Statement {
     let database: Database
     
     /// The SQLite statement handle
-    var sqliteStatement = SQLiteStatement()
+    let sqliteStatement: SQLiteStatement
     
     /// The identity of the DatabaseQueue where the statement was created.
     let databaseQueueID: DatabaseQueueID
