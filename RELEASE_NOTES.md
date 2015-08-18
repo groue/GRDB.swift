@@ -3,14 +3,15 @@ Release Notes
 
 ## Next release
 
-**Fixed**
-
-- `UpdateStatement.Changes` members are now public ([#3](https://github.com/groue/GRDB.swift/pull/3))
-
 **New**
 
 - `RowModel.exists(db)` returns whether a row model has a matching row in the database.
 - `Statement.arguments` property gains a public setter.
+- `Database.executeMultiple(sql)` can execute several SQL statements separated by a semi-colon ([#6](http://github.com/groue/GRDB.swift/pull/6))
+
+**Breaking changes**
+
+- `UpdateStatement.Changes` has been renamed `DatabaseChanges` ([#6](http://github.com/groue/GRDB.swift/pull/6)).
 
 
 ## 0.7.0
