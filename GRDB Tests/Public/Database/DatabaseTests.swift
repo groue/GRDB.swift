@@ -100,7 +100,7 @@ class DatabaseTests : GRDBTestCase {
             }
         }
     }
-
+    
     func testDatabaseExecute() {
         assertNoError {
             try dbQueue.inDatabase { db in

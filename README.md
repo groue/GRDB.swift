@@ -714,22 +714,9 @@ Migrations run in order, once and only once. When a user upgrades your applicati
 var migrator = DatabaseMigrator()
 
 // v1.0 database
-migrator.registerMigration("createPersons") { db in
-    try db.execute(
-        "CREATE TABLE persons (" +
-        "id INTEGER PRIMARY KEY, " +
-        "creationDate TEXT, " +
-        "name TEXT NOT NULL)")
-}
-
-migrator.registerMigration("createBooks") { db in
-    try db.execute(
-        "CREATE TABLE books (" +
-        "uuid TEXT PRIMARY KEY, " +
-        "ownerID INTEGER NOT NULL " +
-        "        REFERENCES persons(id) " +
-        "        ON DELETE CASCADE ON UPDATE CASCADE, " +
-        "title TEXT NOT NULL)")
+migrator.registerMigration("createTables") { db in
+    try db.execute("CREATE TABLE persons (...)")
+    try db.execute("CREATE TABLE books (...)")
 }
 
 // v2.0 database
@@ -740,26 +727,26 @@ migrator.registerMigration("AddAgeToPersons") { db in
 try migrator.migrate(dbQueue)
 ```
 
-If you have larger migrations, you might prefer to use Database.executeMultiStatement(). This method takes a SQL string containing multiple statements separated by semi-colons.
+You might prefer to use Database.executeMultiStatement(). This method takes a SQL string containing multiple statements separated by semi-colons.
 
 ```swift
-migrator.registerMigration("createBooks") { db in
+migrator.registerMigration("createTables") { db in
     try db.executeMultiStatement(
-        "CREATE TABLE persons (name TEXT NOT NULL);" +
-        "INSERT INTO persons (name) VALUES ('Harry');" +
-        "INSERT INTO persons (name) VALUES ('Ron');" +
-        "INSERT INTO persons (name) VALUES ('Hermione');")
+        "CREATE TABLE persons (...);" +
+        "CREATE TABLE books (...)")
 }
 ```
 
-You might even store your migration scripts in a text file:
+You might even store your migrations as bundle resources:
 
 ```swift
-migrator.registerMigration("initialSchema") { (db) -> Void in
-    if let filePath = NSBundle.mainBundle().pathForResource("dbMigration01", ofType: "txt") {
-        let migrationSql = try String(contentsOfFile: filePath)
-        let dbChanges = try db.executeMultiStatement(migrationSql)
-        print("Rows affected: \(dbChanges.changedRowCount)")
+// Load paths to migration01.sql, migration02.sql, etc.
+let migrationPaths = NSBundle.mainBundle()
+    .pathsForResourcesOfType("sql", inDirectory: "databaseMigrations")
+    .sort()
+for path in migrationPaths {
+    migrator.registerMigration((path as NSString).lastPathComponent) { (db) -> Void in
+        try db.executeMultiStatement(String(contentsOfFile: path))
     }
 }
 ```

@@ -87,13 +87,10 @@ class DatabaseErrorTests: GRDBTestCase {
     func testDatabaseErrorThrownByExecuteMultiStatementContainSQL() {
         dbQueue.inDatabase { db in
             do {
-                XCTAssertFalse(db.tableExists("persons"))
-                XCTAssertFalse(db.tableExists("pets"))
                 try db.executeMultiStatement(
                     "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);" +
-                        "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);" +
+                    "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);" +
                     "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
-                
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, Int(SQLITE_CONSTRAINT))

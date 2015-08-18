@@ -30,7 +30,9 @@ public struct DatabaseChanges {
     /// The number of rows affected by the statement(s)
     public let changedRowCount: Int
     
-    /// The inserted Row ID. Relevant if and only if the statement is an
-    /// INSERT statement.
+    /// The inserted Row ID.
+    ///
+    /// This value is only relevant after the execution of a single INSERT
+    /// statement, via Database.execute() or UpdateStatement.execute().
     public let insertedRowID: Int64?
 }
