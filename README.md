@@ -708,7 +708,7 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 **Migrations** are a convenient way to alter your database schema over time in a consistent and easy way.
 
-Migrations run in order, once and only once. When a user upgrades your application, only non-applied migration are run.
+Migrations run in order, once and only once. When a user upgrades your application, only non-applied migrations are run.
 
 ```swift
 var migrator = DatabaseMigrator()
