@@ -96,10 +96,10 @@ public final class Database {
     /**
     Executes multiple SQL statements (separated by a semi-colon).
     
-    let rowsAffected = try db.executeMultiStatement(
-        "INSERT INTO persons (name) VALUES ('Harry');" +
-        "INSERT INTO persons (name) VALUES ('Ron');" +
-        "INSERT INTO persons (name) VALUES ('Hermione');")
+        try db.executeMultiStatement(
+            "INSERT INTO persons (name) VALUES ('Harry');" +
+            "INSERT INTO persons (name) VALUES ('Ron');" +
+            "INSERT INTO persons (name) VALUES ('Hermione');")
     
     This method may throw a DatabaseError.
     
