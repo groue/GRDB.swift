@@ -96,6 +96,8 @@
 		56F0B9901B6001C600A2F135 /* DatabaseDateComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F0B98D1B6001C600A2F135 /* DatabaseDateComponentsTests.swift */; };
 		56F0B9911B6001C600A2F135 /* DatabaseDateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F0B98E1B6001C600A2F135 /* DatabaseDateTests.swift */; };
 		56F0B9921B6001C600A2F135 /* DatabaseDateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F0B98E1B6001C600A2F135 /* DatabaseDateTests.swift */; };
+		9E903FA81B82729400A63DA0 /* DatabaseChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E903FA71B82729400A63DA0 /* DatabaseChanges.swift */; };
+		9E903FA91B82741C00A63DA0 /* DatabaseChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E903FA71B82729400A63DA0 /* DatabaseChanges.swift */; };
 		DC2393C81ABE35F8003FF113 /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC3773F919C8CBB3004FCF85 /* GRDB.h in Headers */ = {isa = PBXBuildFile; fileRef = DC3773F819C8CBB3004FCF85 /* GRDB.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC70AC991AC2331000371524 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DC37744219C8DC91004FCF85 /* libsqlite3.dylib */; };
@@ -168,6 +170,7 @@
 		56E5D7F91B4D422D00430942 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F0B98D1B6001C600A2F135 /* DatabaseDateComponentsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDateComponentsTests.swift; sourceTree = "<group>"; };
 		56F0B98E1B6001C600A2F135 /* DatabaseDateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDateTests.swift; sourceTree = "<group>"; };
+		9E903FA71B82729400A63DA0 /* DatabaseChanges.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseChanges.swift; sourceTree = "<group>"; };
 		DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDB-Bridging.h"; sourceTree = "<group>"; };
 		DC3773F319C8CBB3004FCF85 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC3773F719C8CBB3004FCF85 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../GRDB/Info.plist; sourceTree = "<group>"; };
@@ -400,6 +403,7 @@
 			children = (
 				56CC3C921B43BF0100A9A534 /* Configuration.swift */,
 				565E191D1B42B2B600D32814 /* Database.swift */,
+				9E903FA71B82729400A63DA0 /* DatabaseChanges.swift */,
 				5645E69C1B5E76D30045DC8F /* DatabaseDate.swift */,
 				564E0B131B4D8FC100EBC9F6 /* DatabaseError.swift */,
 				56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */,
@@ -621,6 +625,7 @@
 				56B8F44A1B4E1C8600C24296 /* DatabaseValue.swift in Sources */,
 				56E5D8331B4D43FA00430942 /* Row.swift in Sources */,
 				56E5D8321B4D43FA00430942 /* DatabaseQueue.swift in Sources */,
+				9E903FA91B82741C00A63DA0 /* DatabaseChanges.swift in Sources */,
 				56E5D8381B4D43FA00430942 /* Statement.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -712,6 +717,7 @@
 				5699AE5B1B42D3DC00C35172 /* SelectStatement.swift in Sources */,
 				56CC3C9B1B4464AE00A9A534 /* RowModel.swift in Sources */,
 				56E4BB811B45373600FD324B /* QueryArguments.swift in Sources */,
+				9E903FA81B82729400A63DA0 /* DatabaseChanges.swift in Sources */,
 				564E0B141B4D8FC100EBC9F6 /* DatabaseError.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

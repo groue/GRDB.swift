@@ -87,9 +87,44 @@ public final class Database {
     - returns: A UpdateStatement.Changes.
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
-    public func execute(sql: String, arguments: QueryArguments? = nil) throws -> UpdateStatement.Changes {
+    public func execute(sql: String, arguments: QueryArguments? = nil) throws -> DatabaseChanges {
         let statement = try updateStatement(sql)
         return try statement.execute(arguments: arguments)
+    }
+    
+    
+    /**
+    Executes multiple SQL statements (separated by a semi-colon).
+    
+    let rowsAffected = try db.executeMultiStatement("INSERT INTO persons (name) VALUES ('Harry');" +
+        "INSERT INTO persons (name) VALUES ('Ron');" +
+        "INSERT INTO persons (name) VALUES ('Hermione');")
+    
+    This method may throw a DatabaseError.
+    
+    - parameter sql: SQL containing multiple statements separated by semi-colons.
+    - returns: A UpdateStatement.Changes. Note that insertedRowID will always be nil.
+    - throws: A DatabaseError whenever a SQLite error occurs.
+    */
+    public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
+
+        if let trace = self.configuration.trace {
+            trace(sql: sql, arguments: nil)
+        }
+        
+        let changedRowsBefore = sqlite3_total_changes(self.sqliteConnection)
+        
+        var errMsg:UnsafeMutablePointer<Int8> = nil
+        let code = sqlite3_exec(self.sqliteConnection, sql, nil, nil, &errMsg)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(code: code, message: self.lastErrorMessage, sql: sql, arguments: nil)
+        }
+        
+        let changedRowsAfter = sqlite3_total_changes(self.sqliteConnection)
+        
+        let changes = DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: nil)
+        
+        return changes
     }
     
     

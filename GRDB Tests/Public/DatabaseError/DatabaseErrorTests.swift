@@ -66,31 +66,6 @@ class DatabaseErrorTests: GRDBTestCase {
         }
     }
     
-    func testDatabaseErrorContainMutipleSQLStatements() {
-        dbQueue.inDatabase { db in
-            do {
-                try db.execute(
-                    "CREATE TABLE persons (id INTEGER PRIMARY KEY);" +
-                    "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);" +
-                    "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, Int(SQLITE_CONSTRAINT))
-                XCTAssertEqual(error.message!, "FOREIGN KEY constraint failed")
-                XCTAssertEqual(error.sql!, "CREATE TABLE persons (id INTEGER PRIMARY KEY);" +
-                    "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);" +
-                    "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
-                XCTAssertEqual(error.description, "SQLite error 19 with statement `" +
-                    "CREATE TABLE persons (id INTEGER PRIMARY KEY);" +
-                    "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);" +
-                    "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')`: " +
-                    "FOREIGN KEY constraint failed")
-            } catch {
-                XCTFail("\(error)")
-            }
-        }
-    }
-    
     func testDatabaseErrorThrownByUpdateStatementContainSQLAndArguments() {
         dbQueue.inDatabase { db in
             do {
@@ -108,4 +83,27 @@ class DatabaseErrorTests: GRDBTestCase {
             }
         }
     }
+    
+    func testDatabaseErrorThrownByExecuteMultiStatementContainSQL() {
+        dbQueue.inDatabase { db in
+            do {
+                XCTAssertFalse(db.tableExists("persons"))
+                XCTAssertFalse(db.tableExists("pets"))
+                try db.executeMultiStatement(
+                    "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);" +
+                        "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);" +
+                    "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
+                
+                XCTFail()
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, Int(SQLITE_CONSTRAINT))
+                XCTAssertEqual(error.message!, "FOREIGN KEY constraint failed")
+                XCTAssertEqual(error.sql!, "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);INSERT INTO pets (masterId, name) VALUES (1, \'Bobby\')")
+                XCTAssertEqual(error.description, "SQLite error 19 with statement `CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);INSERT INTO pets (masterId, name) VALUES (1, \'Bobby\')`: FOREIGN KEY constraint failed")
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+    }
+
 }

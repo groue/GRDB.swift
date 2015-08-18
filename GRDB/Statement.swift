@@ -83,7 +83,7 @@ public class Statement {
         switch code {
         case SQLITE_OK:
             if consumedCharactersCount != sqlCodeUnits.count {
-                fatalError("Invalid SQL string: multiple statements found.")
+                fatalError("Invalid SQL string: multiple statements found. To execute multiple statements, use Database.executeMultiStatement() instead.")
             }
         default:
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)

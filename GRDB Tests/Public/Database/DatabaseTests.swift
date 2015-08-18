@@ -46,7 +46,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 XCTAssertFalse(db.tableExists("persons"))
                 XCTAssertFalse(db.tableExists("pets"))
-                try db.execute(
+                try db.executeMultiStatement(
                     "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);" +
                     "CREATE TABLE pets (id INTEGER PRIMARY KEY, name TEXT, age INT);")
                 XCTAssertTrue(db.tableExists("persons"))
@@ -100,7 +100,7 @@ class DatabaseTests : GRDBTestCase {
             }
         }
     }
-    
+
     func testDatabaseExecute() {
         assertNoError {
             try dbQueue.inDatabase { db in

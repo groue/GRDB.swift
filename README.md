@@ -740,6 +740,29 @@ migrator.registerMigration("AddAgeToPersons") { db in
 try migrator.migrate(dbQueue)
 ```
 
+If you have larger migrations, you might prefer to use Database.executeMultiStatement(). This method takes a SQL string containing multiple statements separated by semi-colons.
+
+```swift
+migrator.registerMigration("createBooks") { db in
+    try db.executeMultiStatement(
+        "CREATE TABLE persons (name TEXT NOT NULL);" +
+        "INSERT INTO persons (name) VALUES ('Harry');" +
+        "INSERT INTO persons (name) VALUES ('Ron');" +
+        "INSERT INTO persons (name) VALUES ('Hermione');")
+}
+```
+
+You might even store your migration scripts in a text file:
+
+```swift
+migrator.registerMigration("initialSchema") { (db) -> Void in
+    if let filePath = NSBundle.mainBundle().pathForResource("dbMigration01", ofType: "txt") {
+        let migrationSql = try String(contentsOfFile: filePath)
+        let dbChanges = try db.executeMultiStatement(migrationSql)
+        print("Rows affected: \(dbChanges.changedRowCount)")
+    }
+}
+```
 
 ## Row Models
 
