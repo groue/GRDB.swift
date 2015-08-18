@@ -745,7 +745,7 @@ let migrationPaths = NSBundle.mainBundle()
     .pathsForResourcesOfType("sql", inDirectory: "databaseMigrations")
     .sort()
 for path in migrationPaths {
-    migrator.registerMigration((path as NSString).lastPathComponent) { (db) -> Void in
+    migrator.registerMigration((path as NSString).lastPathComponent) { db in
         try db.executeMultiStatement(String(contentsOfFile: path))
     }
 }
