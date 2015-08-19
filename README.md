@@ -5,9 +5,7 @@ GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the 
 
 It ships with a low-level database API, plus application-level tools.
 
-**August 18, 2015: GRDB.swift 0.8.0 is out.** [Release notes](RELEASE_NOTES.md)
-
-Get release announcements and usage tips: follow [@groue on Twitter](http://twitter.com/groue).
+**August 18, 2015: GRDB.swift 0.8.0 is out** - [Release notes](RELEASE_NOTES.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 Jump to:
 
