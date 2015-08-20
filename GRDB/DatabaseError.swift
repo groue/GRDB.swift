@@ -27,12 +27,6 @@ DatabaseError wraps a SQLite error.
 */
 public struct DatabaseError : ErrorType {
     
-    /// Required for ErrorType conformance.
-    public let _domain: String = "GRDB.DatabaseError"
-    
-    /// Required for ErrorType conformance.
-    public var _code: Int { return code }
-    
     /// The SQLite error code (see https://www.sqlite.org/c3ref/c_abort.html).
     public let code: Int
     
