@@ -494,7 +494,7 @@ public class RowModel {
         func insertStatement(db: Database) throws -> UpdateStatement {
             // INSERT
             let insertStatement = try DataMapper.insertStatement(db, tableName: databaseTable.name, insertedColumns: Array(storedDatabaseDictionary.keys))
-            insertStatement.arguments = QueryArguments(storedDatabaseDictionary.values)
+            insertStatement.arguments = StatementArguments(storedDatabaseDictionary.values)
             return insertStatement
         }
         
@@ -517,7 +517,7 @@ public class RowModel {
             
             // Update
             let updateStatement = try DataMapper.updateStatement(db, tableName: databaseTable.name, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys))
-            updateStatement.arguments = QueryArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
+            updateStatement.arguments = StatementArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
             return updateStatement
         }
         
@@ -529,7 +529,7 @@ public class RowModel {
             
             // Delete
             let deleteStatement = try DataMapper.deleteStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-            deleteStatement.arguments = QueryArguments(primaryKeyDictionary.values)
+            deleteStatement.arguments = StatementArguments(primaryKeyDictionary.values)
             return deleteStatement
         }
         
@@ -541,7 +541,7 @@ public class RowModel {
             
             // Fetch
             let selectStatement = DataMapper.selectStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-            selectStatement.arguments = QueryArguments(primaryKeyDictionary.values)
+            selectStatement.arguments = StatementArguments(primaryKeyDictionary.values)
             return selectStatement
         }
         
@@ -554,7 +554,7 @@ public class RowModel {
             
             // Fetch
             let existsStatement = DataMapper.existsStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-            existsStatement.arguments = QueryArguments(primaryKeyDictionary.values)
+            existsStatement.arguments = StatementArguments(primaryKeyDictionary.values)
             return existsStatement
         }
         
@@ -666,7 +666,7 @@ extension Database {
     
     - returns: A lazy sequence of row models.
     */
-    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, arguments: QueryArguments? = nil) -> AnySequence<RowModel> {
+    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<RowModel> {
         return selectStatement(sql).fetch(type, arguments: arguments)
     }
 
@@ -682,7 +682,7 @@ extension Database {
     
     - returns: An array of row models.
     */
-    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, arguments: QueryArguments? = nil) -> [RowModel] {
+    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, arguments: StatementArguments? = nil) -> [RowModel] {
         return Array(fetch(type, sql, arguments: arguments))
     }
 
@@ -698,7 +698,7 @@ extension Database {
     
     - returns: An optional row model.
     */
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, arguments: QueryArguments? = nil) -> RowModel? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, _ sql: String, arguments: StatementArguments? = nil) -> RowModel? {
         if let first = fetch(type, sql, arguments: arguments).generate().next() {
             // one row containing an optional value
             return first
@@ -770,7 +770,7 @@ extension Database {
         
         let whereSQL = " AND ".join(dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
         let sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
-        return selectStatement(sql).fetchOne(type, arguments: QueryArguments(dictionary.values))
+        return selectStatement(sql).fetchOne(type, arguments: StatementArguments(dictionary.values))
     }
 }
 
@@ -792,7 +792,7 @@ extension SelectStatement {
     
     - returns: A lazy sequence of row models.
     */
-    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: QueryArguments? = nil) -> AnySequence<RowModel> {
+    public func fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: StatementArguments? = nil) -> AnySequence<RowModel> {
         let rowSequence = fetchRows(arguments: arguments)
         return AnySequence { () -> AnyGenerator<RowModel> in
             let rowGenerator = rowSequence.generate()
@@ -825,7 +825,7 @@ extension SelectStatement {
     
     - returns: An array of row models.
     */
-    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: QueryArguments? = nil) -> [RowModel] {
+    public func fetchAll<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: StatementArguments? = nil) -> [RowModel] {
         return Array(fetch(type, arguments: arguments))
     }
     
@@ -841,7 +841,7 @@ extension SelectStatement {
     
     - returns: An optional row model.
     */
-    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: QueryArguments? = nil) -> RowModel? {
+    public func fetchOne<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: StatementArguments? = nil) -> RowModel? {
         if let first = fetch(type, arguments: arguments).generate().next() {
             // one row containing an optional value
             return first

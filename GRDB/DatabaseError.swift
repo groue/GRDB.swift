@@ -40,10 +40,10 @@ public struct DatabaseError : ErrorType {
     // MARK: Not public
     
     /// The query arguments that yielded the error (if relevant).
-    /// Not public because the QueryArguments class has no public method.
-    let arguments: QueryArguments?
+    /// Not public because the StatementArguments class has no public method.
+    let arguments: StatementArguments?
     
-    init(code: Int32, message: String? = nil, sql: String? = nil, arguments: QueryArguments? = nil) {
+    init(code: Int32, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
         self.code = Int(code)
         self.message = message
         self.sql = sql

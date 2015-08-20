@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking changes**
+
+- `QueryArguments` has been renamed `StatementArguments`.
+
+
 ## 0.8.0
 
 **New**

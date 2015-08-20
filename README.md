@@ -633,7 +633,7 @@ try dbQueue.inTransaction { db in
     ]
     
     for person in persons {
-        let changes = try statement.execute(arguments: QueryArguments(person))
+        let changes = try statement.execute(arguments: StatementArguments(person))
         changes.changedRowCount // The number of rows changed by the statement.
         changes.insertedRowID   // The inserted Row ID.
     }

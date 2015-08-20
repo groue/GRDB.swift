@@ -51,7 +51,7 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
-    func testArrayQueryArguments() {
+    func testArrayStatementArguments() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
@@ -62,7 +62,7 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
-    func testQueryArgumentsSetterWithArray() {
+    func testStatementArgumentsSetterWithArray() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
@@ -76,26 +76,26 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
-    func testDictionaryQueryArguments() {
+    func testDictionaryStatementArguments() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: why is this explicit type declaration required?
-                let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
-                let counts = ageDicts.map { statement.fetchOne(Int.self, arguments: QueryArguments($0))! }
+                let ageDicts = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
+                let counts = ageDicts.map { statement.fetchOne(Int.self, arguments: StatementArguments($0))! }
                 XCTAssertEqual(counts, [1,2,2,3])
             }
         }
     }
     
-    func testQueryArgumentsSetterWithDictionary() {
+    func testStatementArgumentsSetterWithDictionary() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: why is this explicit type declaration required?
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { (ageDict: [String: DatabaseValueConvertible?]) -> Int in
-                    statement.arguments = QueryArguments(ageDict)
+                    statement.arguments = StatementArguments(ageDict)
                     return statement.fetchOne(Int.self)!
                 }
                 XCTAssertEqual(counts, [1,2,2,3])

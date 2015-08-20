@@ -68,7 +68,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    func testArrayQueryArguments() {
+    func testArrayStatementArguments() {
         assertNoError {
             
             try dbQueue.inTransaction { db in
@@ -79,7 +79,7 @@ class UpdateStatementTests : GRDBTestCase {
                     ["😀"],
                 ]
                 for person in persons {
-                    try statement.execute(arguments: QueryArguments(person))
+                    try statement.execute(arguments: StatementArguments(person))
                 }
                 
                 return .Commit
@@ -96,7 +96,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    func testQueryArgumentsSetterWithArray() {
+    func testStatementArgumentsSetterWithArray() {
         assertNoError {
             
             try dbQueue.inTransaction { db in
@@ -107,7 +107,7 @@ class UpdateStatementTests : GRDBTestCase {
                     ["😀"],
                 ]
                 for person in persons {
-                    statement.arguments = QueryArguments(person)
+                    statement.arguments = StatementArguments(person)
                     try statement.execute()
                 }
                 
@@ -125,7 +125,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    func testDictionaryQueryArguments() {
+    func testDictionaryStatementArguments() {
         assertNoError {
             
             try dbQueue.inTransaction { db in
@@ -136,7 +136,7 @@ class UpdateStatementTests : GRDBTestCase {
                     ["name": "😀"],
                 ]
                 for person in persons {
-                    try statement.execute(arguments: QueryArguments(person))
+                    try statement.execute(arguments: StatementArguments(person))
                 }
                 
                 return .Commit
@@ -153,7 +153,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    func testQueryArgumentsSetterWithDictionary() {
+    func testStatementArgumentsSetterWithDictionary() {
         assertNoError {
             
             try dbQueue.inTransaction { db in
@@ -164,7 +164,7 @@ class UpdateStatementTests : GRDBTestCase {
                     ["name": "😀"],
                 ]
                 for person in persons {
-                    statement.arguments = QueryArguments(person)
+                    statement.arguments = StatementArguments(person)
                     try statement.execute()
                 }
                 

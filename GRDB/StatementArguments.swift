@@ -25,24 +25,24 @@
 import Foundation
 
 /**
-SQL queries can have arguments:
+SQL statements can have arguments:
 
     INSERT INTO persons (name, age) VALUES (?, ?)
     INSERT INTO persons (name, age) VALUES (:name, :age)
 
-To fill question mark arguments, feed QueryArguments with an array:
+To fill question mark arguments, feed StatementArguments with an array:
 
-    db.execute("INSERT ... (?, ?)", arguments: QueryArguments(["Arthur", 41]))
+    db.execute("INSERT ... (?, ?)", arguments: StatementArguments(["Arthur", 41]))
 
-Array literals are automatically converted to QueryArguments:
+Array literals are automatically converted to StatementArguments:
 
     db.execute("INSERT ... (?, ?)", arguments: ["Arthur", 41])
 
-To fill named arguments, feed QueryArguments with a dictionary:
+To fill named arguments, feed StatementArguments with a dictionary:
 
-    db.execute("INSERT ... (:name, :age)", arguments: QueryArguments(["name": "Arthur", "age": 41]))
+    db.execute("INSERT ... (:name, :age)", arguments: StatementArguments(["name": "Arthur", "age": 41]))
 
-Dictionary literals are automatically converted to QueryArguments:
+Dictionary literals are automatically converted to StatementArguments:
 
     db.execute("INSERT ... (:name, :age)", arguments: ["name": "Arthur", "age": 41])
 
@@ -50,7 +50,7 @@ GRDB.swift only supports colon-prefixed named arguments, even though SQLite
 supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam for
 more information.
 */
-public struct QueryArguments {
+public struct StatementArguments {
     
     // MARK: - Positional Arguments
     
@@ -58,14 +58,14 @@ public struct QueryArguments {
     Initializes arguments from a sequence of optional values.
     
         let values: [String?] = ["foo", "bar", nil]
-        db.execute("INSERT ... (?,?,?)", arguments: QueryArguments(values))
+        db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
     
     - parameter sequence: A sequence of optional values that adopt the
                           DatabaseValueConvertible protocol.
-    - returns: A QueryArguments.
+    - returns: A StatementArguments.
     */
     public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<DatabaseValueConvertible>>(_ sequence: Sequence) {
-        impl = QueryArgumentsArrayImpl(values: Array(sequence))
+        impl = StatementArgumentsArrayImpl(values: Array(sequence))
     }
     
     /**
@@ -75,10 +75,10 @@ public struct QueryArguments {
     protocol, NSNull, NSNumber or NSString. A fatal error is thrown otherwise.
     
         let values: NSArray = ["foo", "bar", "baz"]
-        db.execute("INSERT ... (?,?,?)", arguments: QueryArguments(values))
+        db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
     
     - parameter array: An NSArray
-    - returns: A QueryArguments.
+    - returns: A StatementArguments.
     */
     public init(_ array: NSArray) {
         // IMPLEMENTATION NOTE
@@ -91,11 +91,11 @@ public struct QueryArguments {
         //        ["Barbara"],
         //    ]
         //    for person in persons {
-        //        try statement.execute(QueryArguments(person))   // Avoid an error here
+        //        try statement.execute(StatementArguments(person))   // Avoid an error here
         //    }
         var values = [DatabaseValueConvertible?]()
         for item in array {
-            values.append(QueryArguments.valueFromAnyObject(item))
+            values.append(StatementArguments.valueFromAnyObject(item))
         }
         self.init(values)
     }
@@ -107,7 +107,7 @@ public struct QueryArguments {
     Initializes arguments from a dictionary of optional values.
     
         let values: [String: String?] = ["firstName": nil, "lastName": "Miller"]
-        db.execute("INSERT ... (:firstName, :lastName)", arguments: QueryArguments(values))
+        db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
     
     GRDB.swift only supports colon-prefixed named arguments, even though SQLite
     supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
@@ -115,10 +115,10 @@ public struct QueryArguments {
     
     - parameter dictionary: A dictionary of optional values that adopt the
                             DatabaseValueConvertible protocol.
-    - returns: A QueryArguments.
+    - returns: A StatementArguments.
     */
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        impl = QueryArgumentsDictionaryImpl(dictionary: dictionary)
+        impl = StatementArgumentsDictionaryImpl(dictionary: dictionary)
     }
     
     /**
@@ -128,14 +128,14 @@ public struct QueryArguments {
     protocol, NSNull, NSNumber or NSString. A fatal error is thrown otherwise.
     
         let values: NSDictionary = ["firstName": "Arthur", "lastName": "Miller"]
-        db.execute("INSERT ... (?,?,?)", arguments: QueryArguments(values))
+        db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
     
     GRDB.swift only supports colon-prefixed named arguments, even though SQLite
     supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
     for more information.
     
     - parameter dictionary: An NSDictionary
-    - returns: A QueryArguments.
+    - returns: A StatementArguments.
     */
     public init(_ dictionary: NSDictionary) {
         // IMPLEMENTATION NOTE
@@ -148,12 +148,12 @@ public struct QueryArguments {
         //        ["name": "Barbara"],
         //    ]
         //    for person in persons {
-        //        try statement.execute(QueryArguments(person))   // Avoid an error here
+        //        try statement.execute(StatementArguments(person))   // Avoid an error here
         //    }
         var values = [String: DatabaseValueConvertible?]()
         for (key, item) in dictionary {
             if let key = key as? String {
-                values[key] = QueryArguments.valueFromAnyObject(item)
+                values[key] = StatementArguments.valueFromAnyObject(item)
             } else {
                 fatalError("Not a String key: \(key)")
             }
@@ -164,7 +164,7 @@ public struct QueryArguments {
     
     // MARK: - Not Public
     
-    let impl: QueryArgumentsImpl
+    let impl: StatementArgumentsImpl
     
     // Supported usage: Statement.arguments property
     //
@@ -175,10 +175,10 @@ public struct QueryArguments {
     }
     
     
-    // MARK: - QueryArgumentsArrayImpl
+    // MARK: - StatementArgumentsArrayImpl
     
     /// Support for positional arguments
-    private struct QueryArgumentsArrayImpl : QueryArgumentsImpl {
+    private struct StatementArgumentsArrayImpl : StatementArgumentsImpl {
         let values: [DatabaseValueConvertible?]
         
         init(values: [DatabaseValueConvertible?]) {
@@ -202,10 +202,10 @@ public struct QueryArguments {
     }
     
     
-    // MARK: - QueryArgumentsDictionaryImpl
+    // MARK: - StatementArgumentsDictionaryImpl
     
     /// Support for named arguments
-    private struct QueryArgumentsDictionaryImpl : QueryArgumentsImpl {
+    private struct StatementArgumentsDictionaryImpl : StatementArgumentsImpl {
         let dictionary: [String: DatabaseValueConvertible?]
         
         init(dictionary: [String: DatabaseValueConvertible?]) {
@@ -286,17 +286,17 @@ public struct QueryArguments {
 }
 
 
-// The protocol for QueryArguments underlying implementation
-protocol QueryArgumentsImpl : CustomStringConvertible {
+// The protocol for StatementArguments underlying implementation
+protocol StatementArgumentsImpl : CustomStringConvertible {
     func bindInStatement(statement: Statement)
 }
 
 
 // MARK: - ArrayLiteralConvertible
 
-extension QueryArguments : ArrayLiteralConvertible {
+extension StatementArguments : ArrayLiteralConvertible {
     /**
-    Returns a QueryArguments from an array literal:
+    Returns a StatementArguments from an array literal:
 
         db.selectRows("SELECT ...", arguments: ["Arthur", 41])
     */
@@ -308,9 +308,9 @@ extension QueryArguments : ArrayLiteralConvertible {
 
 // MARK: - DictionaryLiteralConvertible
 
-extension QueryArguments : DictionaryLiteralConvertible {
+extension StatementArguments : DictionaryLiteralConvertible {
     /**
-    Returns a QueryArguments from a dictionary literal:
+    Returns a StatementArguments from a dictionary literal:
     
         db.selectRows("SELECT ...", arguments: ["name": "Arthur", "age": 41])
     */
@@ -326,7 +326,7 @@ extension QueryArguments : DictionaryLiteralConvertible {
 
 // MARK: - CustomStringConvertible
 
-extension QueryArguments : CustomStringConvertible {
+extension StatementArguments : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         return impl.description

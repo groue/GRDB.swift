@@ -105,7 +105,7 @@ extension SelectStatement {
     - parameter arguments: Optional query arguments.
     - returns: A lazy sequence of rows.
     */
-    public func fetchRows(arguments arguments: QueryArguments? = nil) -> AnySequence<Row> {
+    public func fetchRows(arguments arguments: StatementArguments? = nil) -> AnySequence<Row> {
         if let arguments = arguments {
             self.arguments = arguments
         }
@@ -160,7 +160,7 @@ extension SelectStatement {
     - parameter arguments: Optional query arguments.
     - returns: An array of rows.
     */
-    public func fetchAllRows(arguments arguments: QueryArguments? = nil) -> [Row] {
+    public func fetchAllRows(arguments arguments: StatementArguments? = nil) -> [Row] {
         return Array(fetchRows(arguments: arguments))
     }
     
@@ -174,7 +174,7 @@ extension SelectStatement {
     
     - returns: An optional row.
     */
-    public func fetchOneRow(arguments arguments: QueryArguments? = nil) -> Row? {
+    public func fetchOneRow(arguments arguments: StatementArguments? = nil) -> Row? {
         return fetchRows(arguments: arguments).generate().next()
     }
 }
@@ -194,7 +194,7 @@ extension SelectStatement {
     
     - returns: A lazy sequence of values.
     */
-    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, arguments: QueryArguments? = nil) -> AnySequence<Value?> {
+    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, arguments: StatementArguments? = nil) -> AnySequence<Value?> {
         let rowSequence = fetchRows(arguments: arguments)
         return AnySequence { () -> AnyGenerator<Value?> in
             let rowGenerator = rowSequence.generate()
@@ -220,7 +220,7 @@ extension SelectStatement {
     
     - returns: An array of values.
     */
-    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, arguments: QueryArguments? = nil) -> [Value?] {
+    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, arguments: StatementArguments? = nil) -> [Value?] {
         return Array(fetch(type, arguments: arguments))
     }
     
@@ -236,7 +236,7 @@ extension SelectStatement {
     
     - returns: An optional value.
     */
-    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, arguments: QueryArguments? = nil) -> Value? {
+    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, arguments: StatementArguments? = nil) -> Value? {
         if let optionalValue = fetch(type, arguments: arguments).generate().next() {
             // one row containing an optional value
             return optionalValue

@@ -87,7 +87,7 @@ public final class Database {
     - returns: A DatabaseChanges.
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
-    public func execute(sql: String, arguments: QueryArguments? = nil) throws -> DatabaseChanges {
+    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         let statement = try updateStatement(sql)
         return try statement.execute(arguments: arguments)
     }
@@ -289,7 +289,7 @@ extension Database {
     - parameter arguments: Optional query arguments.
     - returns: A lazy sequence of rows.
     */
-    public func fetchRows(sql: String, arguments: QueryArguments? = nil) -> AnySequence<Row> {
+    public func fetchRows(sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
         return selectStatement(sql).fetchRows(arguments: arguments)
     }
     
@@ -302,7 +302,7 @@ extension Database {
     - parameter arguments: Optional query arguments.
     - returns: An array of rows.
     */
-    public func fetchAllRows(sql: String, arguments: QueryArguments? = nil) -> [Row] {
+    public func fetchAllRows(sql: String, arguments: StatementArguments? = nil) -> [Row] {
         return Array(fetchRows(sql, arguments: arguments))
     }
     
@@ -315,7 +315,7 @@ extension Database {
     - parameter arguments: Optional query arguments.
     - returns: An optional row.
     */
-    public func fetchOneRow(sql: String, arguments: QueryArguments? = nil) -> Row? {
+    public func fetchOneRow(sql: String, arguments: StatementArguments? = nil) -> Row? {
         return fetchRows(sql, arguments: arguments).generate().next()
     }
 }
@@ -337,7 +337,7 @@ extension Database {
     - parameter arguments: Optional query arguments.
     - returns: A lazy sequence of values.
     */
-    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: QueryArguments? = nil) -> AnySequence<Value?> {
+    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Value?> {
         return selectStatement(sql).fetch(type, arguments: arguments)
     }
     
@@ -352,7 +352,7 @@ extension Database {
     - parameter arguments: Optional query arguments.
     - returns: An array of values.
     */
-    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: QueryArguments? = nil) -> [Value?] {
+    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: StatementArguments? = nil) -> [Value?] {
         return Array(fetch(type, sql, arguments: arguments))
     }
     
@@ -367,7 +367,7 @@ extension Database {
     - parameter arguments: Optional query arguments.
     - returns: An optional value.
     */
-    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: QueryArguments? = nil) -> Value? {
+    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: StatementArguments? = nil) -> Value? {
         if let first = fetch(type, sql, arguments: arguments).generate().next() {
             // one row containing an optional value
             return first
