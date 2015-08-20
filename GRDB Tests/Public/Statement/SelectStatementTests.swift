@@ -80,7 +80,7 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
-                // TODO: why is this explicit type declaration required?
+                // TODO: Remove this explicit type declaration required by rdar://22357375
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { statement.fetchOne(Int.self, arguments: StatementArguments($0))! }
                 XCTAssertEqual(counts, [1,2,2,3])
@@ -92,9 +92,9 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
-                // TODO: why is this explicit type declaration required?
+                // TODO: Remove this explicit type declaration required by rdar://22357375
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
-                let counts = ageDicts.map { (ageDict: [String: DatabaseValueConvertible?]) -> Int in
+                let counts = ageDicts.map { ageDict -> Int in
                     statement.arguments = StatementArguments(ageDict)
                     return statement.fetchOne(Int.self)!
                 }
