@@ -980,8 +980,10 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 Based on those facts, here are a few hints:
 
 - [Autoincrement](#autoincrement)
+- [Validation](#validation)
 - [Default Values](#default-values)
 - [INSERT OR REPLACE](#insert-or-replace)
+
 
 #### Autoincrement
 
@@ -1022,6 +1024,40 @@ let person = Person(...)
 person.id   // nil
 try person.insert(db)
 person.id   // some value
+```
+
+
+#### Validation
+
+RowModel does not provide any built-in validation.
+
+You can use some external library such as [GRValidation](https://github.com/groue/GRValidation) in the update() and insert() methods:
+
+```swift
+class Person : RowModel, Validable {
+    var name: String?
+    
+    override func update(db: Database) throws {
+        // Validate before update
+        try validate()
+        try super.update(db)
+    }
+    
+    override func insert(db: Database) throws {
+        // Validate before insert
+        try validate()
+        try super.insert(db)
+    }
+    
+    func validate() throws {
+        // Name should not be nil
+        try validate(property: "name", with: name >>> ValidationNotNil())
+    }
+}
+
+// fatal error: 'try!' expression unexpectedly raised an error:
+// Invalid <Person name:nil>: name should not be nil.
+try! Person(name: nil).save(db)
 ```
 
 
