@@ -10,6 +10,8 @@ Release Notes
 
 ## 0.8.0
 
+Release August 18, 2015
+
 **New**
 
 - `RowModel.exists(db)` returns whether a row model has a matching row in the database.
