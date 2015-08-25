@@ -129,10 +129,9 @@ public final class DatabaseQueue {
                        See https://www.sqlite.org/lang_transaction.html
     - parameter block: A block that executes SQL statements and return either
                        .Commit or .Rollback.
-    - throws: The error thrown by the block, or a DatabaseError whenever a
-              SQLite error occurs.
+    - throws: The error thrown by the block.
     */
-    public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) throws {
+    public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) rethrows {
         guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
             fatalError("DatabaseQueue.inTransaction(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
         }

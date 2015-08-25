@@ -6,6 +6,7 @@ Release Notes
 **Fixed**
 
 - Reduced iOS Deployment Target to 8.0, and OSX Deployment Target to 10.9.
+- `DatabaseQueue.inTransaction()` is now declared as `rethrows`.
 
 **Breaking changes**
 

@@ -209,14 +209,13 @@ public final class Database {
                        See https://www.sqlite.org/lang_transaction.html
     - parameter block: A block that executes SQL statements and return either
                        .Commit or .Rollback.
-    - throws: The error thrown by the block, or a DatabaseError whenever a
-              SQLite error occurs.
+    - throws: The error thrown by the block.
     */
-    func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) throws {
+    func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) rethrows {
         var completion: TransactionCompletion = .Rollback
         var dbError: ErrorType? = nil
         
-        try beginTransaction(type)
+        try! beginTransaction(type)
         
         do {
             completion = try block()
@@ -225,21 +224,15 @@ public final class Database {
             dbError = error
         }
         
-        do {
-            switch completion {
-            case .Commit:
-                try commit()
-            case .Rollback:
-                try rollback()
-            }
-        } catch {
-            if dbError == nil {
-                dbError = error
-            }
+        switch completion {
+        case .Commit:
+            try! commit()
+        case .Rollback:
+            try! rollback()
         }
         
         if let dbError = dbError {
-            throw dbError
+            try { () -> Void in throw dbError }()
         }
     }
 
