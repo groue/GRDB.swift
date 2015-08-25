@@ -563,37 +563,37 @@ public class RowModel {
         
         private class func insertStatement(db: Database, tableName: String, insertedColumns: [String]) throws -> UpdateStatement {
             // INSERT INTO table (id, name) VALUES (?, ?)
-            let columnSQL = ",".join(insertedColumns.map { $0.quotedDatabaseIdentifier })
-            let valuesSQL = ",".join([String](count: insertedColumns.count, repeatedValue: "?"))
+            let columnSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
+            let valuesSQL = [String](count: insertedColumns.count, repeatedValue: "?").joinWithSeparator(",")
             let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
             return try db.updateStatement(sql)
         }
         
         private class func updateStatement(db: Database, tableName: String, updatedColumns: [String], conditionColumns: [String]) throws -> UpdateStatement {
             // "UPDATE table SET name = ? WHERE id = ?"
-            let updateSQL = ",".join(updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
-            let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+            let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(",")
+            let conditionSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
             let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(conditionSQL)"
             return try db.updateStatement(sql)
         }
         
         private class func deleteStatement(db: Database, tableName: String, conditionColumns: [String]) throws -> UpdateStatement {
             // "DELETE FROM table WHERE id = ?"
-            let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+            let conditionSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
             let sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
             return try db.updateStatement(sql)
         }
         
         private class func existsStatement(db: Database, tableName: String, conditionColumns: [String]) -> SelectStatement {
             // "SELECT 1 FROM table WHERE id = ?"
-            let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+            let conditionSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
             let sql = "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
             return db.selectStatement(sql)
         }
 
         private class func selectStatement(db: Database, tableName: String, conditionColumns: [String]) -> SelectStatement {
             // "SELECT * FROM table WHERE id = ?"
-            let conditionSQL = " AND ".join(conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" })
+            let conditionSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
             let sql = "SELECT * FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
             return db.selectStatement(sql)
         }
@@ -617,12 +617,15 @@ extension RowModel : RowModelType { }
 extension RowModel : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        return "<\(self.dynamicType)" + "".join(storedDatabaseDictionary.map { (key, value) in
-            if let value = value {
-                return " \(key):\(String(reflecting: value))"
-            } else {
-                return " \(key):nil"
-            }}) + ">"
+        return "<\(self.dynamicType)"
+            + storedDatabaseDictionary.map { (key, value) in
+                if let value = value {
+                    return " \(key):\(String(reflecting: value))"
+                } else {
+                    return " \(key):nil"
+                }
+                }.joinWithSeparator("")
+            + ">"
     }
 }
 
@@ -768,7 +771,7 @@ extension Database {
             fatalError("Nil Table returned from \(type).databaseTable")
         }
         
-        let whereSQL = " AND ".join(dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" })
+        let whereSQL = dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
         let sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
         return selectStatement(sql).fetchOne(type, arguments: StatementArguments(dictionary.values))
     }

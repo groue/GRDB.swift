@@ -192,12 +192,17 @@ public struct StatementArguments {
         }
         
         var description: String {
-            return "[" + ", ".join(values.map { value in
-                if let value = value {
-                    return String(reflecting: value)
-                } else {
-                    return "nil"
-                }}) + "]"
+            return "["
+                + values
+                    .map { value in
+                        if let value = value {
+                            return String(reflecting: value)
+                        } else {
+                            return "nil"
+                        }
+                    }
+                    .joinWithSeparator(", ")
+                + "]"
         }
     }
     
@@ -219,12 +224,16 @@ public struct StatementArguments {
         }
         
         var description: String {
-            return "[" + ", ".join(dictionary.map { (key, value) in
-                if let value = value {
-                    return "\(key):\(String(reflecting: value))"
-                } else {
-                    return "\(key):nil"
-                }}) + "]"
+            return "["
+                + dictionary.map { (key, value) in
+                    if let value = value {
+                        return "\(key):\(String(reflecting: value))"
+                    } else {
+                        return "\(key):nil"
+                    }
+                    }
+                    .joinWithSeparator(", ")
+                + "]"
         }
     }
     

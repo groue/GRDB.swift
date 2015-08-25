@@ -250,16 +250,16 @@ public struct Row: CollectionType {
         }
         
         func databaseValue(atIndex index: Int) -> DatabaseValue {
-            return databaseDictionary[advance(databaseDictionary.startIndex, index)].1
+            return databaseDictionary[databaseDictionary.startIndex.advancedBy(index)].1
         }
         
         func columnName(atIndex index: Int) -> String {
-            return databaseDictionary[advance(databaseDictionary.startIndex, index)].0
+            return databaseDictionary[databaseDictionary.startIndex.advancedBy(index)].0
         }
         
         func indexForColumn(named name: String) -> Int? {
             if let index = databaseDictionary.indexForKey(name) {
-                return distance(databaseDictionary.startIndex, index)
+                return databaseDictionary.startIndex.distanceTo(index)
             } else {
                 return nil
             }
@@ -316,6 +316,8 @@ protocol RowImpl {
 
 /// Indexes to (columnName, databaseValue) pairs in a database row.
 public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIndexType {
+    public typealias Distance = Int
+    
     let index: Int
     init(_ index: Int) { self.index = index }
     

@@ -30,7 +30,7 @@ class Person : RowModel {
     var firstName: String?
     var lastName: String?
     var fullName: String {
-        return " ".join([firstName, lastName].flatMap { $0 })
+        return [firstName, lastName].flatMap { $0 }.joinWithSeparator(" ")
     }
     
     init(firstName: String? = nil, lastName: String? = nil) {

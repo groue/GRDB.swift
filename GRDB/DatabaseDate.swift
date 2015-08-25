@@ -289,9 +289,9 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         
         switch format {
         case .YMD_HM, .YMD_HMS, .YMD_HMSS:
-            return .Text(" ".join([dateString, timeString].flatMap { $0 }))
+            return .Text([dateString, timeString].flatMap { $0 }.joinWithSeparator(" "))
         default:
-            return .Text("T".join([dateString, timeString].flatMap { $0 }))
+            return .Text([dateString, timeString].flatMap { $0 }.joinWithSeparator("T"))
         }
     }
     
