@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Release
 
+**Fixed**
+
+- Reduced iOS Deployment Target to 8.0, and OSX Deployment Target to 10.9.
+
 **Breaking changes**
 
 - `QueryArguments` has been renamed `StatementArguments`.
