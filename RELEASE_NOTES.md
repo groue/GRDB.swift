@@ -1,10 +1,13 @@
 Release Notes
 =============
 
-## Next Release
+## 0.9.0
+
+Released August 25, 2015
 
 **Fixed**
 
+- Compiles on Xcode7b6
 - Reduced iOS Deployment Target to 8.0, and OSX Deployment Target to 10.9.
 - `DatabaseQueue.inTransaction()` is now declared as `rethrows`.
 
@@ -15,7 +18,7 @@ Release Notes
 
 ## 0.8.0
 
-Release August 18, 2015
+Released August 18, 2015
 
 **New**
 
