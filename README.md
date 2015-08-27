@@ -33,19 +33,22 @@ import GRDB
 // Open database connection
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
-let redWinesCount = dbQueue.inDatabase { db in            // Int
-    db.fetchOne(Int.self, "SELECT COUNT(*) FROM wines WHERE color = ?",
-                arguments: [Color.Red])!
-}
-
 try dbQueue.inTransaction { db in
-    try Person(name: "Arthur").insert(db)
+    let wine = Wine(grape: .Merlot, color: .Red, name: "Pomerol")
+    try wine.insert(db)
     return .Commit
 }
 
+let redWinesCount = dbQueue.inDatabase { db in       // Int
+    db.fetchOne(
+        Int.self,
+        "SELECT COUNT(*) FROM wines WHERE color = ?",
+        arguments: [Color.Red])!
+}
+
 dbQueue.inDatabase { db in
-    let persons = db.fetchAll(Person.self, "SELECT ...")  // [Person]
-    for wine in db.fetch(Wine.self, "SELECT ...") {       // AnySequence<Wine>
+    let wines = db.fetchAll(Wine.self, "SELECT ...") // [Wine]
+    for wine in db.fetch(Wine.self, "SELECT ...") {  // AnySequence<Wine>
         ...
     }
 }
