@@ -1,3 +1,4 @@
 - [ ] #2: this commit may be how stephencelis fixed it: https://github.com/stephencelis/SQLite.swift/commit/8f64e357c3a6668c5f011c91ba33be3e8d4b88d0
-- [ ] Rename DatabaseValue.Real to DatabaseValue.Double
+- [ ] Rename DatabaseValue.Real to DatabaseValue.Double, and .Text to .String
 - [ ] Use @warn_unused_result
+- [ ] How can RowModel wrap two columns in a single CLLocationCoordinate2D property?
