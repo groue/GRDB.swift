@@ -2,3 +2,4 @@
 - [ ] Rename DatabaseValue.Real to DatabaseValue.Double, and .Text to .String
 - [ ] Use @warn_unused_result
 - [ ] How can RowModel wrap two columns in a single CLLocationCoordinate2D property?
+- [ ] Find a purpose for methods that return a DatabaseValueConvertible? (Row.value(atIndex:), Row.value(named:), DatabaseValue.value()), or remove them.
