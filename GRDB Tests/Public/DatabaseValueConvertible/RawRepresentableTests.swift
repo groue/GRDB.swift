@@ -63,23 +63,26 @@ class RawRepresentableTests: GRDBTestCase {
                         try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [color])
                     }
                     try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [4])
+                    try db.execute("INSERT INTO wines (color) VALUES (NULL)")
                 }
                 
                 do {
                     let rows = db.fetchAllRows("SELECT color FROM wines ORDER BY color")
                     let colors = rows.map { $0.value(atIndex: 0) as Color? }
-                    XCTAssertEqual(colors[0]!, Color.Red)
-                    XCTAssertEqual(colors[1]!, Color.White)
-                    XCTAssertEqual(colors[2]!, Color.Rose)
-                    XCTAssertTrue(colors[3] == nil)
+                    XCTAssertTrue(colors[0] == nil)
+                    XCTAssertEqual(colors[1]!, Color.Red)
+                    XCTAssertEqual(colors[2]!, Color.White)
+                    XCTAssertEqual(colors[3]!, Color.Rose)
+                    XCTAssertTrue(colors[4] == nil)
                 }
                 
                 do {
                     let colors = db.fetchAll(Color.self, "SELECT color FROM wines ORDER BY color")
-                    XCTAssertEqual(colors[0]!, Color.Red)
-                    XCTAssertEqual(colors[1]!, Color.White)
-                    XCTAssertEqual(colors[2]!, Color.Rose)
-                    XCTAssertTrue(colors[3] == nil)
+                    XCTAssertTrue(colors[0] == nil)
+                    XCTAssertEqual(colors[1]!, Color.Red)
+                    XCTAssertEqual(colors[2]!, Color.White)
+                    XCTAssertEqual(colors[3]!, Color.Rose)
+                    XCTAssertTrue(colors[4] == nil)
                 }
                 
                 return .Rollback
@@ -96,23 +99,26 @@ class RawRepresentableTests: GRDBTestCase {
                         try db.execute("INSERT INTO wines (grape) VALUES (?)", arguments: [grape])
                     }
                     try db.execute("INSERT INTO wines (grape) VALUES (?)", arguments: ["Syrah"])
+                    try db.execute("INSERT INTO wines (grape) VALUES (NULL)")
                 }
                 
                 do {
                     let rows = db.fetchAllRows("SELECT grape FROM wines ORDER BY grape")
                     let grapes = rows.map { $0.value(atIndex: 0) as Grape? }
-                    XCTAssertEqual(grapes[0]!, Grape.Chardonnay)
-                    XCTAssertEqual(grapes[1]!, Grape.Merlot)
-                    XCTAssertEqual(grapes[2]!, Grape.Riesling)
-                    XCTAssertTrue(grapes[3] == nil)
+                    XCTAssertTrue(grapes[0] == nil)
+                    XCTAssertEqual(grapes[1]!, Grape.Chardonnay)
+                    XCTAssertEqual(grapes[2]!, Grape.Merlot)
+                    XCTAssertEqual(grapes[3]!, Grape.Riesling)
+                    XCTAssertTrue(grapes[4] == nil)
                 }
                 
                 do {
                     let grapes = db.fetchAll(Grape.self, "SELECT grape FROM wines ORDER BY grape")
-                    XCTAssertEqual(grapes[0]!, Grape.Chardonnay)
-                    XCTAssertEqual(grapes[1]!, Grape.Merlot)
-                    XCTAssertEqual(grapes[2]!, Grape.Riesling)
-                    XCTAssertTrue(grapes[3] == nil)
+                    XCTAssertTrue(grapes[0] == nil)
+                    XCTAssertEqual(grapes[1]!, Grape.Chardonnay)
+                    XCTAssertEqual(grapes[2]!, Grape.Merlot)
+                    XCTAssertEqual(grapes[3]!, Grape.Riesling)
+                    XCTAssertTrue(grapes[4] == nil)
                 }
                 
                 return .Rollback
