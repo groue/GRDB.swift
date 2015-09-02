@@ -119,14 +119,22 @@ public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
     case (.Real(let lhs), .Real(let rhs)):
         return lhs == rhs
     case (.Integer(let lhs), .Real(let rhs)):
-        return round(rhs) == rhs && Double(lhs) == rhs
+        return int64EqualDouble(lhs, rhs)
     case (.Real(let lhs), .Integer(let rhs)):
-        return round(lhs) == lhs && Double(rhs) == lhs
+        return int64EqualDouble(rhs, lhs)
     case (.Text(let lhs), .Text(let rhs)):
         return lhs == rhs
     case (.Blob(let lhs), .Blob(let rhs)):
         return lhs.data.isEqualToData(rhs.data)
     default:
+        return false
+    }
+}
+
+private func int64EqualDouble(i: Int64, _ d: Double) -> Bool {
+    if d >= Double(Int64.min) && d < Double(Int64.max) {
+        return round(d) == d && i == Int64(d)
+    } else {
         return false
     }
 }
