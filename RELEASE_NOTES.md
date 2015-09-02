@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next version
+
+**New**
+
+- `DatabaseValue` adopts `DatabaseValueConvertible`, which allows the injection of a fetched value in another query without having to convert the raw database value into a regular Swift type.
+
+
 ## 0.9.0
 
 Released August 25, 2015

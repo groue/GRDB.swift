@@ -130,3 +130,16 @@ public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
         return false
     }
 }
+
+/// DatabaseValue adopts DatabaseValueConvertible.
+extension DatabaseValue : DatabaseValueConvertible {
+    /// Returns self
+    public var databaseValue: DatabaseValue {
+        return self
+    }
+    
+    /// Create a copy of `databaseValue`.
+    public init?(databaseValue: DatabaseValue) {
+        self = databaseValue
+    }
+}
