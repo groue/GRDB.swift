@@ -932,7 +932,7 @@ class Placemark : RowModel {
                 coordinate = nil
             }
         }
-        super.updateFromRow(row) // Subclasses are required to call super:
+        super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
 ```
