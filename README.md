@@ -770,6 +770,7 @@ Subclasses opt in RowModel features by overriding all or part of the core method
 
 - [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
+- [Compound Properties](#compound-properties)
 - [Tables and Primary Keys](#tables-and-primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
 - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
