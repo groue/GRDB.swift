@@ -129,6 +129,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [Row Models](#row-models)
         - [Fetching Row Models](#fetching-row-models)
         - [Ad Hoc Subclasses](#ad-hoc-subclasses)
+        - [Compound Properties](#compound-properties)
         - [Tables and Primary Keys](#tables-and-primary-keys)
         - [Insert, Update and Delete](#insert-update-and-delete)
         - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
@@ -873,6 +874,76 @@ class PersonsViewController: UITableViewController {
     ...
 }
 ```
+
+
+### Compound Properties
+
+Some properties don't fit well in a single column:
+
+```swift
+class Placemark : RowModel {
+    // Stored in two columns: latitude and longitude
+    var coordinate: CLLocationCoordinate2D?
+}
+```
+
+A solution is of course to declare two internal properties, latitude and longitude, and implement coordinate as a computed property. `setDatabaseValue()` would simply update latitude and longitude separately:
+
+```swift
+// Solution 1: computed property:
+class Placemark : RowModel {
+    var coordinate: CLLocationCoordinate2D? {
+        switch (latitude, longitude) {
+        case (let latitude?, let longitude?):
+            // Both latitude and longitude are not nil.
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        default:
+            return nil
+        }
+    }
+    var latitude: CLLocationDegrees?
+    var longitude: CLLocationDegrees?
+    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
+        switch column {
+        case "latitude": latitude = dbv.value()
+        case "longitude": longitude = dbv.value()
+        default: super.setDatabaseValue(dbv, forColumn: column)
+        }
+    }
+}
+```
+
+Another solution is to override the `updateFromRow()` method, where you can process a row as a whole:
+
+```swift
+// Solution 2: process rows as a whole:
+class Placemark : RowModel {
+    var coordinate: CLLocationCoordinate2D?
+    
+    override func updateFromRow(row: Row) {
+        // Let's keep things simple, and only update self.coordinate if the
+        // row contains both lat and long columns.
+        //
+        // We test column presence by extracting DatabaseValues, which may
+        // contain coordinates, or NULL:
+        if let latitude = row["latitude"], let longitude = row["longitude"] {
+            // Both columns are present.
+            switch (latitude.value() as Double?, longitude.value() as Double?) {
+            case (let latitude?, let longitude?):
+                // Both latitude and longitude are not nil.
+                coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+            default:
+                coordinate = nil
+            }
+        }
+        
+        // Subclasses are required to call super:
+        super.updateFromRow(row)
+    }
+}
+```
+
+The remaining columns are handled by `setDatabaseValue()` as described above.
 
 
 ### Tables and Primary Keys
