@@ -903,6 +903,7 @@ class Placemark : RowModel {
     }
     var latitude: CLLocationDegrees?
     var longitude: CLLocationDegrees?
+    
     override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
         case "latitude": latitude = dbv.value()
@@ -921,11 +922,7 @@ class Placemark : RowModel {
     var coordinate: CLLocationCoordinate2D?
     
     override func updateFromRow(row: Row) {
-        // Let's keep things simple, and only update self.coordinate if the
-        // row contains both lat and long columns.
-        //
-        // We test column presence by extracting DatabaseValues, which may
-        // contain coordinates, or NULL:
+        // Test column presence by extracting DatabaseValues:
         if let latitude = row["latitude"], let longitude = row["longitude"] {
             // Both columns are present.
             switch (latitude.value() as Double?, longitude.value() as Double?) {
