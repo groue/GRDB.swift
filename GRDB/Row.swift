@@ -44,6 +44,13 @@ public struct Row: CollectionType {
     - returns: An optional DatabaseValueConvertible.
     */
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
+        // IMPLEMENTATION NOTE
+        // This method has a single know use case: checking if the value is nil,
+        // as in:
+        //
+        //     if row.value(atIndex: 0) != nil { ... }
+        //
+        // Without this method, the code above would not compile.
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -105,6 +112,13 @@ public struct Row: CollectionType {
     - returns: An optional DatabaseValueConvertible.
     */
     public func value(named columnName: String) -> DatabaseValueConvertible? {
+        // IMPLEMENTATION NOTE
+        // This method has a single know use case: checking if the value is nil,
+        // as in:
+        //
+        //     if row.value(named: "foo") != nil { ... }
+        //
+        // Without this method, the code above would not compile.
         let index = impl.indexForColumn(named: columnName)!
         return impl.databaseValue(atIndex: index).value()
     }

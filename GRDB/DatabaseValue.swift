@@ -57,6 +57,13 @@ public enum DatabaseValue : Equatable {
     let value = databaseValue.value()
     */
     public func value() -> DatabaseValueConvertible? {
+        // IMPLEMENTATION NOTE
+        // This method has a single know use case: checking if the value is nil,
+        // as in:
+        //
+        //     if dbv.value() != nil { ... }
+        //
+        // Without this method, the code above would not compile.
         switch self {
         case .Null:
             return nil
