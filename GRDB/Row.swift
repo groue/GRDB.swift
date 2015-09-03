@@ -27,6 +27,23 @@ A row is the result of a database query.
 */
 public struct Row: CollectionType {
     
+    
+    // MARK: - Building rows
+    
+    /**
+    Builds a row from an dictionary of values.
+    
+    - parameter databaseDictionary: A dictionary of DatabaseValue.
+    */
+    public init(dictionary: [String: DatabaseValueConvertible?]) {
+        var databaseDictionary = [String: DatabaseValue]()
+        for (key, value) in dictionary {
+            databaseDictionary[key] = value?.databaseValue ?? .Null
+        }
+        self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
+    }
+    
+    
     // MARK: - Extracting Swift Values
     
     /**
@@ -216,26 +233,7 @@ public struct Row: CollectionType {
     
     // MARK: - Not Public
     
-    /**
-    There are 3 different row implementations:
-    
-    - DictionaryRowImpl
-    - SafeRowImpl
-    */
     let impl: RowImpl
-    
-    /**
-    Builds a row from an dictionary of values.
-    
-    - parameter databaseDictionary: A dictionary of DatabaseValue.
-    */
-    init(dictionary: [String: DatabaseValueConvertible?]) {
-        var databaseDictionary = [String: DatabaseValue]()
-        for (key, value) in dictionary {
-            databaseDictionary[key] = value?.databaseValue ?? .Null
-        }
-        self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
-    }
     
     /**
     Builds a row from the *current state* of the SQLite statement.

@@ -23,7 +23,7 @@
 
 
 import XCTest
-@testable import GRDB
+import GRDB
 
 class DictionaryRowTests: GRDBTestCase {
     

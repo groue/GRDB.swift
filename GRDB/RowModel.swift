@@ -148,14 +148,39 @@ public class RowModel {
         // This initializer is defined so that subclasses can distinguish
         // the simple init() from init(row: Row), and perform distinct
         // initialization for fetched models.
+        //
+        // IMPLEMENTATION NOTE
+        //
+        // This initializer returns an edited model because the row may not
+        // come from the database.
+        
+        updateFromRow(row)
+    }
+    
+    
+    // MARK: - Model Update
+    
+    /**
+    Updates self from a row.
+    
+    If you override this method, it is required to call super.
+    */
+    public func updateFromRow(row: Row) {
+        // IMPLEMENTATION NOTE
+        //
+        // Subclasses must call super because we set the edited flag, and
+        // subclasses may forget to do so.
+        //
+        // We set the edited flag because the row may change the primary key,
+        // and until we try to be smart, turning the edited flag is the safest
+        // option.
         
         for (column, databaseValue) in row {
             setDatabaseValue(databaseValue, forColumn: column)
         }
+        
+        edited = true
     }
-    
-    
-    // MARK: - Copy
     
     /**
     Updates `self` with another row model by repeatedly calling the
@@ -163,12 +188,8 @@ public class RowModel {
     `other.storedDatabaseDictionary`.
     */
     public func copyDatabaseValuesFrom(other: RowModel) {
-        for (column, value) in other.storedDatabaseDictionary {
-            setDatabaseValue(value?.databaseValue ?? .Null, forColumn: column)
-        }
-        
-        // Primary key may have been updated: row model may be edited.
-        edited = true
+        let row = Row(dictionary: other.storedDatabaseDictionary)
+        updateFromRow(row)
     }
     
     

@@ -49,6 +49,14 @@ class RowModelEditedTests: RowModelTestCase {
         XCTAssertTrue(person.edited)
     }
     
+    func testRowModelIsEditedAfterInitFromRow() {
+        // Create a RowModel from a row. The row may not come from the database.
+        // So it is edited.
+        let row = Row(dictionary: ["name": "Arthur", "age": 41])
+        let person = Person(row: row)
+        XCTAssertTrue(person.edited)
+    }
+    
     func testRowModelIsNotEditedAfterFullFetch() {
         // Fetch a model from a row that contains all the columns in
         // storedDatabaseDictionary: An update statement, which only saves the
