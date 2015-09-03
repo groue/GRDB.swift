@@ -887,11 +887,13 @@ class Placemark : RowModel {
 }
 ```
 
-A solution is of course to declare two internal properties, latitude and longitude, and implement coordinate as a computed property. `setDatabaseValue()` would simply update latitude and longitude separately:
+A solution is of course to declare two convenience properties, latitude and longitude, and implement coordinate on top of them, as a computed property. `setDatabaseValue()` would then update latitude and longitude separately:
 
 ```swift
 // Solution 1: computed property:
 class Placemark : RowModel {
+    var latitude: CLLocationDegrees?
+    var longitude: CLLocationDegrees?
     var coordinate: CLLocationCoordinate2D? {
         switch (latitude, longitude) {
         case (let latitude?, let longitude?):
@@ -901,8 +903,6 @@ class Placemark : RowModel {
             return nil
         }
     }
-    var latitude: CLLocationDegrees?
-    var longitude: CLLocationDegrees?
     
     override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
