@@ -922,7 +922,6 @@ class Placemark : RowModel {
     var coordinate: CLLocationCoordinate2D?
     
     override func updateFromRow(row: Row) {
-        // Test column presence by extracting DatabaseValues:
         if let latitude = row["latitude"], let longitude = row["longitude"] {
             // Both columns are present.
             switch (latitude.value() as Double?, longitude.value() as Double?) {
