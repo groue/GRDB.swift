@@ -145,9 +145,15 @@ public class RowModel {
     required public init(row: Row) {
         // IMPLEMENTATION NOTE
         //
-        // This initializer is defined so that subclasses can distinguish
-        // the simple init() from init(row: Row), and perform distinct
-        // initialization for fetched models.
+        // Swift requires a required initializer so that we can fetch RowModels
+        // in SelectStatement.fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: StatementArguments? = nil) -> AnySequence<RowModel>
+        //
+        // This required initializer *can not* be the simple init(), because it
+        // would prevent subclasses to provide handy initializers made of
+        // optional arguments like init(firstName: String? = nil, lastName: String? = nil).
+        // See rdar://22554816 for more information.
+        //
+        // OK so the only initializer that we can require in init(row:Row).
         //
         // IMPLEMENTATION NOTE
         //
