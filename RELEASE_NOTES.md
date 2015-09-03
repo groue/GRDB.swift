@@ -7,7 +7,7 @@ Release Notes
 
 - `DatabaseValue` adopts `DatabaseValueConvertible`, which allows the injection of a fetched value in another query without having to convert the raw database value into a regular Swift type.
 - `Row.init(dictionary)` lets you create a row from scratch.
-- `RowModel.updateFromRow(row)` if an overridable method that helps updating compound properties such as CLLocationCoordinate2D that does not fit in a single column.
+- `RowModel.updateFromRow(row)` is an overridable method that helps updating compound properties that do not fit in a single column, such as CLLocationCoordinate2D.
 
 
 ## 0.9.0
