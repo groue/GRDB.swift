@@ -1002,7 +1002,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Models that declare a `RowID` primary key have their id automatically set after successful insertion (with the `setDatabaseValue(_:forColumn:)` method).
+Models that declare a `RowID` primary key have their id automatically set after successful insertion.
 
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 

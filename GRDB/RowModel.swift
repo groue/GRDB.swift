@@ -283,7 +283,25 @@ public class RowModel {
                 fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key `(rowIDColumn)`")
             }
             if rowID == nil {
-                setDatabaseValue(DatabaseValue.Integer(changes.insertedRowID!), forColumn: rowIDColumn)
+                // IMPLEMENTATION NOTE:
+                //
+                // We update the ID with updateFromRow(), and not
+                // setDatabaseValue(_:forColumn:). Rationale:
+                //
+                // 1. If subclass updates its ID in setDatabaseValue(), then the
+                //    default updateFromRow() runs, which calls
+                //    setDatabaseValue(), and updates the ID.
+                //
+                // 2. If subclass overrides updateFromRow() and updates its ID
+                //    in setDatabaseValue(), then the subclasses calls super
+                //    from updateFromRow() (as it is required to do), which in
+                //    turns call setDatabaseValue(), and updates the ID.
+                //
+                // 3. If subclass overrides updateFromRow() and updates its ID
+                //    in updateFromRow(), not in setDatabaseValue(), which it is
+                //    allowed to do, then using setDatabaseValue() would not
+                //    update the ID.
+                updateFromRow(Row(dictionary: [rowIDColumn: changes.insertedRowID]))
             }
         }
         
