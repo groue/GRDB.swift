@@ -121,8 +121,6 @@ public class RowModel {
     /**
     Initializes a RowModel.
     
-    This initializer is not used for fetched models (see `init(row:)`).
-    
     The returned rowModel is *edited*.
     */
     public init() {
@@ -135,10 +133,7 @@ public class RowModel {
     /**
     Initializes a RowModel from a row.
     
-    This initializer is used for all fetched models.
-    
-    The returned rowModel is *edited*. Fetched models are post-processed so that
-    their *edited* flag is false when the row contains enough columns.
+    The returned rowModel is *edited*.
     
     - parameter row: A Row
     */
@@ -164,12 +159,23 @@ public class RowModel {
     }
     
     
-    // MARK: - Model Update
+    // MARK: - Events
+    
+    /**
+    Called after a RowModel has been fetched or reloaded.
+    
+    *Important*: subclasses must invoke super's implementation.
+    */
+    public func didFetch() {
+    }
+    
+    
+    // MARK: - Update
     
     /**
     Updates self from a row.
     
-    If you override this method, it is *required* to call super.
+    *Important*: subclasses must invoke super's implementation.
     */
     public func updateFromRow(row: Row) {
         // IMPLEMENTATION NOTE
@@ -416,6 +422,7 @@ public class RowModel {
         if let row = statement.fetchOneRow() {
             updateFromRow(row)
             referenceRow = row
+            didFetch()
         } else {
             throw RowModelError.RowModelNotFound(self)
         }
@@ -844,13 +851,9 @@ extension SelectStatement {
                     return nil
                 }
                 
-                // Build rowModel
                 let rowModel = RowModel.init(row: row)
-                
-                // RowModel is not edited, unless the row misses columns present
-                // in storedDatabaseDictionary.
-                rowModel.referenceRow = row
-                
+                rowModel.referenceRow = row // Takes care of the edited flag. If the row does not contain all columns, the model remains edited.
+                rowModel.didFetch()
                 return rowModel
             }
         }

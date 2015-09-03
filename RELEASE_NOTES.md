@@ -7,6 +7,7 @@ Release Notes
 
 - `DatabaseValue` adopts `DatabaseValueConvertible`: a fetched value can be used as an argument of another query, without having to convert the raw database value into a regular Swift type.
 - `Row.init(dictionary)` lets you create a row from scratch.
+- `RowModel.didFetch()` is an overridable method that is called after a RowModel has been fetched or reloaded.
 - `RowModel.updateFromRow(row)` is an overridable method that helps updating compound properties that do not fit in a single column, such as CLLocationCoordinate2D.
 
 
