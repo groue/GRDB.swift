@@ -169,7 +169,7 @@ public class RowModel {
     /**
     Updates self from a row.
     
-    If you override this method, it is required to call super.
+    If you override this method, it is *required* to call super.
     */
     public func updateFromRow(row: Row) {
         // IMPLEMENTATION NOTE
@@ -189,13 +189,10 @@ public class RowModel {
     }
     
     /**
-    Updates `self` with another row model by repeatedly calling the
-    `setDatabaseValue(_:forColumn:)` with all values from
-    `other.storedDatabaseDictionary`.
+    Updates `self` from `other.storedDatabaseDictionary`.
     */
     public func copyDatabaseValuesFrom(other: RowModel) {
-        let row = Row(dictionary: other.storedDatabaseDictionary)
-        updateFromRow(row)
+        updateFromRow(Row(dictionary: other.storedDatabaseDictionary))
     }
     
     
@@ -399,9 +396,7 @@ public class RowModel {
     public func reload(db: Database) throws {
         let statement = DataMapper(self).reloadStatement(db)
         if let row = statement.fetchOneRow() {
-            for (column, databaseValue) in row {
-                setDatabaseValue(databaseValue, forColumn: column)
-            }
+            updateFromRow(row)
             referenceRow = row
         } else {
             throw RowModelError.RowModelNotFound(self)
