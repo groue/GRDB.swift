@@ -899,7 +899,7 @@ class Placemark : RowModel {
         switch (latitude, longitude) {
         case (let latitude?, let longitude?):
             // Both latitude and longitude are not nil.
-            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+            return CLLocationCoordinate2DMake(latitude, longitude)
         default:
             return nil
         }
@@ -928,7 +928,7 @@ class Placemark : RowModel {
             switch (latitude.value() as Double?, longitude.value() as Double?) {
             case (let latitude?, let longitude?):
                 // Both latitude and longitude are not nil.
-                coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+                coordinate = CLLocationCoordinate2DMake(latitude, longitude)
             default:
                 coordinate = nil
             }
