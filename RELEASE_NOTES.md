@@ -16,12 +16,12 @@ Released August 25, 2015
 
 **Fixed**
 
-- Compiles on Xcode7b6
 - Reduced iOS Deployment Target to 8.0, and OSX Deployment Target to 10.9.
 - `DatabaseQueue.inTransaction()` is now declared as `rethrows`.
 
 **Breaking changes**
 
+- Requires Xcode 7 beta 6
 - `QueryArguments` has been renamed `StatementArguments`.
 
 
@@ -142,7 +142,7 @@ Released July 9, 2015
 
 **Breaking changes**
 
-- Requires Xcode 7.0 beta 3
+- Requires Xcode 7 beta 3
 
 **New**
 
