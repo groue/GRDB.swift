@@ -958,7 +958,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-There are three kinds of primary keys:
+Primary key is not mandatory. But when there is a primary key, it is one of:
 
 - **RowID**: use it when you rely on automatically generated IDs in an `INTEGER PRIMARY KEY` column. Beware RowModel does not support the implicit `ROWID` column (see https://www.sqlite.org/autoinc.html for more information).
     
