@@ -1,3 +1,4 @@
 - [ ] #2: this commit may be how stephencelis fixed it: https://github.com/stephencelis/SQLite.swift/commit/8f64e357c3a6668c5f011c91ba33be3e8d4b88d0
 - [ ] Use @warn_unused_result
 - [ ] How can RowModel wrap two columns in a single CLLocationCoordinate2D property?
+- [ ] Now that the user can create its own rows, RowModel.init(row) is no longer a way to distinguish fetched models. So let's remove init(row), or turn it into a convenience initializer.
