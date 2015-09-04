@@ -25,7 +25,7 @@
 import XCTest
 import GRDB
 
-class FetchableParent : DatabaseValueConvertible {
+class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
         return DatabaseValue.Text("Parent")
@@ -37,6 +37,8 @@ class FetchableParent : DatabaseValueConvertible {
     
     init() {
     }
+    
+    var description: String { return "Parent" }
 }
 
 class FetchableChild : FetchableParent {
@@ -44,6 +46,8 @@ class FetchableChild : FetchableParent {
     override var databaseValue: DatabaseValue {
         return DatabaseValue.Text("Child")
     }
+    
+    override var description: String { return "Child" }
 }
 
 class DatabaseValueConvertibleSubclassTests: GRDBTestCase {
@@ -55,7 +59,8 @@ class DatabaseValueConvertibleSubclassTests: GRDBTestCase {
                 try db.execute("INSERT INTO parents (name) VALUES (?)", arguments: [FetchableParent()])
                 let string = String.fetchOne(db, "SELECT * FROM parents")!
                 XCTAssertEqual(string, "Parent")
-                FetchableParent.fetchOne(db, "SELECT * FROM parents")!
+                let parent = FetchableParent.fetchOne(db, "SELECT * FROM parents")!
+                XCTAssertEqual(parent.description, "Parent")
             }
         }
     }
@@ -67,7 +72,8 @@ class DatabaseValueConvertibleSubclassTests: GRDBTestCase {
                 try db.execute("INSERT INTO children (name) VALUES (?)", arguments: [FetchableChild()])
                 let string = String.fetchOne(db, "SELECT * FROM children")!
                 XCTAssertEqual(string, "Child")
-                FetchableChild.fetchOne(db, "SELECT * FROM children")!
+                let child = FetchableChild.fetchOne(db, "SELECT * FROM children")!
+                XCTAssertEqual(child.description, "Child")
             }
         }
     }
