@@ -382,6 +382,18 @@ public struct Row: CollectionType {
     }
 }
 
+/// Row adopts CustomStringConvertible.
+extension Row: CustomStringConvertible {
+    /// A textual representation of `self`.
+    public var description: String {
+        return "<Row"
+            + map { (column, dbv) in
+                " \(column):\(dbv)"
+                }.joinWithSeparator("")
+            + ">"
+    }
+}
+
 // The protocol for Row underlying implementation
 protocol RowImpl {
     var columnCount: Int { get }
