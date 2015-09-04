@@ -394,7 +394,7 @@ public class RowModel {
               not match any row in the database and row model could not be
               reloaded.
     */
-    public func reload(db: Database) throws {
+    final public func reload(db: Database) throws {
         let statement = DataMapper(self).reloadStatement(db)
         if let row = Row.fetchOne(statement) {
             updateFromRow(row)
