@@ -65,7 +65,7 @@ class RowModelEditedTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let person = db.fetchOne(Person.self, "SELECT * FROM persons")!
+                let person = Person.fetchOne(db, "SELECT * FROM persons")!
                 XCTAssertFalse(person.edited)
             }
         }
@@ -76,7 +76,7 @@ class RowModelEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE t (value REAL)")
                 try db.execute("INSERT INTO t (value) VALUES (1)")
-                let rowModel = db.fetchOne(IntegerPropertyOnRealAffinityColumn.self, "SELECT * FROM t")!
+                let rowModel = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
                 XCTAssertFalse(rowModel.edited)
             }
         }
@@ -90,7 +90,7 @@ class RowModelEditedTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let person = db.fetchOne(Person.self, "SELECT *, 1 AS foo FROM persons")!
+                let person = Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
                 XCTAssertFalse(person.edited)
             }
         }
@@ -104,7 +104,7 @@ class RowModelEditedTests: RowModelTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
-                let person =  db.fetchOne(Person.self, "SELECT name FROM persons")!
+                let person =  Person.fetchOne(db, "SELECT name FROM persons")!
                 XCTAssertTrue(person.edited)
             }
         }

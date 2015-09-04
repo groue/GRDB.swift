@@ -31,8 +31,8 @@ You create SelectStatement with the Database.selectStatement() method:
 
     dbQueue.inDatabase { db in
         let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
-        let moreThanTwentyCount = statement.fetchOne(Int.self, arguments: [20])!
-        let moreThanThirtyCount = statement.fetchOne(Int.self, arguments: [30])!
+        let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
+        let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
     }
 */
 public final class SelectStatement : Statement {
@@ -65,7 +65,7 @@ public final class SelectStatement : Statement {
     
         // All rows are loaded, which means that statement has been fully
         // consumed, and any SQLite casting opportunity has passed.
-        let rows = db.fetchAllRows("SELECT ...")
+        let rows = Row.fetchAll(db, "SELECT ...")
     
         for row in rows {
             let age: Int = row.value(atIndex:0)     // the conversion actually happens in GRDB.
@@ -91,21 +91,17 @@ public final class SelectStatement : Statement {
             fatalError("Unexpected SQLite column type")
         }
     }
-}
 
-/// The SelectStatement methods that fetch rows.
-extension SelectStatement {
-    
     /**
     Fetches a lazy sequence of rows.
     
         let statement = db.selectStatement("SELECT ...")
         let rows = statement.fetchRows()
     
-    - parameter arguments: Optional query arguments.
+    - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of rows.
     */
-    public func fetchRows(arguments arguments: StatementArguments? = nil) -> AnySequence<Row> {
+    func fetchRows(arguments arguments: StatementArguments? = nil) -> AnySequence<Row> {
         if let arguments = arguments {
             self.arguments = arguments
         }
@@ -124,7 +120,7 @@ extension SelectStatement {
                 // Here we avoid this pattern:
                 //
                 //      let rows = dbQueue.inDatabase { db in
-                //          try db.fetchRows("...")
+                //          try Row.fetch(db, "...")
                 //      }
                 //      for row in rows {   // fatal error!
                 //          ...
@@ -148,101 +144,6 @@ extension SelectStatement {
                     fatalDatabaseError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments))
                 }
             }
-        }
-    }
-    
-    /**
-    Fetches an array of rows.
-    
-        let statement = db.selectStatement("SELECT ...")
-        let rows = statement.fetchAllRows()
-    
-    - parameter arguments: Optional query arguments.
-    - returns: An array of rows.
-    */
-    public func fetchAllRows(arguments arguments: StatementArguments? = nil) -> [Row] {
-        return Array(fetchRows(arguments: arguments))
-    }
-    
-    /**
-    Fetches a single row.
-    
-        let statement = db.selectStatement("SELECT ...")
-        let row = statement.fetchOneRow()
-    
-    - parameter arguments: Optional query arguments.
-    
-    - returns: An optional row.
-    */
-    public func fetchOneRow(arguments arguments: StatementArguments? = nil) -> Row? {
-        return fetchRows(arguments: arguments).generate().next()
-    }
-}
-
-/// The SelectStatement methods that fetch values.
-extension SelectStatement {
-    
-    /**
-    Fetches a lazy sequence of values.
-
-        let statement = db.selectStatement("SELECT name FROM ...")
-        let names = statement.fetch(String.self)
-
-    - parameter type:     The type of fetched values. It must adopt
-                          DatabaseValueConvertible.
-    - parameter arguments: Optional query arguments.
-    
-    - returns: A lazy sequence of values.
-    */
-    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, arguments: StatementArguments? = nil) -> AnySequence<Value?> {
-        let rowSequence = fetchRows(arguments: arguments)
-        return AnySequence { () -> AnyGenerator<Value?> in
-            let rowGenerator = rowSequence.generate()
-            return anyGenerator { () -> Value?? in
-                if let row = rowGenerator.next() {
-                    return Optional.Some(row.value(atIndex: 0))
-                } else {
-                    return nil
-                }
-            }
-        }
-    }
-    
-    /**
-    Fetches an array of values.
-
-        let statement = db.selectStatement("SELECT name FROM ...")
-        let names = db.fetchAll(String.self)
-
-    - parameter type:     The type of fetched values. It must adopt
-                          DatabaseValueConvertible.
-    - parameter arguments: Optional query arguments.
-    
-    - returns: An array of values.
-    */
-    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, arguments: StatementArguments? = nil) -> [Value?] {
-        return Array(fetch(type, arguments: arguments))
-    }
-    
-    /**
-    Fetches a single value.
-
-        let statement = db.selectStatement("SELECT name FROM ...")
-        let name = db.fetchOne(String.self)
-
-    - parameter type:     The type of fetched values. It must adopt
-                          DatabaseValueConvertible.
-    - parameter arguments: Optional query arguments.
-    
-    - returns: An optional value.
-    */
-    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, arguments: StatementArguments? = nil) -> Value? {
-        if let optionalValue = fetch(type, arguments: arguments).generate().next() {
-            // one row containing an optional value
-            return optionalValue
-        } else {
-            // no row
-            return nil
         }
     }
 }

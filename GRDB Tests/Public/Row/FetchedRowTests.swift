@@ -33,7 +33,7 @@ class FetchedRowTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = db.fetchOneRow("SELECT * FROM ints")!
+                let row = Row.fetchOne(db, "SELECT * FROM ints")!
                 
                 var columnNames = [String]()
                 var ints = [Int]()
@@ -57,7 +57,7 @@ class FetchedRowTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = db.fetchOneRow("SELECT * FROM ints")!
+                let row = Row.fetchOne(db, "SELECT * FROM ints")!
 
                 XCTAssertEqual(row.value(atIndex: 0)! as Int, 0)
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 1)
@@ -81,7 +81,7 @@ class FetchedRowTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = db.fetchOneRow("SELECT * FROM ints")!
+                let row = Row.fetchOne(db, "SELECT * FROM ints")!
                 
                 XCTAssertEqual(row.value(named: "a")! as Int, 0)
                 XCTAssertEqual(row.value(named: "b")! as Int, 1)

@@ -72,6 +72,8 @@
 		5699AE5F1B42E59F00C35172 /* DatabaseValueConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5699AE5E1B42E59F00C35172 /* DatabaseValueConvertible.swift */; };
 		56B8F4491B4E1C7800C24296 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E0B131B4D8FC100EBC9F6 /* DatabaseError.swift */; };
 		56B8F44A1B4E1C8600C24296 /* DatabaseValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E0B151B4D901300EBC9F6 /* DatabaseValue.swift */; };
+		56C1BF221B99C92F00B745C1 /* DatabaseValueConvertibleSubclassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C1BF211B99C92F00B745C1 /* DatabaseValueConvertibleSubclassTests.swift */; settings = {ASSET_TAGS = (); }; };
+		56C1BF231B99C92F00B745C1 /* DatabaseValueConvertibleSubclassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C1BF211B99C92F00B745C1 /* DatabaseValueConvertibleSubclassTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56CC3C8F1B43A5A700A9A534 /* DatabaseQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C8E1B43A5A700A9A534 /* DatabaseQueue.swift */; };
 		56CC3C931B43BF0100A9A534 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C921B43BF0100A9A534 /* Configuration.swift */; };
 		56CC3C951B43C0E600A9A534 /* DatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */; };
@@ -166,6 +168,7 @@
 		5699AE5E1B42E59F00C35172 /* DatabaseValueConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertible.swift; sourceTree = "<group>"; };
 		56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDB.xcconfig; sourceTree = "<group>"; };
 		56B8F49B1B4E2F3600C24296 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		56C1BF211B99C92F00B745C1 /* DatabaseValueConvertibleSubclassTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleSubclassTests.swift; sourceTree = "<group>"; };
 		56CC3C8E1B43A5A700A9A534 /* DatabaseQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueue.swift; sourceTree = "<group>"; };
 		56CC3C921B43BF0100A9A534 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		56CC3C941B43C0E600A9A534 /* DatabaseMigrator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseMigrator.swift; sourceTree = "<group>"; };
@@ -277,6 +280,7 @@
 		5699796D1B539038005EBEED /* DatabaseValueConvertible */ = {
 			isa = PBXGroup;
 			children = (
+				56C1BF211B99C92F00B745C1 /* DatabaseValueConvertibleSubclassTests.swift */,
 				5699796F1B539038005EBEED /* DatabaseValueConvertibleTests.swift */,
 				569979701B539038005EBEED /* RawRepresentableTests.swift */,
 			);
@@ -654,6 +658,7 @@
 				56997A381B539038005EBEED /* InMemoryDatabaseTests.swift in Sources */,
 				56997A5E1B539038005EBEED /* RowModelSubClassTests.swift in Sources */,
 				56997A361B539038005EBEED /* DatabaseTests.swift in Sources */,
+				56C1BF231B99C92F00B745C1 /* DatabaseValueConvertibleSubclassTests.swift in Sources */,
 				56997A4E1B539038005EBEED /* PrimaryKeyNoneTests.swift in Sources */,
 				56997A5A1B539038005EBEED /* RowModelInitializersTests.swift in Sources */,
 				56997A401B539038005EBEED /* DatabaseValueConvertibleTests.swift in Sources */,
@@ -692,6 +697,7 @@
 				56997A371B539038005EBEED /* InMemoryDatabaseTests.swift in Sources */,
 				56997A5D1B539038005EBEED /* RowModelSubClassTests.swift in Sources */,
 				56997A351B539038005EBEED /* DatabaseTests.swift in Sources */,
+				56C1BF221B99C92F00B745C1 /* DatabaseValueConvertibleSubclassTests.swift in Sources */,
 				56997A4D1B539038005EBEED /* PrimaryKeyNoneTests.swift in Sources */,
 				56997A591B539038005EBEED /* RowModelInitializersTests.swift in Sources */,
 				56997A3F1B539038005EBEED /* DatabaseValueConvertibleTests.swift in Sources */,

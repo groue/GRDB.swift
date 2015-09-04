@@ -56,7 +56,7 @@ class SelectStatementTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
                 let ages = [20, 30, 40, 50]
-                let counts = ages.map { statement.fetchOne(Int.self, arguments: [$0])! }
+                let counts = ages.map { Int.fetchOne(statement, arguments: [$0])! }
                 XCTAssertEqual(counts, [1,2,2,3])
             }
         }
@@ -69,7 +69,7 @@ class SelectStatementTests : GRDBTestCase {
                 let ages = [20, 30, 40, 50]
                 let counts = ages.map { (age: Int) -> Int in
                     statement.arguments = [age]
-                    return statement.fetchOne(Int.self)!
+                    return Int.fetchOne(statement)!
                 }
                 XCTAssertEqual(counts, [1,2,2,3])
             }
@@ -82,7 +82,7 @@ class SelectStatementTests : GRDBTestCase {
                 let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: Remove this explicit type declaration required by rdar://22357375
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
-                let counts = ageDicts.map { statement.fetchOne(Int.self, arguments: StatementArguments($0))! }
+                let counts = ageDicts.map { Int.fetchOne(statement, arguments: StatementArguments($0))! }
                 XCTAssertEqual(counts, [1,2,2,3])
             }
         }
@@ -96,7 +96,7 @@ class SelectStatementTests : GRDBTestCase {
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { ageDict -> Int in
                     statement.arguments = StatementArguments(ageDict)
-                    return statement.fetchOne(Int.self)!
+                    return Int.fetchOne(statement)!
                 }
                 XCTAssertEqual(counts, [1,2,2,3])
             }
@@ -107,8 +107,8 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
-                var names1: [String?] = statement.fetchRows().map { $0.value(named: "name") as String? }
-                var names2: [String?] = statement.fetchRows().map { $0.value(named: "name") as String? }
+                var names1: [String?] = Row.fetch(statement).map { $0.value(named: "name") as String? }
+                var names2: [String?] = Row.fetch(statement).map { $0.value(named: "name") as String? }
                 
                 XCTAssertEqual(names1[0]!, "Arthur")
                 XCTAssertEqual(names1[1]!, "Barbara")
@@ -124,7 +124,7 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
-                let rows = statement.fetchRows()
+                let rows = Row.fetch(statement)
                 var names1: [String?] = rows.map { $0.value(named: "name") as String? }
                 var names2: [String?] = rows.map { $0.value(named: "name") as String? }
                 
@@ -142,8 +142,8 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
-                var names1: [String?] = Array(statement.fetch(String.self))
-                var names2: [String?] = Array(statement.fetch(String.self))
+                var names1: [String?] = Array(String.fetch(statement))
+                var names2: [String?] = Array(String.fetch(statement))
                 
                 XCTAssertEqual(names1[0]!, "Arthur")
                 XCTAssertEqual(names1[1]!, "Barbara")
@@ -159,7 +159,7 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
-                let nameSequence = statement.fetch(String.self)
+                let nameSequence = String.fetch(statement)
                 var names1: [String?] = Array(nameSequence)
                 var names2: [String?] = Array(nameSequence)
                 

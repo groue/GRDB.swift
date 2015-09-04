@@ -63,7 +63,7 @@ class DatabaseDateTests : GRDBTestCase {
                 }
                 
                 do {
-                    let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate FROM dates")!.date
+                    let date = DatabaseDate.fetchOne(db, "SELECT creationDate FROM dates")!.date
                     // All components must be preserved, but nanosecond since ISO-8601 stores milliseconds.
                     XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), dateComponents.year)
                     XCTAssertEqual(calendar.component(NSCalendarUnit.Month, fromDate: date), dateComponents.month)
@@ -92,7 +92,7 @@ class DatabaseDateTests : GRDBTestCase {
                     "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                     arguments: [3, DatabaseDate(NSDate().dateByAddingTimeInterval(1))])
                 
-                let ids = db.fetchAll(Int.self, "SELECT id FROM dates ORDER BY creationDate").map { $0! }
+                let ids = Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate").map { $0! }
                 XCTAssertEqual(ids, [1,2,3])
             }
         }
@@ -109,7 +109,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["01:02"])
-                let databaseDate = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")
+                let databaseDate = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")
                 XCTAssertTrue(databaseDate == nil)
             }
         }
@@ -121,7 +121,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["01:02:03"])
-                let databaseDate = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")
+                let databaseDate = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")
                 XCTAssertTrue(databaseDate == nil)
             }
         }
@@ -133,7 +133,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["01:02:03.00456"])
-                let databaseDate = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")
+                let databaseDate = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")
                 XCTAssertTrue(databaseDate == nil)
             }
         }
@@ -145,7 +145,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22"])
-                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
+                let date = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")!.date
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2015)
@@ -165,7 +165,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22 01:02"])
-                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
+                let date = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")!.date
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2015)
@@ -185,7 +185,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22 01:02:03"])
-                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
+                let date = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")!.date
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2015)
@@ -205,7 +205,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22 01:02:03.00456"])
-                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
+                let date = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")!.date
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2015)
@@ -227,10 +227,10 @@ class DatabaseDateTests : GRDBTestCase {
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: [2_456_293.520833])
                 
-                let string = db.fetchOne(String.self, "SELECT datetime(creationDate) from dates")!
+                let string = String.fetchOne(db, "SELECT datetime(creationDate) from dates")!
                 XCTAssertEqual(string, "2013-01-01 00:29:59")
                 
-                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
+                let date = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")!.date
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2013)
@@ -249,7 +249,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22T01:02"])
-                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
+                let date = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")!.date
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2015)
@@ -269,7 +269,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22T01:02:03"])
-                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
+                let date = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")!.date
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2015)
@@ -289,7 +289,7 @@ class DatabaseDateTests : GRDBTestCase {
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22T01:02:03.00456"])
-                let date = db.fetchOne(DatabaseDate.self, "SELECT creationDate from dates")!.date
+                let date = DatabaseDate.fetchOne(db, "SELECT creationDate from dates")!.date
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(NSCalendarUnit.Year, fromDate: date), 2015)

@@ -136,7 +136,7 @@ class RowModelUpdateFromRowTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE placemarks (id INTEGER PRIMARY KEY, name TEXT, latitude REAL, longitude REAL)")
                 try db.execute("INSERT INTO placemarks (name, latitude, longitude) VALUES (?,?,?)", arguments: ["Paris", parisLatitude, parisLongitude])
-                let paris = db.fetchOne(Placemark.self, "SELECT * FROM placemarks")!
+                let paris = Placemark.fetchOne(db, "SELECT * FROM placemarks")!
                 XCTAssertEqual(paris.name!, "Paris")
                 XCTAssertEqual(paris.coordinate!.latitude, parisLatitude)
                 XCTAssertEqual(paris.coordinate!.longitude, parisLongitude)
@@ -151,7 +151,7 @@ class RowModelUpdateFromRowTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE placemarks (id INTEGER PRIMARY KEY, name TEXT, latitude REAL, longitude REAL)")
                 try db.execute("INSERT INTO placemarks (name, latitude, longitude) VALUES (?,?,?)", arguments: ["Paris", parisLatitude, parisLongitude])
-                let paris = db.fetchOne(Placemark.self, "SELECT * FROM placemarks")!
+                let paris = Placemark.fetchOne(db, "SELECT * FROM placemarks")!
                 paris.coordinate = nil
                 try paris.reload(db)
                 XCTAssertEqual(paris.name!, "Paris")

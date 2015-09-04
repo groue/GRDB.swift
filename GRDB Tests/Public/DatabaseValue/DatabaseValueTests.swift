@@ -32,8 +32,8 @@ class DatabaseValueTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE integers (integer INTEGER)")
                 try db.execute("INSERT INTO integers (integer) VALUES (1)")
-                let databaseValue: DatabaseValue = db.fetchOneRow("SELECT * FROM integers")!.value(named: "integer")!               // Triggers DatabaseValue.init?(databaseValue: DatabaseValue)
-                let count = db.fetchOne(Int.self, "SELECT COUNT(*) FROM integers WHERE integer = ?", arguments: [databaseValue])!   // Triggers DatabaseValue.databaseValue
+                let databaseValue: DatabaseValue = Row.fetchOne(db, "SELECT * FROM integers")!.value(named: "integer")!               // Triggers DatabaseValue.init?(databaseValue: DatabaseValue)
+                let count = Int.fetchOne(db, "SELECT COUNT(*) FROM integers WHERE integer = ?", arguments: [databaseValue])!   // Triggers DatabaseValue.databaseValue
                 XCTAssertEqual(count, 1)
             }
         }

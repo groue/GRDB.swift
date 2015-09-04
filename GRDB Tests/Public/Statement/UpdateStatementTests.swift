@@ -51,20 +51,20 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             try dbQueue.inTransaction { db in
                 try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', ?)").execute()
-                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('😀', ?)").execute()
+                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('', ?)").execute()
                 try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', ?);").execute()
-                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('😀', ?);").execute()
+                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('', ?);").execute()
                 return .Commit
             }
         }
         
         dbQueue.inDatabase { db in
-            let rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
+            let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 4)
             XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
             XCTAssertEqual(rows[1].value(named: "name")! as String, "Arthur")
-            XCTAssertEqual(rows[2].value(named: "name")! as String, "😀")
-            XCTAssertEqual(rows[3].value(named: "name")! as String, "😀")
+            XCTAssertEqual(rows[2].value(named: "name")! as String, "")
+            XCTAssertEqual(rows[3].value(named: "name")! as String, "")
         }
     }
     
@@ -76,7 +76,7 @@ class UpdateStatementTests : GRDBTestCase {
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 let persons = [
                     ["Arthur", 41],
-                    ["😀"],
+                    [""],
                 ]
                 for person in persons {
                     try statement.execute(arguments: StatementArguments(person))
@@ -86,11 +86,11 @@ class UpdateStatementTests : GRDBTestCase {
             }
             
             dbQueue.inDatabase { db in
-                let rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
+                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "😀")
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
@@ -104,7 +104,7 @@ class UpdateStatementTests : GRDBTestCase {
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 let persons = [
                     ["Arthur", 41],
-                    ["😀"],
+                    [""],
                 ]
                 for person in persons {
                     statement.arguments = StatementArguments(person)
@@ -115,11 +115,11 @@ class UpdateStatementTests : GRDBTestCase {
             }
             
             dbQueue.inDatabase { db in
-                let rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
+                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "😀")
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
@@ -133,7 +133,7 @@ class UpdateStatementTests : GRDBTestCase {
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons = [
                     ["name": "Arthur", "age": 41],
-                    ["name": "😀"],
+                    ["name": ""],
                 ]
                 for person in persons {
                     try statement.execute(arguments: StatementArguments(person))
@@ -143,11 +143,11 @@ class UpdateStatementTests : GRDBTestCase {
             }
             
             dbQueue.inDatabase { db in
-                let rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
+                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "😀")
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
@@ -161,7 +161,7 @@ class UpdateStatementTests : GRDBTestCase {
                 let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons = [
                     ["name": "Arthur", "age": 41],
-                    ["name": "😀"],
+                    ["name": ""],
                 ]
                 for person in persons {
                     statement.arguments = StatementArguments(person)
@@ -172,11 +172,11 @@ class UpdateStatementTests : GRDBTestCase {
             }
             
             dbQueue.inDatabase { db in
-                let rows = db.fetchAllRows("SELECT * FROM persons ORDER BY name")
+                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "😀")
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }

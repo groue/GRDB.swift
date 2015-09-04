@@ -45,8 +45,8 @@ public final class Database {
     Returns a select statement that can be reused.
     
         let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
-        let moreThanTwentyCount = statement.fetchOne(Int.self, arguments: [20])!
-        let moreThanThirtyCount = statement.fetchOne(Int.self, arguments: [30])!
+        let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
+        let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
     
     - parameter sql: An SQL query.
     - returns: A SelectStatement.
@@ -150,7 +150,7 @@ public final class Database {
     */
     public func tableExists(tableName: String) -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        if let _ = fetchOneRow("SELECT \"sql\" FROM sqlite_master WHERE \"type\" = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercaseString]) {
+        if let _ = Row.fetchOne(self, "SELECT \"sql\" FROM sqlite_master WHERE \"type\" = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercaseString]) {
             return true
         } else {
             return false
@@ -266,108 +266,3 @@ public final class Database {
     try! throwDataBasase(error)
     fatalError("Should not happen")
 }
-
-
-// MARK: - Fetching Rows
-
-/// The Database methods that fetch rows.
-extension Database {
-    
-    /**
-    Fetches a lazy sequence of rows.
-
-        let rows = db.fetchRows("SELECT ...")
-
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional query arguments.
-    - returns: A lazy sequence of rows.
-    */
-    public func fetchRows(sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return selectStatement(sql).fetchRows(arguments: arguments)
-    }
-    
-    /**
-    Fetches an array of rows.
-    
-        let rows = db.fetchAllRows("SELECT ...")
-    
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional query arguments.
-    - returns: An array of rows.
-    */
-    public func fetchAllRows(sql: String, arguments: StatementArguments? = nil) -> [Row] {
-        return Array(fetchRows(sql, arguments: arguments))
-    }
-    
-    /**
-    Fetches a single row.
-    
-        let row = db.fetchOneRow("SELECT ...")
-    
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional query arguments.
-    - returns: An optional row.
-    */
-    public func fetchOneRow(sql: String, arguments: StatementArguments? = nil) -> Row? {
-        return fetchRows(sql, arguments: arguments).generate().next()
-    }
-}
-
-
-// MARK: - Fetching Values
-
-/// The Database methods that fetch values.
-extension Database {
-    
-    /**
-    Fetches a lazy sequence of values.
-
-        let names = db.fetch(String.self, "SELECT name FROM ...")
-
-    - parameter type:      The type of fetched values. It must adopt
-                           DatabaseValueConvertible.
-    - parameter sql:       An SQL query.
-    - parameter arguments: Optional query arguments.
-    - returns: A lazy sequence of values.
-    */
-    public func fetch<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Value?> {
-        return selectStatement(sql).fetch(type, arguments: arguments)
-    }
-    
-    /**
-    Fetches an array of values.
-
-        let names = db.fetchAll(String.self, "SELECT name FROM ...")
-
-    - parameter type:      The type of fetched values. It must adopt
-                           DatabaseValueConvertible.
-    - parameter sql:       An SQL query.
-    - parameter arguments: Optional query arguments.
-    - returns: An array of values.
-    */
-    public func fetchAll<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: StatementArguments? = nil) -> [Value?] {
-        return Array(fetch(type, sql, arguments: arguments))
-    }
-    
-    /**
-    Fetches a single value.
-
-        let name = db.fetchOne(String.self, "SELECT name FROM ...")
-
-    - parameter type:      The type of fetched values. It must adopt
-                           DatabaseValueConvertible.
-    - parameter sql:       An SQL query.
-    - parameter arguments: Optional query arguments.
-    - returns: An optional value.
-    */
-    public func fetchOne<Value: DatabaseValueConvertible>(type: Value.Type, _ sql: String, arguments: StatementArguments? = nil) -> Value? {
-        if let first = fetch(type, sql, arguments: arguments).generate().next() {
-            // one row containing an optional value
-            return first
-        } else {
-            // no row
-            return nil
-        }
-    }
-}
-

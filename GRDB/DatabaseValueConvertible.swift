@@ -270,7 +270,7 @@ DatabaseValueConvertible adoption.
     
     // Gain full GRDB.swift support:
     db.execute("INSERT INTO colors (color) VALUES (?)", [Color.Red])
-    let color: Color? = db.fetchOne(Color.self, "SELECT ...")
+    let color: Color? = Color.fetchOne(db, "SELECT ...")
 */
 public protocol DatabaseIntRepresentable : DatabaseValueConvertible {
     var rawValue: Int { get }
@@ -313,7 +313,7 @@ DatabaseValueConvertible adoption.
     
     // Gain full GRDB.swift support:
     db.execute("INSERT StringO colors (color) VALUES (?)", [Color.Red])
-    let color: Color? = db.fetchOne(Color.self, "SELECT ...")
+    let color: Color? = Color.fetchOne(db, "SELECT ...")
 */
 public protocol DatabaseStringRepresentable : DatabaseValueConvertible {
     var rawValue: String { get }
@@ -334,5 +334,117 @@ extension DatabaseStringRepresentable {
         } else {
             return nil
         }
+    }
+}
+
+
+// MARK: - Fetching
+
+/// Types that adopt both DatabaseValueConvertible can be fetched from the database.
+public extension DatabaseValueConvertible {
+    
+    // MARK: - Fetching From SelectStatement
+    
+    /**
+    Fetches a lazy sequence of DatabaseValueConvertible values.
+    
+        let statement = db.selectStatement("SELECT name FROM ...")
+        let names = String.fetch(statement) // AnySequence<String?>
+    
+    - parameter statement: The statement to run.
+    - parameter arguments: Optional statement arguments.
+    - returns: A lazy sequence of values.
+    */
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
+        let rowSequence = Row.fetch(statement, arguments: arguments)
+        func generate() -> AnyGenerator<Self?> {
+            let rowGenerator = rowSequence.generate()
+            return anyGenerator {
+                guard let row = rowGenerator.next() else {
+                    return nil
+                }
+                return row.value(atIndex: 0)
+            }
+        }
+        return AnySequence(generate)
+    }
+    
+    /**
+    Fetches an array of DatabaseValueConvertible values.
+    
+        let statement = db.selectStatement("SELECT name FROM ...")
+        let names = String.fetchAll(statement)  // [String?]
+    
+    - parameter statement: The statement to run.
+    - parameter arguments: Optional statement arguments.
+    - returns: An array of values.
+    */
+    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self?] {
+        return Array(fetch(statement, arguments: arguments))
+    }
+    
+    /**
+    Fetches a single DatabaseValueConvertible value
+    
+        let statement = db.selectStatement("SELECT name FROM ...")
+        let name = String.fetchOne(statement)   // String?
+    
+    - parameter statement: The statement to run.
+    - parameter arguments: Optional statement arguments.
+    - returns: An optional value.
+    */
+    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
+        guard let value = fetch(statement, arguments: arguments).generate().next() else {
+            return nil
+        }
+        return value
+    }
+    
+    
+    // MARK: - Fetching From Database
+    
+    /**
+    Fetches a lazy sequence of DatabaseValueConvertible values.
+    
+        let names = String.fetch(db, "SELECT name FROM ...") // AnySequence<String?>
+    
+    - parameter db: A Database.
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional statement arguments.
+    - returns: A lazy sequence of values.
+    */
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
+        return self.fetch(db.selectStatement(sql), arguments: arguments)
+    }
+    
+    /**
+    Fetches an array of DatabaseValueConvertible values.
+    
+        let names = String.fetchAll(db, "SELECT name FROM ...") // [String?]
+    
+    - parameter db: A Database.
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional statement arguments.
+    - returns: An array of values.
+    */
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self?] {
+        return Array(fetch(db, sql, arguments: arguments))
+    }
+    
+    /**
+    Fetches a single DatabaseValueConvertible value.
+    
+        let name = String.fetchOne(db, "SELECT name FROM ...") // String?
+    
+    - parameter db: A Database.
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional statement arguments.
+    - returns: An optional value.
+    */
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
+        guard let value = fetch(db, sql, arguments: arguments).generate().next() else {
+            return nil
+        }
+        return value
     }
 }

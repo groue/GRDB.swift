@@ -1,6 +1,29 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking changes**
+
+The fetching methods are not available on the fetched type themselves:
+
+```swift
+dbQueue.inDatabase { db in
+    Row.fetch(db, "SELECT ...", arguments: ...)        // AnySequence<Row>
+    Row.fetchAll(db, "SELECT ...", arguments: ...)     // [Row]
+    Row.fetchOne(db, "SELECT ...", arguments: ...)     // Row?
+    
+    String.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<String?>
+    String.fetchAll(db, "SELECT ...", arguments: ...)  // [String?]
+    String.fetchOne(db, "SELECT ...", arguments: ...)  // String?
+    
+    Person.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<Person>
+    Person.fetchAll(db, "SELECT ...", arguments: ...)  // [Person]
+    Person.fetchOne(db, "SELECT ...", arguments: ...)  // Person?
+}
+```
+
+
 ## 0.10.0
 
 Release September 4, 2015
@@ -118,7 +141,7 @@ Released July 11, 2015
     let json = ...
 
     // Fetches or create a new person given its ID:
-    let person = db.fetchOne(Person.self, primaryKey: json["id"]) ?? Person()
+    let person = Person.fetchOne(db, primaryKey: json["id"]) ?? Person()
 
     // Apply json payload:
     person.updateFromJSON(json)

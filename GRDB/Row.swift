@@ -231,6 +231,96 @@ public struct Row: CollectionType {
     }
     
     
+    // MARK: - Fetching From SelectStatement
+    
+    /**
+    Fetches a lazy sequence of rows.
+    
+        let statement = db.selectStatement("SELECT ...")
+        let rows = Row.fetch(statement)
+    
+    - parameter statement: The statement to run.
+    - parameter arguments: Optional statement arguments.
+    - returns: A lazy sequence of rows.
+    */
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+        return statement.fetchRows(arguments: arguments)
+    }
+    
+    /**
+    Fetches an array of rows.
+    
+        let statement = db.selectStatement("SELECT ...")
+        let rows = Row.fetchAll(statement)
+    
+    - parameter statement: The statement to run.
+    - parameter arguments: Optional statement arguments.
+    - returns: An array of rows.
+    */
+    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
+        return Array(fetch(statement, arguments: arguments))
+    }
+    
+    /**
+    Fetches a single row.
+    
+        let statement = db.selectStatement("SELECT ...")
+        let row = Row.fetchOne(statement)
+    
+    - parameter statement: The statement to run.
+    - parameter arguments: Optional statement arguments.
+    - returns: An optional row.
+    */
+    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
+        return fetch(statement, arguments: arguments).generate().next()
+    }
+    
+    
+    // MARK: - Fetching From Database
+    
+    /**
+    Fetches a lazy sequence of rows.
+
+        let rows = Row.fetch(db, "SELECT ...")
+
+    - parameter db: A Database.
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional statement arguments.
+    - returns: A lazy sequence of rows.
+    */
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+        return fetch(db.selectStatement(sql), arguments: arguments)
+    }
+    
+    /**
+    Fetches an array of rows.
+    
+        let rows = Row.fetchAll(db, "SELECT ...")
+    
+    - parameter db: A Database.
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional statement arguments.
+    - returns: An array of rows.
+    */
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
+        return Array(fetch(db, sql, arguments: arguments))
+    }
+    
+    /**
+    Fetches a single row.
+    
+        let row = Row.fetchOne(db, "SELECT ...")
+    
+    - parameter db: A Database.
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional statement arguments.
+    - returns: An optional row.
+    */
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
+        return fetch(db, sql, arguments: arguments).generate().next()
+    }
+
+    
     // MARK: - Not Public
     
     let impl: RowImpl

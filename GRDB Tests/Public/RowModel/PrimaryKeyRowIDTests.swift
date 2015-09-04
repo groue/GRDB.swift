@@ -100,7 +100,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 try rowModel.insert(db)
                 XCTAssertTrue(rowModel.id != nil)
                 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -118,7 +118,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 let rowModel = Person(id: 123456, name: "Arthur")
                 try rowModel.insert(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -153,7 +153,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 try rowModel.delete(db)
                 try rowModel.insert(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -190,7 +190,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 rowModel.age = rowModel.age! + 1
                 try rowModel.update(db)
 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -229,7 +229,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 try rowModel.save(db)
                 XCTAssertTrue(rowModel.id != nil)
                 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -247,7 +247,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 let rowModel = Person(id: 123456, name: "Arthur")
                 try rowModel.save(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -269,7 +269,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 rowModel.age = rowModel.age! + 1
                 try rowModel.save(db)   // Actual update
                 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -289,7 +289,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 try rowModel.delete(db)
                 try rowModel.save(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -322,7 +322,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 let deletionResult = try rowModel.delete(db)
                 XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
                 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])
                 XCTAssertTrue(row == nil)
             }
         }
@@ -366,7 +366,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 rowModel.age = rowModel.age! + 1
                 try rowModel.reload(db)
                 
-                let row = db.fetchOneRow("SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
+                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [rowModel.id])!
                 for (key, value) in rowModel.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
@@ -403,7 +403,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 let rowModel = Person(name: "Arthur")
                 try rowModel.insert(db)
                 
-                let fetchedRowModel = db.fetchOne(Person.self, primaryKey: rowModel.id)!
+                let fetchedRowModel = Person.fetchOne(db, primaryKey: rowModel.id)!
                 XCTAssertTrue(fetchedRowModel.id == rowModel.id)
                 XCTAssertTrue(fetchedRowModel.name == rowModel.name)
                 XCTAssertTrue(fetchedRowModel.age == rowModel.age)
@@ -418,7 +418,7 @@ class PrimaryKeyRowIDTests: RowModelTestCase {
                 let rowModel = Person(name: "Arthur")
                 try rowModel.insert(db)
                 
-                let fetchedRowModel = db.fetchOne(Person.self, key: ["name": rowModel.name])!
+                let fetchedRowModel = Person.fetchOne(db, key: ["name": rowModel.name])!
                 XCTAssertTrue(fetchedRowModel.id == rowModel.id)
                 XCTAssertTrue(fetchedRowModel.name == rowModel.name)
                 XCTAssertTrue(fetchedRowModel.age == rowModel.age)

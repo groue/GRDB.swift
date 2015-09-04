@@ -38,7 +38,7 @@ class RowModelFetchTests: RowModelTestCase {
                 let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?")
                 
                 for name in ["Arthur", "Barbara"] {
-                    let person = statement.fetchOne(Person.self, arguments: [name])!
+                    let person = Person.fetchOne(statement, arguments: [name])!
                     XCTAssertEqual(person.name!, name)
                 }
             }
@@ -51,7 +51,7 @@ class RowModelFetchTests: RowModelTestCase {
                 try Person(name: "Arthur", age: 41).insert(db)
                 try Person(name: "Barbara", age: 37).insert(db)
                 
-                let personSequence = db.fetch(Person.self, "SELECT * FROM persons ORDER BY name")
+                let personSequence = Person.fetch(db, "SELECT * FROM persons ORDER BY name")
                 var names1: [String?] = personSequence.map { $0.name }
                 var names2: [String?] = personSequence.map { $0.name }
                 
@@ -72,7 +72,7 @@ class RowModelFetchTests: RowModelTestCase {
                 try Person(name: "Barbara", age: 37).insert(db)
 
                 let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
-                let personSequence = statement.fetch(Person.self)
+                let personSequence = Person.fetch(statement)
                 var names1: [String?] = personSequence.map { $0.name }
                 var names2: [String?] = personSequence.map { $0.name }
                 

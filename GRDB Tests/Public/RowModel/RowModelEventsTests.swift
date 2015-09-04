@@ -82,7 +82,7 @@ class RowModelEventsTests: GRDBTestCase {
                 try db.execute("CREATE TABLE eventRecorders (id INTEGER PRIMARY KEY)")
                 try EventRecorder().insert(db)
                 do {
-                    let rowModel = db.fetchOne(EventRecorder.self, "SELECT * FROM eventRecorders")!
+                    let rowModel = EventRecorder.fetchOne(db, "SELECT * FROM eventRecorders")!
                     XCTAssertEqual(rowModel.didFetchCount, 1)
                 }
             }

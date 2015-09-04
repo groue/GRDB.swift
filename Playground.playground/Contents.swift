@@ -71,7 +71,7 @@ try! dbQueue.inTransaction { db in
 }
 
 let persons = dbQueue.inDatabase { db in
-    db.fetchAll(Person.self, "SELECT * FROM persons ORDER BY firstName, lastName")
+    Person.fetchAll(db, "SELECT * FROM persons ORDER BY firstName, lastName")
 }
 
 print(persons)

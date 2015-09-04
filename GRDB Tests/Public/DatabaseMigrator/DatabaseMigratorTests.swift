@@ -85,7 +85,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             // The first migration should be committed.
             // The second migration should be rollbacked.
             let names = dbQueue.inDatabase { db in
-                db.fetch(String.self, "SELECT * FROM persons").map { $0! }
+                String.fetch(db, "SELECT * FROM persons").map { $0! }
             }
             XCTAssertEqual(names, ["Arthur"])
         }

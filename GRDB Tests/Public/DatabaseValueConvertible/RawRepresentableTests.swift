@@ -67,7 +67,7 @@ class RawRepresentableTests: GRDBTestCase {
                 }
                 
                 do {
-                    let rows = db.fetchAllRows("SELECT color FROM wines ORDER BY color")
+                    let rows = Row.fetchAll(db, "SELECT color FROM wines ORDER BY color")
                     let colors = rows.map { $0.value(atIndex: 0) as Color? }
                     XCTAssertTrue(colors[0] == nil)
                     XCTAssertEqual(colors[1]!, Color.Red)
@@ -77,7 +77,7 @@ class RawRepresentableTests: GRDBTestCase {
                 }
                 
                 do {
-                    let colors = db.fetchAll(Color.self, "SELECT color FROM wines ORDER BY color")
+                    let colors = Color.fetchAll(db, "SELECT color FROM wines ORDER BY color")
                     XCTAssertTrue(colors[0] == nil)
                     XCTAssertEqual(colors[1]!, Color.Red)
                     XCTAssertEqual(colors[2]!, Color.White)
@@ -103,7 +103,7 @@ class RawRepresentableTests: GRDBTestCase {
                 }
                 
                 do {
-                    let rows = db.fetchAllRows("SELECT grape FROM wines ORDER BY grape")
+                    let rows = Row.fetchAll(db, "SELECT grape FROM wines ORDER BY grape")
                     let grapes = rows.map { $0.value(atIndex: 0) as Grape? }
                     XCTAssertTrue(grapes[0] == nil)
                     XCTAssertEqual(grapes[1]!, Grape.Chardonnay)
@@ -113,7 +113,7 @@ class RawRepresentableTests: GRDBTestCase {
                 }
                 
                 do {
-                    let grapes = db.fetchAll(Grape.self, "SELECT grape FROM wines ORDER BY grape")
+                    let grapes = Grape.fetchAll(db, "SELECT grape FROM wines ORDER BY grape")
                     XCTAssertTrue(grapes[0] == nil)
                     XCTAssertEqual(grapes[1]!, Grape.Chardonnay)
                     XCTAssertEqual(grapes[2]!, Grape.Merlot)

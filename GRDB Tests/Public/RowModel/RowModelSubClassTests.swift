@@ -111,7 +111,7 @@ class RowModelSubClassTests: RowModelTestCase {
                 let rowModel = Person(name: "Arthur", age: 41)
                 try rowModel.insert(db)
                 
-                let fetchedRowModel = db.fetchOne(PersonWithOverrides.self, "SELECT *, 123 as extra FROM persons")!
+                let fetchedRowModel = PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
                 XCTAssertTrue(fetchedRowModel.id == rowModel.id)
                 XCTAssertTrue(fetchedRowModel.name == rowModel.name)
                 XCTAssertTrue(fetchedRowModel.age == rowModel.age)
