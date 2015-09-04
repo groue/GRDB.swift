@@ -818,6 +818,15 @@ Person.fetchAll(statement, arguments: ...)          // [Person]
 Person.fetchOne(statement, arguments: ...)          // Person?
 ```
 
+RowModel track changes:
+
+```swift
+if person.edited {
+    try person.save(db)
+}
+```
+
+
 - [Core Methods](#core-methods)
 - [Fetching Row Models](#fetching-row-models)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
