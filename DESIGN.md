@@ -3,7 +3,7 @@ The Design of GRDB.swift
 
 More than caveats or defects, there are a few glitches, or surprises in the GRDB.swift API. We try to explain them here.
 
-- Why `db.fetch(Person.self, "SELECT ...")` instead of `Person.fetch("SELECT ...")`?
+- Why `db.fetch(Int.self, "SELECT ...")` instead of `Int.fetch(db, "SELECT ...")`?
 - Why can't NSObject adopt DatabaseValueConvertible, so that native NSDate, NSData, UIImage could be used as query arguments, or fetched values?
 - Why is RowModel a class, when protocols are all the rage?
 
