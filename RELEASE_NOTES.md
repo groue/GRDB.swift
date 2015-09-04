@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Release
+## 0.11.0
+
+Released September 4, 2015
 
 **Breaking changes**
 
@@ -26,7 +28,7 @@ dbQueue.inDatabase { db in
 
 ## 0.10.0
 
-Release September 4, 2015
+Released September 4, 2015
 
 **New**
 
