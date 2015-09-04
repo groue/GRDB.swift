@@ -818,7 +818,7 @@ Person.fetchAll(statement, arguments: ...)          // [Person]
 Person.fetchOne(statement, arguments: ...)          // Person?
 ```
 
-RowModel track changes:
+RowModel track **changes**:
 
 ```swift
 if person.edited {
