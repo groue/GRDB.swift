@@ -187,4 +187,24 @@ class RowModelEditedTests: RowModelTestCase {
             }
         }
     }
+    
+    func testRowModelIsEditedAfterPrimaryKeyChange() {
+        // After reload, a model is not edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let commonAttributes = Row(dictionary:["name": "Arthur", "age": 41])
+                
+                let person1 = Person(row: commonAttributes)
+                try person1.insert(db)
+                
+                let person2 = Person(row: commonAttributes)
+                try person2.insert(db)
+                
+                XCTAssertFalse(person1.edited)
+                XCTAssertFalse(person2.edited)
+                person1.copyDatabaseValuesFrom(person2)
+                XCTAssertTrue(person1.edited)
+            }
+        }
+    }
 }

@@ -58,6 +58,18 @@ public class RowModel {
         /// A primary key that spans accross several columns. Associated strings
         /// are column names.
         case Columns([String])
+        
+        /// The columns in the primary key.
+        public var columns: [String] {
+            switch self {
+            case .RowID(let column):
+                return [column]
+            case .Column(let column):
+                return [column]
+            case .Columns(let columns):
+                return columns
+            }
+        }
     }
     
     /// A table definition returned by RowModel.databaseTable.
@@ -178,20 +190,9 @@ public class RowModel {
     *Important*: subclasses must invoke super's implementation.
     */
     public func updateFromRow(row: Row) {
-        // IMPLEMENTATION NOTE
-        //
-        // Subclasses must call super because we set the edited flag, and
-        // subclasses may forget to do so.
-        //
-        // We set the edited flag because the row may change the primary key,
-        // and until we try to be smart, turning the edited flag is the safest
-        // option.
-        
         for (column, databaseValue) in row {
             setDatabaseValue(databaseValue, forColumn: column)
         }
-        
-        edited = true
     }
     
     /**
@@ -466,36 +467,19 @@ public class RowModel {
         storedDatabaseDictionary.
         */
         lazy var weakPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
-            guard let primaryKey = self.databaseTable.primaryKey else {
+            guard let primaryKeyColumns = self.databaseTable.primaryKey?.columns else {
                 return nil
             }
-            switch primaryKey {
-            case .RowID(let column):
-                if let value = self.storedDatabaseDictionary[column] {
-                    return [column: value]
+            let storedDatabaseDictionary = self.storedDatabaseDictionary
+            var primaryKeyDictionary: [String: DatabaseValueConvertible?] = [:]
+            for column in primaryKeyColumns {
+                if let value = storedDatabaseDictionary[column] {
+                    primaryKeyDictionary[column] = value
                 } else {
-                    return [column: nil]
+                    primaryKeyDictionary[column] = nil
                 }
-                
-            case .Column(let column):
-                if let value = self.storedDatabaseDictionary[column] {
-                    return [column: value]
-                } else {
-                    return [column: nil]
-                }
-                
-            case .Columns(let columns):
-                let storedDatabaseDictionary = self.storedDatabaseDictionary
-                var primaryKeyDictionary = [String: DatabaseValueConvertible?]()
-                for column in columns {
-                    if let value = storedDatabaseDictionary[column] {
-                        primaryKeyDictionary[column] = value
-                    } else {
-                        primaryKeyDictionary[column] = nil
-                    }
-                }
-                return primaryKeyDictionary
             }
+            return primaryKeyDictionary
             }()
         
         /**

@@ -1,4 +1,3 @@
 - [ ] #2: this commit may be how stephencelis fixed it: https://github.com/stephencelis/SQLite.swift/commit/8f64e357c3a6668c5f011c91ba33be3e8d4b88d0
 - [ ] Use @warn_unused_result
-- [ ] Make RowModel.updateFromRow() nicer with the edited flag.
 - [ ] RowModel.databaseChanges. It's easy to tell which columns have changed, but difficult to tell how, because there is not always an old value. Should we return an array of changed columns instead? We only track *column changes*, not *property changes* (column "latitude" has changed, but we don't know anything about the "coordinate" property): is it a problem? What is the use case?
