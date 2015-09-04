@@ -411,7 +411,7 @@ public class RowModel {
     - parameter db: A Database.
     - returns: Whether the primary key matches a row in the database.
     */
-    public func exists(db: Database) -> Bool {
+    final public func exists(db: Database) -> Bool {
         return (Row.fetchOne(DataMapper(self).existsStatement(db)) != nil)
     }
     
