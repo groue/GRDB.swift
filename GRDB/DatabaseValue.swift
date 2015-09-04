@@ -134,3 +134,23 @@ extension DatabaseValue : DatabaseValueConvertible {
         self = databaseValue
     }
 }
+
+
+/// DatabaseValue adopts CustomStringConvertible.
+extension DatabaseValue : CustomStringConvertible {
+    /// A textual representation of `self`.
+    public var description: String {
+        switch self {
+        case .Null:
+            return "NULL"
+        case .Integer(let integer):
+            return String(integer)
+        case .Real(let double):
+            return String(double)
+        case .Text(let string):
+            return String(reflecting: string)
+        case .Blob(let blob):
+            return "Blob(\(blob.data.length) bytes)"
+        }
+    }
+}
