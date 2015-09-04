@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next version
+## 0.10.0
+
+Release September 4, 2015
 
 **New**
 
