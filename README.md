@@ -127,6 +127,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     
     - [Migrations](#migrations)
     - [Row Models](#row-models)
+        - [Core Methods](#core-methods)
         - [Fetching Row Models](#fetching-row-models)
         - [Ad Hoc Subclasses](#ad-hoc-subclasses)
         - [Compound Properties](#compound-properties)
@@ -780,6 +781,55 @@ for path in migrationPaths {
 
 **RowModel** is a class that wraps a table row, or the result of any query. It is designed to be subclassed.
 
+Let's first have a quick look at the RowModel API. RowModel can be **stored** or **deleted**:
+
+```swift
+class Person : RowModel { ... }
+let person = Person(...)
+try person.insert(db)   // INSERT INTO persons (...) VALUES (...)
+try person.update(db)   // UPDATE persons SET ...
+try person.save(db)     // inserts or updates
+try person.delete(db)   // DELETE FROM persons WHERE ...
+```
+
+Database tables usually have a **primary key**, and eventually secondary keys:
+
+```swift
+person.exists(db)                   // true or false
+try person.reload(db)               // SELECT * FROM persons WHERE ...
+Person.fetchOne(db, primaryKey: 12) // Person?
+Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
+```
+
+RowModels can be fetched from custom **SQL queries**...
+
+```swift
+Person.fetch(db, "SELECT ...", arguments: ...)      // AnySequence<Person>
+Person.fetchAll(db, "SELECT ...", arguments: ...)   // [Person]
+Person.fetchOne(db, "SELECT ...", arguments: ...)   // Person?
+```
+
+... or from **prepared statements**:
+
+```swift
+let statement = db.selectStatement("SELECT ...")
+Person.fetch(statement, arguments: ...)             // AnySequence<Person>
+Person.fetchAll(statement, arguments: ...)          // [Person]
+Person.fetchOne(statement, arguments: ...)          // Person?
+```
+
+- [Core Methods](#core-methods)
+- [Fetching Row Models](#fetching-row-models)
+- [Ad Hoc Subclasses](#ad-hoc-subclasses)
+- [Compound Properties](#compound-properties)
+- [Tables and Primary Keys](#tables-and-primary-keys)
+- [Insert, Update and Delete](#insert-update-and-delete)
+- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+- [RowModel Errors](#rowmodel-errors)
+- [Advice](#advice)
+
+### Core Methods
+
 Subclasses opt in RowModel features by overriding all or part of the core methods that define their relationship with the database:
 
 | Core Methods                     | fetch | insert | update | delete | reload |
@@ -791,15 +841,6 @@ Subclasses opt in RowModel features by overriding all or part of the core method
 ¹ Insertion requires `setDatabaseValue(_:forColumn:)` when SQLite automatically generates row IDs.
 
 ² Update, delete & reload require a primary key.
-
-- [Fetching Row Models](#fetching-row-models)
-- [Ad Hoc Subclasses](#ad-hoc-subclasses)
-- [Compound Properties](#compound-properties)
-- [Tables and Primary Keys](#tables-and-primary-keys)
-- [Insert, Update and Delete](#insert-update-and-delete)
-- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
-- [RowModel Errors](#rowmodel-errors)
-- [Advice](#advice)
 
 
 ### Fetching Row Models
