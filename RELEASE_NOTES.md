@@ -7,7 +7,7 @@ Released September 4, 2015
 
 **Breaking changes**
 
-The fetching methods are not available on the fetched type themselves:
+The fetching methods are now available on the fetched type themselves:
 
 ```swift
 dbQueue.inDatabase { db in
