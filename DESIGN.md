@@ -5,5 +5,6 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
 
 - Why can't NSObject adopt DatabaseValueConvertible, so that native NSDate, NSData, UIImage could be used as query arguments, or fetched values?
 - Why is RowModel a class, when protocols are all the rage?
+- Why are DatabaseQueue.inTransaction() and DatabaseQueue.inDatabase() not reentrant ?
 
 TO BE CONTINUED
