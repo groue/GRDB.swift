@@ -843,13 +843,9 @@ Subclasses opt in RowModel features by overriding all or part of the core method
 
 | Core Methods                     | fetch | insert | update | delete | reload |
 |:-------------------------------- |:-----:|:------:|:------:|:------:|:------:|
-| `setDatabaseValue(_:forColumn:)` |   ✓   |   ¹    |        |        |   ✓    |
-| `databaseTable`                  |       |   ✓    |   ✓ ²  |   ✓ ²  |   ✓ ²  |
+| `setDatabaseValue(_:forColumn:)` |   ✓   |        |        |        |   ✓    |
+| `databaseTable`                  |       |   ✓    |   ✓    |   ✓    |   ✓    |
 | `storedDatabaseDictionary`       |       |   ✓    |   ✓    |   ✓    |   ✓    |
-
-¹ Insertion requires `setDatabaseValue(_:forColumn:)` when SQLite automatically generates row IDs.
-
-² Update, delete & reload require a primary key.
 
 
 ### Fetching Row Models
