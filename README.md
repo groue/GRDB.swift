@@ -127,6 +127,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     
     - [Migrations](#migrations)
     - [Row Models](#row-models)
+        - [RowModel API Quick Tour](#rowmodel-api-quick-tour)
         - [Core Methods](#core-methods)
         - [Fetching Row Models](#fetching-row-models)
         - [Ad Hoc Subclasses](#ad-hoc-subclasses)
@@ -781,7 +782,60 @@ for path in migrationPaths {
 
 **RowModel** is a class that wraps a table row, or the result of any query. It is designed to be subclassed.
 
-Let's first have a quick look at the RowModel API. RowModel can be **stored** or **deleted**:
+```swift
+class Person : RowModel { ... }
+let person = Person(name: "Arthur")
+person.save(db)
+```
+
+**RowModel is not a smart class.** It is no replacement for Core Data, or for an Active Record pattern. It does not provide any uniquing. It has no knowledge of your database schema, no notion of external references and model relationships, and will not generate JOIN queries for you.
+
+Yet, it does a few things well:
+
+- **It provides the classic CRUD operations on any database table.** Especially, it has no requirement on primary keys. Whether you use an automatically generated RowID, or a multi-columns primary key, you are good to go.
+    
+    ```swift
+    let person = Person(name: "Arthur")
+    let country = Country(name: "France")
+    person.save(db)
+    country.save(db)
+    let citizenship = Citizenship(personId: person.id, countryId: country.id)
+    citizenship.save(db)
+    ```
+    
+- **It eats any SQL query.** A RowModel subclass is often tied to a database table, but this is not a requirement at all.
+
+    ```swift
+    let persons = Person.fetchAll(db,
+        "SELECT persons.*, COUNT(*) AS citizenshipsCount " +
+        "FROM persons " +
+        "JOIN citizenships ON citizenships.personId = persons.id " +
+        "GROUP BY persons.id")
+    ```
+
+- **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
+
+    ```swift
+    if person.edited {
+        person.save(db)
+    }
+    ```
+
+- [RowModel API Quick Tour](#rowmodel-api-quick-tour)
+- [Core Methods](#core-methods)
+- [Fetching Row Models](#fetching-row-models)
+- [Ad Hoc Subclasses](#ad-hoc-subclasses)
+- [Compound Properties](#compound-properties)
+- [Tables and Primary Keys](#tables-and-primary-keys)
+- [Insert, Update and Delete](#insert-update-and-delete)
+- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+- [RowModel Errors](#rowmodel-errors)
+- [Advice](#advice)
+
+
+### RowModel API Quick Tour
+
+RowModel can be **stored** or **deleted**:
 
 ```swift
 class Person : RowModel { ... }
@@ -818,24 +872,6 @@ Person.fetchAll(statement, arguments: ...)          // [Person]
 Person.fetchOne(statement, arguments: ...)          // Person?
 ```
 
-RowModel track **changes**:
-
-```swift
-if person.edited {
-    try person.save(db)
-}
-```
-
-
-- [Core Methods](#core-methods)
-- [Fetching Row Models](#fetching-row-models)
-- [Ad Hoc Subclasses](#ad-hoc-subclasses)
-- [Compound Properties](#compound-properties)
-- [Tables and Primary Keys](#tables-and-primary-keys)
-- [Insert, Update and Delete](#insert-update-and-delete)
-- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
-- [RowModel Errors](#rowmodel-errors)
-- [Advice](#advice)
 
 ### Core Methods
 
@@ -1113,10 +1149,6 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 
 
 ### Advice
-
-**RowModel is not a smart class.** It is no replacement for Core Data. It does not provide any uniquing. It does not perform any SQL request behind your back. It has no knowledge of your database schema, and no notion of external references and model relationships.
-
-Based on those facts, here are a few hints:
 
 - [Autoincrement](#autoincrement)
 - [Validation](#validation)
