@@ -956,7 +956,7 @@ class PersonsViewController: UITableViewController {
             if dbv = row["bookCount"] {
                 bookCount = dbv.value()
             }
-            super.updateFromRow(row) // Subclasses are required to call super.
+            super.updateFromRow(row) // Let Person superclass finish the job.
         }
     }
     
