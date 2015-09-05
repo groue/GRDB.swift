@@ -887,7 +887,7 @@ The Person subclass below will be our guinea pig. It declares properties for the
 
 ```swift
 class Person : RowModel {
-    var id: Int64!            // matches "id" not null column
+    var id: Int64?            // matches "id" not null column
     var age: Int?             // matches "age" column
     var name: String?         // matches "name" column
 }
@@ -899,9 +899,9 @@ The `setDatabaseValue(_:forColumn:)` method assigns database values to propertie
 class Person : RowModel {
     override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
         switch column {
-        case "id":   id = dbv.value()    // Extract Int64!
-        case "age":  age = dbv.value()   // Extract Int?
-        case "name": name = dbv.value()  // Extract String?
+        case "id":   id = dbv.value()
+        case "age":  age = dbv.value()
+        case "name": name = dbv.value()
         default:     super.setDatabaseValue(dbv, forColumn: column)
         }
     }
@@ -1159,7 +1159,7 @@ CREATE TABLE persons {
 
 ```swift
 class Person : RowModel {
-    id: Int64!
+    id: Int64?
     
     /// The table definition.
     override class var databaseTableName: String? {
