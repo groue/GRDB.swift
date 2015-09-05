@@ -787,17 +787,6 @@ person.save(db)
 
 Yet, it does a few things well:
 
-- **It provides the classic CRUD operations on any database table.** Especially, it has no requirement on primary keys. Whether you use an automatically generated RowID, or a multi-columns primary key, you are good to go.
-    
-    ```swift
-    let person = Person(name: "Arthur")
-    let country = Country(name: "France")
-    person.save(db)
-    country.save(db)
-    let citizenship = Citizenship(personId: person.id, countryId: country.id)
-    citizenship.save(db)
-    ```
-    
 - **It eats any SQL query.** A RowModel subclass is often tied to a database table, but this is not a requirement at all.
 
     ```swift
@@ -808,6 +797,17 @@ Yet, it does a few things well:
         "GROUP BY persons.id")
     ```
 
+- **It provides the classic CRUD operations on any database table,** without any requirement on the table primary key. Whether you use an automatically generated RowID, or a multi-columns primary key, you are good to go.
+    
+    ```swift
+    let person = Person(name: "Arthur")
+    let country = Country(name: "France")
+    person.save(db)
+    country.save(db)
+    let citizenship = Citizenship(personId: person.id, countryId: country.id)
+    citizenship.save(db)
+    ```
+    
 - **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
 
     ```swift
