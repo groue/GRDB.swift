@@ -368,7 +368,7 @@ public struct Row: CollectionType {
     
     // MARK: - StatementRowImpl
     
-    /// See Row.init(statement:unsafe:)
+    /// See Row.init(statement:)
     private struct StatementRowImpl : RowImpl {
         let databaseValues: [DatabaseValue]
         let columnNames: [String]
