@@ -325,12 +325,12 @@ public struct Row: CollectionType {
     /**
     Builds a row from the *current state* of the SQLite statement.
     
-    The row is implemented on top of SafeRowImpl, which *copies* the values from
-    the SQLite statement so that it can be further iterated without corrupting
-    the row.
+    The row is implemented on top of StatementRowImpl, which *copies* the values
+    from the SQLite statement so that it can be further iterated without
+    corrupting the row.
     */
     init(statement: SelectStatement) {
-        self.impl = SafeRowImpl(statement: statement)
+        self.impl = StatementRowImpl(statement: statement)
     }
     
     
@@ -366,10 +366,10 @@ public struct Row: CollectionType {
     }
     
     
-    // MARK: - SafeRowImpl
+    // MARK: - StatementRowImpl
     
     /// See Row.init(statement:unsafe:)
-    private struct SafeRowImpl : RowImpl {
+    private struct StatementRowImpl : RowImpl {
         let databaseValues: [DatabaseValue]
         let columnNames: [String]
         let databaseDictionary: [String: DatabaseValue]
