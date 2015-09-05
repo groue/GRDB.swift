@@ -7,7 +7,7 @@ class Citizenship: RowModel {
     var countryName: String!
     var native: Bool!
     
-    override class var databaseTableName: String? {
+    override class func databaseTableName() -> String? {
         return "citizenships"
     }
     

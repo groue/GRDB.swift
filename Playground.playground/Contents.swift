@@ -35,7 +35,7 @@ class Person : RowModel {
     
     // RowModel overrides
     
-    override class var databaseTableName: String? {
+    override class func databaseTableName() -> String? {
         return "persons"
     }
     
@@ -78,4 +78,4 @@ let persons = dbQueue.inDatabase { db in
 }
 
 print(persons)
-print(persons.map { $0.fullName })
+print(persons.map { $0.fullNam

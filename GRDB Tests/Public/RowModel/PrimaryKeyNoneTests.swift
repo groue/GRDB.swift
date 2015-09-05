@@ -5,7 +5,7 @@ import GRDB
 class Item: RowModel {
     var name: String?
     
-    override class var databaseTableName: String? {
+    override class func databaseTableName() -> String? {
         return "items"
     }
     

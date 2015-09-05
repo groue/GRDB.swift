@@ -1,7 +1,25 @@
 import Foundation
 
+
+// MARK: - DatabaseValueConvertible
+
 /**
-The protocol for values that can be stored and extracted from SQLite databases.
+Types that adopt DatabaseValueConvertible can be initialized from database
+values.
+
+The protocol comes with built-in methods that allow to fetch lazy sequences,
+arrays, or single instances:
+
+    String.fetch(db, "SELECT name FROM ...", arguments:...)    // AnySequence<String?>
+    String.fetchAll(db, "SELECT name FROM ...", arguments:...) // [String?]
+    String.fetchOne(db, "SELECT name FROM ...", arguments:...) // String?
+    
+    let statement = db.selectStatement("SELECT name FROM ...")
+    String.fetch(statement, arguments:...)           // AnySequence<String?>
+    String.fetchAll(statement, arguments:...)        // [String?]
+    String.fetchOne(statement, arguments:...)        // String?
+
+DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 */
 public protocol DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
@@ -228,7 +246,7 @@ public struct Blob : DatabaseValueConvertible {
 }
 
 
-// MARK: - Int Enum Support
+// MARK: - DatabaseIntRepresentable
 
 /**
 Have your Int enum adopt DatabaseIntRepresentable and it automatically gains
@@ -271,7 +289,7 @@ extension DatabaseIntRepresentable {
 }
 
 
-// MARK: - String Enum Support
+// MARK: - DatabaseStringRepresentable
 
 /**
 Have your String enum adopt DatabaseStringRepresentable and it automatically gains
@@ -314,9 +332,24 @@ extension DatabaseStringRepresentable {
 }
 
 
-// MARK: - Fetching
+/**
+Types that adopt DatabaseValueConvertible can be initialized from database
+values.
 
-/// Types that adopt both DatabaseValueConvertible can be fetched from the database.
+The protocol comes with built-in methods that allow to fetch lazy sequences,
+arrays, or single instances:
+
+    String.fetch(db, "SELECT name FROM ...", arguments:...)    // AnySequence<String?>
+    String.fetchAll(db, "SELECT name FROM ...", arguments:...) // [String?]
+    String.fetchOne(db, "SELECT name FROM ...", arguments:...) // String?
+    
+    let statement = db.selectStatement("SELECT name FROM ...")
+    String.fetch(statement, arguments:...)           // AnySequence<String?>
+    String.fetchAll(statement, arguments:...)        // [String?]
+    String.fetchOne(statement, arguments:...)        // String?
+
+DatabaseValueConvertible is adopted by Bool, Int, String, etc.
+*/
 public extension DatabaseValueConvertible {
     
     // MARK: - Fetching From SelectStatement
@@ -333,7 +366,7 @@ public extension DatabaseValueConvertible {
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
         let rowSequence = Row.fetch(statement, arguments: arguments)
-        func generate() -> AnyGenerator<Self?> {
+        return AnySequence({
             let rowGenerator = rowSequence.generate()
             return anyGenerator {
                 guard let row = rowGenerator.next() else {
@@ -341,8 +374,7 @@ public extension DatabaseValueConvertible {
                 }
                 return row.value(atIndex: 0)
             }
-        }
-        return AnySequence(generate)
+        } as () -> AnyGenerator<Self?>)
     }
     
     /**

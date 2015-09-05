@@ -5,7 +5,7 @@ class Email : RowModel {
     var email: String!
     var label: String?
     
-    override class var databaseTableName: String? {
+    override class func databaseTableName() -> String? {
         return "emails"
     }
     

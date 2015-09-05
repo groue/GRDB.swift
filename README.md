@@ -987,7 +987,7 @@ Declare a **Table name** in order to fetch row models. GRDB will infer your tabl
 
 ```swift
 class Person : RowModel {
-    override class var databaseTableName: String? {
+    override class func databaseTableName() -> String? {
         return "persons"
     }
 }
@@ -1098,7 +1098,7 @@ class Person : RowModel {
     id: Int64?
     
     /// The table definition.
-    override class var databaseTableName: String? {
+    override class func databaseTableName() -> String? {
         return "persons"
     }
     
