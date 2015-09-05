@@ -77,15 +77,5 @@ let persons = dbQueue.inDatabase { db in
     Person.fetchAll(db, "SELECT * FROM persons ORDER BY firstName, lastName")
 }
 
-dbQueue.inDatabase { db in
-    for row in Row.fetchAll(db, "PRAGMA index_list('persons')") {
-        print(row)
-    }
-    for row in Row.fetchAll(db, "PRAGMA foreign_key_list('persons')") {
-        print(row)
-    }
-    for row in Row.fetchAll(db, "PRAGMA table_info('persons')") {
-        print(row)
-    }
-    print(Row.fetchAll(db, "PRAGMA table_info('foo')").count)
-}
+print(persons)
+print(persons.map { $0.fullName })
