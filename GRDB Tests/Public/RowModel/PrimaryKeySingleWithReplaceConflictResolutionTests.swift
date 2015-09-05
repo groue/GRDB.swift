@@ -5,8 +5,8 @@ class Email : RowModel {
     var email: String!
     var label: String?
     
-    override class var databaseTable: Table? {
-        return Table(named: "emails", primaryKey: .Column("email"))
+    override class var databaseTableName: String? {
+        return "emails"
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

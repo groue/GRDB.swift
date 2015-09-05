@@ -25,8 +25,8 @@ class Placemark : RowModel {
         super.init()
     }
     
-    override class var databaseTable: Table? {
-        return Table(named: "placemarks", primaryKey: .RowID("id"))
+    override class var databaseTableName: String? {
+        return "placemarks"
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

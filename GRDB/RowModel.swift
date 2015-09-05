@@ -22,49 +22,6 @@ public class RowModel {
         case NoRowDeleted
     }
     
-    /// A primary key. See RowModel.databaseTable and Table type.
-    public enum PrimaryKey {
-        
-        /// A primary key managed by SQLite. Associated string is a column name.
-        case RowID(String)
-        
-        /// A primary key not managed by SQLite. Associated string is a column name.
-        case Column(String)
-        
-        /// A primary key that spans accross several columns. Associated strings
-        /// are column names.
-        case Columns([String])
-        
-        /// The columns in the primary key.
-        public var columns: [String] {
-            switch self {
-            case .RowID(let column):
-                return [column]
-            case .Column(let column):
-                return [column]
-            case .Columns(let columns):
-                return columns
-            }
-        }
-    }
-    
-    /// A table definition returned by RowModel.databaseTable.
-    public struct Table {
-        
-        /// The table name
-        public let name: String
-        
-        /// The eventual primary key
-        public let primaryKey: PrimaryKey?
-        
-        /// Creates a Table given its name and primary key (default nil, meaning
-        /// that the table has no primary key.
-        public init(named name: String, primaryKey: PrimaryKey? = nil) {
-            self.name = name
-            self.primaryKey = primaryKey
-        }
-    }
-    
     
     // MARK: - Core methods
     
@@ -72,11 +29,11 @@ public class RowModel {
     Returns a table definition.
     
     The insert, update, save, delete and reload methods require it: they raise
-    a fatal error if databaseTable is nil.
+    a fatal error if databaseTableName is nil.
     
     The implementation of the base class RowModel returns nil.
     */
-    public class var databaseTable: Table? {
+    public class var databaseTableName: String? {
         return nil
     }
     
@@ -257,13 +214,13 @@ public class RowModel {
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public func insert(db: Database) throws {
-        let dataMapper = DataMapper(self)
+        let dataMapper = DataMapper(db, rowModel: self)
         let changes = try dataMapper.insertStatement(db).execute()
         
         // Update RowID column if needed
-        if let primaryKey = self.dynamicType.databaseTable?.primaryKey, case .RowID(let rowIDColumn) = primaryKey {
-            guard let rowID = dataMapper.storedDatabaseDictionary[rowIDColumn] else {
-                fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key `(rowIDColumn)`")
+        if case .Managed(let managedColumn) = dataMapper.primaryKey {
+            guard let rowID = dataMapper.storedDatabaseDictionary[managedColumn] else {
+                fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key `(managedColumn)`")
             }
             if rowID == nil {
                 // IMPLEMENTATION NOTE:
@@ -284,7 +241,7 @@ public class RowModel {
                 //    in updateFromRow(), not in setDatabaseValue(), which it is
                 //    allowed to do, then using setDatabaseValue() would not
                 //    update the ID.
-                updateFromRow(Row(dictionary: [rowIDColumn: changes.insertedRowID]))
+                updateFromRow(Row(dictionary: [managedColumn: changes.insertedRowID]))
             }
         }
         
@@ -309,7 +266,7 @@ public class RowModel {
         // We'll throw RowModelError.RowModelNotFound if rowModel does not exist.
         let exists: Bool
         
-        if let statement = try DataMapper(self).updateStatement(db) {
+        if let statement = try DataMapper(db, rowModel: self).updateStatement(db) {
             let changes = try statement.execute()
             exists = changes.changedRowCount > 0
         } else {
@@ -349,7 +306,7 @@ public class RowModel {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         
-        if DataMapper(self).resolvingPrimaryKeyDictionary == nil {
+        if DataMapper(db, rowModel: self).resolvingPrimaryKeyDictionary == nil {
             return try insert(db)
         }
         
@@ -370,7 +327,7 @@ public class RowModel {
     - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     */
     public func delete(db: Database) throws -> DeletionResult {
-        let changes = try DataMapper(self).deleteStatement(db).execute()
+        let changes = try DataMapper(db, rowModel: self).deleteStatement(db).execute()
         
         // Future calls to update will throw RowModelNotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
@@ -395,7 +352,7 @@ public class RowModel {
               reloaded.
     */
     final public func reload(db: Database) throws {
-        let statement = DataMapper(self).reloadStatement(db)
+        let statement = DataMapper(db, rowModel: self).reloadStatement(db)
         if let row = Row.fetchOne(statement) {
             updateFromRow(row)
             referenceRow = row
@@ -412,7 +369,7 @@ public class RowModel {
     - returns: Whether the primary key matches a row in the database.
     */
     final public func exists(db: Database) -> Bool {
-        return (Row.fetchOne(DataMapper(self).existsStatement(db)) != nil)
+        return (Row.fetchOne(DataMapper(db, rowModel: self).existsStatement(db)) != nil)
     }
     
     
@@ -429,8 +386,11 @@ public class RowModel {
         /// It is guaranteed to have at least one (key, value) pair.
         let storedDatabaseDictionary: [String: DatabaseValueConvertible?]
         
-        /// The table definition
-        let databaseTable: RowModel.Table
+        /// The table name
+        let databaseTableName: String
+        
+        /// The table primary key
+        let primaryKey: PrimaryKey
         
         
         // MARK: - Primary Key
@@ -442,7 +402,8 @@ public class RowModel {
         It is nil when rowModel has no primary key.
         */
         lazy var primaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
-            guard let columns = self.databaseTable.primaryKey?.columns else {
+            let columns = self.primaryKey.columns
+            guard columns.count > 0 else {
                 return nil
             }
             let storedDatabaseDictionary = self.storedDatabaseDictionary
@@ -497,12 +458,17 @@ public class RowModel {
         
         // MARK: - Initializer
         
-        init(_ rowModel: ImmutableRowModelType) {
+        init(_ db: Database, rowModel: ImmutableRowModelType) {
             // Fail early if databaseTable is nil (not overriden)
-            guard let databaseTable = rowModel.dynamicType.databaseTable else {
-                fatalError("Nil Table returned from \(rowModel.dynamicType).databaseTable")
+            guard let databaseTableName = rowModel.dynamicType.databaseTableName else {
+                fatalError("Nil returned from \(rowModel.dynamicType).databaseTableName")
             }
-            
+
+            // Fail early if database table does not exist.
+            guard let primaryKey = db.primaryKeyForTable(named: databaseTableName) else {
+                fatalError("Table \(databaseTableName) does not exist. See \(rowModel.dynamicType).databaseTableName")
+            }
+
             // Fail early if storedDatabaseDictionary is empty (not overriden)
             let storedDatabaseDictionary = rowModel.storedDatabaseDictionary
             guard storedDatabaseDictionary.count > 0 else {
@@ -511,20 +477,22 @@ public class RowModel {
             
             self.rowModel = rowModel
             self.storedDatabaseDictionary = storedDatabaseDictionary
-            self.databaseTable = databaseTable
+            self.databaseTableName = databaseTableName
+            self.primaryKey = primaryKey
         }
         
         
         // MARK: - Statement builders
         
         func insertStatement(db: Database) throws -> UpdateStatement {
-            let insertStatement = try db.updateStatement(DataMapper.insertSQL(tableName: databaseTable.name, insertedColumns: Array(storedDatabaseDictionary.keys)))
+            let insertStatement = try db.updateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(storedDatabaseDictionary.keys)))
             insertStatement.arguments = StatementArguments(storedDatabaseDictionary.values)
             return insertStatement
         }
         
         /// Returns nil if there is no column to update
         func updateStatement(db: Database) throws -> UpdateStatement? {
+            // Fail early if primary key does not resolve to a database row.
             guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
@@ -541,29 +509,31 @@ public class RowModel {
             }
             
             // Update
-            let updateStatement = try db.updateStatement(DataMapper.updateSQL(tableName: databaseTable.name, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
+            let updateStatement = try db.updateStatement(DataMapper.updateSQL(tableName: databaseTableName, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
             updateStatement.arguments = StatementArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
             return updateStatement
         }
         
         func deleteStatement(db: Database) throws -> UpdateStatement {
+            // Fail early if primary key does not resolve to a database row.
             guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
             
             // Delete
-            let deleteStatement = try db.updateStatement(DataMapper.deleteSQL(tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys)))
+            let deleteStatement = try db.updateStatement(DataMapper.deleteSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
             deleteStatement.arguments = StatementArguments(primaryKeyDictionary.values)
             return deleteStatement
         }
         
         func reloadStatement(db: Database) -> SelectStatement {
+            // Fail early if primary key does not resolve to a database row.
             guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
             
             // Fetch
-            let reloadStatement = db.selectStatement(DataMapper.reloadSQL(tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys)))
+            let reloadStatement = db.selectStatement(DataMapper.reloadSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
             reloadStatement.arguments = StatementArguments(primaryKeyDictionary.values)
             return reloadStatement
         }
@@ -571,12 +541,13 @@ public class RowModel {
         /// SELECT statement that returns a row if and only if the primary key
         /// matches a row in the database.
         func existsStatement(db: Database) -> SelectStatement {
+            // Fail early if primary key does not resolve to a database row.
             guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
             
             // Fetch
-            let existsStatement = db.selectStatement(DataMapper.existsSQL(tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys)))
+            let existsStatement = db.selectStatement(DataMapper.existsSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
             existsStatement.arguments = StatementArguments(primaryKeyDictionary.values)
             return existsStatement
         }
@@ -618,7 +589,7 @@ public class RowModel {
 
 /// An immutable view to RowModel
 protocol ImmutableRowModelType {
-    static var databaseTable: RowModel.Table? { get }
+    static var databaseTableName: String? { get }
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
 }
 
@@ -798,34 +769,33 @@ public extension FetchableRowModel where Self : RowModel {
     - parameter primaryKey: A value.
     - returns: An optional row model.
     */
-    public static func fetchOne(db: Database, primaryKey: DatabaseValueConvertible?) -> Self? {
-        guard let primaryKey = primaryKey else {
+    public static func fetchOne(db: Database, primaryKey primaryKeyValue: DatabaseValueConvertible?) -> Self? {
+        // Fail early if databaseTable is nil (not overriden)
+        guard let databaseTableName = self.databaseTableName else {
+            fatalError("Nil returned from \(self).databaseTableName")
+        }
+        
+        // Fail early if database table does not exist.
+        guard let primaryKey = db.primaryKeyForTable(named: databaseTableName) else {
+            fatalError("Table \(databaseTableName) does not exist. See \(self).databaseTableName")
+        }
+        
+        // Fail early if database table has not one column in its primary key
+        let columns = primaryKey.columns
+        guard columns.count == 1 else {
+            if columns.count == 0 {
+                fatalError("Table \(databaseTableName) has no primary key. See \(self).databaseTableName")
+            } else {
+                fatalError("Table \(databaseTableName) has a multi-column primary key. See \(self).databaseTableName")
+            }
+        }
+        
+        guard let primaryKeyValue = primaryKeyValue else {
             return nil
         }
         
-        // Select methods crash when there is an issue
-        guard let table = databaseTable else {
-            fatalError("Nil Table returned from \(self).databaseTable")
-        }
-        
-        guard let tablePrimaryKey = table.primaryKey else {
-            fatalError("Nil Primary Key in \(self).databaseTable")
-        }
-        
-        let sql: String
-        switch tablePrimaryKey {
-        case .RowID(let column):
-            sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
-        case .Column(let column):
-            sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
-        case .Columns(let columns):
-            guard columns.count == 1 else {
-                fatalError("Primary key columns count mismatch in \(self).databaseTable")
-            }
-            sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
-        }
-        
-        return fetchOne(db.selectStatement(sql), arguments: [primaryKey])
+        let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
+        return fetchOne(db.selectStatement(sql), arguments: [primaryKeyValue])
     }
     
     /**
@@ -837,18 +807,19 @@ public extension FetchableRowModel where Self : RowModel {
     - parameter key: A dictionary of values.
     - returns: An optional row model.
     */
-    public static func fetchOne(db: Database, key dictionary: [String: DatabaseValueConvertible?]?) -> Self? {
-        guard let dictionary = dictionary else {
-            return nil
+    public static func fetchOne(db: Database, key dictionary: [String: DatabaseValueConvertible?]) -> Self? {
+        // Fail early if databaseTable is nil (not overriden)
+        guard let databaseTableName = self.databaseTableName else {
+            fatalError("Nil returned from \(self).databaseTableName")
         }
         
-        // Select methods crash when there is an issue
-        guard let table = databaseTable else {
-            fatalError("Nil Table returned from \(self).databaseTable")
+        // Fail early if key is empty.
+        guard dictionary.count > 0 else {
+            fatalError("Invalid empty key")
         }
         
         let whereSQL = dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
-        let sql = "SELECT * FROM \(table.name.quotedDatabaseIdentifier) WHERE \(whereSQL)"
+        let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
         return fetchOne(db.selectStatement(sql), arguments: StatementArguments(dictionary.values))
     }
 }

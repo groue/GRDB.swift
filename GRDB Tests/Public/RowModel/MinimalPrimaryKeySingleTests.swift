@@ -6,8 +6,8 @@ import GRDB
 class MinimalSingle: RowModel {
     var UUID: String!
     
-    override class var databaseTable: Table? {
-        return Table(named: "minimalSingles", primaryKey: .RowID("UUID"))
+    override class var databaseTableName: String? {
+        return "minimalSingles"
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

@@ -11,6 +11,7 @@ Release Notes
 **Breaking changes**
 
 - `RowModel.edited` has been renamed `RowModel.databaseEdited`.
+- `RowModel.databaseTable` has been replaced with `RowModel.databaseTableName` which returns a String.
 
 
 ## 0.11.0

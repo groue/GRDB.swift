@@ -6,8 +6,8 @@ import GRDB
 class MinimalRowID: RowModel {
     var id: Int64!
     
-    override class var databaseTable: Table? {
-        return Table(named: "minimalRowIDs", primaryKey: .RowID("id"))
+    override class var databaseTableName: String? {
+        return "minimalRowIDs"
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

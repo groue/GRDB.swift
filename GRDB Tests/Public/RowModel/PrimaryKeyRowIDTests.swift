@@ -8,8 +8,8 @@ class Person: RowModel {
     var age: Int?
     var creationDate: NSDate!
     
-    override class var databaseTable: Table? {
-        return Table(named: "persons", primaryKey: .RowID("id"))
+    override class var databaseTableName: String? {
+        return "persons"
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

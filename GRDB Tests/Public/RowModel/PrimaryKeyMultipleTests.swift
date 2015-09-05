@@ -7,8 +7,8 @@ class Citizenship: RowModel {
     var countryName: String!
     var native: Bool!
     
-    override class var databaseTable: Table? {
-        return Table(named: "citizenships", primaryKey: .Columns(["personName", "countryName"]))
+    override class var databaseTableName: String? {
+        return "citizenships"
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

@@ -5,8 +5,8 @@ class EventRecorder : RowModel {
     var id: Int64?
     var didFetchCount = 0
     
-    override static var databaseTable: Table? {
-        return Table(named:"eventRecorders", primaryKey: .RowID("id"))
+    override static var databaseTableName: String? {
+        return "eventRecorders"
     }
     
     override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {

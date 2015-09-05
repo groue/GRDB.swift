@@ -116,7 +116,7 @@ public final class Database {
     }
     
     
-    // MARK: - Miscellaneous
+    // MARK: - Database Informations
     
     /**
     Returns whether a table exists.
@@ -133,6 +133,86 @@ public final class Database {
         }
     }
     
+    /// Cache for primaryKeyForTable()
+    private var primaryKeys: [String: PrimaryKey] = [:]
+    
+    /// Return the primary key for table named `tableName`, or nil if table does
+    /// not exist.
+    ///
+    /// This method is not thread-safe.
+    func primaryKeyForTable(named name: String) -> PrimaryKey? {
+        if let primaryKey = primaryKeys[name] {
+            return primaryKey
+        } else {
+            let primaryKey = fetchPrimaryKeyForTable(named: name)
+            primaryKeys[name] = primaryKey
+            return primaryKey
+        }
+    }
+    
+    private func fetchPrimaryKeyForTable(named name: String) -> PrimaryKey? {
+        // https://www.sqlite.org/pragma.html
+        //
+        // > PRAGMA database.table_info(table-name);
+        // >
+        // > This pragma returns one row for each column in the named table.
+        // > Columns in the result set include the column name, data type,
+        // > whether or not the column can be NULL, and the default value for
+        // > the column. The "pk" column in the result set is zero for columns
+        // > that are not part of the primary key, and is the index of the
+        // > column in the primary key for columns that are part of the primary
+        // > key.
+        //
+        // CREATE TABLE persons (
+        //   id INTEGER PRIMARY KEY,
+        //   firstName TEXT,
+        //   lastName TEXT)
+        //
+        // PRAGMA table_info("persons")
+        //
+        // cid | name      | type    | notnull | dflt_value | pk |
+        // 0   | id        | INTEGER | 0       | NULL       | 1  |
+        // 1   | firstName | TEXT    | 0       | NULL       | 0  |
+        // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
+        
+        let rows = Row.fetchAll(self, "PRAGMA table_info(\(name.quotedDatabaseIdentifier))")
+        guard rows.count > 0 else {
+            // Table does not exist
+            return nil
+        }
+        
+        let columns = rows
+            
+            // Columns name, type, primary key index
+            .map { (
+                name: ($0.value(named: "name") as String?)!,
+                type: ($0.value(named: "type") as String?)!,
+                primaryKeyIndex: ($0.value(named: "pk") as Int?)!) }
+            
+            // Columns part of the primary key.
+            .filter { $0.primaryKeyIndex > 0 }
+            
+            // Sort by primary key index.
+            .sort { $0.primaryKeyIndex < $1.primaryKeyIndex }
+        
+        switch columns.count {
+        case 0:
+            // No column => no primary key
+            return PrimaryKey.None
+        case 1:
+            // Single column
+            let column = columns.first!
+            if column.type == "INTEGER" {
+                // INTEGER PRIMARY KEY
+                return .Managed(column.name)
+            } else {
+                return .Unmanaged([column.name])
+            }
+        default:
+            // Multi-columns primary key
+            return .Unmanaged(columns.map { $0.name })
+        }
+    }
     
     // MARK: - Non public
     
@@ -242,3 +322,33 @@ public final class Database {
     try! throwDataBasase(error)
     fatalError("Should not happen")
 }
+
+
+// MARK: - Database Information
+
+/// A primary key
+enum PrimaryKey {
+    
+    /// No primary key
+    case None
+    
+    /// A primary key managed by SQLite. Associated string is a column name.
+    case Managed(String)
+    
+    /// A primary key not managed by SQLite. It can span accross several
+    /// columns. Associated strings are column names.
+    case Unmanaged([String])
+    
+    /// The columns in the primary key. May be empty.
+    var columns: [String] {
+        switch self {
+        case .None:
+            return []
+        case .Managed(let column):
+            return [column]
+        case .Unmanaged(let columns):
+            return columns
+        }
+    }
+}
+

@@ -5,8 +5,8 @@ import GRDB
 class Item: RowModel {
     var name: String?
     
-    override class var databaseTable: Table? {
-        return Table(named: "items")
+    override class var databaseTableName: String? {
+        return "items"
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

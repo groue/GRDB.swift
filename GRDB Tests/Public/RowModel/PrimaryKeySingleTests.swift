@@ -6,8 +6,8 @@ class Pet: RowModel {
     var UUID: String!
     var name: String!
     
-    override class var databaseTable: Table? {
-        return Table(named: "pets", primaryKey: .Column("UUID"))
+    override class var databaseTableName: String? {
+        return "pets"
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

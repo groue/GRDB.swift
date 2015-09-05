@@ -877,7 +877,7 @@ Subclasses opt in RowModel features by overriding all or part of the core method
 | Core Methods                     | fetch | insert | update | delete | reload |
 |:-------------------------------- |:-----:|:------:|:------:|:------:|:------:|
 | `setDatabaseValue(_:forColumn:)` |   ✓   |        |        |        |   ✓    |
-| `databaseTable`                  |       |   ✓    |   ✓    |   ✓    |   ✓    |
+| `databaseTableName`              |       |   ✓    |   ✓    |   ✓    |   ✓    |
 | `storedDatabaseDictionary`       |       |   ✓    |   ✓    |   ✓    |   ✓    |
 
 
@@ -1051,24 +1051,17 @@ Declare a **Table** given its **name** and **primary key** in order to fetch row
 
 ```swift
 class Person : RowModel {
-    override class var databaseTable: Table? {
-        return Table(named: "persons", primaryKey: .RowID("id"))
+    override class var databaseTableName: String? {
+        return "persons"
     }
 }
 
 try dbQueue.inDatabase { db in
     // Fetch
     let person = Person.fetchOne(db, primaryKey: 123)  // Person?
+    Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
 }
 ```
-
-Primary key is not mandatory. But when there is a primary key, it is one of:
-
-- **RowID**: use it when you rely on automatically generated IDs in an `INTEGER PRIMARY KEY` column. Beware RowModel does not support the implicit `ROWID` column (see https://www.sqlite.org/autoinc.html for more information).
-    
-- **Column**: for single-column primary keys that are not managed by SQLite.
-    
-- **Columns**: for primary keys that span accross several columns.
     
 RowModels with a multi-column primary key are not supported by `fetchOne(_:primaryKey:)`, which accepts a single value as a key. Instead, use `fetchOne(_:key:)` that uses a dictionary.
 
@@ -1169,8 +1162,8 @@ class Person : RowModel {
     id: Int64!
     
     /// The table definition.
-    override class var databaseTable: Table? {
-        return Table(named: "persons", primaryKey: .RowID("id"))
+    override class var databaseTableName: String? {
+        return "persons"
     }
     
     /// The values that should be stored in the database.

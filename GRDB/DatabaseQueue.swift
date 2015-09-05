@@ -188,8 +188,6 @@ public final class DatabaseQueue {
         }
         return try performSyncImpl(queue, block: block, block2: { throw $0 })
     }
-
 }
 
 typealias DatabaseQueueID = UnsafeMutablePointer<Void>
-
