@@ -894,15 +894,9 @@ The `updateFromRow` method assigns database values to properties:
 ```swift
 class Person : RowModel {
     override func updateFromRow(row: Row) {
-        // Iterate (ColumnName, DatabaseValue) pairs in row:
-        for (column, dbv) in row {
-            switch column {
-            case "id":   id = dbv.value()
-            case "age":  age = dbv.value()
-            case "name": name = dbv.value()
-            default: break
-            }
-        }
+        if let dbv = row["id"]   { id = dbv.value() }
+        if let dbv = row["age"]  { age = dbv.value() }
+        if let dbv = row["name"] { name = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
@@ -1109,13 +1103,8 @@ class Person : RowModel {
     
     /// Updates `self` with a database value.
     override func updateFromRow(row: Row) {
-        // Iterate (ColumnName, DatabaseValue) pairs in row:
-        for (column, dbv) in row {
-            switch column {
-            case "id": id = dbv.value()
-            case...
-            }
-        }
+        if let dbv = row["id"] { id = dbv.value() }
+        ...
         super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
