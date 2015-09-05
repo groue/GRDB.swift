@@ -5,6 +5,7 @@ Release Notes
 
 **New**
 
+- `RowConvertible` and `DatabaseTableMapping` protocols grant any type the fetching methods that used to be a privilege of `RowModel`.
 - `Row.columnNames` returns the names of columns in the row.
 - `Row.databaseValues` returns the database values in the row.
 
