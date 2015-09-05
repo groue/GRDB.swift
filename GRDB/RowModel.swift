@@ -349,7 +349,7 @@ public class RowModel {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         
-        if DataMapper(self).strongPrimaryKeyDictionary == nil {
+        if DataMapper(self).resolvingPrimaryKeyDictionary == nil {
             return try insert(db)
         }
         
@@ -436,40 +436,60 @@ public class RowModel {
         // MARK: - Primary Key
         
         /**
-        A dictionary of primary key columns that may or not identify a row in
-        the database because its values may all be nil. Hence its "weak" name.
+        An excerpt from storedDatabaseDictionary whose keys are primary key
+        columns.
         
-        It is nil when rowModel has no primary key. Its values come from the
-        storedDatabaseDictionary.
+        It is nil when rowModel has no primary key.
         */
-        lazy var weakPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
-            guard let primaryKeyColumns = self.databaseTable.primaryKey?.columns else {
+        lazy var primaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
+            guard let columns = self.databaseTable.primaryKey?.columns else {
                 return nil
             }
             let storedDatabaseDictionary = self.storedDatabaseDictionary
-            var primaryKeyDictionary: [String: DatabaseValueConvertible?] = [:]
-            for column in primaryKeyColumns {
-                if let value = storedDatabaseDictionary[column] {
-                    primaryKeyDictionary[column] = value
-                } else {
-                    primaryKeyDictionary[column] = nil
-                }
+            var dictionary: [String: DatabaseValueConvertible?] = [:]
+            for column in columns {
+                dictionary[column] = storedDatabaseDictionary[column]
             }
-            return primaryKeyDictionary
+            return dictionary
             }()
         
         /**
-        A dictionary of primary key columns that surely identifies a row in the
-        database because not all its values are nil. Hence its "strong" name.
+        An excerpt from storedDatabaseDictionary whose keys are primary key
+        columns. It is able to resolve a row in the database.
         
-        It is nil when the weakPrimaryKey is nil or only contains nil values.
+        It is nil when the primaryKeyDictionary is nil or unable to identify a
+        row in the database.
         */
-        lazy var strongPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
-            guard let dictionary = self.weakPrimaryKeyDictionary else {
+        lazy var resolvingPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
+            // IMPLEMENTATION NOTE
+            //
+            // https://www.sqlite.org/lang_createtable.html
+            //
+            // > According to the SQL standard, PRIMARY KEY should always
+            // > imply NOT NULL. Unfortunately, due to a bug in some early
+            // > versions, this is not the case in SQLite. Unless the column
+            // > is an INTEGER PRIMARY KEY or the table is a WITHOUT ROWID
+            // > table or the column is declared NOT NULL, SQLite allows
+            // > NULL values in a PRIMARY KEY column. SQLite could be fixed
+            // > to conform to the standard, but doing so might break legacy
+            // > applications. Hence, it has been decided to merely document
+            // > the fact that SQLite allowing NULLs in most PRIMARY KEY
+            // > columns.
+            //
+            // What we implement: we consider that the primary key is missing if
+            // and only if *all* columns of the primary key are NULL.
+            //
+            // For tables with a single column primary key, we comply to the
+            // SQL standard.
+            //
+            // For tables with multi-column primary keys, we let the user
+            // store NULL in all but one columns of the primary key.
+            
+            guard let dictionary = self.primaryKeyDictionary else {
                 return nil
             }
             for case let value? in dictionary.values {
-                return dictionary // At least one non-nil value in the primary key dictionary is OK.
+                return dictionary
             }
             return nil
             }()
@@ -495,19 +515,17 @@ public class RowModel {
         }
         
         
-        // MARK: - CRUD
+        // MARK: - Statement builders
         
-        /// INSERT
         func insertStatement(db: Database) throws -> UpdateStatement {
-            // INSERT
-            let insertStatement = try DataMapper.insertStatement(db, tableName: databaseTable.name, insertedColumns: Array(storedDatabaseDictionary.keys))
+            let insertStatement = try db.updateStatement(DataMapper.insertSQL(tableName: databaseTable.name, insertedColumns: Array(storedDatabaseDictionary.keys)))
             insertStatement.arguments = StatementArguments(storedDatabaseDictionary.values)
             return insertStatement
         }
         
-        /// UPDATE. Returns nil if there is no column to update
+        /// Returns nil if there is no column to update
         func updateStatement(db: Database) throws -> UpdateStatement? {
-            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+            guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
             
@@ -523,86 +541,74 @@ public class RowModel {
             }
             
             // Update
-            let updateStatement = try DataMapper.updateStatement(db, tableName: databaseTable.name, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys))
+            let updateStatement = try db.updateStatement(DataMapper.updateSQL(tableName: databaseTable.name, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
             updateStatement.arguments = StatementArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
             return updateStatement
         }
         
-        /// DELETE
         func deleteStatement(db: Database) throws -> UpdateStatement {
-            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+            guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
             
             // Delete
-            let deleteStatement = try DataMapper.deleteStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
+            let deleteStatement = try db.updateStatement(DataMapper.deleteSQL(tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys)))
             deleteStatement.arguments = StatementArguments(primaryKeyDictionary.values)
             return deleteStatement
         }
         
-        /// SELECT
         func reloadStatement(db: Database) -> SelectStatement {
-            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+            guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
             
             // Fetch
-            let selectStatement = DataMapper.selectStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
-            selectStatement.arguments = StatementArguments(primaryKeyDictionary.values)
-            return selectStatement
+            let reloadStatement = db.selectStatement(DataMapper.reloadSQL(tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys)))
+            reloadStatement.arguments = StatementArguments(primaryKeyDictionary.values)
+            return reloadStatement
         }
         
         /// SELECT statement that returns a row if and only if the primary key
-        /// matchs a row in the database.
+        /// matches a row in the database.
         func existsStatement(db: Database) -> SelectStatement {
-            guard let primaryKeyDictionary = strongPrimaryKeyDictionary else {
+            guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
                 fatalError("Invalid primary key in \(rowModel)")
             }
             
             // Fetch
-            let existsStatement = DataMapper.existsStatement(db, tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys))
+            let existsStatement = db.selectStatement(DataMapper.existsSQL(tableName: databaseTable.name, conditionColumns: Array(primaryKeyDictionary.keys)))
             existsStatement.arguments = StatementArguments(primaryKeyDictionary.values)
             return existsStatement
         }
         
         
-        // MARK: - SQL statements
+        // MARK: - SQL query builders
         
-        private class func insertStatement(db: Database, tableName: String, insertedColumns: [String]) throws -> UpdateStatement {
-            // INSERT INTO table (id, name) VALUES (?, ?)
+        class func insertSQL(tableName tableName: String, insertedColumns: [String]) -> String {
             let columnSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
             let valuesSQL = [String](count: insertedColumns.count, repeatedValue: "?").joinWithSeparator(",")
-            let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
-            return try db.updateStatement(sql)
+            return "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
         }
         
-        private class func updateStatement(db: Database, tableName: String, updatedColumns: [String], conditionColumns: [String]) throws -> UpdateStatement {
-            // "UPDATE table SET name = ? WHERE id = ?"
+        class func updateSQL(tableName tableName: String, updatedColumns: [String], conditionColumns: [String]) -> String {
             let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(",")
-            let conditionSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
-            let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(conditionSQL)"
-            return try db.updateStatement(sql)
+            return "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL(conditionColumns))"
         }
         
-        private class func deleteStatement(db: Database, tableName: String, conditionColumns: [String]) throws -> UpdateStatement {
-            // "DELETE FROM table WHERE id = ?"
-            let conditionSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
-            let sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
-            return try db.updateStatement(sql)
+        class func deleteSQL(tableName tableName: String, conditionColumns: [String]) -> String {
+            return "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
         }
         
-        private class func existsStatement(db: Database, tableName: String, conditionColumns: [String]) -> SelectStatement {
-            // "SELECT 1 FROM table WHERE id = ?"
-            let conditionSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
-            let sql = "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
-            return db.selectStatement(sql)
+        class func existsSQL(tableName tableName: String, conditionColumns: [String]) -> String {
+            return "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
         }
 
-        private class func selectStatement(db: Database, tableName: String, conditionColumns: [String]) -> SelectStatement {
-            // "SELECT * FROM table WHERE id = ?"
-            let conditionSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
-            let sql = "SELECT * FROM \(tableName.quotedDatabaseIdentifier) WHERE \(conditionSQL)"
-            return db.selectStatement(sql)
+        class func reloadSQL(tableName tableName: String, conditionColumns: [String]) -> String {
+            return "SELECT * FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
+        }
+        
+        class func whereSQL(conditionColumns: [String]) -> String {
+            return conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
         }
     }
 }
