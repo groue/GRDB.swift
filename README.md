@@ -327,7 +327,7 @@ let names = dbQueue.inDatabase { db in
 }
 ```
 
-The `fetchOne(db,sql,arguments)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value. If this ambiguity does not fit your need, use `Row.fetchOne()`.
+The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value. If this ambiguity does not fit your need, use `Row.fetchOne(_:sql:arguments:)`.
 
 
 ## Values
@@ -889,10 +889,11 @@ dbQueue.inDatabase { db in
     
     // With a key dictionary:
     Person.fetchOne(db, key: ["id": 123])            // Person?
+    Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
 }
 ```
 
-The `fetchOne(db,key)` method eats any key dictionary, and returns the first RowModel with matching values. Its result is undefined unless the dictionary is *actually* a key.
+The `fetchOne(_:key:)` method eats a key *dictionary*. It returns the first RowModel with matching values. Its result is undefined unless the dictionary is *actually* a key.
 
 Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
 
@@ -1036,7 +1037,7 @@ Primary key is not mandatory. But when there is a primary key, it is one of:
     
 - **Columns**: for primary keys that span accross several columns.
     
-RowModels with a multi-column primary key are not supported by `fetchOne(db,primaryKey)`, which accepts a single value as a key. Instead, use `fetchOne(db,key)` that uses a dictionary.
+RowModels with a multi-column primary key are not supported by `fetchOne(_:primaryKey:)`, which accepts a single value as a key. Instead, use `fetchOne(_:key:)` that uses a dictionary.
 
 
 ### Insert, Update and Delete
