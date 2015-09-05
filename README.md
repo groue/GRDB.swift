@@ -109,37 +109,36 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 **Guides**
 
-- SQLite API:
-    
-    - [Database Queues](#database-queues)
-    - [Transactions](#transactions)
-    - [Fetch Queries](#fetch-queries)
-        - [Row Queries](#row-queries)
-        - [Value Queries](#value-queries)
-    - [Values](#values)
-        - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
-        - [Swift enums](#swift-enums)
-        - [Custom Value Types](#custom-value-types)
-    - [Prepared Statements](#prepared-statements)
-    - [Error Handling](#error-handling)
+[SQLite API](#sqlite-api)
 
-- Application tools:
-    
-    - [Migrations](#migrations)
-    - [Row Models](#row-models)
-        - [RowModel API Quick Tour](#rowmodel-api-quick-tour)
-        - [Core Methods](#core-methods)
-        - [Fetching Row Models](#fetching-row-models)
-        - [Ad Hoc Subclasses](#ad-hoc-subclasses)
-        - [Compound Properties](#compound-properties)
-        - [Tables and Primary Keys](#tables-and-primary-keys)
-        - [Insert, Update and Delete](#insert-update-and-delete)
-        - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
-        - [RowModel Errors](#rowmodel-errors)
-        - [Advice](#advice)
+- [Transactions](#transactions)
+- [Fetch Queries](#fetch-queries)
+    - [Row Queries](#row-queries)
+    - [Value Queries](#value-queries)
+- [Values](#values)
+    - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
+    - [Swift enums](#swift-enums)
+    - [Custom Value Types](#custom-value-types)
+- [Prepared Statements](#prepared-statements)
+- [Error Handling](#error-handling)
+
+[Migrations](#migrations)
+
+[Row Models](#row-models)
+
+- [RowModel API Quick Tour](#rowmodel-api-quick-tour)
+- [Core Methods](#core-methods)
+- [Fetching Row Models](#fetching-row-models)
+- [Ad Hoc Subclasses](#ad-hoc-subclasses)
+- [Compound Properties](#compound-properties)
+- [Tables and Primary Keys](#tables-and-primary-keys)
+- [Insert, Update and Delete](#insert-update-and-delete)
+- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+- [RowModel Errors](#rowmodel-errors)
+- [Advice](#advice)
 
 
-## Database Queues
+## SQLite API
 
 You access SQLite databases through thread-safe database queues (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
 
@@ -172,7 +171,7 @@ Database connections get closed when the database queue gets deallocated.
 To create tables, we recommend using [migrations](#migrations).
 
 
-## Transactions
+### Transactions
 
 **Transactions** wrap the queries that alter the database content:
 
@@ -193,7 +192,7 @@ try dbQueue.inTransaction { db in
 A rollback statement is issued if an error is thrown from the transaction block.
 
 
-## Fetch Queries
+### Fetch Queries
 
 You can fetch **rows**, **values**, and **[row models](#row-models)**:
 
@@ -217,7 +216,7 @@ dbQueue.inDatabase { db in
 - [Value Queries](#value-queries)
 
 
-### Row Queries
+#### Row Queries
 
 Fetch **lazy sequences** of rows, **arrays**, or a **single** row:
 
@@ -272,7 +271,7 @@ row.value(named: "bookCount") as! Int   // NO NO NO DON'T DO THAT!
 row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
 ```
 
-#### Rows as Dictionaries
+##### Rows as Dictionaries
 
 The `row.value(named:)` and `row.value(atIndex:)` methods above require that you know the row structure: which columns are available, in which order.
 
@@ -295,7 +294,7 @@ for (columnName, databaseValue) in row {
 ```
 
 
-### Value Queries
+#### Value Queries
 
 Instead of rows, you can directly fetch **values**, extracted from the first column of the resulting rows.
 
@@ -331,14 +330,14 @@ let names = dbQueue.inDatabase { db in
 The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value. If this ambiguity does not fit your need, use `Row.fetchOne(_:sql:arguments:)`.
 
 
-## Values
+### Values
 
 The library ships with built-in support for `Bool`, `Int`, `Int32`, `Int64`, `Double`, `String`, `Blob`, [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), and [Swift enums](#swift-enums).
 
 Custom value types are supported as well through the [DatabaseValueConvertible](#custom-value-types) protocol.
 
 
-### NSDate and NSDateComponents
+#### NSDate and NSDateComponents
 
 [**NSDate**](#nsdate) and [**NSDateComponents**](#nsdatecomponents) can be stored and fetched from the database.
 
@@ -364,7 +363,7 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 ² See https://en.wikipedia.org/wiki/Julian_day
 
 
-#### NSDate
+##### NSDate
 
 Support for NSDate is given by the **DatabaseDate** helper type.
 
@@ -426,7 +425,7 @@ class Person : RowModel {
 ```
 
 
-#### NSDateComponents
+##### NSDateComponents
 
 Support for NSDateComponents is given by the **DatabaseDateComponents** helper type.
 
@@ -487,7 +486,7 @@ class Person : RowModel {
 ```
 
 
-### Swift Enums
+#### Swift Enums
 
 **Swift enums** get full support from GRDB.swift as long as their raw values are Int or String.
 
@@ -534,7 +533,7 @@ Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 ```
 
 
-### Custom Types
+#### Custom Types
 
 Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
 
@@ -616,7 +615,7 @@ DatabaseTimestamp.fetchOne(db, "SELECT ...") // DatabaseTimestamp?
 ```
 
 
-### Value Extraction in Details
+#### Value Extraction in Details
 
 SQLite has a funny way to manage values. It is "funny" because it is a rather long read: https://www.sqlite.org/datatype3.html.
 
@@ -639,7 +638,7 @@ The interested reader should know that GRDB.swift *does not* use SQLite built-in
 Your [Custom Value Types](#custom-value-types) can perform their own conversions to and from SQLite storage classes.
 
 
-## Prepared Statements
+### Prepared Statements
 
 **Prepared Statements** can be reused.
 
@@ -688,7 +687,7 @@ dbQueue.inDatabase { db in
 ```
 
 
-## Error Handling
+### Error Handling
 
 **No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error.
 
