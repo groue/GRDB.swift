@@ -10,11 +10,14 @@ class PersonWithOverrides: Person {
     var extra: Int!
     var lastSavingMethod: SavingMethod?
     
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "extra": extra = dbv.value()
-        default:      super.setDatabaseValue(dbv, forColumn: column)
+    override func updateFromRow(row: Row) {
+        for (column, dbv) in row {
+            switch column {
+            case "extra": extra = dbv.value()
+            default: break
+            }
         }
+        super.updateFromRow(row) // Subclasses are required to call super.
     }
     
     override func insert(db: Database) throws {

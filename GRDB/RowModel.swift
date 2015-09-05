@@ -7,7 +7,7 @@ designed to be subclassed.
 Subclasses opt in RowModel features by overriding all or part of the core
 methods that define their relationship with the database:
 
-- setDatabaseValue(_:forColumn:)
+- updateFromRow(_)
 - databaseTable
 - storedDatabaseDictionary
 */
@@ -20,44 +20,6 @@ public class RowModel {
         
         /// No row was deleted.
         case NoRowDeleted
-    }
-    
-    
-    // MARK: - Core methods
-    
-    /**
-    Returns a table definition.
-    
-    The insert, update, save, delete and reload methods require it: they raise
-    a fatal error if databaseTableName is nil.
-    
-    The implementation of the base class RowModel returns nil.
-    */
-    public class var databaseTableName: String? {
-        return nil
-    }
-    
-    /**
-    Returns the values that should be stored in the database.
-    
-    Subclasses must include primary key columns, if any, in the returned
-    dictionary.
-    
-    The implementation of the base class RowModel returns an empty dictionary.
-    */
-    public var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return [:]
-    }
-    
-    /**
-    Updates `self` with a database value.
-    
-    The implementation of the base class RowModel does nothing.
-    
-    - parameter dbv: A DatabaseValue.
-    - parameter column: A column name.
-    */
-    public func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
     }
     
     
@@ -104,6 +66,41 @@ public class RowModel {
     }
     
     
+    // MARK: - Core methods
+    
+    /**
+    Returns a table definition.
+    
+    The insert, update, save, delete and reload methods require it: they raise
+    a fatal error if databaseTableName is nil.
+    
+    The implementation of the base class RowModel returns nil.
+    */
+    public class var databaseTableName: String? {
+        return nil
+    }
+    
+    /**
+    Returns the values that should be stored in the database.
+    
+    Subclasses must include primary key columns, if any, in the returned
+    dictionary.
+    
+    The implementation of the base class RowModel returns an empty dictionary.
+    */
+    public var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return [:]
+    }
+    
+    /**
+    Updates self from a row.
+    
+    *Important*: subclasses must invoke super's implementation.
+    */
+    public func updateFromRow(row: Row) {
+    }
+    
+    
     // MARK: - Events
     
     /**
@@ -115,18 +112,7 @@ public class RowModel {
     }
     
     
-    // MARK: - Update
-    
-    /**
-    Updates self from a row.
-    
-    *Important*: subclasses must invoke super's implementation.
-    */
-    public func updateFromRow(row: Row) {
-        for (column, databaseValue) in row {
-            setDatabaseValue(databaseValue, forColumn: column)
-        }
-    }
+    // MARK: - Copy
     
     /**
     Updates `self` from `other.storedDatabaseDictionary`.
@@ -223,24 +209,6 @@ public class RowModel {
                 fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key `(managedColumn)`")
             }
             if rowID == nil {
-                // IMPLEMENTATION NOTE:
-                //
-                // We update the ID with updateFromRow(), and not
-                // setDatabaseValue(_:forColumn:). Rationale:
-                //
-                // 1. If subclass updates its ID in setDatabaseValue(), then the
-                //    default updateFromRow() runs, which calls
-                //    setDatabaseValue(), and updates the ID.
-                //
-                // 2. If subclass overrides updateFromRow() and updates its ID
-                //    in setDatabaseValue(), then the subclasses calls super
-                //    from updateFromRow() (as it is required to do), which in
-                //    turns call setDatabaseValue(), and updates the ID.
-                //
-                // 3. If subclass overrides updateFromRow() and updates its ID
-                //    in updateFromRow(), not in setDatabaseValue(), which it is
-                //    allowed to do, then using setDatabaseValue() would not
-                //    update the ID.
                 updateFromRow(Row(dictionary: [managedColumn: changes.insertedRowID]))
             }
         }

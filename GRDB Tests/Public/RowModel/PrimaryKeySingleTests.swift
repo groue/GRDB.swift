@@ -16,12 +16,15 @@ class Pet: RowModel {
             "name": name]
     }
     
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "UUID":        UUID = dbv.value()
-        case "name":        name = dbv.value()
-        default:            super.setDatabaseValue(dbv, forColumn: column)
+    override func updateFromRow(row: Row) {
+        for (column, dbv) in row {
+            switch column {
+            case "UUID":        UUID = dbv.value()
+            case "name":        name = dbv.value()
+            default: break
+            }
         }
+        super.updateFromRow(row) // Subclasses are required to call super.
     }
     
     init (UUID: String? = nil, name: String? = nil) {

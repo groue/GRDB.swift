@@ -13,15 +13,15 @@ class Email : RowModel {
         return ["email": email, "label": label]
     }
     
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "email":
-            self.email = dbv.value()
-        case "label":
-            self.label = dbv.value()
-        default:
-            super.setDatabaseValue(dbv, forColumn: column)
+    override func updateFromRow(row: Row) {
+        for (column, dbv) in row {
+            switch column {
+            case "email": email = dbv.value()
+            case "label": label = dbv.value()
+            default: break
+            }
         }
+        super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
 

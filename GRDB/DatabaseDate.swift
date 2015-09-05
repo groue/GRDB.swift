@@ -32,11 +32,14 @@ Usage:
             return ["birthDate": DatabaseDate(birthDate), ...]
         }
     
-        override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-            switch column {
-            case "birthDate": birthDate = (dbv.value() as DatabaseDate?)?.date
-            case ...
-            default: super.setDatabaseValue(dbv, forColumn: column)
+        override func updateFromRow(row: Row) {
+            for (column, dbv) in row {
+                switch column {
+                case "birthDate": birthDate = (dbv.value() as DatabaseDate?)?.date
+                case ...
+                }
+            }
+            super.updateFromRow(row) // Subclasses are required to call super.
         }
     }
 

@@ -125,7 +125,6 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [RowModel API Quick Tour](#rowmodel-api-quick-tour)
     - [Core Methods](#core-methods)
     - [Fetching Row Models](#fetching-row-models)
-        - [Compound Properties](#compound-properties)
         - [Ad Hoc Subclasses](#ad-hoc-subclasses)
     - [Tables and Primary Keys](#tables-and-primary-keys)
         - [Insert, Update and Delete](#insert-update-and-delete)
@@ -400,22 +399,22 @@ DatabaseDate.fetchAll(db, "SELECT ...")    // [DatabaseDate?]
 DatabaseDate.fetchOne(db, "SELECT ...")    // DatabaseDate?
 ```
 
-Use NSDate in a [Row Model](#row-models):
+Use NSDate in a RowModel (see [Fetching Row Models](#fetching-row-models) for more information):
 
 ```swift
 class Person : RowModel {
     var birthDate: NSDate?
-
+    
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["birthDate": DatabaseDate(birthDate), ...]
     }
-
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "birthDate": birthDate = (dbv.value() as DatabaseDate?)?.date
-        case ...
-        default: super.setDatabaseValue(dbv, forColumn: column)
+    
+    override func updateFromRow(row: Row) {
+        if let dbv = row["birthDate"] {
+            let dbDate = dbv.value() as DatabaseDate?
+            birthDate = dbDate?.date
         }
+        ...
     }
 }
 ```
@@ -455,12 +454,12 @@ DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents?]
 DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
 ```
 
-Use NSDateComponents in a [Row Model](#row-models):
+Use NSDate in a RowModel (see [Fetching Row Models](#fetching-row-models) for more information):
 
 ```swift
 class Person : RowModel {
     var birthDateComponents: NSDateComponents?
-
+    
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         // Store birth date as YYYY-MM-DD:
         let dbComponents = DatabaseDateComponents(
@@ -468,15 +467,13 @@ class Person : RowModel {
             format: .YMD)
         return ["birthDate": dbComponents, ...]
     }
-
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "birthDate":
-            let dbComponents: DatabaseDateComponents? = dbv.value()
+    
+    override func updateFromRow(row: Row) {
+        if let dbv = row["birthDate"] {
+            let dbComponents = dbv.value() as DatabaseDateComponents?
             birthDateComponents = dbComponents?.dateComponents
-        case ...
-        default: super.setDatabaseValue(dbv, forColumn: column)
         }
+        ...
     }
 }
 ```
@@ -821,7 +818,6 @@ Yet, it does a few things well:
 - [RowModel API Quick Tour](#rowmodel-api-quick-tour)
 - [Core Methods](#core-methods)
 - [Fetching Row Models](#fetching-row-models)
-    - [Compound Properties](#compound-properties)
     - [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Tables and Primary Keys](#tables-and-primary-keys)
     - [Insert, Update and Delete](#insert-update-and-delete)
@@ -874,11 +870,11 @@ Person.fetchOne(statement, arguments: ...)          // Person?
 
 Subclasses opt in RowModel features by overriding all or part of the core methods that define their relationship with the database:
 
-| Core Methods                     | fetch | insert | update | delete | reload |
-|:-------------------------------- |:-----:|:------:|:------:|:------:|:------:|
-| `setDatabaseValue(_:forColumn:)` |   ✓   |        |        |        |   ✓    |
-| `databaseTableName`              |       |   ✓    |   ✓    |   ✓    |   ✓    |
-| `storedDatabaseDictionary`       |       |   ✓    |   ✓    |   ✓    |   ✓    |
+| Core Methods               | fetch | insert | update | delete | reload |
+|:-------------------------- |:-----:|:------:|:------:|:------:|:------:|
+| `updateFromRow`            |   ✓   |        |        |        |   ✓    |
+| `databaseTableName`        |       |   ✓    |   ✓    |   ✓    |   ✓    |
+| `storedDatabaseDictionary` |       |   ✓    |   ✓    |   ✓    |   ✓    |
 
 
 ### Fetching Row Models
@@ -893,17 +889,21 @@ class Person : RowModel {
 }
 ```
 
-The `setDatabaseValue(_:forColumn:)` method assigns database values to properties:
+The `updateFromRow` method assigns database values to properties:
 
 ```swift
 class Person : RowModel {
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "id":   id = dbv.value()
-        case "age":  age = dbv.value()
-        case "name": name = dbv.value()
-        default:     super.setDatabaseValue(dbv, forColumn: column)
+    override func updateFromRow(row: Row) {
+        // Iterate (ColumnName, DatabaseValue) pairs in row:
+        for (column, dbv) in row {
+            switch column {
+            case "id":   id = dbv.value()
+            case "age":  age = dbv.value()
+            case "name": name = dbv.value()
+            default: break
+            }
         }
+        super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
 ```
@@ -939,70 +939,6 @@ for person in persons { ... } // OK
 ```
 
 
-#### Compound Properties
-
-Some properties don't fit well in a single column:
-
-```swift
-class Placemark : RowModel {
-    // Stored in two columns: latitude and longitude
-    var coordinate: CLLocationCoordinate2D?
-}
-```
-
-A solution is of course to declare two convenience properties, latitude and longitude, and implement coordinate on top of them, as a computed property. `setDatabaseValue()` would then update latitude and longitude separately:
-
-```swift
-// Solution 1: computed property:
-class Placemark : RowModel {
-    var latitude: CLLocationDegrees?
-    var longitude: CLLocationDegrees?
-    var coordinate: CLLocationCoordinate2D? {
-        switch (latitude, longitude) {
-        case (let latitude?, let longitude?):
-            // Both latitude and longitude are not nil.
-            return CLLocationCoordinate2DMake(latitude, longitude)
-        default:
-            return nil
-        }
-    }
-    
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "latitude": latitude = dbv.value()
-        case "longitude": longitude = dbv.value()
-        default: super.setDatabaseValue(dbv, forColumn: column)
-        }
-    }
-}
-```
-
-Another solution is to override the `updateFromRow()` method, where you can process a row as a whole:
-
-```swift
-// Solution 2: process rows as a whole:
-class Placemark : RowModel {
-    var coordinate: CLLocationCoordinate2D?
-    
-    override func updateFromRow(row: Row) {
-        if let latitude = row["latitude"], let longitude = row["longitude"] {
-            // Both columns are present.
-            switch (latitude.value() as Double?, longitude.value() as Double?) {
-            case (let latitude?, let longitude?):
-                // Both latitude and longitude are not nil.
-                coordinate = CLLocationCoordinate2DMake(latitude, longitude)
-            default:
-                coordinate = nil
-            }
-        }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-}
-```
-
-The remaining columns are handled by `setDatabaseValue()` as described above.
-
-
 #### Ad Hoc Subclasses
 
 Swift makes it very easy to create small and private types. This is a wonderful opportunity to create **ad hoc subclasses** that provide support for custom queries with extra columns.
@@ -1016,11 +952,11 @@ class PersonsViewController: UITableViewController {
     private class PersonViewModel : Person {
         var bookCount: Int!
         
-        override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-            switch column {
-            case "bookCount": bookCount = dbv.value()
-            default: super.setDatabaseValue(dbv, forColumn: column)
+        override func updateFromRow(row: Row) {
+            if dbv = row["bookCount"] {
+                bookCount = dbv.value()
             }
+            super.updateFromRow(row) // Subclasses are required to call super.
         }
     }
     
@@ -1172,12 +1108,15 @@ class Person : RowModel {
     }
     
     /// Updates `self` with a database value.
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "id": id = dbv.value()
-        case ...
-        default:   super.setDatabaseValue(dbv, forColumn: column)
+    override func updateFromRow(row: Row) {
+        // Iterate (ColumnName, DatabaseValue) pairs in row:
+        for (column, dbv) in row {
+            switch column {
+            case "id": id = dbv.value()
+            case...
+            }
         }
+        super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
 

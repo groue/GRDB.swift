@@ -21,14 +21,17 @@ class Person: RowModel {
         ]
     }
     
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "id":              id = dbv.value()
-        case "name":            name = dbv.value()
-        case "age":             age = dbv.value()
-        case "creationDate":    creationDate = (dbv.value() as DatabaseDate?)?.date
-        default:                super.setDatabaseValue(dbv, forColumn: column)
+    override func updateFromRow(row: Row) {
+        for (column, dbv) in row {
+            switch column {
+            case "id":              id = dbv.value()
+            case "name":            name = dbv.value()
+            case "age":             age = dbv.value()
+            case "creationDate":    creationDate = (dbv.value() as DatabaseDate?)?.date
+            default: break
+            }
         }
+        super.updateFromRow(row) // Subclasses are required to call super.
     }
     
     init (id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {

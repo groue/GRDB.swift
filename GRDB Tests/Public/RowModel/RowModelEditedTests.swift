@@ -8,11 +8,14 @@ class IntegerPropertyOnRealAffinityColumn : RowModel {
         return ["value": value]
     }
     
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "value": value = dbv.value()
-        default: super.setDatabaseValue(dbv, forColumn: column)
+    override func updateFromRow(row: Row) {
+        for (column, dbv) in row {
+            switch column {
+            case "value": value = dbv.value()
+            default: break
+            }
         }
+        super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
 

@@ -9,11 +9,14 @@ class EventRecorder : RowModel {
         return "eventRecorders"
     }
     
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "id": id = dbv.value()
-        default: super.setDatabaseValue(dbv, forColumn: column)
+    override func updateFromRow(row: Row) {
+        for (column, dbv) in row {
+            switch column {
+            case "id": id = dbv.value()
+            default: break
+            }
         }
+        super.updateFromRow(row) // Subclasses are required to call super.
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

@@ -12,6 +12,7 @@ Release Notes
 
 - `RowModel.edited` has been renamed `RowModel.databaseEdited`.
 - `RowModel.databaseTable` has been replaced with `RowModel.databaseTableName` which returns a String.
+- `RowModel.setDatabaseValue(_:forColumn:)` has been removed. Use and override `RowModel.updateFromRow(_)` instead.
 
 
 ## 0.11.0

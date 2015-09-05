@@ -54,16 +54,17 @@ class Placemark : RowModel {
             }
         }
         
-        // Update other columns
-        super.updateFromRow(row)
-    }
-    
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "id": id = dbv.value()
-        case "name": name = dbv.value()
-        default: super.setDatabaseValue(dbv, forColumn: column)
+        // Other columns
+        for (column, dbv) in row {
+            switch column {
+            case "id": id = dbv.value()
+            case "name": name = dbv.value()
+            default: break
+            }
         }
+        
+        // Subclasses are required to call super.
+        super.updateFromRow(row)
     }
 }
 
