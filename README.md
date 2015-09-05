@@ -1099,7 +1099,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Models that declare a `RowID` primary key have their id automatically set after successful insertion.
+Models whose primary key is declared as "INTEGER PRIMARY KEY" have their id automatically set after successful insertion.
 
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 
@@ -1148,7 +1148,7 @@ RowModel methods can throw [DatabaseError](#error-handling) and also specific er
 
 #### Autoincrement
 
-**For "autoincremented" ids**, declare your id column as INTEGER PRIMARY KEY, and declare a RowID primary key:
+**For "autoincremented" ids**, declare your id column as INTEGER PRIMARY KEY:
 
 ```sql
 CREATE TABLE persons {
