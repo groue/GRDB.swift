@@ -11,7 +11,7 @@ methods that define their relationship with the database:
 - databaseTable
 - storedDatabaseDictionary
 */
-public class RowModel {
+public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     
     /// The result of the RowModel.delete() method
     public enum DeletionResult {
@@ -63,6 +63,14 @@ public class RowModel {
         // come from the database.
         
         updateFromRow(row)
+    }
+    
+    /// Do not call this method directly.
+    public func awakeFromFetchedRow(row: Row) {
+        // Take care of the databaseEdited flag. If the row does not contain
+        // all needed columns, the model turns edited.
+        referenceRow = row
+        didFetch()
     }
     
     
@@ -203,7 +211,7 @@ public class RowModel {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         
-        // Update RowID column if needed
+        // Update managed primary key if needed
         if case .Managed(let managedColumn) = dataMapper.primaryKey {
             guard let rowID = dataMapper.storedDatabaseDictionary[managedColumn] else {
                 fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key `(managedColumn)`")
@@ -323,8 +331,7 @@ public class RowModel {
         let statement = DataMapper(db, self).reloadStatement()
         if let row = Row.fetchOne(statement) {
             updateFromRow(row)
-            referenceRow = row
-            didFetch()
+            awakeFromFetchedRow(row)
         } else {
             throw RowModelError.RowModelNotFound(self)
         }
@@ -338,20 +345,6 @@ public class RowModel {
     */
     final public func exists(db: Database) -> Bool {
         return (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
-    }
-}
-
-
-// MARK: - RowConvertible, DatabaseTableMapping, DatabaseStorable
-
-/// RowModel adopts RowConvertible, DatabaseTableMapping and DatabaseStorable.
-extension RowModel: RowConvertible, DatabaseTableMapping, DatabaseStorable {
-    /// Do not call this method directly.
-    public func awakeFromFetchedRow(row: Row) {
-        // Take care of the databaseEdited flag. If the row does not contain
-        // all needed columns, the model remains edited.
-        referenceRow = row
-        didFetch()
     }
 }
 
