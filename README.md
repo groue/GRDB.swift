@@ -125,11 +125,11 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [RowModel API Quick Tour](#rowmodel-api-quick-tour)
     - [Core Methods](#core-methods)
     - [Fetching Row Models](#fetching-row-models)
-    - [Compound Properties](#compound-properties)
-    - [Ad Hoc Subclasses](#ad-hoc-subclasses)
+        - [Compound Properties](#compound-properties)
+        - [Ad Hoc Subclasses](#ad-hoc-subclasses)
     - [Tables and Primary Keys](#tables-and-primary-keys)
-    - [Insert, Update and Delete](#insert-update-and-delete)
-    - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+        - [Insert, Update and Delete](#insert-update-and-delete)
+        - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
     - [RowModel Errors](#rowmodel-errors)
     - [Advice](#advice)
 
@@ -821,11 +821,11 @@ Yet, it does a few things well:
 - [RowModel API Quick Tour](#rowmodel-api-quick-tour)
 - [Core Methods](#core-methods)
 - [Fetching Row Models](#fetching-row-models)
-- [Compound Properties](#compound-properties)
-- [Ad Hoc Subclasses](#ad-hoc-subclasses)
+    - [Compound Properties](#compound-properties)
+    - [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Tables and Primary Keys](#tables-and-primary-keys)
-- [Insert, Update and Delete](#insert-update-and-delete)
-- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+    - [Insert, Update and Delete](#insert-update-and-delete)
+    - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
 - [RowModel Errors](#rowmodel-errors)
 - [Advice](#advice)
 
@@ -939,7 +939,7 @@ for person in persons { ... } // OK
 ```
 
 
-### Compound Properties
+#### Compound Properties
 
 Some properties don't fit well in a single column:
 
@@ -1003,7 +1003,7 @@ class Placemark : RowModel {
 The remaining columns are handled by `setDatabaseValue()` as described above.
 
 
-### Ad Hoc Subclasses
+#### Ad Hoc Subclasses
 
 Swift makes it very easy to create small and private types. This is a wonderful opportunity to create **ad hoc subclasses** that provide support for custom queries with extra columns.
 
@@ -1073,7 +1073,7 @@ Primary key is not mandatory. But when there is a primary key, it is one of:
 RowModels with a multi-column primary key are not supported by `fetchOne(_:primaryKey:)`, which accepts a single value as a key. Instead, use `fetchOne(_:key:)` that uses a dictionary.
 
 
-### Insert, Update and Delete
+#### Insert, Update and Delete
 
 With one more method, you get the `insert`, `update`, `delete` methods, plus the convenience `save` and `reload` methods.
 
@@ -1111,7 +1111,7 @@ Models that declare a `RowID` primary key have their id automatically set after 
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 
 
-### Preventing Useless UPDATE Statements
+#### Preventing Useless UPDATE Statements
 
 The `update()` method always executes an UPDATE statement. When the row model has not been edited, this database access is generally useless.
 
