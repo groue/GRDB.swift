@@ -949,7 +949,7 @@ We think that this is the killer feature of GRDB.swift :bowtie:. For example:
 class PersonsViewController: UITableViewController {
     
     // Private subclass of Person, with an extra `bookCount` property:
-    private class PersonViewModel : Person {
+    private class PersonWithBookCount : Person {
         var bookCount: Int!
         
         override func updateFromRow(row: Row) {
@@ -960,13 +960,13 @@ class PersonsViewController: UITableViewController {
         }
     }
     
-    var persons: [PersonViewModel]!
+    var persons: [PersonWithBookCount]!
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
         persons = dbQueue.inDatabase { db in
-            PersonViewModel.fetchAll(db,
+            PersonWithBookCount.fetchAll(db,
                 "SELECT persons.*, COUNT(*) AS bookCount " +
                 "FROM persons " +
                 "JOIN books ON books.ownerID = persons.id " +
