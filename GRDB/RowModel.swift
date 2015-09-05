@@ -198,7 +198,7 @@ public class RowModel {
         person.updateFromJSON(json)
                  
         // Saves the person if it is edited (fetched then modified, or created):
-        if person.edited {
+        if person.databaseEdited {
             person.save(db) // inserts or updates
         }
     
@@ -211,7 +211,7 @@ public class RowModel {
     may set it to true or false when you know better. Setting it to false does
     not prevent it from turning true on subsequent modifications of the row model.
     */
-    public var edited: Bool {
+    public var databaseEdited: Bool {
         get {
             guard let referenceRow = referenceRow else {
                 // No reference row => edited
@@ -239,7 +239,7 @@ public class RowModel {
         }
     }
     
-    /// Reference row for the *edited* property.
+    /// Reference row for the *databaseEdited* property.
     private var referenceRow: Row?
     
 
@@ -248,7 +248,7 @@ public class RowModel {
     /**
     Executes an INSERT statement to insert the row model.
     
-    On successful insert, this method sets the *edited* flag to false.
+    On success, this method sets the *databaseEdited* flag to false.
     
     This method is guaranteed to have inserted a row in the database if it
     returns without error.
@@ -288,13 +288,13 @@ public class RowModel {
             }
         }
         
-        edited = false
+        databaseEdited = false
     }
     
     /**
     Executes an UPDATE statement to update the row model.
     
-    On successful update, this method sets the *edited* flag to false.
+    On success, this method sets the *databaseEdited* flag to false.
     
     This method is guaranteed to have updated a row in the database if it
     returns without error.
@@ -325,7 +325,7 @@ public class RowModel {
             throw RowModelError.RowModelNotFound(self)
         }
         
-        edited = false
+        databaseEdited = false
     }
     
     /**
@@ -336,7 +336,7 @@ public class RowModel {
     
     Otherwise, performs an insert.
     
-    On successful saving, this method sets the *edited* flag to false.
+    On success, this method sets the *databaseEdited* flag to false.
     
     This method is guaranteed to have inserted or updated a row in the database
     if it returns without error.
@@ -363,7 +363,7 @@ public class RowModel {
     /**
     Executes a DELETE statement to delete the row model.
     
-    On successful deletion, this method sets the *edited* flag to true.
+    On success, this method sets the *databaseEdited* flag to true.
     
     - parameter db: A Database.
     - returns: Whether a row was deleted or not.
@@ -374,8 +374,8 @@ public class RowModel {
         
         // Future calls to update will throw RowModelNotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
-        // edited flag:
-        edited = true
+        // databaseEdited flag:
+        databaseEdited = true
         
         if changes.changedRowCount > 0 {
             return .RowDeleted
@@ -387,7 +387,7 @@ public class RowModel {
     /**
     Executes a SELECT statetement to reload the row model.
     
-    On successful reloading, this method sets the *edited* flag to false.
+    On success, this method sets the *databaseEdited* flag to false.
     
     - parameter db: A Database.
     - throws: RowModelError.RowModelNotFound is thrown if the primary key does
@@ -699,7 +699,7 @@ public extension FetchableRowModel where Self : RowModel {
                 }
                 
                 let rowModel = Self.init(row: row)
-                rowModel.referenceRow = row // Takes care of the edited flag. If the row does not contain all columns, the model remains edited.
+                rowModel.referenceRow = row // Takes care of the databaseEdited flag. If the row does not contain all columns, the model remains edited.
                 rowModel.didFetch()
                 return rowModel
             }

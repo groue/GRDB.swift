@@ -816,7 +816,7 @@ Yet, it does a few things well:
 - **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
 
     ```swift
-    if person.edited {
+    if person.databaseEdited {
         person.save(db)
     }
     ```
@@ -1118,7 +1118,7 @@ Other primary keys (single or multiple columns) are not managed by GRDB: you hav
 
 The `update()` method always executes an UPDATE statement. When the row model has not been edited, this database access is generally useless.
 
-Avoid it with the `edited` property, which returns whether the row model has changes that have not been saved:
+Avoid it with the `databaseEdited` property, which returns whether the row model has changes that have not been saved:
 
 ```swift
 let json = ...
@@ -1130,7 +1130,7 @@ try dbQueue.inTransaction { db in
     person.updateFromJSON(json)
                  
     // Saves the person if it is edited (fetched then modified, or created):
-    if person.edited {
+    if person.databaseEdited {
         person.save(db) // inserts or updates
     }
     
@@ -1138,7 +1138,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Note that `edited` is based on value comparison: **setting a property to the same value does not set the edited flag**.
+Note that `databaseEdited` is based on value comparison: **setting a property to the same value does not set the edited flag**.
 
 
 ### RowModel Errors

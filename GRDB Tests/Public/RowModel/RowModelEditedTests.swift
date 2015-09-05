@@ -22,7 +22,7 @@ class RowModelEditedTests: RowModelTestCase {
         // Create a RowModel. No fetch has happen, so we don't know if it is
         // identical to its eventual row in the database. So it is edited.
         let person = Person(name: "Arthur", age: 41)
-        XCTAssertTrue(person.edited)
+        XCTAssertTrue(person.databaseEdited)
     }
     
     func testRowModelIsEditedAfterInitFromRow() {
@@ -30,7 +30,7 @@ class RowModelEditedTests: RowModelTestCase {
         // So it is edited.
         let row = Row(dictionary: ["name": "Arthur", "age": 41])
         let person = Person(row: row)
-        XCTAssertTrue(person.edited)
+        XCTAssertTrue(person.databaseEdited)
     }
     
     func testRowModelIsNotEditedAfterFullFetch() {
@@ -42,7 +42,7 @@ class RowModelEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT * FROM persons")!
-                XCTAssertFalse(person.edited)
+                XCTAssertFalse(person.databaseEdited)
             }
         }
     }
@@ -53,7 +53,7 @@ class RowModelEditedTests: RowModelTestCase {
                 try db.execute("CREATE TABLE t (value REAL)")
                 try db.execute("INSERT INTO t (value) VALUES (1)")
                 let rowModel = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
-                XCTAssertFalse(rowModel.edited)
+                XCTAssertFalse(rowModel.databaseEdited)
             }
         }
     }
@@ -67,7 +67,7 @@ class RowModelEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
-                XCTAssertFalse(person.edited)
+                XCTAssertFalse(person.databaseEdited)
             }
         }
     }
@@ -81,7 +81,7 @@ class RowModelEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person =  Person.fetchOne(db, "SELECT name FROM persons")!
-                XCTAssertTrue(person.edited)
+                XCTAssertTrue(person.databaseEdited)
             }
         }
     }
@@ -92,7 +92,7 @@ class RowModelEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
-                XCTAssertFalse(person.edited)
+                XCTAssertFalse(person.databaseEdited)
             }
         }
     }
@@ -106,15 +106,15 @@ class RowModelEditedTests: RowModelTestCase {
                 try person.insert(db)
                 
                 person.name = "Bobby"           // non-nil vs. non-nil
-                XCTAssertTrue(person.edited)
+                XCTAssertTrue(person.databaseEdited)
                 try person.reload(db)
                 
                 person.name = nil               // non-nil vs. nil
-                XCTAssertTrue(person.edited)
+                XCTAssertTrue(person.databaseEdited)
                 try person.reload(db)
                 
                 person.creationDate = NSDate()  // nil vs. non-nil
-                XCTAssertTrue(person.edited)
+                XCTAssertTrue(person.databaseEdited)
                 try person.reload(db)
             }
         }
@@ -128,7 +128,7 @@ class RowModelEditedTests: RowModelTestCase {
                 try person.insert(db)
                 person.name = "Bobby"
                 try person.update(db)
-                XCTAssertFalse(person.edited)
+                XCTAssertFalse(person.databaseEdited)
             }
         }
     }
@@ -139,11 +139,11 @@ class RowModelEditedTests: RowModelTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.save(db)
-                XCTAssertFalse(person.edited)
+                XCTAssertFalse(person.databaseEdited)
                 person.name = "Bobby"
-                XCTAssertTrue(person.edited)
+                XCTAssertTrue(person.databaseEdited)
                 try person.save(db)
-                XCTAssertFalse(person.edited)
+                XCTAssertFalse(person.databaseEdited)
             }
         }
     }
@@ -156,10 +156,10 @@ class RowModelEditedTests: RowModelTestCase {
                 try person.insert(db)
                 
                 person.name = "Bobby"
-                XCTAssertTrue(person.edited)
+                XCTAssertTrue(person.databaseEdited)
                 
                 try person.reload(db)
-                XCTAssertFalse(person.edited)
+                XCTAssertFalse(person.databaseEdited)
             }
         }
     }
@@ -176,10 +176,10 @@ class RowModelEditedTests: RowModelTestCase {
                 let person2 = Person(row: commonAttributes)
                 try person2.insert(db)
                 
-                XCTAssertFalse(person1.edited)
-                XCTAssertFalse(person2.edited)
+                XCTAssertFalse(person1.databaseEdited)
+                XCTAssertFalse(person2.databaseEdited)
                 person1.copyDatabaseValuesFrom(person2)
-                XCTAssertTrue(person1.edited)
+                XCTAssertTrue(person1.databaseEdited)
             }
         }
     }
