@@ -24,7 +24,23 @@ public final class DatabaseQueue {
     - parameter configuration: A configuration
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
-    public convenience init(path: String, configuration: Configuration = Configuration()) throws {
+    public convenience init(path: String, var configuration: Configuration = Configuration()) throws {
+        // IMPLEMENTATION NOTE
+        //
+        // According to https://www.sqlite.org/threadsafe.html:
+        //
+        // > Multi-thread. In this mode, SQLite can be safely used by multiple
+        // > threads provided that no single database connection is used
+        // > simultaneously in two or more threads.
+        // >
+        // > Serialized. In serialized mode, SQLite can be safely used by
+        // > multiple threads with no restriction.
+        // >
+        // > The default mode is serialized.
+        //
+        // Since our database connection is only used via our serial dispatch
+        // queue, there is no purpose using the default serialized mode.
+        configuration.threadingMode = .MultiThread
         try self.init(database: Database(path: path, configuration: configuration))
     }
     
@@ -37,7 +53,8 @@ public final class DatabaseQueue {
     
     - parameter configuration: A configuration
     */
-    public convenience init(configuration: Configuration = Configuration()) {
+    public convenience init(var configuration: Configuration = Configuration()) {
+        configuration.threadingMode = .MultiThread  // See IMPLEMENTATION NOTE in init(_:configuration:)
         self.init(database: Database(configuration: configuration))
     }
     

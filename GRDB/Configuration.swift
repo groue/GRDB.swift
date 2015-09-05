@@ -15,6 +15,24 @@ public struct Configuration {
     
     // MARK: - Configuration options
     
+    /// A SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
+    enum ThreadingMode {
+        case Default
+        case MultiThread
+        case Serialized
+        
+        var sqliteOpenFlags: Int32 {
+            switch self {
+            case .Default:
+                return 0
+            case .MultiThread:
+                return SQLITE_OPEN_NOMUTEX
+            case .Serialized:
+                return SQLITE_OPEN_FULLMUTEX
+            }
+        }
+    }
+    
     /**
     A tracing function.
 
@@ -28,6 +46,12 @@ public struct Configuration {
     
     /// If true, the database is opened readonly.
     public var readonly: Bool
+    
+    /// The Threading mode
+    ///
+    /// Not public because we don't expose any public API that could have a use
+    /// for it.
+    var threadingMode: ThreadingMode = .Default
     
     /**
     An optional tracing function.
@@ -65,27 +89,6 @@ public struct Configuration {
     // MARK: - Not public
     
     var sqliteOpenFlags: Int32 {
-        // IMPLEMENTATION NOTE
-        //
-        // According to https://www.sqlite.org/threadsafe.html:
-        //
-        // > The SQLITE_OPEN_NOMUTEX flag causes the database connection to be
-        // > in the multi-thread mode.
-        // >
-        // > ...
-        // >
-        // > In the multi-thread mode, SQLite can be safely used by multiple
-        // > threads provided that no single database connection is used
-        // > simultaneously in two or more threads.
-        //
-        // We set the flag SQLITE_OPEN_NOMUTEX, because database connections are
-        // only used via DatabaseQueue, which serializes database accesses in
-        // a serial dispatch queue. There is no purpose using SQLite's native
-        // mutex.
-        //
-        // Of course, the decision of using SQLITE_OPEN_NOMUTEX should not
-        // belong to the Configuration type. This has to be refactored.
-
-        return SQLITE_OPEN_NOMUTEX | (readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE))
+        return threadingMode.sqliteOpenFlags | (readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE))
     }
 }
