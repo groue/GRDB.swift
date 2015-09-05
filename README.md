@@ -1047,7 +1047,7 @@ class PersonsViewController: UITableViewController {
 
 ### Tables and Primary Keys
 
-Declare a **Table** given its **name** and **primary key** in order to fetch row models by ID:
+Declare a **Table name** in order to fetch row models. GRDB will infer your table's primary key automatically.
 
 ```swift
 class Person : RowModel {
@@ -1062,7 +1062,7 @@ try dbQueue.inDatabase { db in
     Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
 }
 ```
-    
+
 RowModels with a multi-column primary key are not supported by `fetchOne(_:primaryKey:)`, which accepts a single value as a key. Instead, use `fetchOne(_:key:)` that uses a dictionary.
 
 
