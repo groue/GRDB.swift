@@ -340,12 +340,12 @@ public struct Row: CollectionType {
     private struct DictionaryRowImpl : RowImpl {
         let databaseDictionary: [String: DatabaseValue]
         
-        var count: Int {
-            return databaseDictionary.count
-        }
-        
         init (databaseDictionary: [String: DatabaseValue]) {
             self.databaseDictionary = databaseDictionary
+        }
+        
+        var count: Int {
+            return databaseDictionary.count
         }
         
         func databaseValue(atIndex index: Int) -> DatabaseValue {
