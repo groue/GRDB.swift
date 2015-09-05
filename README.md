@@ -843,7 +843,7 @@ try person.save(db)     // inserts or updates
 try person.delete(db)   // DELETE FROM persons WHERE ...
 ```
 
-Database tables usually have a **primary key**, and eventually secondary keys:
+Database tables usually have a **primary key**:
 
 ```swift
 person.exists(db)                   // true or false
