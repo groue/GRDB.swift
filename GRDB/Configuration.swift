@@ -7,9 +7,10 @@ public struct Configuration {
     
     /// A tracing function that logs SQL statements
     public static func logSQL(sql: String, arguments: StatementArguments?) {
-        NSLog("GRDB: %@", sql)
         if let arguments = arguments {
-            NSLog("GRDB: arguments %@", arguments.description)
+            NSLog("GRDB: %@ -- arguments: %@", sql, arguments.description)
+        } else {
+            NSLog("GRDB: %@", sql)
         }
     }
     

@@ -14,9 +14,10 @@ class GRDBTestCase: XCTestCase {
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
         let configuration = Configuration(trace: { (sql, arguments) in
             self.sqlQueries.append(sql)
-            NSLog("GRDB: %@", sql)
             if let arguments = arguments {
-                NSLog("GRDB: arguments %@", arguments.description)
+                NSLog("GRDB: %@ -- arguments: %@", sql, arguments.description)
+            } else {
+                NSLog("GRDB: %@", sql)
             }
         })
         dbQueue = try! DatabaseQueue(path: databasePath, configuration: configuration)
