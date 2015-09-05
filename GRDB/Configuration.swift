@@ -65,7 +65,27 @@ public struct Configuration {
     // MARK: - Not public
     
     var sqliteOpenFlags: Int32 {
-        // See https://www.sqlite.org/c3ref/open.html
-        return readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
+        // IMPLEMENTATION NOTE
+        //
+        // According to https://www.sqlite.org/threadsafe.html:
+        //
+        // > The SQLITE_OPEN_NOMUTEX flag causes the database connection to be
+        // > in the multi-thread mode.
+        // >
+        // > ...
+        // >
+        // > In the multi-thread mode, SQLite can be safely used by multiple
+        // > threads provided that no single database connection is used
+        // > simultaneously in two or more threads.
+        //
+        // We set the flag SQLITE_OPEN_NOMUTEX, because database connections are
+        // only used via DatabaseQueue, which serializes database accesses in
+        // a serial dispatch queue. There is no purpose using SQLite's native
+        // mutex.
+        //
+        // Of course, the decision of using SQLITE_OPEN_NOMUTEX should not
+        // belong to the Configuration type. This has to be refactored.
+
+        return SQLITE_OPEN_NOMUTEX | (readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE))
     }
 }
