@@ -182,6 +182,27 @@ public struct Row: CollectionType {
     
     // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
     
+    /// The number of columns in the row.
+    public var count: Int {
+        return impl.count
+    }
+    
+    /// The names of columns in the row.
+    ///
+    /// Columns appear in the same order as they occur as the `.0` member
+    /// of column-value pairs in `self`.
+    public var columns: LazyMapCollection<Row, String> {
+        return LazyMapCollection(self) { $0.0 }
+    }
+    
+    /// The database values in the row.
+    ///
+    /// Values appear in the same order as they occur as the `.1` member
+    /// of column-value pairs in `self`.
+    public var databaseValues: LazyMapCollection<Row, DatabaseValue> {
+        return LazyMapCollection(self) { $0.1 }
+    }
+    
     /// Returns a *generator* over (ColumnName, DatabaseValue) pairs, from left
     /// to right.
     public func generate() -> IndexingGenerator<Row> {
@@ -196,7 +217,7 @@ public struct Row: CollectionType {
     /// The "past-the-end" index, successor of the index of the last
     /// (ColumnName, DatabaseValue) pair.
     public var endIndex: RowIndex {
-        return Index(impl.columnCount)
+        return Index(impl.count)
     }
     
     /// Returns the (ColumnName, DatabaseValue) pair at given index.
@@ -319,7 +340,7 @@ public struct Row: CollectionType {
     private struct DictionaryRowImpl : RowImpl {
         let databaseDictionary: [String: DatabaseValue]
         
-        var columnCount: Int {
+        var count: Int {
             return databaseDictionary.count
         }
         
@@ -364,7 +385,7 @@ public struct Row: CollectionType {
             self.databaseDictionary = databaseDictionary
         }
         
-        var columnCount: Int {
+        var count: Int {
             return columnNames.count
         }
         
@@ -396,7 +417,7 @@ extension Row: CustomStringConvertible {
 
 // The protocol for Row underlying implementation
 protocol RowImpl {
-    var columnCount: Int { get }
+    var count: Int { get }
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func columnName(atIndex index: Int) -> String
     func indexForColumn(named name: String) -> Int?

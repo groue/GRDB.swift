@@ -43,4 +43,19 @@ class DictionaryRowTests: GRDBTestCase {
         // row.value(named: "foo")
         // row.value(named: "foo") as Int?
     }
+    
+    func testRowCount() {
+        let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
+        XCTAssertEqual(row.count, 3)
+    }
+    
+    func testRowColumns() {
+        let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
+        XCTAssertEqual(Array(row.columns).sort(), ["a", "b", "c"])
+    }
+    
+    func testRowDatabaseValues() {
+        let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
+        XCTAssertEqual(row.databaseValues.sort { ($0.value() as Int!) < ($1.value() as Int!) }, [0.databaseValue, 1.databaseValue, 2.databaseValue])
+    }
 }

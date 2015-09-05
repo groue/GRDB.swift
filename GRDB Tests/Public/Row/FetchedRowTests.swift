@@ -73,4 +73,43 @@ class FetchedRowTests: GRDBTestCase {
             }
         }
     }
+    
+    func testRowCount() {
+        assertNoError {
+            let dbQueue = DatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                
+                XCTAssertEqual(row.count, 3)
+            }
+        }
+    }
+    
+    func testRowColumns() {
+        assertNoError {
+            let dbQueue = DatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+                let row = Row.fetchOne(db, "SELECT a, b, c FROM ints")!
+                
+                XCTAssertEqual(Array(row.columns), ["a", "b", "c"])
+            }
+        }
+    }
+    
+    func testRowDatabaseValues() {
+        assertNoError {
+            let dbQueue = DatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+                let row = Row.fetchOne(db, "SELECT a, b, c FROM ints")!
+                
+                XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue])
+            }
+        }
+    }
 }
