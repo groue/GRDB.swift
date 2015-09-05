@@ -185,9 +185,9 @@ public final class Database {
             
             // Columns name, type, primary key index
             .map { (
-                name: ($0.value(named: "name") as String?)!,
-                type: ($0.value(named: "type") as String?)!,
-                primaryKeyIndex: ($0.value(named: "pk") as Int?)!) }
+                name: $0.value(named: "name")! as String,
+                type: $0.value(named: "type")! as String,
+                primaryKeyIndex: $0.value(named: "pk")! as Int) }
             
             // Columns part of the primary key.
             .filter { $0.primaryKeyIndex > 0 }
