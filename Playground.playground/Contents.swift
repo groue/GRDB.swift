@@ -78,4 +78,4 @@ let persons = dbQueue.inDatabase { db in
 }
 
 print(persons)
-print(persons.map { $0.fullNam
+print(persons.map { $0.fullName })
