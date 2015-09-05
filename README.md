@@ -795,6 +795,8 @@ Yet, it does a few things well:
         "FROM persons " +
         "JOIN citizenships ON citizenships.personId = persons.id " +
         "GROUP BY persons.id")
+    let person = persons.first!
+    person.citizenshipsCount
     ```
 
 - **It provides the classic CRUD operations on any database table,** without any requirement on the table primary key. Whether you use an automatically generated RowID, or a multi-columns primary key, you are good to go.
