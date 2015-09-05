@@ -66,7 +66,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     }
     
     /// Do not call this method directly.
-    public func awakeFromFetchedRow(row: Row) {
+    final public func awakeFromFetchedRow(row: Row) {
         // Take care of the databaseEdited flag. If the row does not contain
         // all needed columns, the model turns edited.
         referenceRow = row
