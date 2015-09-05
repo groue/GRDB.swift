@@ -821,8 +821,8 @@ Yet, it does a few things well:
 - [RowModel API Quick Tour](#rowmodel-api-quick-tour)
 - [Core Methods](#core-methods)
 - [Fetching Row Models](#fetching-row-models)
-- [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Compound Properties](#compound-properties)
+- [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Tables and Primary Keys](#tables-and-primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
 - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
@@ -939,48 +939,6 @@ for person in persons { ... } // OK
 ```
 
 
-### Ad Hoc Subclasses
-
-Swift makes it very easy to create small and private types. This is a wonderful opportunity to create **ad hoc subclasses** that provide support for custom queries with extra columns.
-
-We think that this is the killer feature of GRDB.swift :bowtie:. For example:
-
-```swift
-class PersonsViewController: UITableViewController {
-    
-    // Private subclass of Person, with an extra `bookCount` property:
-    private class PersonViewModel : Person {
-        var bookCount: Int!
-        
-        override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-            switch column {
-            case "bookCount": bookCount = dbv.value()
-            default: super.setDatabaseValue(dbv, forColumn: column)
-            }
-        }
-    }
-    
-    var persons: [PersonViewModel]!
-    
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        persons = dbQueue.inDatabase { db in
-            PersonViewModel.fetchAll(db,
-                "SELECT persons.*, COUNT(*) AS bookCount " +
-                "FROM persons " +
-                "JOIN books ON books.ownerID = persons.id " +
-                "GROUP BY persons.id")
-        }
-        
-        tableView.reloadData()
-    }
-    
-    ...
-}
-```
-
-
 ### Compound Properties
 
 Some properties don't fit well in a single column:
@@ -1043,6 +1001,48 @@ class Placemark : RowModel {
 ```
 
 The remaining columns are handled by `setDatabaseValue()` as described above.
+
+
+### Ad Hoc Subclasses
+
+Swift makes it very easy to create small and private types. This is a wonderful opportunity to create **ad hoc subclasses** that provide support for custom queries with extra columns.
+
+We think that this is the killer feature of GRDB.swift :bowtie:. For example:
+
+```swift
+class PersonsViewController: UITableViewController {
+    
+    // Private subclass of Person, with an extra `bookCount` property:
+    private class PersonViewModel : Person {
+        var bookCount: Int!
+        
+        override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
+            switch column {
+            case "bookCount": bookCount = dbv.value()
+            default: super.setDatabaseValue(dbv, forColumn: column)
+            }
+        }
+    }
+    
+    var persons: [PersonViewModel]!
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        persons = dbQueue.inDatabase { db in
+            PersonViewModel.fetchAll(db,
+                "SELECT persons.*, COUNT(*) AS bookCount " +
+                "FROM persons " +
+                "JOIN books ON books.ownerID = persons.id " +
+                "GROUP BY persons.id")
+        }
+        
+        tableView.reloadData()
+    }
+    
+    ...
+}
+```
 
 
 ### Tables and Primary Keys
