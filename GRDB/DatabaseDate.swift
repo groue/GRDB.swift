@@ -266,12 +266,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             timeString = nil
         }
         
-        switch format {
-        case .YMD_HM, .YMD_HMS, .YMD_HMSS:
-            return .Text([dateString, timeString].flatMap { $0 }.joinWithSeparator(" "))
-        default:
-            return .Text([dateString, timeString].flatMap { $0 }.joinWithSeparator("T"))
-        }
+        return .Text([dateString, timeString].flatMap { $0 }.joinWithSeparator(" "))
     }
     
     /// Create an instance initialized to `databaseValue`.
