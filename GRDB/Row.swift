@@ -191,7 +191,7 @@ public struct Row: CollectionType {
     ///
     /// Columns appear in the same order as they occur as the `.0` member
     /// of column-value pairs in `self`.
-    public var columns: LazyMapCollection<Row, String> {
+    public var columnNames: LazyMapCollection<Row, String> {
         return LazyMapCollection(self) { $0.0 }
     }
     

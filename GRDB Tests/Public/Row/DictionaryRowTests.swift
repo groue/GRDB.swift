@@ -49,9 +49,9 @@ class DictionaryRowTests: GRDBTestCase {
         XCTAssertEqual(row.count, 3)
     }
     
-    func testRowColumns() {
+    func testRowColumnNames() {
         let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
-        XCTAssertEqual(Array(row.columns).sort(), ["a", "b", "c"])
+        XCTAssertEqual(Array(row.columnNames).sort(), ["a", "b", "c"])
     }
     
     func testRowDatabaseValues() {

@@ -87,7 +87,7 @@ class FetchedRowTests: GRDBTestCase {
         }
     }
     
-    func testRowColumns() {
+    func testRowColumnNames() {
         assertNoError {
             let dbQueue = DatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -95,7 +95,7 @@ class FetchedRowTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 let row = Row.fetchOne(db, "SELECT a, b, c FROM ints")!
                 
-                XCTAssertEqual(Array(row.columns), ["a", "b", "c"])
+                XCTAssertEqual(Array(row.columnNames), ["a", "b", "c"])
             }
         }
     }

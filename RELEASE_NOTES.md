@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- `Row.columns` returns the names of columns in the row.
+- `Row.columnNames` returns the names of columns in the row.
 - `Row.databaseValues` returns the database values in the row.
 
 **Breaking changes**
