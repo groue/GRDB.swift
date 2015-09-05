@@ -109,33 +109,29 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 **Guides**
 
-[SQLite API](#sqlite-api)
-
-- [Transactions](#transactions)
-- [Fetch Queries](#fetch-queries)
-    - [Row Queries](#row-queries)
-    - [Value Queries](#value-queries)
-- [Values](#values)
-    - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
-    - [Swift enums](#swift-enums)
-    - [Custom Value Types](#custom-value-types)
-- [Prepared Statements](#prepared-statements)
-- [Error Handling](#error-handling)
-
-[Migrations](#migrations)
-
-[Row Models](#row-models)
-
-- [RowModel API Quick Tour](#rowmodel-api-quick-tour)
-- [Core Methods](#core-methods)
-- [Fetching Row Models](#fetching-row-models)
-- [Ad Hoc Subclasses](#ad-hoc-subclasses)
-- [Compound Properties](#compound-properties)
-- [Tables and Primary Keys](#tables-and-primary-keys)
-- [Insert, Update and Delete](#insert-update-and-delete)
-- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
-- [RowModel Errors](#rowmodel-errors)
-- [Advice](#advice)
+- [SQLite API](#sqlite-api)
+    - [Transactions](#transactions)
+    - [Fetch Queries](#fetch-queries)
+        - [Row Queries](#row-queries)
+        - [Value Queries](#value-queries)
+    - [Values](#values)
+        - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
+        - [Swift enums](#swift-enums)
+        - [Custom Value Types](#custom-value-types)
+    - [Prepared Statements](#prepared-statements)
+    - [Error Handling](#error-handling)
+- [Migrations](#migrations)
+- [Row Models](#row-models)
+    - [RowModel API Quick Tour](#rowmodel-api-quick-tour)
+    - [Core Methods](#core-methods)
+    - [Fetching Row Models](#fetching-row-models)
+    - [Ad Hoc Subclasses](#ad-hoc-subclasses)
+    - [Compound Properties](#compound-properties)
+    - [Tables and Primary Keys](#tables-and-primary-keys)
+    - [Insert, Update and Delete](#insert-update-and-delete)
+    - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+    - [RowModel Errors](#rowmodel-errors)
+    - [Advice](#advice)
 
 
 ## SQLite API
@@ -533,7 +529,7 @@ Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 ```
 
 
-#### Custom Types
+#### Custom Value Types
 
 Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
 
