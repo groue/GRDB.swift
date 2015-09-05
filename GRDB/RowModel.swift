@@ -342,11 +342,14 @@ public class RowModel {
 }
 
 
-// MARK: - RowConvertible, DatabaseTableMapping
+// MARK: - RowConvertible, DatabaseTableMapping, DatabaseStorable
 
 /// RowModel adopts RowConvertible, DatabaseTableMapping and DatabaseStorable.
 extension RowModel: RowConvertible, DatabaseTableMapping, DatabaseStorable {
+    /// Do not call this method directly.
     public func awakeFromFetchedRow(row: Row) {
+        // Take care of the databaseEdited flag. If the row does not contain
+        // all needed columns, the model remains edited.
         referenceRow = row
         didFetch()
     }
