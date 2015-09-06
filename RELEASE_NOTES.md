@@ -9,8 +9,8 @@ Release Notes
 - `Row.columnNames` returns the names of columns in the row.
 - `Row.databaseValues` returns the database values in the row.
 - `Blob.init(bytes:length:)` is a new initializer.
-- `NSDate` adopts `DatabaseValueConvertible`.
-- `NSData` adopts `DatabaseValueConvertible`.
+- `DatabaseValueConvertible` can now be adopted by non-final classes.
+- `NSData`, `NSDate`, `NSNull`, `NSNumber` and `NSString` adopt `DatabaseValueConvertible` and can natively be stored and fetched from a database.
 
 **Breaking changes**
 
