@@ -70,7 +70,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         // Take care of the databaseEdited flag. If the row does not contain
         // all needed columns, the model turns edited.
         referenceRow = row
-        didFetch()
+        awakeFromFetch()
     }
     
     
@@ -116,7 +116,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     
     *Important*: subclasses must invoke super's implementation.
     */
-    public func didFetch() {
+    public func awakeFromFetch() {
     }
     
     

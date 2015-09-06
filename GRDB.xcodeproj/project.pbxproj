@@ -65,8 +65,8 @@
 		56A238601B9C74A90082EB20 /* RowModelDescriptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A2382E1B9C74A90082EB20 /* RowModelDescriptionTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56A238611B9C74A90082EB20 /* RowModelEditedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A2382F1B9C74A90082EB20 /* RowModelEditedTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56A238621B9C74A90082EB20 /* RowModelEditedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A2382F1B9C74A90082EB20 /* RowModelEditedTests.swift */; settings = {ASSET_TAGS = (); }; };
-		56A238631B9C74A90082EB20 /* RowModelEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238301B9C74A90082EB20 /* RowModelEventsTests.swift */; settings = {ASSET_TAGS = (); }; };
-		56A238641B9C74A90082EB20 /* RowModelEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238301B9C74A90082EB20 /* RowModelEventsTests.swift */; settings = {ASSET_TAGS = (); }; };
+		56A238631B9C74A90082EB20 /* RowModelAwakeFromFetchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238301B9C74A90082EB20 /* RowModelAwakeFromFetchTests.swift */; settings = {ASSET_TAGS = (); }; };
+		56A238641B9C74A90082EB20 /* RowModelAwakeFromFetchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238301B9C74A90082EB20 /* RowModelAwakeFromFetchTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56A238651B9C74A90082EB20 /* RowModelFetchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238311B9C74A90082EB20 /* RowModelFetchTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56A238661B9C74A90082EB20 /* RowModelFetchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238311B9C74A90082EB20 /* RowModelFetchTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56A238671B9C74A90082EB20 /* RowModelInitializersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238321B9C74A90082EB20 /* RowModelInitializersTests.swift */; settings = {ASSET_TAGS = (); }; };
@@ -185,7 +185,7 @@
 		56A2382D1B9C74A90082EB20 /* RowModelCopyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelCopyTests.swift; sourceTree = "<group>"; };
 		56A2382E1B9C74A90082EB20 /* RowModelDescriptionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelDescriptionTests.swift; sourceTree = "<group>"; };
 		56A2382F1B9C74A90082EB20 /* RowModelEditedTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelEditedTests.swift; sourceTree = "<group>"; };
-		56A238301B9C74A90082EB20 /* RowModelEventsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelEventsTests.swift; sourceTree = "<group>"; };
+		56A238301B9C74A90082EB20 /* RowModelAwakeFromFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelAwakeFromFetchTests.swift; sourceTree = "<group>"; };
 		56A238311B9C74A90082EB20 /* RowModelFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelFetchTests.swift; sourceTree = "<group>"; };
 		56A238321B9C74A90082EB20 /* RowModelInitializersTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelInitializersTests.swift; sourceTree = "<group>"; };
 		56A238331B9C74A90082EB20 /* RowModelSubClassTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModelSubClassTests.swift; sourceTree = "<group>"; };
@@ -409,10 +409,10 @@
 				56A2382A1B9C74A90082EB20 /* PrimaryKeyRowIDTests.swift */,
 				56A2382B1B9C74A90082EB20 /* PrimaryKeySingleTests.swift */,
 				56A2382C1B9C74A90082EB20 /* PrimaryKeySingleWithReplaceConflictResolutionTests.swift */,
+				56A238301B9C74A90082EB20 /* RowModelAwakeFromFetchTests.swift */,
 				56A2382D1B9C74A90082EB20 /* RowModelCopyTests.swift */,
 				56A2382E1B9C74A90082EB20 /* RowModelDescriptionTests.swift */,
 				56A2382F1B9C74A90082EB20 /* RowModelEditedTests.swift */,
-				56A238301B9C74A90082EB20 /* RowModelEventsTests.swift */,
 				56A238311B9C74A90082EB20 /* RowModelFetchTests.swift */,
 				56A238321B9C74A90082EB20 /* RowModelInitializersTests.swift */,
 				56A238331B9C74A90082EB20 /* RowModelSubClassTests.swift */,
@@ -794,7 +794,7 @@
 				56A2384A1B9C74A90082EB20 /* SelectStatementTests.swift in Sources */,
 				56A2384C1B9C74A90082EB20 /* UpdateStatementTests.swift in Sources */,
 				56A2384E1B9C74A90082EB20 /* DatabaseMigratorTests.swift in Sources */,
-				56A238641B9C74A90082EB20 /* RowModelEventsTests.swift in Sources */,
+				56A238641B9C74A90082EB20 /* RowModelAwakeFromFetchTests.swift in Sources */,
 				56A2385A1B9C74A90082EB20 /* PrimaryKeySingleTests.swift in Sources */,
 				56A238661B9C74A90082EB20 /* RowModelFetchTests.swift in Sources */,
 				56A238481B9C74A90082EB20 /* FetchedRowTests.swift in Sources */,
@@ -833,7 +833,7 @@
 				56A238491B9C74A90082EB20 /* SelectStatementTests.swift in Sources */,
 				56A2384B1B9C74A90082EB20 /* UpdateStatementTests.swift in Sources */,
 				56A2384D1B9C74A90082EB20 /* DatabaseMigratorTests.swift in Sources */,
-				56A238631B9C74A90082EB20 /* RowModelEventsTests.swift in Sources */,
+				56A238631B9C74A90082EB20 /* RowModelAwakeFromFetchTests.swift in Sources */,
 				56A238591B9C74A90082EB20 /* PrimaryKeySingleTests.swift in Sources */,
 				56A238651B9C74A90082EB20 /* RowModelFetchTests.swift in Sources */,
 				56A238471B9C74A90082EB20 /* FetchedRowTests.swift in Sources */,

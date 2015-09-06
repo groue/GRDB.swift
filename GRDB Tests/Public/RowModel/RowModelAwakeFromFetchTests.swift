@@ -3,7 +3,7 @@ import GRDB
 
 class EventRecorder : RowModel {
     var id: Int64?
-    var didFetchCount = 0
+    var awakeFromFetchCount = 0
     
     override static func databaseTableName() -> String? {
         return "eventRecorders"
@@ -23,46 +23,46 @@ class EventRecorder : RowModel {
         return ["id": id]
     }
     
-    override func didFetch() {
-        didFetchCount += 1
-        super.didFetch()
+    override func awakeFromFetch() {
+        awakeFromFetchCount += 1
+        super.awakeFromFetch()
     }
 }
 
 class RowModelEventsTests: GRDBTestCase {
     
-    func testDidFetchIsNotTriggeredByInit() {
+    func testAwakeFromFetchIsNotTriggeredByInit() {
         let rowModel = EventRecorder()
-        XCTAssertEqual(rowModel.didFetchCount, 0)
+        XCTAssertEqual(rowModel.awakeFromFetchCount, 0)
     }
     
-    func testDidFetchIsNotTriggeredByInitFromRow() {
+    func testAwakeFromFetchIsNotTriggeredByInitFromRow() {
         let rowModel = EventRecorder(row:Row(dictionary:[:]))
-        XCTAssertEqual(rowModel.didFetchCount, 0)
+        XCTAssertEqual(rowModel.awakeFromFetchCount, 0)
     }
     
-    func testDidFetchIsTriggeredByFetch() {
+    func testAwakeFromFetchIsTriggeredByFetch() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE eventRecorders (id INTEGER PRIMARY KEY)")
                 do {
                     let rowModel = EventRecorder()
                     try rowModel.insert(db)
-                    XCTAssertEqual(rowModel.didFetchCount, 0)
+                    XCTAssertEqual(rowModel.awakeFromFetchCount, 0)
                     try rowModel.reload(db)
-                    XCTAssertEqual(rowModel.didFetchCount, 1)
+                    XCTAssertEqual(rowModel.awakeFromFetchCount, 1)
                 }
             }
         }
     }
-    func testDidFetchIsTriggeredByReload() {
+    func testAwakeFromFetchIsTriggeredByReload() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE eventRecorders (id INTEGER PRIMARY KEY)")
                 try EventRecorder().insert(db)
                 do {
                     let rowModel = EventRecorder.fetchOne(db, "SELECT * FROM eventRecorders")!
-                    XCTAssertEqual(rowModel.didFetchCount, 1)
+                    XCTAssertEqual(rowModel.awakeFromFetchCount, 1)
                 }
             }
         }
