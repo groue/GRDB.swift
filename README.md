@@ -529,16 +529,14 @@ public protocol DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
-    /// Create an instance initialized to `databaseValue`.
-    init?(databaseValue: DatabaseValue)
+    /// Returns an instance initialized from databaseValue, if possible.
+    static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
 }
 ```
 
 All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat.
 
-> Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
-
-As an example, let's write an alternative to the built-in [NSDate](#nsdate-and-nsdatecomponents), and store dates as timestamps. Our sample DatabaseTimestamp type applies all the best practices for a great GRDB.swift integration:
+As an example, let's write an alternative to the built-in [NSDate](#nsdate-and-nsdatecomponents) behavior, and store dates as timestamps. Our sample DatabaseTimestamp type applies all the best practices for a great GRDB.swift integration:
 
 ```swift
 struct DatabaseTimestamp: DatabaseValueConvertible {
@@ -569,14 +567,14 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
         return .Real(date.timeIntervalSince1970)
     }
     
-    /// Create an instance initialized to `databaseValue`.
-    init?(databaseValue: DatabaseValue) {
+    /// Returns an instance initialized from *databaseValue*, if possible.
+    static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseTimestamp? {
         // Double itself adopts DatabaseValueConvertible. So let's avoid
         // handling the raw DatabaseValue, and use built-in Double conversion:
-        guard let timeInterval = Double(databaseValue: databaseValue) else {
+        guard let timeInterval = Double.fromDatabaseValue(databaseValue) else {
             return nil
         }
-        self.init(NSDate(timeIntervalSince1970: timeInterval))
+        return DatabaseTimestamp(NSDate(timeIntervalSince1970: timeInterval))
     }
 }
 ```
