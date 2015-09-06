@@ -416,7 +416,7 @@ class Person : RowModel {
 
 ##### NSDateComponents
 
-NSDateComponents is not directly supported like NSDate. Instead, you will use the **DatabaseDateComponents** helper type, which is able to support the various date formats available in SQLite.
+NSDateComponents is indirectly supported, through the **DatabaseDateComponents** helper type.
 
 DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to YYYY-MM-DD HH:MM:SS.SSS.
 
