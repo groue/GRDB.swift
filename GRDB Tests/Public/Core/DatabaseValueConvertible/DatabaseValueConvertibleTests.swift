@@ -74,7 +74,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
     
     func testBlobDatabaseValueCanNotStoreEmptyData() {
         // SQLite can't store zero-length blob.
-        let blob = Blob(NSData())
+        let blob = Blob(data: NSData())
         XCTAssertTrue(blob == nil)
     }
     
@@ -205,7 +205,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))])
+                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
                 let databaseValue = Row.fetchOne(db, "SELECT textAffinity FROM `values`")!.first!.1   // first is (columnName, databaseValue)
                 XCTAssertEqual(databaseValue.storageClass, SQLiteStorageClass.Blob)
                 
@@ -421,7 +421,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))])
+                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
                 let databaseValue = Row.fetchOne(db, "SELECT realAffinity FROM `values`")!.first!.1   // first is (columnName, databaseValue)
                 XCTAssertEqual(databaseValue.storageClass, SQLiteStorageClass.Blob)
                 
@@ -546,7 +546,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))])
+                try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
                 let databaseValue = Row.fetchOne(db, "SELECT noneAffinity FROM `values`")!.first!.1   // first is (columnName, databaseValue)
                 XCTAssertEqual(databaseValue.storageClass, SQLiteStorageClass.Blob)
                 
@@ -736,7 +736,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))])
+                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
                 let databaseValue = Row.fetchOne(db, "SELECT \(columnName) FROM `values`")!.first!.1   // first is (columnName, databaseValue)
                 XCTAssertEqual(databaseValue.storageClass, SQLiteStorageClass.Blob)
                 

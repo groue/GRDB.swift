@@ -1,5 +1,3 @@
-import Foundation
-
 /**
 A subclass of Statement that fetches database rows.
 
@@ -61,8 +59,7 @@ public final class SelectStatement : Statement {
         case SQLITE_BLOB:
             let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
             let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-            let data = NSData(bytes: bytes, length: Int(length))
-            return .Blob(Blob(data)!)
+            return .Blob(Blob(bytes: bytes, length: Int(length))!)
         default:
             fatalError("Unexpected SQLite column type")
         }

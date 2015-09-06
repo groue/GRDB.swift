@@ -111,6 +111,10 @@
 		56A238A31B9C753B0082EB20 /* DatabaseStorable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A01B9C753B0082EB20 /* DatabaseStorable.swift */; settings = {ASSET_TAGS = (); }; };
 		56A238A41B9C753B0082EB20 /* RowModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A11B9C753B0082EB20 /* RowModel.swift */; settings = {ASSET_TAGS = (); }; };
 		56A238A51B9C753B0082EB20 /* RowModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A11B9C753B0082EB20 /* RowModel.swift */; settings = {ASSET_TAGS = (); }; };
+		56A238A71B9C760C0082EB20 /* Blob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A61B9C760C0082EB20 /* Blob.swift */; settings = {ASSET_TAGS = (); }; };
+		56A238A81B9C760C0082EB20 /* Blob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A61B9C760C0082EB20 /* Blob.swift */; settings = {ASSET_TAGS = (); }; };
+		56A238AA1B9C7E540082EB20 /* StatementArgumentsFoundationInitializers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A91B9C7E540082EB20 /* StatementArgumentsFoundationInitializers.swift */; settings = {ASSET_TAGS = (); }; };
+		56A238AB1B9C7E540082EB20 /* StatementArgumentsFoundationInitializers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A91B9C7E540082EB20 /* StatementArgumentsFoundationInitializers.swift */; settings = {ASSET_TAGS = (); }; };
 		56E5D7D41B4D3FEE00430942 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E5D7CA1B4D3FED00430942 /* GRDB.framework */; };
 		56E5D7FE1B4D422E00430942 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3773F319C8CBB3004FCF85 /* GRDB.framework */; };
 		56E5D8041B4D424400430942 /* GRDBTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */; };
@@ -198,6 +202,8 @@
 		56A238981B9C752B0082EB20 /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
 		56A238A01B9C753B0082EB20 /* DatabaseStorable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseStorable.swift; sourceTree = "<group>"; };
 		56A238A11B9C753B0082EB20 /* RowModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowModel.swift; sourceTree = "<group>"; };
+		56A238A61B9C760C0082EB20 /* Blob.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Blob.swift; sourceTree = "<group>"; };
+		56A238A91B9C7E540082EB20 /* StatementArgumentsFoundationInitializers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementArgumentsFoundationInitializers.swift; sourceTree = "<group>"; };
 		56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDB.xcconfig; sourceTree = "<group>"; };
 		56B8F49B1B4E2F3600C24296 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
@@ -293,6 +299,7 @@
 				56A238011B9C6A650082EB20 /* NSDateComponents.swift */,
 				56A238041B9C6D670082EB20 /* NSDate.swift */,
 				56A2380B1B9C6E440082EB20 /* NSData.swift */,
+				56A238A91B9C7E540082EB20 /* StatementArgumentsFoundationInitializers.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -414,6 +421,7 @@
 			isa = PBXGroup;
 			children = (
 				56A238951B9C752B0082EB20 /* Protocols */,
+				56A238A61B9C760C0082EB20 /* Blob.swift */,
 				56A238701B9C75030082EB20 /* Configuration.swift */,
 				56A238711B9C75030082EB20 /* Database.swift */,
 				56A238721B9C75030082EB20 /* DatabaseChanges.swift */,
@@ -736,6 +744,7 @@
 				56A2380A1B9C6DD20082EB20 /* StandardLibraryTypes.swift in Sources */,
 				56A2387E1B9C75030082EB20 /* Database.swift in Sources */,
 				56A238941B9C750B0082EB20 /* DatabaseMigrator.swift in Sources */,
+				56A238AB1B9C7E540082EB20 /* StatementArgumentsFoundationInitializers.swift in Sources */,
 				56A2389E1B9C752B0082EB20 /* RowConvertible.swift in Sources */,
 				56A238031B9C6A650082EB20 /* NSDateComponents.swift in Sources */,
 				56A238A51B9C753B0082EB20 /* RowModel.swift in Sources */,
@@ -743,6 +752,7 @@
 				56A238061B9C6D670082EB20 /* NSDate.swift in Sources */,
 				56A2380D1B9C6E440082EB20 /* NSData.swift in Sources */,
 				56A2387C1B9C75030082EB20 /* Configuration.swift in Sources */,
+				56A238A81B9C760C0082EB20 /* Blob.swift in Sources */,
 				56A2388C1B9C75030082EB20 /* Statement.swift in Sources */,
 				56A238A31B9C753B0082EB20 /* DatabaseStorable.swift in Sources */,
 				56A2388A1B9C75030082EB20 /* SelectStatement.swift in Sources */,
@@ -845,10 +855,12 @@
 				56A2387B1B9C75030082EB20 /* Configuration.swift in Sources */,
 				56A2389B1B9C752B0082EB20 /* DatabaseValueConvertible.swift in Sources */,
 				56A2380F1B9C74460082EB20 /* RawRepresentable.swift in Sources */,
+				56A238AA1B9C7E540082EB20 /* StatementArgumentsFoundationInitializers.swift in Sources */,
 				56A238891B9C75030082EB20 /* SelectStatement.swift in Sources */,
 				56A238811B9C75030082EB20 /* DatabaseError.swift in Sources */,
 				56A238991B9C752B0082EB20 /* DatabaseTableMapping.swift in Sources */,
 				56A238851B9C75030082EB20 /* DatabaseValue.swift in Sources */,
+				56A238A71B9C760C0082EB20 /* Blob.swift in Sources */,
 				56A238A41B9C753B0082EB20 /* RowModel.swift in Sources */,
 				56A2388F1B9C75030082EB20 /* UpdateStatement.swift in Sources */,
 				56A238091B9C6DD20082EB20 /* StandardLibraryTypes.swift in Sources */,

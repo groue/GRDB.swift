@@ -16,8 +16,8 @@ class DatabaseValueTests: GRDBTestCase {
     }
     
     func testDatabaseValueEquatable() {
-        let fooBlob = Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))!
-        let barBlob = Blob("bar".dataUsingEncoding(NSUTF8StringEncoding))!
+        let fooBlob = Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!
+        let barBlob = Blob(data: "bar".dataUsingEncoding(NSUTF8StringEncoding))!
         
         XCTAssertEqual(DatabaseValue.Null, DatabaseValue.Null)
         XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue.Integer(1))

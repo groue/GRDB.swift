@@ -113,7 +113,7 @@ public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
     case (.Text(let lhs), .Text(let rhs)):
         return lhs == rhs
     case (.Blob(let lhs), .Blob(let rhs)):
-        return lhs.data.isEqualToData(rhs.data)
+        return lhs == rhs
     default:
         return false
     }
@@ -160,7 +160,7 @@ extension DatabaseValue : CustomStringConvertible {
         case .Text(let string):
             return String(reflecting: string)
         case .Blob(let blob):
-            return "Blob(\(blob.data.length) bytes)"
+            return blob.description
         }
     }
 }

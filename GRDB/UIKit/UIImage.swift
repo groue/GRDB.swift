@@ -4,9 +4,8 @@ import UIKit
 extension UIImage : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        let data = UIImagePNGRepresentation(self)
-        if let blob = Blob(data) {
-            return blob.databaseValue
+        if let data = UIImagePNGRepresentation(self) {
+            return data.databaseValue
         } else {
             return .Null
         }

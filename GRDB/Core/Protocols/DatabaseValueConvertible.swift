@@ -1,6 +1,3 @@
-import Foundation
-
-
 // MARK: - DatabaseValueConvertible
 
 /**
@@ -30,40 +27,7 @@ public protocol DatabaseValueConvertible {
 }
 
 
-// MARK: - Blob
-
-/// A Database Blob
-public struct Blob : DatabaseValueConvertible {
-    
-    /// The data. Its length is guaranteed to be greater than zero.
-    public let data: NSData
-    
-    /// Creates a Blob from NSData. Returns nil if and only if *data* is nil or
-    /// zero-length (SQLite can't store empty blobs).
-    public init?(_ data: NSData?) {
-        if let data = data where data.length > 0 {
-            self.data = data
-        } else {
-            return nil
-        }
-    }
-    
-    /// Returns a value that can be stored in the database.
-    public var databaseValue: DatabaseValue {
-        return .Blob(self)
-    }
-    
-    /// Create an instance initialized to `databaseValue`.
-    public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Blob? {
-        switch databaseValue {
-        case .Blob(let blob):
-            return blob
-        default:
-            return nil
-        }
-    }
-}
-
+// MARK: - Fetching
 
 /**
 Types that adopt DatabaseValueConvertible can be initialized from database
