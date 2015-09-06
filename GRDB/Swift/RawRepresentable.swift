@@ -30,7 +30,12 @@ extension DatabaseIntRepresentable {
         return .Integer(Int64(rawValue))
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns an instance initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional Self.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         if let int = Int.fromDatabaseValue(databaseValue) {
             return self.init(rawValue: int)
@@ -73,7 +78,12 @@ extension DatabaseStringRepresentable {
         return .Text(rawValue)
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns an instance initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional Self.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         if let string = String.fromDatabaseValue(databaseValue) {
             return self.init(rawValue: string)

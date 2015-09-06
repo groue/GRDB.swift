@@ -6,7 +6,12 @@ extension Bool: DatabaseValueConvertible {
         return .Integer(self ? 1 : 0)
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns a Bool initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional Bool.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Bool? {
         // IMPLEMENTATION NOTE
         //
@@ -83,7 +88,12 @@ extension Int: DatabaseValueConvertible {
         return .Integer(Int64(self))
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns an Int initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional Int.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int? {
         switch databaseValue {
         case .Integer(let int64):
@@ -104,7 +114,12 @@ extension Int32: DatabaseValueConvertible {
         return .Integer(Int64(self))
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns an Int32 initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional Int32.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int32? {
         switch databaseValue {
         case .Integer(let int64):
@@ -125,7 +140,12 @@ extension Int64: DatabaseValueConvertible {
         return .Integer(self)
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns an Int64 initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional Int64.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int64? {
         switch databaseValue {
         case .Integer(let int64):
@@ -146,7 +166,12 @@ extension Double: DatabaseValueConvertible {
         return .Real(self)
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns a Double initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional Double.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Double? {
         switch databaseValue {
         case .Integer(let int64):
@@ -167,7 +192,12 @@ extension String: DatabaseValueConvertible {
         return .Text(self)
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns a String initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional String.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> String? {
         switch databaseValue {
         case .Text(let string):

@@ -2,12 +2,10 @@ import XCTest
 import GRDB
 
 class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
-    /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
         return DatabaseValue.Text("Parent")
     }
     
-    /// Create an instance initialized to `databaseValue`.
     class func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         return self.init()
     }

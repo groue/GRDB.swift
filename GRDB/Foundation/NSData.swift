@@ -9,7 +9,12 @@ extension NSData : DatabaseValueConvertible {
         }
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns an NSData initialized from *databaseValue*, if it contains a Blob.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional NSData.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         switch databaseValue {
         case .Blob(let blob):

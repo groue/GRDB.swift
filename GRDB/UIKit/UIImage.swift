@@ -11,7 +11,12 @@ extension UIImage : DatabaseValueConvertible {
         }
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns an UIImage initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional UIImage.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         if let data = NSData.fromDatabaseValue(databaseValue) {
             return self.init(data: data)

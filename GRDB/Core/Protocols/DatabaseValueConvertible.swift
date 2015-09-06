@@ -22,7 +22,12 @@ public protocol DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns an instance initialized from *databaseValue*, if possible.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional Self.
+    */
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
 }
 

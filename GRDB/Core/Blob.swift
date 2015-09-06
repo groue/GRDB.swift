@@ -61,7 +61,12 @@ extension Blob : DatabaseValueConvertible {
         return .Blob(self)
     }
     
-    /// Create an instance initialized to `databaseValue`.
+    /**
+    Returns the Blob contained in *databaseValue*, if any.
+    
+    - parameter databaseValue: A DatabaseValue.
+    - returns: An optional Blob.
+    */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Blob? {
         switch databaseValue {
         case .Blob(let blob):
