@@ -158,7 +158,6 @@
 		5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBTestCase.swift; sourceTree = "<group>"; };
 		5683C2681B4D445E00296494 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk/usr/lib/libsqlite3.dylib; sourceTree = DEVELOPER_DIR; };
 		56997A8D1B5390D4005EBEED /* DatabaseErrorFromSelectStatementTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseErrorFromSelectStatementTests.swift; sourceTree = "<group>"; };
-		56A237FE1B9C69E60082EB20 /* UIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImage.swift; sourceTree = "<group>"; };
 		56A238011B9C6A650082EB20 /* DatabaseDateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDateComponents.swift; sourceTree = "<group>"; };
 		56A238041B9C6D670082EB20 /* NSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDate.swift; sourceTree = "<group>"; };
 		56A238081B9C6DD20082EB20 /* StandardLibraryTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StandardLibraryTypes.swift; sourceTree = "<group>"; };
@@ -294,14 +293,6 @@
 				56997A8D1B5390D4005EBEED /* DatabaseErrorFromSelectStatementTests.swift */,
 			);
 			path = DatabaseError;
-			sourceTree = "<group>";
-		};
-		56A237FD1B9C69DA0082EB20 /* UIKit */ = {
-			isa = PBXGroup;
-			children = (
-				56A237FE1B9C69E60082EB20 /* UIImage.swift */,
-			);
-			path = UIKit;
 			sourceTree = "<group>";
 		};
 		56A238001B9C6A1E0082EB20 /* Foundation */ = {
@@ -557,7 +548,6 @@
 				56A238911B9C750B0082EB20 /* Migrations */,
 				56A2389F1B9C753B0082EB20 /* RowModel */,
 				56A238071B9C6DAD0082EB20 /* Swift */,
-				56A237FD1B9C69DA0082EB20 /* UIKit */,
 				DC37743319C8CFCE004FCF85 /* Supporting Files */,
 			);
 			path = GRDB;
