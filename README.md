@@ -898,9 +898,7 @@ class PersonsViewController: UITableViewController {
         var bookCount: Int!
         
         override func updateFromRow(row: Row) {
-            if dbv = row["bookCount"] {
-                bookCount = dbv.value()
-            }
+            if dbv = row["bookCount"] { bookCount = dbv.value() }
             super.updateFromRow(row) // Let Person superclass finish the job.
         }
     }
