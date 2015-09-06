@@ -926,7 +926,7 @@ class PersonsViewController: UITableViewController {
 
 ### Tables and Primary Keys
 
-Declare a **Table name** in order to fetch row models. GRDB will infer your table's primary key automatically.
+If you declare a **Table name**, GRDB infers your table's primary key automatically and you can fetch instances by ID.
 
 ```swift
 class Person : RowModel {
