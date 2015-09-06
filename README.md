@@ -287,6 +287,16 @@ for (columnName, databaseValue) in row {
 }
 ```
 
+Beware that rows, unlike dictionaries, may contain duplicate keys:
+
+```swift
+let row = Row.fetchOne(db, "SELECT 1 AS a, 2 AS a")!
+row.columnNames         // ["a", "a"]
+row.databaseValues      // [1, 2]
+row.value(named: "a")   // 1
+for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
+```
+
 
 #### Value Queries
 
