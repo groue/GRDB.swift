@@ -1,7 +1,8 @@
 The Design of GRDB.swift
 ========================
 
-More than caveats or defects, there are a few glitches, or surprises in the GRDB.swift API. We try to explain them here.
+More than caveats or defects, there are a few glitches, or surprises in the GRDB.swift API. We try to explain them here. And eventually, explanations may lead to solutions :-)
+
 
 - **Why can't NSDate, NSData and other classes adopt DatabaseValueConvertible, so that they can be used as query arguments, or fetched from the database?**
     
@@ -44,34 +45,63 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
     
     Were there any other options?
     
-    This one looks promising:
+    Generic protocols really don't work:
     
     ```swift
-    protocol DatabaseValueConvertible2 {
-        static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
-    }
-    
-    // Oops, nope.
-    extension NSDate: DatabaseValueConvertible2 {
-        // error: method 'fromDatabaseValue' in non-final class 'NSDate' must return `Self` to conform to protocol 'DatabaseValueConvertible2'
-        static func fromDatabaseValue(databaseValue: DatabaseValue) -> NSDate? { ... }
-    }
-    ```
-    
-    Another try, with a generic protocol:
-    
-    ```swift
-    protocol DatabaseValueConvertible3 {
+    protocol DatabaseValueConvertible {
         typealias ConvertedType
         static func fromDatabaseValue(databaseValue: DatabaseValue) -> ConvertedType?
     }
     
     // Boom, no arguments soup:
-    // error: protocol 'DatabaseValueConvertible3' can only be used as a generic constraint because it has Self or associated type requirements
-    let arguments: [DatabaseValueConvertible3] = []
+    // error: protocol 'DatabaseValueConvertible' can only be used as a generic constraint because it has Self or associated type requirements
+    let arguments: [DatabaseValueConvertible] = []
     ```
     
-    If you have another idea, I'm all ears!
+    This one looks promising:
+    
+    ```swift
+    protocol DatabaseValueConvertible {
+        static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
+    }
+    
+    // OK :-)
+    let arguments: [DatabaseValueConvertible] = []
+    
+    // Oops, not this way (NSData? return type):
+    extension NSData: DatabaseValueConvertible {
+        // error: method 'fromDatabaseValue' in non-final class 'NSData' must return `Self` to conform to protocol 'DatabaseValueConvertible'
+        static func fromDatabaseValue(databaseValue: DatabaseValue) -> NSData? { ... }
+    }
+    
+    // Still not this way (Self? return type):
+    extension NSData : DatabaseValueConvertible {
+        public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
+            switch databaseValue {
+            case .Blob(let blob):
+                // error: cannot convert return expression of type 'NSData' to return type 'Self?'
+                return blob.data
+            default:
+                return nil
+            }
+        }
+    }
+    
+    // Ha, now it works:
+    extension NSData : DatabaseValueConvertible {
+        public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
+            switch databaseValue {
+            case .Blob(let blob):
+                // Return a copy in order to comply to the `Self` return type.
+                return self.init(data: blob.data)
+            default:
+                return nil
+            }
+        }
+    }
+    ```
+    
+    OK, hold on, we may be on something here.
     
 
 - **Why is RowModel a class, when protocols are all the rage?**
