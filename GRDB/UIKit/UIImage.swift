@@ -1,6 +1,7 @@
 import UIKit
 
-// UIImage is convertible to and from DatabaseValue.
+// UIImage experiment.
+// This code is not included in any public target.
 extension UIImage : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
