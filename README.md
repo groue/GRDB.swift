@@ -122,7 +122,6 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [Error Handling](#error-handling)
 - [Migrations](#migrations)
 - [Row Models](#row-models)
-    - [RowModel API Quick Tour](#rowmodel-api-quick-tour)
     - [Core Methods](#core-methods)
     - [Fetching Row Models](#fetching-row-models)
         - [Ad Hoc Subclasses](#ad-hoc-subclasses)
@@ -815,7 +814,6 @@ Yet, it does a few things well:
     }
     ```
 
-- [RowModel API Quick Tour](#rowmodel-api-quick-tour)
 - [Core Methods](#core-methods)
 - [Fetching Row Models](#fetching-row-models)
     - [Ad Hoc Subclasses](#ad-hoc-subclasses)
@@ -824,46 +822,6 @@ Yet, it does a few things well:
     - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
 - [RowModel Errors](#rowmodel-errors)
 - [Advice](#advice)
-
-
-### RowModel API Quick Tour
-
-RowModel can be **stored** or **deleted**:
-
-```swift
-class Person : RowModel { ... }
-let person = Person(...)
-try person.insert(db)   // INSERT INTO persons (...) VALUES (...)
-try person.update(db)   // UPDATE persons SET ...
-try person.save(db)     // inserts or updates
-try person.delete(db)   // DELETE FROM persons WHERE ...
-```
-
-Database tables usually have a **primary key**:
-
-```swift
-person.exists(db)                   // true or false
-try person.reload(db)               // SELECT * FROM persons WHERE ...
-Person.fetchOne(db, primaryKey: 12) // Person?
-Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
-```
-
-RowModels can be fetched from custom **SQL queries**...
-
-```swift
-Person.fetch(db, "SELECT ...", arguments: ...)      // AnySequence<Person>
-Person.fetchAll(db, "SELECT ...", arguments: ...)   // [Person]
-Person.fetchOne(db, "SELECT ...", arguments: ...)   // Person?
-```
-
-... or from **prepared statements**:
-
-```swift
-let statement = db.selectStatement("SELECT ...")
-Person.fetch(statement, arguments: ...)             // AnySequence<Person>
-Person.fetchAll(statement, arguments: ...)          // [Person]
-Person.fetchOne(statement, arguments: ...)          // Person?
-```
 
 
 ### Core Methods
