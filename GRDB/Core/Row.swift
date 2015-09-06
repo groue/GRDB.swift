@@ -403,6 +403,9 @@ public struct Row: CollectionType {
     }
 }
 
+
+// MARK: - CustomStringConvertible
+
 /// Row adopts CustomStringConvertible.
 extension Row: CustomStringConvertible {
     /// A textual representation of `self`.
@@ -415,6 +418,9 @@ extension Row: CustomStringConvertible {
     }
 }
 
+
+// MARK: - RowImpl
+
 // The protocol for Row underlying implementation
 protocol RowImpl {
     var count: Int { get }
@@ -424,6 +430,9 @@ protocol RowImpl {
     var databaseDictionary: [String: DatabaseValue] { get }
 }
 
+
+
+// MARK: - RowIndex
 
 /// Indexes to (columnName, databaseValue) pairs in a database row.
 public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIndexType {
