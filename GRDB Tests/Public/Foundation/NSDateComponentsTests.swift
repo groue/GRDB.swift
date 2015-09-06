@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class DatabaseDateComponentsTests : GRDBTestCase {
+class NSDateComponentsTests : GRDBTestCase {
     
     override func setUp() {
         super.setUp()
@@ -365,7 +365,7 @@ class DatabaseDateComponentsTests : GRDBTestCase {
     }
     
     func testDatabaseDateComponentsFromUnparsableString() {
-        let databaseDateComponents = DatabaseDateComponents(databaseValue: .Text("foo"))
+        let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(.Text("foo"))
         XCTAssertTrue(databaseDateComponents == nil)
     }
 }

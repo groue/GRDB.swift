@@ -1,3 +1,5 @@
+// MARK: - DatabaseValue
+
 /**
 DatabaseValue is the intermediate type between SQLite and your values.
 
@@ -88,11 +90,14 @@ public enum DatabaseValue : Equatable {
     
     */
     public func value<Value: DatabaseValueConvertible>() -> Value? {
-        return Value(databaseValue: self)
+        return Value.fromDatabaseValue(self)
     }
 }
 
-/// Equatable implementation for DatabaseValue
+
+// MARK: - Equatable
+
+/// DatabaseValue adopts Equatable.
 public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
     switch (lhs, rhs) {
     case (.Null, .Null):
@@ -122,6 +127,9 @@ private func int64EqualDouble(i: Int64, _ d: Double) -> Bool {
     }
 }
 
+
+// MARK: - DatabaseValueConvertible
+
 /// DatabaseValue adopts DatabaseValueConvertible.
 extension DatabaseValue : DatabaseValueConvertible {
     /// Returns self
@@ -129,12 +137,14 @@ extension DatabaseValue : DatabaseValueConvertible {
         return self
     }
     
-    /// Create a copy of `databaseValue`.
-    public init?(databaseValue: DatabaseValue) {
-        self = databaseValue
+    /// Returns `databaseValue`.
+    public static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseValue? {
+        return databaseValue
     }
 }
 
+
+// MARK: - CustomStringConvertible
 
 /// DatabaseValue adopts CustomStringConvertible.
 extension DatabaseValue : CustomStringConvertible {

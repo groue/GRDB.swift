@@ -74,3 +74,28 @@ let persons = dbQueue.inDatabase { db in
 
 print(persons)
 print(persons.map { $0.fullName })
+
+// Oops, nope.
+extension NSData: DatabaseValueConvertible2 {
+//    // error: method 'fromDatabaseValue' in non-final class 'NSData' must return `Self` to conform to protocol 'DatabaseValueConvertible2'
+//    static func fromDatabaseValue(databaseValue: DatabaseValue) -> NSData? { return nil }
+
+    // error: method 'fromDatabaseValue' in non-final class 'NSData' must return `Self` to conform to protocol 'DatabaseValueConvertible2'
+    static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
+        // error: cannot convert return expression of type 'NSData' to return type 'Self?'
+        switch databaseValue {
+        case .Blob(let blob):
+            return self.init(data: blob.data)
+        default:
+            return nil
+        }
+    }
+}
+
+class DataWithExtra1 : NSData {
+    var extra: Int?
+}
+
+let blob = Blob("foo".dataUsingEncoding(NSUTF8StringEncoding))!
+let dbv = DatabaseValue.Blob(blob)
+let d = DataWithExtra1.fromDatabaseValue(dbv)

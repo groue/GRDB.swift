@@ -1,4 +1,3 @@
-import Foundation
 import GRDB
 
 class Person : RowModel {
@@ -17,8 +16,8 @@ class Person : RowModel {
     
     // MARK: - RowModel
     
-    override class var databaseTable: Table? {
-        return Table(named: "persons", primaryKey: .RowID("id"))
+    override class func databaseTableName() -> String? {
+        return "persons"
     }
     
     override func updateFromRow(row: Row) {

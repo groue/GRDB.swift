@@ -8,10 +8,11 @@ class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
     }
     
     /// Create an instance initialized to `databaseValue`.
-    required init?(databaseValue: DatabaseValue) {
+    class func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
+        return self.init()
     }
     
-    init() {
+    required init() {
     }
     
     var description: String { return "Parent" }

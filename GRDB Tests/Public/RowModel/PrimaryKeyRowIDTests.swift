@@ -17,17 +17,17 @@ class Person: RowModel {
             "id": id,
             "name": name,
             "age": age,
-            "creationDate": DatabaseDate(creationDate),
+            "creationDate": creationDate,
         ]
     }
     
     override func updateFromRow(row: Row) {
         for (column, dbv) in row {
             switch column {
-            case "id":              id = dbv.value()
-            case "name":            name = dbv.value()
-            case "age":             age = dbv.value()
-            case "creationDate":    creationDate = (dbv.value() as DatabaseDate?)?.date
+            case "id":           id = dbv.value()
+            case "name":         name = dbv.value()
+            case "age":          age = dbv.value()
+            case "creationDate": creationDate = dbv.value()
             default: break
             }
         }
