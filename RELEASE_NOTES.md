@@ -8,11 +8,15 @@ Release Notes
 - `RowConvertible` and `DatabaseTableMapping` protocols grant any type the fetching methods that used to be a privilege of `RowModel`.
 - `Row.columnNames` returns the names of columns in the row.
 - `Row.databaseValues` returns the database values in the row.
-- `Blob.init(bytes:length:)`
+- `Blob.init(bytes:length:)` is a new initializer.
+- `NSDate` adopts `DatabaseValueConvertible`.
+- `NSData` adopts `DatabaseValueConvertible`.
 
 **Breaking changes**
 
-- `Blob.init(_ data: NSData)` has been renamed `Blob.init(data: NSData)`
+- `DatabaseDate` has been removed.
+- `DatabaseValueConvertible`: `init?(databaseValue:)` has been replaced by `static func fromDatabaseValue(_) -> Self?`
+- `Blob.init(_)` has been renamed `Blob.init(data:)`
 - `RowModel.edited` has been renamed `RowModel.databaseEdited`.
 - `RowModel.databaseTable` has been replaced with `RowModel.databaseTableName()` which returns a String.
 - `RowModel.setDatabaseValue(_:forColumn:)` has been removed. Use and override `RowModel.updateFromRow(_)` instead.
