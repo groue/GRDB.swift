@@ -22,11 +22,38 @@ extension NSData : DatabaseValueConvertible {
     }
 }
 
+/// Blob support for NSData
 extension Blob {
-    /// Creates a Blob from NSData. Returns nil if and only if *data* is nil or
-    /// zero-length (SQLite can't store empty blobs).
+    
+    /**
+    Creates a Blob from NSData.
+
+    Returns nil if and only if *data* is nil or zero-length (SQLite can't store
+    empty blobs).
+    
+    The data is *copied*.
+    
+    - parameter data: An NSData
+    */
     public init?(data: NSData?) {
-        // SQLite can't store empty blobs
+        if let data = data where data.length > 0 {
+            impl = NSDataImpl(data: data.copy() as! NSData)
+        } else {
+            return nil
+        }
+    }
+    
+    /**
+    Creates a Blob from NSData.
+    
+    Returns nil if and only if *data* is nil or zero-length (SQLite can't store
+    empty blobs).
+    
+    The data is *not copied*.
+    
+    - parameter data: An NSData
+    */
+    public init?(dataNoCopy data: NSData?) {
         if let data = data where data.length > 0 {
             impl = NSDataImpl(data: data)
         } else {
@@ -45,7 +72,7 @@ extension Blob {
         }
     }
     
-    /// A BlobImpl that stores NSData
+    /// A BlobImpl that stores NSData without copying it.
     private struct NSDataImpl : BlobImpl {
         let data: NSData
         

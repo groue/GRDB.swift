@@ -16,7 +16,7 @@ Release Notes
 
 - `DatabaseDate` has been removed.
 - `DatabaseValueConvertible`: `init?(databaseValue:)` has been replaced by `static func fromDatabaseValue(_) -> Self?`
-- `Blob.init(_)` has been renamed `Blob.init(data:)`
+- `Blob.init(_)` has been replaced with `Blob.init(data:)` and `Blob.init(dataNoCopy:)`.
 - `RowModel.edited` has been renamed `RowModel.databaseEdited`.
 - `RowModel.databaseTable` has been replaced with `RowModel.databaseTableName()` which returns a String.
 - `RowModel.setDatabaseValue(_:forColumn:)` has been removed. Use and override `RowModel.updateFromRow(_)` instead.
