@@ -35,9 +35,9 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
     
     Feeding queries with data soup is a much more common use case than granting new types the ability to be stored and fetched from the database: the decision was very easy:
     
-    - Keep DatabaseValueConvertible non generic
-    - Lose NSObject
-    - Provide and document built-in types that support the ultra-common NSData, NSDate and NSDateComponents.
+    - Keep DatabaseValueConvertible non generic.
+    - Lose NSObject.
+    - Provide and document built-in types that support the ultra-common NSData, NSDate and NSDateComponents, so that nobody is sad.
     - Extra bonus: there are several ways to store dates in an SQLite database. The built-in DatabaseDate type provides a reasonable option, but it may not fit all needs. Fortunately, NSDate has not been polluted, and the user can write her own date support.
     
     **Exploration**
