@@ -31,15 +31,10 @@ Usage:
         override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
             return ["birthDate": birthDate, ...]
         }
-    
+        
         override func updateFromRow(row: Row) {
-            for (column, dbv) in row {
-                switch column {
-                case "birthDate": birthDate = dbv.value()
-                case ...
-                }
-            }
-            super.updateFromRow(row) // Subclasses are required to call super.
+            if let dbv = row["birthDate"] { birthDate = dbv.value() }
+            ...
         }
     }
 
