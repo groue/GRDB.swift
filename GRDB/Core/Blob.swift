@@ -1,5 +1,6 @@
 /// A Database Blob
 public struct Blob : Equatable {
+    
     /// A pointer to the blob's contents.
     var bytes: UnsafePointer<Void> {
         return impl.bytes
@@ -10,8 +11,15 @@ public struct Blob : Equatable {
         return impl.length
     }
 
-    /// Returns a Blob containing *length* bytes copied from the buffer *bytes*.
-    /// Returns nil if length is zero (SQLite can't store empty blobs).
+    /**
+    Returns a Blob containing *length* bytes copied from the buffer *bytes*.
+    
+    Returns nil if length is zero (SQLite can't store empty blobs).
+    
+    - parameter bytes: A buffer containing blob data.
+    - parameter length: The number of bytes to copy from *bytes*. This value
+      must not exceed the length of bytes. If zero, the result is nil.
+    */
     public init?(bytes: UnsafePointer<Void>, length: Int) {
         guard length > 0 else {
             // SQLite can't store empty blobs
@@ -23,13 +31,13 @@ public struct Blob : Equatable {
     /// The Blob implementation
     let impl: BlobImpl
     
-    // A Blob Implementation that owns a buffer.
+    /// A Blob Implementation that owns a buffer.
     private class Buffer: BlobImpl {
         let bytes: UnsafePointer<Void>
         let length: Int
         
-        // Copy memory
         init(bytes: UnsafePointer<Void>, length: Int) {
+            // Copy memory
             let copy = UnsafeMutablePointer<RawByte>.alloc(length)
             copy.initializeFrom(unsafeBitCast(bytes, UnsafeMutablePointer<RawByte>.self), count: length)
             self.bytes = unsafeBitCast(copy, UnsafePointer<Void>.self)
