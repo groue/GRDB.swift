@@ -359,13 +359,11 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 ##### NSDate
 
-Support for NSDate is given by the **DatabaseDate** helper type.
+GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
 
-DatabaseDate stores dates using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
-
-> The storage format of DatabaseDate is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
+> This format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
 >
-> Of course, if this format does not fit your needs, feel free to create your own helper type: the [DatabaseValueConvertible](#custom-value-types) protocol is there to help you store dates as ISO-8601 strings, timestamp numbers, etc. We provide sample code for storing dates as timestamps [below](#custom-value-types).
+> Of course, this format may not fit your needs. We provide sample code for storing dates as timestamps [below](#custom-value-types).
 
 
 Declare DATETIME columns in your tables:
@@ -384,18 +382,18 @@ Store NSDate into the database:
 let birthDate = NSDate()
 try db.execute("INSERT INTO persons (birthDate, ...) " +
                             "VALUES (?, ...)",
-                         arguments: [DatabaseDate(birthDate), ...])
+                         arguments: [birthDate, ...])
 ```
 
 Extract NSDate from the database:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT birthDate, ...")!
-let date = (row.value(named: "birthDate") as DatabaseDate?)?.date    // NSDate?
+let date = row.value(named: "birthDate") as NSDate?
 
-DatabaseDate.fetch(db, "SELECT ...")       // AnySequence<DatabaseDate?>
-DatabaseDate.fetchAll(db, "SELECT ...")    // [DatabaseDate?]
-DatabaseDate.fetchOne(db, "SELECT ...")    // DatabaseDate?
+NSDate.fetch(db, "SELECT ...")       // AnySequence<NSDate?>
+NSDate.fetchAll(db, "SELECT ...")    // [NSDate?]
+NSDate.fetchOne(db, "SELECT ...")    // NSDate?
 ```
 
 Use NSDate in a RowModel (see [Fetching Row Models](#fetching-row-models) for more information):
@@ -405,14 +403,11 @@ class Person : RowModel {
     var birthDate: NSDate?
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["birthDate": DatabaseDate(birthDate), ...]
+        return ["birthDate": birthDate, ...]
     }
     
     override func updateFromRow(row: Row) {
-        if let dbv = row["birthDate"] {
-            let dbDate = dbv.value() as DatabaseDate?
-            birthDate = dbDate?.date
-        }
+        if let dbv = row["birthDate"] { birthDate = dbv.value() }
         ...
     }
 }
@@ -421,7 +416,7 @@ class Person : RowModel {
 
 ##### NSDateComponents
 
-Support for NSDateComponents is given by the **DatabaseDateComponents** helper type.
+NSDateComponents is not directly supported like NSDate. Instead, you will use the **DatabaseDateComponents** helper type, which is able to support the various date formats available in SQLite.
 
 DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to YYYY-MM-DD HH:MM:SS.SSS.
 
@@ -453,7 +448,7 @@ DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents?]
 DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
 ```
 
-Use NSDate in a RowModel (see [Fetching Row Models](#fetching-row-models) for more information):
+Use NSDateComponents in a RowModel (see [Fetching Row Models](#fetching-row-models) for more information):
 
 ```swift
 class Person : RowModel {
@@ -543,7 +538,7 @@ All types that adopt this protocol can be used wherever the built-in types `Int`
 
 > Unfortunately not all types can adopt this protocol: **Swift won't allow non-final classes to adopt DatabaseValueConvertible, and this prevents all our NSObject fellows to enter the game.**
 
-As an example, let's write an alternative to the built-in [DatabaseDate](#nsdate-and-nsdatecomponents), and store dates as timestamps. DatabaseTimestamp applies all the best practices for a great GRDB.swift integration:
+As an example, let's write an alternative to the built-in [NSDate](#nsdate-and-nsdatecomponents), and store dates as timestamps. Our sample DatabaseTimestamp type applies all the best practices for a great GRDB.swift integration:
 
 ```swift
 struct DatabaseTimestamp: DatabaseValueConvertible {
