@@ -26,8 +26,13 @@ extension StatementArguments {
         //        try statement.execute(StatementArguments(person))   // Avoid an error here
         //    }
         var values = [DatabaseValueConvertible?]()
-        for item in array {
-            values.append(StatementArguments.valueFromAnyObject(item))
+        for object in array {
+            switch object {
+            case let value as DatabaseValueConvertible:
+                values.append(value)
+            default:
+                fatalError("Not DatabaseValueConvertible: \(object)")
+            }
         }
         self.init(values)
     }
@@ -62,69 +67,18 @@ extension StatementArguments {
         //        try statement.execute(StatementArguments(person))   // Avoid an error here
         //    }
         var values = [String: DatabaseValueConvertible?]()
-        for (key, item) in dictionary {
+        for (key, object) in dictionary {
             if let key = key as? String {
-                values[key] = StatementArguments.valueFromAnyObject(item)
+                switch object {
+                case let value as DatabaseValueConvertible:
+                    values[key] = value
+                default:
+                    fatalError("Not DatabaseValueConvertible: \(object)")
+                }
             } else {
                 fatalError("Not a String key: \(key)")
             }
         }
         self.init(values)
-    }
-    
-    // IMPLEMENTATION NOTE:
-    //
-    // NSNumber, NSString, NSNull can't adopt DatabaseValueConvertible because
-    // DatabaseValueConvertible has a Self reference which prevents non-final
-    // classes to adopt it.
-    //
-    // This is why this method exists. As a convenience for init(NSArray)
-    // and init(NSDictionary), themselves conveniences for the library user.
-    private static func valueFromAnyObject(object: AnyObject) -> DatabaseValueConvertible? {
-        
-        switch object {
-        case let value as DatabaseValueConvertible:
-            return value
-        case _ as NSNull:
-            return nil
-        case let data as NSData:
-            return data
-        case let string as NSString:
-            return string as String
-        case let number as NSNumber:
-            let objCType = String.fromCString(number.objCType)!
-            switch objCType {
-            case "c":
-                return Int64(number.charValue)
-            case "C":
-                return Int64(number.unsignedCharValue)
-            case "s":
-                return Int64(number.shortValue)
-            case "S":
-                return Int64(number.unsignedShortValue)
-            case "i":
-                return Int64(number.intValue)
-            case "I":
-                return Int64(number.unsignedIntValue)
-            case "l":
-                return Int64(number.longValue)
-            case "L":
-                return Int64(number.unsignedLongValue)
-            case "q":
-                return Int64(number.longLongValue)
-            case "Q":
-                return Int64(number.unsignedLongLongValue)
-            case "f":
-                return Double(number.floatValue)
-            case "d":
-                return number.doubleValue
-            case "B":
-                return number.boolValue
-            default:
-                fatalError("Not a DatabaseValueConvertible: \(object)")
-            }
-        default:
-            fatalError("Not a DatabaseValueConvertible: \(object)")
-        }
     }
 }
