@@ -5,7 +5,7 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
 
 - **Why is RowModel a class, when protocols are all the rage?**
     
-    Easy: Swift protocols don't provide `super`.
+    Easy: Swift protocols don't provide `super`, and `super` is what turns RowModel into the flexible base class you need when you implement your specific needs:
     
     ```swift
     // A RowModel that makes sure its UUID is set before insertion:
