@@ -83,5 +83,30 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
     
 - **Why must we provide query arguments in an Array, when Swift provides variadic method parameters?**
     
-    TODO
+    I admit that the array argument below looks odd:
     
+    ```swift
+    Int.fetch(db,
+        "SELECT COUNT(*) FROM persons WHERE name = ?",
+        arguments: ["Arthur"])
+    ```
+    
+    The reason is one of my pet-peeves with SQLite, which is that it is a pain to write an SQL query with the `IN` operator because SQLite won't feed a single `?` placeholder with an array of values:
+    
+    ```swift
+    // Let's load persons whose name is in names:
+    let names = ["Arthur", "Barbara"]
+    let questioMarks = Array(count: names.count, repeatedValue: "?").joinWithSeparator(",") // OMG Swift come on
+    let sql = "SELECT * FROM persons WHERE name IN (\(questioMarks))"
+    let persons = Person.fetchAll(db, sql, arguments: StatementArguments(names))
+    ```
+    
+    I wish that in a future version of GRDB, we can write instead:
+    
+    ```swift
+    let persons = Person.fetchAll(db,
+        "SELECT * FROM persons WHERE name IN (?)",
+        arguments: [["Arthur", "Barbara"]])
+    ```
+    
+    This will require to distinguish arrays of values from arrays of arrays of values, and... Oh maybe I'm misled here... TO BE CONTINUED...
