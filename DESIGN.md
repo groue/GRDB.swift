@@ -42,7 +42,44 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
     
 - **Why are DatabaseQueue.inTransaction() and DatabaseQueue.inDatabase() not reentrant?**
     
-    TODO
+    I, the library author, do not like database accesses to be hidden behind innocent-looking methods.
+    
+    For example, assuming a global `dbQueue`, let's compare:
+    
+    ```swift
+    class Person {
+        // Hidden database access:
+        class func personsSortedByName() -> [Person] {
+            return dbQueue.inDatabase { db in
+                Person.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            }
+        }
+        // Exposed database access:
+        class func fetchPersonsSortedByName(db: Database) -> [Person] {
+            return Person.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+        }
+    }
+    ```
+    
+    The first hides the database access, and will crash as soon as it is used inside a database block:
+    
+    ```swift
+    dbQueue.inDatabase { db in
+        // fatal error: DatabaseQueue.inDatabase(_:) was called reentrantly
+        // on the same queue, which would lead to a deadlock.
+        let persons = Person.personsSortedByName()
+        ...
+    }
+    ```
+    
+    Sooner or later, it will have to be refactored into the second version:
+
+    ```swift
+    dbQueue.inDatabase { db in
+        let persons = Person.personsSortedByName(db)
+        ...
+    }
+    ```
     
 - **Why must we provide query arguments in an Array, when Swift provides variadic method parameters?**
     
