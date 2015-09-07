@@ -192,7 +192,7 @@ final class DataMapper {
     
     class func insertSQL(tableName tableName: String, insertedColumns: [String]) -> String {
         let columnSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
-        let valuesSQL = [String](count: insertedColumns.count, repeatedValue: "?").joinWithSeparator(",")
+        let valuesSQL = Array(count: insertedColumns.count, repeatedValue: "?").joinWithSeparator(",")
         return "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
     }
     
