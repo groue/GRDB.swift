@@ -374,7 +374,7 @@ GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zo
 
 > This format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
 >
-> Of course, this format may not fit your needs. We provide sample code for storing dates as timestamps [below](#custom-value-types).
+> Yet, this format may not fit your needs. We provide [below](#custom-value-types) some sample code for storing dates as timestamps. You can adapt it for your application.
 
 
 Declare DATETIME columns in your tables:
