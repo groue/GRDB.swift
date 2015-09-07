@@ -383,7 +383,6 @@ Declare DATETIME columns in your tables:
 try db.execute(
     "CREATE TABLE persons (" +
     "birthDate DATETIME, " +
-    "creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP " +
     "...)")
 ```
 
@@ -423,6 +422,8 @@ class Person : RowModel {
     }
 }
 ```
+
+One could reasonably wonder if NSDate is a suitable type for a birth date. Well, NSDateComponents has built-in support in GRDB as well:
 
 
 ##### NSDateComponents
