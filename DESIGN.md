@@ -1,8 +1,7 @@
 The Design of GRDB.swift
 ========================
 
-More than caveats or defects, there are a few glitches, or surprises in the GRDB.swift API. We try to explain them here. And eventually, explanations may lead to solutions :-)
-
+More than caveats or defects, there are a few glitches, or surprises in the GRDB.swift API. We try to explain them here. The interested readers can take them as Swift challenges!
 
 - **Why is RowModel a class, when protocols are all the rage?**
     
@@ -35,6 +34,11 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
         }
     }
     ```
+    
+    A second reason: the `databaseEdited` flag, which is true when a RowModel has unsaved changes, is easily provided by the base class RowModel. RowModel can manage its internal state *accross method calls*. Protocols could not provide this service without extra complexity.
+    
+    Yet, don't miss the [RowConvertible](http://cocoadocs.org/docsets/GRDB.swift/0.12.0/Protocols/RowConvertible.html) and [DatabaseMapping](http://cocoadocs.org/docsets/GRDB.swift/0.12.0/Protocols/DatabaseTableMapping.html) protocols: they provide fetching from custom SQL queries and fetching by primary key for free.
+    
     
 - **Why are DatabaseQueue.inTransaction() and DatabaseQueue.inDatabase() not reentrant?**
     
