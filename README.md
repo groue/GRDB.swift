@@ -799,15 +799,22 @@ Yet, it does a few things well:
     (person.name, person.citizenshipsCount)
     ```
 
-- **It provides the classic CRUD operations on any database table,** without any requirement on the table primary key. Whether you use an automatically generated RowID, or a multi-columns primary key, you are good to go.
+- **It provides the classic CRUD operations on any database table.** Primary keys can be an automatically generated RowIDs, or a multi-columns primary key, whatever.
     
     ```swift
-    let person = Person(name: "Arthur")
-    let country = Country(name: "France")
-    person.save(db)
-    country.save(db)
-    let citizenship = Citizenship(personId: person.id, countryId: country.id)
-    citizenship.save(db)
+    let person = Person(name: "Arthur")                  // RowID primary key
+    let country = Country(isoCode: "FR", name: "France") // String primary key
+    let citizenship = Citizenship(personId: person.id, countryIsoCode: country.isoCode)   // Multiple columns primary key
+    
+    try person.insert(db)   // Automatically fills person.id
+    person.name = "Barbara"
+    try person.update(db)
+    
+    try country.save(db) // inserts or update
+    try citizenship.save(db)
+    
+    try citizenship.delete(db)
+    country.exists(db)  // false
     ```
     
 - **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
@@ -958,7 +965,7 @@ RowModels with a multi-column primary key are not supported by `fetchOne(_:prima
 
 #### Insert, Update and Delete
 
-With one more method, you get the `insert`, `update`, `delete` methods, plus the convenience `save` and `reload` methods.
+With one more override, you get the `insert`, `update`, `delete`, `save`, `reload` and `exists` methods.
 
 ```swift
 class Person : RowModel {
