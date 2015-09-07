@@ -188,7 +188,7 @@ A rollback statement is issued if an error is thrown from the transaction block.
 
 ### Fetch Queries
 
-You can fetch **rows**, **values**, and **[row models](#row-models)**:
+You can fetch **rows**, **values**, and **Row Models**:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -208,6 +208,7 @@ dbQueue.inDatabase { db in
 
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
+- [Row Models](#row-models)
 
 
 #### Row Queries
