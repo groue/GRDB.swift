@@ -76,7 +76,7 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
 
     ```swift
     dbQueue.inDatabase { db in
-        let persons = Person.personsSortedByName(db)
+        let persons = Person.fetchPersonsSortedByName(db)
         ...
     }
     ```
