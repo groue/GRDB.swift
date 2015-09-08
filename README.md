@@ -890,7 +890,6 @@ Now you can fetch **lazy sequences** of row models, **arrays**, or **single** in
 ```swift
 
 dbQueue.inDatabase { db in
-    // With custom SQL:
     Person.fetch(db, "SELECT ...", arguments:...)    // AnySequence<Person>
     Person.fetchAll(db, "SELECT ...", arguments:...) // [Person]
     Person.fetchOne(db, "SELECT ...", arguments:...) // Person?
