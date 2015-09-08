@@ -241,7 +241,7 @@ public struct Row: CollectionType {
     - returns: A lazy sequence of rows.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return statement.fetchRows(arguments: arguments)
+        return statement.fetch(arguments: arguments) { statement in return Row(statement: statement) }
     }
     
     /**

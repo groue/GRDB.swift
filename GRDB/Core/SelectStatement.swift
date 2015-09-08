@@ -37,12 +37,14 @@ public final class SelectStatement : Statement {
     long after the opportunity to use SQLite casting has passed, which is during
     the statement consumption.
     
-        // All rows are loaded, which means that statement has been fully
-        // consumed, and any SQLite casting opportunity has passed.
+        // Rows is an Array: all rows are loaded, which means that statement has
+        // been fully iterated and consumed, and any SQLite casting opportunity
+        // has passed.
         let rows = Row.fetchAll(db, "SELECT ...")
     
         for row in rows {
-            let age: Int = row.value(atIndex:0)     // the conversion actually happens in GRDB.
+            let itemCount: Int? = row.value(atIndex:0)   // GRDB conversion to Int
+            let hasItems: Bool? = row.value(atIndex:0)   // GRDB conversion to Bool
         }
     */
     func databaseValue(atIndex index: Int) -> DatabaseValue {
@@ -66,15 +68,20 @@ public final class SelectStatement : Statement {
     }
 
     /**
-    Fetches a lazy sequence of rows.
+    Builds a lazy sequence from a SelectStatement.
     
         let statement = db.selectStatement("SELECT ...")
-        let rows = statement.fetchRows()
+        
+        // AnySequence<Row>
+        let rows = statement.fetch() { statement in return Row(statement: self) }
     
     - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of rows.
+    - parameter transform: A function that maps the statement to the desired
+      sequence element. SQLite statements are stateful: at the moment the
+      *transform* function is called, the statement has just read a row.
+    - returns: A lazy sequence.
     */
-    func fetchRows(arguments arguments: StatementArguments? = nil) -> AnySequence<Row> {
+    func fetch<T>(arguments arguments: StatementArguments?, transform: (SelectStatement) -> T) -> AnySequence<T> {
         if let arguments = arguments {
             self.arguments = arguments
         }
@@ -83,11 +90,11 @@ public final class SelectStatement : Statement {
             trace(sql: self.sql, arguments: self.arguments)
         }
         
-        return AnySequence { () -> AnyGenerator<Row> in
+        return AnySequence { () -> AnyGenerator<T> in
             // Let row sequences be iterated several times.
             self.reset()
             
-            return anyGenerator { () -> Row? in
+            return anyGenerator { () -> T? in
                 // Make sure values are consumed in the correct queue.
                 //
                 // Here we avoid this pattern:
@@ -104,7 +111,7 @@ public final class SelectStatement : Statement {
                 // one where the statement was created:
                 assert(self.databaseQueueID != nil)
                 guard self.databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-                    fatalError("SelectStatement was not iterated on its database queue. Consider wrapping the results of the fetch in an Array before escaping the database queue.")
+                    fatalError("SQLite statement was not iterated on its database queue. Consider using the fetchAll() method instead of fetch().")
                 }
                 
                 let code = sqlite3_step(self.sqliteStatement)
@@ -112,7 +119,7 @@ public final class SelectStatement : Statement {
                 case SQLITE_DONE:
                     return nil
                 case SQLITE_ROW:
-                    return Row(statement: self)
+                    return transform(self)
                 default:
                     fatalDatabaseError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments))
                 }

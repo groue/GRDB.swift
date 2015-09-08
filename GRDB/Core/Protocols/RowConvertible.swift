@@ -48,19 +48,12 @@ extension RowConvertible {
     - returns: A lazy sequence.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self> {
-        let rowSequence = Row.fetch(statement, arguments: arguments)
-        return AnySequence({
-            let rowGenerator = rowSequence.generate()
-            return anyGenerator {
-                guard let row = rowGenerator.next() else {
-                    return nil
-                }
-                
-                let value = Self.init(row: row)
-                value.awakeFromFetchedRow(row)
-                return value
-            }
-            } as () -> AnyGenerator<Self>)
+        return statement.fetch(arguments: arguments) { statement in
+            let row = Row(statement: statement)
+            let value = Self.init(row: row)
+            value.awakeFromFetchedRow(row)
+            return value
+        }
     }
     
     /**
