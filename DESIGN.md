@@ -38,7 +38,7 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
     // the database:
     class C : RowModel {
         public func delete(db: Database) throws -> DeletionResult {
-            switch super.delete(db) {
+            switch try super.delete(db) {
             case .RowDeleted:
                 try NSFileManager.defaultManager().removeItemAtPath(...)
             case .NoRowDeleted:
