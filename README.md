@@ -557,7 +557,11 @@ public protocol DatabaseValueConvertible {
 }
 ```
 
-All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat.
+All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat. Those built-in types actually adopt it.
+
+The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), an enum for the five types supported by SQLite: NULL, integer, real, string and blob.
+
+The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value.
 
 As an example, let's write an alternative to the built-in [NSDate](#nsdate-and-nsdatecomponents) behavior, and store dates as timestamps. Our sample DatabaseTimestamp type applies all the best practices for a great GRDB.swift integration:
 
@@ -595,6 +599,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
         // Double itself adopts DatabaseValueConvertible. So let's avoid
         // handling the raw DatabaseValue, and use built-in Double conversion:
         guard let timeInterval = Double.fromDatabaseValue(databaseValue) else {
+            // No Double, no NSDate!
             return nil
         }
         return DatabaseTimestamp(NSDate(timeIntervalSince1970: timeInterval))
