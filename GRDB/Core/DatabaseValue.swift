@@ -67,10 +67,11 @@ public enum DatabaseValue : Equatable {
         let value: Double? = databaseValue.value()
     
     **WARNING**: type casting requires a very careful use of the `as` operator
-    (see [rdar://problem/21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
     
         databaseValue.value()! as Int   // OK: Int
         databaseValue.value() as Int?   // OK: Int?
+        databaseValue.value() as! Int   // NO NO NO DON'T DO THAT!
         databaseValue.value() as? Int   // NO NO NO DON'T DO THAT!
     
     Your custom types that adopt the DatabaseValueConvertible protocol handle

@@ -248,9 +248,9 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         } else {
             // No statement means that there is no column to update.
             //
-            // I remember opening rdar://problem/10236982 because CoreData
-            // was crashing with entities without any attribute. So let's
-            // accept RowModel that don't have any column to update.
+            // I remember opening rdar://10236982 because CoreData was crashing
+            // with entities without any attribute. So let's accept RowModel
+            // that don't have any column to update.
             exists = self.exists(db)
         }
         

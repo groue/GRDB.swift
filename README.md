@@ -268,7 +268,7 @@ let bookCount64: Int64 = row.value(named: "bookCount")!
 let hasBooks: Bool = row.value(named: "bookCount")!     // false when 0
 ```
 
-**WARNING**: type casting requires a very careful use of the `as` operator (see [rdar://problem/21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+**WARNING**: type casting requires a very careful use of the `as` operator (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
 
 ```swift
 row.value(named: "bookCount")! as Int   // OK: Int
@@ -561,7 +561,7 @@ All types that adopt this protocol can be used wherever the built-in types `Int`
 
 The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), an enum for the five types supported by SQLite: NULL, integer, real, string and blob.
 
-The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value.
+The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
 
 As an example, let's write an alternative to the built-in [NSDate](#nsdate-and-nsdatecomponents) behavior, and store dates as timestamps. Our sample DatabaseTimestamp type applies all the best practices for a great GRDB.swift integration:
 

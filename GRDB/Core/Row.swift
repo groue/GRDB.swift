@@ -63,11 +63,12 @@ public struct Row: CollectionType {
         let value: Double? = row.value(atIndex: 0)
     
     **WARNING**: type casting requires a very careful use of the `as` operator
-    (see [rdar://problem/21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
     
         row.value(atIndex: 0)! as Int   // OK: Int
         row.value(atIndex: 0) as Int?   // OK: Int?
         row.value(atIndex: 0) as? Int   // NO NO NO DON'T DO THAT!
+        row.value(atIndex: 0) as! Int   // NO NO NO DON'T DO THAT!
     
     Your custom types that adopt the DatabaseValueConvertible protocol handle
     their own conversion from raw SQLite values. Yet, here is the reference for
@@ -127,10 +128,11 @@ public struct Row: CollectionType {
         let value: Double? = row.value(named: "count")
     
     **WARNING**: type casting requires a very careful use of the `as` operator
-    (see [rdar://problem/21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
     
         row.value(named: "count")! as Int   // OK: Int
         row.value(named: "count") as Int?   // OK: Int?
+        row.value(named: "count") as! Int   // NO NO NO DON'T DO THAT!
         row.value(named: "count") as? Int   // NO NO NO DON'T DO THAT!
     
     Your custom types that adopt the DatabaseValueConvertible protocol handle
