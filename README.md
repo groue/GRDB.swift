@@ -109,7 +109,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 **Guides**
 
-- [SQLite Database](#sqlite-api)
+- [SQLite Database](#sqlite-database)
     - [Fetch Queries](#fetch-queries)
         - [Row Queries](#row-queries)
         - [Value Queries](#value-queries)
