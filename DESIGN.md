@@ -63,7 +63,7 @@ For example, assuming a global `dbQueue`, let's compare:
 ```swift
 class Person {
     // Hidden database access:
-    var property friends: [Person] {
+    var friends: [Person] {
         return dbQueue.inDatabase { db in
             Person.fetchAll(db, "SELECT * FROM persons ...")
         }
