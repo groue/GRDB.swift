@@ -125,7 +125,7 @@ Person.fetchAll(db, "SELECT ...", arguments: ...)  // [Person]
 Person.fetchOne(db, "SELECT ...", arguments: ...)  // Person?
 ```
 
-The `arguments` parameter type is not Array or Dictionary. It is StatementArguments, which is both ArrayLiteralConvertible and DictionaryLiteralConvertible, so that you can write both:
+The `arguments` parameter type is StatementArguments, which is both ArrayLiteralConvertible and DictionaryLiteralConvertible, so that you can write both:
 
 ```swift
 Int.fetch(db,
