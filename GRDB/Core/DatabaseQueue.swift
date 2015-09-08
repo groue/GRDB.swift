@@ -74,13 +74,7 @@ public final class DatabaseQueue {
     - throws: The error thrown by the block.
     */
     public func inDatabase(block: (db: Database) throws -> Void) rethrows {
-        guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-            fatalError("DatabaseQueue.inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
-        }
-        
-        try DatabaseQueue.performSync(queue) { () -> Void in
-            try block(db: self.database)
-        }
+        try inQueue { try block(db: self.database) }
     }
     
     /**
@@ -96,13 +90,7 @@ public final class DatabaseQueue {
     - throws: The error thrown by the block.
     */
     public func inDatabase<R>(block: (db: Database) throws -> R) rethrows -> R {
-        guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-            fatalError("DatabaseQueue.inDatabase(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
-        }
-        
-        return try DatabaseQueue.performSync(queue) { () -> R in
-            return try block(db: self.database)
-        }
+        return try inQueue { return try block(db: self.database) }
     }
     
     /**
@@ -125,13 +113,9 @@ public final class DatabaseQueue {
     - throws: The error thrown by the block.
     */
     public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) rethrows {
-        guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-            fatalError("DatabaseQueue.inTransaction(_:) was called reentrantly on the same queue, which would lead to a deadlock.")
-        }
-        
         let database = self.database
-        try DatabaseQueue.performSync(queue) { () -> Void in
-            try database.inTransaction(type) { () in
+        try inQueue {
+            try self.database.inTransaction(type) {
                 try block(db: database)
             }
         }
@@ -168,10 +152,18 @@ public final class DatabaseQueue {
         dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
     }
     
+    func inQueue<R>(block: () throws -> R) rethrows -> R {
+        if databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) {
+            return try block()
+        } else {
+            return try DatabaseQueue.dispatchSync(queue, block: block)
+        }
+    }
+    
     // A function declared as rethrows that synchronously executes a throwing
     // block in a dispatch_queue.
-    static func performSync<R>(queue: dispatch_queue_t, block: () throws -> R) rethrows -> R {
-        func performSyncImpl(queue: dispatch_queue_t, block: () throws -> R, block2: (ErrorType) throws -> Void) rethrows -> R {
+    static func dispatchSync<R>(queue: dispatch_queue_t, block: () throws -> R) rethrows -> R {
+        func dispatchSyncImpl(queue: dispatch_queue_t, block: () throws -> R, block2: (ErrorType) throws -> Void) rethrows -> R {
             var result: R? = nil
             var blockError: ErrorType? = nil
             dispatch_sync(queue) {
@@ -186,7 +178,7 @@ public final class DatabaseQueue {
             }
             return result!
         }
-        return try performSyncImpl(queue, block: block, block2: { throw $0 })
+        return try dispatchSyncImpl(queue, block: block, block2: { throw $0 })
     }
 }
 

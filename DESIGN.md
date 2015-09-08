@@ -54,55 +54,6 @@ A second reason: the `databaseEdited` flag, which is true when a RowModel has un
 Yet, don't miss the [RowConvertible](http://cocoadocs.org/docsets/GRDB.swift/0.12.0/Protocols/RowConvertible.html) and [DatabaseMapping](http://cocoadocs.org/docsets/GRDB.swift/0.12.0/Protocols/DatabaseTableMapping.html) protocols: they provide fetching from custom SQL queries and fetching by primary key for free.
 
 
-### Why are DatabaseQueue.inTransaction() and DatabaseQueue.inDatabase() not reentrant?
-
-Because this fosters explicit database argument in functions that access the database, so that it is obvious when the database is used. I, the library author, do not like slow database accesses to be hidden behind innocent-looking methods or properties.
-
-For example, assuming a global `dbQueue`, let's compare:
-
-```swift
-class Person {
-    // Hidden database access:
-    var friends: [Person] {
-        return dbQueue.inDatabase { db in
-            Person.fetchAll(db, "SELECT * FROM persons ...")
-        }
-    }
-    // Exposed database access:
-    func fetchFriends(db: Database) -> [Person] {
-        return Person.fetchAll(db, "SELECT * FROM persons ...")
-    }
-}
-```
-
-The property hides the database access, and works quite well...
-
-```swift
-// Yeah, friends!
-let friends = user.friends
-```
-
-... until it is used inside a database block:
-
-```swift
-dbQueue.inDatabase { db in
-    // fatal error: DatabaseQueue.inDatabase(_:) was called reentrantly
-    // on the same queue, which would lead to a deadlock.
-    let friends = user.friends
-    ...
-}
-```
-
-Sooner or later, it will have to be refactored into the explicit version:
-
-```swift
-dbQueue.inDatabase { db in
-    let friends = user.fetchFriends(db)
-    ...
-}
-```
-
-
 ### Why must we provide query arguments in an Array, when Swift provides variadic method parameters?
 
 I admit that the array argument below looks odd:

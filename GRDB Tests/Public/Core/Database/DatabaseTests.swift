@@ -381,4 +381,35 @@ class DatabaseTests : GRDBTestCase {
             XCTAssertEqual(names, ["Arthur", "Barbara"])
         }
     }
+    
+    func testInDatabaseIsReentrant() {
+        var success = false
+        dbQueue.inDatabase { db in
+            self.dbQueue.inDatabase { db in
+                success = true
+            }
+        }
+        XCTAssertTrue(success)
+    }
+    
+    func testInTransactionInsideInDatabaseIsReentrant() {
+        var success = false
+        dbQueue.inDatabase { db in
+            self.dbQueue.inTransaction { db in
+                success = true
+                return .Commit
+            }
+        }
+        XCTAssertTrue(success)
+    }
+    
+//    // This test must crash
+//    func testInTransactionIsNotReentrant() {
+//        dbQueue.inTransaction { db in
+//            self.dbQueue.inTransaction { db in
+//                return .Commit
+//            }
+//            return .Commit
+//        }
+//    }
 }

@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `DatabaseQueue.inDatabase` and `DatabaseQueue.inTransaction` are now reentrant. You can't open a transaction inside another, though.
+
+
 ## 0.12.0
 
 Released September 6, 2015
