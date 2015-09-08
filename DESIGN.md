@@ -138,7 +138,7 @@ Int.fetch(db,
 
 Without StatementArguments, that number would be six (three for Array and three for Dictionary), or even nine (three more for variadic parameters). I prefer limiting the API footprint: three methods per fetchable type is just quite fine.
 
-Moreover, one of my pet-peeves with SQLite is that it is a pain to write an SQL query with the `IN` operator. SQLite won't natively feed a single `?` placeholder with an array of values, and this forces users to build their own `IN(?,?,?,...)` SQL snippets:
+Moreover, one of my pet peeves with SQLite is that it is a pain to write an SQL query with the `IN` operator. SQLite won't natively feed a single `?` placeholder with an array of values, and this forces users to build their own `IN(?,?,?,...)` SQL snippets:
 
 ```swift
 // Let's load persons whose name is in names:
