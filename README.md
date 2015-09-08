@@ -894,14 +894,8 @@ dbQueue.inDatabase { db in
     Person.fetch(db, "SELECT ...", arguments:...)    // AnySequence<Person>
     Person.fetchAll(db, "SELECT ...", arguments:...) // [Person]
     Person.fetchOne(db, "SELECT ...", arguments:...) // Person?
-    
-    // With a key dictionary:
-    Person.fetchOne(db, key: ["id": 123])            // Person?
-    Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
 }
 ```
-
-The `fetchOne(_:key:)` method eats a key *dictionary*. It returns the first RowModel with matching values. Its result is undefined unless the dictionary is *actually* a key.
 
 Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
 
@@ -956,7 +950,7 @@ class PersonsViewController: UITableViewController {
 
 ### Tables and Primary Keys
 
-If you declare a **Table name**, GRDB infers your table's primary key automatically and you can fetch instances by ID.
+If you declare a **Table name**, GRDB infers your table's primary key automatically and you can fetch instances by ID or any other key.
 
 ```swift
 class Person : RowModel {
@@ -966,13 +960,19 @@ class Person : RowModel {
 }
 
 try dbQueue.inDatabase { db in
-    // Fetch
-    let person = Person.fetchOne(db, primaryKey: 123)  // Person?
-    Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
+    // Person?
+    let person = Person.fetchOne(db,
+        primaryKey: 123)
+    
+    // Citizenship?
+    Citizenship.fetchOne(db,
+        key: ["personId": 123, "countryIsoCode": "FR"])
 }
 ```
 
 RowModels with a multi-column primary key are not supported by `fetchOne(_:primaryKey:)`, which accepts a single value as a key. Instead, use `fetchOne(_:key:)` that uses a dictionary.
+
+`fetchOne(_:key:)` returns the first RowModel with matching values. Its result is undefined unless the dictionary is *actually* a key.
 
 
 #### Insert, Update and Delete
