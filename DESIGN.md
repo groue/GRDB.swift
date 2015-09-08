@@ -56,41 +56,48 @@ Yet, don't miss the [RowConvertible](http://cocoadocs.org/docsets/GRDB.swift/0.1
 
 ### Why are DatabaseQueue.inTransaction() and DatabaseQueue.inDatabase() not reentrant?
 
-I, the library author, do not like database accesses to be hidden behind innocent-looking methods.
+I, the library author, do not like slow database accesses to be hidden behind innocent-looking methods or properties. Preventing those methods to be reentrant fosters explicit database argument in functions that access the database, so that it is obvious when the database is used.
 
 For example, assuming a global `dbQueue`, let's compare:
 
 ```swift
 class Person {
     // Hidden database access:
-    class func personsSortedByName() -> [Person] {
+    var property friends: [Person] {
         return dbQueue.inDatabase { db in
-            Person.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            Person.fetchAll(db, "SELECT * FROM persons ...")
         }
     }
     // Exposed database access:
-    class func fetchPersonsSortedByName(db: Database) -> [Person] {
-        return Person.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+    func fetchFriends(db: Database) -> [Person] {
+        Person.fetchAll(db, "SELECT * FROM persons ...")
     }
 }
 ```
 
-The first hides the database access, and will crash as soon as it is used inside a database block:
+The property hides the database access, and works quite well...
+
+```swift
+// Yeah, friends!
+let friends = user.friends
+```
+
+... until it is used inside a database block:
 
 ```swift
 dbQueue.inDatabase { db in
     // fatal error: DatabaseQueue.inDatabase(_:) was called reentrantly
     // on the same queue, which would lead to a deadlock.
-    let persons = Person.personsSortedByName()
+    let friends = user.friends
     ...
 }
 ```
 
-Sooner or later, it will have to be refactored into the second version:
+Sooner or later, it will have to be refactored into the explicit version:
 
 ```swift
 dbQueue.inDatabase { db in
-    let persons = Person.fetchPersonsSortedByName(db)
+    let friends = user.fetchFriends(db)
     ...
 }
 ```
