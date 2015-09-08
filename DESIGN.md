@@ -70,7 +70,7 @@ class Person {
     }
     // Exposed database access:
     func fetchFriends(db: Database) -> [Person] {
-        Person.fetchAll(db, "SELECT * FROM persons ...")
+        return Person.fetchAll(db, "SELECT * FROM persons ...")
     }
 }
 ```
