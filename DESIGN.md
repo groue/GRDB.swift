@@ -56,7 +56,7 @@ Yet, don't miss the [RowConvertible](http://cocoadocs.org/docsets/GRDB.swift/0.1
 
 ### Why are DatabaseQueue.inTransaction() and DatabaseQueue.inDatabase() not reentrant?
 
-I, the library author, do not like slow database accesses to be hidden behind innocent-looking methods or properties. Preventing those methods to be reentrant fosters explicit database argument in functions that access the database, so that it is obvious when the database is used.
+Preventing those methods to be reentrant fosters explicit database argument in functions that access the database, so that it is obvious when the database is used. I, the library author, do not like slow database accesses to be hidden behind innocent-looking methods or properties.
 
 For example, assuming a global `dbQueue`, let's compare:
 
