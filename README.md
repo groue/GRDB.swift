@@ -210,8 +210,12 @@ dbQueue.inDatabase { db in
     Person.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<Person>
     Person.fetchAll(db, "SELECT ...", arguments: ...)  // [Person]
     Person.fetchOne(db, "SELECT ...", arguments: ...)  // Person?
+    Person.fetchOne(db, primaryKey: 12)                // Person?
+    Person.fetchOne(db, key: ["name": "Arthur"])       // Person?
 }
 ```
+
+The last two methods are the only ones that don't take a custom SQL query as an argument. If SQL is not your cup of tea, then maybe you are looking for a query builder. [stephencelis/SQLite.swift]( )https://github.com/stephencelis/SQLite.swift/blob/master/Documentation/Index.md#selecting-rows) is a pretty popular one.
 
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
