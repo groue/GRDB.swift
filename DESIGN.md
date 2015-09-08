@@ -33,6 +33,19 @@ More than caveats or defects, there are a few glitches, or surprises in the GRDB
             ...
         }
     }
+    
+    // A RowModel that deletes an external resource after being deleted from
+    // the database:
+    class C : RowModel {
+        public func delete(db: Database) throws -> DeletionResult {
+            switch super.delete(db) {
+            case .RowDeleted:
+                try NSFileManager.defaultManager().removeItemAtPath(...)
+            case .NoRowDeleted:
+                break
+            }
+        }
+    }
     ```
     
     A second reason: the `databaseEdited` flag, which is true when a RowModel has unsaved changes, is easily provided by the base class RowModel. RowModel can manage its internal state *accross method calls*. Protocols could not provide this service without extra complexity.
