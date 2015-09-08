@@ -109,8 +109,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 **Guides**
 
-- [SQLite API](#sqlite-api)
-    - [Transactions](#transactions)
+- [SQLite Database](#sqlite-api)
     - [Fetch Queries](#fetch-queries)
         - [Row Queries](#row-queries)
         - [Value Queries](#value-queries)
@@ -132,15 +131,18 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [Advice](#advice)
 
 
-## SQLite API
+## SQLite Database
 
-You access SQLite databases through thread-safe database queues (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
+You access SQLite databases through thread-safe **database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
 
 ```swift
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+let inMemoryDBQueue = DatabaseQueue()
 ```
 
-Configure databases:
+The database connection is closed when the database queue gets deallocated.
+
+**Configure** databases:
 
 ```swift
 let configuration = Configuration(
@@ -149,27 +151,32 @@ let configuration = Configuration(
     trace: Configuration.logSQL // An optional trace function.
                                 // Configuration.logSQL logs all SQL statements.
 )
+
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
     configuration: configuration)
 ```
 
-To open an in-memory database, don't provide any path:
+
+The `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
 
 ```swift
-let inMemoryDBQueue = DatabaseQueue()
-```
+// Extract values from the database:
+let rows = dbQueue.inDatabase { db in
+    Row.fetch(db, "SELECT ...")
+}
 
-Database connections get closed when the database queue gets deallocated.
+// Execute database statements:
+dbQueue.inDatabase { db in
+    let persons = Person.fetchAll(db, "SELECT...")
+    let books = Book.fetchAll(db, "SELECT ...")
+    ...
+}
 
-To create tables, we recommend using [migrations](#migrations).
-
-
-### Transactions
-
-**Transactions** wrap the queries that alter the database content:
-
-```swift
+// Wrap database statements in a transaction.
+//
+// A rollback statement is issued if an error is thrown within the
+// transaction block:
 try dbQueue.inTransaction { db in
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (?, ?)",
@@ -183,7 +190,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-A rollback statement is issued if an error is thrown from the transaction block.
+To create tables, we recommend using [migrations](#migrations).
 
 
 ### Fetch Queries
