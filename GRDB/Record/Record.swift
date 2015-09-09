@@ -172,22 +172,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     */
     public var databaseEdited: Bool {
         get {
-            guard let referenceRow = referenceRow else {
-                // No reference row => edited
-                return true
-            }
-            
-            // All stored database values must match reference database values
-            for (column, storedValue) in storedDatabaseDictionary {
-                guard let referenceDatabaseValue = referenceRow[column] else {
-                    return true
-                }
-                let storedDatabaseValue = storedValue?.databaseValue ?? .Null
-                if storedDatabaseValue != referenceDatabaseValue {
-                    return true
-                }
-            }
-            return false
+            return generateDatabaseChanges().next() != nil
         }
         set {
             if newValue {
@@ -198,20 +183,47 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         }
     }
     
+    /**
+    A dictionary of changes that have not been saved.
+    
+    Its keys are column names.
+    
+    Its values are `(old: DatabaseValue?, new: DatabaseValue)` pairs, where
+    *old* is the reference DatabaseValue, and *new* the current one.
+    
+    The old DatabaseValue is nil, which means unknown, unless the record has
+    been fetched, updated or inserted.
+    
+    See `databaseEdited` for more information.
+    */
     public var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)] {
         var changes: [String: (old: DatabaseValue?, new: DatabaseValue)] = [:]
-        for (column, storedValue) in storedDatabaseDictionary {
-            let storedDatabaseValue = storedValue?.databaseValue ?? .Null
-            if let referenceDatabaseValue = referenceRow?[column] {
-                if storedDatabaseValue != referenceDatabaseValue {
-                    changes[column] = (old: referenceDatabaseValue, new: storedDatabaseValue)
-                }
-            } else {
-                changes[column] = (old: nil, new: storedDatabaseValue)
-            }
+        for (column: column, old: old, new: new) in generateDatabaseChanges() {
+            changes[column] = (old: old, new: new)
         }
         return changes
     }
+    
+    // A change generator that is used by both databaseEdited and
+    // databaseChanges properties.
+    private func generateDatabaseChanges() -> AnyGenerator<(column: String, old: DatabaseValue?, new: DatabaseValue)> {
+        let oldRow = self.referenceRow
+        var newValueGenerator = storedDatabaseDictionary.generate()
+        return anyGenerator {
+            // Loop until we find a change, or exhaust columns:
+            while let (column, newValue) = newValueGenerator.next() {
+                let new = newValue?.databaseValue ?? .Null
+                guard let old = oldRow?[column] else {
+                    return (column: column, old: nil, new: new)
+                }
+                if new != old {
+                    return (column: column, old: old, new: new)
+                }
+            }
+            return nil
+        }
+    }
+    
     
     /// Reference row for the *databaseEdited* property.
     var referenceRow: Row?

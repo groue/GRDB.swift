@@ -835,8 +835,12 @@ Yet, it does a few things well:
     ```
     
 - **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
-
+    
     ```swift
+    person = Person.fetch...
+    person.name = "Barbara"
+    person.age = 41
+    person.databaseChanges.keys // ["name"]
     if person.databaseEdited {
         person.save(db)
     }

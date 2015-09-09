@@ -456,16 +456,16 @@ class RecordEditedTests: RecordTestCase {
                 XCTAssertEqual(person.copy().databaseChanges.count, 0)
                 
                 person.name = "Barbara"
-                XCTAssertTrue(person.databaseEdited)            // TODO: compare changes
-                XCTAssertTrue(person.copy().databaseEdited)
+                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actal changes
+                XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
                 
                 person.databaseEdited = false
                 XCTAssertEqual(person.databaseChanges.count, 0)
                 XCTAssertEqual(person.copy().databaseChanges.count, 0)
                 
                 person.databaseEdited = true
-                XCTAssertTrue(person.databaseEdited)            // TODO: compare changes
-                XCTAssertTrue(person.copy().databaseEdited)
+                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actal changes
+                XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
             }
         }
     }
