@@ -171,18 +171,34 @@ class RecordEditedTests: RecordTestCase {
         // After reload, a record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
-                let commonAttributes = Row(dictionary:["name": "Arthur", "age": 41])
+                let person = Person(name: "Arthur", age: 41)
+                try person.insert(db)
+                person.id = person.id + 1
+                XCTAssertTrue(person.databaseEdited)
+            }
+        }
+    }
+    
+    func testCopyTransfersEditedFlag() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = Person(name: "Arthur", age: 41)
                 
-                let person1 = Person(row: commonAttributes)
-                try person1.insert(db)
+                try person.insert(db)
+                XCTAssertFalse(person.databaseEdited)
+                XCTAssertFalse(person.copy().databaseEdited)
                 
-                let person2 = Person(row: commonAttributes)
-                try person2.insert(db)
+                person.name = "Barbara"
+                XCTAssertTrue(person.databaseEdited)
+                XCTAssertTrue(person.copy().databaseEdited)
                 
-                XCTAssertFalse(person1.databaseEdited)
-                XCTAssertFalse(person2.databaseEdited)
-                person1.copyDatabaseValuesFrom(person2)
-                XCTAssertTrue(person1.databaseEdited)
+                person.databaseEdited = false
+                XCTAssertFalse(person.databaseEdited)
+                XCTAssertFalse(person.copy().databaseEdited)
+                
+                person.databaseEdited = true
+                XCTAssertTrue(person.databaseEdited)
+                XCTAssertTrue(person.copy().databaseEdited)
             }
         }
     }

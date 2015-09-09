@@ -123,10 +123,18 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     // MARK: - Copy
     
     /**
-    Updates `self` from `other.storedDatabaseDictionary`.
+    Returns a copy of `self`, initialized from the values of
+    storedDatabaseDictionary.
+
+    Note thet the eventual primary key is copied, as well as the
+    databaseEdited flag.
+    
+    - returns: A copy of self.
     */
-    public func copyDatabaseValuesFrom(other: Record) {
-        updateFromRow(Row(dictionary: other.storedDatabaseDictionary))
+    public func copy() -> Self {
+        let copy = self.dynamicType.init(row: Row(dictionary: self.storedDatabaseDictionary))
+        copy.referenceRow = self.referenceRow
+        return copy
     }
     
     

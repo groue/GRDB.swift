@@ -6,10 +6,12 @@ Release Notes
 **New**
 
 - `DatabaseQueue.inDatabase` and `DatabaseQueue.inTransaction` are now reentrant. You can't open a transaction inside another, though.
+- `Record.copy()` returns a copy of the receiver.
 
 **Breaking changes**
 
 - `RowModel` has been renamed `Record`.
+- `RowModel.copyDatabaseValuesFrom` has been removed in favor of `Record.copy()`.
 
 
 ## 0.12.0

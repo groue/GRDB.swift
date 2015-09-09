@@ -4,6 +4,7 @@ protocol DatabaseStorable : DatabaseTableMapping {
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
 }
 
+
 // MARK: - DataMapper
 
 /// DataMapper takes care of DatabaseStorable CRUD

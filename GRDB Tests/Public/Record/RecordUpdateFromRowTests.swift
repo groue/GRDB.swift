@@ -138,12 +138,11 @@ class RecordUpdateFromRowTests: RecordTestCase {
         }
     }
     
-    func testUpdateFromRowForCopiedRecords() {
+    func testCopy() {
         let parisLatitude = 48.8534100
         let parisLongitude = 2.3488000
         let paris1 = Placemark(name: "Paris", coordinate: CLLocationCoordinate2D(latitude: parisLatitude, longitude: parisLongitude))
-        let paris2 = Placemark()
-        paris2.copyDatabaseValuesFrom(paris1)
+        let paris2 = paris1.copy()
         XCTAssertEqual(paris2.name!, "Paris")
         XCTAssertEqual(paris2.coordinate!.latitude, parisLatitude)
         XCTAssertEqual(paris2.coordinate!.longitude, parisLongitude)
