@@ -4,4 +4,3 @@
 - [ ] What is this Record.copyDatabaseValuesFrom(other) crap? Don't we just need a plain regular copy() method? The trouble is the primary key: should we copy it or not? Should it be an option? What are the use cases?
 - [ ] Read https://www.sqlite.org/isolation.html
 - [ ] Read https://www.sqlite.org/lang_createtable.html
-- [ ] Replace fatalError() with assert() when possible

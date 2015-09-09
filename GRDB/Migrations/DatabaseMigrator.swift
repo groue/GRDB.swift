@@ -62,9 +62,7 @@ public struct DatabaseMigrator {
     - parameter block:      The migration block that performs SQL statements.
     */
     public mutating func registerMigration(identifier: String, _ block: (db: Database) throws -> Void) {
-        guard migrations.map({ $0.identifier }).indexOf(identifier) == nil else {
-            fatalError("Already registered migration: \"\(identifier)\"")
-        }
+        assert(migrations.map({ $0.identifier }).indexOf(identifier) == nil, "Already registered migration: \"\(identifier)\"")
         migrations.append(Migration(identifier: identifier, block: block))
     }
     

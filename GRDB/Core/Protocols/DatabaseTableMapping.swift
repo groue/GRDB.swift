@@ -26,7 +26,7 @@ extension DatabaseTableMapping {
     - returns: An optional value.
     */
     public static func fetchOne(db: Database, primaryKey primaryKeyValue: DatabaseValueConvertible?) -> Self? {
-        // Fail early if databaseTable is nil (not overriden)
+        // Fail early if databaseTable is nil
         guard let databaseTableName = self.databaseTableName() else {
             fatalError("Nil returned from \(self).databaseTableName()")
         }
@@ -38,13 +38,7 @@ extension DatabaseTableMapping {
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns
-        guard columns.count == 1 else {
-            if columns.count == 0 {
-                fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) has no primary key. See \(self).databaseTableName()")
-            } else {
-                fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) has a multi-column primary key. See \(self).databaseTableName()")
-            }
-        }
+        assert(columns.count == 1, "Primary key of table \(databaseTableName.quotedDatabaseIdentifier) is not made of a single column. See \(self).databaseTableName()")
         
         guard let primaryKeyValue = primaryKeyValue else {
             return nil
@@ -64,15 +58,13 @@ extension DatabaseTableMapping {
     - returns: An optional value.
     */
     public static func fetchOne(db: Database, key dictionary: [String: DatabaseValueConvertible?]) -> Self? {
-        // Fail early if databaseTable is nil (not overriden)
+        // Fail early if databaseTable is nil
         guard let databaseTableName = self.databaseTableName() else {
             fatalError("Nil returned from \(self).databaseTableName()")
         }
         
         // Fail early if key is empty.
-        guard dictionary.count > 0 else {
-            fatalError("Invalid empty key")
-        }
+        assert(dictionary.count > 0, "Invalid empty key")
         
         let whereSQL = dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
         let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"

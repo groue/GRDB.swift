@@ -93,7 +93,7 @@ final class DataMapper {
     // MARK: - Initializer
     
     init(_ db: Database, _ storable: DatabaseStorable) {
-        // Fail early if databaseTable is nil (not overriden)
+        // Fail early if databaseTable is nil
         guard let databaseTableName = storable.dynamicType.databaseTableName() else {
             fatalError("Nil returned from \(storable.dynamicType).databaseTableName()")
         }
@@ -103,11 +103,9 @@ final class DataMapper {
             fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) does not exist. See \(storable.dynamicType).databaseTableName()")
         }
 
-        // Fail early if storedDatabaseDictionary is empty (not overriden)
+        // Fail early if storedDatabaseDictionary is empty
         let storedDatabaseDictionary = storable.storedDatabaseDictionary
-        guard storedDatabaseDictionary.count > 0 else {
-            fatalError("Invalid empty dictionary returned from \(storable.dynamicType).storedDatabaseDictionary")
-        }
+        assert(storedDatabaseDictionary.count > 0, "Invalid empty dictionary returned from \(storable.dynamicType).storedDatabaseDictionary")
         
         self.db = db
         self.storable = storable
