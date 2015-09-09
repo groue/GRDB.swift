@@ -198,6 +198,21 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         }
     }
     
+    public var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)] {
+        var changes: [String: (old: DatabaseValue?, new: DatabaseValue)] = [:]
+        for (column, storedValue) in storedDatabaseDictionary {
+            let storedDatabaseValue = storedValue?.databaseValue ?? .Null
+            if let referenceDatabaseValue = referenceRow?[column] {
+                if storedDatabaseValue != referenceDatabaseValue {
+                    changes[column] = (old: referenceDatabaseValue, new: storedDatabaseValue)
+                }
+            } else {
+                changes[column] = (old: nil, new: storedDatabaseValue)
+            }
+        }
+        return changes
+    }
+    
     /// Reference row for the *databaseEdited* property.
     var referenceRow: Row?
     

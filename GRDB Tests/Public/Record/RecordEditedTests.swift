@@ -55,7 +55,26 @@ class RecordEditedTests: RecordTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE t (value REAL)")
                 try db.execute("INSERT INTO t (value) VALUES (1)")
+                
+                // Load a double...
+                let row1 = Row.fetchOne(db, "SELECT * FROM t")!
+                switch row1["value"]! {
+                case .Real(let double):
+                    XCTAssertEqual(double, 1.0)
+                default:
+                    XCTFail("Unexpected DatabaseValue")
+                }
+                
+                // Compare to an Int
                 let record = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
+                let row2 = Row(dictionary: record.storedDatabaseDictionary)
+                switch row2["value"]! {
+                case .Integer(let integer):
+                    XCTAssertEqual(integer, 1)
+                default:
+                    XCTFail("Unexpected DatabaseValue")
+                }
+                
                 XCTAssertFalse(record.databaseEdited)
             }
         }
@@ -202,4 +221,253 @@ class RecordEditedTests: RecordTestCase {
             }
         }
     }
+
+    func testChangesAfterInit() {
+        let person = Person(name: "Arthur", age: 41)
+        let changes = person.databaseChanges
+        XCTAssertEqual(changes.count, 4)
+        for (column, (old: old, new: new)) in changes {
+            switch column {
+            case "id":
+                XCTAssertTrue(old == nil)
+                XCTAssertEqual(new, DatabaseValue.Null)
+            case "name":
+                XCTAssertTrue(old == nil)
+                XCTAssertEqual(new, "Arthur".databaseValue)
+            case "age":
+                XCTAssertTrue(old == nil)
+                XCTAssertEqual(new, 41.databaseValue)
+            case "creationDate":
+                XCTAssertTrue(old == nil)
+                XCTAssertEqual(new, DatabaseValue.Null)
+            default:
+                XCTFail("Unexpected column")
+            }
+        }
+    }
+    
+    func testChangesAfterInitFromRow() {
+        let person = Person(row: Row(dictionary:["name": "Arthur", "age": 41]))
+        let changes = person.databaseChanges
+        XCTAssertEqual(changes.count, 4)
+        for (column, (old: old, new: new)) in changes {
+            switch column {
+            case "id":
+                XCTAssertTrue(old == nil)
+                XCTAssertEqual(new, DatabaseValue.Null)
+            case "name":
+                XCTAssertTrue(old == nil)
+                XCTAssertEqual(new, "Arthur".databaseValue)
+            case "age":
+                XCTAssertTrue(old == nil)
+                XCTAssertEqual(new, 41.databaseValue)
+            case "creationDate":
+                XCTAssertTrue(old == nil)
+                XCTAssertEqual(new, DatabaseValue.Null)
+            default:
+                XCTFail("Unexpected column")
+            }
+        }
+    }
+    
+    func testChangesAfterFullFetch() {
+        // Fetch a record from a row that contains all the columns in
+        // storedDatabaseDictionary: An update statement, which only saves the
+        // columns in storedDatabaseDictionary would perform no change. So the
+        // record is not edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try Person(name: "Arthur", age: 41).insert(db)
+                let person = Person.fetchOne(db, "SELECT * FROM persons")!
+                let changes = person.databaseChanges
+                XCTAssertEqual(changes.count, 0)
+            }
+        }
+    }
+
+    func testChangesAfterPartialFetch() {
+        // Fetch a record from a row that does not contain all the columns in
+        // storedDatabaseDictionary: An update statement saves the columns in
+        // storedDatabaseDictionary, so it may perform unpredictable change.
+        // So the record is edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try Person(name: "Arthur", age: 41).insert(db)
+                let person =  Person.fetchOne(db, "SELECT name FROM persons")!
+                let changes = person.databaseChanges
+                XCTAssertEqual(changes.count, 3)
+                for (column, (old: old, new: new)) in changes {
+                    switch column {
+                    case "id":
+                        XCTAssertTrue(old == nil)
+                        XCTAssertEqual(new, DatabaseValue.Null)
+                    case "age":
+                        XCTAssertTrue(old == nil)
+                        XCTAssertEqual(new, DatabaseValue.Null)
+                    case "creationDate":
+                        XCTAssertTrue(old == nil)
+                        XCTAssertEqual(new, DatabaseValue.Null)
+                    default:
+                        XCTFail("Unexpected column")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testChangesAfterInsert() {
+        // After insertion, a record is not edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = Person(name: "Arthur", age: 41)
+                try person.insert(db)
+                let changes = person.databaseChanges
+                XCTAssertEqual(changes.count, 0)
+            }
+        }
+    }
+    
+    func testChangesAfterValueChange() {
+        // Any change in a value exposed in storedDatabaseDictionary yields a
+        // record that is edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = Person(name: "Arthur", age: nil)
+                try person.insert(db)
+                
+                person.name = "Bobby"           // non-nil -> non-nil
+                person.age = 41                 // nil -> non-nil
+                person.creationDate = nil       // non-nil -> nil
+                let changes = person.databaseChanges
+                XCTAssertEqual(changes.count, 3)
+                for (column, (old: old, new: new)) in changes {
+                    switch column {
+                    case "name":
+                        XCTAssertEqual(old, "Arthur".databaseValue)
+                        XCTAssertEqual(new, "Bobby".databaseValue)
+                    case "age":
+                        XCTAssertEqual(old, DatabaseValue.Null)
+                        XCTAssertEqual(new, 41.databaseValue)
+                    case "creationDate":
+                        XCTAssertTrue((old?.value() as NSDate?) != nil)
+                        XCTAssertEqual(new, DatabaseValue.Null)
+                    default:
+                        XCTFail("Unexpected column")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testChangesAfterUpdate() {
+        // After update, a record is not edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = Person(name: "Arthur", age: 41)
+                try person.insert(db)
+                person.name = "Bobby"
+                try person.update(db)
+                XCTAssertEqual(person.databaseChanges.count, 0)
+            }
+        }
+    }
+    
+    func testChangesAfterSave() {
+        // After save, a record is not edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = Person(name: "Arthur", age: 41)
+                try person.save(db)
+                XCTAssertEqual(person.databaseChanges.count, 0)
+                
+                person.name = "Bobby"
+                let changes = person.databaseChanges
+                XCTAssertEqual(changes.count, 1)
+                for (column, (old: old, new: new)) in changes {
+                    switch column {
+                    case "name":
+                        XCTAssertEqual(old, "Arthur".databaseValue)
+                        XCTAssertEqual(new, "Bobby".databaseValue)
+                    default:
+                        XCTFail("Unexpected column")
+                    }
+                }
+                try person.save(db)
+                XCTAssertEqual(person.databaseChanges.count, 0)
+            }
+        }
+    }
+    
+    func testChangesAfterReload() {
+        // After reload, a record is not edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = Person(name: "Arthur", age: 41)
+                try person.insert(db)
+                
+                person.name = "Bobby"
+                let changes = person.databaseChanges
+                XCTAssertEqual(changes.count, 1)
+                for (column, (old: old, new: new)) in changes {
+                    switch column {
+                    case "name":
+                        XCTAssertEqual(old, "Arthur".databaseValue)
+                        XCTAssertEqual(new, "Bobby".databaseValue)
+                    default:
+                        XCTFail("Unexpected column")
+                    }
+                }
+                
+                try person.reload(db)
+                XCTAssertEqual(person.databaseChanges.count, 0)
+            }
+        }
+    }
+    
+    func testChangesAfterPrimaryKeyChange() {
+        // After reload, a record is not edited.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = Person(name: "Arthur", age: 41)
+                try person.insert(db)
+                person.id = person.id + 1
+                let changes = person.databaseChanges
+                XCTAssertEqual(changes.count, 1)
+                for (column, (old: old, new: new)) in changes {
+                    switch column {
+                    case "id":
+                        XCTAssertEqual(old, (person.id - 1).databaseValue)
+                        XCTAssertEqual(new, person.id.databaseValue)
+                    default:
+                        XCTFail("Unexpected column")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testCopyTransfersChanges() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = Person(name: "Arthur", age: 41)
+                
+                try person.insert(db)
+                XCTAssertEqual(person.databaseChanges.count, 0)
+                XCTAssertEqual(person.copy().databaseChanges.count, 0)
+                
+                person.name = "Barbara"
+                XCTAssertTrue(person.databaseEdited)            // TODO: compare changes
+                XCTAssertTrue(person.copy().databaseEdited)
+                
+                person.databaseEdited = false
+                XCTAssertEqual(person.databaseChanges.count, 0)
+                XCTAssertEqual(person.copy().databaseChanges.count, 0)
+                
+                person.databaseEdited = true
+                XCTAssertTrue(person.databaseEdited)            // TODO: compare changes
+                XCTAssertTrue(person.copy().databaseEdited)
+            }
+        }
+    }
+    
 }
