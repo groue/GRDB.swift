@@ -5,3 +5,4 @@
 - [ ] Read https://www.sqlite.org/isolation.html
 - [ ] Read https://www.sqlite.org/lang_createtable.html
 - [ ] Consider renaming RowModel to Record or DatabaseRecord.
+- [ ] Replace fatalError() with assert() when possible
