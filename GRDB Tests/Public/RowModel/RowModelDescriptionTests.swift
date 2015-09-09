@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class EmptyRowModel : RowModel {
+class RowModelWithoutStoredDatabaseDictionary : RowModel {
 }
 
 class SingleColumnRowModel : RowModel {
@@ -23,9 +23,9 @@ class DoubleColumnRowModel : RowModel {
 
 class RowModelDescriptionTests: RowModelTestCase {
 
-    func testEmptyRowModelDescription() {
-        let model = EmptyRowModel()
-        XCTAssertEqual(model.description, "<EmptyRowModel>")
+    func testRowModelWithoutStoredDatabaseDictionaryDescription() {
+        let model = RowModelWithoutStoredDatabaseDictionary()
+        XCTAssertEqual(model.description, "<RowModelWithoutStoredDatabaseDictionary>")
     }
     
     func testSimpleRowModelDescription() {

@@ -28,21 +28,21 @@ extension DatabaseTableMapping {
     public static func fetchOne(db: Database, primaryKey primaryKeyValue: DatabaseValueConvertible?) -> Self? {
         // Fail early if databaseTable is nil (not overriden)
         guard let databaseTableName = self.databaseTableName() else {
-            fatalError("Nil returned from \(self).databaseTableName")
+            fatalError("Nil returned from \(self).databaseTableName()")
         }
         
         // Fail early if database table does not exist.
         guard let primaryKey = db.primaryKeyForTable(named: databaseTableName) else {
-            fatalError("Table \(databaseTableName) does not exist. See \(self).databaseTableName")
+            fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) does not exist. See \(self).databaseTableName()")
         }
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns
         guard columns.count == 1 else {
             if columns.count == 0 {
-                fatalError("Table \(databaseTableName) has no primary key. See \(self).databaseTableName")
+                fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) has no primary key. See \(self).databaseTableName()")
             } else {
-                fatalError("Table \(databaseTableName) has a multi-column primary key. See \(self).databaseTableName")
+                fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) has a multi-column primary key. See \(self).databaseTableName()")
             }
         }
         
@@ -66,7 +66,7 @@ extension DatabaseTableMapping {
     public static func fetchOne(db: Database, key dictionary: [String: DatabaseValueConvertible?]) -> Self? {
         // Fail early if databaseTable is nil (not overriden)
         guard let databaseTableName = self.databaseTableName() else {
-            fatalError("Nil returned from \(self).databaseTableName")
+            fatalError("Nil returned from \(self).databaseTableName()")
         }
         
         // Fail early if key is empty.

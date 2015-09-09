@@ -403,7 +403,7 @@ class DatabaseTests : GRDBTestCase {
         XCTAssertTrue(success)
     }
     
-//    // This test must crash
+    // CRASH TEST: this test must crash
 //    func testInTransactionIsNotReentrant() {
 //        dbQueue.inTransaction { db in
 //            self.dbQueue.inTransaction { db in
