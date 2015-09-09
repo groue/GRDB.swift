@@ -92,7 +92,7 @@ public class Statement {
         }
         
         if code != SQLITE_OK {
-            fatalDatabaseError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql))
+            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
     
@@ -109,7 +109,7 @@ public class Statement {
     final func reset() {
         let code = sqlite3_reset(sqliteStatement)
         if code != SQLITE_OK {
-            fatalDatabaseError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql))
+            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
     
@@ -117,7 +117,7 @@ public class Statement {
     private func clearArguments() {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {
-            fatalDatabaseError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql))
+            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
     

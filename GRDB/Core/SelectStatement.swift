@@ -121,7 +121,7 @@ public final class SelectStatement : Statement {
                 case SQLITE_ROW:
                     return transform(self)
                 default:
-                    fatalDatabaseError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments))
+                    fatalError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments).description)
                 }
             }
         }

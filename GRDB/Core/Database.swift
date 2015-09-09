@@ -336,17 +336,6 @@ public final class Database {
 }
 
 
-// MARK: - Error Management
-
-@noreturn func fatalDatabaseError(error: DatabaseError) {
-    func throwDataBasase(error: DatabaseError) throws {
-        throw error
-    }
-    try! throwDataBasase(error)
-    fatalError("Should not happen")
-}
-
-
 // MARK: - Database Information
 
 /// A primary key
