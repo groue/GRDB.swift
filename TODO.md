@@ -3,3 +3,4 @@
 - [ ] Record.databaseChanges. It's easy to tell which columns have changed, but difficult to tell how, because there is not always an old value. Should we return an array of changed columns instead? We only track *column changes*, not *property changes* (column "latitude" has changed, but we don't know anything about the "coordinate" property): is it a problem? What is the use case?
 - [ ] Read https://www.sqlite.org/isolation.html
 - [ ] Read https://www.sqlite.org/lang_createtable.html
+- [ ] Write a Record that mangles column names, and check how bad databaseChanges break.
