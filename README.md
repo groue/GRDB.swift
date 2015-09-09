@@ -1159,6 +1159,12 @@ CREATE TABLE persons (
 
 ```swift
 class Person : RowModel {
+    var creationDate: NSDate?
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["creationDate": creationDate, ...]
+    }
+    
     override func insert(db: Database) throws {
         if creationDate == nil {
             creationDate = NSDate()
