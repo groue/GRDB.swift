@@ -26,9 +26,6 @@ final class DataMapper {
     /// The table primary key
     let primaryKey: PrimaryKey
     
-    
-    // MARK: - Primary Key
-    
     /**
     An excerpt from storedDatabaseDictionary whose keys are primary key
     columns.
@@ -188,30 +185,30 @@ final class DataMapper {
     
     // MARK: - SQL query builders
     
-    class func insertSQL(tableName tableName: String, insertedColumns: [String]) -> String {
+    private class func insertSQL(tableName tableName: String, insertedColumns: [String]) -> String {
         let columnSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
         let valuesSQL = Array(count: insertedColumns.count, repeatedValue: "?").joinWithSeparator(",")
         return "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
     }
     
-    class func updateSQL(tableName tableName: String, updatedColumns: [String], conditionColumns: [String]) -> String {
+    private class func updateSQL(tableName tableName: String, updatedColumns: [String], conditionColumns: [String]) -> String {
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(",")
         return "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL(conditionColumns))"
     }
     
-    class func deleteSQL(tableName tableName: String, conditionColumns: [String]) -> String {
+    private class func deleteSQL(tableName tableName: String, conditionColumns: [String]) -> String {
         return "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
     }
     
-    class func existsSQL(tableName tableName: String, conditionColumns: [String]) -> String {
+    private class func existsSQL(tableName tableName: String, conditionColumns: [String]) -> String {
         return "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
     }
 
-    class func reloadSQL(tableName tableName: String, conditionColumns: [String]) -> String {
+    private class func reloadSQL(tableName tableName: String, conditionColumns: [String]) -> String {
         return "SELECT * FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
     }
     
-    class func whereSQL(conditionColumns: [String]) -> String {
+    private class func whereSQL(conditionColumns: [String]) -> String {
         return conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
     }
 }
