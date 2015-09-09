@@ -261,6 +261,8 @@ public final class Database {
     If the block throws an error, the transaction is rollbacked and the error is
     rethrown.
     
+    This method is not reentrant: you can't nest transactions.
+    
     - parameter type:  The transaction type
                        See https://www.sqlite.org/lang_transaction.html
     - parameter block: A block that executes SQL statements and return either
@@ -292,13 +294,7 @@ public final class Database {
         }
     }
 
-    private var insideTransaction: Bool = false
-    
     private func beginTransaction(type: TransactionType = .Exclusive) throws {
-        guard insideTransaction == false else {
-            fatalError("Can not begin a transaction inside another transaction.")
-        }
-        
         switch type {
         case .Deferred:
             try execute("BEGIN DEFERRED TRANSACTION")
@@ -307,26 +303,14 @@ public final class Database {
         case .Exclusive:
             try execute("BEGIN EXCLUSIVE TRANSACTION")
         }
-        
-        insideTransaction = true
     }
     
     private func rollback() throws {
-        guard insideTransaction == true else {
-            fatalError("Can not rollback: no current transaction.")
-        }
-        
         try execute("ROLLBACK TRANSACTION")
-        insideTransaction = false
     }
     
     private func commit() throws {
-        guard insideTransaction == true else {
-            fatalError("Can not commit: no current transaction.")
-        }
-        
         try execute("COMMIT TRANSACTION")
-        insideTransaction = false
     }
 }
 

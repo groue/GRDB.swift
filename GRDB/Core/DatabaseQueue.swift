@@ -62,19 +62,21 @@ public final class DatabaseQueue {
     // MARK: - Database access
     
     /**
-    Executes a block in the database queue.
+    Synchronously executes a block in the database queue.
     
         dbQueue.inDatabase { db in
             db.fetch(...)
         }
-
-    This method is not reentrant.
+    
+    This method is reentrant.
     
     - parameter block: A block that accesses the databse.
     - throws: The error thrown by the block.
     */
     public func inDatabase(block: (db: Database) throws -> Void) rethrows {
-        try inQueue { try block(db: self.database) }
+        try inQueue {
+            try block(db: self.database)
+        }
     }
     
     /**
@@ -84,17 +86,20 @@ public final class DatabaseQueue {
             db.fetch(...)
         }
     
-    This method is not reentrant.
+    This method is reentrant.
     
     - parameter block: A block that accesses the databse.
     - throws: The error thrown by the block.
     */
     public func inDatabase<R>(block: (db: Database) throws -> R) rethrows -> R {
-        return try inQueue { return try block(db: self.database) }
+        return try inQueue {
+            return try block(db: self.database)
+        }
     }
     
     /**
-    Executes a block in the database queue, wrapped inside a transaction.
+    Synchronously executes a block in the database queue, wrapped inside a
+    transaction.
     
     If the block throws an error, the transaction is rollbacked and the error is
     rethrown.
@@ -104,7 +109,7 @@ public final class DatabaseQueue {
             return .Commit
         }
     
-    This method is not reentrant.
+    This method is not reentrant: you can't nest transactions.
     
     - parameter type:  The transaction type (default Exclusive)
                        See https://www.sqlite.org/lang_transaction.html
@@ -115,7 +120,7 @@ public final class DatabaseQueue {
     public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) rethrows {
         let database = self.database
         try inQueue {
-            try self.database.inTransaction(type) {
+            try database.inTransaction(type) {
                 try block(db: database)
             }
         }
