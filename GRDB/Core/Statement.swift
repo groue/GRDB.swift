@@ -120,6 +120,10 @@ public class Statement {
             fatalDatabaseError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql))
         }
     }
+    
+    final func assertValidQueue(message: String) {
+        assert(self.databaseQueueID != nil && self.databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), message)
+    }
 }
 
 // MARK: - SQLite identifier quoting

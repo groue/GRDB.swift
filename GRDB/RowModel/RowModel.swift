@@ -214,7 +214,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         // Update managed primary key if needed
         if case .Managed(let managedColumn) = dataMapper.primaryKey {
             guard let rowID = dataMapper.storedDatabaseDictionary[managedColumn] else {
-                fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key `(managedColumn)`")
+                fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key \(managedColumn.quotedDatabaseIdentifier)")
             }
             if rowID == nil {
                 updateFromRow(Row(dictionary: [managedColumn: changes.insertedRowID]))

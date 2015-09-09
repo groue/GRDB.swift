@@ -412,4 +412,47 @@ class DatabaseTests : GRDBTestCase {
 //            return .Commit
 //        }
 //    }
+    
+    // CRASH TEST: this test must crash
+//    func testRowSequenceCanNotBeGeneratedOutsideOfDatabaseQueue() {
+//        assertNoError {
+//            var rows: AnySequence<Row>?
+//            try dbQueue.inDatabase { db in
+//                try db.execute("CREATE TABLE persons (name TEXT)")
+//                rows = Row.fetch(db, "SELECT * FROM persons")
+//            }
+//            rows!.generate()
+//        }
+//    }
+    
+    // CRASH TEST: this test must crash
+//    func testRowSequenceCanNotBeIteratedOutsideOfDatabaseQueue() {
+//        assertNoError {
+//            var generator: AnyGenerator<Row>?
+//            try dbQueue.inDatabase { db in
+//                try db.execute("CREATE TABLE persons (name TEXT)")
+//                generator = Row.fetch(db, "SELECT * FROM persons").generate()
+//            }
+//            generator!.next()
+//        }
+//    }
+    
+    // CRASH TEST: this test must crash
+//    func testExecuteDoesNotSupportMultipleStatement() {
+//        assertNoError {
+//            try dbQueue.inDatabase { db in
+//                try db.execute("CREATE TABLE persons (name TEXT, age INT); CREATE TABLE books (name TEXT, age INT)")
+//            }
+//        }
+//    }
+
+    // CRASH TEST: this test must crash
+//    func testInvalidNamedBinding() {
+//        assertNoError {
+//            try dbQueue.inDatabase { db in
+//                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+//                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["XXX": "foo", "name": "Arthur", "age": 41])
+//            }
+//        }
+//    }
 }
