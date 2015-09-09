@@ -202,7 +202,28 @@ public final class Database {
         case 1:
             // Single column
             let column = columns.first!
-            if column.type == "INTEGER" {
+            
+            // https://www.sqlite.org/lang_createtable.html:
+            //
+            // > With one exception noted below, if a rowid table has a primary
+            // > key that consists of a single column and the declared type of
+            // > that column is "INTEGER" in any mixture of upper and lower
+            // > case, then the column becomes an alias for the rowid. Such a
+            // > column is usually referred to as an "integer primary key".
+            // > A PRIMARY KEY column only becomes an integer primary key if the
+            // > declared type name is exactly "INTEGER". Other integer type
+            // > names like "INT" or "BIGINT" or "SHORT INTEGER" or "UNSIGNED
+            // > INTEGER" causes the primary key column to behave as an ordinary
+            // > table column with integer affinity and a unique index, not as
+            // > an alias for the rowid.
+            // >
+            // > The exception mentioned above is that if the declaration of a
+            // > column with declared type "INTEGER" includes an "PRIMARY KEY
+            // > DESC" clause, it does not become an alias for the rowid [...]
+            //
+            // We ignore the exception, and consider all INTEGER primary keys as
+            // aliases for the rowid:
+            if column.type.uppercaseString == "INTEGER" {
                 // INTEGER PRIMARY KEY
                 return .Managed(column.name)
             } else {
