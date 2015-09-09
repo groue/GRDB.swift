@@ -374,17 +374,10 @@ public struct Row: CollectionType {
     private struct StatementRowImpl : RowImpl {
         let databaseValues: [DatabaseValue]
         let columnNames: [String]
-        let databaseDictionary: [String: DatabaseValue]
         
         init(statement: SelectStatement) {
-            self.databaseValues = (0..<statement.columnCount).map { index in statement.databaseValue(atIndex: index) }
+            self.databaseValues = (0..<statement.columnCount).map { statement.databaseValue(atIndex: $0) }
             self.columnNames = statement.columnNames
-
-            var databaseDictionary = [String: DatabaseValue]()
-            for (databaseValue, columnName) in zip(databaseValues, columnNames) {
-                databaseDictionary[columnName] = databaseValue
-            }
-            self.databaseDictionary = databaseDictionary
         }
         
         var count: Int {
@@ -429,7 +422,6 @@ protocol RowImpl {
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func columnName(atIndex index: Int) -> String
     func indexForColumn(named name: String) -> Int?
-    var databaseDictionary: [String: DatabaseValue] { get }
 }
 
 
