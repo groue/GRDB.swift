@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // Pet has a non-RowID primary key.
-class Pet: RowModel {
+class Pet: Record {
     var UUID: String!
     var name: String!
     
@@ -46,7 +46,7 @@ class Pet: RowModel {
     }
 }
 
-class PrimaryKeySingleTests: RowModelTestCase {
+class PrimaryKeySingleTests: RecordTestCase {
     
     
     // MARK: - Insert
@@ -54,10 +54,10 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(name: "Bobby")
-                XCTAssertTrue(rowModel.UUID == nil)
+                let record = Pet(name: "Bobby")
+                XCTAssertTrue(record.UUID == nil)
                 do {
-                    try rowModel.insert(db)
+                    try record.insert(db)
                     XCTFail("Expected DatabaseError")
                 } catch is DatabaseError {
                     // Expected DatabaseError
@@ -69,11 +69,11 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -87,10 +87,10 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testInsertWithNotNilPrimaryKeyThatMatchesARowThrowsDatabaseError() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
                 do {
-                    try rowModel.insert(db)
+                    try record.insert(db)
                     XCTFail("Expected DatabaseError")
                 } catch is DatabaseError {
                     // Expected DatabaseError
@@ -102,13 +102,13 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testInsertAfterDeleteInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                try rowModel.delete(db)
-                try rowModel.insert(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                try record.delete(db)
+                try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -122,15 +122,15 @@ class PrimaryKeySingleTests: RowModelTestCase {
     
     // MARK: - Update
     
-    func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
+    func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 do {
-                    try rowModel.update(db)
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                    // Expected RowModelError.RowModelNotFound
+                    try record.update(db)
+                    XCTFail("Expected RecordError.RecordNotFound")
+                } catch RecordError.RecordNotFound {
+                    // Expected RecordError.RecordNotFound
                 }
             }
         }
@@ -139,13 +139,13 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                rowModel.name = "Carl"
-                try rowModel.update(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                record.name = "Carl"
+                try record.update(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -156,17 +156,17 @@ class PrimaryKeySingleTests: RowModelTestCase {
         }
     }
     
-    func testUpdateAfterDeleteThrowsRowModelNotFound() {
+    func testUpdateAfterDeleteThrowsRecordNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                try rowModel.delete(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                try record.delete(db)
                 do {
-                    try rowModel.update(db)
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                    // Expected RowModelError.RowModelNotFound
+                    try record.update(db)
+                    XCTFail("Expected RecordError.RecordNotFound")
+                } catch RecordError.RecordNotFound {
+                    // Expected RecordError.RecordNotFound
                 }
             }
         }
@@ -178,10 +178,10 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(name: "Bobby")
-                XCTAssertTrue(rowModel.UUID == nil)
+                let record = Pet(name: "Bobby")
+                XCTAssertTrue(record.UUID == nil)
                 do {
-                    try rowModel.save(db)
+                    try record.save(db)
                     XCTFail("Expected DatabaseError")
                 } catch is DatabaseError {
                     // Expected DatabaseError
@@ -193,11 +193,11 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.save(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -211,14 +211,14 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                try rowModel.save(db)   // Test that useless update succeeds. It is a proof that save() has performed an UPDATE statement, and not an INSERT statement: INSERT would have throw a database error for duplicated key.
-                rowModel.name = "Carl"
-                try rowModel.save(db)   // Actual update
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                try record.save(db)   // Test that useless update succeeds. It is a proof that save() has performed an UPDATE statement, and not an INSERT statement: INSERT would have throw a database error for duplicated key.
+                record.name = "Carl"
+                try record.save(db)   // Actual update
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -232,13 +232,13 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testSaveAfterDeleteInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                try rowModel.delete(db)
-                try rowModel.save(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                try record.delete(db)
+                try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -255,9 +255,9 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                let deletionResult = try rowModel.delete(db)
-                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                let deletionResult = try record.delete(db)
+                XCTAssertEqual(deletionResult, Record.DeletionResult.NoRowDeleted)
             }
         }
     }
@@ -265,12 +265,12 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                let deletionResult = try rowModel.delete(db)
-                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                let deletionResult = try record.delete(db)
+                XCTAssertEqual(deletionResult, Record.DeletionResult.RowDeleted)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])
+                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])
                 XCTAssertTrue(row == nil)
             }
         }
@@ -279,12 +279,12 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testDeleteAfterDeleteDoesNothing() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                var deletionResult = try rowModel.delete(db)
-                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
-                deletionResult = try rowModel.delete(db)
-                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                var deletionResult = try record.delete(db)
+                XCTAssertEqual(deletionResult, Record.DeletionResult.RowDeleted)
+                deletionResult = try record.delete(db)
+                XCTAssertEqual(deletionResult, Record.DeletionResult.NoRowDeleted)
             }
         }
     }
@@ -292,15 +292,15 @@ class PrimaryKeySingleTests: RowModelTestCase {
     
     // MARK: - Reload
     
-    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
+    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 do {
-                    try rowModel.reload(db)
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                    // Expected RowModelError.RowModelNotFound
+                    try record.reload(db)
+                    XCTFail("Expected RecordError.RecordNotFound")
+                } catch RecordError.RecordNotFound {
+                    // Expected RecordError.RecordNotFound
                 }
             }
         }
@@ -309,13 +309,13 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testReloadWithNotNilPrimaryKeyThatMatchesARowFetchesThatRow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                rowModel.name = "Carl"
-                try rowModel.reload(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                record.name = "Carl"
+                try record.reload(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [rowModel.UUID])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -326,17 +326,17 @@ class PrimaryKeySingleTests: RowModelTestCase {
         }
     }
     
-    func testReloadAfterDeleteThrowsRowModelNotFound() {
+    func testReloadAfterDeleteThrowsRecordNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                try rowModel.delete(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                try record.delete(db)
                 do {
-                    try rowModel.reload(db)
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                    // Expected RowModelError.RowModelNotFound
+                    try record.reload(db)
+                    XCTFail("Expected RecordError.RecordNotFound")
+                } catch RecordError.RecordNotFound {
+                    // Expected RecordError.RecordNotFound
                 }
             }
         }
@@ -348,12 +348,12 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testSelectWithPrimaryKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
                 
-                let fetchedRowModel = Pet.fetchOne(db, primaryKey: rowModel.UUID)!
-                XCTAssertTrue(fetchedRowModel.UUID == rowModel.UUID)
-                XCTAssertTrue(fetchedRowModel.name == rowModel.name)
+                let fetchedRecord = Pet.fetchOne(db, primaryKey: record.UUID)!
+                XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                XCTAssertTrue(fetchedRecord.name == record.name)
             }
         }
     }
@@ -361,12 +361,12 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testSelectWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
                 
-                let fetchedRowModel = Pet.fetchOne(db, key: ["name": rowModel.name])!
-                XCTAssertTrue(fetchedRowModel.UUID == rowModel.UUID)
-                XCTAssertTrue(fetchedRowModel.name == rowModel.name)
+                let fetchedRecord = Pet.fetchOne(db, key: ["name": record.name])!
+                XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                XCTAssertTrue(fetchedRecord.name == record.name)
             }
         }
     }
@@ -376,17 +376,17 @@ class PrimaryKeySingleTests: RowModelTestCase {
     
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         dbQueue.inDatabase { db in
-            let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-            XCTAssertFalse(rowModel.exists(db))
+            let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+            XCTAssertFalse(record.exists(db))
         }
     }
     
     func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                XCTAssertTrue(rowModel.exists(db))
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                XCTAssertTrue(record.exists(db))
             }
         }
     }
@@ -394,10 +394,10 @@ class PrimaryKeySingleTests: RowModelTestCase {
     func testExistsAfterDeleteReturnsTrue() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Pet(UUID: "BobbyUUID", name: "Bobby")
-                try rowModel.insert(db)
-                try rowModel.delete(db)
-                XCTAssertFalse(rowModel.exists(db))
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record.insert(db)
+                try record.delete(db)
+                XCTAssertFalse(record.exists(db))
             }
         }
     }

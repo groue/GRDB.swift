@@ -17,9 +17,9 @@ migrator.registerMigration("createPersons") { db in
 try! migrator.migrate(dbQueue)
 
 
-// Define a RowModel
+// Define a Record
 
-class Person : RowModel {
+class Person : Record {
     var id: Int64!
     var firstName: String?
     var lastName: String?
@@ -33,7 +33,7 @@ class Person : RowModel {
         super.init()
     }
     
-    // RowModel overrides
+    // Record overrides
     
     override class func databaseTableName() -> String? {
         return "persons"

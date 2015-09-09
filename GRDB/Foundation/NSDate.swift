@@ -24,8 +24,8 @@ Usage:
     NSDate.fetchAll(db, "SELECT ...", arguments: ...) // [NSDate?]
     NSDate.fetchOne(db, "SELECT ...", arguments: ...) // NSDate?
     
-    // Use NSDate in a RowModel:
-    class Person : RowModel {
+    // Use NSDate in a Record:
+    class Person : Record {
         var birthDate: NSDate?
 
         override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

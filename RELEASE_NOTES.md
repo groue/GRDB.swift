@@ -7,6 +7,10 @@ Release Notes
 
 - `DatabaseQueue.inDatabase` and `DatabaseQueue.inTransaction` are now reentrant. You can't open a transaction inside another, though.
 
+**Breaking changes**
+
+- `RowModel` has been renamed `Record`.
+
 
 ## 0.12.0
 

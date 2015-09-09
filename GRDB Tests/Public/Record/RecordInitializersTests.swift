@@ -4,19 +4,19 @@ import GRDB
 // Tests about how minimal can class go regarding their initializers
 
 // What happens for a class without property, without any initializer?
-class EmptyRowModelWithoutInitializer : RowModel {
+class EmptyRecordWithoutInitializer : Record {
     // nothing is required
 }
 
 // What happens if we add a mutable property, still without any initializer?
-// A compiler error: class 'RowModelWithoutInitializer' has no initializers
+// A compiler error: class 'RecordWithoutInitializer' has no initializers
 //
-//    class RowModelWithoutInitializer : RowModel {
+//    class RecordWithoutInitializer : Record {
 //        let name: String?
 //    }
 
 // What happens with a mutable property, and init(row: Row)?
-class RowModelWithMutablePropertyAndRowInitializer : RowModel {
+class RecordWithMutablePropertyAndRowInitializer : Record {
     var name: String?
     
     required init(row: Row) {
@@ -26,7 +26,7 @@ class RowModelWithMutablePropertyAndRowInitializer : RowModel {
 }
 
 // What happens with a mutable property, and init()?
-class RowModelWithMutablePropertyAndEmptyInitializer : RowModel {
+class RecordWithMutablePropertyAndEmptyInitializer : Record {
     var name: String?
     
     override init() {
@@ -40,7 +40,7 @@ class RowModelWithMutablePropertyAndEmptyInitializer : RowModel {
 }
 
 // What happens with a mutable property, and a custom initializer()?
-class RowModelWithMutablePropertyAndCustomInitializer : RowModel {
+class RecordWithMutablePropertyAndCustomInitializer : Record {
     var name: String?
     
     init(name: String? = nil) {
@@ -54,7 +54,7 @@ class RowModelWithMutablePropertyAndCustomInitializer : RowModel {
 }
 
 // What happens with an immutable property?
-class RowModelWithImmutableProperty : RowModel {
+class RecordWithImmutableProperty : Record {
     let initializedFromRow: Bool
     
     required init(row: Row) {       // An initializer is required, and the minimum is init(row: row)
@@ -64,7 +64,7 @@ class RowModelWithImmutableProperty : RowModel {
 }
 
 // What happens with an immutable property and init()?
-class RowModelWithPedigree : RowModel {
+class RecordWithPedigree : Record {
     let initializedFromRow: Bool
     
     override init() {
@@ -79,7 +79,7 @@ class RowModelWithPedigree : RowModel {
 }
 
 // What happens with an immutable property and a custom initializer()?
-class RowModelWithImmutablePropertyAndCustomInitializer : RowModel {
+class RecordWithImmutablePropertyAndCustomInitializer : Record {
     let initializedFromRow: Bool
     
     init(name: String? = nil) {
@@ -93,21 +93,21 @@ class RowModelWithImmutablePropertyAndCustomInitializer : RowModel {
     }
 }
 
-class RowModelInitializersTests : RowModelTestCase {
+class RecordInitializersTests : RecordTestCase {
     
-    func testFetchedRowModelAreInitializedFromRow() {
+    func testFetchedRecordAreInitializedFromRow() {
         
-        // Here we test that RowModel.init(row: Row) can be overriden independently from RowModel.init().
-        // People must be able to perform some initialization work when fetching row models from the database.
+        // Here we test that Record.init(row: Row) can be overriden independently from Record.init().
+        // People must be able to perform some initialization work when fetching records from the database.
         
-        XCTAssertFalse(RowModelWithPedigree().initializedFromRow)
+        XCTAssertFalse(RecordWithPedigree().initializedFromRow)
         
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE pedigrees (foo INTEGER)")
                 try db.execute("INSERT INTO pedigrees (foo) VALUES (NULL)")
                 
-                let pedigree = RowModelWithPedigree.fetchOne(db, "SELECT * FROM pedigrees")!
+                let pedigree = RecordWithPedigree.fetchOne(db, "SELECT * FROM pedigrees")!
                 XCTAssertTrue(pedigree.initializedFromRow)  // very important
             }
         }

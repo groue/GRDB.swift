@@ -12,7 +12,7 @@ final class DataMapper {
     /// The database
     let db: Database
     
-    /// The rowModel type
+    /// The storable
     let storable: DatabaseStorable
     
     /// DataMapper keeps a copy the storable's storedDatabaseDictionary, so

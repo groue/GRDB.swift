@@ -6,7 +6,7 @@ struct CLLocationCoordinate2D {
     let longitude: Double
 }
 
-class Placemark : RowModel {
+class Placemark : Record {
     var id: Int64?
     var name: String?
     var coordinate: CLLocationCoordinate2D?
@@ -68,7 +68,7 @@ class Placemark : RowModel {
     }
 }
 
-class RowModelUpdateFromRowTests: RowModelTestCase {
+class RecordUpdateFromRowTests: RecordTestCase {
     
     func testInitFromRow() {
         let parisLatitude = 48.8534100
@@ -106,7 +106,7 @@ class RowModelUpdateFromRowTests: RowModelTestCase {
         XCTAssertTrue(paris.coordinate == nil)
     }
     
-    func testUpdateFromRowForFetchedModels() {
+    func testUpdateFromRowForFetchedRecords() {
         let parisLatitude = 48.8534100
         let parisLongitude = 2.3488000
         assertNoError {
@@ -138,7 +138,7 @@ class RowModelUpdateFromRowTests: RowModelTestCase {
         }
     }
     
-    func testUpdateFromRowForCopiedModels() {
+    func testUpdateFromRowForCopiedRecords() {
         let parisLatitude = 48.8534100
         let parisLongitude = 2.3488000
         let paris1 = Placemark(name: "Paris", coordinate: CLLocationCoordinate2D(latitude: parisLatitude, longitude: parisLongitude))

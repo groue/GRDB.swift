@@ -19,7 +19,7 @@ Features
 
 - **A low-level SQLite API** that leverages the Swift 2 standard library.
 - **No smart query builder**. Your SQL skills are welcome here.
-- **A Model class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
+- **A Record class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
 - **Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **Database Migrations**
 
@@ -120,14 +120,14 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [Prepared Statements](#prepared-statements)
     - [Error Handling](#error-handling)
 - [Migrations](#migrations)
-- [Row Models](#row-models)
+- [Records](#records)
     - [Core Methods](#core-methods)
-    - [Fetching Row Models](#fetching-row-models)
+    - [Fetching Records](#fetching-records)
         - [Ad Hoc Subclasses](#ad-hoc-subclasses)
     - [Tables and Primary Keys](#tables-and-primary-keys)
         - [Insert, Update and Delete](#insert-update-and-delete)
         - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
-    - [RowModel Errors](#rowmodel-errors)
+    - [Record Errors](#record-errors)
     - [Advice](#advice)
 
 
@@ -195,7 +195,7 @@ To create tables, we recommend using [migrations](#migrations).
 
 ### Fetch Queries
 
-You can fetch **Rows**, **Values**, and **Row Models**:
+You can fetch **Rows**, **Values**, and **Records**:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -219,7 +219,7 @@ The last two methods are the only ones that don't take a custom SQL query as an 
 
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
-- [Row Models](#row-models)
+- [Records](#records)
 
 
 #### Row Queries
@@ -417,10 +417,10 @@ NSDate.fetchAll(db, "SELECT ...")    // [NSDate?]
 NSDate.fetchOne(db, "SELECT ...")    // NSDate?
 ```
 
-Use NSDate in a RowModel (see [Fetching Row Models](#fetching-row-models) for more information):
+Use NSDate in a Record (see [Fetching Records](#fetching-records) for more information):
 
 ```swift
-class Person : RowModel {
+class Person : Record {
     var birthDate: NSDate?
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -471,10 +471,10 @@ DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents?]
 DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
 ```
 
-Use NSDateComponents in a RowModel (see [Fetching Row Models](#fetching-row-models) for more information):
+Use NSDateComponents in a Record (see [Fetching Records](#fetching-records) for more information):
 
 ```swift
-class Person : RowModel {
+class Person : Record {
     var birthDateComponents: NSDateComponents?
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -678,7 +678,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Select statements can fetch rows, values, and [Row Models](#row-models).
+Select statements can fetch rows, values, and [Records](#records).
 
 ```swift
 dbQueue.inDatabase { db in
@@ -790,21 +790,21 @@ for path in migrationPaths {
 }
 ```
 
-## Row Models
+## Records
 
-**RowModel** is a class that wraps a table row, or the result of any query. It is designed to be subclassed.
+**Record** is a class that wraps a table row, or the result of any query. It is designed to be subclassed.
 
 ```swift
-class Person : RowModel { ... }
+class Person : Record { ... }
 let person = Person(name: "Arthur")
 person.save(db)
 ```
 
-**RowModel is not a smart class.** It is no replacement for Core Data, or for an Active Record pattern. It does not provide any uniquing. It has no knowledge of your database schema, no notion of external references and model relationships, and will not generate JOIN queries for you.
+**Record is not a smart class.** It is no replacement for Core Data, or for an Active Record pattern. It does not provide any uniquing. It has no knowledge of your database schema, no notion of external references and table relationships, and will not generate JOIN queries for you.
 
 Yet, it does a few things well:
 
-- **It eats any SQL query.** A RowModel subclass is often tied to a database table, but this is not a requirement at all.
+- **It eats any SQL query.** A Record subclass is often tied to a database table, but this is not a requirement at all.
 
     ```swift
     let persons = Person.fetchAll(db,
@@ -843,18 +843,18 @@ Yet, it does a few things well:
     ```
 
 - [Core Methods](#core-methods)
-- [Fetching Row Models](#fetching-row-models)
+- [Fetching Records](#fetching-records)
     - [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Tables and Primary Keys](#tables-and-primary-keys)
     - [Insert, Update and Delete](#insert-update-and-delete)
     - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
-- [RowModel Errors](#rowmodel-errors)
+- [Record Errors](#record-errors)
 - [Advice](#advice)
 
 
 ### Core Methods
 
-Subclasses opt in RowModel features by overriding all or part of the core methods that define their relationship with the database:
+Subclasses opt in Record features by overriding all or part of the core methods that define their relationship with the database:
 
 | Core Methods               | fetch | insert | update | delete | reload |
 |:-------------------------- |:-----:|:------:|:------:|:------:|:------:|
@@ -863,12 +863,12 @@ Subclasses opt in RowModel features by overriding all or part of the core method
 | `storedDatabaseDictionary` |       |   ✓    |   ✓    |   ✓    |   ✓    |
 
 
-### Fetching Row Models
+### Fetching Records
 
 The Person subclass below will be our guinea pig. It declares properties for the `persons` table:
 
 ```swift
-class Person : RowModel {
+class Person : Record {
     var id: Int64?      // matches "id" not null column
     var age: Int?       // matches "age" column
     var name: String?   // matches "name" column
@@ -878,7 +878,7 @@ class Person : RowModel {
 The `updateFromRow` method assigns database values to properties:
 
 ```swift
-class Person : RowModel {
+class Person : Record {
     override func updateFromRow(row: Row) {
         if let dbv = row["id"]   { id = dbv.value() }
         if let dbv = row["age"]  { age = dbv.value() }
@@ -890,7 +890,7 @@ class Person : RowModel {
 
 See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
 
-Now you can fetch **lazy sequences** of row models, **arrays**, or **single** instances:
+Now you can fetch **lazy sequences** of records, **arrays**, or **single** instances:
 
 ```swift
 
@@ -957,7 +957,7 @@ class PersonsViewController: UITableViewController {
 If you declare a **Table name**, GRDB infers your table's primary key automatically and you can fetch instances by ID or any other key.
 
 ```swift
-class Person : RowModel {
+class Person : Record {
     override class func databaseTableName() -> String? {
         return "persons"
     }
@@ -974,9 +974,9 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-RowModels with a multi-column primary key are not supported by `fetchOne(_:primaryKey:)`, which accepts a single value as a key. Instead, use `fetchOne(_:key:)` that uses a dictionary.
+Records with a multi-column primary key are not supported by `fetchOne(_:primaryKey:)`, which accepts a single value as a key. Instead, use `fetchOne(_:key:)` that uses a dictionary.
 
-`fetchOne(_:key:)` returns the first RowModel with matching values. Its result is undefined unless the dictionary is *actually* a key.
+`fetchOne(_:key:)` returns the first Record with matching values. Its result is undefined unless the dictionary is *actually* a key.
 
 
 #### Insert, Update and Delete
@@ -984,7 +984,7 @@ RowModels with a multi-column primary key are not supported by `fetchOne(_:prima
 With one more override, you get the `insert`, `update`, `delete`, `save`, `reload` and `exists` methods.
 
 ```swift
-class Person : RowModel {
+class Person : Record {
     // The values stored in the database:
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name, "age": age]
@@ -1012,16 +1012,16 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Models whose primary key is declared as "INTEGER PRIMARY KEY" have their id automatically set after successful insertion.
+Records whose primary key is declared as "INTEGER PRIMARY KEY" have their id automatically set after successful insertion.
 
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 
 
 #### Preventing Useless UPDATE Statements
 
-The `update()` method always executes an UPDATE statement. When the row model has not been edited, this database access is generally useless.
+The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
 
-Avoid it with the `databaseEdited` property, which returns whether the row model has changes that have not been saved:
+Avoid it with the `databaseEdited` property, which returns whether the record has changes that have not been saved:
 
 ```swift
 let json = ...
@@ -1044,11 +1044,11 @@ try dbQueue.inTransaction { db in
 Note that `databaseEdited` is based on value comparison: **setting a property to the same value does not set the edited flag**.
 
 
-### RowModel Errors
+### Record Errors
 
-RowModel methods can throw [DatabaseError](#error-handling) and also specific errors of type **RowModelError**:
+Record methods can throw [DatabaseError](#error-handling) and also specific errors of type **RecordError**:
 
-- **RowModelError.RowModelNotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
+- **RecordError.RecordNotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
 
 
 ### Advice
@@ -1071,7 +1071,7 @@ CREATE TABLE persons {
 ```
 
 ```swift
-class Person : RowModel {
+class Person : Record {
     id: Int64?
     
     /// The table definition.
@@ -1101,12 +1101,12 @@ person.id   // some value
 
 #### Validation
 
-RowModel does not provide any built-in validation.
+Record does not provide any built-in validation.
 
 You can use some external library such as [GRValidation](https://github.com/groue/GRValidation) in the update() and insert() methods:
 
 ```swift
-class Person : RowModel, Validable {
+class Person : Record, Validable {
     var name: String?
     
     override func update(db: Database) throws {
@@ -1135,7 +1135,7 @@ try! Person(name: nil).save(db)
 
 #### Default Values
 
-**Avoid default values in table declarations.** RowModel doesn't know about them, and those default values won't be present in a row model after it has been inserted.
+**Avoid default values in table declarations.** Record doesn't know about them, and those default values won't be present in a record after it has been inserted.
     
 For example, avoid the table below:
 
@@ -1158,7 +1158,7 @@ CREATE TABLE persons (
 ```
 
 ```swift
-class Person : RowModel {
+class Person : Record {
     var creationDate: NSDate?
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -1177,7 +1177,7 @@ class Person : RowModel {
 
 #### INSERT OR REPLACE
 
-**RowModel does not provide any API which executes a INSERT OR REPLACE query.** Instead, consider adding an ON CONFLICT clause to your table definition, and let the simple insert() method perform the eventual replacement:
+**Record does not provide any API which executes a INSERT OR REPLACE query.** Instead, consider adding an ON CONFLICT clause to your table definition, and let the simple insert() method perform the eventual replacement:
 
 ```sql
 CREATE TABLE persons (

@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // Item has no primary key.
-class Item: RowModel {
+class Item: Record {
     var name: String?
     
     override class func databaseTableName() -> String? {
@@ -40,7 +40,7 @@ class Item: RowModel {
     }
 }
 
-class PrimaryKeyNoneTests: RowModelTestCase {
+class PrimaryKeyNoneTests: RecordTestCase {
     
     
     // MARK: - Insert
@@ -48,9 +48,9 @@ class PrimaryKeyNoneTests: RowModelTestCase {
     func testInsertInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Item(name: "Table")
-                try rowModel.insert(db)
-                try rowModel.insert(db)
+                let record = Item(name: "Table")
+                try record.insert(db)
+                try record.insert(db)
                 
                 let names = String.fetchAll(db, "SELECT name FROM items").map { $0! }
                 XCTAssertEqual(names, ["Table", "Table"])
@@ -64,9 +64,9 @@ class PrimaryKeyNoneTests: RowModelTestCase {
     func testSaveInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Item(name: "Table")
-                try rowModel.save(db)
-                try rowModel.save(db)
+                let record = Item(name: "Table")
+                try record.save(db)
+                try record.save(db)
                 
                 let names = String.fetchAll(db, "SELECT name FROM items").map { $0! }
                 XCTAssertEqual(names, ["Table", "Table"])
@@ -80,11 +80,11 @@ class PrimaryKeyNoneTests: RowModelTestCase {
     func testSelectWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Item(name: "Table")
-                try rowModel.insert(db)
+                let record = Item(name: "Table")
+                try record.insert(db)
                 
-                let fetchedRowModel = Item.fetchOne(db, key: ["name": rowModel.name])!
-                XCTAssertTrue(fetchedRowModel.name == rowModel.name)
+                let fetchedRecord = Item.fetchOne(db, key: ["name": record.name])!
+                XCTAssertTrue(fetchedRecord.name == record.name)
             }
         }
     }

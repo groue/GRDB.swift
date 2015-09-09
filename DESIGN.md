@@ -4,13 +4,13 @@ The Design of GRDB.swift
 More than caveats or defects, there are a few glitches, or surprises in the GRDB.swift API. We try to explain them here. The interested readers can take them as Swift challenges!
 
 
-### Why is RowModel a class, when protocols are all the rage?
+### Why is Record a class, when protocols are all the rage?
 
-Easy: Swift protocols don't provide `super`, and `super` is what turns RowModel into the flexible base class you need when you implement your specific needs:
+Easy: Swift protocols don't provide `super`, and `super` is what turns Record into the flexible base class you need when you implement your specific needs:
 
 ```swift
-// A RowModel that makes sure its UUID is set before insertion:
-class A : RowModel {
+// A Record that makes sure its UUID is set before insertion:
+class A : Record {
     var UUID: NSString?
     override func insert(db: Database) throws {
         if UUID == nil {
@@ -20,8 +20,8 @@ class A : RowModel {
     }
 }
 
-// A RowModel that validates itself before saving:
-class B : RowModel {
+// A Record that validates itself before saving:
+class B : Record {
     override func insert(db: Database) throws {
         try validate()
         try super.insert(db)
@@ -35,9 +35,9 @@ class B : RowModel {
     }
 }
 
-// A RowModel that deletes an external resource after being deleted from
+// A Record that deletes an external resource after being deleted from
 // the database:
-class C : RowModel {
+class C : Record {
     public func delete(db: Database) throws -> DeletionResult {
         switch try super.delete(db) {
         case .RowDeleted:
@@ -49,7 +49,7 @@ class C : RowModel {
 }
 ```
 
-A second reason: the `databaseEdited` flag, which is true when a RowModel has unsaved changes, is easily provided by the base class RowModel. RowModel can manage its internal state *accross method calls*. Protocols could not provide this service without extra complexity.
+A second reason: the `databaseEdited` flag, which is true when a Record has unsaved changes, is easily provided by the base class Record. Record can manage its internal state *accross method calls*. Protocols could not provide this service without extra complexity.
 
 Yet, don't miss the [RowConvertible](http://cocoadocs.org/docsets/GRDB.swift/0.12.0/Protocols/RowConvertible.html) and [DatabaseMapping](http://cocoadocs.org/docsets/GRDB.swift/0.12.0/Protocols/DatabaseTableMapping.html) protocols: they provide fetching from custom SQL queries and fetching by primary key for free.
 
@@ -77,7 +77,7 @@ String.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<String?>
 String.fetchAll(db, "SELECT ...", arguments: ...)  // [String?]
 String.fetchOne(db, "SELECT ...", arguments: ...)  // String?
 
-// RowModel (via RowConvertible)
+// Record (via RowConvertible)
 Person.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<Person>
 Person.fetchAll(db, "SELECT ...", arguments: ...)  // [Person]
 Person.fetchOne(db, "SELECT ...", arguments: ...)  // Person?

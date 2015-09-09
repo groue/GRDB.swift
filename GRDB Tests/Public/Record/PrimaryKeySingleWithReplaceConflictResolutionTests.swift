@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class Email : RowModel {
+class Email : Record {
     var email: String!
     var label: String?
     
@@ -25,7 +25,7 @@ class Email : RowModel {
     }
 }
 
-class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
+class PrimaryKeySingleWithReplaceConflictResolutionTests: RecordTestCase {
     
     override func setUp() {
         super.setUp()
@@ -47,10 +47,10 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                XCTAssertTrue(rowModel.email == nil)
+                let record = Email()
+                XCTAssertTrue(record.email == nil)
                 do {
-                    try rowModel.insert(db)
+                    try record.insert(db)
                     XCTFail("Expected DatabaseError")
                 } catch is DatabaseError {
                     // Expected DatabaseError
@@ -62,13 +62,13 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                rowModel.label = "Home"
-                try rowModel.insert(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                record.label = "Home"
+                try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -82,15 +82,15 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testInsertWithNotNilPrimaryKeyThatMatchesARowReplacesARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                rowModel.label = "Home"
-                try rowModel.insert(db)
-                rowModel.label = "Work"
-                try rowModel.insert(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                record.label = "Home"
+                try record.insert(db)
+                record.label = "Work"
+                try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -104,14 +104,14 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testInsertAfterDeleteInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                try rowModel.delete(db)
-                try rowModel.insert(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                try record.delete(db)
+                try record.insert(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -125,16 +125,16 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     
     // MARK: - Update
     
-    func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
+    func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
+                let record = Email()
+                record.email = "me@domain.com"
                 do {
-                    try rowModel.update(db)
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                    // Expected RowModelError.RowModelNotFound
+                    try record.update(db)
+                    XCTFail("Expected RecordError.RecordNotFound")
+                } catch RecordError.RecordNotFound {
+                    // Expected RecordError.RecordNotFound
                 }
             }
         }
@@ -143,13 +143,13 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                try rowModel.update(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                try record.update(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -160,18 +160,18 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
         }
     }
     
-    func testUpdateAfterDeleteThrowsRowModelNotFound() {
+    func testUpdateAfterDeleteThrowsRecordNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                try rowModel.delete(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                try record.delete(db)
                 do {
-                    try rowModel.update(db)
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                    // Expected RowModelError.RowModelNotFound
+                    try record.update(db)
+                    XCTFail("Expected RecordError.RecordNotFound")
+                } catch RecordError.RecordNotFound {
+                    // Expected RecordError.RecordNotFound
                 }
             }
         }
@@ -183,10 +183,10 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                XCTAssertTrue(rowModel.email == nil)
+                let record = Email()
+                XCTAssertTrue(record.email == nil)
                 do {
-                    try rowModel.save(db)
+                    try record.save(db)
                     XCTFail("Expected DatabaseError")
                 } catch is DatabaseError {
                     // Expected DatabaseError
@@ -198,12 +198,12 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.save(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -217,13 +217,13 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                try rowModel.save(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -237,14 +237,14 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testSaveAfterDeleteInsertsARow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                try rowModel.delete(db)
-                try rowModel.save(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                try record.delete(db)
+                try record.save(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -261,10 +261,10 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                let deletionResult = try rowModel.delete(db)
-                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
+                let record = Email()
+                record.email = "me@domain.com"
+                let deletionResult = try record.delete(db)
+                XCTAssertEqual(deletionResult, Record.DeletionResult.NoRowDeleted)
             }
         }
     }
@@ -272,13 +272,13 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                let deletionResult = try rowModel.delete(db)
-                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                let deletionResult = try record.delete(db)
+                XCTAssertEqual(deletionResult, Record.DeletionResult.RowDeleted)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])
+                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])
                 XCTAssertTrue(row == nil)
             }
         }
@@ -287,13 +287,13 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testDeleteAfterDeleteDoesNothing() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                var deletionResult = try rowModel.delete(db)
-                XCTAssertEqual(deletionResult, RowModel.DeletionResult.RowDeleted)
-                deletionResult = try rowModel.delete(db)
-                XCTAssertEqual(deletionResult, RowModel.DeletionResult.NoRowDeleted)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                var deletionResult = try record.delete(db)
+                XCTAssertEqual(deletionResult, Record.DeletionResult.RowDeleted)
+                deletionResult = try record.delete(db)
+                XCTAssertEqual(deletionResult, Record.DeletionResult.NoRowDeleted)
             }
         }
     }
@@ -301,16 +301,16 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     
     // MARK: - Reload
     
-    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRowModelNotFound() {
+    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
+                let record = Email()
+                record.email = "me@domain.com"
                 do {
-                    try rowModel.reload(db)
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                    // Expected RowModelError.RowModelNotFound
+                    try record.reload(db)
+                    XCTFail("Expected RecordError.RecordNotFound")
+                } catch RecordError.RecordNotFound {
+                    // Expected RecordError.RecordNotFound
                 }
             }
         }
@@ -319,13 +319,13 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testReloadWithNotNilPrimaryKeyThatMatchesARowFetchesThatRow() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                try rowModel.reload(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                try record.reload(db)
                 
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [rowModel.email])!
-                for (key, value) in rowModel.storedDatabaseDictionary {
+                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+                for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -336,18 +336,18 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
         }
     }
     
-    func testReloadAfterDeleteThrowsRowModelNotFound() {
+    func testReloadAfterDeleteThrowsRecordNotFound() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                try rowModel.delete(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                try record.delete(db)
                 do {
-                    try rowModel.reload(db)
-                    XCTFail("Expected RowModelError.RowModelNotFound")
-                } catch RowModelError.RowModelNotFound {
-                    // Expected RowModelError.RowModelNotFound
+                    try record.reload(db)
+                    XCTFail("Expected RecordError.RecordNotFound")
+                } catch RecordError.RecordNotFound {
+                    // Expected RecordError.RecordNotFound
                 }
             }
         }
@@ -359,12 +359,12 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testSelectWithPrimaryKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
                 
-                let fetchedRowModel = Email.fetchOne(db, primaryKey: rowModel.email)!
-                XCTAssertTrue(fetchedRowModel.email == rowModel.email)
+                let fetchedRecord = Email.fetchOne(db, primaryKey: record.email)!
+                XCTAssertTrue(fetchedRecord.email == record.email)
             }
         }
     }
@@ -372,12 +372,12 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testSelectWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
                 
-                let fetchedRowModel = Email.fetchOne(db, key: ["email": rowModel.email])!
-                XCTAssertTrue(fetchedRowModel.email == rowModel.email)
+                let fetchedRecord = Email.fetchOne(db, key: ["email": record.email])!
+                XCTAssertTrue(fetchedRecord.email == record.email)
             }
         }
     }
@@ -387,19 +387,19 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
         dbQueue.inDatabase { db in
-            let rowModel = Email()
-            rowModel.email = "me@domain.com"
-            XCTAssertFalse(rowModel.exists(db))
+            let record = Email()
+            record.email = "me@domain.com"
+            XCTAssertFalse(record.exists(db))
         }
     }
     
     func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                XCTAssertTrue(rowModel.exists(db))
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                XCTAssertTrue(record.exists(db))
             }
         }
     }
@@ -407,11 +407,11 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: RowModelTestCase {
     func testExistsAfterDeleteReturnsTrue() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let rowModel = Email()
-                rowModel.email = "me@domain.com"
-                try rowModel.insert(db)
-                try rowModel.delete(db)
-                XCTAssertFalse(rowModel.exists(db))
+                let record = Email()
+                record.email = "me@domain.com"
+                try record.insert(db)
+                try record.delete(db)
+                XCTAssertFalse(record.exists(db))
             }
         }
     }

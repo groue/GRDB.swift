@@ -13,9 +13,9 @@ GRDB Sources
     
     Ditto
 
-- [RowModel](RowModel):
+- [Record](Record):
     
-    The RowModel class.
+    The Record class.
 
 - [Swift](Swift):
     

@@ -35,7 +35,7 @@ class GRDBTestCase: XCTestCase {
             try test()
         } catch let error as DatabaseError {
             XCTFail(error.description)
-        } catch let error as RowModelError {
+        } catch let error as RecordError {
             XCTFail(error.description)
         } catch {
             XCTFail("error: \(error)")

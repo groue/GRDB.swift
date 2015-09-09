@@ -1,6 +1,6 @@
 import XCTest
 
-class RowModelFetchTests: RowModelTestCase {
+class RecordFetchTests: RecordTestCase {
     
     func testSelectStatement() {
         assertNoError {
@@ -21,7 +21,7 @@ class RowModelFetchTests: RowModelTestCase {
         }
     }
     
-    func testDatabaseRowModelSequenceCanBeIteratedTwice() {
+    func testDatabaseRecordSequenceCanBeIteratedTwice() {
         assertNoError {
             try dbQueue.inTransaction { db in
                 try Person(name: "Arthur", age: 41).insert(db)
@@ -41,7 +41,7 @@ class RowModelFetchTests: RowModelTestCase {
         }
     }
     
-    func testSelectStatementRowModelSequenceCanBeIteratedTwice() {
+    func testSelectStatementRecordSequenceCanBeIteratedTwice() {
         assertNoError {
             try dbQueue.inTransaction { db in
                 try Person(name: "Arthur", age: 41).insert(db)

@@ -1,6 +1,6 @@
 import GRDB
 
-class Person : RowModel {
+class Person : Record {
     var id: Int64!
     var firstName: String?
     var lastName: String?
@@ -14,7 +14,7 @@ class Person : RowModel {
         super.init()
     }
     
-    // MARK: - RowModel
+    // MARK: - Record
     
     override class func databaseTableName() -> String? {
         return "persons"

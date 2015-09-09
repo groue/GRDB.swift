@@ -8,7 +8,7 @@ identified by their primary key, or any other key:
     Person.fetchOne(db, primaryKey: 123)  // Person?
     Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
 
-DatabaseTableMapping is adopted by RowModel.
+DatabaseTableMapping is adopted by Record.
 */
 public protocol DatabaseTableMapping : RowConvertible {
     static func databaseTableName() -> String?

@@ -16,7 +16,7 @@ arrays, or single instances:
     Person.fetchAll(statement, arguments:...)        // [Person]
     Person.fetchOne(statement, arguments:...)        // Person?
 
-RowConvertible is adopted by RowModel.
+RowConvertible is adopted by Record.
 */
 public protocol RowConvertible {
     /// Create an instance initialized with `row`.

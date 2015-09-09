@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class RowModelTestCase : GRDBTestCase {
+class RecordTestCase : GRDBTestCase {
     override func setUp() {
         super.setUp()
         

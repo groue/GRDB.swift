@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class IntegerPropertyOnRealAffinityColumn : RowModel {
+class IntegerPropertyOnRealAffinityColumn : Record {
     var value: Int!
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -19,28 +19,28 @@ class IntegerPropertyOnRealAffinityColumn : RowModel {
     }
 }
 
-class RowModelEditedTests: RowModelTestCase {
+class RecordEditedTests: RecordTestCase {
     
-    func testRowModelIsEditedAfterInit() {
-        // Create a RowModel. No fetch has happen, so we don't know if it is
+    func testRecordIsEditedAfterInit() {
+        // Create a Record. No fetch has happen, so we don't know if it is
         // identical to its eventual row in the database. So it is edited.
         let person = Person(name: "Arthur", age: 41)
         XCTAssertTrue(person.databaseEdited)
     }
     
-    func testRowModelIsEditedAfterInitFromRow() {
-        // Create a RowModel from a row. The row may not come from the database.
+    func testRecordIsEditedAfterInitFromRow() {
+        // Create a Record from a row. The row may not come from the database.
         // So it is edited.
         let row = Row(dictionary: ["name": "Arthur", "age": 41])
         let person = Person(row: row)
         XCTAssertTrue(person.databaseEdited)
     }
     
-    func testRowModelIsNotEditedAfterFullFetch() {
-        // Fetch a model from a row that contains all the columns in
+    func testRecordIsNotEditedAfterFullFetch() {
+        // Fetch a record from a row that contains all the columns in
         // storedDatabaseDictionary: An update statement, which only saves the
         // columns in storedDatabaseDictionary would perform no change. So the
-        // model is not edited.
+        // record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
@@ -50,22 +50,22 @@ class RowModelEditedTests: RowModelTestCase {
         }
     }
     
-    func testRowModelIsNotEditedAfterFullFetchWithIntegerPropertyOnRealAffinityColumn() {
+    func testRecordIsNotEditedAfterFullFetchWithIntegerPropertyOnRealAffinityColumn() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE t (value REAL)")
                 try db.execute("INSERT INTO t (value) VALUES (1)")
-                let rowModel = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
-                XCTAssertFalse(rowModel.databaseEdited)
+                let record = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
+                XCTAssertFalse(record.databaseEdited)
             }
         }
     }
     
-    func testRowModelIsNotEditedAfterWiderThanFullFetch() {
-        // Fetch a model from a row that contains all the columns in
-        // storedDatabaseDictionary, plus extra ones: An update statement, which
-        // only saves the columns in storedDatabaseDictionary would perform no
-        // change. So the model is not edited.
+    func testRecordIsNotEditedAfterWiderThanFullFetch() {
+        // Fetch a record from a row that contains all the columns in
+        // storedDatabaseDictionary, plus extra ones: An update statement,
+        // which only saves the columns in storedDatabaseDictionary would
+        // perform no change. So the record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
@@ -75,11 +75,11 @@ class RowModelEditedTests: RowModelTestCase {
         }
     }
     
-    func testRowModelIsEditedAfterPartialFetch() {
-        // Fetch a model from a row that does not contain all the columns in
+    func testRecordIsEditedAfterPartialFetch() {
+        // Fetch a record from a row that does not contain all the columns in
         // storedDatabaseDictionary: An update statement saves the columns in
         // storedDatabaseDictionary, so it may perform unpredictable change.
-        // So the model is edited.
+        // So the record is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
@@ -89,8 +89,8 @@ class RowModelEditedTests: RowModelTestCase {
         }
     }
     
-    func testRowModelIsNotEditedAfterInsert() {
-        // After insertion, a model is not edited.
+    func testRecordIsNotEditedAfterInsert() {
+        // After insertion, a record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
@@ -100,9 +100,9 @@ class RowModelEditedTests: RowModelTestCase {
         }
     }
     
-    func testRowModelIsEditedAfterValueChange() {
+    func testRecordIsEditedAfterValueChange() {
         // Any change in a value exposed in storedDatabaseDictionary yields a
-        // row model that is edited.
+        // record that is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
@@ -123,8 +123,8 @@ class RowModelEditedTests: RowModelTestCase {
         }
     }
     
-    func testRowModelIsNotEditedAfterUpdate() {
-        // After update, a model is not edited.
+    func testRecordIsNotEditedAfterUpdate() {
+        // After update, a record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
@@ -136,8 +136,8 @@ class RowModelEditedTests: RowModelTestCase {
         }
     }
     
-    func testRowModelIsNotEditedAfterSave() {
-        // After save, a model is not edited.
+    func testRecordIsNotEditedAfterSave() {
+        // After save, a record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
@@ -151,8 +151,8 @@ class RowModelEditedTests: RowModelTestCase {
         }
     }
     
-    func testRowModelIsNotEditedAfterReload() {
-        // After reload, a model is not edited.
+    func testRecordIsNotEditedAfterReload() {
+        // After reload, a record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
@@ -167,8 +167,8 @@ class RowModelEditedTests: RowModelTestCase {
         }
     }
     
-    func testRowModelIsEditedAfterPrimaryKeyChange() {
-        // After reload, a model is not edited.
+    func testRecordIsEditedAfterPrimaryKeyChange() {
+        // After reload, a record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 let commonAttributes = Row(dictionary:["name": "Arthur", "age": 41])

@@ -1,9 +1,9 @@
 import XCTest
 import GRDB
 
-class RowModelCopyTests: RowModelTestCase {
+class RecordCopyTests: RecordTestCase {
     
-    func testRowModelCopyDatabaseValuesFrom() {
+    func testRecordCopyDatabaseValuesFrom() {
         let person1 = Person(id: 123, name: "Arthur", age: 41, creationDate: NSDate())
         let person2 = Person(id: 456, name: "Bobby")
         

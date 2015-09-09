@@ -9,7 +9,7 @@
 import Foundation
 import GRDB
 
-class Person : RowModel {
+class Person : Record {
     var id: Int64!
     var firstName: String?
     var lastName: String?
@@ -23,7 +23,7 @@ class Person : RowModel {
         super.init()
     }
     
-    // MARK: - RowModel
+    // MARK: - Record
     
     override class var databaseTable: Table? {
         return Table(named: "persons", primaryKey: .RowID("id"))

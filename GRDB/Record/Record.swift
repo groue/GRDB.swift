@@ -1,19 +1,19 @@
-// MARK: - RowModel
+// MARK: - Record
 
 /**
-RowModel is a class that wraps a table row, or the result of any query. It is
+Record is a class that wraps a table row, or the result of any query. It is
 designed to be subclassed.
 
-Subclasses opt in RowModel features by overriding all or part of the core
+Subclasses opt in Record features by overriding all or part of the core
 methods that define their relationship with the database:
 
 - updateFromRow(_)
 - databaseTable
 - storedDatabaseDictionary
 */
-public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
+public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     
-    /// The result of the RowModel.delete() method
+    /// The result of the Record.delete() method
     public enum DeletionResult {
         /// A row was deleted.
         case RowDeleted
@@ -26,9 +26,9 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     // MARK: - Initializers
     
     /**
-    Initializes a RowModel.
+    Initializes a Record.
     
-    The returned rowModel is *edited*.
+    The returned record is *edited*.
     */
     public init() {
         // IMPLEMENTATION NOTE
@@ -38,17 +38,17 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     }
     
     /**
-    Initializes a RowModel from a row.
+    Initializes a Record from a row.
     
-    The returned rowModel is *edited*.
+    The returned record is *edited*.
     
     - parameter row: A Row
     */
     required public init(row: Row) {
         // IMPLEMENTATION NOTE
         //
-        // Swift requires a required initializer so that we can fetch RowModels
-        // in SelectStatement.fetch<RowModel: GRDB.RowModel>(type: RowModel.Type, arguments: StatementArguments? = nil) -> AnySequence<RowModel>
+        // Swift requires a required initializer so that we can fetch Records
+        // in SelectStatement.fetch<Record: GRDB.Record>(type: Record.Type, arguments: StatementArguments? = nil) -> AnySequence<Record>
         //
         // This required initializer *can not* be the simple init(), because it
         // would prevent subclasses to provide handy initializers made of
@@ -59,7 +59,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         //
         // IMPLEMENTATION NOTE
         //
-        // This initializer returns an edited model because the row may not
+        // This initializer returns an edited record because the row may not
         // come from the database.
         
         updateFromRow(row)
@@ -68,7 +68,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// Do not call this method directly.
     final public func awakeFromFetchedRow(row: Row) {
         // Take care of the databaseEdited flag. If the row does not contain
-        // all needed columns, the model turns edited.
+        // all needed columns, the record turns edited.
         referenceRow = row
         awakeFromFetch()
     }
@@ -82,7 +82,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     The insert, update, save, delete and reload methods require it: they raise
     a fatal error if databaseTableName is nil.
     
-    The implementation of the base class RowModel returns nil.
+    The implementation of the base class Record returns nil.
     */
     public class func databaseTableName() -> String? {
         return nil
@@ -94,7 +94,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     Subclasses must include primary key columns, if any, in the returned
     dictionary.
     
-    The implementation of the base class RowModel returns an empty dictionary.
+    The implementation of the base class Record returns an empty dictionary.
     */
     public var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [:]
@@ -112,7 +112,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     // MARK: - Events
     
     /**
-    Called after a RowModel has been fetched or reloaded.
+    Called after a Record has been fetched or reloaded.
     
     *Important*: subclasses must invoke super's implementation.
     */
@@ -125,7 +125,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /**
     Updates `self` from `other.storedDatabaseDictionary`.
     */
-    public func copyDatabaseValuesFrom(other: RowModel) {
+    public func copyDatabaseValuesFrom(other: Record) {
         updateFromRow(Row(dictionary: other.storedDatabaseDictionary))
     }
     
@@ -133,7 +133,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     // MARK: - Changes
     
     /**
-    A boolean that indicates whether the row model has changes that have not
+    A boolean that indicates whether the record has changes that have not
     been saved.
     
     This flag is purely informative, and does not prevent insert(), update(),
@@ -153,14 +153,14 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
             person.save(db) // inserts or updates
         }
     
-    Precisely speaking, a row model is edited if its *storedDatabaseDictionary*
+    Precisely speaking, a record is edited if its *storedDatabaseDictionary*
     has been changed since last database synchronization (fetch, update,
     insert). Comparison is performed on *values*: setting a property to the same
     value does not trigger the edited flag.
     
-    You can rely on the RowModel base class to compute this flag for you, or you
+    You can rely on the Record base class to compute this flag for you, or you
     may set it to true or false when you know better. Setting it to false does
-    not prevent it from turning true on subsequent modifications of the row model.
+    not prevent it from turning true on subsequent modifications of the record.
     */
     public var databaseEdited: Bool {
         get {
@@ -197,7 +197,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     // MARK: - CRUD
     
     /**
-    Executes an INSERT statement to insert the row model.
+    Executes an INSERT statement to insert the record.
     
     On success, this method sets the *databaseEdited* flag to false.
     
@@ -225,7 +225,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     }
     
     /**
-    Executes an UPDATE statement to update the row model.
+    Executes an UPDATE statement to update the record.
     
     On success, this method sets the *databaseEdited* flag to false.
     
@@ -234,12 +234,12 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     
     - parameter db: A Database.
     - throws: A DatabaseError is thrown whenever a SQLite error occurs.
-              RowModelError.RowModelNotFound is thrown if the primary key does
-              not match any row in the database and row model could not be
+              RecordError.RecordNotFound is thrown if the primary key does
+              not match any row in the database and record could not be
               updated.
     */
     public func update(db: Database) throws {
-        // We'll throw RowModelError.RowModelNotFound if rowModel does not exist.
+        // We'll throw RecordError.RecordNotFound if record does not exist.
         let exists: Bool
         
         if let statement = try DataMapper(db, self).updateStatement() {
@@ -249,22 +249,22 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
             // No statement means that there is no column to update.
             //
             // I remember opening rdar://10236982 because CoreData was crashing
-            // with entities without any attribute. So let's accept RowModel
+            // with entities without any attribute. So let's accept Record
             // that don't have any column to update.
             exists = self.exists(db)
         }
         
         if !exists {
-            throw RowModelError.RowModelNotFound(self)
+            throw RecordError.RecordNotFound(self)
         }
         
         databaseEdited = false
     }
     
     /**
-    Saves the row model in the database.
+    Saves the record in the database.
     
-    If the row model has a non-nil primary key and a matching row in the
+    If the record has a non-nil primary key and a matching row in the
     database, this method performs an update.
     
     Otherwise, performs an insert.
@@ -288,13 +288,13 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         
         do {
             try update(db)
-        } catch RowModelError.RowModelNotFound {
+        } catch RecordError.RecordNotFound {
             return try insert(db)
         }
     }
     
     /**
-    Executes a DELETE statement to delete the row model.
+    Executes a DELETE statement to delete the record.
     
     On success, this method sets the *databaseEdited* flag to true.
     
@@ -305,7 +305,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     public func delete(db: Database) throws -> DeletionResult {
         let changes = try DataMapper(db, self).deleteStatement().execute()
         
-        // Future calls to update will throw RowModelNotFound. Make the user
+        // Future calls to update will throw RecordNotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
         // databaseEdited flag:
         databaseEdited = true
@@ -318,13 +318,13 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     }
     
     /**
-    Executes a SELECT statetement to reload the row model.
+    Executes a SELECT statetement to reload the record.
     
     On success, this method sets the *databaseEdited* flag to false.
     
     - parameter db: A Database.
-    - throws: RowModelError.RowModelNotFound is thrown if the primary key does
-              not match any row in the database and row model could not be
+    - throws: RecordError.RecordNotFound is thrown if the primary key does
+              not match any row in the database and record could not be
               reloaded.
     */
     final public func reload(db: Database) throws {
@@ -333,7 +333,7 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
             updateFromRow(row)
             awakeFromFetchedRow(row)
         } else {
-            throw RowModelError.RowModelNotFound(self)
+            throw RecordError.RecordNotFound(self)
         }
     }
     
@@ -351,8 +351,8 @@ public class RowModel : RowConvertible, DatabaseTableMapping, DatabaseStorable {
 
 // MARK: - CustomStringConvertible
 
-/// RowModel adopts CustomStringConvertible.
-extension RowModel : CustomStringConvertible {
+/// Record adopts CustomStringConvertible.
+extension Record : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         return "<\(self.dynamicType)"
@@ -368,21 +368,21 @@ extension RowModel : CustomStringConvertible {
 }
 
 
-// MARK: - RowModelError
+// MARK: - RecordError
 
-/// A RowModel-specific error
-public enum RowModelError: ErrorType {
+/// A Record-specific error
+public enum RecordError: ErrorType {
     
     /// No matching row could be found in the database.
-    case RowModelNotFound(RowModel)
+    case RecordNotFound(Record)
 }
 
-extension RowModelError : CustomStringConvertible {
+extension RecordError : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         switch self {
-        case .RowModelNotFound(let rowModel):
-            return "RowModel not found: \(rowModel)"
+        case .RecordNotFound(let record):
+            return "Record not found: \(record)"
         }
     }
 }
