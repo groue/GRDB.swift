@@ -126,31 +126,16 @@ public final class Database {
     */
     public func tableExists(tableName: String) -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        if let _ = Row.fetchOne(self, "SELECT \"sql\" FROM sqlite_master WHERE \"type\" = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercaseString]) {
-            return true
-        } else {
-            return false
-        }
+        return Row.fetchOne(self,
+            "SELECT \"sql\" FROM sqlite_master WHERE \"type\" = 'table' AND LOWER(name) = ?",
+            arguments: [tableName.lowercaseString]) != nil
     }
-    
-    /// Cache for primaryKeyForTable()
-    private var primaryKeys: [String: PrimaryKey] = [:]
     
     /// Return the primary key for table named `tableName`, or nil if table does
     /// not exist.
     ///
     /// This method is not thread-safe.
-    func primaryKeyForTable(named name: String) -> PrimaryKey? {
-        if let primaryKey = primaryKeys[name] {
-            return primaryKey
-        } else {
-            let primaryKey = fetchPrimaryKeyForTable(named: name)
-            primaryKeys[name] = primaryKey
-            return primaryKey
-        }
-    }
-    
-    private func fetchPrimaryKeyForTable(named name: String) -> PrimaryKey? {
+    func primaryKeyForTable(named tableName: String) -> PrimaryKey? {
         // https://www.sqlite.org/pragma.html
         //
         // > PRAGMA database.table_info(table-name);
@@ -175,33 +160,23 @@ public final class Database {
         // 1   | firstName | TEXT    | 0       | NULL       | 0  |
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
         
-        let rows = Row.fetchAll(self, "PRAGMA table_info(\(name.quotedDatabaseIdentifier))")
-        guard rows.count > 0 else {
+        let columnInfos = columnInfosForTable(named: tableName)
+        guard columnInfos.count > 0 else {
             // Table does not exist
             return nil
         }
         
-        let columns = rows
-            
-            // Columns name, type, primary key index
-            .map { (
-                name: $0.value(named: "name")! as String,
-                type: $0.value(named: "type")! as String,
-                primaryKeyIndex: $0.value(named: "pk")! as Int) }
-            
-            // Columns part of the primary key.
+        let pkColumnInfos = columnInfos
             .filter { $0.primaryKeyIndex > 0 }
-            
-            // Sort by primary key index.
             .sort { $0.primaryKeyIndex < $1.primaryKeyIndex }
         
-        switch columns.count {
+        switch pkColumnInfos.count {
         case 0:
-            // No column => no primary key
+            // No primary key column
             return PrimaryKey.None
         case 1:
             // Single column
-            let column = columns.first!
+            let pkColumnInfo = pkColumnInfos.first!
             
             // https://www.sqlite.org/lang_createtable.html:
             //
@@ -223,17 +198,57 @@ public final class Database {
             //
             // We ignore the exception, and consider all INTEGER primary keys as
             // aliases for the rowid:
-            if column.type.uppercaseString == "INTEGER" {
-                // INTEGER PRIMARY KEY
-                return .Managed(column.name)
+            if pkColumnInfo.type.uppercaseString == "INTEGER" {
+                return .Managed(pkColumnInfo.name)
             } else {
-                return .Unmanaged([column.name])
+                return .Unmanaged([pkColumnInfo.name])
             }
         default:
             // Multi-columns primary key
-            return .Unmanaged(columns.map { $0.name })
+            return .Unmanaged(pkColumnInfos.map { $0.name })
         }
     }
+    
+    // CREATE TABLE persons (
+    //   id INTEGER PRIMARY KEY,
+    //   firstName TEXT,
+    //   lastName TEXT)
+    //
+    // PRAGMA table_info("persons")
+    //
+    // cid | name      | type    | notnull | dflt_value | pk |
+    // 0   | id        | INTEGER | 0       | NULL       | 1  |
+    // 1   | firstName | TEXT    | 0       | NULL       | 0  |
+    // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
+    struct ColumnInfo : RowConvertible {
+        let name: String
+        let type: String
+        let notNull: Bool
+        let defaultDatabaseValue: DatabaseValue
+        let primaryKeyIndex: Int
+        init(row: Row) {
+            name = row.value(named: "name")!
+            type = row.value(named: "type")!
+            notNull = row.value(named: "notnull")!
+            defaultDatabaseValue = row["dflt_value"]!
+            primaryKeyIndex = row.value(named: "pk")!
+        }
+    }
+    
+    // Cache for columnInfosForTable(named:)
+    private var columnInfosCache: [String: [ColumnInfo]] = [:]
+    func columnInfosForTable(named tableName: String) -> [ColumnInfo] {
+        if let columnInfos = columnInfosCache[tableName] {
+            return columnInfos
+        } else {
+            // This pragma is case-insensitive: PRAGMA table_info("PERSONS") and
+            // PRAGMA table_info("persons") yield the same results.
+            let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+            columnInfosCache[tableName] = columnInfos
+            return columnInfos
+        }
+    }
+    
     
     // MARK: - Non public
     
