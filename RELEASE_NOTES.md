@@ -11,6 +11,7 @@ Release Notes
 
 **Breaking changes**
 
+- Requires Xcode 7.0 (because of [#2](https://github.com/groue/GRDB.swift/issues/2))
 - `RowModel` has been renamed `Record`.
 - `RowModel.copyDatabaseValuesFrom` has been removed in favor of `Record.copy()`.
 
