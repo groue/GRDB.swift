@@ -65,12 +65,26 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         updateFromRow(row)
     }
     
-    /// Do not call this method directly.
-    final public func awakeFromFetchedRow(row: Row) {
+    /**
+    Don't call this method directly. It is called after a Record has been
+    fetched or reloaded.
+    
+    *Important*: subclasses must invoke super's implementation.
+    
+    - parameter row: A Row.
+    */
+    public func awakeFromFetch(row: Row) {
         // Take care of the databaseEdited flag. If the row does not contain
         // all needed columns, the record turns edited.
         referenceRow = row
-        awakeFromFetch()
+        
+        // IMPLEMENTATION NOTE
+        //
+        // This method is the opportunity to fix the mismatch between the
+        // fetched column names and the keys of storedDatabaseDictionary, so
+        // that databaseChanges remains relevant.
+        //
+        // It is thus important that it remains public and overridable.
     }
     
     
@@ -106,17 +120,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     *Important*: subclasses must invoke super's implementation.
     */
     public func updateFromRow(row: Row) {
-    }
-    
-    
-    // MARK: - Events
-    
-    /**
-    Called after a Record has been fetched or reloaded.
-    
-    *Important*: subclasses must invoke super's implementation.
-    */
-    public func awakeFromFetch() {
     }
     
     
@@ -366,7 +369,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         let statement = DataMapper(db, self).reloadStatement()
         if let row = Row.fetchOne(statement) {
             updateFromRow(row)
-            awakeFromFetchedRow(row)
+            awakeFromFetch(row)
         } else {
             throw RecordError.RecordNotFound(self)
         }

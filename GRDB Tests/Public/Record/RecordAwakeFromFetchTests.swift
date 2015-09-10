@@ -18,9 +18,9 @@ class EventRecorder : Record {
         return ["id": id]
     }
     
-    override func awakeFromFetch() {
+    override func awakeFromFetch(row: Row) {
+        super.awakeFromFetch(row)
         awakeFromFetchCount += 1
-        super.awakeFromFetch()
     }
 }
 
