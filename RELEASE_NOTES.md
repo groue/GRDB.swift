@@ -7,6 +7,7 @@ Release Notes
 
 - `DatabaseQueue.inDatabase` and `DatabaseQueue.inTransaction` are now reentrant. You can't open a transaction inside another, though.
 - `Record.copy()` returns a copy of the receiver.
+- `Row[columnName]` and `Row.value(named:)` are now case-insensitive.
 
 **Breaking changes**
 
