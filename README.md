@@ -86,12 +86,6 @@ To use GRDB.swift with Carthage, specify in your Cartfile:
 github "groue/GRDB.swift" == 0.12.0
 ```
 
-Before running `carthage update`, select Xcode-beta as the active developer directory by running the following command:
-
-```
-sudo xcode-select  -s /Applications/Xcode-beta.app
-```
-
 
 ### Manually
 
