@@ -14,12 +14,7 @@ class Item: Record {
     }
     
     override func updateFromRow(row: Row) {
-        for (column, dbv) in row {
-            switch column {
-            case "name":    name = dbv.value()
-            default: break
-            }
-        }
+        if let dbv = row["name"] { name = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
     

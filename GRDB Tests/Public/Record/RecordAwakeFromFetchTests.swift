@@ -10,12 +10,7 @@ class EventRecorder : Record {
     }
     
     override func updateFromRow(row: Row) {
-        for (column, dbv) in row {
-            switch column {
-            case "id": id = dbv.value()
-            default: break
-            }
-        }
+        if let dbv = row["id"] { id = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
     

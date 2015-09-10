@@ -11,12 +11,7 @@ class PersonWithOverrides: Person {
     var lastSavingMethod: SavingMethod?
     
     override func updateFromRow(row: Row) {
-        for (column, dbv) in row {
-            switch column {
-            case "extra": extra = dbv.value()
-            default: break
-            }
-        }
+        if let dbv = row["extra"] { extra = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
     

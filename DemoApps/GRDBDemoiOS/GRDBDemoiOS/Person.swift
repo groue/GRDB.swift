@@ -21,14 +21,9 @@ class Person : Record {
     }
     
     override func updateFromRow(row: Row) {
-        for (column, dbv) in row {
-            switch column {
-            case "id": id = dbv.value()
-            case "firstName": firstName = dbv.value()
-            case "lastName": lastName = dbv.value()
-            default: break
-            }
-        }
+        if let dbv = row["id"] { id = dbv.value() }
+        if let dbv = row["firstName"] { firstName = dbv.value() }
+        if let dbv = row["lastName"] { lastName = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
     

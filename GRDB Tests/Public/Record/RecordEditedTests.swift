@@ -9,12 +9,7 @@ class IntegerPropertyOnRealAffinityColumn : Record {
     }
     
     override func updateFromRow(row: Row) {
-        for (column, dbv) in row {
-            switch column {
-            case "value": value = dbv.value()
-            default: break
-            }
-        }
+        if let dbv = row["value"] { value = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
@@ -241,7 +236,7 @@ class RecordEditedTests: RecordTestCase {
                 XCTAssertTrue(old == nil)
                 XCTAssertEqual(new, DatabaseValue.Null)
             default:
-                XCTFail("Unexpected column")
+                XCTFail("Unexpected column: \(column)")
             }
         }
     }
@@ -265,7 +260,7 @@ class RecordEditedTests: RecordTestCase {
                 XCTAssertTrue(old == nil)
                 XCTAssertEqual(new, DatabaseValue.Null)
             default:
-                XCTFail("Unexpected column")
+                XCTFail("Unexpected column: \(column)")
             }
         }
     }
@@ -308,7 +303,7 @@ class RecordEditedTests: RecordTestCase {
                         XCTAssertTrue(old == nil)
                         XCTAssertEqual(new, DatabaseValue.Null)
                     default:
-                        XCTFail("Unexpected column")
+                        XCTFail("Unexpected column: \(column)")
                     }
                 }
             }
@@ -352,7 +347,7 @@ class RecordEditedTests: RecordTestCase {
                         XCTAssertTrue((old?.value() as NSDate?) != nil)
                         XCTAssertEqual(new, DatabaseValue.Null)
                     default:
-                        XCTFail("Unexpected column")
+                        XCTFail("Unexpected column: \(column)")
                     }
                 }
             }
@@ -389,7 +384,7 @@ class RecordEditedTests: RecordTestCase {
                         XCTAssertEqual(old, "Arthur".databaseValue)
                         XCTAssertEqual(new, "Bobby".databaseValue)
                     default:
-                        XCTFail("Unexpected column")
+                        XCTFail("Unexpected column: \(column)")
                     }
                 }
                 try person.save(db)
@@ -414,7 +409,7 @@ class RecordEditedTests: RecordTestCase {
                         XCTAssertEqual(old, "Arthur".databaseValue)
                         XCTAssertEqual(new, "Bobby".databaseValue)
                     default:
-                        XCTFail("Unexpected column")
+                        XCTFail("Unexpected column: \(column)")
                     }
                 }
                 
@@ -439,7 +434,7 @@ class RecordEditedTests: RecordTestCase {
                         XCTAssertEqual(old, (person.id - 1).databaseValue)
                         XCTAssertEqual(new, person.id.databaseValue)
                     default:
-                        XCTFail("Unexpected column")
+                        XCTFail("Unexpected column: \(column)")
                     }
                 }
             }

@@ -15,12 +15,7 @@ class MinimalSingle: Record {
     }
     
     override func updateFromRow(row: Row) {
-        for (column, dbv) in row {
-            switch column {
-            case "UUID": UUID = dbv.value()
-            default: break
-            }
-        }
+        if let dbv = row["UUID"] { UUID = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
     

@@ -102,6 +102,8 @@ public struct Row: CollectionType {
     
         let value = row.value(named: "name")
     
+    This method is case-insensitive.
+    
     - parameter name: A column name.
     - returns: An optional DatabaseValueConvertible.
     */
@@ -126,6 +128,8 @@ public struct Row: CollectionType {
         let value: Bool? = row.value(named: "count")
         let value: Int? = row.value(named: "count")
         let value: Double? = row.value(named: "count")
+    
+    This method is case-insensitive.
     
     **WARNING**: type casting requires a very careful use of the `as` operator
     (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
@@ -169,6 +173,8 @@ public struct Row: CollectionType {
         if let databaseValue = row["name"] {
             let name: String? = databaseValue.value()
         }
+    
+    This method is case-insensitive.
 
     - parameter columnName: A column name.
     - returns: A DatabaseValue if the row contains the requested column.
@@ -358,8 +364,10 @@ public struct Row: CollectionType {
             return databaseDictionary[databaseDictionary.startIndex.advancedBy(index)].0
         }
         
+        // This method MUST be case-insensitive.
         func indexForColumn(named name: String) -> Int? {
-            if let index = databaseDictionary.indexForKey(name) {
+            let lowercaseName = name.lowercaseString
+            if let index = databaseDictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) {
                 return databaseDictionary.startIndex.distanceTo(index)
             } else {
                 return nil
@@ -392,8 +400,10 @@ public struct Row: CollectionType {
             return columnNames[index]
         }
         
+        // This method MUST be case-insensitive.
         func indexForColumn(named name: String) -> Int? {
-            return columnNames.indexOf(name)
+            let lowercaseName = name.lowercaseString
+            return columnNames.indexOf { $0.lowercaseString == lowercaseName }
         }
     }
 }
@@ -421,7 +431,7 @@ protocol RowImpl {
     var count: Int { get }
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func columnName(atIndex index: Int) -> String
-    func indexForColumn(named name: String) -> Int?
+    func indexForColumn(named name: String) -> Int? // This method MUST be case-insensitive.
 }
 
 

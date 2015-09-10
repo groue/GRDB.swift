@@ -112,4 +112,21 @@ class FetchedRowTests: GRDBTestCase {
             }
         }
     }
+    
+    func testRowSubscriptIsCaseInsensitive() {
+        assertNoError {
+            let dbQueue = DatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE stuffs (name TEXT)")
+                try db.execute("INSERT INTO stuffs (name) VALUES ('foo')")
+                let row = Row.fetchOne(db, "SELECT nAmE FROM stuffs")!
+                XCTAssertEqual(row["name"], "foo".databaseValue)
+                XCTAssertEqual(row["NAME"], "foo".databaseValue)
+                XCTAssertEqual(row["NaMe"], "foo".databaseValue)
+                XCTAssertEqual(row.value(named: "name")! as String, "foo")
+                XCTAssertEqual(row.value(named: "NAME")! as String, "foo")
+                XCTAssertEqual(row.value(named: "NaMe")! as String, "foo")
+            }
+        }
+    }
 }

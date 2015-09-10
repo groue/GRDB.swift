@@ -55,13 +55,8 @@ class Placemark : Record {
         }
         
         // Other columns
-        for (column, dbv) in row {
-            switch column {
-            case "id": id = dbv.value()
-            case "name": name = dbv.value()
-            default: break
-            }
-        }
+        if let dbv = row["id"] { id = dbv.value() }
+        if let dbv = row["name"] { name = dbv.value() }
         
         // Subclasses are required to call super.
         super.updateFromRow(row)

@@ -19,14 +19,9 @@ class Citizenship: Record {
     }
     
     override func updateFromRow(row: Row) {
-        for (column, dbv) in row {
-            switch column {
-            case "personName":  personName = dbv.value()
-            case "countryName": countryName = dbv.value()
-            case "native":      native = dbv.value()
-            default: break
-            }
-        }
+        if let dbv = row["personName"] { personName = dbv.value() }
+        if let dbv = row["countryName"] { countryName = dbv.value() }
+        if let dbv = row["native"] { native = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
     

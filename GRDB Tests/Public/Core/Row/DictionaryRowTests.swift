@@ -58,4 +58,14 @@ class DictionaryRowTests: GRDBTestCase {
         let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
         XCTAssertEqual(row.databaseValues.sort { ($0.value() as Int!) < ($1.value() as Int!) }, [0.databaseValue, 1.databaseValue, 2.databaseValue])
     }
+    
+    func testRowSubscriptIsCaseInsensitive() {
+        let row = Row(dictionary: ["name": "foo"])
+        XCTAssertEqual(row["name"], "foo".databaseValue)
+        XCTAssertEqual(row["NAME"], "foo".databaseValue)
+        XCTAssertEqual(row["NaMe"], "foo".databaseValue)
+        XCTAssertEqual(row.value(named: "name")! as String, "foo")
+        XCTAssertEqual(row.value(named: "NAME")! as String, "foo")
+        XCTAssertEqual(row.value(named: "NaMe")! as String, "foo")
+    }
 }
