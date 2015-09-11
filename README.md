@@ -874,7 +874,7 @@ The Person subclass below will be our guinea pig. It declares properties for the
 
 ```swift
 class Person : Record {
-    var id: Int64?      // matches "id" not null column
+    var id: Int64?      // matches "id" column
     var age: Int?       // matches "age" column
     var name: String?   // matches "name" column
 }
