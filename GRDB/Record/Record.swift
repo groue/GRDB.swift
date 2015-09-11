@@ -77,14 +77,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         // Take care of the databaseEdited flag. If the row does not contain
         // all needed columns, the record turns edited.
         referenceRow = row
-        
-        // IMPLEMENTATION NOTE
-        //
-        // This method is the opportunity to fix the mismatch between the
-        // fetched column names and the keys of storedDatabaseDictionary, so
-        // that databaseChanges remains relevant.
-        //
-        // It is thus important that it remains public and overridable.
     }
     
     
