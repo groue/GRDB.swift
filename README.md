@@ -262,13 +262,21 @@ let bookCount64: Int64 = row.value(named: "bookCount")!
 let hasBooks: Bool = row.value(named: "bookCount")!     // false when 0
 ```
 
-**WARNING**: type casting requires a very careful use of the `as` operator (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+All types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol can be extracted. Pick the one you need:
 
 ```swift
-row.value(named: "bookCount")! as Int   // OK: Int
-row.value(named: "bookCount") as Int?   // OK: Int?
-row.value(named: "bookCount") as! Int   // NO NO NO DON'T DO THAT!
-row.value(named: "bookCount") as? Int   // NO NO NO DON'T DO THAT!
+let dateString: String = row.value(named: "date")! // "2015-09-11 18:14:15.123"
+let date: NSDate? = row.value(named: "date")!      // NSDate
+let int: Int? = row.value(named: "date")!          // nil (Int can't be extracted from "2015...")
+```
+
+**WARNING**: You can use the `as` type casting operator, but beware (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+
+```swift
+row.value(...)! as Int   // OK: Int
+row.value(...) as Int?   // OK: Int?
+row.value(...) as! Int   // NO NO NO DON'T DO THAT!
+row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 ```
 
 ##### Rows as Dictionaries
