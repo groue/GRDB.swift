@@ -817,7 +817,7 @@ Yet, it does a few things well:
     (person.name, person.citizenshipsCount)
     ```
 
-- **It provides the classic CRUD operations on any database table.** Primary keys can be an automatically generated RowIDs, or a multi-columns primary key, whatever.
+- **It provides the classic CRUD operations on any database table.** Primary keys can be an automatically generated RowID, or a multi-column primary key, whatever.
     
     ```swift
     let person = Person(name: "Arthur")                  // RowID primary key
