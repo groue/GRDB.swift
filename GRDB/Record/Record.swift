@@ -42,6 +42,9 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     
     The returned record is *edited*.
     
+    The input row may not come straight from the database. When you want to
+    complete your initialization after being fetched, override awakeFromFetch().
+    
     - parameter row: A Row
     */
     required public init(row: Row) {
@@ -83,12 +86,20 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     // MARK: - Core methods
     
     /**
-    Returns a table definition.
+    Returns the name of a database table.
     
-    The insert, update, save, delete and reload methods require it: they raise
-    a fatal error if databaseTableName is nil.
+    The insert, update, save, delete, exists and reload methods require it: they
+    raise a fatal error if databaseTableName is nil.
+    
+        class Person : Record {
+            override class func databaseTableName() -> String? {
+                return "persons"
+            }
+        }
     
     The implementation of the base class Record returns nil.
+    
+    - returns: The name of a database table.
     */
     public class func databaseTableName() -> String? {
         return nil
@@ -97,8 +108,21 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /**
     Returns the values that should be stored in the database.
     
-    Subclasses must include primary key columns, if any, in the returned
-    dictionary.
+    Keys of the returned dictionary must match the column names of the target
+    database table (see Record.databaseTableName()).
+    
+    In particular, primary key columns, if any, must be included.
+    
+        class Person : Record {
+            var id: Int64?
+            var name: String?
+    
+            override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+                return [
+                    "id": id,
+                    "name": name]
+            }
+        }
     
     The implementation of the base class Record returns an empty dictionary.
     */
@@ -110,6 +134,33 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     Updates self from a row.
     
     *Important*: subclasses must invoke super's implementation.
+    
+    Subclasses should update their internal state from the given row:
+    
+        class Person : Record {
+            var id: Int64?
+            var name: String?
+    
+            override func updateFromRow(row: Row) {
+                if let dbv = row["id"] { id = dbv.value() }
+                if let dbv = row["name"] { name = dbv.value() }
+                super.updateFromRow(row) // Subclasses are required to call super.
+            }
+        }
+    
+    Note that your subclass *could* support mangled column names, and be able to
+    load from custom SQL queries like the following:
+    
+        SELECT id AS person_id, name AS person_name FROM persons;
+    
+    Yet we *discourage* doing so, because such record loses the ability to track
+    changes (see databaseEdited, databaseChanges).
+    
+    Finally, consider that the input row may not come straight from the
+    database. When you want to complete your initialization after being fetched,
+    override awakeFromFetch().
+    
+    - parameter row: A Row.
     */
     public func updateFromRow(row: Row) {
     }
