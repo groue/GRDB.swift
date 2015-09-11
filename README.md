@@ -255,16 +255,15 @@ let name: String? = row.value(named: "name")
 
 // Force unwrap when value is not NULL
 let id: Int64 = row.value(named: "id")!
-
-// Extract the desired Swift type from the column value:
-let bookCount: Int = row.value(named: "bookCount")!
-let bookCount64: Int64 = row.value(named: "bookCount")!
-let hasBooks: Bool = row.value(named: "bookCount")!     // false when 0
 ```
 
 All types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol can be extracted. Pick the one you need:
 
 ```swift
+let bookCount: Int = row.value(named: "bookCount")!
+let bookCount64: Int64 = row.value(named: "bookCount")!
+let hasBooks: Bool = row.value(named: "bookCount")!     // false when 0
+
 let dateString: String = row.value(named: "date")! // "2015-09-11 18:14:15.123"
 let date: NSDate? = row.value(named: "date")!      // NSDate
 let int: Int? = row.value(named: "date")!          // nil (Int can't be extracted from "2015...")
