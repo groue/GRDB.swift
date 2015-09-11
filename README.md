@@ -802,9 +802,9 @@ Yet, it does a few things well:
 
     ```swift
     let persons = Person.fetchAll(db,
-        "SELECT persons.*, COUNT(*) AS citizenshipsCount " +
+        "SELECT persons.*, COUNT(citizenships.isoCode) AS citizenshipsCount " +
         "FROM persons " +
-        "JOIN citizenships ON citizenships.personId = persons.id " +
+        "LEFT JOIN citizenships ON citizenships.personId = persons.id " +
         "GROUP BY persons.id")
     let person = persons.first!
     (person.name, person.citizenshipsCount)
