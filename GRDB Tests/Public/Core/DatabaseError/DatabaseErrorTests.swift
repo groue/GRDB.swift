@@ -3,22 +3,6 @@ import GRDB
 
 class DatabaseErrorTests: GRDBTestCase {
     
-    func testDatabaseErrorThrownByUpdateStatementContainSQL() {
-        dbQueue.inDatabase { db in
-            do {
-                try db.updateStatement("BLAH")
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 1)
-                XCTAssertEqual(error.message!, "near \"BLAH\": syntax error")
-                XCTAssertEqual(error.sql!, "BLAH")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `BLAH`: near \"BLAH\": syntax error")
-            } catch {
-                XCTFail("\(error)")
-            }
-        }
-    }
-    
     func testDatabaseErrorInTransaction() {
         do {
             try dbQueue.inTransaction { db in

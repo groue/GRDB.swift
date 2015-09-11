@@ -47,21 +47,23 @@ class DatabaseMigratorTests : GRDBTestCase {
     func testMigrationFailureTriggersRollback() {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("CREATE TABLE persons (name TEXT)")
+            try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
             try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
         }
         migrator.registerMigration("destroyPersonErroneous") { db in
-            try db.execute("DELETE FROM persons")
-            try db.execute("I like cookies.")
+            try db.execute("INSERT INTO persons (name) VALUES ('Barbara')")
+            try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
         }
         
         do {
             try migrator.migrate(dbQueue)
+            XCTFail("Expected error")
         } catch {
             // The first migration should be committed.
             // The second migration should be rollbacked.
             let names = dbQueue.inDatabase { db in
-                String.fetch(db, "SELECT * FROM persons").map { $0! }
+                String.fetch(db, "SELECT name FROM persons").map { $0! }
             }
             XCTAssertEqual(names, ["Arthur"])
         }

@@ -662,7 +662,7 @@ Update statements:
 try dbQueue.inTransaction { db in
     
     let sql = "INSERT INTO persons (name, age) VALUES (:name, :age)"
-    let statement = try db.updateStatement(sql)
+    let statement = db.updateStatement(sql)
     
     let persons = [
         ["name": "Arthur", "age": 41],

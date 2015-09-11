@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+## Next release
+
+- `Database.updateStatement(_:)` is no longer a throwing method.
+
+
 ## 0.13.0
 
 Released September 10, 2015
@@ -35,11 +40,11 @@ Released September 6, 2015
 **Breaking changes**
 
 - `DatabaseDate` has been removed (replaced by built-in NSDate support).
-- `DatabaseValueConvertible`: `init?(databaseValue:)` has been replaced by `static func fromDatabaseValue(_) -> Self?`
-- `Blob.init(_)` has been replaced with `Blob.init(data:)` and `Blob.init(dataNoCopy:)`.
+- `DatabaseValueConvertible`: `init?(databaseValue:)` has been replaced by `static func fromDatabaseValue(_:) -> Self?`
+- `Blob.init(_:)` has been replaced with `Blob.init(data:)` and `Blob.init(dataNoCopy:)`.
 - `RowModel.edited` has been renamed `RowModel.databaseEdited`.
 - `RowModel.databaseTable` has been replaced with `RowModel.databaseTableName()` which returns a String.
-- `RowModel.setDatabaseValue(_:forColumn:)` has been removed. Use and override `RowModel.updateFromRow(_)` instead.
+- `RowModel.setDatabaseValue(_:forColumn:)` has been removed. Use and override `RowModel.updateFromRow(_:)` instead.
 - `RowModel.didFetch()` has been renamed `RowModel.awakeFromFetch()`
 
 

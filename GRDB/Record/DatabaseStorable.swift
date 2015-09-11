@@ -115,14 +115,14 @@ final class DataMapper {
     
     // MARK: - Statement builders
     
-    func insertStatement() throws -> UpdateStatement {
-        let insertStatement = try db.updateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(storedDatabaseDictionary.keys)))
+    func insertStatement() -> UpdateStatement {
+        let insertStatement = db.updateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(storedDatabaseDictionary.keys)))
         insertStatement.arguments = StatementArguments(storedDatabaseDictionary.values)
         return insertStatement
     }
     
     /// Returns nil if there is no column to update
-    func updateStatement() throws -> UpdateStatement? {
+    func updateStatement() -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
             fatalError("Invalid primary key in \(storable)")
@@ -140,19 +140,19 @@ final class DataMapper {
         }
         
         // Update
-        let updateStatement = try db.updateStatement(DataMapper.updateSQL(tableName: databaseTableName, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
+        let updateStatement = db.updateStatement(DataMapper.updateSQL(tableName: databaseTableName, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
         updateStatement.arguments = StatementArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
         return updateStatement
     }
     
-    func deleteStatement() throws -> UpdateStatement {
+    func deleteStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
             fatalError("Invalid primary key in \(storable)")
         }
         
         // Delete
-        let deleteStatement = try db.updateStatement(DataMapper.deleteSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
+        let deleteStatement = db.updateStatement(DataMapper.deleteSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
         deleteStatement.arguments = StatementArguments(primaryKeyDictionary.values)
         return deleteStatement
     }

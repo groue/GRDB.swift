@@ -37,7 +37,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
+                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
                 try statement.execute()
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons")!
@@ -52,7 +52,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 try statement.execute(arguments: ["Arthur", 41])
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons")!
@@ -67,7 +67,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 try statement.execute(arguments: ["name": "Arthur", "age": 41])
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons")!

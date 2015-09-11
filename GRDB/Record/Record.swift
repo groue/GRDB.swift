@@ -7,7 +7,7 @@ designed to be subclassed.
 Subclasses opt in Record features by overriding all or part of the core
 methods that define their relationship with the database:
 
-- updateFromRow(_)
+- updateFromRow(_:)
 - databaseTable
 - storedDatabaseDictionary
 */
@@ -323,7 +323,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         // We'll throw RecordError.RecordNotFound if record does not exist.
         let exists: Bool
         
-        if let statement = try DataMapper(db, self).updateStatement() {
+        if let statement = DataMapper(db, self).updateStatement() {
             let changes = try statement.execute()
             exists = changes.changedRowCount > 0
         } else {

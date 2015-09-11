@@ -49,7 +49,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 let persons = [
                     ["Arthur", 41],
                     [""],
@@ -77,7 +77,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 let persons = [
                     ["Arthur", 41],
                     [""],
@@ -106,7 +106,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons = [
                     ["name": "Arthur", "age": 41],
                     ["name": ""],
@@ -134,7 +134,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons = [
                     ["name": "Arthur", "age": 41],
                     ["name": ""],

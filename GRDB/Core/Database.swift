@@ -47,8 +47,8 @@ public final class Database {
     - returns: An UpdateStatement.
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
-    public func updateStatement(sql: String) throws -> UpdateStatement {
-        return try UpdateStatement(database: self, sql: sql)
+    public func updateStatement(sql: String) -> UpdateStatement {
+        return try! UpdateStatement(database: self, sql: sql)
     }
     
     /**
@@ -64,7 +64,7 @@ public final class Database {
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
-        let statement = try updateStatement(sql)
+        let statement = updateStatement(sql)
         return try statement.execute(arguments: arguments)
     }
     
