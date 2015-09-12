@@ -3,7 +3,14 @@ Release Notes
 
 ## Next release
 
+**Fixed**
+
+- `DatabaseQueue.inTransaction()` no longer crashes when SQLite returns a SQLITE_BUSY error code.
+
+**Breaking changes**
+
 - `Database.updateStatement(_:)` is no longer a throwing method.
+- `DatabaseQueue.inTransaction()` is now declared as `throws`, not `rethrows`.
 
 
 ## 0.13.0
