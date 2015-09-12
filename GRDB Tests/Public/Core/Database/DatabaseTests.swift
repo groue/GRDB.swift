@@ -382,29 +382,31 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
-    func testInDatabaseIsReentrant() {
-        var success = false
-        dbQueue.inDatabase { db in
-            self.dbQueue.inDatabase { db in
-                success = true
-            }
-        }
-        XCTAssertTrue(success)
-    }
+    // CRASH TEST: this test must crash
+//    func testInDatabaseIsNotReentrant() {
+//        var success = false
+//        dbQueue.inDatabase { db in
+//            self.dbQueue.inDatabase { db in
+//                success = true
+//            }
+//        }
+//        XCTAssertTrue(success)
+//    }
     
-    func testInTransactionInsideInDatabaseIsReentrant() {
-        var success = false
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                try self.dbQueue.inTransaction { db in
-                    success = true
-                    return .Commit
-                }
-            }
-        }
-        XCTAssertTrue(success)
-    }
-    
+    // CRASH TEST: this test must crash
+//    func testInTransactionInsideInDatabaseIsNotReentrant() {
+//        var success = false
+//        assertNoError {
+//            try dbQueue.inDatabase { db in
+//                try self.dbQueue.inTransaction { db in
+//                    success = true
+//                    return .Commit
+//                }
+//            }
+//        }
+//        XCTAssertTrue(success)
+//    }
+
     // CRASH TEST: this test must crash
 //    func testInTransactionIsNotReentrant() {
 //        dbQueue.inTransaction { db in

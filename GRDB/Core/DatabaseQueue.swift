@@ -208,11 +208,8 @@ public final class DatabaseQueue {
     }
     
     func inQueue<R>(block: () throws -> R) rethrows -> R {
-        if databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) {
-            return try block()
-        } else {
-            return try DatabaseQueue.dispatchSync(queue, block: block)
-        }
+        assert(databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "DatabaseQueue.inDatabase(_:) or DatabaseQueue.inTransaction(_:) was called reentrantly, which would lead to a deadlock.")
+        return try DatabaseQueue.dispatchSync(queue, block: block)
     }
     
     // A function declared as rethrows that synchronously executes a throwing
