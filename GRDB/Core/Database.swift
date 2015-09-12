@@ -384,7 +384,9 @@ public final class Database {
     }
     
     func assertValid() {
-        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct queue. Execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). Consider using fetchAll() method if this error message happens when iterating the result of the fetch() method.")
+        guard databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
+            fatalError("Database was not used on the correct queue. Execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). Consider using fetchAll() method if this error message happens when iterating the result of the fetch() method.")
+        }
     }
 }
 

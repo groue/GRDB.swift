@@ -38,7 +38,9 @@ extension DatabaseTableMapping {
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns
-        precondition(columns.count == 1, "Primary key of table \(databaseTableName.quotedDatabaseIdentifier) is not made of a single column. See \(self).databaseTableName()")
+        guard columns.count == 1 else {
+            fatalError("Primary key of table \(databaseTableName.quotedDatabaseIdentifier) is not made of a single column. See \(self).databaseTableName()")
+        }
         
         guard let primaryKeyValue = primaryKeyValue else {
             return nil
@@ -64,7 +66,9 @@ extension DatabaseTableMapping {
         }
         
         // Fail early if key is empty.
-        precondition(dictionary.count > 0, "Invalid empty key")
+        guard dictionary.count > 0 else {
+            fatalError("Invalid empty key")
+        }
         
         let whereSQL = dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
         let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"

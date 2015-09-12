@@ -235,7 +235,9 @@ public final class DatabaseQueue {
         //
         // I try not to ship half-baked solutions, so until a complete solution
         // is found to this problem, I prefer totally disabling reentrancy.
-        precondition(databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "DatabaseQueue.inDatabase(_:) or DatabaseQueue.inTransaction(_:) was called reentrantly, which would lead to a deadlock.")
+        guard databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
+            fatalError("DatabaseQueue.inDatabase(_:) or DatabaseQueue.inTransaction(_:) was called reentrantly, which would lead to a deadlock.")
+        }
         return try DatabaseQueue.dispatchSync(queue, block: block)
     }
     
