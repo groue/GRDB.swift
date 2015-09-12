@@ -5,7 +5,7 @@ GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the 
 
 It ships with a low-level database API, plus application-level tools.
 
-**September 10, 2015: GRDB.swift 0.13.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**September 12, 2015: GRDB.swift 0.14.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 Jump to:
 
@@ -72,7 +72,7 @@ To use GRDB.swift with Cocoapods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '0.13.0'
+pod 'GRDB.swift', '0.14.0'
 ```
 
 
@@ -83,7 +83,7 @@ pod 'GRDB.swift', '0.13.0'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" == 0.13.0
+github "groue/GRDB.swift" == 0.14.0
 ```
 
 
@@ -99,7 +99,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 **Reference**
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.13.0/index.html) on cocoadocs.org. Beware that is it incomplete. You may prefer reading the inline documentation right into the [source](https://github.com/groue/GRDB.swift/tree/master/GRDB).
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.14.0/index.html) on cocoadocs.org. Beware that is it incomplete. You may prefer reading the inline documentation right into the [source](https://github.com/groue/GRDB.swift/tree/master/GRDB).
 
 **Guides**
 
