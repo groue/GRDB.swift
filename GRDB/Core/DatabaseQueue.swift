@@ -152,6 +152,25 @@ public final class DatabaseQueue {
     }()
     
     init(database: Database) {
+        // IMPLEMENTATION NOTE
+        //
+        // https://www.sqlite.org/isolation.html
+        //
+        // > Within a single database connection X, a SELECT statement always
+        // > sees all changes to the database that are completed prior to the
+        // > start of the SELECT statement, whether committed or uncommitted.
+        // > And the SELECT statement obviously does not see any changes that
+        // > occur after the SELECT statement completes. But what about changes
+        // > that occur while the SELECT statement is running? What if a SELECT
+        // > statement is started and the sqlite3_step() interface steps through
+        // > roughly half of its output, then some UPDATE statements are run by
+        // > the application that modify the table that the SELECT statement is
+        // > reading, then more calls to sqlite3_step() are made to finish out
+        // > the SELECT statement? Will the later steps of the SELECT statement
+        // > see the changes made by the UPDATE or not? The answer is that this
+        // > behavior is undefined.
+        //
+        // This is why we use a serial queue: to avoid UPDATE to fuck up SELECT.
         queue = dispatch_queue_create("GRDB", nil)
         self.database = database
         dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
