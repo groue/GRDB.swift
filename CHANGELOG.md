@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking changes**
+
+- `DatabaseQueue.inDatabase` and `DatabaseQueue.inTransaction` are no longer reentrant, after all.
+
+
 ## 0.14.0
 
 Released September 12, 2015
