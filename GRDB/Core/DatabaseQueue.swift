@@ -208,6 +208,33 @@ public final class DatabaseQueue {
     }
     
     func inQueue<R>(block: () throws -> R) rethrows -> R {
+        // IMPLEMENTATION NOTE
+        //
+        // DatabaseQueue.inDatabase() and DatabaseQueue.inTransaction() are not
+        // reentrant.
+        //
+        // Avoiding dispatch_sync and calling block() right away if the specific
+        // is currently self.databaseQueueID looks like a promising solution:
+        //
+        //     dbQueue.inDatabase { db in
+        //         dbQueue.inDatabase { db in
+        //             // Look, ma! I'm reentrant!
+        //         }
+        //     }
+        //
+        // However it does not survive this code, which deadlocks:
+        //
+        //     let queue = dispatch_queue_create("...", nil)
+        //     dbQueue.inDatabase { db in
+        //         dispatch_sync(queue) {
+        //             dbQueue.inDatabase { db in
+        //                 // Never run
+        //             }
+        //         }
+        //     }
+        //
+        // I try not to ship half-baked solutions, so until a complete solution
+        // is found to this problem, I prefer totally disabling reentrancy.
         assert(databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "DatabaseQueue.inDatabase(_:) or DatabaseQueue.inTransaction(_:) was called reentrantly, which would lead to a deadlock.")
         return try DatabaseQueue.dispatchSync(queue, block: block)
     }
