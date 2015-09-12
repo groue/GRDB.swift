@@ -68,7 +68,7 @@ public final class DatabaseQueue {
             db.fetch(...)
         }
     
-    This method is reentrant.
+    This method is *not* reentrant.
     
     **Warning**: The *db* parameter of the block should not be used outside of
     the block. Do not extract it, and do not store it in another object that
@@ -96,7 +96,7 @@ public final class DatabaseQueue {
             db.fetch(...)
         }
     
-    This method is reentrant.
+    This method is *not* reentrant.
     
     **Warning**: The *db* parameter of the block should not be used outside of
     the block. Do not extract it, and do not store it in another object that
@@ -130,7 +130,7 @@ public final class DatabaseQueue {
             return .Commit
         }
     
-    This method is not reentrant: you can't nest transactions.
+    This method is *not* reentrant.
     
     **Warning**: The *db* parameter of the block should not be used outside of
     the transaction block. Do not extract it, and do not store it in another
