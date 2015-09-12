@@ -126,6 +126,8 @@
 		56A238B71B9CA2590082EB20 /* DatabaseTimestampTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238B51B9CA2590082EB20 /* DatabaseTimestampTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56A5E4091BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A5E4081BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56A5E40A1BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A5E4081BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift */; settings = {ASSET_TAGS = (); }; };
+		56AC8CCE1BA3F2AD009E4319 /* ConcurrencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AC8CCD1BA3F2AD009E4319 /* ConcurrencyTests.swift */; settings = {ASSET_TAGS = (); }; };
+		56AC8CCF1BA3F2AD009E4319 /* ConcurrencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AC8CCD1BA3F2AD009E4319 /* ConcurrencyTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56E5D7D41B4D3FEE00430942 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E5D7CA1B4D3FED00430942 /* GRDB.framework */; };
 		56E5D7FE1B4D422E00430942 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3773F319C8CBB3004FCF85 /* GRDB.framework */; };
 		56E5D8041B4D424400430942 /* GRDBTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */; };
@@ -220,6 +222,7 @@
 		56A238B21B9C919D0082EB20 /* NSNumber.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSNumber.swift; sourceTree = "<group>"; };
 		56A238B51B9CA2590082EB20 /* DatabaseTimestampTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTimestampTests.swift; sourceTree = "<group>"; };
 		56A5E4081BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordWithColumnNameManglingTests.swift; sourceTree = "<group>"; };
+		56AC8CCD1BA3F2AD009E4319 /* ConcurrencyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConcurrencyTests.swift; sourceTree = "<group>"; };
 		56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDB.xcconfig; sourceTree = "<group>"; };
 		56B8F49B1B4E2F3600C24296 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
@@ -327,6 +330,7 @@
 		56A238111B9C74A90082EB20 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				56AC8CCC1BA3F267009E4319 /* Concurrency */,
 				56A238121B9C74A90082EB20 /* Database */,
 				56A238151B9C74A90082EB20 /* DatabaseError */,
 				56A238171B9C74A90082EB20 /* DatabaseValue */,
@@ -476,6 +480,14 @@
 				56A238A11B9C753B0082EB20 /* Record.swift */,
 			);
 			path = Record;
+			sourceTree = "<group>";
+		};
+		56AC8CCC1BA3F267009E4319 /* Concurrency */ = {
+			isa = PBXGroup;
+			children = (
+				56AC8CCD1BA3F2AD009E4319 /* ConcurrencyTests.swift */,
+			);
+			path = Concurrency;
 			sourceTree = "<group>";
 		};
 		56E5D7BF1B4D3DC900430942 /* GRDBiOS */ = {
@@ -789,6 +801,7 @@
 				56A238601B9C74A90082EB20 /* RecordDescriptionTests.swift in Sources */,
 				56A238561B9C74A90082EB20 /* PrimaryKeyNoneTests.swift in Sources */,
 				56A238501B9C74A90082EB20 /* MinimalPrimaryKeyRowIDTests.swift in Sources */,
+				56AC8CCF1BA3F2AD009E4319 /* ConcurrencyTests.swift in Sources */,
 				56A238461B9C74A90082EB20 /* DictionaryRowTests.swift in Sources */,
 				56A2386C1B9C74A90082EB20 /* RecordTestCase.swift in Sources */,
 				56A2384A1B9C74A90082EB20 /* SelectStatementTests.swift in Sources */,
@@ -831,6 +844,7 @@
 				56A2385F1B9C74A90082EB20 /* RecordDescriptionTests.swift in Sources */,
 				56A238551B9C74A90082EB20 /* PrimaryKeyNoneTests.swift in Sources */,
 				56A2384F1B9C74A90082EB20 /* MinimalPrimaryKeyRowIDTests.swift in Sources */,
+				56AC8CCE1BA3F2AD009E4319 /* ConcurrencyTests.swift in Sources */,
 				56A238451B9C74A90082EB20 /* DictionaryRowTests.swift in Sources */,
 				56A2386B1B9C74A90082EB20 /* RecordTestCase.swift in Sources */,
 				56A238491B9C74A90082EB20 /* SelectStatementTests.swift in Sources */,

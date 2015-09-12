@@ -171,7 +171,7 @@ public final class DatabaseQueue {
         // > behavior is undefined.
         //
         // This is why we use a serial queue: to avoid UPDATE to fuck up SELECT.
-        queue = dispatch_queue_create("GRDB", nil)
+        queue = dispatch_queue_create("com.github.groue.GRDB", nil)
         self.database = database
         dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
     }

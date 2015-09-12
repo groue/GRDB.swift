@@ -305,11 +305,11 @@ public final class Database {
                        .Commit or .Rollback.
     - throws: The error thrown by the block.
     */
-    func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) rethrows {
+    func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) throws {
         var completion: TransactionCompletion = .Rollback
         var dbError: ErrorType? = nil
         
-        try! beginTransaction(type)
+        try beginTransaction(type)
         
         do {
             completion = try block()
@@ -320,13 +320,13 @@ public final class Database {
         
         switch completion {
         case .Commit:
-            try! commit()
+            try commit()
         case .Rollback:
-            try! rollback()
+            try rollback()
         }
         
         if let dbError = dbError {
-            try { () -> Void in throw dbError }()
+            throw dbError
         }
     }
 
