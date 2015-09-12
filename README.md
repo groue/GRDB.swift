@@ -111,6 +111,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
         - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
         - [Swift enums](#swift-enums)
         - [Custom Value Types](#custom-value-types)
+    - [Transactions](#transactions)
     - [Prepared Statements](#prepared-statements)
     - [Error Handling](#error-handling)
 - [Migrations](#migrations)
@@ -167,10 +168,7 @@ dbQueue.inDatabase { db in
     ...
 }
 
-// Wrap database statements in a transaction.
-//
-// A rollback statement is issued if an error is thrown within the
-// transaction block:
+// Wrap database statements in a transaction:
 try dbQueue.inTransaction { db in
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (?, ?)",
@@ -183,6 +181,8 @@ try dbQueue.inTransaction { db in
     return .Commit
 }
 ```
+
+See [Transactions](#transactions) for more information about GRDB transaction handling.
 
 To create tables, we recommend using [migrations](#migrations).
 
@@ -650,6 +650,50 @@ The interested reader should know that GRDB.swift *does not* use SQLite built-in
 ³ Applies also to Int and String-based [enums](#swift-enums).
 
 Your [Custom Value Types](#custom-value-types) can perform their own conversions to and from SQLite storage classes.
+
+
+### Transactions
+
+The `DatabaseQueue.inTransaction()` method opens a SQLite transaction:
+
+```swift
+try dbQueue.inTransaction { db in
+    let wine = Wine(grape: .Merlot, color: .Red, name: "Pomerol")
+    try wine.insert(db)
+    return .Commit
+}
+```
+
+A ROLLBACK statement is issued if an error is thrown within the transaction block.
+
+Otherwise, transactions are guaranteed to succeed, *provided there is a single DatabaseQueue connected to the database file*.
+
+Using several connections to a database file can give you extra concurrency performance, at the cost of possible SQLITE_BUSY errors:
+
+```swift
+let path = "/path/to/database.sqlite"
+let dbQueue1 = try DatabaseQueue(path: path)
+let dbQueue2 = try DatabaseQueue(path: path)
+
+// You may have to manage DatabaseErrors of code SQLITE_BUSY:
+try dbQueue1.inTransaction { ... }
+try dbQueue2.inTransaction { ... }
+```
+
+The interested reader should now that by default, GRDB opens **exclusive transactions**. Choose your transaction type with the transaction type parameter:
+
+```swift
+try dbQueue.inTransaction { ... }               // BEGIN EXCLUSIVE TRANSACTION
+try dbQueue.inTransaction(.Exclusive) { ... }   // BEGIN EXCLUSIVE TRANSACTION
+try dbQueue.inTransaction(.Immediate) { ... }   // BEGIN IMMEDIATE TRANSACTION
+try dbQueue.inTransaction(.Deferred) { ... }    // BEGIN DEFERRED TRANSACTION
+```
+
+The relevant pieces of SQLite documentation are:
+
+- https://www.sqlite.org/isolation.html
+- https://www.sqlite.org/lang_transaction.html
+- https://www.sqlite.org/wal.html
 
 
 ### Prepared Statements
