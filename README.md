@@ -1014,11 +1014,10 @@ class Person : Record {
 
 try dbQueue.inDatabase { db in
     // Person?
-    let person = Person.fetchOne(db,
-        primaryKey: 123)
+    let person = Person.fetchOne(db, primaryKey: 123)
     
     // Citizenship?
-    Citizenship.fetchOne(db,
+    let citizenship = Citizenship.fetchOne(db,
         key: ["personId": 123, "countryIsoCode": "FR"])
 }
 ```
