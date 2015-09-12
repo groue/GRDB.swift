@@ -62,6 +62,18 @@ public extension DatabaseValueConvertible {
         let statement = db.selectStatement("SELECT name FROM ...")
         let names = String.fetch(statement) // AnySequence<String?>
     
+    The returned sequence can be consumed several times, but it may yield
+    different results, should database changes have occurred between two
+    generations:
+    
+        let names = String.fetch(statement)
+        Array(names) // Arthur, Barbara
+        db.execute("DELETE ...")
+        Array(names) // Arthur
+    
+    If the database is modified while the sequence is iterating, the remaining
+    elements of the sequence are undefined.
+    
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of values.
@@ -110,6 +122,18 @@ public extension DatabaseValueConvertible {
     Fetches a lazy sequence of DatabaseValueConvertible values.
     
         let names = String.fetch(db, "SELECT name FROM ...") // AnySequence<String?>
+    
+    The returned sequence can be consumed several times, but it may yield
+    different results, should database changes have occurred between two
+    generations:
+    
+        let names = String.fetch(db, "SELECT name FROM ...")
+        Array(names) // Arthur, Barbara
+        db.execute("DELETE ...")
+        Array(names) // Arthur
+    
+    If the database is modified while the sequence is iterating, the remaining
+    elements of the sequence are undefined.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.

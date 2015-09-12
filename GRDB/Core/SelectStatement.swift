@@ -107,7 +107,7 @@ public final class SelectStatement : Statement {
             // Here we check that sequence.generate() is called on the correct queue.
             self.assertValidQueue("SQLite statement was not used on its database queue. Consider using the fetchAll() method instead of fetch().")
             
-            // Let row sequences be iterated several times.
+            // Let sequences be iterated several times.
             self.reset()
             
             return anyGenerator { () -> T? in

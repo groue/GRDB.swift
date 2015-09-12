@@ -244,6 +244,18 @@ public struct Row: CollectionType {
         let statement = db.selectStatement("SELECT ...")
         let rows = Row.fetch(statement)
     
+    The returned sequence can be consumed several times, but it may yield
+    different results, should database changes have occurred between two
+    generations:
+    
+        let rows = Row.fetch(statement)
+        Array(rows).count // 3
+        db.execute("DELETE ...")
+        Array(rows).count // 2
+    
+    If the database is modified while the sequence is iterating, the remaining
+    elements of the sequence are undefined.
+    
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of rows.
@@ -288,6 +300,18 @@ public struct Row: CollectionType {
 
         let rows = Row.fetch(db, "SELECT ...")
 
+    The returned sequence can be consumed several times, but it may yield
+    different results, should database changes have occurred between two
+    generations:
+    
+        let rows = Row.fetch(db, "SELECT ...")
+        Array(rows).count // 3
+        db.execute("DELETE ...")
+        Array(rows).count // 2
+    
+    If the database is modified while the sequence is iterating, the remaining
+    elements of the sequence are undefined.
+    
     - parameter db: A Database.
     - parameter sql: An SQL query.
     - parameter arguments: Optional statement arguments.

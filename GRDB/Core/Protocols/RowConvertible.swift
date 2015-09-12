@@ -43,6 +43,18 @@ extension RowConvertible {
         let statement = db.selectStatement("SELECT * FROM persons")
         let persons = Person.fetch(statement) // AnySequence<Person>
     
+    The returned sequence can be consumed several times, but it may yield
+    different results, should database changes have occurred between two
+    generations:
+    
+        let persons = Person.fetch(statement)
+        Array(persons).count // 3
+        db.execute("DELETE ...")
+        Array(persons).count // 2
+    
+    If the database is modified while the sequence is iterating, the remaining
+    elements of the sequence are undefined.
+    
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence.
@@ -94,6 +106,18 @@ extension RowConvertible {
     Fetches a lazy sequence.
     
         let persons = Person.fetch(db, "SELECT * FROM persons") // AnySequence<Person>
+    
+    The returned sequence can be consumed several times, but it may yield
+    different results, should database changes have occurred between two
+    generations:
+    
+        let persons = Person.fetch(db, "SELECT * FROM persons")
+        Array(persons).count // 3
+        db.execute("DELETE ...")
+        Array(persons).count // 2
+    
+    If the database is modified while the sequence is iterating, the remaining
+    elements of the sequence are undefined.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
