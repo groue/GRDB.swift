@@ -61,6 +61,8 @@ class RecordWithRowIDPrimaryKeyNotExposedInStoredDatabaseDictionary : Record {
 
 class CrashTests: GRDBTestCase {
     
+    // This method does not actually catch any crash.
+    // But it expresses an intent :-)
     func assertCrash(message: String, @noescape block: () throws -> ()) {
         do {
             try block()
@@ -69,6 +71,7 @@ class CrashTests: GRDBTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
+    
     
     // =========================================================================
     // MARK: - Migrations
@@ -292,7 +295,6 @@ class CrashTests: GRDBTestCase {
                 RecordWithInexistingDatabaseTable().exists(db)
             }
         }
-        XCTFail("Crash expected")
     }
 
     
