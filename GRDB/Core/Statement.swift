@@ -34,10 +34,9 @@ public class Statement {
     /// The SQLite statement handle
     let sqliteStatement: SQLiteStatement
     
-    /// The identity of the DatabaseQueue where the statement was created.
-    let databaseQueueID: DatabaseQueueID
-    
     init(database: Database, sql: String) throws {
+        database.assertValid()
+        
         // See https://www.sqlite.org/c3ref/prepare.html
         
         let sqlCodeUnits = sql.nulTerminatedUTF8
@@ -52,7 +51,6 @@ public class Statement {
         }
         
         self.database = database
-        self.databaseQueueID = dispatch_get_specific(DatabaseQueue.databaseQueueIDKey)
         self.sql = sql
         self.sqliteStatement = sqliteStatement
         
@@ -115,10 +113,6 @@ public class Statement {
         if code != SQLITE_OK {
             fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
         }
-    }
-    
-    final func assertValidQueue(message: String) {
-        assert(self.databaseQueueID != nil && self.databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), message)
     }
 }
 

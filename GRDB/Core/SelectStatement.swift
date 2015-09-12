@@ -90,29 +90,19 @@ public final class SelectStatement : Statement {
             trace(sql: self.sql, arguments: self.arguments)
         }
         
+        let database = self.database
         return AnySequence { () -> AnyGenerator<T> in
-            // IMPLEMENTATION NOTE
-            //
-            // Make sure sequences are consumed in the correct queue.
-            //
-            // Here we avoid this pattern:
-            //
-            //      let rows = dbQueue.inDatabase { db in
-            //          try Row.fetch(db, "...")
-            //      }
-            //      for row in rows {   // assertion failure
-            //          ...
-            //      }
-            //
-            // Here we check that sequence.generate() is called on the correct queue.
-            self.assertValidQueue("SQLite statement was not used on its database queue. Consider using the fetchAll() method instead of fetch().")
+            // Check that sequence.generate() is called on a valid database.
+            // See DatabaseQueue.inSafeDatabase().
+            database.assertValid()
             
             // Let sequences be iterated several times.
             self.reset()
             
             return anyGenerator { () -> T? in
-                // Here we check that generator.next() is called on the correct queue.
-                self.assertValidQueue("SQLite statement was not used on its database queue. Consider using the fetchAll() method instead of fetch().")
+                // Check that generator.next() is called on a valid database.
+                // See DatabaseQueue.inSafeDatabase().
+                database.assertValid()
                 
                 let code = sqlite3_step(self.sqliteStatement)
                 switch code {

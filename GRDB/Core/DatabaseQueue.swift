@@ -114,7 +114,7 @@ public final class DatabaseQueue {
     */
     public func inDatabase<R>(block: (db: Database) throws -> R) rethrows -> R {
         return try inQueue {
-            return try block(db: self.database)
+            try block(db: self.database)
         }
     }
     
@@ -149,10 +149,9 @@ public final class DatabaseQueue {
     - throws: The error thrown by the block.
     */
     public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) throws {
-        let database = self.database
         try inQueue {
-            try database.inTransaction(type) {
-                try block(db: database)
+            try self.database.inTransaction(type) {
+                try block(db: self.database)
             }
         }
     }
@@ -205,6 +204,7 @@ public final class DatabaseQueue {
         queue = dispatch_queue_create("com.github.groue.GRDB", nil)
         self.database = database
         dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
+        database.databaseQueueID = databaseQueueID
     }
     
     func inQueue<R>(block: () throws -> R) rethrows -> R {

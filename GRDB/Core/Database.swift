@@ -84,6 +84,8 @@ public final class Database {
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
+        assertValid()
+        
         if let trace = self.configuration.trace {
             trace(sql: sql, arguments: nil)
         }
@@ -115,8 +117,101 @@ public final class Database {
         case Rollback
     }
     
+    /**
+    Executes a block inside a database transaction.
+    
+        try dbQueue.inTransaction do {
+            try db.execute("INSERT ...")
+            return .Commit
+        }
+    
+    If the block throws an error, the transaction is rollbacked and the error is
+    rethrown.
+    
+    This method is not reentrant: you can't nest transactions.
+    
+    - parameter type:  The transaction type
+                       See https://www.sqlite.org/lang_transaction.html
+    - parameter block: A block that executes SQL statements and return either
+                       .Commit or .Rollback.
+    - throws: The error thrown by the block.
+    */
+    func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) throws {
+        var completion: TransactionCompletion = .Rollback
+        var blockError: ErrorType? = nil
+        
+        try beginTransaction(type)
+        
+        do {
+            completion = try block()
+        } catch {
+            completion = .Rollback
+            blockError = error
+        }
+        
+        switch completion {
+        case .Commit:
+            try commit()
+        case .Rollback:
+            // https://www.sqlite.org/lang_transaction.html#immediate
+            //
+            // > Response To Errors Within A Transaction
+            //
+            // > If certain kinds of errors occur within a transaction, the
+            // > transaction may or may not be rolled back automatically. The
+            // > errors that can cause an automatic rollback include:
+            // >
+            // > - SQLITE_FULL: database or disk full
+            // > - SQLITE_IOERR: disk I/O error
+            // > - SQLITE_BUSY: database in use by another process
+            // > - SQLITE_NOMEM: out or memory
+            // >
+            // > [...] It is recommended that applications respond to the errors
+            // > listed above by explicitly issuing a ROLLBACK command. If the
+            // > transaction has already been rolled back automatically by the
+            // > error response, then the ROLLBACK command will fail with an
+            // > error, but no harm is caused by this.
+            if let blockError = blockError as? DatabaseError {
+                switch Int32(blockError.code) {
+                case SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM:
+                    do { try rollback() } catch { }
+                default:
+                    try rollback()
+                }
+            } else {
+                try rollback()
+            }
+        }
+        
+        if let blockError = blockError {
+            throw blockError
+        }
+    }
+
+    private func beginTransaction(type: TransactionType = .Exclusive) throws {
+        switch type {
+        case .Deferred:
+            try execute("BEGIN DEFERRED TRANSACTION")
+        case .Immediate:
+            try execute("BEGIN IMMEDIATE TRANSACTION")
+        case .Exclusive:
+            try execute("BEGIN EXCLUSIVE TRANSACTION")
+        }
+    }
+    
+    private func rollback() throws {
+        try execute("ROLLBACK TRANSACTION")
+    }
+    
+    private func commit() throws {
+        try execute("COMMIT TRANSACTION")
+    }
+    
     
     // MARK: - Database Informations
+    
+    /// The last error message
+    var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
     
     /**
     Returns whether a table exists.
@@ -250,22 +345,26 @@ public final class Database {
     }
     
     
-    // MARK: - Non public
+    // MARK: - Initialization
     
     /// The database configuration
     let configuration: Configuration
     
     /// The SQLite connection handle
-    let sqliteConnection = SQLiteConnection()
+    let sqliteConnection: SQLiteConnection
     
-    /// The last error message
-    var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
+    /// The queue from which the database can be used. See assertValid().
+    /// Design note: this is not very clean. A delegation pattern may be a
+    /// better fit.
+    var databaseQueueID: DatabaseQueueID = nil
     
     init(path: String, configuration: Configuration) throws {
         self.configuration = configuration
         
         // See https://www.sqlite.org/c3ref/open.html
+        var sqliteConnection = SQLiteConnection()
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
+        self.sqliteConnection = sqliteConnection
         if code != SQLITE_OK {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
@@ -281,99 +380,11 @@ public final class Database {
     }
     
     deinit {
-        if sqliteConnection != nil {
-            sqlite3_close(sqliteConnection)
-        }
+        sqlite3_close(sqliteConnection)
     }
     
-    /**
-    Executes a block inside a database transaction.
-    
-        try dbQueue.inTransaction do {
-            try db.execute("INSERT ...")
-            return .Commit
-        }
-    
-    If the block throws an error, the transaction is rollbacked and the error is
-    rethrown.
-    
-    This method is not reentrant: you can't nest transactions.
-    
-    - parameter type:  The transaction type
-                       See https://www.sqlite.org/lang_transaction.html
-    - parameter block: A block that executes SQL statements and return either
-                       .Commit or .Rollback.
-    - throws: The error thrown by the block.
-    */
-    func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) throws {
-        var completion: TransactionCompletion = .Rollback
-        var blockError: ErrorType? = nil
-        
-        try beginTransaction(type)
-        
-        do {
-            completion = try block()
-        } catch {
-            completion = .Rollback
-            blockError = error
-        }
-        
-        switch completion {
-        case .Commit:
-            try commit()
-        case .Rollback:
-            // https://www.sqlite.org/lang_transaction.html#immediate
-            //
-            // > Response To Errors Within A Transaction
-            //
-            // > If certain kinds of errors occur within a transaction, the
-            // > transaction may or may not be rolled back automatically. The
-            // > errors that can cause an automatic rollback include:
-            // >
-            // > - SQLITE_FULL: database or disk full
-            // > - SQLITE_IOERR: disk I/O error
-            // > - SQLITE_BUSY: database in use by another process
-            // > - SQLITE_NOMEM: out or memory
-            // >
-            // > [...] It is recommended that applications respond to the errors
-            // > listed above by explicitly issuing a ROLLBACK command. If the
-            // > transaction has already been rolled back automatically by the
-            // > error response, then the ROLLBACK command will fail with an
-            // > error, but no harm is caused by this.
-            if let blockError = blockError as? DatabaseError {
-                switch Int32(blockError.code) {
-                case SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM:
-                    do { try rollback() } catch { }
-                default:
-                    try rollback()
-                }
-            } else {
-                try rollback()
-            }
-        }
-        
-        if let blockError = blockError {
-            throw blockError
-        }
-    }
-
-    private func beginTransaction(type: TransactionType = .Exclusive) throws {
-        switch type {
-        case .Deferred:
-            try execute("BEGIN DEFERRED TRANSACTION")
-        case .Immediate:
-            try execute("BEGIN IMMEDIATE TRANSACTION")
-        case .Exclusive:
-            try execute("BEGIN EXCLUSIVE TRANSACTION")
-        }
-    }
-    
-    private func rollback() throws {
-        try execute("ROLLBACK TRANSACTION")
-    }
-    
-    private func commit() throws {
-        try execute("COMMIT TRANSACTION")
+    func assertValid() {
+        assert(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct queue. Execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). Consider using fetchAll() method if this error message happens when iterating the result of the fetch() method.")
     }
 }
 

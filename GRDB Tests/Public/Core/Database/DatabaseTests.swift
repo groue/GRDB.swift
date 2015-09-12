@@ -382,6 +382,18 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
+    func testDatabaseCanBeUsedOutsideOfDatabaseQueueBlockAsLongAsTheQueueIsCorrect() {
+        assertNoError {
+            var database: Database? = nil
+            dbQueue.inDatabase { db in
+                database = db
+            }
+            try dbQueue.inDatabase { db in
+                try database!.execute("CREATE TABLE persons (name TEXT)")
+            }
+        }
+    }
+    
     // CRASH TEST: this test must crash
 //    func testInDatabaseIsNotReentrant() {
 //        var success = false
