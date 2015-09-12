@@ -22,167 +22,145 @@ class ConcurrencyTests: XCTestCase {
     }
 
     func testDeferredTransactionConcurrency() {
-        do {
-            try dbQueue1.inDatabase { db in
-                try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+        try! dbQueue1.inDatabase { db in
+            try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+        }
+        
+        var concurrencyError: DatabaseError? = nil
+        
+        let queue = NSOperationQueue()
+        queue.maxConcurrentOperationCount = 2
+        queue.addOperation(NSBlockOperation {
+            do {
+                try self.dbQueue1.inTransaction(.Deferred) { db in
+                    sleep(1)    // make sure other transaction is opened
+                    try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
+                    sleep(1)    // let other transaction try to update database
+                    return .Commit
+                }
             }
-            
-            var concurrencyError: DatabaseError? = nil
-            
-            let queue = NSOperationQueue()
-            queue.maxConcurrentOperationCount = 2
-            queue.addOperation(NSBlockOperation {
-                do {
-                    try self.dbQueue1.inTransaction(.Deferred) { db in
-                        sleep(1)    // make sure other queue has opened its transaction.
-                        try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
-                        return .Commit
-                    }
-                }
-                catch let error as DatabaseError {
-                    concurrencyError = error
-                }
-                catch {
-                    XCTFail("\(error)")
-                }
-                })
+            catch let error as DatabaseError {
+                concurrencyError = error
+            }
+            catch {
+                XCTFail("\(error)")
+            }
+            })
 
-            queue.addOperation(NSBlockOperation {
-                do {
-                    try self.dbQueue2.inTransaction(.Deferred) { db in
-                        sleep(1)    // make sure other queue has opened its transaction.
-                        try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
-                        return .Commit
-                    }
+        queue.addOperation(NSBlockOperation {
+            do {
+                try self.dbQueue2.inTransaction(.Deferred) { db in
+                    sleep(1)    // make sure other transaction is opened
+                    try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
+                    sleep(1)    // let other transaction try to update database
+                    return .Commit
                 }
-                catch let error as DatabaseError {
-                    concurrencyError = error
-                }
-                catch {
-                    XCTFail("\(error)")
-                }
-                })
-            
-            queue.waitUntilAllOperationsAreFinished()
-            
-            if let concurrencyError = concurrencyError {
-                XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
-                XCTAssertEqual(concurrencyError.sql, "INSERT INTO stuffs (id) VALUES (NULL)")
-            } else {
-                XCTFail("Expected concurrency error")
             }
-        } catch {
-            XCTFail("\(error)")
+            catch let error as DatabaseError {
+                concurrencyError = error
+            }
+            catch {
+                XCTFail("\(error)")
+            }
+            })
+        
+        queue.waitUntilAllOperationsAreFinished()
+        
+        if let concurrencyError = concurrencyError {
+            XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
+            XCTAssertEqual(concurrencyError.sql, "INSERT INTO stuffs (id) VALUES (NULL)")
+        } else {
+            XCTFail("Expected concurrency error")
         }
     }
     
     func testExclusiveTransactionConcurrency() {
-        do {
-            try dbQueue1.inDatabase { db in
-                try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+        var concurrencyError: DatabaseError? = nil
+        
+        let queue = NSOperationQueue()
+        queue.maxConcurrentOperationCount = 2
+        queue.addOperation(NSBlockOperation {
+            do {
+                try self.dbQueue1.inTransaction(.Exclusive) { db in
+                    sleep(1)    // let other queue try to open transaction
+                    return .Commit
+                }
             }
-            
-            var concurrencyError: DatabaseError? = nil
-            
-            let queue = NSOperationQueue()
-            queue.maxConcurrentOperationCount = 2
-            queue.addOperation(NSBlockOperation {
-                do {
-                    try self.dbQueue1.inTransaction(.Exclusive) { db in
-                        sleep(1)    // make sure other queue has opened its transaction.
-                        try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
-                        return .Commit
-                    }
-                }
-                catch let error as DatabaseError {
-                    concurrencyError = error
-                }
-                catch {
-                    XCTFail("\(error)")
-                }
-                })
-            
-            queue.addOperation(NSBlockOperation {
-                do {
-                    try self.dbQueue2.inTransaction(.Exclusive) { db in
-                        sleep(1)    // make sure other queue has opened its transaction.
-                        try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
-                        return .Commit
-                    }
-                }
-                catch let error as DatabaseError {
-                    concurrencyError = error
-                }
-                catch {
-                    XCTFail("\(error)")
-                }
-                })
-            
-            queue.waitUntilAllOperationsAreFinished()
-            
-            if let concurrencyError = concurrencyError {
-                XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
-                XCTAssertEqual(concurrencyError.sql, "BEGIN EXCLUSIVE TRANSACTION")
-            } else {
-                XCTFail("Expected concurrency error")
+            catch let error as DatabaseError {
+                concurrencyError = error
             }
-        } catch {
-            XCTFail("\(error)")
+            catch {
+                XCTFail("\(error)")
+            }
+            })
+        
+        queue.addOperation(NSBlockOperation {
+            do {
+                try self.dbQueue2.inTransaction(.Exclusive) { db in
+                    sleep(1)    // let other queue try to open transaction
+                    return .Commit
+                }
+            }
+            catch let error as DatabaseError {
+                concurrencyError = error
+            }
+            catch {
+                XCTFail("\(error)")
+            }
+            })
+        
+        queue.waitUntilAllOperationsAreFinished()
+        
+        if let concurrencyError = concurrencyError {
+            XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
+            XCTAssertEqual(concurrencyError.sql, "BEGIN EXCLUSIVE TRANSACTION")
+        } else {
+            XCTFail("Expected concurrency error")
         }
     }
     
     func testImmediateTransactionConcurrency() {
-        do {
-            try dbQueue1.inDatabase { db in
-                try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+        var concurrencyError: DatabaseError? = nil
+        
+        let queue = NSOperationQueue()
+        queue.maxConcurrentOperationCount = 2
+        queue.addOperation(NSBlockOperation {
+            do {
+                try self.dbQueue1.inTransaction(.Immediate) { db in
+                    sleep(1)    // let other queue try to open transaction
+                    return .Commit
+                }
             }
-            
-            var concurrencyError: DatabaseError? = nil
-            
-            let queue = NSOperationQueue()
-            queue.maxConcurrentOperationCount = 2
-            queue.addOperation(NSBlockOperation {
-                do {
-                    try self.dbQueue1.inTransaction(.Immediate) { db in
-                        sleep(1)    // make sure other queue has opened its transaction.
-                        try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
-                        return .Commit
-                    }
-                }
-                catch let error as DatabaseError {
-                    concurrencyError = error
-                }
-                catch {
-                    XCTFail("\(error)")
-                }
-                })
-            
-            queue.addOperation(NSBlockOperation {
-                do {
-                    try self.dbQueue2.inTransaction(.Immediate) { db in
-                        sleep(1)    // make sure other queue has opened its transaction.
-                        try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
-                        return .Commit
-                    }
-                }
-                catch let error as DatabaseError {
-                    concurrencyError = error
-                }
-                catch {
-                    XCTFail("\(error)")
-                }
-                })
-            
-            queue.waitUntilAllOperationsAreFinished()
-            
-            if let concurrencyError = concurrencyError {
-                XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
-                XCTAssertEqual(concurrencyError.sql, "BEGIN IMMEDIATE TRANSACTION")
-            } else {
-                XCTFail("Expected concurrency error")
+            catch let error as DatabaseError {
+                concurrencyError = error
             }
-        } catch {
-            XCTFail("\(error)")
+            catch {
+                XCTFail("\(error)")
+            }
+            })
+        
+        queue.addOperation(NSBlockOperation {
+            do {
+                try self.dbQueue2.inTransaction(.Immediate) { db in
+                    sleep(1)    // let other queue try to open transaction
+                    return .Commit
+                }
+            }
+            catch let error as DatabaseError {
+                concurrencyError = error
+            }
+            catch {
+                XCTFail("\(error)")
+            }
+            })
+        
+        queue.waitUntilAllOperationsAreFinished()
+        
+        if let concurrencyError = concurrencyError {
+            XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
+            XCTAssertEqual(concurrencyError.sql, "BEGIN IMMEDIATE TRANSACTION")
+        } else {
+            XCTFail("Expected concurrency error")
         }
     }
 }

@@ -394,10 +394,12 @@ class DatabaseTests : GRDBTestCase {
     
     func testInTransactionInsideInDatabaseIsReentrant() {
         var success = false
-        dbQueue.inDatabase { db in
-            self.dbQueue.inTransaction { db in
-                success = true
-                return .Commit
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try self.dbQueue.inTransaction { db in
+                    success = true
+                    return .Commit
+                }
             }
         }
         XCTAssertTrue(success)

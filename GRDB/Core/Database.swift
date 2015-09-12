@@ -307,7 +307,7 @@ public final class Database {
     */
     func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) throws {
         var completion: TransactionCompletion = .Rollback
-        var dbError: ErrorType? = nil
+        var blockError: ErrorType? = nil
         
         try beginTransaction(type)
         
@@ -315,18 +315,45 @@ public final class Database {
             completion = try block()
         } catch {
             completion = .Rollback
-            dbError = error
+            blockError = error
         }
         
         switch completion {
         case .Commit:
             try commit()
         case .Rollback:
-            try rollback()
+            // https://www.sqlite.org/lang_transaction.html#immediate
+            //
+            // > Response To Errors Within A Transaction
+            //
+            // > If certain kinds of errors occur within a transaction, the
+            // > transaction may or may not be rolled back automatically. The
+            // > errors that can cause an automatic rollback include:
+            // >
+            // > - SQLITE_FULL: database or disk full
+            // > - SQLITE_IOERR: disk I/O error
+            // > - SQLITE_BUSY: database in use by another process
+            // > - SQLITE_NOMEM: out or memory
+            // >
+            // > [...] It is recommended that applications respond to the errors
+            // > listed above by explicitly issuing a ROLLBACK command. If the
+            // > transaction has already been rolled back automatically by the
+            // > error response, then the ROLLBACK command will fail with an
+            // > error, but no harm is caused by this.
+            if let blockError = blockError as? DatabaseError {
+                switch Int32(blockError.code) {
+                case SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM:
+                    do { try rollback() } catch { }
+                default:
+                    try rollback()
+                }
+            } else {
+                try rollback()
+            }
         }
         
-        if let dbError = dbError {
-            throw dbError
+        if let blockError = blockError {
+            throw blockError
         }
     }
 

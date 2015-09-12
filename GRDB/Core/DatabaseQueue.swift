@@ -117,7 +117,7 @@ public final class DatabaseQueue {
                        .Commit or .Rollback.
     - throws: The error thrown by the block.
     */
-    public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) rethrows {
+    public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) throws {
         let database = self.database
         try inQueue {
             try database.inTransaction(type) {
