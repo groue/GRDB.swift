@@ -103,7 +103,7 @@ final class DataMapper {
 
         // Fail early if storedDatabaseDictionary is empty
         let storedDatabaseDictionary = storable.storedDatabaseDictionary
-        assert(storedDatabaseDictionary.count > 0, "Invalid empty dictionary returned from \(storable.dynamicType).storedDatabaseDictionary")
+        precondition(storedDatabaseDictionary.count > 0, "Invalid empty dictionary returned from \(storable.dynamicType).storedDatabaseDictionary")
         
         self.db = db
         self.storable = storable

@@ -56,7 +56,7 @@ public class Statement {
         
         switch code {
         case SQLITE_OK:
-            assert(consumedCharactersCount == sqlCodeUnits.count, "Invalid SQL string: multiple statements found. To execute multiple statements, use Database.executeMultiStatement() instead.")
+            precondition(consumedCharactersCount == sqlCodeUnits.count, "Invalid SQL string: multiple statements found. To execute multiple statements, use Database.executeMultiStatement() instead.")
         default:
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
@@ -95,7 +95,7 @@ public class Statement {
     // Exposed for StatementArguments. Don't make this one public unless we keep the arguments property in sync.
     final func bind(value: DatabaseValueConvertible?, forKey key: String) {
         let index = Int(sqlite3_bind_parameter_index(sqliteStatement, ":\(key)"))
-        assert(index > 0, "Key not found in SQLite statement: `:\(key)`")
+        precondition(index > 0, "Key not found in SQLite statement: `:\(key)`")
         bind(value, atIndex: index)
     }
     
