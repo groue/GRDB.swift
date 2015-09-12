@@ -68,11 +68,4 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssertEqual(names, ["Arthur"])
         }
     }
-    
-    // CRASH TEST: this test must crash
-//    func testMigrationNamesMustBeUnique() {
-//        var migrator = DatabaseMigrator()
-//        migrator.registerMigration("foo") { db in }
-//        migrator.registerMigration("foo") { db in }
-//    }
 }
