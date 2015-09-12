@@ -2,3 +2,4 @@
 - [ ] Use @warn_unused_result
 - [ ] Read https://www.sqlite.org/lang_createtable.html
 - [ ] Since Records' primary key are infered, no operation is possible on the primary key unless we have a Database instance. It's impossible to define the record.primaryKey property, or to provide a copy() function that does not clone the primary key: they miss the database that is the only object aware of the primary key. Should we change our mind, and have Record explicitly expose their primary key again?
+- [ ] Read https://www.sqlite.org/c3ref/busy_handler.html and https://www.sqlite.org/c3ref/busy_timeout.html
