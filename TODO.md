@@ -3,3 +3,5 @@
 - [ ] Read https://www.sqlite.org/isolation.html
 - [ ] Read https://www.sqlite.org/lang_createtable.html
 - [ ] Since Records' primary key are infered, no operation is possible on the primary key unless we have a Database instance. It's impossible to define the record.primaryKey property, or to provide a copy() function that does not clone the primary key: they miss the database that is the only object aware of the primary key. Should we change our mind, and have Record explicitly expose their primary key again?
+- [ ] It is illegal to extract the Database out of `dbQueue.inDatabase { db in ... }`: write assertions for that (db could turn invalid at the end of the block).
+- [ ] It is illegal to use a Database in a different queue: write assertions for that.
