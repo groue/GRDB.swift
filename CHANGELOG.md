@@ -1,11 +1,17 @@
 Release Notes
 =============
 
-## Next Release
+## 0.15.0
+
+Released September 12, 2015
+
+**Fixed**
+
+- Usage assertions used to be disabled. They are activated again.
 
 **Breaking changes**
 
-- `DatabaseQueue.inDatabase` and `DatabaseQueue.inTransaction` are no longer reentrant, after all.
+- `DatabaseQueue.inDatabase` and `DatabaseQueue.inTransaction` are no longer reentrant.
 
 
 ## 0.14.0
