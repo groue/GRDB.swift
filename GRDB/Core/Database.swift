@@ -136,7 +136,7 @@ public final class Database {
                        .Commit or .Rollback.
     - throws: The error thrown by the block.
     */
-    func inTransaction(type: TransactionType, block: () throws -> TransactionCompletion) throws {
+    func inTransaction(type: TransactionType?, block: () throws -> TransactionCompletion) throws {
         var completion: TransactionCompletion = .Rollback
         var blockError: ErrorType? = nil
         
@@ -187,9 +187,9 @@ public final class Database {
             throw blockError
         }
     }
-
-    private func beginTransaction(type: TransactionType = .Exclusive) throws {
-        switch type {
+    
+    private func beginTransaction(type: TransactionType? = nil) throws {
+        switch type ?? configuration.transactionType {
         case .Deferred:
             try execute("BEGIN DEFERRED TRANSACTION")
         case .Immediate:

@@ -143,6 +143,7 @@ The database connection is closed when the database queue gets deallocated.
 let configuration = Configuration(
     foreignKeysEnabled: true,   // Default true
     readonly: false,            // Default false
+    transactionType: .Exclusive // Default .Exclusive
     trace: Configuration.logSQL // An optional trace function.
                                 // Configuration.logSQL logs all SQL statements.
 )
@@ -152,6 +153,7 @@ let dbQueue = try DatabaseQueue(
     configuration: configuration)
 ```
 
+See [Transactions](#transactions) for more information about the transactionType parameter.
 
 The `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
 

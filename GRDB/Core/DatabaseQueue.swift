@@ -142,13 +142,15 @@ public final class DatabaseQueue {
         }
         database!.fetch(...) // NOT OK
     
-    - parameter type:  The transaction type (default Exclusive)
-                       See https://www.sqlite.org/lang_transaction.html
+    - parameter type: The transaction type (default nil). If nil, the
+      transaction type is configuration.transactionType, which itself defaults
+      to .Exclusive. See https://www.sqlite.org/lang_transaction.html for more
+      information.
     - parameter block: A block that executes SQL statements and return either
-                       .Commit or .Rollback.
+      .Commit or .Rollback.
     - throws: The error thrown by the block.
     */
-    public func inTransaction(type: Database.TransactionType = .Exclusive, block: (db: Database) throws -> Database.TransactionCompletion) throws {
+    public func inTransaction(type: Database.TransactionType? = nil, block: (db: Database) throws -> Database.TransactionCompletion) throws {
         try inQueue {
             try self.database.inTransaction(type) {
                 try block(db: self.database)

@@ -48,6 +48,9 @@ public struct Configuration {
     /// If true, the database is opened readonly.
     public var readonly: Bool
     
+    /// Default transaction type
+    public var transactionType = Database.TransactionType.Exclusive
+    
     /// The Threading mode
     ///
     /// Not public because we don't expose any public API that could have a use
@@ -72,17 +75,20 @@ public struct Configuration {
     statements with NSLog().
     
     - parameter foreignKeysEnabled: If true (the default), the database has
-                                    support for foreign keys.
-    - parameter readonly:           If false (the default), the database will be
-                                    created and opened for writing. If true, the
-                                    database is opened readonly.
-    - parameter trace:              An optional tracing function (default nil).
-    
+      support for foreign keys.
+    - parameter readonly: If false (the default), the database will be created
+      and opened for writing. If true, the database is opened readonly.
+    - parameter transactionType: An optional transaction type. Unless specified
+      otherwise, transactions opened by DatabaseQueue.inTransaction() will use
+      this type. See https://www.sqlite.org/lang_transaction.html for more
+      information.
+    - parameter trace: An optional tracing function (default nil).
     - returns: A Configuration.
     */
-    public init(foreignKeysEnabled: Bool = true, readonly: Bool = false, trace: TraceFunction? = nil) {
+    public init(foreignKeysEnabled: Bool = true, readonly: Bool = false, transactionType: Database.TransactionType = .Exclusive, trace: TraceFunction? = nil) {
         self.foreignKeysEnabled = foreignKeysEnabled
         self.readonly = readonly
+        self.transactionType = transactionType
         self.trace = trace
     }
     
