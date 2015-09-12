@@ -70,7 +70,17 @@ public final class DatabaseQueue {
     
     This method is reentrant.
     
-    - parameter block: A block that accesses the databse.
+    **Warning**: The *db* parameter of the block should not be used outside of
+    the block. Do not extract it, and do not store it in another object that
+    lives longer than the block:
+    
+        var database: Database?
+        dbQueue.inDatabase { db in
+            database = db
+        }
+        database!.fetch(...) // NOT OK
+    
+    - parameter block: A block that accesses the database.
     - throws: The error thrown by the block.
     */
     public func inDatabase(block: (db: Database) throws -> Void) rethrows {
@@ -88,7 +98,18 @@ public final class DatabaseQueue {
     
     This method is reentrant.
     
-    - parameter block: A block that accesses the databse.
+    **Warning**: The *db* parameter of the block should not be used outside of
+    the block. Do not extract it, and do not store it in another object that
+    lives longer than the block:
+    
+        var database: Database?
+        let rows = dbQueue.inDatabase { db in
+            database = db
+            return db.fetch(...)
+        }
+        database!.fetch(...) // NOT OK
+    
+    - parameter block: A block that accesses the database.
     - throws: The error thrown by the block.
     */
     public func inDatabase<R>(block: (db: Database) throws -> R) rethrows -> R {
@@ -110,6 +131,16 @@ public final class DatabaseQueue {
         }
     
     This method is not reentrant: you can't nest transactions.
+    
+    **Warning**: The *db* parameter of the block should not be used outside of
+    the transaction block. Do not extract it, and do not store it in another
+    object that lives longer than the block:
+    
+        var database: Database?
+        try dbQueue.inTransaction { db in
+            database = db
+        }
+        database!.fetch(...) // NOT OK
     
     - parameter type:  The transaction type (default Exclusive)
                        See https://www.sqlite.org/lang_transaction.html
