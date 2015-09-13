@@ -729,8 +729,6 @@ dbQueue.inDatabase { db in
 - All methods that *read* data crash without notice.
 - All methods that *write* data throw.
 
-**When there are several concurrent connections to a single database file, reading methods may fail, and crash.** To avoid those failure, wrap your concurrent reading methods in a transaction, and see [Concurrency](#concurrency) for more information about concurrent database access.
-
 ```swift
 // fatal error:
 // SQLite error 1 with statement `SELECT foo FROM bar`: no such table: bar
