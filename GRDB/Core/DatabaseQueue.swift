@@ -70,16 +70,6 @@ public final class DatabaseQueue {
     
     This method is *not* reentrant.
     
-    **Warning**: The *db* parameter of the block should not be used outside of
-    the block. Do not extract it, and do not store it in another object that
-    lives longer than the block:
-    
-        var database: Database?
-        dbQueue.inDatabase { db in
-            database = db
-        }
-        database!.fetch(...) // NOT OK
-    
     - parameter block: A block that accesses the database.
     - throws: The error thrown by the block.
     */
@@ -97,17 +87,6 @@ public final class DatabaseQueue {
         }
     
     This method is *not* reentrant.
-    
-    **Warning**: The *db* parameter of the block should not be used outside of
-    the block. Do not extract it, and do not store it in another object that
-    lives longer than the block:
-    
-        var database: Database?
-        let rows = dbQueue.inDatabase { db in
-            database = db
-            return db.fetch(...)
-        }
-        database!.fetch(...) // NOT OK
     
     - parameter block: A block that accesses the database.
     - throws: The error thrown by the block.
@@ -131,16 +110,6 @@ public final class DatabaseQueue {
         }
     
     This method is *not* reentrant.
-    
-    **Warning**: The *db* parameter of the block should not be used outside of
-    the transaction block. Do not extract it, and do not store it in another
-    object that lives longer than the block:
-    
-        var database: Database?
-        try dbQueue.inTransaction { db in
-            database = db
-        }
-        database!.fetch(...) // NOT OK
     
     - parameter type: The transaction type (default nil). If nil, the
       transaction type is configuration.transactionType, which itself defaults
