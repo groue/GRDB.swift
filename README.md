@@ -769,13 +769,11 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 1. **Should a reader be allowed to read while a writer is writing?**
     
-    *By default*, readers can't read while a writer is writing.
+    *By default*, readers will *crash* if they read while a writer is writing.
     
-    If a database is in the middle of a transaction, all concurrent SELECT queries will fail with a SQLITE_BUSY error, and *crash*, since reading errors are [not recovered](#error-handling).
+    If a database is in the middle of a transaction (default exclusive), the database is locked. All concurrent SELECT queries will fail with a SQLITE_BUSY error, and *crash*, since reading errors are [not recovered](#error-handling).
     
-    The crash itself is avoided by wrapping the SELECT queries inside a transaction (exclusive by default): the SQLITE_BUSY error will be reported to you by the BEGIN statement, before any SELECT has the opportunity to crash.
-    
-    The busy error can be avoided as well: see below.
+    Those crashes can be avoided by preventing the SQLITE_BUSY errors (see below), or by wrapping the SELECT queries inside a transaction (exclusive by default): the SQLITE_BUSY error will be reported to you by the BEGIN statement, before any SELECT has the opportunity to crash.
 
 2. **Should a reader see the changes committed by writers during its reading session? The uncommited changes?**
 
@@ -783,17 +781,19 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 3. **How to handle the failure when a connection fails to access the database that is already locked by another connection?**
     
-    *By default*, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked. This error can be avoided: see below.
+    *By default*, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked.
+    
+    This busy error can be avoided by waiting until the lock is released: see below.
 
 
 **You can change this default concurrency handling.**
 
-In particular, the SQLITE_BUSY errors can be limited with a *busy timeout*:
+In particular, you can postpone SQLITE_BUSY with a *busy timeout*:
 
 ```swift
 // When the database is locked, wait up to 1 second before throwing SQLITE_BUSY.
 let configuration = Configuration(busyMode: .Timeout(1))
-    
+
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
     configuration: configuration)
