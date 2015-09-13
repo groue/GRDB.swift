@@ -49,7 +49,7 @@ public struct Configuration {
     public var readonly: Bool
     
     /// Default transaction type
-    public var transactionType = Database.TransactionType.Exclusive
+    public var transactionType: Database.TransactionType
     
     /// The Threading mode
     ///
@@ -78,10 +78,10 @@ public struct Configuration {
       support for foreign keys.
     - parameter readonly: If false (the default), the database will be created
       and opened for writing. If true, the database is opened readonly.
-    - parameter transactionType: An optional transaction type. Unless specified
-      otherwise, transactions opened by DatabaseQueue.inTransaction() will use
-      this type. See https://www.sqlite.org/lang_transaction.html for more
-      information.
+    - parameter transactionType: An optional transaction type (default
+      .Exclusive). Unless specified otherwise, transactions opened by
+      DatabaseQueue.inTransaction() will use this transaction type. See
+      https://www.sqlite.org/lang_transaction.html for more information.
     - parameter trace: An optional tracing function (default nil).
     - returns: A Configuration.
     */
