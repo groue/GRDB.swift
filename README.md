@@ -769,19 +769,19 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 1. **Should a reader be allowed to read while a writer is writing?**
     
-    *By default*, the answer is yes.
+    By default, the answer is yes.
     
     GRDB transactions are *immediate* by default, and immediate transactions don't lock SELECT queries out.
 
 2. **Should a reader see the changes committed by writers during its reading session? The uncommitted changes?**
 
-    *By default*, the answer is no, to both committed and uncommitted changes.
+    By default, the answer is no, to both committed and uncommitted changes.
     
     Yet, between two consecutive SELECT statements, a concurrent writer may have changed the state of the database. Wrap those SELECT statements in a *deferred* transaction so that those changes do not interfere.
 
 3. **How to handle the failure when a connection fails to access the database that is already locked by another connection?**
     
-    *By default*, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked.
+    By default, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked.
     
     This busy error can be avoided, by avoiding the lock, or by waiting until the lock is released: see below.
 
