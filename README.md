@@ -793,7 +793,7 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
     
     There can only be a single writer at a time to an SQLite database. By default, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked.
     
-    This busy error can be avoided, by avoiding the lock, or by waiting until the lock is released: see below.
+    You can handle this busy error, or avoid it by waiting until the lock is released: see below.
 
 
 **You can change this default concurrency handling.**
