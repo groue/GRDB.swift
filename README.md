@@ -773,7 +773,25 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
     
     If a database is in the middle of a transaction (default exclusive), the database is locked. All concurrent SELECT queries will fail with a SQLITE_BUSY error, and *crash*, since reading errors are [not recovered](#error-handling).
     
-    Those crashes can be avoided by preventing the SQLITE_BUSY errors (see below), or by wrapping the SELECT queries inside a transaction (exclusive by default): the SQLITE_BUSY error will be reported to you by the BEGIN statement, before any SELECT has the opportunity to crash.
+    ```swift
+    // May crash with fatal error:
+    // SQLite error 5 with statement `SELECT ...`: database is locked
+    try dbQueue.inDatabase { db in
+        let persons = Person.fetch(db, "SELECT ...")
+    }
+    ```
+    
+    Avoid this crash by wrapping the SELECT query inside a transaction (exclusive by default): the SQLITE_BUSY error will be reported to you by the BEGIN statement, before the SELECT has the opportunity to crash:
+    
+    ```swift
+    // May throw a DatabaseError of code SQLITE_BUSY:
+    try dbQueue.inTransaction { db in
+        let persons = Person.fetch(db, "SELECT ...")
+        return .Commit
+    }
+    ```
+    
+    The busy error itself can be avoided, by avoiding the lock itself, or by waiting until the lock is released: see below.
 
 2. **Should a reader see the changes committed by writers during its reading session? The uncommited changes?**
 
@@ -783,7 +801,7 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
     
     *By default*, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked.
     
-    This busy error can be avoided by waiting until the lock is released: see below.
+    This busy error can be avoided, by avoiding the lock itself, or by waiting until the lock is released: see below.
 
 
 **You can change this default concurrency handling.**
@@ -802,7 +820,7 @@ let dbQueue = try DatabaseQueue(
 For more advanced handling, you should become familiar with the fragmented landscape of SQLite concurrency:
 
 - General discussion about isolation in SQLite: https://www.sqlite.org/isolation.html
-- Types of transactions: https://www.sqlite.org/lang_transaction.html
+- Types of locks and transactions: https://www.sqlite.org/lang_transaction.html
 - WAL journal mode: https://www.sqlite.org/wal.html
 - Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
 
