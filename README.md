@@ -769,9 +769,9 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 1. **Should a reader be allowed to read while a writer is writing?**
     
-    *By default*, readers will *crash* if they read while a writer is writing.
+    *By default*, GRDB's answer is clear and loud: readers actually *crash* if they read while a writer is writing:
     
-    If a database is in the middle of a transaction (default exclusive), the database is locked. All concurrent SELECT queries will fail with a SQLITE_BUSY error, and *crash*, since reading errors are [not recovered](#error-handling).
+    The writer has acquired a lock on the database which makes all concurrent SELECT queries fail with a SQLITE_BUSY error. Since [GRDB does not recover reading errors](#error-handling), the error turns into a crash.
     
     ```swift
     // May crash with fatal error:
