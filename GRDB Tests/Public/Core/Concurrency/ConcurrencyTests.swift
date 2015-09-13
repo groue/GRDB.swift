@@ -5,19 +5,32 @@ class ConcurrencyTests: XCTestCase {
     var databasePath: String!
     var dbQueue1: DatabaseQueue!
     var dbQueue2: DatabaseQueue!
+    var busyCallback: Database.BusyCallback?
     
     override func setUp() {
         super.setUp()
         
         databasePath = "/tmp/GRDBConcurrencyTests.sqlite"
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
-        let configuration = Configuration(trace: Configuration.logSQL)
+        let busyCallback: Database.BusyCallback = {
+            if let busyCallback = self.busyCallback {
+                return busyCallback(numberOfTries: $0)
+            } else {
+                // Default give up
+                return false
+            }
+        }
+        let configuration = Configuration(
+            trace: Configuration.logSQL,
+            busyMode: .Callback(busyCallback))
         dbQueue1 = try! DatabaseQueue(path: databasePath, configuration: configuration)
         dbQueue2 = try! DatabaseQueue(path: databasePath, configuration: configuration)
     }
     
     override func tearDown() {
         super.tearDown()
+        dbQueue1 = nil
+        dbQueue2 = nil
         try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
     }
 
@@ -162,5 +175,50 @@ class ConcurrencyTests: XCTestCase {
         } else {
             XCTFail("Expected concurrency error")
         }
+    }
+    
+    func testBusyCallback() {
+        self.busyCallback = { numberOfTries in
+            // Just wait until lock is released.
+            sleep(1)
+            return true
+        }
+
+        var concurrencyError: DatabaseError? = nil
+        
+        let queue = NSOperationQueue()
+        queue.maxConcurrentOperationCount = 2
+        queue.addOperation(NSBlockOperation {
+            do {
+                try self.dbQueue1.inTransaction(.Exclusive) { db in
+                    sleep(1)    // let other queue try to open transaction
+                    return .Commit
+                }
+            }
+            catch let error as DatabaseError {
+                concurrencyError = error
+            }
+            catch {
+                XCTFail("\(error)")
+            }
+            })
+        
+        queue.addOperation(NSBlockOperation {
+            do {
+                try self.dbQueue2.inTransaction(.Exclusive) { db in
+                    sleep(1)    // let other queue try to open transaction
+                    return .Commit
+                }
+            }
+            catch let error as DatabaseError {
+                concurrencyError = error
+            }
+            catch {
+                XCTFail("\(error)")
+            }
+            })
+        
+        queue.waitUntilAllOperationsAreFinished()
+        XCTAssertTrue(concurrencyError == nil)
     }
 }

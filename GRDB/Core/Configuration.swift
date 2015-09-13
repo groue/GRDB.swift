@@ -51,6 +51,9 @@ public struct Configuration {
     /// Default transaction type
     public var transactionType: Database.TransactionType
     
+    /// Busy Mode
+    public var busyMode: Database.BusyMode
+    
     /// The Threading mode
     ///
     /// Not public because we don't expose any public API that could have a use
@@ -82,13 +85,21 @@ public struct Configuration {
       .Exclusive). Unless specified otherwise, transactions opened by
       DatabaseQueue.inTransaction() will use this transaction type. See
       https://www.sqlite.org/lang_transaction.html for more information.
+    - parameter busyMode: A BusyMode (default .ImmediateError).
     - parameter trace: An optional tracing function (default nil).
     - returns: A Configuration.
     */
-    public init(foreignKeysEnabled: Bool = true, readonly: Bool = false, transactionType: Database.TransactionType = .Exclusive, trace: TraceFunction? = nil) {
+    public init(
+        foreignKeysEnabled: Bool = true,
+        readonly: Bool = false,
+        transactionType: Database.TransactionType = .Exclusive,
+        busyMode: Database.BusyMode = .ImmediateError,
+        trace: TraceFunction? = nil)
+    {
         self.foreignKeysEnabled = foreignKeysEnabled
         self.readonly = readonly
         self.transactionType = transactionType
+        self.busyMode = busyMode
         self.trace = trace
     }
     

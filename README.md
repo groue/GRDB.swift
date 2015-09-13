@@ -686,14 +686,18 @@ try dbQueue1.inTransaction { ... }
 try dbQueue2.inTransaction { ... }
 ```
 
-The interested reader should now that by default, GRDB opens database in the **DELETE journal mode**, and uses **EXCLUSIVE transactions**. Override those default with Configuration, or by providing a transaction type to the inTransaction method:
+The interested reader should now that by default, GRDB opens database in the **DELETE journal mode**, uses **EXCLUSIVE transactions**, and registers **no busy handler** of any kind. Override those defaults with Configuration, or by providing a transaction type to the inTransaction method:
 
 ```swift
-// Choose default transaction type:
-let configuration = Configuration(transactionType: .Exclusive)
+let configuration = Configuration(
+    transactionType: .Exclusive,    // Default transaction type.
+    busyMode: .Timeout(1))          // Wait at most 1 second before SQLITE_BUSY
+                                    // is thrown.
+    
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
     configuration: configuration)
+    
 try dbQueue.inTransaction { ... }               // BEGIN EXCLUSIVE TRANSACTION
 try dbQueue.inTransaction(.Exclusive) { ... }   // BEGIN EXCLUSIVE TRANSACTION
 try dbQueue.inTransaction(.Immediate) { ... }   // BEGIN IMMEDIATE TRANSACTION
@@ -705,6 +709,8 @@ The relevant pieces of SQLite documentation are:
 - https://www.sqlite.org/isolation.html
 - https://www.sqlite.org/lang_transaction.html
 - https://www.sqlite.org/wal.html
+- https://www.sqlite.org/c3ref/busy_timeout.html
+- https://www.sqlite.org/c3ref/busy_handler.html
 
 
 ### Prepared Statements

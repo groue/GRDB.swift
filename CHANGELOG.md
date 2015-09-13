@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `Configuration.busyMode` let you specify how concurrent connections should handle database locking.
+
+
 ## 0.15.0
 
 Released September 12, 2015

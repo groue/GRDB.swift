@@ -347,8 +347,55 @@ public final class Database {
     
     // MARK: - Initialization
     
+    /// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
+    public typealias BusyCallback = (numberOfTries: Int) -> Bool
+    
+    /**
+    When there are several connections to a database, a connection may try to
+    access the database while it is locked by another connection.
+    
+    The BusyMode enum describes the behavior of GRDB when such a situation
+    occurs:
+    
+    - .ImmediateError: The SQLITE_BUSY error is immediately returned to the
+      connection that tries to access the locked database.
+    
+    - .Timeout: The SQLITE_BUSY error will be returned only if the database
+      remains locked for more than the specified duration.
+    
+    - .Callback: Perform your custom lock handling.
+    
+    To set the busy mode of a database, use Configuration:
+    
+        let configuration = Configuration(busyMode: .Timeout(1))
+        let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
+    
+    Relevant SQLite documentation:
+    
+    - https://www.sqlite.org/c3ref/busy_timeout.html
+    - https://www.sqlite.org/c3ref/busy_handler.html
+    - https://www.sqlite.org/lang_transaction.html
+    - https://www.sqlite.org/wal.html
+    */
+    public enum BusyMode {
+        /// The SQLITE_BUSY error is immediately returned to the connection that
+        /// tries to access the locked database.
+        case ImmediateError
+        
+        /// The SQLITE_BUSY error will be returned only if the database remains
+        /// locked for more than the specified duration.
+        case Timeout(NSTimeInterval)
+        
+        /// A custom callback that is called when a database is locked.
+        /// See https://www.sqlite.org/c3ref/busy_handler.html
+        case Callback(BusyCallback)
+    }
+    
     /// The database configuration
     let configuration: Configuration
+    
+    /// The busy handler callback, if any. See Configuration.busyMode.
+    var busyCallback: BusyCallback?
     
     /// The SQLite connection handle
     let sqliteConnection: SQLiteConnection
@@ -372,6 +419,17 @@ public final class Database {
         if configuration.foreignKeysEnabled {
             try execute("PRAGMA foreign_keys = ON")
         }
+        
+        switch configuration.busyMode {
+        case .ImmediateError:
+            break
+        case .Timeout(let duration):
+            let milliseconds = Int32(duration * 1000)
+            sqlite3_busy_timeout(sqliteConnection, milliseconds)
+        case .Callback(let callback):
+            self.busyCallback = callback
+            sqlite3_busy_handler(sqliteConnection, sqliteBusyHandler, unsafeBitCast(self, UnsafeMutablePointer<Void>.self))
+        }
     }
     
     // Initializes an in-memory database
@@ -388,6 +446,12 @@ public final class Database {
             fatalError("Database was not used on the correct queue. Execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). Consider using fetchAll() method if this error message happens when iterating the result of the fetch() method.")
         }
     }
+}
+
+let sqliteBusyHandler: @convention(c) (UnsafeMutablePointer<Void>, Int32) -> Int32 = { dbPointer, numberOfTries in
+    let database = unsafeBitCast(dbPointer, Database.self)
+    let callback = database.busyCallback!
+    return callback(numberOfTries: Int(numberOfTries)) ? 1 : 0
 }
 
 
