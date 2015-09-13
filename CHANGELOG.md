@@ -6,6 +6,11 @@ Release Notes
 **New**
 
 - `Configuration.busyMode` let you specify how concurrent connections should handle database locking.
+- `Configuration.transactionType` let you specify the default transaction type.
+
+**Breaking changes**
+
+- Default transaction type has changed from EXCLUSIVE to IMMEDIATE.
 
 
 ## 0.15.0
