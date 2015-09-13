@@ -776,7 +776,7 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
     ```swift
     // May crash with fatal error:
     // SQLite error 5 with statement `SELECT ...`: database is locked
-    try dbQueue.inDatabase { db in
+    dbQueue.inDatabase { db in
         let persons = Person.fetch(db, "SELECT ...")
     }
     ```
