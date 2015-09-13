@@ -767,7 +767,7 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 **Things turn more complex as soon as there are several connections to a database file.** Here are a few questions you may ask yourself:
 
-1. Should a reader be allowed to read while a writer is writing?
+1. **Should a reader be allowed to read while a writer is writing?**
     
     *By default*, readers can't read while a writer is writing.
     
@@ -777,13 +777,13 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
     
     The busy error itself can be avoided: see below.
 
-2. Should a reader see the changes committed by writers during its reading session? The uncommited changes?
+2. **Should a reader see the changes committed by writers during its reading session? The uncommited changes?**
 
     *By default*, a reading session wrapped in a single IMMEDIATE OR EXCLUSIVE transaction can't be affected by any other concurrent writer, since all writers are locked out of the database during the reading transaction.
 
-3. How to handle the failure when a connection tries to access the database that is already locked by another connection?
+3. **How to handle the failure when a connection fails to access the database that is already locked by another connection?**
     
-    *By default*, **A SQLITE_BUSY error** is returned as soon as a connection tries to access a database that is already locked.
+    *By default*, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked.
 
 
 **You can change this default concurrency handling.**
