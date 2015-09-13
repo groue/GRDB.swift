@@ -111,9 +111,10 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
         - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
         - [Swift enums](#swift-enums)
         - [Custom Value Types](#custom-value-types)
-    - [Transactions and Concurrency](#transactions-and-concurrency)
+    - [Transactions](#transactions)
     - [Prepared Statements](#prepared-statements)
     - [Error Handling](#error-handling)
+    - [Concurrency](#concurrency)
 - [Migrations](#migrations)
 - [Records](#records)
     - [Core Methods](#core-methods)
@@ -152,7 +153,7 @@ let dbQueue = try DatabaseQueue(
     configuration: configuration)
 ```
 
-See [Transactions and Concurrency](#transactions-and-concurrency) for more details on database configuration.
+See [Concurrency](#concurrency) for more details on database configuration.
 
 The `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
 
@@ -183,7 +184,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-See [Transactions and Concurrency](#transactions-and-concurrency) for more information about GRDB transaction handling.
+See [Transactions](#transactions) for more information about GRDB transaction handling.
 
 To create tables, we recommend using [migrations](#migrations).
 
@@ -653,7 +654,7 @@ The interested reader should know that GRDB.swift *does not* use SQLite built-in
 Your [Custom Value Types](#custom-value-types) can perform their own conversions to and from SQLite storage classes.
 
 
-### Transactions and Concurrency
+### Transactions
 
 The `DatabaseQueue.inTransaction()` method opens a SQLite transaction:
 
@@ -667,50 +668,7 @@ try dbQueue.inTransaction { db in
 
 A ROLLBACK statement is issued if an error is thrown within the transaction block.
 
-Otherwise, transactions are guaranteed to succeed, *provided there is a single DatabaseQueue connected to the database file*.
-
-
-#### Concurrency
-
-**When your application uses a single DatabaseQueue, it has no concurrency issues.** That is because all your database statements are executed in a single, serial, dispatch queue.
-
-However, using several connections to a database file can give you extra concurrency performance, at the cost of possible SQLITE_BUSY errors:
-
-```swift
-let path = "/path/to/database.sqlite"
-let dbQueue1 = try DatabaseQueue(path: path)
-let dbQueue2 = try DatabaseQueue(path: path)
-
-// Now you may have to manage DatabaseErrors of code SQLITE_BUSY:
-try dbQueue1.inTransaction { ... }
-try dbQueue2.inTransaction { ... }
-```
-
-The interested reader should now that by default, GRDB opens database in the **DELETE journal mode**, uses **EXCLUSIVE transactions**, and registers **no busy handler** of any kind. Override those defaults with Configuration, or by providing a transaction type to the inTransaction method:
-
-```swift
-let configuration = Configuration(
-    transactionType: .Exclusive,    // Default transaction type.
-    busyMode: .Timeout(1))          // Wait at most 1 second before SQLITE_BUSY
-                                    // is thrown.
-    
-let dbQueue = try DatabaseQueue(
-    path: "/path/to/database.sqlite",
-    configuration: configuration)
-    
-try dbQueue.inTransaction { ... }               // BEGIN EXCLUSIVE TRANSACTION
-try dbQueue.inTransaction(.Exclusive) { ... }   // BEGIN EXCLUSIVE TRANSACTION
-try dbQueue.inTransaction(.Immediate) { ... }   // BEGIN IMMEDIATE TRANSACTION
-try dbQueue.inTransaction(.Deferred) { ... }    // BEGIN DEFERRED TRANSACTION
-```
-
-The relevant pieces of SQLite documentation are:
-
-- https://www.sqlite.org/isolation.html
-- https://www.sqlite.org/lang_transaction.html
-- https://www.sqlite.org/wal.html
-- https://www.sqlite.org/c3ref/busy_timeout.html
-- https://www.sqlite.org/c3ref/busy_handler.html
+Otherwise, transactions are guaranteed to succeed, *provided there is a single DatabaseQueue connected to the database file*. See [Concurrency](#concurrency) for more information about concurrent database access.
 
 
 ### Prepared Statements
@@ -768,12 +726,10 @@ dbQueue.inDatabase { db in
 
 **The rule** is:
 
-- All methods that *read* data crash.
+- All methods that *read* data crash without notice.
 - All methods that *write* data throw.
 
-> Rationale: we assume that *all* reading errors are either SQL errors that the developer should fix (a syntax error, a wrong column name), or external I/O errors that are beyond repair and better hidden behind a crash. Write errors may be relational errors (violated unique index, missing reference) and you may want to handle relational errors yourselves.
->
-> Please open an [issue](https://github.com/groue/GRDB.swift/issues) if you need fine tuning of select errors.
+**When there are several concurrent connections to a single database file, reading methods may fail, and crash.** To avoid those failure, wrap your concurrent reading methods in a transaction, and see [Concurrency](#concurrency) for more information about concurrent database access.
 
 ```swift
 // fatal error:
@@ -803,6 +759,56 @@ do {
 ```
 
 See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
+
+
+#### Concurrency
+
+**When your application has a single DatabaseQueue connected to the database file, it has no concurrency issues.** That is because all your database statements are executed in a single serial dispatch queue that is connected alone to the database.
+
+**Things turn more complex as soon as there are several connections to a database file.** Here are a few questions you may ask yourself:
+
+1. Should a reader be allowed to read while a writer is writing?
+    
+    *By default*, readers can't read while a writer is writing.
+    
+    If a database is in the middle of a transaction, all concurrent SELECT queries will fail with a SQLITE_BUSY error, and *crash*, since reading errors are [not recovered](#error-handling).
+    
+    The crashes can be avoided by wrapping the SELECT queries inside IMMEDIATE or EXCLUSIVE transactions (default is EXCLUSIVE): the SQLITE_BUSY error will be reported to you by the BEGIN statement, before any SELECT has the opportunity to crash.
+    
+    The busy error itself can be avoided: see below.
+
+2. Should a reader see the changes committed by writers during its reading session? The uncommited changes?
+
+    *By default*, a reading session wrapped in a single IMMEDIATE OR EXCLUSIVE transaction can't be affected by any other concurrent writer, since all writers are locked out of the database during the reading transaction.
+
+3. How to handle the failure when a connection tries to access the database that is already locked by another connection?
+    
+    *By default*, **A SQLITE_BUSY error** is returned as soon as a connection tries to access a database that is already locked.
+
+
+**You can change this default concurrency handling.**
+
+In particular, the SQLITE_BUSY errors can be limited with a *busy timeout*:
+
+```swift
+// When the database is locked, wait up to 1 second before throwing SQLITE_BUSY.
+let configuration = Configuration(busyMode: .Timeout(1))
+    
+let dbQueue = try DatabaseQueue(
+    path: "/path/to/database.sqlite",
+    configuration: configuration)
+```
+
+For more advanced handling, you should become familiar with the fragmented landscape of SQLite concurrency:
+
+- General discussion about isolation in SQLite: https://www.sqlite.org/isolation.html
+- Types of transactions: https://www.sqlite.org/lang_transaction.html
+- WAL journal mode: https://www.sqlite.org/wal.html
+- Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
+
+The interested reader should know that by default, GRDB opens database in the **default journal mode**, uses **EXCLUSIVE transactions**, and registers **no busy handler** of any kind.
+
+See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTransaction()](GRDB/Core/DatabaseQueue.swift) method for more precise handling of transactions and SQLITE_BUSY errors.
 
 
 ## Migrations
@@ -1256,6 +1262,19 @@ CREATE TABLE persons (
 let person = Person(name: "Arthur")
 person.insert(db)   // Replace any existing person named "Arthur"
 ```
+
+
+
+
+**First, your SELECT queries can fail.** Database may be locked by a writer that and expell a readers from performing aWriters can prevent readers to read
+You must wrap your reading statements in transactions when 
+Given that SQLite only supports a [single writer](https://www.sqlite.org/isolation.html) on a given database file, things turn more complex as soon as there are several connections to a database file.
+
+Here are a few steps that you *need*
+
+
+
+
 
 
 ## Thanks
