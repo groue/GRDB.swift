@@ -775,9 +775,19 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 2. **Should a reader see the changes committed by writers during its reading session? The uncommitted changes?**
 
-    By default, the answer is no, to both committed and uncommitted changes.
+    By default, the answer is yes, to committed changes.
     
-    Yet, between two consecutive SELECT statements, a concurrent writer may have changed the state of the database. Wrap those SELECT statements in a *deferred* transaction so that those changes do not interfere.
+    Between two consecutive SELECT statements, or during the iteration of a query results, a concurrent writer may change the state of the database. Wrap those SELECT statements in a *deferred* transaction so that those changes do not interfere:
+    
+    ```swift
+    try dbQueue.inTransaction(.Deferred) { db in
+        // Here changes done by concurrent writers are invisible.
+        for row in Row.fetch(db, "SELECT ...") {
+            ...
+        }
+        return .Commit
+    }
+    ```
 
 3. **How to handle the failure when a connection fails to access the database that is already locked by another connection?**
     
