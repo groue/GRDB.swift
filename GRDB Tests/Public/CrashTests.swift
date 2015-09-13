@@ -469,4 +469,48 @@ class CrashTests: GRDBTestCase {
             }
         }
     }
+    
+    
+    // =========================================================================
+    // MARK: Concurrency
+    
+    func testReaderCrashDuringExclusiveTransaction() {
+        assertCrash("SQLite error 5 with statement `SELECT * FROM stuffs`: database is locked") {
+            databasePath = "/tmp/GRDBTestReaderDuringExclusiveTransaction.sqlite"
+            do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
+            let dbQueue1 = try! DatabaseQueue(path: databasePath)
+            let dbQueue2 = try! DatabaseQueue(path: databasePath)
+            
+            try! dbQueue1.inDatabase { db in
+                try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+            }
+            
+            let queue = NSOperationQueue()
+            queue.maxConcurrentOperationCount = 2
+            queue.addOperation(NSBlockOperation {
+                do {
+                    try dbQueue1.inTransaction(.Exclusive) { db in
+                        sleep(2)    // let other queue try to read.
+                        return .Commit
+                    }
+                }
+                catch is DatabaseError {
+                }
+                catch {
+                    XCTFail("\(error)")
+                }
+                })
+            
+            queue.addOperation(NSBlockOperation {
+                dbQueue2.inDatabase { db in
+                    sleep(1)    // let other queue open transaction
+                    Row.fetch(db, "SELECT * FROM stuffs")   // Crash expected
+                }
+                })
+            
+            queue.waitUntilAllOperationsAreFinished()
+        }
+    }
+    
+
 }
