@@ -763,7 +763,7 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 #### Concurrency
 
-**When your application has a single DatabaseQueue connected to the database file, it has no concurrency issues.** That is because all your database statements are executed in a single serial dispatch queue that is connected alone to the database.
+**When your application has a single DatabaseQueue connected to the database file, it has no concurrency issue.** That is because all your database statements are executed in a single serial dispatch queue that is connected alone to the database.
 
 **Things turn more complex as soon as there are several connections to a database file.** Here are a few questions you may ask yourself, because the default answers of GRDB may not fit your needs:
 
