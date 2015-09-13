@@ -773,17 +773,17 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
     
     If a database is in the middle of a transaction, all concurrent SELECT queries will fail with a SQLITE_BUSY error, and *crash*, since reading errors are [not recovered](#error-handling).
     
-    The crash itself is avoided by wrapping the SELECT queries inside a transaction: the SQLITE_BUSY error will be reported to you by the BEGIN statement, before any SELECT has the opportunity to crash.
+    The crash itself is avoided by wrapping the SELECT queries inside a transaction (exclusive by default): the SQLITE_BUSY error will be reported to you by the BEGIN statement, before any SELECT has the opportunity to crash.
     
     The busy error can be avoided as well: see below.
 
 2. **Should a reader see the changes committed by writers during its reading session? The uncommited changes?**
 
-    *By default*, a reading session wrapped in a single IMMEDIATE OR EXCLUSIVE transaction can't be affected by any other concurrent writer, since all writers are locked out of the database during the reading transaction.
+    *By default*, a reading session wrapped in a single transaction (exclusive by default) can't be affected by any other concurrent writer, since exclusive transactions lock all writers out.
 
 3. **How to handle the failure when a connection fails to access the database that is already locked by another connection?**
     
-    *By default*, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked.
+    *By default*, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked. This error can be avoided: see below.
 
 
 **You can change this default concurrency handling.**
