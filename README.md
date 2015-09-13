@@ -769,33 +769,15 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 1. **Should a reader be allowed to read while a writer is writing?**
     
-    *By default*, GRDB's answer is clear and loud: readers actually *crash* if they read while a writer is writing:
+    *By default*, the answer is yes.
     
-    The writer has acquired a lock on the database which makes all concurrent SELECT queries fail with a SQLITE_BUSY error. Since [GRDB does not recover reading errors](#error-handling), the error turns into a crash.
-    
-    ```swift
-    // May crash with fatal error:
-    // SQLite error 5 with statement `SELECT ...`: database is locked
-    dbQueue.inDatabase { db in
-        let persons = Person.fetch(db, "SELECT ...")
-    }
-    ```
-    
-    Avoid this crash by wrapping the SELECT query inside a transaction (exclusive by default): the SQLITE_BUSY error will be reported to you by the BEGIN statement, before the SELECT has the opportunity to crash:
-    
-    ```swift
-    // May throw a DatabaseError of code SQLITE_BUSY:
-    try dbQueue.inTransaction { db in
-        let persons = Person.fetch(db, "SELECT ...")
-        return .Commit
-    }
-    ```
-    
-    The busy error itself can be avoided, by avoiding the lock, or by waiting until the lock is released: see below.
+    GRDB transactions are *immediate* by default, and immediate transactions don't lock SELECT queries out.
 
-2. **Should a reader see the changes committed by writers during its reading session? The uncommited changes?**
+2. **Should a reader see the changes committed by writers during its reading session? The uncommitted changes?**
 
-    *By default*, a reading session wrapped in a single transaction (exclusive by default) can't be affected by any other concurrent writer, since exclusive transactions lock all writers out.
+    *By default*, the answer is no, to both committed and uncommitted changes.
+    
+    Yet, between two consecutive SELECT statements, a concurrent writer may have changed the state of the database. Wrap those SELECT statements in a *deferred* transaction so that those changes do not interfere.
 
 3. **How to handle the failure when a connection fails to access the database that is already locked by another connection?**
     
@@ -824,7 +806,7 @@ For more advanced handling, you should become familiar with the fragmented lands
 - WAL journal mode: https://www.sqlite.org/wal.html
 - Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
 
-The interested reader should know that by default, GRDB opens database in the **default journal mode**, uses **EXCLUSIVE transactions**, and registers **no busy handler** of any kind.
+The interested reader should know that by default, GRDB opens database in the **default journal mode**, uses **IMMEDIATE transactions**, and registers **no busy handler** of any kind.
 
 See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTransaction()](GRDB/Core/DatabaseQueue.swift) method for more precise handling of transactions and SQLITE_BUSY errors.
 

@@ -82,7 +82,7 @@ public struct Configuration {
     - parameter readonly: If false (the default), the database will be created
       and opened for writing. If true, the database is opened readonly.
     - parameter transactionType: An optional transaction type (default
-      .Exclusive). Unless specified otherwise, transactions opened by
+      .Immediate). Unless specified otherwise, transactions opened by
       DatabaseQueue.inTransaction() will use this transaction type. See
       https://www.sqlite.org/lang_transaction.html for more information.
     - parameter busyMode: A BusyMode (default .ImmediateError).
@@ -92,7 +92,7 @@ public struct Configuration {
     public init(
         foreignKeysEnabled: Bool = true,
         readonly: Bool = false,
-        transactionType: Database.TransactionType = .Exclusive,
+        transactionType: Database.TransactionType = .Immediate,
         busyMode: Database.BusyMode = .ImmediateError,
         trace: TraceFunction? = nil)
     {

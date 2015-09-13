@@ -113,7 +113,7 @@ public final class DatabaseQueue {
     
     - parameter type: The transaction type (default nil). If nil, the
       transaction type is configuration.transactionType, which itself defaults
-      to .Exclusive. See https://www.sqlite.org/lang_transaction.html for more
+      to .Immediate. See https://www.sqlite.org/lang_transaction.html for more
       information.
     - parameter block: A block that executes SQL statements and return either
       .Commit or .Rollback.

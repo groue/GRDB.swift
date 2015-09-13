@@ -221,4 +221,43 @@ class ConcurrencyTests: XCTestCase {
         queue.waitUntilAllOperationsAreFinished()
         XCTAssertTrue(concurrencyError == nil)
     }
+
+    func testReaderDoNotCrashDuringDefaultTransaction() {
+        databasePath = "/tmp/GRDBTestReaderDuringDefaultTransaction.sqlite"
+        do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
+        let dbQueue1 = try! DatabaseQueue(path: databasePath)
+        let dbQueue2 = try! DatabaseQueue(path: databasePath)
+        
+        try! dbQueue1.inDatabase { db in
+            try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+        }
+        
+        var rows: [Row] = []
+        let queue = NSOperationQueue()
+        queue.maxConcurrentOperationCount = 2
+        queue.addOperation(NSBlockOperation {
+            do {
+                try dbQueue1.inTransaction { db in
+                    try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
+                    sleep(2)    // let other queue try to read.
+                    return .Commit
+                }
+            }
+            catch is DatabaseError {
+            }
+            catch {
+                XCTFail("\(error)")
+            }
+            })
+        
+        queue.addOperation(NSBlockOperation {
+            dbQueue2.inDatabase { db in
+                sleep(1)    // let other queue write
+                rows = Row.fetchAll(db, "SELECT * FROM stuffs")
+            }
+            })
+        
+        queue.waitUntilAllOperationsAreFinished()
+        XCTAssertEqual(rows.count, 0)
+    }
 }
