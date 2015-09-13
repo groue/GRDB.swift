@@ -773,9 +773,9 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
     
     If a database is in the middle of a transaction, all concurrent SELECT queries will fail with a SQLITE_BUSY error, and *crash*, since reading errors are [not recovered](#error-handling).
     
-    The crashes can be avoided by wrapping the SELECT queries inside IMMEDIATE or EXCLUSIVE transactions (default is EXCLUSIVE): the SQLITE_BUSY error will be reported to you by the BEGIN statement, before any SELECT has the opportunity to crash.
+    The crash itself is avoided by wrapping the SELECT queries inside a transaction: the SQLITE_BUSY error will be reported to you by the BEGIN statement, before any SELECT has the opportunity to crash.
     
-    The busy error itself can be avoided: see below.
+    The busy error can be avoided as well: see below.
 
 2. **Should a reader see the changes committed by writers during its reading session? The uncommited changes?**
 
