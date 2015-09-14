@@ -763,60 +763,18 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 **When your application has a single DatabaseQueue connected to the database file, it has no concurrency issue.** That is because all your database statements are executed in a single serial dispatch queue that is connected alone to the database.
 
-**Things turn more complex as soon as there are several connections to a database file.** Here are a few questions you may ask yourself, because the default answers of GRDB may not fit your needs:
+**Things turn more complex as soon as there are several connections to a database file.**
 
-1. **Should a reader be allowed to read while a writer is writing?**
-    
-    By default, the answer is yes.
-    
-    GRDB transactions are *immediate* by default, and immediate transactions don't lock SELECT queries out.
-
-2. **Should a reader see the changes committed by writers during its reading session? The uncommitted changes?**
-
-    By default, the answer is yes, to committed changes.
-    
-    Between two consecutive SELECT statements, or during the iteration of a query results, a concurrent writer may change the state of the database. Wrap those SELECT statements in a *deferred* transaction so that those changes do not interfere:
-    
-    ```swift
-    try dbQueue.inTransaction(.Deferred) { db in
-        // Here changes done by concurrent writers are invisible.
-        for row in Row.fetch(db, "SELECT ...") {
-            ...
-        }
-        return .Commit
-    }
-    ```
-
-3. **How to handle the failure when a connection fails to access the database that is already locked by another connection?**
-    
-    There can only be a single writer at a time to an SQLite database. By default, a SQLITE_BUSY error is returned as soon as a connection tries to access a database that is already locked.
-    
-    You can handle this busy error, or avoid it by waiting until the lock is released: see below.
-
-
-**You can change this default concurrency handling.**
-
-In particular, you can postpone SQLITE_BUSY with a *busy timeout*:
-
-```swift
-// When the database is locked, wait up to 1 second before throwing SQLITE_BUSY.
-let configuration = Configuration(busyMode: .Timeout(1))
-
-let dbQueue = try DatabaseQueue(
-    path: "/path/to/database.sqlite",
-    configuration: configuration)
-```
-
-For more advanced handling, you should become familiar with the fragmented landscape of SQLite concurrency:
+SQLite concurrency management is fragmented. Documents of interest include:
 
 - General discussion about isolation in SQLite: https://www.sqlite.org/isolation.html
 - Types of locks and transactions: https://www.sqlite.org/lang_transaction.html
 - WAL journal mode: https://www.sqlite.org/wal.html
 - Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
 
-The interested reader should know that by default, GRDB opens database in the **default journal mode**, uses **IMMEDIATE transactions**, and registers **no busy handler** of any kind.
+By default, GRDB opens database in the **default journal mode**, uses **IMMEDIATE transactions**, and registers **no busy handler** of any kind.
 
-See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTransaction()](GRDB/Core/DatabaseQueue.swift) method for more precise handling of transactions and SQLITE_BUSY errors.
+See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTransaction()](GRDB/Core/DatabaseQueue.swift) method for more precise handling of transactions and eventual SQLITE_BUSY errors.
 
 
 ## Migrations
