@@ -3,9 +3,13 @@ import GRDB
 
 class ConcurrencyTests: XCTestCase {
     var databasePath: String!
-    var dbQueue1: DatabaseQueue!
-    var dbQueue2: DatabaseQueue!
     var busyCallback: Database.BusyCallback?
+    
+    var dbQueue1: DatabaseQueue!
+    var dbLog1: [String]!
+    
+    var dbQueue2: DatabaseQueue!
+    var dbLog2: [String]!
     
     override func setUp() {
         super.setUp()
@@ -20,11 +24,25 @@ class ConcurrencyTests: XCTestCase {
                 return false
             }
         }
-        let configuration = Configuration(
+        let baseConfiguration = Configuration(
             trace: Configuration.logSQL,
             busyMode: .Callback(busyCallback))
-        dbQueue1 = try! DatabaseQueue(path: databasePath, configuration: configuration)
-        dbQueue2 = try! DatabaseQueue(path: databasePath, configuration: configuration)
+        
+        dbLog1 = []
+        var configuration1 = baseConfiguration
+        configuration1.trace = { (sql, arguments) in
+            NSLog("Queue 1: %@", sql)
+            self.dbLog1.append(sql)
+        }
+        dbQueue1 = try! DatabaseQueue(path: databasePath, configuration: configuration1)
+        
+        dbLog2 = []
+        var configuration2 = baseConfiguration
+        configuration2.trace = { (sql, arguments) in
+            NSLog("Queue 2: %@", sql)
+            self.dbLog2.append(sql)
+        }
+        dbQueue2 = try! DatabaseQueue(path: databasePath, configuration: configuration2)
     }
     
     override func tearDown() {
@@ -39,45 +57,60 @@ class ConcurrencyTests: XCTestCase {
             try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
         }
         
-        var concurrencyError: DatabaseError? = nil
+        // Queue 1                              Queue 2
+        // BEGIN DEFERRED TRANSACTION
+        let s1 = dispatch_semaphore_create(0)
+        //                                      BEGIN DEFERRED TRANSACTION
+        let s2 = dispatch_semaphore_create(0)
+        // INSERT INTO stuffs (id) VALUES (NULL)
+        let s3 = dispatch_semaphore_create(0)
+        // Error:                               INSERT INTO stuffs (id) VALUES (NULL)
+        //                                      ROLLBACK
+        let s4 = dispatch_semaphore_create(0)
+        // COMMIT
         
-        let queue = NSOperationQueue()
-        queue.maxConcurrentOperationCount = 2
-        queue.addOperation(NSBlockOperation {
+        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let group = dispatch_group_create()
+        
+        // Queue 1
+        dispatch_group_async(group, queue) {
             do {
                 try self.dbQueue1.inTransaction(.Deferred) { db in
-                    sleep(1)    // make sure other transaction is opened
+                    dispatch_semaphore_signal(s1)
+                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                     try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
-                    sleep(1)    // let other transaction try to update database
+                    dispatch_semaphore_signal(s3)
+                    dispatch_semaphore_wait(s4, DISPATCH_TIME_FOREVER)
                     return .Commit
                 }
-            }
-            catch let error as DatabaseError {
-                concurrencyError = error
             }
             catch {
                 XCTFail("\(error)")
             }
-            })
+        }
 
-        queue.addOperation(NSBlockOperation {
+        // Queue 2
+        var concurrencyError: DatabaseError? = nil
+        dispatch_group_async(group, queue) {
             do {
+                dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                 try self.dbQueue2.inTransaction(.Deferred) { db in
-                    sleep(1)    // make sure other transaction is opened
+                    dispatch_semaphore_signal(s2)
+                    dispatch_semaphore_wait(s3, DISPATCH_TIME_FOREVER)
                     try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
-                    sleep(1)    // let other transaction try to update database
                     return .Commit
                 }
             }
             catch let error as DatabaseError {
+                dispatch_semaphore_signal(s4)
                 concurrencyError = error
             }
             catch {
                 XCTFail("\(error)")
             }
-            })
+        }
         
-        queue.waitUntilAllOperationsAreFinished()
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER)
         
         if let concurrencyError = concurrencyError {
             XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
@@ -88,41 +121,50 @@ class ConcurrencyTests: XCTestCase {
     }
     
     func testExclusiveTransactionConcurrency() {
-        var concurrencyError: DatabaseError? = nil
         
-        let queue = NSOperationQueue()
-        queue.maxConcurrentOperationCount = 2
-        queue.addOperation(NSBlockOperation {
+        // Queue 1                              Queue 2
+        // BEGIN EXCLUSIVE TRANSACTION
+        let s1 = dispatch_semaphore_create(0)
+        // Error:                               BEGIN EXCLUSIVE TRANSACTION
+        let s2 = dispatch_semaphore_create(0)
+        // COMMIT
+        
+        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let group = dispatch_group_create()
+        
+        // Queue 1
+        dispatch_group_async(group, queue) {
             do {
                 try self.dbQueue1.inTransaction(.Exclusive) { db in
-                    sleep(1)    // let other queue try to open transaction
+                    dispatch_semaphore_signal(s1)
+                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                     return .Commit
                 }
-            }
-            catch let error as DatabaseError {
-                concurrencyError = error
             }
             catch {
                 XCTFail("\(error)")
             }
-            })
+        }
         
-        queue.addOperation(NSBlockOperation {
+        // Queue 2
+        var concurrencyError: DatabaseError? = nil
+        dispatch_group_async(group, queue) {
             do {
+                dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                 try self.dbQueue2.inTransaction(.Exclusive) { db in
-                    sleep(1)    // let other queue try to open transaction
                     return .Commit
                 }
             }
             catch let error as DatabaseError {
+                dispatch_semaphore_signal(s2)
                 concurrencyError = error
             }
             catch {
                 XCTFail("\(error)")
             }
-            })
+        }
         
-        queue.waitUntilAllOperationsAreFinished()
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER)
         
         if let concurrencyError = concurrencyError {
             XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
@@ -133,41 +175,50 @@ class ConcurrencyTests: XCTestCase {
     }
     
     func testImmediateTransactionConcurrency() {
-        var concurrencyError: DatabaseError? = nil
         
-        let queue = NSOperationQueue()
-        queue.maxConcurrentOperationCount = 2
-        queue.addOperation(NSBlockOperation {
+        // Queue 1                              Queue 2
+        // BEGIN IMMEDIATE TRANSACTION
+        let s1 = dispatch_semaphore_create(0)
+        // Error:                               BEGIN IMMEDIATE TRANSACTION
+        let s2 = dispatch_semaphore_create(0)
+        // COMMIT
+        
+        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let group = dispatch_group_create()
+        
+        // Queue 1
+        dispatch_group_async(group, queue) {
             do {
                 try self.dbQueue1.inTransaction(.Immediate) { db in
-                    sleep(1)    // let other queue try to open transaction
+                    dispatch_semaphore_signal(s1)
+                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                     return .Commit
                 }
-            }
-            catch let error as DatabaseError {
-                concurrencyError = error
             }
             catch {
                 XCTFail("\(error)")
             }
-            })
+        }
         
-        queue.addOperation(NSBlockOperation {
+        // Queue 2
+        var concurrencyError: DatabaseError? = nil
+        dispatch_group_async(group, queue) {
             do {
+                dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                 try self.dbQueue2.inTransaction(.Immediate) { db in
-                    sleep(1)    // let other queue try to open transaction
                     return .Commit
                 }
             }
             catch let error as DatabaseError {
+                dispatch_semaphore_signal(s2)
                 concurrencyError = error
             }
             catch {
                 XCTFail("\(error)")
             }
-            })
+        }
         
-        queue.waitUntilAllOperationsAreFinished()
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER)
         
         if let concurrencyError = concurrencyError {
             XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
@@ -178,48 +229,54 @@ class ConcurrencyTests: XCTestCase {
     }
     
     func testBusyCallback() {
-        self.busyCallback = { numberOfTries in
-            // Just wait until lock is released.
-            sleep(1)
+        // Queue 1                              Queue 2
+        // BEGIN EXCLUSIVE TRANSACTION
+        let s1 = dispatch_semaphore_create(0)
+        // Busy:                                BEGIN EXCLUSIVE TRANSACTION
+        // COMMIT
+        //                                      BEGIN EXCLUSIVE TRANSACTION
+        //                                      COMMIT
+        
+        var numberOfTries = 0
+        self.busyCallback = { n in
+            numberOfTries = n
+            usleep(10_000) // 0.01s
             return true
         }
 
-        var concurrencyError: DatabaseError? = nil
         
-        let queue = NSOperationQueue()
-        queue.maxConcurrentOperationCount = 2
-        queue.addOperation(NSBlockOperation {
+        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let group = dispatch_group_create()
+        
+        // Queue 1
+        dispatch_group_async(group, queue) {
             do {
                 try self.dbQueue1.inTransaction(.Exclusive) { db in
-                    sleep(1)    // let other queue try to open transaction
+                    dispatch_semaphore_signal(s1)
+                    usleep(100_000) // 0.1s
                     return .Commit
                 }
-            }
-            catch let error as DatabaseError {
-                concurrencyError = error
             }
             catch {
                 XCTFail("\(error)")
             }
-            })
+        }
         
-        queue.addOperation(NSBlockOperation {
+        // Queue 2
+        dispatch_group_async(group, queue) {
             do {
+                dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                 try self.dbQueue2.inTransaction(.Exclusive) { db in
-                    sleep(1)    // let other queue try to open transaction
                     return .Commit
                 }
-            }
-            catch let error as DatabaseError {
-                concurrencyError = error
             }
             catch {
                 XCTFail("\(error)")
             }
-            })
+        }
         
-        queue.waitUntilAllOperationsAreFinished()
-        XCTAssertTrue(concurrencyError == nil)
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER)
+        XCTAssertTrue(numberOfTries > 0)
     }
 
     func testReaderDoNotCrashDuringDefaultTransaction() {
