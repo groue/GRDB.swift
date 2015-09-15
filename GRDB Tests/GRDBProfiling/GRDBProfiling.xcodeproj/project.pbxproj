@@ -1,0 +1,377 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		56537C761BA8871A00E87787 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56537C751BA8871A00E87787 /* AppDelegate.swift */; };
+		56537C781BA8871A00E87787 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56537C771BA8871A00E87787 /* ViewController.swift */; };
+		56537C7A1BA8871A00E87787 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56537C791BA8871A00E87787 /* Assets.xcassets */; };
+		56537C7D1BA8871A00E87787 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56537C7B1BA8871A00E87787 /* Main.storyboard */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		56537C8B1BA8874F00E87787 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DC3773F319C8CBB3004FCF85;
+			remoteInfo = GRDBOSX;
+		};
+		56537C8D1BA8874F00E87787 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56E5D7F91B4D422D00430942;
+			remoteInfo = GRDBOSXTests;
+		};
+		56537C8F1BA8874F00E87787 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56E5D7CA1B4D3FED00430942;
+			remoteInfo = GRDBiOS;
+		};
+		56537C911BA8874F00E87787 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56E5D7D31B4D3FEE00430942;
+			remoteInfo = GRDBiOSTests;
+		};
+		56537C931BA8875800E87787 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DC3773F219C8CBB3004FCF85;
+			remoteInfo = GRDBOSX;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		56537C721BA8871A00E87787 /* GRDBProfiling.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBProfiling.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		56537C751BA8871A00E87787 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		56537C771BA8871A00E87787 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		56537C791BA8871A00E87787 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		56537C7C1BA8871A00E87787 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		56537C7E1BA8871A00E87787 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		56537C841BA8874F00E87787 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../GRDB.xcodeproj; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		56537C6F1BA8871A00E87787 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		56537C691BA8871A00E87787 = {
+			isa = PBXGroup;
+			children = (
+				56537C841BA8874F00E87787 /* GRDB.xcodeproj */,
+				56537C741BA8871A00E87787 /* GRDBProfiling */,
+				56537C731BA8871A00E87787 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		56537C731BA8871A00E87787 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				56537C721BA8871A00E87787 /* GRDBProfiling.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		56537C741BA8871A00E87787 /* GRDBProfiling */ = {
+			isa = PBXGroup;
+			children = (
+				56537C751BA8871A00E87787 /* AppDelegate.swift */,
+				56537C771BA8871A00E87787 /* ViewController.swift */,
+				56537C791BA8871A00E87787 /* Assets.xcassets */,
+				56537C7B1BA8871A00E87787 /* Main.storyboard */,
+				56537C7E1BA8871A00E87787 /* Info.plist */,
+			);
+			path = GRDBProfiling;
+			sourceTree = "<group>";
+		};
+		56537C851BA8874F00E87787 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				56537C8C1BA8874F00E87787 /* GRDB.framework */,
+				56537C8E1BA8874F00E87787 /* GRDBTests.xctest */,
+				56537C901BA8874F00E87787 /* GRDB.framework */,
+				56537C921BA8874F00E87787 /* GRDBTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		56537C711BA8871A00E87787 /* GRDBProfiling */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56537C811BA8871A00E87787 /* Build configuration list for PBXNativeTarget "GRDBProfiling" */;
+			buildPhases = (
+				56537C6E1BA8871A00E87787 /* Sources */,
+				56537C6F1BA8871A00E87787 /* Frameworks */,
+				56537C701BA8871A00E87787 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				56537C941BA8875800E87787 /* PBXTargetDependency */,
+			);
+			name = GRDBProfiling;
+			productName = GRDBProfiling;
+			productReference = 56537C721BA8871A00E87787 /* GRDBProfiling.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		56537C6A1BA8871A00E87787 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0700;
+				ORGANIZATIONNAME = "Gwendal Roué";
+				TargetAttributes = {
+					56537C711BA8871A00E87787 = {
+						CreatedOnToolsVersion = 7.0;
+					};
+				};
+			};
+			buildConfigurationList = 56537C6D1BA8871A00E87787 /* Build configuration list for PBXProject "GRDBProfiling" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 56537C691BA8871A00E87787;
+			productRefGroup = 56537C731BA8871A00E87787 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 56537C851BA8874F00E87787 /* Products */;
+					ProjectRef = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				56537C711BA8871A00E87787 /* GRDBProfiling */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		56537C8C1BA8874F00E87787 /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 56537C8B1BA8874F00E87787 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56537C8E1BA8874F00E87787 /* GRDBTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBTests.xctest;
+			remoteRef = 56537C8D1BA8874F00E87787 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56537C901BA8874F00E87787 /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 56537C8F1BA8874F00E87787 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56537C921BA8874F00E87787 /* GRDBTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBTests.xctest;
+			remoteRef = 56537C911BA8874F00E87787 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		56537C701BA8871A00E87787 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56537C7A1BA8871A00E87787 /* Assets.xcassets in Resources */,
+				56537C7D1BA8871A00E87787 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		56537C6E1BA8871A00E87787 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56537C781BA8871A00E87787 /* ViewController.swift in Sources */,
+				56537C761BA8871A00E87787 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		56537C941BA8875800E87787 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDBOSX;
+			targetProxy = 56537C931BA8875800E87787 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		56537C7B1BA8871A00E87787 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				56537C7C1BA8871A00E87787 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		56537C7F1BA8871A00E87787 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		56537C801BA8871A00E87787 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		56537C821BA8871A00E87787 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = GRDBProfiling/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBProfiling;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		56537C831BA8871A00E87787 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = GRDBProfiling/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBProfiling;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		56537C6D1BA8871A00E87787 /* Build configuration list for PBXProject "GRDBProfiling" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56537C7F1BA8871A00E87787 /* Debug */,
+				56537C801BA8871A00E87787 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		56537C811BA8871A00E87787 /* Build configuration list for PBXNativeTarget "GRDBProfiling" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56537C821BA8871A00E87787 /* Debug */,
+				56537C831BA8871A00E87787 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 56537C6A1BA8871A00E87787 /* Project object */;
+}
