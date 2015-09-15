@@ -854,7 +854,7 @@ Yet, it does a few things well:
     (person.name, person.citizenshipsCount)
     ```
 
-- **It provides the classic CRUD operations on any database table.** Primary keys can be an automatically generated RowID, or a multi-column primary key, whatever.
+- **It provides the classic CRUD operations.** Primary keys can be an automatically generated RowID, or a multi-column primary key.
     
     ```swift
     let person = Person(name: "Arthur")                  // RowID primary key
@@ -1018,6 +1018,8 @@ try dbQueue.inDatabase { db in
 Records with a multi-column primary key are not supported by `fetchOne(_:primaryKey:)`, which accepts a single value as a key. Instead, use `fetchOne(_:key:)` that uses a dictionary.
 
 `fetchOne(_:key:)` returns the first Record with matching values. Its result is undefined unless the dictionary is *actually* a key.
+
+[Implicit RowIDs](https://www.sqlite.org/lang_createtable.html#rowid) are not supported.
 
 
 #### Insert, Update and Delete
