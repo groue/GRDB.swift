@@ -23,6 +23,10 @@ Features
 - **Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **Database Migrations**
 
+**Users of [ccgus/fmdb](https://github.com/ccgus/fmdb)** will feel at ease with GRDB.swift. They may find GRDB to be easier when [fetching](#fetch-queries) data from the database. And they'll definitely be happy that [database errors](#error-handling) are propertly handled.
+
+**Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that `Item.fetchAll("SELECT * FROM items ORDER BY lastModified DESC")` is not a bad alternative to `Array(db["items"].order(ItemColumns.LastModified.desc)).map { ItemRecord(row: self.rowToDictionary($0))! }`.
+
 
 Usage
 -----
