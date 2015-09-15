@@ -26,7 +26,17 @@ class PersonWithOverrides: Person {
     }
 }
 
-class RecordSubClassTests: RecordTestCase {
+class RecordSubClassTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPerson", Person.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
     
     
     // MARK: - Save

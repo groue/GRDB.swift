@@ -93,7 +93,7 @@ class RecordWithImmutablePropertyAndCustomInitializer : Record {
     }
 }
 
-class RecordInitializersTests : RecordTestCase {
+class RecordInitializersTests : GRDBTestCase {
     
     func testFetchedRecordAreInitializedFromRow() {
         

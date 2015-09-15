@@ -25,7 +25,17 @@ class MinimalSingle: Record {
     }
 }
 
-class MinimalPrimaryKeySingleTests: RecordTestCase {
+class MinimalPrimaryKeySingleTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createMinimalSingle", MinimalSingle.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
     
     
     // MARK: - Insert

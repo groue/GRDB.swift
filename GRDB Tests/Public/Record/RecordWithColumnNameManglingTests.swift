@@ -24,14 +24,27 @@ class BadlyMangledStuff : Record {
         if let dbv = row["mangled_name"] { name = dbv.value() }
         super.updateFromRow(row)
     }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
+    }
 }
 
 class RecordWithColumnNameManglingTests: GRDBTestCase {
     
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createBadlyMangledStuff", BadlyMangledStuff.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
+    
     func testBadlyMangledStuff() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
                 do {
                     let record = BadlyMangledStuff()
                     record.name = "foo"

@@ -61,9 +61,29 @@ class Placemark : Record {
         // Subclasses are required to call super.
         super.updateFromRow(row)
     }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE placemarks (" +
+                "id INTEGER PRIMARY KEY, " +
+                "name TEXT, " +
+                "latitude REAL, " +
+                "longitude REAL" +
+            ")")
+    }
 }
 
-class RecordUpdateFromRowTests: RecordTestCase {
+class RecordUpdateFromRowTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPlacemark", Placemark.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
     
     func testInitFromRow() {
         let parisLatitude = 48.8534100
@@ -106,7 +126,6 @@ class RecordUpdateFromRowTests: RecordTestCase {
         let parisLongitude = 2.3488000
         assertNoError {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE placemarks (id INTEGER PRIMARY KEY, name TEXT, latitude REAL, longitude REAL)")
                 try db.execute("INSERT INTO placemarks (name, latitude, longitude) VALUES (?,?,?)", arguments: ["Paris", parisLatitude, parisLongitude])
                 let paris = Placemark.fetchOne(db, "SELECT * FROM placemarks")!
                 XCTAssertEqual(paris.name!, "Paris")
@@ -121,7 +140,6 @@ class RecordUpdateFromRowTests: RecordTestCase {
         let parisLongitude = 2.3488000
         assertNoError {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE placemarks (id INTEGER PRIMARY KEY, name TEXT, latitude REAL, longitude REAL)")
                 try db.execute("INSERT INTO placemarks (name, latitude, longitude) VALUES (?,?,?)", arguments: ["Paris", parisLatitude, parisLongitude])
                 let paris = Placemark.fetchOne(db, "SELECT * FROM placemarks")!
                 paris.coordinate = nil

@@ -35,7 +35,17 @@ class Item: Record {
     }
 }
 
-class PrimaryKeyNoneTests: RecordTestCase {
+class PrimaryKeyNoneTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createItem", Item.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
     
     
     // MARK: - Insert

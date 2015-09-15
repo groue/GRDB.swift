@@ -1,6 +1,18 @@
 import XCTest
+import GRDB
 
-class RecordFetchTests: RecordTestCase {
+class RecordFetchTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPerson", Person.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
+    
     
     func testSelectStatement() {
         assertNoError {

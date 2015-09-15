@@ -21,7 +21,7 @@ class DoubleColumnRecord : Record {
     }
 }
 
-class RecordDescriptionTests: RecordTestCase {
+class RecordDescriptionTests: GRDBTestCase {
 
     func testRecordWithoutStoredDatabaseDictionaryDescription() {
         let record = RecordWithoutStoredDatabaseDictionary()

@@ -22,9 +22,23 @@ class EventRecorder : Record {
         super.awakeFromFetch(row)
         awakeFromFetchCount += 1
     }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute("CREATE TABLE eventRecorders (id INTEGER PRIMARY KEY)")
+    }
 }
 
 class RecordEventsTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createEventRecorder", EventRecorder.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
     
     func testAwakeFromFetchIsNotTriggeredByInit() {
         let record = EventRecorder()
@@ -39,7 +53,6 @@ class RecordEventsTests: GRDBTestCase {
     func testAwakeFromFetchIsTriggeredByFetch() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE eventRecorders (id INTEGER PRIMARY KEY)")
                 do {
                     let record = EventRecorder()
                     try record.insert(db)
@@ -53,7 +66,6 @@ class RecordEventsTests: GRDBTestCase {
     func testAwakeFromFetchIsTriggeredByReload() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE eventRecorders (id INTEGER PRIMARY KEY)")
                 try EventRecorder().insert(db)
                 do {
                     let record = EventRecorder.fetchOne(db, "SELECT * FROM eventRecorders")!

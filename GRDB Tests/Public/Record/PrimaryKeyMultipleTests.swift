@@ -48,7 +48,17 @@ class Citizenship: Record {
 }
 
 
-class PrimaryKeyMultipleTests: RecordTestCase {
+class PrimaryKeyMultipleTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createCitizenship", Citizenship.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
     
     
     // MARK: - Insert

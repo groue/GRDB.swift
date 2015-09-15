@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class RecordCopyTests: RecordTestCase {
+class RecordCopyTests: GRDBTestCase {
     
     func testRecordCopy() {
         let person1 = Person(id: 123, name: "Arthur", age: 41, creationDate: NSDate())

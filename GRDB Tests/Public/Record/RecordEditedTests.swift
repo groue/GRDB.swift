@@ -14,7 +14,18 @@ class IntegerPropertyOnRealAffinityColumn : Record {
     }
 }
 
-class RecordEditedTests: RecordTestCase {
+class RecordEditedTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPerson", Person.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
+    
     
     func testRecordIsEditedAfterInit() {
         // Create a Record. No fetch has happen, so we don't know if it is

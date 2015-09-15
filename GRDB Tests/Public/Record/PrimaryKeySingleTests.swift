@@ -41,7 +41,17 @@ class Pet: Record {
     }
 }
 
-class PrimaryKeySingleTests: RecordTestCase {
+class PrimaryKeySingleTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPet", Pet.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
     
     
     // MARK: - Insert

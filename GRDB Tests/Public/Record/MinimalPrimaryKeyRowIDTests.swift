@@ -25,7 +25,17 @@ class MinimalRowID: Record {
     }
 }
 
-class MinimalPrimaryKeyRowIDTests: RecordTestCase {
+class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createMinimalRowID", MinimalRowID.setupInDatabase)
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
     
     
     // MARK: - Insert

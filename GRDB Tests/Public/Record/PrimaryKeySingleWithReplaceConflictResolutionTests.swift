@@ -18,19 +18,23 @@ class Email : Record {
         if let dbv = row["label"] { label = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE emails (" +
+                "email TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE, " +
+                "label TEXT " +
+            ")")
+    }
 }
 
-class PrimaryKeySingleWithReplaceConflictResolutionTests: RecordTestCase {
+class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     override func setUp() {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        
-        migrator.registerMigration("createAddresses") { db in
-            try db.execute("CREATE TABLE emails (email TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE, label TEXT)")
-        }
-        
+        migrator.registerMigration("createEmail", Email.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }
