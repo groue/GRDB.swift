@@ -89,10 +89,13 @@ public struct Row: CollectionType {
     - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
-        return impl
-            .databaseValue(atIndex: index)
-            .value()
+        return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
     }
+    
+    public func unsafeInt64(atIndex index: Int32) -> Int64 {
+        return sqlite3_column_int64(impl.sqliteStatement, index)
+    }
+
     
     /**
     Returns the value for the given column.
@@ -318,7 +321,11 @@ public struct Row: CollectionType {
     - returns: A lazy sequence of rows.
     */
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return fetch(db.selectStatement(sql), arguments: arguments)
+        return db.selectStatement(sql).fetch(arguments: arguments) { statement in return Row(statement: statement) }
+    }
+    
+    public static func unsafeFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+        return db.selectStatement(sql).fetch(arguments: arguments) { statement in return Row(unsafeStatement: statement) }
     }
     
     /**
@@ -365,12 +372,16 @@ public struct Row: CollectionType {
         self.impl = StatementRowImpl(statement: statement)
     }
     
+    init(unsafeStatement statement: SelectStatement) {
+        self.impl = UnsafeStatementRowImpl(statement: statement)
+    }
     
     // MARK: - DictionaryRowImpl
     
     /// See Row.init(databaseDictionary:)
     private struct DictionaryRowImpl : RowImpl {
         let databaseDictionary: [String: DatabaseValue]
+        var sqliteStatement: SQLiteStatement { return nil }
         
         init (databaseDictionary: [String: DatabaseValue]) {
             self.databaseDictionary = databaseDictionary
@@ -406,6 +417,7 @@ public struct Row: CollectionType {
     private struct StatementRowImpl : RowImpl {
         let databaseValues: [DatabaseValue]
         let columnNames: [String]
+        var sqliteStatement: SQLiteStatement { return nil }
         
         init(statement: SelectStatement) {
             self.databaseValues = (0..<statement.columnCount).map { statement.databaseValue(atIndex: $0) }
@@ -428,6 +440,34 @@ public struct Row: CollectionType {
         func indexForColumn(named name: String) -> Int? {
             let lowercaseName = name.lowercaseString
             return columnNames.indexOf { $0.lowercaseString == lowercaseName }
+        }
+    }
+    
+    
+    private struct UnsafeStatementRowImpl: RowImpl {
+        let statement: SelectStatement
+        var sqliteStatement: SQLiteStatement { return statement.sqliteStatement }
+        
+        init(statement: SelectStatement) {
+            self.statement = statement
+        }
+        
+        var count: Int {
+            return statement.columnCount
+        }
+        
+        func databaseValue(atIndex index: Int) -> DatabaseValue {
+            return statement.databaseValue(atIndex: index)
+        }
+        
+        func columnName(atIndex index: Int) -> String {
+            return statement.columnNames[index]
+        }
+        
+        // This method MUST be case-insensitive.
+        func indexForColumn(named name: String) -> Int? {
+            let lowercaseName = name.lowercaseString
+            return statement.columnNames.indexOf { $0.lowercaseString == lowercaseName }
         }
     }
 }
@@ -453,6 +493,7 @@ extension Row: CustomStringConvertible {
 // The protocol for Row underlying implementation
 protocol RowImpl {
     var count: Int { get }
+    var sqliteStatement: SQLiteStatement { get }
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func columnName(atIndex index: Int) -> String
     func indexForColumn(named name: String) -> Int? // This method MUST be case-insensitive.
