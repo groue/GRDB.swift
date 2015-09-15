@@ -281,16 +281,7 @@ class ConcurrencyTests: XCTestCase {
     }
 
     func testReaderDuringDefaultTransaction() {
-        // Here we test the following assertions in README.md:
-        //
-        // > 1. Should a reader be allowed to read while a writer is writing?
-        // >
-        // >    By default, the answer is yes.
-        // >
-        // > 2. Should a reader see the changes committed by writers during its
-        // >    reading session? The uncommitted changes?
-        // >
-        // >    By default, the answer is yes, to committed changes.
+        // Here we test that a reader can read while a writer is writing.
 
         // Queue 1                              Queue 2
         // BEGIN IMMEDIATE TRANSACTION
