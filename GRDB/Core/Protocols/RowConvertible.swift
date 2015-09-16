@@ -60,11 +60,13 @@ extension RowConvertible {
     - returns: A lazy sequence.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self> {
-        return statement.fetch(arguments: arguments) { statement in
-            let row = Row(statement: statement)
-            let value = Self.init(row: row)
-            value.awakeFromFetch(row)
-            return value
+        return AnySequence {
+            statement.generate(arguments: arguments) {
+                let row = Row(statement: statement)
+                let value = Self.init(row: row)
+                value.awakeFromFetch(row)
+                return value
+            }
         }
     }
     

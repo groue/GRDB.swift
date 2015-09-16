@@ -79,8 +79,10 @@ public extension DatabaseValueConvertible {
     - returns: A lazy sequence of values.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
-        return statement.fetch(arguments: arguments) { statement in
-            return statement.databaseValue(atIndex: 0).value()
+        return AnySequence {
+            statement.generate(arguments: arguments) {
+                statement.databaseValue(atIndex: 0).value()
+            }
         }
     }
     

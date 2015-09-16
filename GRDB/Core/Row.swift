@@ -92,7 +92,7 @@ public struct Row: CollectionType {
         return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
     }
     
-    public func unsafeInt64(atIndex index: Int32) -> Int64 {
+    public func metalInt64(atIndex index: Int32) -> Int64 {
         return sqlite3_column_int64(impl.sqliteStatement, index)
     }
 
@@ -264,7 +264,11 @@ public struct Row: CollectionType {
     - returns: A lazy sequence of rows.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return statement.fetch(arguments: arguments) { statement in return Row(statement: statement) }
+        return AnySequence {
+            statement.generate(arguments: arguments) {
+                Row(statement: statement)
+            }
+        }
     }
     
     /**
@@ -321,11 +325,19 @@ public struct Row: CollectionType {
     - returns: A lazy sequence of rows.
     */
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return db.selectStatement(sql).fetch(arguments: arguments) { statement in return Row(statement: statement) }
+        let statement = db.selectStatement(sql)
+        return AnySequence {
+            statement.generate(arguments: arguments) {
+                Row(statement: statement)
+            }
+        }
     }
     
-    public static func unsafeFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return db.selectStatement(sql).fetch(arguments: arguments) { statement in return Row(unsafeStatement: statement) }
+    public static func metalFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnyGenerator<Row> {
+        let statement = db.selectStatement(sql)
+        return statement.generate(arguments: arguments) {
+            Row(metalStatement: statement)
+        }
     }
     
     /**
@@ -372,8 +384,8 @@ public struct Row: CollectionType {
         self.impl = StatementRowImpl(statement: statement)
     }
     
-    init(unsafeStatement statement: SelectStatement) {
-        self.impl = UnsafeStatementRowImpl(statement: statement)
+    init(metalStatement statement: SelectStatement) {
+        self.impl = MetalStatementRowImpl(statement: statement)
     }
     
     // MARK: - DictionaryRowImpl
@@ -444,7 +456,7 @@ public struct Row: CollectionType {
     }
     
     
-    private struct UnsafeStatementRowImpl: RowImpl {
+    private struct MetalStatementRowImpl: RowImpl {
         let statement: SelectStatement
         var sqliteStatement: SQLiteStatement { return statement.sqliteStatement }
         
