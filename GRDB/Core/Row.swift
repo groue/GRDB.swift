@@ -343,8 +343,6 @@ public struct Row: CollectionType {
     The returned generator is *unsafe* because it must be used with extra care,
     and GRDB.swift will not prevent invalid usage.
     
-    - It MUST be generated and iterated in the database queue.
-    
     - It MUST be iterated right away. Do not reserve it, do not wrap it in an
       Array.
     
@@ -597,75 +595,4 @@ public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIn
 /// Equatable implementation for RowIndex
 public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
     return lhs.index == rhs.index
-}
-
-
-// MARK: - MetalRow
-
-public struct MetalRow {
-    let sqliteStatement: SQLiteStatement
-    
-    init(sqliteStatement: SQLiteStatement) {
-        self.sqliteStatement = sqliteStatement
-    }
-    
-    
-    // MARK: - Fetching From Database
-    
-    /**
-    Returns a row generator that provides fast but unsafe access to database
-    values:
-
-        for row in MetalRow.fetch(db, "SELECT id, name FROM persons") {
-            let id = row.int64(atIndex: 0)
-            let name = row.string(atIndex: 1)
-        }
-    
-    The returned generator is *unsafe* because it must be used with extra care,
-    and GRDB.swift will not prevent invalid usage.
-    
-    - It MUST be generated and iterated in the database queue.
-    
-    - It MUST be iterated right away. Do not reserve it, do not wrap it in an
-      Array.
-    
-    Granted with those constraints, the unsafe generator grants extra speed for
-    the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
-    
-    - parameter db: A Database.
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of rows.
-    */
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnyGenerator<MetalRow> {
-        let statement = db.selectStatement(sql)
-        return statement.metalGenerate(arguments: arguments) {
-            MetalRow(sqliteStatement: statement.sqliteStatement)
-        }
-    }
-    
-    // MARK: - Metal Row Values
-    
-    public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
-        return Value.fromDatabaseValue(databaseValue(atIndex: index))
-    }
-    
-    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value? {
-        if sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL {
-            return nil
-        }
-        return Value(sqliteStatement: sqliteStatement, index: Int32(index))
-    }
-    
-    public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
-        return Value.fromDatabaseValue(databaseValue(atIndex: index))!
-    }
-    
-    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value {
-        return Value(sqliteStatement: sqliteStatement, index: Int32(index))
-    }
-    
-    func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return DatabaseValue(sqliteStatement: sqliteStatement, index: index)
-    }
 }

@@ -18,27 +18,7 @@ class FetchPerformanceTests: XCTestCase {
 //        
 //    }
     
-    func testMetalRowFetchPerformance() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        
-        var sum: Int64 = 0
-        self.measureBlock {
-            dbQueue.inDatabase { db in
-                for row in MetalRow.fetch(db, "SELECT * FROM items") {
-                    let i0: Int64 = row.value(atIndex: 0)
-                    let i1: Int64 = row.value(atIndex: 1)
-                    let i2: Int64 = row.value(atIndex: 2)
-                    let i3: Int64 = row.value(atIndex: 3)
-                    let i4: Int64 = row.value(atIndex: 4)
-                    sum += i0 + i1 + i2 + i3 + i4
-                }
-            }
-        }
-        XCTAssertEqual(sum, 4999990)
-    }
-    
-    func testRowMetalFetchPerformance() {
+    func testMetalFetchPerformance() {
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
