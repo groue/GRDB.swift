@@ -43,12 +43,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         for _ in 0..<100 {
             var sum: Int64 = 0
             dbQueue.inDatabase { db in
-                for row in Row.metalFetch(db, "SELECT * FROM items") {
-                    let i0 = row.metalInt64(atIndex: 0)
-                    let i1 = row.metalInt64(atIndex: 1)
-                    let i2 = row.metalInt64(atIndex: 2)
-                    let i3 = row.metalInt64(atIndex: 3)
-                    let i4 = row.metalInt64(atIndex: 4)
+                for row in Row.fetch(db, "SELECT * FROM items") {
+                    let i0: Int64 = row.unsafeValue(atIndex: 0)
+                    let i1: Int64 = row.unsafeValue(atIndex: 1)
+                    let i2: Int64 = row.unsafeValue(atIndex: 2)
+                    let i3: Int64 = row.unsafeValue(atIndex: 3)
+                    let i4: Int64 = row.unsafeValue(atIndex: 4)
                     sum += i0 + i1 + i2 + i3 + i4
                 }
             }

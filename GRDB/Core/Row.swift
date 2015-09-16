@@ -91,10 +91,6 @@ public struct Row: CollectionType {
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
         return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
     }
-    
-    public func metalInt64(atIndex index: Int32) -> Int64 {
-        return sqlite3_column_int64(impl.sqliteStatement, index)
-    }
 
     
     /**
@@ -257,7 +253,7 @@ public struct Row: CollectionType {
         Array(rows).count // 2
     
     If the database is modified while the sequence is iterating, the remaining
-    elements of the sequence are undefined.
+    elements are undefined.
     
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
@@ -303,6 +299,38 @@ public struct Row: CollectionType {
     // MARK: - Fetching From Database
     
     /**
+    Returns a row generator that provides fast but unsafe access to database
+    values:
+
+        for row in Row.unsafeFetch(db, "SELECT id, name FROM persons") {
+            let id = row.int64(atIndex: 0)
+            let name = row.string(atIndex: 1)
+        }
+    
+    The returned generator is *unsafe* because it must be used with extra care,
+    and GRDB.swift will not prevent invalid usage.
+    
+    - It MUST be generated and iterated in the database queue.
+    
+    - It MUST be iterated right away. Do not reserve it, do not wrap it in an
+      Array.
+    
+    Granted with those constraints, the unsafe generator grants extra speed for
+    the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
+    
+    - parameter db: A Database.
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional statement arguments.
+    - returns: A lazy sequence of rows.
+    */
+    public static func unsafeFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnyGenerator<Row> {
+        let statement = db.selectStatement(sql)
+        return statement.unsafeGenerate(arguments: arguments) {
+            Row(unsafeStatement: statement)
+        }
+    }
+    
+    /**
     Fetches a lazy sequence of rows.
 
         let rows = Row.fetch(db, "SELECT ...")
@@ -317,7 +345,7 @@ public struct Row: CollectionType {
         Array(rows).count // 2
     
     If the database is modified while the sequence is iterating, the remaining
-    elements of the sequence are undefined.
+    elements are undefined.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
@@ -330,13 +358,6 @@ public struct Row: CollectionType {
             statement.generate(arguments: arguments) {
                 Row(statement: statement)
             }
-        }
-    }
-    
-    public static func metalFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnyGenerator<Row> {
-        let statement = db.selectStatement(sql)
-        return statement.generate(arguments: arguments) {
-            Row(metalStatement: statement)
         }
     }
     
@@ -384,8 +405,11 @@ public struct Row: CollectionType {
         self.impl = StatementRowImpl(statement: statement)
     }
     
-    init(metalStatement statement: SelectStatement) {
-        self.impl = MetalStatementRowImpl(statement: statement)
+    /**
+    TODO
+    */
+    init(unsafeStatement statement: SelectStatement) {
+        self.impl = UnsafeStatementRowImpl(statement: statement)
     }
     
     // MARK: - DictionaryRowImpl
@@ -456,7 +480,7 @@ public struct Row: CollectionType {
     }
     
     
-    private struct MetalStatementRowImpl: RowImpl {
+    private struct UnsafeStatementRowImpl: RowImpl {
         let statement: SelectStatement
         var sqliteStatement: SQLiteStatement { return statement.sqliteStatement }
         

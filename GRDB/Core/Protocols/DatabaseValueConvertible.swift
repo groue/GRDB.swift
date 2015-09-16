@@ -72,7 +72,7 @@ public extension DatabaseValueConvertible {
         Array(names) // Arthur
     
     If the database is modified while the sequence is iterating, the remaining
-    elements of the sequence are undefined.
+    elements are undefined.
     
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
@@ -135,7 +135,7 @@ public extension DatabaseValueConvertible {
         Array(names) // Arthur
     
     If the database is modified while the sequence is iterating, the remaining
-    elements of the sequence are undefined.
+    elements are undefined.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.

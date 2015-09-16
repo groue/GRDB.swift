@@ -207,3 +207,59 @@ extension String: DatabaseValueConvertible {
         }
     }
 }
+
+
+extension Row {
+    
+    // MARK: - Metal Row Values
+    
+    public func bool(atIndex index: Int) -> Bool {
+        if impl.sqliteStatement != nil {
+            return sqlite3_column_int64(impl.sqliteStatement, Int32(index)) != 0
+        } else {
+            return Bool.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+        }
+    }
+    
+    public func int(atIndex index: Int) -> Int {
+        if impl.sqliteStatement != nil {
+            return Int(sqlite3_column_int64(impl.sqliteStatement, Int32(index)))
+        } else {
+            return Int.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+        }
+    }
+    
+    public func int64(atIndex index: Int) -> Int64 {
+        if impl.sqliteStatement != nil {
+            return sqlite3_column_int64(impl.sqliteStatement, Int32(index))
+        } else {
+            return Int64.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+        }
+    }
+    
+    public func int32(atIndex index: Int) -> Int32 {
+        if impl.sqliteStatement != nil {
+            return sqlite3_column_int(impl.sqliteStatement, Int32(index))
+        } else {
+            return Int32.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+        }
+    }
+    
+    public func double(atIndex index: Int) -> Double {
+        if impl.sqliteStatement != nil {
+            return sqlite3_column_double(impl.sqliteStatement, Int32(index))
+        } else {
+            return Double.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+        }
+    }
+    
+    public func string(atIndex index: Int) -> String {
+        if impl.sqliteStatement != nil {
+            let cString = UnsafePointer<Int8>(sqlite3_column_text(impl.sqliteStatement, Int32(index)))
+            return String.fromCString(cString)!
+        } else {
+            return String.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+        }
+    }
+    
+}

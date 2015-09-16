@@ -53,7 +53,7 @@ extension RowConvertible {
         Array(persons).count // 2
     
     If the database is modified while the sequence is iterating, the remaining
-    elements of the sequence are undefined.
+    elements are undefined.
     
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
@@ -119,7 +119,7 @@ extension RowConvertible {
         Array(persons).count // 2
     
     If the database is modified while the sequence is iterating, the remaining
-    elements of the sequence are undefined.
+    elements are undefined.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
