@@ -9,7 +9,9 @@ It ships with a low-level database API, plus application-level tools.
 
 Jump to:
 
+- [Features](#features)
 - [Usage](#usage)
+- [Benchmarks](#benchmarks)
 - [Installation](#installation)
 - [Documentation](#documentation)
 
@@ -56,6 +58,14 @@ dbQueue.inDatabase { db in
     }
 }
 ```
+
+
+Benchmarks
+----------
+
+In its current state, **GRDB.swift is 4 times slower than ccgus/fmdb at processing fetched rows**.
+
+Those tests are available in the [Metal branch](tree/Metal): run tests for thee GRDBOSX scheme, in Release configuration. The benchmarks are then available under the "Performance" tab in the Xcode Report Navigator.
 
 
 Installation
