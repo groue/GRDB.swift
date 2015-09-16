@@ -92,10 +92,34 @@ public struct Row: CollectionType {
         return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
     }
 
+    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value? {
+        let sqliteStatement = impl.sqliteStatement
+        guard sqliteStatement != nil else {
+            return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
+        }
+        
+        // Metal
+        if sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL {
+            return nil
+        } else {
+            return Value(sqliteStatement: sqliteStatement, index: Int32(index))
+        }
+    }
+    
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
         return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
     }
 
+    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value {
+        let sqliteStatement = impl.sqliteStatement
+        guard sqliteStatement != nil else {
+            return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+        }
+        
+        // Metal
+        return Value(sqliteStatement: sqliteStatement, index: Int32(index))
+    }
+    
     
     /**
     Returns the value for the given column.
@@ -162,7 +186,12 @@ public struct Row: CollectionType {
     */
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
         let index = impl.indexForColumn(named: columnName)!
-        return impl.databaseValue(atIndex: index).value()
+        return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
+    }
+    
+    public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
+        let index = impl.indexForColumn(named: columnName)!
+        return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
     }
     
     
@@ -303,6 +332,38 @@ public struct Row: CollectionType {
     // MARK: - Fetching From Database
     
     /**
+    Returns a row generator that provides fast but unsafe access to database
+    values:
+
+        for row in MetalRow.fetch(db, "SELECT id, name FROM persons") {
+            let id = row.int64(atIndex: 0)
+            let name = row.string(atIndex: 1)
+        }
+    
+    The returned generator is *unsafe* because it must be used with extra care,
+    and GRDB.swift will not prevent invalid usage.
+    
+    - It MUST be generated and iterated in the database queue.
+    
+    - It MUST be iterated right away. Do not reserve it, do not wrap it in an
+      Array.
+    
+    Granted with those constraints, the unsafe generator grants extra speed for
+    the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
+    
+    - parameter db: A Database.
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional statement arguments.
+    - returns: A lazy sequence of rows.
+    */
+    public static func metalFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnyGenerator<Row> {
+        let statement = db.selectStatement(sql)
+        return statement.metalGenerate(arguments: arguments) {
+            Row(metalStatement: statement)
+        }
+    }
+    
+    /**
     Fetches a lazy sequence of rows.
 
         let rows = Row.fetch(db, "SELECT ...")
@@ -377,6 +438,10 @@ public struct Row: CollectionType {
         self.impl = StatementRowImpl(statement: statement)
     }
     
+    init(metalStatement statement: SelectStatement) {
+        self.impl = MetalRowImpl(sqliteStatement: statement.sqliteStatement)
+    }
+    
     
     // MARK: - DictionaryRowImpl
     
@@ -444,6 +509,38 @@ public struct Row: CollectionType {
             return columnNames.indexOf { $0.lowercaseString == lowercaseName }
         }
     }
+    
+    
+    // MARK: - MetalRowImpl
+    
+    /// See Row.init(metalStatement:)
+    private struct MetalRowImpl : RowImpl {
+        let sqliteStatement: SQLiteStatement
+        
+        var count: Int {
+            return Int(sqlite3_column_count(sqliteStatement))
+        }
+        
+        func databaseValue(atIndex index: Int) -> DatabaseValue {
+            return DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+        }
+        
+        func columnName(atIndex index: Int) -> String {
+            return String.fromCString(sqlite3_column_name(sqliteStatement, Int32(index)))!
+        }
+        
+        // This method MUST be case-insensitive.
+        func indexForColumn(named name: String) -> Int? {
+            let lowercaseName = name.lowercaseString
+            for i in 0..<count {
+                if columnName(atIndex: i).lowercaseString == lowercaseName {
+                    return i
+                }
+            }
+            return nil
+        }
+    }
+
 }
 
 
@@ -508,8 +605,8 @@ public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
 public struct MetalRow {
     let sqliteStatement: SQLiteStatement
     
-    init(statement: SelectStatement) {
-        self.sqliteStatement = statement.sqliteStatement
+    init(sqliteStatement: SQLiteStatement) {
+        self.sqliteStatement = sqliteStatement
     }
     
     
@@ -542,8 +639,8 @@ public struct MetalRow {
     */
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnyGenerator<MetalRow> {
         let statement = db.selectStatement(sql)
-        return statement.unsafeGenerate(arguments: arguments) {
-            MetalRow(statement: statement)
+        return statement.metalGenerate(arguments: arguments) {
+            MetalRow(sqliteStatement: statement.sqliteStatement)
         }
     }
     

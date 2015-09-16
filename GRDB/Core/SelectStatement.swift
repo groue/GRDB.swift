@@ -67,7 +67,7 @@ public final class SelectStatement : Statement {
       *read* function is called, the statement has just read a row.
     - returns: A lazy sequence.
     */
-    func unsafeGenerate<T>(arguments arguments: StatementArguments?, read: () -> T) -> AnyGenerator<T> {
+    func metalGenerate<T>(arguments arguments: StatementArguments?, read: () -> T) -> AnyGenerator<T> {
         if let arguments = arguments {
             self.arguments = arguments
         }
