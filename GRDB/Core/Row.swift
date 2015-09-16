@@ -92,6 +92,10 @@ public struct Row: CollectionType {
         return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
     }
 
+    public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
+        return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+    }
+
     
     /**
     Returns the value for the given column.
@@ -507,7 +511,7 @@ public struct MetalRow {
     init(statement: SelectStatement) {
         self.sqliteStatement = statement.sqliteStatement
     }
-
+    
     
     // MARK: - Fetching From Database
     
@@ -545,29 +549,26 @@ public struct MetalRow {
     
     // MARK: - Metal Row Values
     
-    public func bool(atIndex index: Int) -> Bool {
-        return sqlite3_column_int64(sqliteStatement, Int32(index)) != 0
+    public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
+        return Value.fromDatabaseValue(databaseValue(atIndex: index))
     }
     
-    public func int(atIndex index: Int) -> Int {
-        return Int(sqlite3_column_int64(sqliteStatement, Int32(index)))
+    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value? {
+        if sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL {
+            return nil
+        }
+        return Value(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
-    public func int64(atIndex index: Int) -> Int64 {
-        return sqlite3_column_int64(sqliteStatement, Int32(index))
+    public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
+        return Value.fromDatabaseValue(databaseValue(atIndex: index))!
     }
     
-    public func int32(atIndex index: Int) -> Int32 {
-        return sqlite3_column_int(sqliteStatement, Int32(index))
+    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value {
+        return Value(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
-    public func double(atIndex index: Int) -> Double {
-        return sqlite3_column_double(sqliteStatement, Int32(index))
+    func databaseValue(atIndex index: Int) -> DatabaseValue {
+        return DatabaseValue(sqliteStatement: sqliteStatement, index: index)
     }
-    
-    public func string(atIndex index: Int) -> String {
-        let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
-        return String.fromCString(cString)!
-    }
-    
 }

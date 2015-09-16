@@ -1,6 +1,6 @@
 
 /// A nicer name than COpaquePointer for SQLite statement handle
-typealias SQLiteStatement = COpaquePointer
+public typealias SQLiteStatement = COpaquePointer
 
 private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
 

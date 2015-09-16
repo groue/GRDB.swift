@@ -26,11 +26,11 @@ class FetchPerformanceTests: XCTestCase {
         self.measureBlock {
             dbQueue.inDatabase { db in
                 for row in MetalRow.fetch(db, "SELECT * FROM items") {
-                    let i0 = row.int64(atIndex: 0)
-                    let i1 = row.int64(atIndex: 1)
-                    let i2 = row.int64(atIndex: 2)
-                    let i3 = row.int64(atIndex: 3)
-                    let i4 = row.int64(atIndex: 4)
+                    let i0: Int64 = row.value(atIndex: 0)
+                    let i1: Int64 = row.value(atIndex: 1)
+                    let i2: Int64 = row.value(atIndex: 2)
+                    let i3: Int64 = row.value(atIndex: 3)
+                    let i4: Int64 = row.value(atIndex: 4)
                     sum += i0 + i1 + i2 + i3 + i4
                 }
             }
@@ -46,11 +46,11 @@ class FetchPerformanceTests: XCTestCase {
         self.measureBlock {
             dbQueue.inDatabase { db in
                 for row in Row.fetch(db, "SELECT * FROM items") {
-                    let i0: Int64 = row.value(atIndex: 0)!
-                    let i1: Int64 = row.value(atIndex: 1)!
-                    let i2: Int64 = row.value(atIndex: 2)!
-                    let i3: Int64 = row.value(atIndex: 3)!
-                    let i4: Int64 = row.value(atIndex: 4)!
+                    let i0: Int64 = row.value(atIndex: 0)
+                    let i1: Int64 = row.value(atIndex: 1)
+                    let i2: Int64 = row.value(atIndex: 2)
+                    let i3: Int64 = row.value(atIndex: 3)
+                    let i4: Int64 = row.value(atIndex: 4)
                     sum += i0 + i1 + i2 + i3 + i4
                 }
             }

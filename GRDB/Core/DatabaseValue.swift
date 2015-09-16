@@ -23,6 +23,26 @@ public enum DatabaseValue : Equatable {
     /// The BLOB storage class, wrapping a Blob.
     case Blob(GRDB.Blob)
     
+    init(sqliteStatement: SQLiteStatement, index: Int) {
+        switch sqlite3_column_type(sqliteStatement, Int32(index)) {
+        case SQLITE_NULL:
+            self = .Null;
+        case SQLITE_INTEGER:
+            self = .Integer(sqlite3_column_int64(sqliteStatement, Int32(index)))
+        case SQLITE_FLOAT:
+            self = .Real(sqlite3_column_double(sqliteStatement, Int32(index)))
+        case SQLITE_TEXT:
+            let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
+            self = .Text(String.fromCString(cString)!)
+        case SQLITE_BLOB:
+            let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
+            let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
+            self = .Blob(GRDB.Blob(bytes: bytes, length: Int(length))!)
+        default:
+            fatalError("Unexpected SQLite column type")
+        }
+    }
+
     
     // MARK: - Extracting Swift Value
     
@@ -92,6 +112,10 @@ public enum DatabaseValue : Equatable {
     */
     public func value<Value: DatabaseValueConvertible>() -> Value? {
         return Value.fromDatabaseValue(self)
+    }
+
+    public func value<Value: DatabaseValueConvertible>() -> Value {
+        return Value.fromDatabaseValue(self)!
     }
 }
 

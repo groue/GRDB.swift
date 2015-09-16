@@ -48,23 +48,7 @@ public final class SelectStatement : Statement {
         }
     */
     func databaseValue(atIndex index: Int) -> DatabaseValue {
-        switch sqlite3_column_type(sqliteStatement, Int32(index)) {
-        case SQLITE_NULL:
-            return .Null;
-        case SQLITE_INTEGER:
-            return .Integer(sqlite3_column_int64(sqliteStatement, Int32(index)))
-        case SQLITE_FLOAT:
-            return .Real(sqlite3_column_double(sqliteStatement, Int32(index)))
-        case SQLITE_TEXT:
-            let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
-            return .Text(String.fromCString(cString)!)
-        case SQLITE_BLOB:
-            let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
-            let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-            return .Blob(Blob(bytes: bytes, length: Int(length))!)
-        default:
-            fatalError("Unexpected SQLite column type")
-        }
+        return DatabaseValue(sqliteStatement: sqliteStatement, index: index)
     }
 
     /**
