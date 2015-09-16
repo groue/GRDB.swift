@@ -1,0 +1,3 @@
+[submodule "GRDB Tests/Performance/fmdb"]
+	path = GRDB Tests/Performance/fmdb
+	url = https://github.com/ccgus/fmdb.git

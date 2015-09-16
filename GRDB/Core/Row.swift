@@ -299,38 +299,6 @@ public struct Row: CollectionType {
     // MARK: - Fetching From Database
     
     /**
-    Returns a row generator that provides fast but unsafe access to database
-    values:
-
-        for row in Row.unsafeFetch(db, "SELECT id, name FROM persons") {
-            let id = row.int64(atIndex: 0)
-            let name = row.string(atIndex: 1)
-        }
-    
-    The returned generator is *unsafe* because it must be used with extra care,
-    and GRDB.swift will not prevent invalid usage.
-    
-    - It MUST be generated and iterated in the database queue.
-    
-    - It MUST be iterated right away. Do not reserve it, do not wrap it in an
-      Array.
-    
-    Granted with those constraints, the unsafe generator grants extra speed for
-    the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
-    
-    - parameter db: A Database.
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of rows.
-    */
-    public static func unsafeFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnyGenerator<Row> {
-        let statement = db.selectStatement(sql)
-        return statement.unsafeGenerate(arguments: arguments) {
-            Row(unsafeStatement: statement)
-        }
-    }
-    
-    /**
     Fetches a lazy sequence of rows.
 
         let rows = Row.fetch(db, "SELECT ...")
@@ -405,12 +373,6 @@ public struct Row: CollectionType {
         self.impl = StatementRowImpl(statement: statement)
     }
     
-    /**
-    TODO
-    */
-    init(unsafeStatement statement: SelectStatement) {
-        self.impl = UnsafeStatementRowImpl(statement: statement)
-    }
     
     // MARK: - DictionaryRowImpl
     
@@ -478,34 +440,6 @@ public struct Row: CollectionType {
             return columnNames.indexOf { $0.lowercaseString == lowercaseName }
         }
     }
-    
-    
-    private struct UnsafeStatementRowImpl: RowImpl {
-        let statement: SelectStatement
-        var sqliteStatement: SQLiteStatement { return statement.sqliteStatement }
-        
-        init(statement: SelectStatement) {
-            self.statement = statement
-        }
-        
-        var count: Int {
-            return statement.columnCount
-        }
-        
-        func databaseValue(atIndex index: Int) -> DatabaseValue {
-            return statement.databaseValue(atIndex: index)
-        }
-        
-        func columnName(atIndex index: Int) -> String {
-            return statement.columnNames[index]
-        }
-        
-        // This method MUST be case-insensitive.
-        func indexForColumn(named name: String) -> Int? {
-            let lowercaseName = name.lowercaseString
-            return statement.columnNames.indexOf { $0.lowercaseString == lowercaseName }
-        }
-    }
 }
 
 
@@ -536,7 +470,6 @@ protocol RowImpl {
 }
 
 
-
 // MARK: - RowIndex
 
 /// Indexes to (columnName, databaseValue) pairs in a database row.
@@ -563,4 +496,78 @@ public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIn
 /// Equatable implementation for RowIndex
 public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
     return lhs.index == rhs.index
+}
+
+
+// MARK: - MetalRow
+
+public struct MetalRow {
+    let sqliteStatement: SQLiteStatement
+    
+    init(statement: SelectStatement) {
+        self.sqliteStatement = statement.sqliteStatement
+    }
+
+    
+    // MARK: - Fetching From Database
+    
+    /**
+    Returns a row generator that provides fast but unsafe access to database
+    values:
+
+        for row in MetalRow.fetch(db, "SELECT id, name FROM persons") {
+            let id = row.int64(atIndex: 0)
+            let name = row.string(atIndex: 1)
+        }
+    
+    The returned generator is *unsafe* because it must be used with extra care,
+    and GRDB.swift will not prevent invalid usage.
+    
+    - It MUST be generated and iterated in the database queue.
+    
+    - It MUST be iterated right away. Do not reserve it, do not wrap it in an
+      Array.
+    
+    Granted with those constraints, the unsafe generator grants extra speed for
+    the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
+    
+    - parameter db: A Database.
+    - parameter sql: An SQL query.
+    - parameter arguments: Optional statement arguments.
+    - returns: A lazy sequence of rows.
+    */
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnyGenerator<MetalRow> {
+        let statement = db.selectStatement(sql)
+        return statement.unsafeGenerate(arguments: arguments) {
+            MetalRow(statement: statement)
+        }
+    }
+    
+    // MARK: - Metal Row Values
+    
+    public func bool(atIndex index: Int) -> Bool {
+        return sqlite3_column_int64(sqliteStatement, Int32(index)) != 0
+    }
+    
+    public func int(atIndex index: Int) -> Int {
+        return Int(sqlite3_column_int64(sqliteStatement, Int32(index)))
+    }
+    
+    public func int64(atIndex index: Int) -> Int64 {
+        return sqlite3_column_int64(sqliteStatement, Int32(index))
+    }
+    
+    public func int32(atIndex index: Int) -> Int32 {
+        return sqlite3_column_int(sqliteStatement, Int32(index))
+    }
+    
+    public func double(atIndex index: Int) -> Double {
+        return sqlite3_column_double(sqliteStatement, Int32(index))
+    }
+    
+    public func string(atIndex index: Int) -> String {
+        let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
+        return String.fromCString(cString)!
+    }
+    
 }

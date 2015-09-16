@@ -114,7 +114,7 @@ class ConcurrencyTests: XCTestCase {
         dispatch_group_wait(group, DISPATCH_TIME_FOREVER)
         
         if let concurrencyError = concurrencyError {
-            XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
+            XCTAssertEqual(concurrencyError.code, 5) // SQLITE_BUSY
             XCTAssertEqual(concurrencyError.sql, "INSERT INTO stuffs (id) VALUES (NULL)")
         } else {
             XCTFail("Expected concurrency error")
@@ -167,7 +167,7 @@ class ConcurrencyTests: XCTestCase {
         dispatch_group_wait(group, DISPATCH_TIME_FOREVER)
         
         if let concurrencyError = concurrencyError {
-            XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
+            XCTAssertEqual(concurrencyError.code, 5) // SQLITE_BUSY
             XCTAssertEqual(concurrencyError.sql, "BEGIN EXCLUSIVE TRANSACTION")
         } else {
             XCTFail("Expected concurrency error")
@@ -220,7 +220,7 @@ class ConcurrencyTests: XCTestCase {
         dispatch_group_wait(group, DISPATCH_TIME_FOREVER)
         
         if let concurrencyError = concurrencyError {
-            XCTAssertEqual(concurrencyError.code, Int(SQLITE_BUSY))
+            XCTAssertEqual(concurrencyError.code, 5) // SQLITE_BUSY
             XCTAssertEqual(concurrencyError.sql, "BEGIN IMMEDIATE TRANSACTION")
         } else {
             XCTFail("Expected concurrency error")
