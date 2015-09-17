@@ -83,8 +83,8 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
-                var names1: [String?] = Row.fetch(statement).map { $0.value(named: "name") as String? }
-                var names2: [String?] = Row.fetch(statement).map { $0.value(named: "name") as String? }
+                var names1: [String?] = Row.metalFetch(statement).map { $0.value(named: "name") as String? }
+                var names2: [String?] = Row.metalFetch(statement).map { $0.value(named: "name") as String? }
                 
                 XCTAssertEqual(names1[0]!, "Arthur")
                 XCTAssertEqual(names1[1]!, "Barbara")
@@ -100,7 +100,7 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
-                let rows = Row.fetch(statement)
+                let rows = Row.metalFetch(statement)
                 var names1: [String?] = rows.map { $0.value(named: "name") as String? }
                 var names2: [String?] = rows.map { $0.value(named: "name") as String? }
                 

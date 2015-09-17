@@ -186,12 +186,22 @@ public struct Row: CollectionType {
     */
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
         let index = impl.indexForColumn(named: columnName)!
-        return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
+        return value(atIndex: index)
+    }
+    
+    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(named columnName: String) -> Value? {
+        let index = impl.indexForColumn(named: columnName)!
+        return value(atIndex: index)
     }
     
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
         let index = impl.indexForColumn(named: columnName)!
-        return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+        return value(atIndex: index)
+    }
+    
+    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(named columnName: String) -> Value {
+        let index = impl.indexForColumn(named: columnName)!
+        return value(atIndex: index)
     }
     
     
@@ -271,67 +281,6 @@ public struct Row: CollectionType {
     // MARK: - Fetching From SelectStatement
     
     /**
-    Fetches a lazy sequence of rows.
-    
-        let statement = db.selectStatement("SELECT ...")
-        let rows = Row.fetch(statement)
-    
-    The returned sequence can be consumed several times, but it may yield
-    different results, should database changes have occurred between two
-    generations:
-    
-        let rows = Row.fetch(statement)
-        Array(rows).count // 3
-        db.execute("DELETE ...")
-        Array(rows).count // 2
-    
-    If the database is modified while the sequence is iterating, the remaining
-    elements are undefined.
-    
-    - parameter statement: The statement to run.
-    - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of rows.
-    */
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return AnySequence {
-            statement.generate(arguments: arguments) {
-                Row(statement: statement)
-            }
-        }
-    }
-    
-    /**
-    Fetches an array of rows.
-    
-        let statement = db.selectStatement("SELECT ...")
-        let rows = Row.fetchAll(statement)
-    
-    - parameter statement: The statement to run.
-    - parameter arguments: Optional statement arguments.
-    - returns: An array of rows.
-    */
-    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
-        return Array(fetch(statement, arguments: arguments))
-    }
-    
-    /**
-    Fetches a single row.
-    
-        let statement = db.selectStatement("SELECT ...")
-        let row = Row.fetchOne(statement)
-    
-    - parameter statement: The statement to run.
-    - parameter arguments: Optional statement arguments.
-    - returns: An optional row.
-    */
-    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
-        return fetch(statement, arguments: arguments).generate().next()
-    }
-    
-    
-    // MARK: - Fetching From Database
-    
-    /**
     Returns a row generator that provides fast but unsafe access to database
     values:
 
@@ -354,43 +303,131 @@ public struct Row: CollectionType {
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of rows.
     */
-    public static func metalFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnyGenerator<Row> {
-        let statement = db.selectStatement(sql)
-        return statement.metalGenerate(arguments: arguments) {
+    public static func metalFetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+        return statement.metalFetch(arguments: arguments) {
             Row(metalStatement: statement)
         }
     }
     
+//    /**
+//    Fetches a lazy sequence of rows.
+//    
+//        let statement = db.selectStatement("SELECT ...")
+//        let rows = Row.fetch(statement)
+//    
+//    The returned sequence can be consumed several times, but it may yield
+//    different results, should database changes have occurred between two
+//    generations:
+//    
+//        let rows = Row.fetch(statement)
+//        Array(rows).count // 3
+//        db.execute("DELETE ...")
+//        Array(rows).count // 2
+//    
+//    If the database is modified while the sequence is iterating, the remaining
+//    elements are undefined.
+//    
+//    - parameter statement: The statement to run.
+//    - parameter arguments: Optional statement arguments.
+//    - returns: A lazy sequence of rows.
+//    */
+//    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+//        return AnySequence {
+//            statement.generate(arguments: arguments) {
+//                Row(statement: statement)
+//            }
+//        }
+//    }
+    
     /**
-    Fetches a lazy sequence of rows.
-
-        let rows = Row.fetch(db, "SELECT ...")
-
-    The returned sequence can be consumed several times, but it may yield
-    different results, should database changes have occurred between two
-    generations:
+    Fetches an array of rows.
     
-        let rows = Row.fetch(db, "SELECT ...")
-        Array(rows).count // 3
-        db.execute("DELETE ...")
-        Array(rows).count // 2
+        let statement = db.selectStatement("SELECT ...")
+        let rows = Row.fetchAll(statement)
     
-    If the database is modified while the sequence is iterating, the remaining
-    elements are undefined.
+    - parameter statement: The statement to run.
+    - parameter arguments: Optional statement arguments.
+    - returns: An array of rows.
+    */
+    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
+        let sequence = statement.metalFetch(arguments: arguments) {
+            Row(statement: statement)
+        }
+        return Array(sequence)
+    }
+    
+    /**
+    Fetches a single row.
+    
+        let statement = db.selectStatement("SELECT ...")
+        let row = Row.fetchOne(statement)
+    
+    - parameter statement: The statement to run.
+    - parameter arguments: Optional statement arguments.
+    - returns: An optional row.
+    */
+    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
+        let rows = statement.metalFetch(arguments: arguments) {
+            Row(statement: statement)
+        }
+        return rows.generate().next()
+    }
+    
+    
+    // MARK: - Fetching From Database
+    
+    /**
+    Returns a row generator that provides fast but unsafe access to database
+    values:
+
+        for row in Row.metalFetch(db, "SELECT id, name FROM persons") {
+            let id = row.int64(atIndex: 0)
+            let name = row.string(atIndex: 1)
+        }
+    
+    The returned generator is *unsafe* because it must be used with extra care,
+    and GRDB.swift will not prevent invalid usage.
+    
+    - It MUST be iterated right away. Do not reserve it, do not wrap it in an
+      Array.
+    
+    Granted with those constraints, the unsafe generator grants extra speed for
+    the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of rows.
     */
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        let statement = db.selectStatement(sql)
-        return AnySequence {
-            statement.generate(arguments: arguments) {
-                Row(statement: statement)
-            }
-        }
+    public static func metalFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+        return metalFetch(db.selectStatement(sql), arguments: arguments)
     }
+    
+//    /**
+//    Fetches a lazy sequence of rows.
+//
+//        let rows = Row.fetch(db, "SELECT ...")
+//
+//    The returned sequence can be consumed several times, but it may yield
+//    different results, should database changes have occurred between two
+//    generations:
+//    
+//        let rows = Row.fetch(db, "SELECT ...")
+//        Array(rows).count // 3
+//        db.execute("DELETE ...")
+//        Array(rows).count // 2
+//    
+//    If the database is modified while the sequence is iterating, the remaining
+//    elements are undefined.
+//    
+//    - parameter db: A Database.
+//    - parameter sql: An SQL query.
+//    - parameter arguments: Optional statement arguments.
+//    - returns: A lazy sequence of rows.
+//    */
+//    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+//        return fetch(db.selectStatement(sql), arguments: arguments)
+//    }
     
     /**
     Fetches an array of rows.
@@ -403,7 +440,7 @@ public struct Row: CollectionType {
     - returns: An array of rows.
     */
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
-        return Array(fetch(db, sql, arguments: arguments))
+        return fetchAll(db.selectStatement(sql), arguments: arguments)
     }
     
     /**
@@ -417,7 +454,7 @@ public struct Row: CollectionType {
     - returns: An optional row.
     */
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
-        return fetch(db, sql, arguments: arguments).generate().next()
+        return fetchOne(db.selectStatement(sql), arguments: arguments)
     }
 
     

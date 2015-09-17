@@ -23,6 +23,7 @@ public protocol DatabaseIntRepresentable : DatabaseValueConvertible {
     init?(rawValue: Int)
 }
 
+// TODO: Metal
 extension DatabaseIntRepresentable {
     
     /// Returns a value that can be stored in the database.
@@ -71,6 +72,7 @@ public protocol DatabaseStringRepresentable : DatabaseValueConvertible {
     init?(rawValue: String)
 }
 
+// TODO: Metal
 extension DatabaseStringRepresentable {
     
     /// Returns a value that can be stored in the database.

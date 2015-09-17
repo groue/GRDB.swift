@@ -67,7 +67,7 @@ public final class SelectStatement : Statement {
       *read* function is called, the statement has just read a row.
     - returns: A lazy sequence.
     */
-    func metalGenerate<T>(arguments arguments: StatementArguments?, read: () -> T) -> AnyGenerator<T> {
+    func metalFetch<T>(arguments arguments: StatementArguments?, read: () -> T) -> AnySequence<T> {
         if let arguments = arguments {
             self.arguments = arguments
         }
@@ -76,68 +76,77 @@ public final class SelectStatement : Statement {
             trace(sql: self.sql, arguments: self.arguments)
         }
         
-        // Restart
-        self.reset()
-        
-        return anyGenerator { () -> T? in
-            let code = sqlite3_step(self.sqliteStatement)
-            switch code {
-            case SQLITE_DONE:
-                return nil
-            case SQLITE_ROW:
-                return read()
-            default:
-                fatalError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments).description)
-            }
-        }
-    }
-
-    /**
-    Builds a generator from a SelectStatement.
-    
-        let statement = db.selectStatement("SELECT ...")
-        
-        // AnyGenerator<Row>
-        let rowGenerator = statement.generate() { Row(statement: statement) }
-    
-    - parameter arguments: Optional statement arguments.
-    - parameter transform: A function that maps the statement to the desired
-      sequence element. SQLite statements are stateful: at the moment the
-      *read* function is called, the statement has just read a row.
-    - returns: A lazy sequence.
-    */
-    func generate<T>(arguments arguments: StatementArguments?, read: () -> T) -> AnyGenerator<T> {
-        if let arguments = arguments {
-            self.arguments = arguments
-        }
-
-        if let trace = self.database.configuration.trace {
-            trace(sql: self.sql, arguments: self.arguments)
-        }
-        
-        let database = self.database
-
-        // Check that generate() is called on a valid database.
         // See DatabaseQueue.inSafeDatabase().
         database.assertValid()
         
-        // Restart
-        self.reset()
-        
-        return anyGenerator { () -> T? in
-            // Check that generator.next() is called on a valid database.
-            // See DatabaseQueue.inSafeDatabase().
-            database.assertValid()
+        return AnySequence { () -> AnyGenerator<T> in
             
-            let code = sqlite3_step(self.sqliteStatement)
-            switch code {
-            case SQLITE_DONE:
-                return nil
-            case SQLITE_ROW:
-                return read()
-            default:
-                fatalError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments).description)
+            // Restart
+            self.reset()
+            
+            return anyGenerator { () -> T? in
+                let code = sqlite3_step(self.sqliteStatement)
+                switch code {
+                case SQLITE_DONE:
+                    return nil
+                case SQLITE_ROW:
+                    return read()
+                default:
+                    fatalError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments).description)
+                }
             }
         }
     }
+
+//    /**
+//    Builds a generator from a SelectStatement.
+//    
+//        let statement = db.selectStatement("SELECT ...")
+//        
+//        // AnyGenerator<Row>
+//        let rowGenerator = statement.generate() { Row(statement: statement) }
+//    
+//    - parameter arguments: Optional statement arguments.
+//    - parameter transform: A function that maps the statement to the desired
+//      sequence element. SQLite statements are stateful: at the moment the
+//      *read* function is called, the statement has just read a row.
+//    - returns: A lazy sequence.
+//    */
+//    func fetch<T>(arguments arguments: StatementArguments?, read: () -> T) -> AnySequence<T> {
+//        if let arguments = arguments {
+//            self.arguments = arguments
+//        }
+//
+//        if let trace = self.database.configuration.trace {
+//            trace(sql: self.sql, arguments: self.arguments)
+//        }
+//        
+//        let database = self.database
+//
+//        return AnySequence { () -> AnyGenerator<T> in
+//            
+//            // Check that generate() is called on a valid database.
+//            // See DatabaseQueue.inSafeDatabase().
+//            database.assertValid()
+//            
+//            // Restart
+//            self.reset()
+//            
+//            return anyGenerator { () -> T? in
+//                // Check that generator.next() is called on a valid database.
+//                // See DatabaseQueue.inSafeDatabase().
+//                database.assertValid()
+//                
+//                let code = sqlite3_step(self.sqliteStatement)
+//                switch code {
+//                case SQLITE_DONE:
+//                    return nil
+//                case SQLITE_ROW:
+//                    return read()
+//                default:
+//                    fatalError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments).description)
+//                }
+//            }
+//        }
+//    }
 }

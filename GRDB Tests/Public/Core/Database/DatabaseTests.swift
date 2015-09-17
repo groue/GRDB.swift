@@ -192,7 +192,7 @@ class DatabaseTests : GRDBTestCase {
                 
                 var names: [String?] = []
                 var ages: [Int?] = []
-                let rows = Row.fetch(db, "SELECT * FROM persons ORDER BY name")
+                let rows = Row.metalFetch(db, "SELECT * FROM persons ORDER BY name")
                 for row in rows {
                     // The tested function:
                     let name: String? = row.value(atIndex: 0)
@@ -218,7 +218,7 @@ class DatabaseTests : GRDBTestCase {
                 
                 var names: [String?] = []
                 var ages: [Int?] = []
-                let rows = Row.fetch(db, "SELECT * FROM persons ORDER BY name")
+                let rows = Row.metalFetch(db, "SELECT * FROM persons ORDER BY name")
                 for row in rows {
                     // The tested function:
                     let name: String? = row.value(named: "name")
@@ -235,34 +235,35 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
-    func testRowSequenceCanBeIteratedIndependentlyFromSQLiteStatement() {
-        assertNoError {
-            var rows: [Row] = []
-            try dbQueue.inTransaction { db in
-                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara"])
-                
-                rows = Array(Row.fetch(db, "SELECT * FROM persons ORDER BY name"))
-                return .Commit
-            }
-            
-            var names: [String?] = []
-            var ages: [Int?] = []
-            
-            for row in rows {
-                let name: String? = row.value(named: "name")
-                let age: Int? = row.value(named: "age")
-                names.append(name)
-                ages.append(age)
-            }
-            
-            XCTAssertEqual(names[0]!, "Arthur")
-            XCTAssertEqual(names[1]!, "Barbara")
-            XCTAssertEqual(ages[0]!, 41)
-            XCTAssertNil(ages[1])
-        }
-    }
+    // TODO
+//    func testRowSequenceCanBeIteratedIndependentlyFromSQLiteStatement() {
+//        assertNoError {
+//            var rows: [Row] = []
+//            try dbQueue.inTransaction { db in
+//                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+//                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+//                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara"])
+//                
+//                rows = Array(Row.metalFetch(db, "SELECT * FROM persons ORDER BY name"))
+//                return .Commit
+//            }
+//            
+//            var names: [String?] = []
+//            var ages: [Int?] = []
+//            
+//            for row in rows {
+//                let name: String? = row.value(named: "name")
+//                let age: Int? = row.value(named: "age")
+//                names.append(name)
+//                ages.append(age)
+//            }
+//            
+//            XCTAssertEqual(names[0]!, "Arthur")
+//            XCTAssertEqual(names[1]!, "Barbara")
+//            XCTAssertEqual(ages[0]!, 41)
+//            XCTAssertNil(ages[1])
+//        }
+//    }
     
     func testRowSequenceCanBeIteratedTwice() {
         assertNoError {
@@ -271,7 +272,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name) VALUES (:name)", arguments: ["name": "Arthur"])
                 try db.execute("INSERT INTO persons (name) VALUES (:name)", arguments: ["name": "Barbara"])
                 
-                let rows = Row.fetch(db, "SELECT * FROM persons ORDER BY name")
+                let rows = Row.metalFetch(db, "SELECT * FROM persons ORDER BY name")
                 var names1: [String?] = rows.map { $0.value(named: "name") as String? }
                 var names2: [String?] = rows.map { $0.value(named: "name") as String? }
                 
@@ -352,7 +353,7 @@ class DatabaseTests : GRDBTestCase {
             // Fetching rows and values:
             
             dbQueue.inDatabase { db in
-                for row in Row.fetch(db, "SELECT * FROM persons") {
+                for row in Row.metalFetch(db, "SELECT * FROM persons") {
                     // Leverage Swift type inference
                     let name: String? = row.value(atIndex: 1)
                     

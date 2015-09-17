@@ -1,5 +1,9 @@
 /// Bool is convertible to and from DatabaseValue.
-extension Bool: DatabaseValueConvertible {
+extension Bool: DatabaseValueConvertible, MetalType {
+    
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        self = sqlite3_column_int64(sqliteStatement, index) != 0
+    }
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
@@ -81,7 +85,11 @@ extension Bool: DatabaseValueConvertible {
 }
 
 /// Int is convertible to and from DatabaseValue.
-extension Int: DatabaseValueConvertible {
+extension Int: DatabaseValueConvertible, MetalType {
+    
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        self = Int(sqlite3_column_int64(sqliteStatement, index))
+    }
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
@@ -107,7 +115,11 @@ extension Int: DatabaseValueConvertible {
 }
 
 /// Int32 is convertible to and from DatabaseValue.
-extension Int32: DatabaseValueConvertible {
+extension Int32: DatabaseValueConvertible, MetalType {
+    
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        self = Int32(sqlite3_column_int64(sqliteStatement, index))
+    }
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
@@ -133,7 +145,11 @@ extension Int32: DatabaseValueConvertible {
 }
 
 /// Int64 is convertible to and from DatabaseValue.
-extension Int64: DatabaseValueConvertible {
+extension Int64: DatabaseValueConvertible, MetalType {
+    
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        self = sqlite3_column_int64(sqliteStatement, index)
+    }
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
@@ -159,7 +175,11 @@ extension Int64: DatabaseValueConvertible {
 }
 
 /// Double is convertible to and from DatabaseValue.
-extension Double: DatabaseValueConvertible {
+extension Double: DatabaseValueConvertible, MetalType {
+    
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        self = sqlite3_column_double(sqliteStatement, index)
+    }
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
@@ -185,7 +205,12 @@ extension Double: DatabaseValueConvertible {
 }
 
 /// String is convertible to and from DatabaseValue.
-extension String: DatabaseValueConvertible {
+extension String: DatabaseValueConvertible, MetalType {
+    
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
+        self = String.fromCString(cString)!
+    }
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
