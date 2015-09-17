@@ -65,7 +65,7 @@ Benchmarks
 
 In its current state, **GRDB.swift is 4 times slower than ccgus/fmdb at processing fetched rows**.
 
-Those benchmarks are available in the [Metal branch](tree/Metal): run tests for the GRDBOSX scheme, in Release configuration, and check the results under the "Performance" tab in the Xcode Report Navigator.
+Those benchmarks are available in [this commit](tree/7a9446fc20864b008eb843c72c5573138b36c8cc): run tests for the GRDBOSX scheme, in Release configuration, and check the results under the "Performance" tab in the Xcode Report Navigator. The work in progress in the [Metal branch](tree/Metal) brings GRDB on a par with fmdb.
 
 
 Installation
