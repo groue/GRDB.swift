@@ -26,46 +26,16 @@ public final class SelectStatement : Statement {
     // MARK: - Not public
     
     /**
-    Returns the DatabaseValue at given index.
-    
-    It is the *only* method which loads data straight from SQLite.
-    
-    We preserve the *raw storage class* of database values, and do not use the
-    SQLite built-in casting between types.
-    
-    This is *by design*, because a GRDB user generally consumes database values
-    long after the opportunity to use SQLite casting has passed, which is during
-    the statement consumption.
-    
-        // Rows is an Array: all rows are loaded, which means that statement has
-        // been fully iterated and consumed, and any SQLite casting opportunity
-        // has passed.
-        let rows = Row.fetchAll(db, "SELECT ...")
-    
-        for row in rows {
-            let itemCount: Int? = row.value(atIndex:0)   // GRDB conversion to Int
-            let hasItems: Bool? = row.value(atIndex:0)   // GRDB conversion to Bool
-        }
+    TODO
     */
     func databaseValue(atIndex index: Int) -> DatabaseValue {
         return DatabaseValue(sqliteStatement: sqliteStatement, index: index)
     }
 
     /**
-    Builds a generator from a SelectStatement.
-    
-        let statement = db.selectStatement("SELECT ...")
-        
-        // AnyGenerator<Row>
-        let rowGenerator = statement.generate() { Row(statement: statement) }
-    
-    - parameter arguments: Optional statement arguments.
-    - parameter transform: A function that maps the statement to the desired
-      sequence element. SQLite statements are stateful: at the moment the
-      *read* function is called, the statement has just read a row.
-    - returns: A lazy sequence.
+    TODO
     */
-    func fetch<T>(arguments arguments: StatementArguments?, read: () -> T) -> AnySequence<T> {
+    func fetch<T>(arguments arguments: StatementArguments?, map: () -> T) -> DatabaseSequence<T> {
         if let arguments = arguments {
             self.arguments = arguments
         }
@@ -77,24 +47,48 @@ public final class SelectStatement : Statement {
         // Check that sequence is built on a valid database.
         // See DatabaseQueue.inSafeDatabase().
         database.assertValid()
+        
+        return DatabaseSequence(statement: self, map: map)
+    }
+}
 
-        return AnySequence { () -> AnyGenerator<T> in
-            
-            // Restart
-            self.reset()
-            
-            return anyGenerator { () -> T? in
-                
-                let code = sqlite3_step(self.sqliteStatement)
-                switch code {
-                case SQLITE_DONE:
-                    return nil
-                case SQLITE_ROW:
-                    return read()
-                default:
-                    fatalError(DatabaseError(code: code, message: self.database.lastErrorMessage, sql: self.sql, arguments: self.arguments).description)
-                }
-            }
+/**
+TODO
+*/
+public struct DatabaseSequence<T>: SequenceType {
+    let statement: SelectStatement
+    let map: () -> T
+    public func generate() -> DatabaseGenerator<T> {
+        // DatabaseSequence can be restarted:
+        statement.reset()
+        
+        return DatabaseGenerator(statement: statement, map: map)
+    }
+}
+
+/**
+TODO
+*/
+public struct DatabaseGenerator<T>: GeneratorType {
+    let statement: SelectStatement
+    let sqliteStatement: SQLiteStatement
+    let map: () -> T
+    
+    init(statement: SelectStatement, map: () -> T) {
+        self.statement = statement
+        self.sqliteStatement = statement.sqliteStatement
+        self.map = map
+    }
+    
+    public func next() -> T? {
+        let code = sqlite3_step(sqliteStatement)
+        switch code {
+        case SQLITE_DONE:
+            return nil
+        case SQLITE_ROW:
+            return map()
+        default:
+            fatalError(DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments).description)
         }
     }
 }

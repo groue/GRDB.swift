@@ -53,7 +53,7 @@ let redWinesCount = dbQueue.inDatabase { db in       // Int
 
 dbQueue.inDatabase { db in
     let wines = Wine.fetchAll(db, "SELECT ...")      // [Wine]
-    for wine in Wine.fetch(db, "SELECT ...") {       // AnySequence<Wine>
+    for wine in Wine.fetch(db, "SELECT ...") {       // DatabaseSequence<Wine>
         ...
     }
 }
@@ -209,19 +209,19 @@ You can fetch **Rows**, **Values**, and **Records**:
 
 ```swift
 dbQueue.inDatabase { db in
-    Row.fetch(db, "SELECT ...", arguments: ...)        // AnySequence<Row>
-    Row.fetchAll(db, "SELECT ...", arguments: ...)     // [Row]
-    Row.fetchOne(db, "SELECT ...", arguments: ...)     // Row?
-    
-    String.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<String?>
-    String.fetchAll(db, "SELECT ...", arguments: ...)  // [String?]
-    String.fetchOne(db, "SELECT ...", arguments: ...)  // String?
-    
-    Person.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<Person>
-    Person.fetchAll(db, "SELECT ...", arguments: ...)  // [Person]
-    Person.fetchOne(db, "SELECT ...", arguments: ...)  // Person?
-    Person.fetchOne(db, primaryKey: 12)                // Person?
-    Person.fetchOne(db, key: ["name": "Arthur"])       // Person?
+    Row.fetch(db, "SELECT ...", arguments: ...)       // DatabaseSequence<Row>
+    Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
+    Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
+
+    String.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<String?>
+    String.fetchAll(db, "SELECT ...", arguments: ...) // [String?]
+    String.fetchOne(db, "SELECT ...", arguments: ...) // String?
+
+    Person.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Person>
+    Person.fetchAll(db, "SELECT ...", arguments: ...) // [Person]
+    Person.fetchOne(db, "SELECT ...", arguments: ...) // Person?
+    Person.fetchOne(db, primaryKey: 12)               // Person?
+    Person.fetchOne(db, key: ["name": "Arthur"])      // Person?
 }
 ```
 
@@ -238,7 +238,7 @@ Fetch **lazy sequences** of rows, **arrays**, or a **single** row:
 
 ```swift
 dbQueue.inDatabase { db in
-    Row.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<Row>
+    Row.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Row>
     Row.fetchAll(db, "SELECT ...", arguments: ...)  // [Row]
     Row.fetchOne(db, "SELECT ...", arguments: ...)  // Row?
 }
@@ -335,7 +335,7 @@ Like rows, values can be fetched as **lazy sequences**, **arrays**, or **single*
 
 ```swift
 dbQueue.inDatabase { db in
-    Int.fetch(db, "SELECT ...", arguments: ...)      // AnySequence<Int?>
+    Int.fetch(db, "SELECT ...", arguments: ...)      // DatabaseSequence<Int?>
     Int.fetchAll(db, "SELECT ...", arguments: ...)   // [Int?]
     Int.fetchOne(db, "SELECT ...", arguments: ...)   // Int?
 }
@@ -429,7 +429,7 @@ Extract NSDate from the database:
 let row = Row.fetchOne(db, "SELECT birthDate, ...")!
 let date = row.value(named: "birthDate") as NSDate?
 
-NSDate.fetch(db, "SELECT ...")       // AnySequence<NSDate?>
+NSDate.fetch(db, "SELECT ...")       // DatabaseSequence<NSDate?>
 NSDate.fetchAll(db, "SELECT ...")    // [NSDate?]
 NSDate.fetchOne(db, "SELECT ...")    // NSDate?
 ```
@@ -483,7 +483,7 @@ let dbComponents = row.value(named: "birthDate")! as DatabaseDateComponents
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
 
-DatabaseDateComponents.fetch(db, "SELECT ...")    // AnySequence<DatabaseDateComponents?>
+DatabaseDateComponents.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseDateComponents?>
 DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents?]
 DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
 ```
@@ -554,7 +554,7 @@ for rows in Row.fetch(db, "SELECT * FROM wines") {
 }
 
 // Direct fetch:
-Color.fetch(db, "SELECT ...", arguments: ...)    // AnySequence<Color?>
+Color.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Color?>
 Color.fetchAll(db, "SELECT ...", arguments: ...) // [Color?]
 Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 ```
@@ -639,7 +639,7 @@ for rows in Row.fetch(db, "SELECT ...") {
 }
 
 // Direct fetch:
-DatabaseTimestamp.fetch(db, "SELECT ...")    // AnySequence<DatabaseTimestamp?>
+DatabaseTimestamp.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseTimestamp?>
 DatabaseTimestamp.fetchAll(db, "SELECT ...") // [DatabaseTimestamp?]
 DatabaseTimestamp.fetchOne(db, "SELECT ...") // DatabaseTimestamp?
 ```
@@ -719,15 +719,15 @@ dbQueue.inDatabase { db in
     
     let statement = db.selectStatement("SELECT ...")
     
-    Row.fetch(statement, arguments: ...)        // AnySequence<Row>
+    Row.fetch(statement, arguments: ...)        // DatabaseSequence<Row>
     Row.fetchAll(statement, arguments: ...)     // [Row]
     Row.fetchOne(statement, arguments: ...)     // Row?
     
-    Int.fetch(statement, arguments: ...)        // AnySequence<Int?>
+    Int.fetch(statement, arguments: ...)        // DatabaseSequence<Int?>
     Int.fetchAll(statement, arguments: ...)     // [Int?]
     Int.fetchOne(statement, arguments: ...)     // Int?
     
-    Person.fetch(statement, arguments: ...)     // AnySequence<Person>
+    Person.fetch(statement, arguments: ...)     // DatabaseSequence<Person>
     Person.fetchAll(statement, arguments: ...)  // [Person]
     Person.fetchOne(statement, arguments: ...)  // Person?
 }
@@ -947,7 +947,7 @@ Now you can fetch **lazy sequences** of records, **arrays**, or **single** insta
 ```swift
 
 dbQueue.inDatabase { db in
-    Person.fetch(db, "SELECT ...", arguments:...)    // AnySequence<Person>
+    Person.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<Person>
     Person.fetchAll(db, "SELECT ...", arguments:...) // [Person]
     Person.fetchOne(db, "SELECT ...", arguments:...) // Person?
 }

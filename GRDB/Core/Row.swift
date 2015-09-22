@@ -1,8 +1,12 @@
 /**
-A row is the result of a database query.
+A database row.
 */
-public struct Row: CollectionType {
-    
+public class Row: CollectionType {
+    // IMPLEMENTATION NOTE:
+    //
+    // Row is a class so that we can reuse a single instance when iterating a
+    // SelectStatement. This avoids a lot of Swift boilerplate, and improves
+    // performances.
     
     // MARK: - Building rows
     
@@ -16,6 +20,7 @@ public struct Row: CollectionType {
         for (key, value) in dictionary {
             databaseDictionary[key] = value?.databaseValue ?? .Null
         }
+        self.sqliteStatement = nil
         self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
     }
     
@@ -100,7 +105,7 @@ public struct Row: CollectionType {
     }
 
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value? {
-        let sqliteStatement = impl.sqliteStatement
+        let sqliteStatement = self.sqliteStatement  // accessing it through impl takes 69% of the time spent here, and only 16% through self.
         guard sqliteStatement != nil else {
             return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
         }
@@ -118,7 +123,7 @@ public struct Row: CollectionType {
     }
 
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value {
-        let sqliteStatement = impl.sqliteStatement
+        let sqliteStatement = self.sqliteStatement
         guard sqliteStatement != nil else {
             return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
         }
@@ -310,10 +315,10 @@ public struct Row: CollectionType {
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of rows.
     */
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return statement.fetch(arguments: arguments) {
-            Row(metalStatement: statement)
-        }
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
+        // Metal rows can be reused. And reusing them yields better performance.
+        let row = Row(metalStatement: statement)
+        return statement.fetch(arguments: arguments) { row }
     }
     
 //    /**
@@ -338,7 +343,7 @@ public struct Row: CollectionType {
 //    - parameter arguments: Optional statement arguments.
 //    - returns: A lazy sequence of rows.
 //    */
-//    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+//    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
 //        return AnySequence {
 //            statement.generate(arguments: arguments) {
 //                Row(statement: statement)
@@ -406,7 +411,7 @@ public struct Row: CollectionType {
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of rows.
     */
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
@@ -432,7 +437,7 @@ public struct Row: CollectionType {
 //    - parameter arguments: Optional statement arguments.
 //    - returns: A lazy sequence of rows.
 //    */
-//    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+//    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
 //        return fetch(db.selectStatement(sql), arguments: arguments)
 //    }
     
@@ -468,6 +473,7 @@ public struct Row: CollectionType {
     // MARK: - Not Public
     
     let impl: RowImpl
+    let sqliteStatement: SQLiteStatement    // IMPLEMENTATION NOTE: Making sqliteStatement a row property instead of a RowImpl property makes the extraction of MetalType values faster.
     
     /**
     Builds a row from the *current state* of the SQLite statement.
@@ -477,14 +483,17 @@ public struct Row: CollectionType {
     corrupting the row.
     */
     init(detachedStatement statement: SelectStatement) {
+        self.sqliteStatement = nil
         self.impl = DetachedRowImpl(statement: statement)
     }
     
     init(metalStatement statement: SelectStatement) {
+        self.sqliteStatement = statement.sqliteStatement
         self.impl = MetalRowImpl(statement: statement)
     }
     
     init(impl: RowImpl) {
+        self.sqliteStatement = nil
         self.impl = impl
     }
     
@@ -494,7 +503,6 @@ public struct Row: CollectionType {
     /// See Row.init(databaseDictionary:)
     private struct DictionaryRowImpl : RowImpl {
         let databaseDictionary: [String: DatabaseValue]
-        var sqliteStatement: SQLiteStatement { return nil }
         
         init (databaseDictionary: [String: DatabaseValue]) {
             self.databaseDictionary = databaseDictionary
@@ -534,7 +542,6 @@ public struct Row: CollectionType {
     private struct DetachedRowImpl : RowImpl {
         let databaseValues: [DatabaseValue]
         let columnNames: [String]
-        var sqliteStatement: SQLiteStatement { return nil }
         
         init(statement: SelectStatement) {
             self.databaseValues = (0..<statement.columnCount).map { statement.databaseValue(atIndex: $0) }
@@ -628,7 +635,6 @@ extension Row: CustomStringConvertible {
 // The protocol for Row underlying implementation
 protocol RowImpl {
     var count: Int { get }
-    var sqliteStatement: SQLiteStatement { get }
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func columnName(atIndex index: Int) -> String
     func indexForColumn(named name: String) -> Int? // This method MUST be case-insensitive.

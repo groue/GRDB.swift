@@ -20,7 +20,7 @@ Usage:
     let date = row.value(named: "date") as NSDate?
 
     // Direct fetch:
-    NSDate.fetch(db, "SELECT ...", arguments: ...)    // AnySequence<NSDate?>
+    NSDate.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<NSDate?>
     NSDate.fetchAll(db, "SELECT ...", arguments: ...) // [NSDate?]
     NSDate.fetchOne(db, "SELECT ...", arguments: ...) // NSDate?
     

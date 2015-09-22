@@ -7,12 +7,12 @@ values.
 The protocol comes with built-in methods that allow to fetch lazy sequences,
 arrays, or single instances:
 
-    String.fetch(db, "SELECT name FROM ...", arguments:...)    // AnySequence<String?>
+    String.fetch(db, "SELECT name FROM ...", arguments:...)    // DatabaseSequence<String?>
     String.fetchAll(db, "SELECT name FROM ...", arguments:...) // [String?]
     String.fetchOne(db, "SELECT name FROM ...", arguments:...) // String?
     
     let statement = db.selectStatement("SELECT name FROM ...")
-    String.fetch(statement, arguments:...)           // AnySequence<String?>
+    String.fetch(statement, arguments:...)           // DatabaseSequence<String?>
     String.fetchAll(statement, arguments:...)        // [String?]
     String.fetchOne(statement, arguments:...)        // String?
 
@@ -41,12 +41,12 @@ values.
 The protocol comes with built-in methods that allow to fetch lazy sequences,
 arrays, or single instances:
 
-    String.fetch(db, "SELECT name FROM ...", arguments:...)    // AnySequence<String?>
+    String.fetch(db, "SELECT name FROM ...", arguments:...)    // DatabaseSequence<String?>
     String.fetchAll(db, "SELECT name FROM ...", arguments:...) // [String?]
     String.fetchOne(db, "SELECT name FROM ...", arguments:...) // String?
     
     let statement = db.selectStatement("SELECT name FROM ...")
-    String.fetch(statement, arguments:...)           // AnySequence<String?>
+    String.fetch(statement, arguments:...)           // DatabaseSequence<String?>
     String.fetchAll(statement, arguments:...)        // [String?]
     String.fetchOne(statement, arguments:...)        // String?
 
@@ -61,7 +61,7 @@ public extension DatabaseValueConvertible {
     Fetches a lazy sequence of DatabaseValueConvertible values.
     
         let statement = db.selectStatement("SELECT name FROM ...")
-        let names = String.fetch(statement) // AnySequence<String?>
+        let names = String.fetch(statement) // DatabaseSequence<String?>
     
     The returned sequence can be consumed several times, but it may yield
     different results, should database changes have occurred between two
@@ -79,7 +79,7 @@ public extension DatabaseValueConvertible {
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of values.
     */
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
         return statement.fetch(arguments: arguments) {
             Self.fromDatabaseValue(statement.databaseValue(atIndex: 0))
         }
@@ -89,7 +89,7 @@ public extension DatabaseValueConvertible {
 //    Fetches a lazy sequence of DatabaseValueConvertible values.
 //    
 //        let statement = db.selectStatement("SELECT name FROM ...")
-//        let names = String.fetch(statement) // AnySequence<String?>
+//        let names = String.fetch(statement) // DatabaseSequence<String?>
 //    
 //    The returned sequence can be consumed several times, but it may yield
 //    different results, should database changes have occurred between two
@@ -107,7 +107,7 @@ public extension DatabaseValueConvertible {
 //    - parameter arguments: Optional statement arguments.
 //    - returns: A lazy sequence of values.
 //    */
-//    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
+//    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
 //        return AnySequence {
 //            statement.generate(arguments: arguments) {
 //                statement.databaseValue(atIndex: 0).value()
@@ -152,7 +152,7 @@ public extension DatabaseValueConvertible {
     /**
     Fetches a lazy sequence of DatabaseValueConvertible values.
     
-        let names = String.fetch(db, "SELECT name FROM ...") // AnySequence<String?>
+        let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
     
     The returned sequence can be consumed several times, but it may yield
     different results, should database changes have occurred between two
@@ -171,14 +171,14 @@ public extension DatabaseValueConvertible {
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of values.
     */
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
 //    /**
 //    Fetches a lazy sequence of DatabaseValueConvertible values.
 //    
-//        let names = String.fetch(db, "SELECT name FROM ...") // AnySequence<String?>
+//        let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
 //    
 //    The returned sequence can be consumed several times, but it may yield
 //    different results, should database changes have occurred between two
@@ -197,7 +197,7 @@ public extension DatabaseValueConvertible {
 //    - parameter arguments: Optional statement arguments.
 //    - returns: A lazy sequence of values.
 //    */
-//    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
+//    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
 //        return self.fetch(db.selectStatement(sql), arguments: arguments)
 //    }
     
@@ -236,7 +236,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     Fetches a lazy sequence of DatabaseValueConvertible values.
     
         let statement = db.selectStatement("SELECT name FROM ...")
-        let names = String.fetch(statement) // AnySequence<String?>
+        let names = String.fetch(statement) // DatabaseSequence<String?>
     
     The returned sequence can be consumed several times, but it may yield
     different results, should database changes have occurred between two
@@ -254,7 +254,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of values.
     */
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
         return statement.fetch(arguments: arguments) {
             let sqliteStatement = statement.sqliteStatement
             if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
@@ -302,7 +302,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     /**
     Fetches a lazy sequence of DatabaseValueConvertible values.
     
-        let names = String.fetch(db, "SELECT name FROM ...") // AnySequence<String?>
+        let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
     
     The returned sequence can be consumed several times, but it may yield
     different results, should database changes have occurred between two
@@ -321,7 +321,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of values.
     */
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     

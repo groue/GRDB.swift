@@ -68,17 +68,17 @@ Well, GRDB provides three fetching methods for each fetchable type:
 
 ```swift
 // Row
-Row.fetch(db, "SELECT ...", arguments: ...)        // AnySequence<Row>
+Row.fetch(db, "SELECT ...", arguments: ...)        // DatabaseSequence<Row>
 Row.fetchAll(db, "SELECT ...", arguments: ...)     // [Row]
 Row.fetchOne(db, "SELECT ...", arguments: ...)     // Row?
 
 // DatabaseValueConvertible
-String.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<String?>
+String.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<String?>
 String.fetchAll(db, "SELECT ...", arguments: ...)  // [String?]
 String.fetchOne(db, "SELECT ...", arguments: ...)  // String?
 
 // Record (via RowConvertible)
-Person.fetch(db, "SELECT ...", arguments: ...)     // AnySequence<Person>
+Person.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Person>
 Person.fetchAll(db, "SELECT ...", arguments: ...)  // [Person]
 Person.fetchOne(db, "SELECT ...", arguments: ...)  // Person?
 ```
