@@ -21,23 +21,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func readFromDatabase() {
         for _ in 0..<100 {
-            var sum: Int64 = 0
             dbQueue.inDatabase { db in
                 for row in Row.fetch(db, "SELECT * FROM items") {
-                    let i0: Int64 = row.value(atIndex: 0)
-                    let i1: Int64 = row.value(atIndex: 1)
-                    let i2: Int64 = row.value(atIndex: 2)
-                    let i3: Int64 = row.value(atIndex: 3)
-                    let i4: Int64 = row.value(atIndex: 4)
-                    let i5: Int64 = row.value(atIndex: 5)
-                    let i6: Int64 = row.value(atIndex: 6)
-                    let i7: Int64 = row.value(atIndex: 7)
-                    let i8: Int64 = row.value(atIndex: 8)
-                    let i9: Int64 = row.value(atIndex: 9)
-                    sum += i0 + i1 + i2 + i3 + i4 + i5 + i6 + i7 + i8 + i9
+                    let _: Int64 = row.value(atIndex: 0)
+                    let _: Int64 = row.value(atIndex: 1)
+                    let _: Int64 = row.value(atIndex: 2)
+                    let _: Int64 = row.value(atIndex: 3)
+                    let _: Int64 = row.value(atIndex: 4)
+                    let _: Int64 = row.value(atIndex: 5)
+                    let _: Int64 = row.value(atIndex: 6)
+                    let _: Int64 = row.value(atIndex: 7)
+                    let _: Int64 = row.value(atIndex: 8)
+                    let _: Int64 = row.value(atIndex: 9)
                 }
             }
-            print(sum)
         }
     }
 }
