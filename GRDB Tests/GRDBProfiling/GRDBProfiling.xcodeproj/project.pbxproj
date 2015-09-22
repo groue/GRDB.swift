@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		561E8D251BB12783000EFBBA /* ProfilingDatabase.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 561E8D241BB12783000EFBBA /* ProfilingDatabase.sqlite */; settings = {ASSET_TAGS = (); }; };
 		56537C761BA8871A00E87787 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56537C751BA8871A00E87787 /* AppDelegate.swift */; };
 		56537C781BA8871A00E87787 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56537C771BA8871A00E87787 /* ViewController.swift */; };
 		56537C7A1BA8871A00E87787 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56537C791BA8871A00E87787 /* Assets.xcassets */; };
@@ -52,6 +53,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		561E8D241BB12783000EFBBA /* ProfilingDatabase.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = ProfilingDatabase.sqlite; sourceTree = "<group>"; };
 		56537C721BA8871A00E87787 /* GRDBProfiling.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBProfiling.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56537C751BA8871A00E87787 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		56537C771BA8871A00E87787 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -94,6 +96,7 @@
 			children = (
 				56537C751BA8871A00E87787 /* AppDelegate.swift */,
 				56537C771BA8871A00E87787 /* ViewController.swift */,
+				561E8D241BB12783000EFBBA /* ProfilingDatabase.sqlite */,
 				56537C791BA8871A00E87787 /* Assets.xcassets */,
 				56537C7B1BA8871A00E87787 /* Main.storyboard */,
 				56537C7E1BA8871A00E87787 /* Info.plist */,
@@ -207,6 +210,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				561E8D251BB12783000EFBBA /* ProfilingDatabase.sqlite in Resources */,
 				56537C7A1BA8871A00E87787 /* Assets.xcassets in Resources */,
 				56537C7D1BA8871A00E87787 /* Main.storyboard in Resources */,
 			);

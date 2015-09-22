@@ -80,7 +80,7 @@ public extension DatabaseValueConvertible {
     - returns: A lazy sequence of values.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
-        return statement.metalFetch(arguments: arguments) {
+        return statement.fetch(arguments: arguments) {
             Self.fromDatabaseValue(statement.databaseValue(atIndex: 0))
         }
     }
@@ -255,7 +255,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     - returns: A lazy sequence of values.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self?> {
-        return statement.metalFetch(arguments: arguments) {
+        return statement.fetch(arguments: arguments) {
             let sqliteStatement = statement.sqliteStatement
             if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
                 return nil

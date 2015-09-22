@@ -19,6 +19,13 @@ public struct Row: CollectionType {
         self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
     }
     
+    /**
+    */
+    @warn_unused_result
+    public func detachedRow() -> Row {
+        return impl.detachedRow()
+    }
+    
     
     // MARK: - Extracting Swift Values
     
@@ -303,8 +310,8 @@ public struct Row: CollectionType {
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of rows.
     */
-    public static func metalFetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return statement.metalFetch(arguments: arguments) {
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+        return statement.fetch(arguments: arguments) {
             Row(metalStatement: statement)
         }
     }
@@ -350,8 +357,8 @@ public struct Row: CollectionType {
     - returns: An array of rows.
     */
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
-        let sequence = statement.metalFetch(arguments: arguments) {
-            Row(statement: statement)
+        let sequence = statement.fetch(arguments: arguments) {
+            Row(detachedStatement: statement)
         }
         return Array(sequence)
     }
@@ -367,8 +374,8 @@ public struct Row: CollectionType {
     - returns: An optional row.
     */
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
-        let rows = statement.metalFetch(arguments: arguments) {
-            Row(statement: statement)
+        let rows = statement.fetch(arguments: arguments) {
+            Row(detachedStatement: statement)
         }
         return rows.generate().next()
     }
@@ -380,7 +387,7 @@ public struct Row: CollectionType {
     Returns a row generator that provides fast but unsafe access to database
     values:
 
-        for row in Row.metalFetch(db, "SELECT id, name FROM persons") {
+        for row in Row.fetch(db, "SELECT id, name FROM persons") {
             let id = row.int64(atIndex: 0)
             let name = row.string(atIndex: 1)
         }
@@ -399,8 +406,8 @@ public struct Row: CollectionType {
     - parameter arguments: Optional statement arguments.
     - returns: A lazy sequence of rows.
     */
-    public static func metalFetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
-        return metalFetch(db.selectStatement(sql), arguments: arguments)
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Row> {
+        return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
 //    /**
@@ -465,16 +472,20 @@ public struct Row: CollectionType {
     /**
     Builds a row from the *current state* of the SQLite statement.
     
-    The row is implemented on top of StatementRowImpl, which *copies* the values
+    The row is implemented on top of DetachedRowImpl, which *copies* the values
     from the SQLite statement so that it can be further iterated without
     corrupting the row.
     */
-    init(statement: SelectStatement) {
-        self.impl = StatementRowImpl(statement: statement)
+    init(detachedStatement statement: SelectStatement) {
+        self.impl = DetachedRowImpl(statement: statement)
     }
     
     init(metalStatement statement: SelectStatement) {
-        self.impl = MetalRowImpl(sqliteStatement: statement.sqliteStatement)
+        self.impl = MetalRowImpl(statement: statement)
+    }
+    
+    init(impl: RowImpl) {
+        self.impl = impl
     }
     
     
@@ -510,13 +521,17 @@ public struct Row: CollectionType {
                 return nil
             }
         }
+        
+        func detachedRow() -> Row {
+            return Row(impl: self)
+        }
     }
     
     
-    // MARK: - StatementRowImpl
+    // MARK: - DetachedRowImpl
     
-    /// See Row.init(statement:)
-    private struct StatementRowImpl : RowImpl {
+    /// See Row.init(detachedStatement:)
+    private struct DetachedRowImpl : RowImpl {
         let databaseValues: [DatabaseValue]
         let columnNames: [String]
         var sqliteStatement: SQLiteStatement { return nil }
@@ -543,6 +558,10 @@ public struct Row: CollectionType {
             let lowercaseName = name.lowercaseString
             return columnNames.indexOf { $0.lowercaseString == lowercaseName }
         }
+        
+        func detachedRow() -> Row {
+            return Row(impl: self)
+        }
     }
     
     
@@ -550,7 +569,13 @@ public struct Row: CollectionType {
     
     /// See Row.init(metalStatement:)
     private struct MetalRowImpl : RowImpl {
+        let statement: SelectStatement
         let sqliteStatement: SQLiteStatement
+        
+        init(statement: SelectStatement) {
+            self.statement = statement
+            self.sqliteStatement = statement.sqliteStatement
+        }
         
         var count: Int {
             return Int(sqlite3_column_count(sqliteStatement))
@@ -573,6 +598,10 @@ public struct Row: CollectionType {
                 }
             }
             return nil
+        }
+        
+        func detachedRow() -> Row {
+            return Row(detachedStatement: statement)
         }
     }
 
@@ -603,6 +632,7 @@ protocol RowImpl {
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func columnName(atIndex index: Int) -> String
     func indexForColumn(named name: String) -> Int? // This method MUST be case-insensitive.
+    func detachedRow() -> Row
 }
 
 

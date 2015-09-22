@@ -61,8 +61,8 @@ extension RowConvertible {
     - returns: A lazy sequence.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> AnySequence<Self> {
-        return statement.metalFetch(arguments: arguments) {
-            let row = Row(statement: statement)
+        return statement.fetch(arguments: arguments) {
+            let row = Row(metalStatement: statement)
             let value = Self.init(row: row)
             value.awakeFromFetch(row)
             return value
@@ -184,7 +184,7 @@ extension RowConvertible {
 //    - returns: A lazy sequence.
 //    */
 //    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> AnySequence<Self> {
-//        return metalFetch(db.selectStatement(sql), arguments: arguments)
+//        return fetch(db.selectStatement(sql), arguments: arguments)
 //    }
     
     /**

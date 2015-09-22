@@ -26,7 +26,7 @@ class FetchPerformanceTests: XCTestCase {
         self.measureBlock {
             sum = 0
             dbQueue.inDatabase { db in
-                for row in Row.metalFetch(db, "SELECT * FROM items") {
+                for row in Row.fetch(db, "SELECT * FROM items") {
                     let i0: Int64 = row.value(atIndex: 0)
                     let i1: Int64 = row.value(atIndex: 1)
                     let i2: Int64 = row.value(atIndex: 2)

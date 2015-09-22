@@ -79,7 +79,10 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     public func awakeFromFetch(row: Row) {
         // Take care of the databaseEdited flag. If the row does not contain
         // all needed columns, the record turns edited.
-        referenceRow = row
+        //
+        // Row may be a metal row which will turn invalid as soon as the SQLite
+        // statement is iterated. We need to store a detached row.
+        referenceRow = row.detachedRow()
     }
     
     

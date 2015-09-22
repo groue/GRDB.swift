@@ -14,29 +14,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var dbQueue: DatabaseQueue!
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
-        
-        let databasePath = "/tmp/GRDBProfiling.sqlite"
-        do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
+        let databasePath = NSBundle.mainBundle().pathForResource("ProfilingDatabase", ofType: "sqlite")!
         dbQueue = try! DatabaseQueue(path: databasePath)
-        populateDatabase()
         readFromDatabase()
-    }
-    
-    func populateDatabase() {
-        try! dbQueue.inTransaction { db in
-            try db.execute(
-                "CREATE TABLE items (" +
-                    "i0 INT, " +
-                    "i1 INT, " +
-                    "i2 INT, " +
-                    "i3 INT, " +
-                    "i4 INT " +
-                ")")
-            for i in 0..<10000 {
-                try db.execute("INSERT INTO items (i0, i1, i2, i3, i4) VALUES (?,?,?,?,?)", arguments: [i, i+1, i+2, i+3, i+4])
-            }
-            return .Commit
-        }
     }
     
     func readFromDatabase() {
@@ -44,12 +24,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             var sum: Int64 = 0
             dbQueue.inDatabase { db in
                 for row in Row.fetch(db, "SELECT * FROM items") {
-                    let i0: Int64 = row.unsafeValue(atIndex: 0)
-                    let i1: Int64 = row.unsafeValue(atIndex: 1)
-                    let i2: Int64 = row.unsafeValue(atIndex: 2)
-                    let i3: Int64 = row.unsafeValue(atIndex: 3)
-                    let i4: Int64 = row.unsafeValue(atIndex: 4)
-                    sum += i0 + i1 + i2 + i3 + i4
+                    let i0: Int64 = row.value(atIndex: 0)
+                    let i1: Int64 = row.value(atIndex: 1)
+                    let i2: Int64 = row.value(atIndex: 2)
+                    let i3: Int64 = row.value(atIndex: 3)
+                    let i4: Int64 = row.value(atIndex: 4)
+                    let i5: Int64 = row.value(atIndex: 5)
+                    let i6: Int64 = row.value(atIndex: 6)
+                    let i7: Int64 = row.value(atIndex: 7)
+                    let i8: Int64 = row.value(atIndex: 8)
+                    let i9: Int64 = row.value(atIndex: 9)
+                    sum += i0 + i1 + i2 + i3 + i4 + i5 + i6 + i7 + i8 + i9
                 }
             }
             print(sum)
