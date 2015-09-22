@@ -1,7 +1,7 @@
 /**
 A database row.
 */
-public class Row: CollectionType {
+public struct Row: CollectionType {
     // IMPLEMENTATION NOTE:
     //
     // Row is a class so that we can reuse a single instance when iterating a
