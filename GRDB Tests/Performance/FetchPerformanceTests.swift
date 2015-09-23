@@ -13,6 +13,24 @@ class PerformanceItem : Record {
     var i8: Int64?
     var i9: Int64?
     
+    required init(row: Row) {
+        super.init(row: row)
+    }
+    
+    init(dictionary: [NSObject: AnyObject]) {
+        super.init()
+        if let n = dictionary["i0"] as? NSNumber { i0 = n.longLongValue }
+        if let n = dictionary["i1"] as? NSNumber { i1 = n.longLongValue }
+        if let n = dictionary["i2"] as? NSNumber { i2 = n.longLongValue }
+        if let n = dictionary["i3"] as? NSNumber { i3 = n.longLongValue }
+        if let n = dictionary["i4"] as? NSNumber { i4 = n.longLongValue }
+        if let n = dictionary["i5"] as? NSNumber { i5 = n.longLongValue }
+        if let n = dictionary["i6"] as? NSNumber { i6 = n.longLongValue }
+        if let n = dictionary["i7"] as? NSNumber { i7 = n.longLongValue }
+        if let n = dictionary["i8"] as? NSNumber { i8 = n.longLongValue }
+        if let n = dictionary["i9"] as? NSNumber { i9 = n.longLongValue }
+    }
+
     override func updateFromRow(row: Row) {
         if let dbv = row["i0"] { i0 = dbv.value() }
         if let dbv = row["i1"] { i1 = dbv.value() }
@@ -170,17 +188,8 @@ class FetchPerformanceTests: XCTestCase {
             dbQueue.inDatabase { db in
                 if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
                     while rs.next() {
-                        let item = PerformanceItem()
-                        item.i0 = rs.longLongIntForColumn("i0")
-                        item.i1 = rs.longLongIntForColumn("i1")
-                        item.i2 = rs.longLongIntForColumn("i2")
-                        item.i3 = rs.longLongIntForColumn("i3")
-                        item.i4 = rs.longLongIntForColumn("i4")
-                        item.i5 = rs.longLongIntForColumn("i5")
-                        item.i6 = rs.longLongIntForColumn("i6")
-                        item.i7 = rs.longLongIntForColumn("i7")
-                        item.i8 = rs.longLongIntForColumn("i8")
-                        item.i9 = rs.longLongIntForColumn("i9")
+                        let dictionary = rs.resultDictionary()
+                        let item = PerformanceItem(dictionary: dictionary)
                         item.databaseEdited = false
                         items.append(item)
                     }
