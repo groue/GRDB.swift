@@ -13,34 +13,34 @@ public struct DatabaseValue : Equatable {
     /**
     TODO
     */
-    public static let Null = DatabaseValue(type: Type.DetachedValue(DetachedValue.Null))
+    public static let Null = DatabaseValue(storage: .Null)
     
     /**
     TODO
     */
     public init(int64: Int64) {
-        self.type = .DetachedValue(DetachedValue.Int64(int64))
+        self.storage = .Int64(int64)
     }
     
     /**
     TODO
     */
     public init(double: Double) {
-        self.type = .DetachedValue(DetachedValue.Double(double))
+        self.storage = .Double(double)
     }
     
     /**
     TODO
     */
     public init(string: String) {
-        self.type = .DetachedValue(DetachedValue.String(string))
+        self.storage = .String(string)
     }
     
     /**
     TODO
     */
     public init(blob: Blob) {
-        self.type = .DetachedValue(DetachedValue.Blob(blob))
+        self.storage = .Blob(blob)
     }
     
     
@@ -62,7 +62,7 @@ public struct DatabaseValue : Equatable {
         //     if dbv.value() != nil { ... }
         //
         // Without this method, the code above would not compile.
-        switch detachedValue {
+        switch storage {
         case .Null:
             return nil
         case .Int64(let int64):
@@ -117,42 +117,14 @@ public struct DatabaseValue : Equatable {
     /**
     TODO
     */
-    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>() -> Value? {
-        switch type {
-        case .MetalValue(let sqliteStatement, let index):
-            if sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL {
-                return nil
-            } else {
-                return Value(sqliteStatement: sqliteStatement, index: Int32(index))
-            }
-        case .DetachedValue:
-            return Value.fromDatabaseValue(self)
-        }
-    }
-    
-    /**
-    TODO
-    */
     public func value<Value: DatabaseValueConvertible>() -> Value {
         return Value.fromDatabaseValue(self)!
-    }
-    
-    /**
-    TODO
-    */
-    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>() -> Value {
-        switch type {
-        case .MetalValue(let sqliteStatement, let index):
-            return Value(sqliteStatement: sqliteStatement, index: Int32(index))
-        case .DetachedValue:
-            return Value.fromDatabaseValue(self)!
-        }
     }
     
     
     // MARK: - Not Public
     
-    enum DetachedValue {
+    enum Storage {
         /// The NULL storage class.
         case Null
         
@@ -189,32 +161,14 @@ public struct DatabaseValue : Equatable {
         }
     }
     
-    private enum Type {
-        case DetachedValue(DatabaseValue.DetachedValue)
-        case MetalValue(sqliteStatement: SQLiteStatement, index: Int)
-    }
-    
-    private let type: Type
-    
-    var detachedValue: DetachedValue {
-        switch type {
-        case .DetachedValue(let detachedValue):
-            return detachedValue
-        case .MetalValue(let sqliteStatement, let index):
-            return DetachedValue(sqliteStatement: sqliteStatement, index: index)
-        }
-    }
+    let storage: Storage
 
     init(sqliteStatement: SQLiteStatement, index: Int) {
-        self.type = .MetalValue(sqliteStatement: sqliteStatement, index: index)
+        self.storage = Storage(sqliteStatement: sqliteStatement, index: index)
     }
     
-    init(detachedSqliteStatement sqliteStatement: SQLiteStatement, index: Int) {
-        self.type = .DetachedValue(DetachedValue(sqliteStatement: sqliteStatement, index: index))
-    }
-    
-    private init(type: Type) {
-        self.type = type
+    private init(storage: Storage) {
+        self.storage = storage
     }
 }
 
@@ -223,7 +177,7 @@ public struct DatabaseValue : Equatable {
 
 /// DatabaseValue adopts Equatable.
 public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
-    switch (lhs.detachedValue, rhs.detachedValue) {
+    switch (lhs.storage, rhs.storage) {
     case (.Null, .Null):
         return true
     case (.Int64(let lhs), .Int64(let rhs)):
@@ -279,7 +233,7 @@ extension DatabaseValue : DatabaseValueConvertible {
 extension DatabaseValue : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        switch detachedValue {
+        switch storage {
         case .Null:
             return "NULL"
         case .Int64(let integer):

@@ -43,7 +43,7 @@ extension NSNumber: DatabaseValueConvertible {
     - returns: An optional NSNumber.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
-        switch databaseValue.detachedValue {
+        switch databaseValue.storage {
         case .Int64(let int64):
             return self.init(longLong: int64)
         case .Double(let double):

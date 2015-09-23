@@ -5,7 +5,7 @@ extension NSData : DatabaseValueConvertible {
         if let blob = Blob(data: self) {
             return DatabaseValue(blob: blob)
         } else {
-            return DatabaseValue.Null
+            return .Null
         }
     }
     

@@ -73,7 +73,7 @@ extension Bool: DatabaseValueConvertible, MetalType {
         // the natural boolean storage class, and Real because Numeric affinity
         // store big numbers as Real.
         
-        switch databaseValue.detachedValue {
+        switch databaseValue.storage {
         case .Int64(let int64):
             return (int64 != 0)
         case .Double(let double):
@@ -103,7 +103,7 @@ extension Int: DatabaseValueConvertible, MetalType {
     - returns: An optional Int.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int? {
-        switch databaseValue.detachedValue {
+        switch databaseValue.storage {
         case .Int64(let int64):
             return Int(int64)
         case .Double(let double):
@@ -133,7 +133,7 @@ extension Int32: DatabaseValueConvertible, MetalType {
     - returns: An optional Int32.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int32? {
-        switch databaseValue.detachedValue {
+        switch databaseValue.storage {
         case .Int64(let int64):
             return Int32(int64)
         case .Double(let double):
@@ -163,7 +163,7 @@ extension Int64: DatabaseValueConvertible, MetalType {
     - returns: An optional Int64.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int64? {
-        switch databaseValue.detachedValue {
+        switch databaseValue.storage {
         case .Int64(let int64):
             return int64
         case .Double(let double):
@@ -193,7 +193,7 @@ extension Double: DatabaseValueConvertible, MetalType {
     - returns: An optional Double.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Double? {
-        switch databaseValue.detachedValue {
+        switch databaseValue.storage {
         case .Int64(let int64):
             return Double(int64)
         case .Double(let double):
@@ -224,7 +224,7 @@ extension String: DatabaseValueConvertible, MetalType {
     - returns: An optional String.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> String? {
-        switch databaseValue.detachedValue {
+        switch databaseValue.storage {
         case .String(let string):
             return string
         default:

@@ -75,7 +75,7 @@ public class Statement {
         let databaseValue = value?.databaseValue ?? .Null
         let code: Int32
         
-        switch databaseValue.detachedValue {
+        switch databaseValue.storage {
         case .Null:
             code = sqlite3_bind_null(sqliteStatement, Int32(index))
         case .Int64(let int64):
