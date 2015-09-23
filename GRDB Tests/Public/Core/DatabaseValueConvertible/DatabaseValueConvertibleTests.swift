@@ -72,9 +72,15 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
         return databaseValue.value()
     }
     
-    func testBlobDatabaseValueCanNotStoreEmptyData() {
+    func testBlobCanNotStoreEmptyData() {
         // SQLite can't store zero-length blob.
         let blob = Blob(data: NSData())
+        XCTAssertTrue(blob == nil)
+    }
+    
+    func testBlobCanNotStoreZeroLengthBuffer() {
+        // SQLite can't store zero-length blob.
+        let blob = Blob(bytes: nil, length: 0)
         XCTAssertTrue(blob == nil)
     }
     
@@ -216,7 +222,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertTrue(self.string(databaseValue) == nil)
-                XCTAssertTrue(self.blob(databaseValue)!.data .isEqualToData("foo".dataUsingEncoding(NSUTF8StringEncoding)!))
+                XCTAssertEqual(self.blob(databaseValue), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
                 
                 return .Rollback
             }
@@ -432,7 +438,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertTrue(self.string(databaseValue) == nil)
-                XCTAssertTrue(self.blob(databaseValue)!.data .isEqualToData("foo".dataUsingEncoding(NSUTF8StringEncoding)!))
+                XCTAssertEqual(self.blob(databaseValue), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
                 
                 return .Rollback
             }
@@ -557,7 +563,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertTrue(self.string(databaseValue) == nil)
-                XCTAssertTrue(self.blob(databaseValue)!.data .isEqualToData("foo".dataUsingEncoding(NSUTF8StringEncoding)!))
+                XCTAssertEqual(self.blob(databaseValue), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
                 
                 return .Rollback
             }
@@ -747,7 +753,7 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
                 XCTAssertTrue(self.int64(databaseValue) == nil)
                 XCTAssertTrue(self.double(databaseValue) == nil)
                 XCTAssertTrue(self.string(databaseValue) == nil)
-                XCTAssertTrue(self.blob(databaseValue)!.data .isEqualToData("foo".dataUsingEncoding(NSUTF8StringEncoding)!))
+                XCTAssertEqual(self.blob(databaseValue), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
                 
                 return .Rollback
             }

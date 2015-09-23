@@ -37,7 +37,7 @@ public enum DatabaseValue : Equatable {
         case SQLITE_BLOB:
             let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
             let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-            self = .Blob(GRDB.Blob(bytes: bytes, length: Int(length))!)
+            self = .Blob(GRDB.Blob(bytes: bytes, length: Int(length))!) // copy bytes
         default:
             fatalError("Unexpected SQLite column type")
         }

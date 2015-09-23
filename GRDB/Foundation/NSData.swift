@@ -12,15 +12,15 @@ extension NSData : DatabaseValueConvertible {
     /**
     Returns an NSData initialized from *databaseValue*, if it contains a Blob.
     
+    The data is *copied*.
+    
     - parameter databaseValue: A DatabaseValue.
     - returns: An optional NSData.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         switch databaseValue {
         case .Blob(let blob):
-            // error: cannot convert return expression of type 'NSData' to return type 'Self?'
-            return self.init(data: blob.data)
-            //            return self.init(data: blob.data)   // Return a copy in order to comply to the `Self` return type.
+            return self.init(data: NSData(bytes: blob.bytes, length: blob.length))
         default:
             return nil
         }
@@ -40,53 +40,20 @@ extension Blob {
     
     - parameter data: An NSData
     */
-    public init?(data: NSData?) {
-        if let data = data where data.length > 0 {
-            impl = NSDataImpl(data: data.copy() as! NSData)
-        } else {
+    public convenience init?(data: NSData?) {
+        guard let data = data where data.length > 0 else {  // oddly enough, if data.length is not tested here, we have a runtime crash.
             return nil
         }
+        self.init(bytes: data.bytes, length: data.length)
     }
     
     /**
-    Creates a Blob from NSData.
+    Returns an NSData.
     
-    Returns nil if and only if *data* is nil or zero-length (SQLite can't store
-    empty blobs).
-    
-    The data is *not copied*.
-    
-    - parameter data: An NSData
+    The data is *copied*. See NSData(bytesNoCopy:length:freeWhenDone:) for more
+    precise memory management.
     */
-    public init?(dataNoCopy data: NSData?) {
-        if let data = data where data.length > 0 {
-            impl = NSDataImpl(data: data)
-        } else {
-            return nil
-        }
-    }
-    
-    /// Returns an NSData
     public var data: NSData {
-        switch impl {
-        case let impl as NSDataImpl:
-            // Avoid copy
-            return impl.data
-        default:
-            return NSData(bytes: impl.bytes, length: impl.length)
-        }
-    }
-    
-    /// A BlobImpl that stores NSData without copying it.
-    private struct NSDataImpl : BlobImpl {
-        let data: NSData
-        
-        var bytes: UnsafePointer<Void> {
-            return data.bytes
-        }
-        
-        var length: Int {
-            return data.length
-        }
+        return NSData(bytes: bytes, length: length)
     }
 }

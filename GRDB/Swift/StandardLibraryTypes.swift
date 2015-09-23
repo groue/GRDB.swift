@@ -1,4 +1,4 @@
-/// Bool is convertible to and from DatabaseValue.
+/// Bool adopts DatabaseValueConvertible and MetalType.
 extension Bool: DatabaseValueConvertible, MetalType {
     
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
@@ -84,7 +84,7 @@ extension Bool: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// Int is convertible to and from DatabaseValue.
+/// Int adopts DatabaseValueConvertible and MetalType.
 extension Int: DatabaseValueConvertible, MetalType {
     
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
@@ -114,7 +114,7 @@ extension Int: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// Int32 is convertible to and from DatabaseValue.
+/// Int32 adopts DatabaseValueConvertible and MetalType.
 extension Int32: DatabaseValueConvertible, MetalType {
     
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
@@ -144,7 +144,7 @@ extension Int32: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// Int64 is convertible to and from DatabaseValue.
+/// Int64 adopts DatabaseValueConvertible and MetalType.
 extension Int64: DatabaseValueConvertible, MetalType {
     
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
@@ -174,7 +174,7 @@ extension Int64: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// Double is convertible to and from DatabaseValue.
+/// Double adopts DatabaseValueConvertible and MetalType.
 extension Double: DatabaseValueConvertible, MetalType {
     
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
@@ -204,7 +204,7 @@ extension Double: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// String is convertible to and from DatabaseValue.
+/// String adopts DatabaseValueConvertible and MetalType.
 extension String: DatabaseValueConvertible, MetalType {
     
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
