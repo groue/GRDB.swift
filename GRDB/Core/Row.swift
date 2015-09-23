@@ -330,7 +330,7 @@ public class Row: CollectionType {
     /**
     TODO
     
-    Returns a row generator that provides fast but unsafe access to database
+    Returns a row sequence that provides fast but unsafe access to database
     values:
 
         for row in MetalRow.fetch(db, "SELECT id, name FROM persons") {
@@ -338,19 +338,19 @@ public class Row: CollectionType {
             let name = row.string(atIndex: 1)
         }
     
-    The returned generator is *unsafe* because it must be used with extra care,
+    The returned sequence is *unsafe* because it must be used with extra care,
     and GRDB.swift will not prevent invalid usage.
     
     - It MUST be iterated right away. Do not reserve it, do not wrap it in an
       Array.
     
-    Granted with those constraints, the unsafe generator grants extra speed for
+    Granted with those constraints, the unsafe sequence grants extra speed for
     the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
     - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of rows.
+    - returns: A sequence of rows.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
@@ -398,7 +398,7 @@ public class Row: CollectionType {
     /**
     TODO
     
-    Returns a row generator that provides fast but unsafe access to database
+    Returns a row sequence that provides fast but unsafe access to database
     values:
 
         for row in Row.fetch(db, "SELECT id, name FROM persons") {
@@ -406,19 +406,19 @@ public class Row: CollectionType {
             let name = row.string(atIndex: 1)
         }
     
-    The returned generator is *unsafe* because it must be used with extra care,
+    The returned sequence is *unsafe* because it must be used with extra care,
     and GRDB.swift will not prevent invalid usage.
     
     - It MUST be iterated right away. Do not reserve it, do not wrap it in an
       Array.
     
-    Granted with those constraints, the unsafe generator grants extra speed for
+    Granted with those constraints, the unsafe sequence grants extra speed for
     the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
     - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of rows.
+    - returns: A sequence of rows.
     */
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         return fetch(db.selectStatement(sql), arguments: arguments)

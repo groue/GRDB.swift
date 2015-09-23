@@ -4,8 +4,8 @@
 Types that adopt DatabaseValueConvertible can be initialized from database
 values.
 
-The protocol comes with built-in methods that allow to fetch lazy sequences,
-arrays, or single instances:
+The protocol comes with built-in methods that allow to fetch sequences, arrays,
+or single instances:
 
     String.fetch(db, "SELECT name FROM ...", arguments:...)    // DatabaseSequence<String?>
     String.fetchAll(db, "SELECT name FROM ...", arguments:...) // [String?]
@@ -38,8 +38,8 @@ public protocol DatabaseValueConvertible {
 Types that adopt DatabaseValueConvertible can be initialized from database
 values.
 
-The protocol comes with built-in methods that allow to fetch lazy sequences,
-arrays, or single instances:
+The protocol comes with built-in methods that allow to fetch sequences, arrays,
+or single instances:
 
     String.fetch(db, "SELECT name FROM ...", arguments:...)    // DatabaseSequence<String?>
     String.fetchAll(db, "SELECT name FROM ...", arguments:...) // [String?]
@@ -58,7 +58,7 @@ public extension DatabaseValueConvertible {
     
     /**
     TODO
-    Fetches a lazy sequence of DatabaseValueConvertible values.
+    Fetches a sequence of DatabaseValueConvertible values.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let names = String.fetch(statement) // DatabaseSequence<String?>
@@ -77,7 +77,7 @@ public extension DatabaseValueConvertible {
     
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of values.
+    - returns: A sequence of values.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
         return statement.fetch(arguments: arguments) {
@@ -120,7 +120,7 @@ public extension DatabaseValueConvertible {
     // MARK: - Fetching From Database
     
     /**
-    Fetches a lazy sequence of DatabaseValueConvertible values.
+    Fetches a sequence of DatabaseValueConvertible values.
     
         let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
     
@@ -139,7 +139,7 @@ public extension DatabaseValueConvertible {
     - parameter db: A Database.
     - parameter sql: An SQL query.
     - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of values.
+    - returns: A sequence of values.
     */
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
         return fetch(db.selectStatement(sql), arguments: arguments)
@@ -183,7 +183,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     
     /**
     TODO
-    Fetches a lazy sequence of DatabaseValueConvertible values.
+    Fetches a sequence of DatabaseValueConvertible values.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let names = String.fetch(statement) // DatabaseSequence<String?>
@@ -202,7 +202,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of values.
+    - returns: A sequence of values.
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
         return statement.fetch(arguments: arguments) {
@@ -250,7 +250,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     // MARK: - Fetching From Database
     
     /**
-    Fetches a lazy sequence of DatabaseValueConvertible values.
+    Fetches a sequence of DatabaseValueConvertible values.
     
         let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
     
@@ -269,7 +269,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     - parameter db: A Database.
     - parameter sql: An SQL query.
     - parameter arguments: Optional statement arguments.
-    - returns: A lazy sequence of values.
+    - returns: A sequence of values.
     */
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
         return fetch(db.selectStatement(sql), arguments: arguments)
