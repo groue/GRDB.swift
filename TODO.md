@@ -4,7 +4,9 @@
 - [ ] Since Records' primary key are infered, no operation is possible on the primary key unless we have a Database instance. It's impossible to define the record.primaryKey property, or to provide a copy() function that does not clone the primary key: they miss the database that is the only object aware of the primary key. Should we change our mind, and have Record explicitly expose their primary key again?
 - [ ] See if we can avoid the inelegant `dbQueue.inTransaction(.Deferred) { ...; return .Commit }` that is required for isolation of select queries, without introducing any ambiguity.
 - [ ] Use unsafeAddressOf instead of unsafeBitCast when possible.
-- [ ] Metal: review all fetch() methods, and make sure they are safe. Provide metalSafe() variant if needed.
+- [ ] Metal: review all fetch() and fetchAll() methods, and make sure they still work even when they use metal row. This include:
+    - [ ] Write test for how a fetched sequence should behave. It should contains the expected values. It can be restarted. Some of those are already written.
+    - [ ] Update documentation when they metal rows are exposed, so that user is encouraged copying them.
 - [ ] Metal: blob of metal row should not copy data.
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
 - [ ] Metal: Improve speed of named column access.
