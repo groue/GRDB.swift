@@ -81,8 +81,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         // all needed columns, the record turns edited.
         //
         // Row may be a metal row which will turn invalid as soon as the SQLite
-        // statement is iterated. We need to store a detached row.
-        referenceRow = row.detachedRow()
+        // statement is iterated. We need to store an immutable and safe copy.
+        referenceRow = row.copy()
     }
     
     

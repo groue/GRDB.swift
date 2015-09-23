@@ -32,7 +32,7 @@ public protocol DatabaseValueConvertible {
 }
 
 
-// MARK: - Fetching
+// MARK: - Fetching DatabaseValueConvertible
 
 /**
 Types that adopt DatabaseValueConvertible can be initialized from database
@@ -85,36 +85,6 @@ public extension DatabaseValueConvertible {
         }
     }
     
-//    /**
-//    Fetches a lazy sequence of DatabaseValueConvertible values.
-//    
-//        let statement = db.selectStatement("SELECT name FROM ...")
-//        let names = String.fetch(statement) // DatabaseSequence<String?>
-//    
-//    The returned sequence can be consumed several times, but it may yield
-//    different results, should database changes have occurred between two
-//    generations:
-//    
-//        let names = String.fetch(statement)
-//        Array(names) // Arthur, Barbara
-//        db.execute("DELETE ...")
-//        Array(names) // Arthur
-//    
-//    If the database is modified while the sequence is iterating, the remaining
-//    elements are undefined.
-//    
-//    - parameter statement: The statement to run.
-//    - parameter arguments: Optional statement arguments.
-//    - returns: A lazy sequence of values.
-//    */
-//    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
-//        return AnySequence {
-//            statement.generate(arguments: arguments) {
-//                statement.databaseValue(atIndex: 0).value()
-//            }
-//        }
-//    }
-//    
     /**
     Fetches an array of DatabaseValueConvertible values.
     
@@ -175,32 +145,6 @@ public extension DatabaseValueConvertible {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
-//    /**
-//    Fetches a lazy sequence of DatabaseValueConvertible values.
-//    
-//        let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
-//    
-//    The returned sequence can be consumed several times, but it may yield
-//    different results, should database changes have occurred between two
-//    generations:
-//    
-//        let names = String.fetch(db, "SELECT name FROM ...")
-//        Array(names) // Arthur, Barbara
-//        db.execute("DELETE ...")
-//        Array(names) // Arthur
-//    
-//    If the database is modified while the sequence is iterating, the remaining
-//    elements are undefined.
-//    
-//    - parameter db: A Database.
-//    - parameter sql: An SQL query.
-//    - parameter arguments: Optional statement arguments.
-//    - returns: A lazy sequence of values.
-//    */
-//    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
-//        return self.fetch(db.selectStatement(sql), arguments: arguments)
-//    }
-    
     /**
     Fetches an array of DatabaseValueConvertible values.
     
@@ -230,7 +174,13 @@ public extension DatabaseValueConvertible {
     }
 }
 
+
+// MARK: - Fetching DatabaseValueConvertible + MetalType
+
 public extension DatabaseValueConvertible where Self: MetalType {
+    
+    // MARK: - Fetching From SelectStatement
+    
     /**
     TODO
     Fetches a lazy sequence of DatabaseValueConvertible values.

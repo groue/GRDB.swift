@@ -1,19 +1,24 @@
 /**
 A database row.
 */
-public struct Row: CollectionType {
+public class Row: CollectionType {
     // IMPLEMENTATION NOTE:
     //
-    // Row is a class so that we can reuse a single instance when iterating a
-    // SelectStatement. This avoids a lot of Swift boilerplate, and improves
-    // performances.
+    // Row could be a struct. It is a class for a single reason: so that is
+    // looks like it is inherently mutable.
+    //
+    // This helps documentation a lot. The "reused" word in the following
+    // documentation sentence would look weird if rows were structs:
+    // 
+    // > Fetched rows are reused during the iteration of a query, for
+    // > performance reasons: make sure to make a copy of it whenever you want
+    // > to keep a specific one: `row.copy()`.
+    
     
     // MARK: - Building rows
     
     /**
     Builds a row from an dictionary of values.
-    
-    - parameter databaseDictionary: A dictionary of DatabaseValue.
     */
     public init(dictionary: [String: DatabaseValueConvertible?]) {
         var databaseDictionary = [String: DatabaseValue]()
@@ -25,10 +30,16 @@ public struct Row: CollectionType {
     }
     
     /**
+    Returns a copy of the row.
+    
+    Fetched rows are reused during the iteration of a query, for performance
+    reasons: make sure to make a copy of it whenever you want to keep a specific
+    one: `row.copy()`.
     */
     @warn_unused_result
-    public func detachedRow() -> Row {
-        return impl.detachedRow()
+    public func copy() -> Row {
+        // Return a row that is detached from its eventual SQLite statement:
+        return impl.detachedRow(self)
     }
     
     
@@ -67,6 +78,8 @@ public struct Row: CollectionType {
     Indexes span from 0 for the leftmost column to (row.count - 1) for the
     righmost column.
     
+    TODO: the doc below is obsolete.
+    
     The conversion returns nil if the fetched SQLite value is NULL, or can't be
     converted to the requested type:
     
@@ -103,33 +116,44 @@ public struct Row: CollectionType {
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
         return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
     }
-
+    
+    /**
+    TODO
+    */
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value? {
-        let sqliteStatement = self.sqliteStatement  // accessing it through impl takes 69% of the time spent here, and only 16% through self.
-        guard sqliteStatement != nil else {
-            return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
-        }
-        
-        // Metal
-        if sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL {
-            return nil
+        let sqliteStatement = self.sqliteStatement
+        if sqliteStatement != nil {
+            // Metal row
+            if sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL {
+                return nil
+            } else {
+                return Value(sqliteStatement: sqliteStatement, index: Int32(index))
+            }
         } else {
-            return Value(sqliteStatement: sqliteStatement, index: Int32(index))
+            // Detached row
+            return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
         }
     }
     
+    /**
+    TODO
+    */
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
         return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
     }
-
+    
+    /**
+    TODO
+    */
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value {
         let sqliteStatement = self.sqliteStatement
-        guard sqliteStatement != nil else {
+        if sqliteStatement != nil {
+            // Metal row
+            return Value(sqliteStatement: sqliteStatement, index: Int32(index))
+        } else {
+            // Detached row
             return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
         }
-        
-        // Metal
-        return Value(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
     
@@ -170,6 +194,8 @@ public struct Row: CollectionType {
     
     This method is case-insensitive.
     
+    TODO: the doc below is obsolete.
+    
     **WARNING**: type casting requires a very careful use of the `as` operator
     (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
     
@@ -201,16 +227,25 @@ public struct Row: CollectionType {
         return value(atIndex: index)
     }
     
+    /**
+    TODO
+    */
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(named columnName: String) -> Value? {
         let index = impl.indexForColumn(named: columnName)!
         return value(atIndex: index)
     }
     
+    /**
+    TODO
+    */
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
         let index = impl.indexForColumn(named: columnName)!
         return value(atIndex: index)
     }
     
+    /**
+    TODO
+    */
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(named columnName: String) -> Value {
         let index = impl.indexForColumn(named: columnName)!
         return value(atIndex: index)
@@ -293,6 +328,8 @@ public struct Row: CollectionType {
     // MARK: - Fetching From SelectStatement
     
     /**
+    TODO
+    
     Returns a row generator that provides fast but unsafe access to database
     values:
 
@@ -320,36 +357,6 @@ public struct Row: CollectionType {
         let row = Row(metalStatement: statement)
         return statement.fetch(arguments: arguments) { row }
     }
-    
-//    /**
-//    Fetches a lazy sequence of rows.
-//    
-//        let statement = db.selectStatement("SELECT ...")
-//        let rows = Row.fetch(statement)
-//    
-//    The returned sequence can be consumed several times, but it may yield
-//    different results, should database changes have occurred between two
-//    generations:
-//    
-//        let rows = Row.fetch(statement)
-//        Array(rows).count // 3
-//        db.execute("DELETE ...")
-//        Array(rows).count // 2
-//    
-//    If the database is modified while the sequence is iterating, the remaining
-//    elements are undefined.
-//    
-//    - parameter statement: The statement to run.
-//    - parameter arguments: Optional statement arguments.
-//    - returns: A lazy sequence of rows.
-//    */
-//    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
-//        return AnySequence {
-//            statement.generate(arguments: arguments) {
-//                Row(statement: statement)
-//            }
-//        }
-//    }
     
     /**
     Fetches an array of rows.
@@ -389,6 +396,8 @@ public struct Row: CollectionType {
     // MARK: - Fetching From Database
     
     /**
+    TODO
+    
     Returns a row generator that provides fast but unsafe access to database
     values:
 
@@ -414,32 +423,6 @@ public struct Row: CollectionType {
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
-    
-//    /**
-//    Fetches a lazy sequence of rows.
-//
-//        let rows = Row.fetch(db, "SELECT ...")
-//
-//    The returned sequence can be consumed several times, but it may yield
-//    different results, should database changes have occurred between two
-//    generations:
-//    
-//        let rows = Row.fetch(db, "SELECT ...")
-//        Array(rows).count // 3
-//        db.execute("DELETE ...")
-//        Array(rows).count // 2
-//    
-//    If the database is modified while the sequence is iterating, the remaining
-//    elements are undefined.
-//    
-//    - parameter db: A Database.
-//    - parameter sql: An SQL query.
-//    - parameter arguments: Optional statement arguments.
-//    - returns: A lazy sequence of rows.
-//    */
-//    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
-//        return fetch(db.selectStatement(sql), arguments: arguments)
-//    }
     
     /**
     Fetches an array of rows.
@@ -472,29 +455,46 @@ public struct Row: CollectionType {
     
     // MARK: - Not Public
     
+    /// There a three different RowImpl:
+    ///
+    /// - MetalRowImpl: metal rows grant direct access to the current state of
+    ///   an SQLite statement. Such rows are reused during the iteration of a
+    ///   statement.
+    ///
+    /// - DetachedRowImpl: detached rows hold a copy of the values that come
+    ///   from an SQLite statement.
+    ///
+    /// - DictionaryRowImpl: dictionary rows are created by the library users.
+    ///   They do not come from the database.
     let impl: RowImpl
-    let sqliteStatement: SQLiteStatement    // IMPLEMENTATION NOTE: Making sqliteStatement a row property instead of a RowImpl property makes the extraction of MetalType values faster.
+    
+    /// Only metal rows have a SQLiteStatement.
+    ///
+    /// Making sqliteStatement a property of Row instead of a property of RowImpl
+    /// makes the extraction of MetalType values faster.
+    let sqliteStatement: SQLiteStatement
     
     /**
-    Builds a row from the *current state* of the SQLite statement.
+    Builds a row from the an SQLite statement.
     
-    The row is implemented on top of DetachedRowImpl, which *copies* the values
-    from the SQLite statement so that it can be further iterated without
-    corrupting the row.
+    The row is implemented on top of MetalRowImpl, which grants *direct* access
+    to the SQLite statement. Iteration of the statement does modify the row.
     */
-    init(detachedStatement statement: SelectStatement) {
-        self.sqliteStatement = nil
-        self.impl = DetachedRowImpl(statement: statement)
-    }
-    
     init(metalStatement statement: SelectStatement) {
         self.sqliteStatement = statement.sqliteStatement
         self.impl = MetalRowImpl(statement: statement)
     }
     
-    init(impl: RowImpl) {
+    /**
+    Builds a row from the *current state* of the SQLite statement.
+    
+    The row is implemented on top of DetachedRowImpl, which *copies* the values
+    from the SQLite statement so that further iteration of the statement does
+    not modify the row.
+    */
+    init(detachedStatement statement: SelectStatement) {
         self.sqliteStatement = nil
-        self.impl = impl
+        self.impl = DetachedRowImpl(statement: statement)
     }
     
     
@@ -530,8 +530,8 @@ public struct Row: CollectionType {
             }
         }
         
-        func detachedRow() -> Row {
-            return Row(impl: self)
+        func detachedRow(row: Row) -> Row {
+            return row
         }
     }
     
@@ -566,8 +566,8 @@ public struct Row: CollectionType {
             return columnNames.indexOf { $0.lowercaseString == lowercaseName }
         }
         
-        func detachedRow() -> Row {
-            return Row(impl: self)
+        func detachedRow(row: Row) -> Row {
+            return row
         }
     }
     
@@ -607,7 +607,7 @@ public struct Row: CollectionType {
             return nil
         }
         
-        func detachedRow() -> Row {
+        func detachedRow(row: Row) -> Row {
             return Row(detachedStatement: statement)
         }
     }
@@ -638,7 +638,7 @@ protocol RowImpl {
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func columnName(atIndex index: Int) -> String
     func indexForColumn(named name: String) -> Int? // This method MUST be case-insensitive.
-    func detachedRow() -> Row
+    func detachedRow(row: Row) -> Row               // The row argument has the receiver as an impl.
 }
 
 
