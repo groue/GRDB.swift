@@ -593,18 +593,12 @@ public class Row: CollectionType {
         }
         
         func columnName(atIndex index: Int) -> String {
-            return String.fromCString(sqlite3_column_name(sqliteStatement, Int32(index)))!
+            return statement.columnNames[index]
         }
         
         // This method MUST be case-insensitive.
         func indexForColumn(named name: String) -> Int? {
-            let lowercaseName = name.lowercaseString
-            for i in 0..<count {
-                if columnName(atIndex: i).lowercaseString == lowercaseName {
-                    return i
-                }
-            }
-            return nil
+            return statement.indexForColumn(named: name)
         }
         
         func detachedRow(row: Row) -> Row {

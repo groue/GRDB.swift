@@ -46,6 +46,25 @@ public final class SelectStatement : Statement {
         
         return DatabaseSequence(statement: self, map: map)
     }
+    
+    /**
+    TODO
+    */
+    func indexForColumn(named name: String) -> Int? {
+        return lowercaseColumnIndexes[name.lowercaseString]
+    }
+
+    private lazy var lowercaseColumnIndexes: [String: Int] = { [unowned self] in
+        var indexes = [String: Int]()
+        let count = self.columnCount
+        // Reverse so that we return indexes for the leftmost columns.
+        // SELECT 1 AS a, 2 AS a -> lowercaseColumnIndexes["a”] = 0
+        for (index, columnName) in self.columnNames.reverse().enumerate() {
+            indexes[columnName.lowercaseString] = count - index - 1
+        }
+        return indexes
+        }()
+    
 }
 
 /**

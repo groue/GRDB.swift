@@ -18,7 +18,7 @@ class FetchPerformanceTests: XCTestCase {
 //        
 //    }
     
-    func testGRDBFetchPerformance() {
+    func testGRDBValueAtIndexPerformance() {
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
@@ -40,7 +40,29 @@ class FetchPerformanceTests: XCTestCase {
         }
     }
     
-    func testFMDBFetchPerformance() {
+    func testGRDBValueNamedPerformance() {
+        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
+        let dbQueue = try! DatabaseQueue(path: databasePath)
+        
+        self.measureBlock {
+            dbQueue.inDatabase { db in
+                for row in Row.fetch(db, "SELECT * FROM items") {
+                    let _: Int64 = row.value(named: "i0")
+                    let _: Int64 = row.value(named: "i1")
+                    let _: Int64 = row.value(named: "i2")
+                    let _: Int64 = row.value(named: "i3")
+                    let _: Int64 = row.value(named: "i4")
+                    let _: Int64 = row.value(named: "i5")
+                    let _: Int64 = row.value(named: "i6")
+                    let _: Int64 = row.value(named: "i7")
+                    let _: Int64 = row.value(named: "i8")
+                    let _: Int64 = row.value(named: "i9")
+                }
+            }
+        }
+    }
+    
+    func testFMDBValueAtIndexPerformance() {
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
         let dbQueue = FMDatabaseQueue(path: databasePath)
         
@@ -58,6 +80,30 @@ class FetchPerformanceTests: XCTestCase {
                         let _ = rs.longLongIntForColumnIndex(7)
                         let _ = rs.longLongIntForColumnIndex(8)
                         let _ = rs.longLongIntForColumnIndex(9)
+                    }
+                }
+            }
+        }
+    }
+    
+    func testFMDBValueNamedPerformance() {
+        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
+        let dbQueue = FMDatabaseQueue(path: databasePath)
+        
+        self.measureBlock {
+            dbQueue.inDatabase { db in
+                if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
+                    while rs.next() {
+                        let _ = rs.longLongIntForColumn("i0")
+                        let _ = rs.longLongIntForColumn("i1")
+                        let _ = rs.longLongIntForColumn("i2")
+                        let _ = rs.longLongIntForColumn("i3")
+                        let _ = rs.longLongIntForColumn("i4")
+                        let _ = rs.longLongIntForColumn("i5")
+                        let _ = rs.longLongIntForColumn("i6")
+                        let _ = rs.longLongIntForColumn("i7")
+                        let _ = rs.longLongIntForColumn("i8")
+                        let _ = rs.longLongIntForColumn("i9")
                     }
                 }
             }

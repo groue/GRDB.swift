@@ -9,4 +9,3 @@
     - [ ] Update documentation when they metal rows are exposed, so that user is encouraged copying them.
 - [ ] Metal: blob of metal row should not copy data.
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
-- [ ] Metal: Improve speed of named column access.
