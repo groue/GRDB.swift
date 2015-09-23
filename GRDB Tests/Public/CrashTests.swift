@@ -120,7 +120,7 @@ class CrashTests: GRDBTestCase {
     
     func testRowSequenceCanNotBeGeneratedOutsideOfDatabaseQueue() {
         assertCrash("Database was not used on the correct queue.") {
-            var rows: AnySequence<Row>?
+            var rows: DatabaseSequence<Row>?
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT)")
                 rows = Row.fetch(db, "SELECT * FROM persons")
@@ -131,7 +131,7 @@ class CrashTests: GRDBTestCase {
     
     func testRowSequenceCanNotBeIteratedOutsideOfDatabaseQueue() {
         assertCrash("Database was not used on the correct queue.") {
-            var generator: AnyGenerator<Row>?
+            var generator: DatabaseGenerator<Row>?
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT)")
                 generator = Row.fetch(db, "SELECT * FROM persons").generate()
