@@ -7,5 +7,4 @@
 - [ ] Metal: review all fetch() methods, and make sure they are safe. Provide metalSafe() variant if needed.
 - [ ] Metal: blob of metal row should not copy data.
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
-- [ ] Metal: RowConvertible/Record should be able to opt-in for metal.
-- [ ] Metal: Row.copy() returns a safe row. Record that opt-in for metal should store such a copy in their referenceRow.
+- [ ] Metal: Improve speed of named column access.
