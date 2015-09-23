@@ -63,7 +63,7 @@ dbQueue.inDatabase { db in
 Benchmarks
 ----------
 
-In its current state, GRDB.swift as fast as ccgus/fmdb, or faster.
+GRDB.swift runs as fast as ccgus/fmdb, or faster.
 
 For precise benchmarks, select the GRDBOSX scheme, run the tests in Release configuration, and check the results under the "Performance" tab in the Xcode Report Navigator.
 
