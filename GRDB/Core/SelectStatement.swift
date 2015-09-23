@@ -44,10 +44,6 @@ public final class SelectStatement : Statement {
             trace(sql: self.sql, arguments: self.arguments)
         }
         
-        // Check that sequence is built on a valid database.
-        // See DatabaseQueue.inSafeDatabase().
-        database.assertValid()
-        
         return DatabaseSequence(statement: self, map: map)
     }
 }
@@ -59,6 +55,10 @@ public struct DatabaseSequence<T>: SequenceType {
     let statement: SelectStatement
     let map: () -> T
     public func generate() -> DatabaseGenerator<T> {
+        // Check that sequence is built on a valid database.
+        // See DatabaseQueue.inSafeDatabase().
+        statement.database.assertValid()
+        
         // DatabaseSequence can be restarted:
         statement.reset()
         
@@ -72,15 +72,21 @@ TODO
 public struct DatabaseGenerator<T>: GeneratorType {
     let statement: SelectStatement
     let sqliteStatement: SQLiteStatement
+    let assertValid: () -> ()
     let map: () -> T
     
     init(statement: SelectStatement, map: () -> T) {
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
         self.map = map
+        self.assertValid = statement.database.assertValid
     }
     
     public func next() -> T? {
+        // Check that generator is used on a valid database.
+        // See DatabaseQueue.inSafeDatabase().
+        assertValid()
+        
         let code = sqlite3_step(sqliteStatement)
         switch code {
         case SQLITE_DONE:
