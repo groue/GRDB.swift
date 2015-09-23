@@ -1,6 +1,20 @@
 Release Notes
 =============
 
+## Next Release (current state of the master branch)
+
+**New**
+
+- Performance improvements.
+- You can extract non-optional values from Row and DatabaseValue.
+- Types that adopt MetalType on top of the DatabaseValueConvertible protocol are granted with faster database access.
+
+**Breaking Changes**
+
+- Database sequences are now of type DatabaseSequence.
+- Blob and NSData relationships are cleaner.
+
+
 ## 0.16.0
 
 Released September 14, 2015
