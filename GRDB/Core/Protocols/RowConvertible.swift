@@ -69,38 +69,6 @@ extension RowConvertible {
             return value
         }
     }
-//    /**
-//    Fetches a lazy sequence.
-//    
-//        let statement = db.selectStatement("SELECT * FROM persons")
-//        let persons = Person.fetch(statement) // DatabaseSequence<Person>
-//    
-//    The returned sequence can be consumed several times, but it may yield
-//    different results, should database changes have occurred between two
-//    generations:
-//    
-//        let persons = Person.fetch(statement)
-//        Array(persons).count // 3
-//        db.execute("DELETE ...")
-//        Array(persons).count // 2
-//    
-//    If the database is modified while the sequence is iterating, the remaining
-//    elements are undefined.
-//    
-//    - parameter statement: The statement to run.
-//    - parameter arguments: Optional statement arguments.
-//    - returns: A lazy sequence.
-//    */
-//    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
-//        return AnySequence {
-//            statement.generate(arguments: arguments) {
-//                let row = Row(statement: statement)
-//                let value = Self.init(row: row)
-//                value.awakeFromFetch(row)
-//                return value
-//            }
-//        }
-//    }
     
     /**
     Fetches an array.
