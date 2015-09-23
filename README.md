@@ -234,7 +234,7 @@ The last two methods are the only ones that don't take a custom SQL query as an 
 
 #### Row Queries
 
-Fetch **lazy sequences** of rows, **arrays**, or a **single** row:
+Fetch **sequences** of rows, **arrays**, or a **single** row:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -246,49 +246,54 @@ dbQueue.inDatabase { db in
 
 Arguments are optional arrays or dictionaries that fill the positional `?` and named parameters like `:name` in the query. GRDB.swift only supports colon-prefixed named parameters, even though SQLite supports [other syntaxes](https://www.sqlite.org/lang_expr.html#varparam).
 
-
 ```swift
 Row.fetch(db, "SELECT * FROM persons WHERE name = ?", arguments: ["Arthur"])
 Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "Arthur"])
 ```
 
-Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
+**Row sequences grant direct access to SQLite**, and are generally faster than row arrays. Yet:
 
-```swift
-let rows = dbQueue.inDatabase { db in
-    return Row.fetchAll(db, "SELECT ...")             // [Row]
-    return Row.fetch(db, "SELECT ...").filter { ... } // [Row]
-}
-for row in rows { ... } // OK
-```
+- Don't consume row sequences outside of a database queue. Extract arrays instead:
+
+    ```swift
+    let rows = dbQueue.inDatabase { db in
+        return Row.fetchAll(db, "SELECT ...")             // [Row]
+        return Row.fetch(db, "SELECT ...").filter { ... } // [Row]
+    }
+    for row in rows { ... } // OK
+    ```
+
+- Fetched rows are reused during the sequence iteration: make sure you make a copy whenever you extract a row for later use: `row.copy()`.
 
 
 **Read row values** by index or column name:
 
 ```swift
-let name: String? = row.value(atIndex: 0)
-let name: String? = row.value(named: "name")
+let name: String = row.value(atIndex: 0)
+let name: String = row.value(named: "name")
+```
 
-// Force unwrap when value is not NULL
-let id: Int64 = row.value(named: "id")!
+Use optionals when the value may be NULL:
+
+```swift
+let name: String? = row.value(named: "name")
 ```
 
 All types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol can be extracted. Pick the one you need:
 
 ```swift
-let bookCount: Int      = row.value(named: "bookCount")!
-let bookCount64: Int64  = row.value(named: "bookCount")!
-let hasBooks: Bool      = row.value(named: "bookCount")! // false when 0
+let bookCount: Int     = row.value(named: "bookCount")
+let bookCount64: Int64 = row.value(named: "bookCount")
+let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
 
-let dateString: String? = row.value(named: "date")       // "2015-09-11 18:14:15.123"
-let date: NSDate?       = row.value(named: "date")       // NSDate
-let int: Int?           = row.value(named: "date")       // nil (Int can't be extracted from "2015...")
+let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.123"
+let date: NSDate       = row.value(named: "date")       // NSDate
 ```
 
 **WARNING**: You can use the `as` type casting operator, but beware (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
 
 ```swift
-row.value(...)! as Int   // OK: Int
+row.value(...) as Int    // OK: Int
 row.value(...) as Int?   // OK: Int?
 row.value(...) as! Int   // NO NO NO DON'T DO THAT!
 row.value(...) as? Int   // NO NO NO DON'T DO THAT!
@@ -331,7 +336,7 @@ for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
 
 Instead of rows, you can directly fetch **values**, extracted from the first column of the resulting rows.
 
-Like rows, values can be fetched as **lazy sequences**, **arrays**, or **single** value:
+Like rows, values can be fetched as **sequences**, **arrays**, or **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -341,7 +346,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
+Sequences can not be consumed outside of a database queue, but arrays are OK:
 
 ```swift
 let names = dbQueue.inDatabase { db in
@@ -942,7 +947,7 @@ class Person : Record {
 
 See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
 
-Now you can fetch **lazy sequences** of records, **arrays**, or **single** instances:
+Now you can fetch **sequences** of records, **arrays**, or **single** instances:
 
 ```swift
 
@@ -953,7 +958,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Lazy sequences can not be consumed outside of a database queue, but arrays are OK:
+Sequences can not be consumed outside of a database queue, but arrays are OK:
 
 ```swift
 let persons = dbQueue.inDatabase { db in
