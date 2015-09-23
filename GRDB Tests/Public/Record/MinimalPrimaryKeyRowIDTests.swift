@@ -51,7 +51,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? DatabaseValue.Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -70,7 +70,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? DatabaseValue.Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -105,7 +105,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? DatabaseValue.Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -142,7 +142,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? DatabaseValue.Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -181,7 +181,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? DatabaseValue.Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -200,7 +200,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? DatabaseValue.Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -219,7 +219,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? DatabaseValue.Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -239,7 +239,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? DatabaseValue.Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -317,7 +317,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.storedDatabaseDictionary {
                     if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? DatabaseValue.Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
