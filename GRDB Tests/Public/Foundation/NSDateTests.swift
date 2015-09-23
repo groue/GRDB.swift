@@ -75,7 +75,7 @@ class NSDateTests : GRDBTestCase {
     }
     
     func testNSDateFromUnparsableString() {
-        let date = NSDate.fromDatabaseValue(.Text("foo"))
+        let date = NSDate.fromDatabaseValue(DatabaseValue(string: "foo"))
         XCTAssertTrue(date == nil)
     }
     

@@ -28,13 +28,6 @@ public final class SelectStatement : Statement {
     /**
     TODO
     */
-    func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return DatabaseValue(sqliteStatement: sqliteStatement, index: index)
-    }
-
-    /**
-    TODO
-    */
     func fetch<T>(arguments arguments: StatementArguments?, map: () -> T) -> DatabaseSequence<T> {
         if let arguments = arguments {
             self.arguments = arguments

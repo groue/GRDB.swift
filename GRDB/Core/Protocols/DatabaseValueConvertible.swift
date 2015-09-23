@@ -81,7 +81,7 @@ public extension DatabaseValueConvertible {
     */
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self?> {
         return statement.fetch(arguments: arguments) {
-            Self.fromDatabaseValue(statement.databaseValue(atIndex: 0))
+            Self.fromDatabaseValue(DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0))
         }
     }
     

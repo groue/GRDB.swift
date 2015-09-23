@@ -80,7 +80,7 @@ extension Blob : DatabaseValueConvertible, MetalType {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Blob(self)
+        return DatabaseValue(blob: self)
     }
     
     /**
@@ -90,7 +90,7 @@ extension Blob : DatabaseValueConvertible, MetalType {
     - returns: An optional Blob.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Blob? {
-        switch databaseValue {
+        switch databaseValue.detachedValue {
         case .Blob(let blob):
             return blob
         default:

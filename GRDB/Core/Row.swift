@@ -544,7 +544,8 @@ public class Row: CollectionType {
         let columnNames: [String]
         
         init(statement: SelectStatement) {
-            self.databaseValues = (0..<statement.columnCount).map { statement.databaseValue(atIndex: $0) }
+            let sqliteStatement = statement.sqliteStatement
+            self.databaseValues = (0..<statement.columnCount).map { DatabaseValue(detachedSqliteStatement: sqliteStatement, index: $0) }
             self.columnNames = statement.columnNames
         }
         

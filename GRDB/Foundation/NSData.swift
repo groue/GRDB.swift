@@ -3,9 +3,9 @@ extension NSData : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         if let blob = Blob(data: self) {
-            return DatabaseValue.Blob(blob)
+            return DatabaseValue(blob: blob)
         } else {
-            return .Null
+            return DatabaseValue.Null
         }
     }
     
@@ -18,10 +18,9 @@ extension NSData : DatabaseValueConvertible {
     - returns: An optional NSData.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
-        switch databaseValue {
-        case .Blob(let blob):
+        if let blob = Blob.fromDatabaseValue(databaseValue) {
             return self.init(data: NSData(bytes: blob.bytes, length: blob.length))
-        default:
+        } else {
             return nil
         }
     }

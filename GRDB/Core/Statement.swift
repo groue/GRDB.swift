@@ -75,14 +75,14 @@ public class Statement {
         let databaseValue = value?.databaseValue ?? .Null
         let code: Int32
         
-        switch databaseValue {
+        switch databaseValue.detachedValue {
         case .Null:
             code = sqlite3_bind_null(sqliteStatement, Int32(index))
-        case .Integer(let int64):
+        case .Int64(let int64):
             code = sqlite3_bind_int64(sqliteStatement, Int32(index), int64)
-        case .Real(let double):
+        case .Double(let double):
             code = sqlite3_bind_double(sqliteStatement, Int32(index), double)
-        case .Text(let text):
+        case .String(let text):
             code = sqlite3_bind_text(sqliteStatement, Int32(index), text, -1, SQLITE_TRANSIENT)
         case .Blob(let blob):
             code = sqlite3_bind_blob(sqliteStatement, Int32(index), blob.bytes, Int32(blob.length), SQLITE_TRANSIENT)

@@ -11,17 +11,19 @@ enum SQLiteStorageClass {
 
 extension DatabaseValue {
     var storageClass: SQLiteStorageClass {
-        switch self {
-        case .Null:
+        switch value() {
+        case nil:
             return .Null
-        case .Integer:
+        case is Int64:
             return .Integer
-        case .Real:
+        case is Double:
             return .Real
-        case .Text:
+        case is String:
             return .Text
-        case .Blob:
+        case is GRDB.Blob:
             return .Blob
+        default:
+            fatalError("Unexpected type")
         }
     }
 }

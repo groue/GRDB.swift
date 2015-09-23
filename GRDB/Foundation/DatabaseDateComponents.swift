@@ -100,7 +100,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             timeString = nil
         }
         
-        return .Text([dateString, timeString].flatMap { $0 }.joinWithSeparator(" "))
+        return DatabaseValue(string: [dateString, timeString].flatMap { $0 }.joinWithSeparator(" "))
     }
     
     /**

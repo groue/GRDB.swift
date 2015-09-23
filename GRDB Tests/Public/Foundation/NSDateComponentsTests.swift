@@ -365,7 +365,7 @@ class NSDateComponentsTests : GRDBTestCase {
     }
     
     func testDatabaseDateComponentsFromUnparsableString() {
-        let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(.Text("foo"))
+        let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(DatabaseValue(string: "foo"))
         XCTAssertTrue(databaseDateComponents == nil)
     }
 }

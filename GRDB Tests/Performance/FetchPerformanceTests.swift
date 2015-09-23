@@ -1,6 +1,33 @@
 import XCTest
 import GRDB
 
+class PerformanceItem : Record {
+    var i0: Int64?
+    var i1: Int64?
+    var i2: Int64?
+    var i3: Int64?
+    var i4: Int64?
+    var i5: Int64?
+    var i6: Int64?
+    var i7: Int64?
+    var i8: Int64?
+    var i9: Int64?
+    
+    override func updateFromRow(row: Row) {
+        if let dbv = row["i0"] { i0 = dbv.value() }
+        if let dbv = row["i1"] { i1 = dbv.value() }
+        if let dbv = row["i2"] { i2 = dbv.value() }
+        if let dbv = row["i3"] { i3 = dbv.value() }
+        if let dbv = row["i4"] { i4 = dbv.value() }
+        if let dbv = row["i5"] { i5 = dbv.value() }
+        if let dbv = row["i6"] { i6 = dbv.value() }
+        if let dbv = row["i7"] { i7 = dbv.value() }
+        if let dbv = row["i8"] { i8 = dbv.value() }
+        if let dbv = row["i9"] { i9 = dbv.value() }
+        super.updateFromRow(row)
+    }
+}
+
 class FetchPerformanceTests: XCTestCase {
     // This is not a test, but a function which generates the FetchPerformanceTests.sqlite resource.
 //    func testPopulateDatabase() {
@@ -17,6 +44,9 @@ class FetchPerformanceTests: XCTestCase {
 //        }
 //        
 //    }
+    
+    
+    // MARK: - Value at index
     
     func testGRDBValueAtIndexPerformance() {
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
@@ -35,28 +65,6 @@ class FetchPerformanceTests: XCTestCase {
                     let _: Int64 = row.value(atIndex: 7)
                     let _: Int64 = row.value(atIndex: 8)
                     let _: Int64 = row.value(atIndex: 9)
-                }
-            }
-        }
-    }
-    
-    func testGRDBValueNamedPerformance() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        
-        self.measureBlock {
-            dbQueue.inDatabase { db in
-                for row in Row.fetch(db, "SELECT * FROM items") {
-                    let _: Int64 = row.value(named: "i0")
-                    let _: Int64 = row.value(named: "i1")
-                    let _: Int64 = row.value(named: "i2")
-                    let _: Int64 = row.value(named: "i3")
-                    let _: Int64 = row.value(named: "i4")
-                    let _: Int64 = row.value(named: "i5")
-                    let _: Int64 = row.value(named: "i6")
-                    let _: Int64 = row.value(named: "i7")
-                    let _: Int64 = row.value(named: "i8")
-                    let _: Int64 = row.value(named: "i9")
                 }
             }
         }
@@ -86,6 +94,31 @@ class FetchPerformanceTests: XCTestCase {
         }
     }
     
+    
+    // MARK: - Value named
+    
+    func testGRDBValueNamedPerformance() {
+        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
+        let dbQueue = try! DatabaseQueue(path: databasePath)
+        
+        self.measureBlock {
+            dbQueue.inDatabase { db in
+                for row in Row.fetch(db, "SELECT * FROM items") {
+                    let _: Int64 = row.value(named: "i0")
+                    let _: Int64 = row.value(named: "i1")
+                    let _: Int64 = row.value(named: "i2")
+                    let _: Int64 = row.value(named: "i3")
+                    let _: Int64 = row.value(named: "i4")
+                    let _: Int64 = row.value(named: "i5")
+                    let _: Int64 = row.value(named: "i6")
+                    let _: Int64 = row.value(named: "i7")
+                    let _: Int64 = row.value(named: "i8")
+                    let _: Int64 = row.value(named: "i9")
+                }
+            }
+        }
+    }
+    
     func testFMDBValueNamedPerformance() {
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
         let dbQueue = FMDatabaseQueue(path: databasePath)
@@ -107,6 +140,56 @@ class FetchPerformanceTests: XCTestCase {
                     }
                 }
             }
+        }
+    }
+    
+    
+    // MARK: - Records
+    
+    func testGRDBRecordPerformance() {
+        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
+        let dbQueue = try! DatabaseQueue(path: databasePath)
+        
+        self.measureBlock {
+            let items = dbQueue.inDatabase { db in
+                PerformanceItem.fetchAll(db, "SELECT * FROM items")
+            }
+            XCTAssertEqual(items[4].i2, 1)
+            XCTAssertEqual(items[4].i3, 0)
+            XCTAssertEqual(items[5].i2, 2)
+            XCTAssertEqual(items[5].i3, 1)
+        }
+    }
+    
+    func testFMDBRecordPerformance() {
+        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
+        let dbQueue = FMDatabaseQueue(path: databasePath)
+        
+        self.measureBlock {
+            var items = [PerformanceItem]()
+            dbQueue.inDatabase { db in
+                if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
+                    while rs.next() {
+                        let item = PerformanceItem()
+                        item.i0 = rs.longLongIntForColumn("i0")
+                        item.i1 = rs.longLongIntForColumn("i1")
+                        item.i2 = rs.longLongIntForColumn("i2")
+                        item.i3 = rs.longLongIntForColumn("i3")
+                        item.i4 = rs.longLongIntForColumn("i4")
+                        item.i5 = rs.longLongIntForColumn("i5")
+                        item.i6 = rs.longLongIntForColumn("i6")
+                        item.i7 = rs.longLongIntForColumn("i7")
+                        item.i8 = rs.longLongIntForColumn("i8")
+                        item.i9 = rs.longLongIntForColumn("i9")
+                        item.databaseEdited = false
+                        items.append(item)
+                    }
+                }
+            }
+            XCTAssertEqual(items[4].i2, 1)
+            XCTAssertEqual(items[4].i3, 0)
+            XCTAssertEqual(items[5].i2, 2)
+            XCTAssertEqual(items[5].i3, 1)
         }
     }
 }

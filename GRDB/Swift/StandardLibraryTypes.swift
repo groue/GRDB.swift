@@ -7,7 +7,7 @@ extension Bool: DatabaseValueConvertible, MetalType {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Integer(self ? 1 : 0)
+        return DatabaseValue(int64: self ? 1 : 0)
     }
     
     /**
@@ -73,10 +73,10 @@ extension Bool: DatabaseValueConvertible, MetalType {
         // the natural boolean storage class, and Real because Numeric affinity
         // store big numbers as Real.
         
-        switch databaseValue {
-        case .Integer(let int64):
+        switch databaseValue.detachedValue {
+        case .Int64(let int64):
             return (int64 != 0)
-        case .Real(let double):
+        case .Double(let double):
             return (double != 0.0)
         default:
             return nil
@@ -93,7 +93,7 @@ extension Int: DatabaseValueConvertible, MetalType {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Integer(Int64(self))
+        return DatabaseValue(int64: Int64(self))
     }
     
     /**
@@ -103,10 +103,10 @@ extension Int: DatabaseValueConvertible, MetalType {
     - returns: An optional Int.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int? {
-        switch databaseValue {
-        case .Integer(let int64):
+        switch databaseValue.detachedValue {
+        case .Int64(let int64):
             return Int(int64)
-        case .Real(let double):
+        case .Double(let double):
             return Int(double)
         default:
             return nil
@@ -123,7 +123,7 @@ extension Int32: DatabaseValueConvertible, MetalType {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Integer(Int64(self))
+        return DatabaseValue(int64: Int64(self))
     }
     
     /**
@@ -133,10 +133,10 @@ extension Int32: DatabaseValueConvertible, MetalType {
     - returns: An optional Int32.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int32? {
-        switch databaseValue {
-        case .Integer(let int64):
+        switch databaseValue.detachedValue {
+        case .Int64(let int64):
             return Int32(int64)
-        case .Real(let double):
+        case .Double(let double):
             return Int32(double)
         default:
             return nil
@@ -153,7 +153,7 @@ extension Int64: DatabaseValueConvertible, MetalType {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Integer(self)
+        return DatabaseValue(int64: self)
     }
     
     /**
@@ -163,10 +163,10 @@ extension Int64: DatabaseValueConvertible, MetalType {
     - returns: An optional Int64.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int64? {
-        switch databaseValue {
-        case .Integer(let int64):
+        switch databaseValue.detachedValue {
+        case .Int64(let int64):
             return int64
-        case .Real(let double):
+        case .Double(let double):
             return Int64(double)
         default:
             return nil
@@ -183,7 +183,7 @@ extension Double: DatabaseValueConvertible, MetalType {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Real(self)
+        return DatabaseValue(double: self)
     }
     
     /**
@@ -193,10 +193,10 @@ extension Double: DatabaseValueConvertible, MetalType {
     - returns: An optional Double.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Double? {
-        switch databaseValue {
-        case .Integer(let int64):
+        switch databaseValue.detachedValue {
+        case .Int64(let int64):
             return Double(int64)
-        case .Real(let double):
+        case .Double(let double):
             return double
         default:
             return nil
@@ -214,7 +214,7 @@ extension String: DatabaseValueConvertible, MetalType {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Text(self)
+        return DatabaseValue(string: self)
     }
     
     /**
@@ -224,8 +224,8 @@ extension String: DatabaseValueConvertible, MetalType {
     - returns: An optional String.
     */
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> String? {
-        switch databaseValue {
-        case .Text(let string):
+        switch databaseValue.detachedValue {
+        case .String(let string):
             return string
         default:
             return nil

@@ -6,43 +6,43 @@ DatabaseValue is the intermediate type between SQLite and your values.
 It has five cases that match the SQLite "storage classes":
 https://www.sqlite.org/datatype3.html
 */
-public enum DatabaseValue : Equatable {
+public struct DatabaseValue : Equatable {
     
-    /// The NULL storage class.
-    case Null
+    // MARK: - Creating DatabaseValue
     
-    /// The INTEGER storage class, wrapping an Int64.
-    case Integer(Int64)
+    /**
+    TODO
+    */
+    public static let Null = DatabaseValue(type: Type.DetachedValue(DetachedValue.Null))
     
-    /// The REAL storage class, wrapping a Double.
-    case Real(Double)
-    
-    /// The TEXT storage class, wrapping a String.
-    case Text(String)
-    
-    /// The BLOB storage class, wrapping a Blob.
-    case Blob(GRDB.Blob)
-    
-    init(sqliteStatement: SQLiteStatement, index: Int) {
-        switch sqlite3_column_type(sqliteStatement, Int32(index)) {
-        case SQLITE_NULL:
-            self = .Null;
-        case SQLITE_INTEGER:
-            self = .Integer(sqlite3_column_int64(sqliteStatement, Int32(index)))
-        case SQLITE_FLOAT:
-            self = .Real(sqlite3_column_double(sqliteStatement, Int32(index)))
-        case SQLITE_TEXT:
-            let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
-            self = .Text(String.fromCString(cString)!)
-        case SQLITE_BLOB:
-            let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
-            let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-            self = .Blob(GRDB.Blob(bytes: bytes, length: Int(length))!) // copy bytes
-        default:
-            fatalError("Unexpected SQLite column type")
-        }
+    /**
+    TODO
+    */
+    public init(int64: Int64) {
+        self.type = .DetachedValue(DetachedValue.Int64(int64))
     }
-
+    
+    /**
+    TODO
+    */
+    public init(double: Double) {
+        self.type = .DetachedValue(DetachedValue.Double(double))
+    }
+    
+    /**
+    TODO
+    */
+    public init(string: String) {
+        self.type = .DetachedValue(DetachedValue.String(string))
+    }
+    
+    /**
+    TODO
+    */
+    public init(blob: Blob) {
+        self.type = .DetachedValue(DetachedValue.Blob(blob))
+    }
+    
     
     // MARK: - Extracting Swift Value
     
@@ -62,14 +62,14 @@ public enum DatabaseValue : Equatable {
         //     if dbv.value() != nil { ... }
         //
         // Without this method, the code above would not compile.
-        switch self {
+        switch detachedValue {
         case .Null:
             return nil
-        case .Integer(let int64):
+        case .Int64(let int64):
             return int64
-        case .Real(let double):
+        case .Double(let double):
             return double
-        case .Text(let string):
+        case .String(let string):
             return string
         case .Blob(let blob):
             return blob
@@ -113,9 +113,108 @@ public enum DatabaseValue : Equatable {
     public func value<Value: DatabaseValueConvertible>() -> Value? {
         return Value.fromDatabaseValue(self)
     }
-
+    
+    /**
+    TODO
+    */
+    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>() -> Value? {
+        switch type {
+        case .MetalValue(let sqliteStatement, let index):
+            if sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL {
+                return nil
+            } else {
+                return Value(sqliteStatement: sqliteStatement, index: Int32(index))
+            }
+        case .DetachedValue:
+            return Value.fromDatabaseValue(self)
+        }
+    }
+    
+    /**
+    TODO
+    */
     public func value<Value: DatabaseValueConvertible>() -> Value {
         return Value.fromDatabaseValue(self)!
+    }
+    
+    /**
+    TODO
+    */
+    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>() -> Value {
+        switch type {
+        case .MetalValue(let sqliteStatement, let index):
+            return Value(sqliteStatement: sqliteStatement, index: Int32(index))
+        case .DetachedValue:
+            return Value.fromDatabaseValue(self)!
+        }
+    }
+    
+    
+    // MARK: - Not Public
+    
+    enum DetachedValue {
+        /// The NULL storage class.
+        case Null
+        
+        /// The INTEGER storage class, wrapping an Int64.
+        case Int64(Swift.Int64)
+        
+        /// The REAL storage class, wrapping a Double.
+        case Double(Swift.Double)
+        
+        /// The TEXT storage class, wrapping a String.
+        case String(Swift.String)
+        
+        /// The BLOB storage class, wrapping a Blob.
+        case Blob(GRDB.Blob)
+        
+        init(sqliteStatement: SQLiteStatement, index: Int) {
+            switch sqlite3_column_type(sqliteStatement, Int32(index)) {
+            case SQLITE_NULL:
+                self = .Null
+            case SQLITE_INTEGER:
+                self = .Int64(sqlite3_column_int64(sqliteStatement, Int32(index)))
+            case SQLITE_FLOAT:
+                self = .Double(sqlite3_column_double(sqliteStatement, Int32(index)))
+            case SQLITE_TEXT:
+                let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
+                self = .String(Swift.String.fromCString(cString)!)
+            case SQLITE_BLOB:
+                let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
+                let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
+                self = .Blob(GRDB.Blob(bytes: bytes, length: Int(length))!) // copy bytes
+            default:
+                fatalError("Unexpected SQLite column type")
+            }
+        }
+    }
+    
+    private enum Type {
+        case DetachedValue(DatabaseValue.DetachedValue)
+        case MetalValue(sqliteStatement: SQLiteStatement, index: Int)
+    }
+    
+    private let type: Type
+    
+    var detachedValue: DetachedValue {
+        switch type {
+        case .DetachedValue(let detachedValue):
+            return detachedValue
+        case .MetalValue(let sqliteStatement, let index):
+            return DetachedValue(sqliteStatement: sqliteStatement, index: index)
+        }
+    }
+
+    init(sqliteStatement: SQLiteStatement, index: Int) {
+        self.type = .MetalValue(sqliteStatement: sqliteStatement, index: index)
+    }
+    
+    init(detachedSqliteStatement sqliteStatement: SQLiteStatement, index: Int) {
+        self.type = .DetachedValue(DetachedValue(sqliteStatement: sqliteStatement, index: index))
+    }
+    
+    private init(type: Type) {
+        self.type = type
     }
 }
 
@@ -124,18 +223,18 @@ public enum DatabaseValue : Equatable {
 
 /// DatabaseValue adopts Equatable.
 public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
-    switch (lhs, rhs) {
+    switch (lhs.detachedValue, rhs.detachedValue) {
     case (.Null, .Null):
         return true
-    case (.Integer(let lhs), .Integer(let rhs)):
+    case (.Int64(let lhs), .Int64(let rhs)):
         return lhs == rhs
-    case (.Real(let lhs), .Real(let rhs)):
+    case (.Double(let lhs), .Double(let rhs)):
         return lhs == rhs
-    case (.Integer(let lhs), .Real(let rhs)):
+    case (.Int64(let lhs), .Double(let rhs)):
         return int64EqualDouble(lhs, rhs)
-    case (.Real(let lhs), .Integer(let rhs)):
+    case (.Double(let lhs), .Int64(let rhs)):
         return int64EqualDouble(rhs, lhs)
-    case (.Text(let lhs), .Text(let rhs)):
+    case (.String(let lhs), .String(let rhs)):
         return lhs == rhs
     case (.Blob(let lhs), .Blob(let rhs)):
         return lhs == rhs
@@ -180,14 +279,14 @@ extension DatabaseValue : DatabaseValueConvertible {
 extension DatabaseValue : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        switch self {
+        switch detachedValue {
         case .Null:
             return "NULL"
-        case .Integer(let integer):
+        case .Int64(let integer):
             return String(integer)
-        case .Real(let double):
+        case .Double(let double):
             return String(double)
-        case .Text(let string):
+        case .String(let string):
             return String(reflecting: string)
         case .Blob(let blob):
             return blob.description

@@ -43,7 +43,7 @@ extension NSDate : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Text(storageDateFormatter.stringFromDate(self))
+        return DatabaseValue(string: storageDateFormatter.stringFromDate(self))
     }
     
     /**

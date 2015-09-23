@@ -28,7 +28,7 @@ extension DatabaseIntRepresentable {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Integer(Int64(rawValue))
+        return DatabaseValue(int64: Int64(rawValue))
     }
     
     /**
@@ -77,7 +77,7 @@ extension DatabaseStringRepresentable {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return .Text(rawValue)
+        return DatabaseValue(string: rawValue)
     }
     
     /**
