@@ -7,5 +7,4 @@
 - [ ] Metal: review all fetch() and fetchAll() methods, and make sure they still work even when they use metal row. This include:
     - [ ] Write test for how a fetched sequence should behave. It should contains the expected values. It can be restarted. Some of those are already written.
     - [ ] Update documentation when they metal rows are exposed, so that user is encouraged copying them.
-- [ ] Metal: blob of metal row should not copy data.
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
