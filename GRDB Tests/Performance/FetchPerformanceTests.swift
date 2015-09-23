@@ -48,20 +48,19 @@ class PerformanceItem : Record {
 
 class FetchPerformanceTests: XCTestCase {
     // This is not a test, but a function which generates the FetchPerformanceTests.sqlite resource.
-//    func testPopulateDatabase() {
-//        let databasePath = "/tmp/FetchPerformanceTests.sqlite"
-//        do {
-//            let dbQueue = try! DatabaseQueue(path: databasePath)
-//            try! dbQueue.inTransaction { db in
-//                try db.execute("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
-//                for i in 0..<100_000 {
-//                    try db.execute("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)", arguments: [i%1, i%2, i%3, i%4, i%5, i%7, i%8, i%9, i%10])
-//                }
-//                return .Commit
-//            }
-//        }
-//        
-//    }
+    func populateDatabase() {
+        let databasePath = "/tmp/FetchPerformanceTests.sqlite"
+        do {
+            let dbQueue = try! DatabaseQueue(path: databasePath)
+            try! dbQueue.inTransaction { db in
+                try db.execute("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+                for i in 0..<100_000 {
+                    try db.execute("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)", arguments: [i%1, i%2, i%3, i%4, i%5, i%7, i%8, i%9, i%10])
+                }
+                return .Commit
+            }
+        }
+    }
     
     
     // MARK: - Value at index
