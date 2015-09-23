@@ -21,9 +21,45 @@ class DictionaryRowTests: GRDBTestCase {
     }
     
     func testRowValueAtIndex() {
+        let dictionary: [String: DatabaseValueConvertible?] = ["a": 0, "b": 1, "c": 2]
+        let row = Row(dictionary: dictionary)
+        
+        let aIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("a")!)
+        let bIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("b")!)
+        let cIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("c")!)
+        
+        // Int extraction, form 1
+        XCTAssertEqual(row.value(atIndex: aIndex) as Int, 0)
+        XCTAssertEqual(row.value(atIndex: bIndex) as Int, 1)
+        XCTAssertEqual(row.value(atIndex: cIndex) as Int, 2)
+        
+        // Int extraction, form 2
+        XCTAssertEqual(row.value(atIndex: aIndex)! as Int, 0)
+        XCTAssertEqual(row.value(atIndex: bIndex)! as Int, 1)
+        XCTAssertEqual(row.value(atIndex: cIndex)! as Int, 2)
+        
+        // Int? extraction
+        XCTAssertEqual((row.value(atIndex: aIndex) as Int?), 0)
+        XCTAssertEqual((row.value(atIndex: bIndex) as Int?), 1)
+        XCTAssertEqual((row.value(atIndex: cIndex) as Int?), 2)
+        
+        // Bool extraction, form 1
+        XCTAssertEqual(row.value(atIndex: aIndex) as Bool, false)
+        XCTAssertEqual(row.value(atIndex: bIndex) as Bool, true)
+        XCTAssertEqual(row.value(atIndex: cIndex) as Bool, true)
+        
+        // Bool extraction, form 2
+        XCTAssertEqual(row.value(atIndex: aIndex)! as Bool, false)
+        XCTAssertEqual(row.value(atIndex: bIndex)! as Bool, true)
+        XCTAssertEqual(row.value(atIndex: cIndex)! as Bool, true)
+        
+        // Bool? extraction
+        XCTAssertEqual((row.value(atIndex: aIndex) as Bool?), false)
+        XCTAssertEqual((row.value(atIndex: bIndex) as Bool?), true)
+        XCTAssertEqual((row.value(atIndex: cIndex) as Bool?), true)
+        
         // Expect fatal error:
         //
-        // let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
         // row.value(atIndex: -1)
         // row.value(atIndex: 3)
     }
@@ -31,13 +67,35 @@ class DictionaryRowTests: GRDBTestCase {
     func testRowValueNamed() {
         let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
         
+        // Int extraction, form 1
+        XCTAssertEqual(row.value(named: "a") as Int, 0)
+        XCTAssertEqual(row.value(named: "b") as Int, 1)
+        XCTAssertEqual(row.value(named: "c") as Int, 2)
+        
+        // Int extraction, form 2
         XCTAssertEqual(row.value(named: "a")! as Int, 0)
         XCTAssertEqual(row.value(named: "b")! as Int, 1)
         XCTAssertEqual(row.value(named: "c")! as Int, 2)
         
+        // Int? extraction
+        XCTAssertEqual((row.value(named: "a") as Int?)!, 0)
+        XCTAssertEqual((row.value(named: "b") as Int?)!, 1)
+        XCTAssertEqual((row.value(named: "c") as Int?)!, 2)
+        
+        // Bool extraction, form 1
+        XCTAssertEqual(row.value(named: "a") as Bool, false)
+        XCTAssertEqual(row.value(named: "b") as Bool, true)
+        XCTAssertEqual(row.value(named: "c") as Bool, true)
+        
+        // Bool extraction, form 2
         XCTAssertEqual(row.value(named: "a")! as Bool, false)
         XCTAssertEqual(row.value(named: "b")! as Bool, true)
         XCTAssertEqual(row.value(named: "c")! as Bool, true)
+        
+        // Bool? extraction
+        XCTAssertEqual((row.value(named: "a") as Bool?)!, false)
+        XCTAssertEqual((row.value(named: "b") as Bool?)!, true)
+        XCTAssertEqual((row.value(named: "c") as Bool?)!, true)
         
         // Expect fatal error:
         // row.value(named: "foo")

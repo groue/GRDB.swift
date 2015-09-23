@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class FetchedRowTests: GRDBTestCase {
+class DetachedRowTests: GRDBTestCase {
     
     func testRowAsSequence() {
         assertNoError {
@@ -34,14 +34,36 @@ class FetchedRowTests: GRDBTestCase {
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 let row = Row.fetchOne(db, "SELECT * FROM ints")!
-
+                
+                // Int extraction, form 1
+                XCTAssertEqual(row.value(atIndex: 0) as Int, 0)
+                XCTAssertEqual(row.value(atIndex: 1) as Int, 1)
+                XCTAssertEqual(row.value(atIndex: 2) as Int, 2)
+                
+                // Int extraction, form 2
                 XCTAssertEqual(row.value(atIndex: 0)! as Int, 0)
                 XCTAssertEqual(row.value(atIndex: 1)! as Int, 1)
                 XCTAssertEqual(row.value(atIndex: 2)! as Int, 2)
                 
+                // Int? extraction
+                XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)
+                XCTAssertEqual((row.value(atIndex: 1) as Int?), 1)
+                XCTAssertEqual((row.value(atIndex: 2) as Int?), 2)
+                
+                // Bool extraction, form 1
+                XCTAssertEqual(row.value(atIndex: 0) as Bool, false)
+                XCTAssertEqual(row.value(atIndex: 1) as Bool, true)
+                XCTAssertEqual(row.value(atIndex: 2) as Bool, true)
+                
+                // Bool extraction, form 2
                 XCTAssertEqual(row.value(atIndex: 0)! as Bool, false)
                 XCTAssertEqual(row.value(atIndex: 1)! as Bool, true)
                 XCTAssertEqual(row.value(atIndex: 2)! as Bool, true)
+                
+                // Bool? extraction
+                XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)
+                XCTAssertEqual((row.value(atIndex: 1) as Bool?), true)
+                XCTAssertEqual((row.value(atIndex: 2) as Bool?), true)
                 
                 // Expect fatal error:
                 //
@@ -59,13 +81,35 @@ class FetchedRowTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
                 let row = Row.fetchOne(db, "SELECT * FROM ints")!
                 
+                // Int extraction, form 1
+                XCTAssertEqual(row.value(named: "a") as Int, 0)
+                XCTAssertEqual(row.value(named: "b") as Int, 1)
+                XCTAssertEqual(row.value(named: "c") as Int, 2)
+                
+                // Int extraction, form 2
                 XCTAssertEqual(row.value(named: "a")! as Int, 0)
                 XCTAssertEqual(row.value(named: "b")! as Int, 1)
                 XCTAssertEqual(row.value(named: "c")! as Int, 2)
                 
+                // Int? extraction
+                XCTAssertEqual((row.value(named: "a") as Int?)!, 0)
+                XCTAssertEqual((row.value(named: "b") as Int?)!, 1)
+                XCTAssertEqual((row.value(named: "c") as Int?)!, 2)
+                
+                // Bool extraction, form 1
+                XCTAssertEqual(row.value(named: "a") as Bool, false)
+                XCTAssertEqual(row.value(named: "b") as Bool, true)
+                XCTAssertEqual(row.value(named: "c") as Bool, true)
+                
+                // Bool extraction, form 2
                 XCTAssertEqual(row.value(named: "a")! as Bool, false)
                 XCTAssertEqual(row.value(named: "b")! as Bool, true)
                 XCTAssertEqual(row.value(named: "c")! as Bool, true)
+                
+                // Bool? extraction
+                XCTAssertEqual((row.value(named: "a") as Bool?)!, false)
+                XCTAssertEqual((row.value(named: "b") as Bool?)!, true)
+                XCTAssertEqual((row.value(named: "c") as Bool?)!, true)
                 
                 // Expect fatal error:
                 // row.value(named: "foo")
