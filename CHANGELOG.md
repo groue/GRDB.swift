@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Release (current state of the master branch)
+## 0.17.0
+
+Released September 24, 2015
 
 **New**
 
