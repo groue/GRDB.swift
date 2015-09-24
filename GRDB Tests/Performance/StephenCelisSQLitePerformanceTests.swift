@@ -34,4 +34,24 @@ class StephenCelisSQLitePerformanceTests: XCTestCase {
             }
         }
     }
+    
+    func testValueAtIndexPerformance() {
+        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
+        let db = try! Connection(databasePath)
+        
+        self.measureBlock {
+            for row in db.prepare("SELECT * FROM items") {
+                let _ = row[0] as! Int64
+                let _ = row[1] as! Int64
+                let _ = row[2] as! Int64
+                let _ = row[3] as! Int64
+                let _ = row[4] as! Int64
+                let _ = row[5] as! Int64
+                let _ = row[6] as! Int64
+                let _ = row[7] as! Int64
+                let _ = row[8] as! Int64
+                let _ = row[9] as! Int64
+            }
+        }
+    }
 }
