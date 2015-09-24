@@ -52,18 +52,6 @@ class DatabaseValueConvertibleTests : GRDBTestCase {
         }
     }
     
-    func testBlobCanNotStoreEmptyData() {
-        // SQLite can't store zero-length blob.
-        let blob = Blob(data: NSData())
-        XCTAssertTrue(blob == nil)
-    }
-    
-    func testBlobCanNotStoreZeroLengthBuffer() {
-        // SQLite can't store zero-length blob.
-        let blob = Blob(bytes: nil, length: 0)
-        XCTAssertTrue(blob == nil)
-    }
-    
     func testTextAffinity() {
         // https://www.sqlite.org/datatype3.html
         //
