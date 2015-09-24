@@ -21,16 +21,16 @@ class StephenCelisSQLitePerformanceTests: XCTestCase {
 
         self.measureBlock {
             for item in db.prepare(items) {
-                let c0 = item[i0]
-                let c1 = item[i1]
-                let c2 = item[i2]
-                let c3 = item[i3]
-                let c4 = item[i4]
-                let c5 = item[i5]
-                let c6 = item[i6]
-                let c7 = item[i7]
-                let c8 = item[i8]
-                let c9 = item[i9]
+                let _ = item[i0]
+                let _ = item[i1]
+                let _ = item[i2]
+                let _ = item[i3]
+                let _ = item[i4]
+                let _ = item[i5]
+                let _ = item[i6]
+                let _ = item[i7]
+                let _ = item[i8]
+                let _ = item[i9]
             }
         }
     }
