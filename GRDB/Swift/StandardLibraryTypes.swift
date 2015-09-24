@@ -1,6 +1,12 @@
 /// Bool adopts DatabaseValueConvertible and MetalType.
 extension Bool: DatabaseValueConvertible, MetalType {
     
+    /**
+    Returns an instance initialized from a raw SQLite statement pointer.
+    
+    - parameter sqliteStatement: A pointer to a SQLite statement.
+    - parameter index: The column index.
+    */
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = sqlite3_column_int64(sqliteStatement, index) != 0
     }
@@ -87,6 +93,12 @@ extension Bool: DatabaseValueConvertible, MetalType {
 /// Int adopts DatabaseValueConvertible and MetalType.
 extension Int: DatabaseValueConvertible, MetalType {
     
+    /**
+    Returns an instance initialized from a raw SQLite statement pointer.
+    
+    - parameter sqliteStatement: A pointer to a SQLite statement.
+    - parameter index: The column index.
+    */
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = Int(sqlite3_column_int64(sqliteStatement, index))
     }
@@ -117,6 +129,12 @@ extension Int: DatabaseValueConvertible, MetalType {
 /// Int32 adopts DatabaseValueConvertible and MetalType.
 extension Int32: DatabaseValueConvertible, MetalType {
     
+    /**
+    Returns an instance initialized from a raw SQLite statement pointer.
+    
+    - parameter sqliteStatement: A pointer to a SQLite statement.
+    - parameter index: The column index.
+    */
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = Int32(sqlite3_column_int64(sqliteStatement, index))
     }
@@ -147,6 +165,12 @@ extension Int32: DatabaseValueConvertible, MetalType {
 /// Int64 adopts DatabaseValueConvertible and MetalType.
 extension Int64: DatabaseValueConvertible, MetalType {
     
+    /**
+    Returns an instance initialized from a raw SQLite statement pointer.
+    
+    - parameter sqliteStatement: A pointer to a SQLite statement.
+    - parameter index: The column index.
+    */
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = sqlite3_column_int64(sqliteStatement, index)
     }
@@ -177,6 +201,12 @@ extension Int64: DatabaseValueConvertible, MetalType {
 /// Double adopts DatabaseValueConvertible and MetalType.
 extension Double: DatabaseValueConvertible, MetalType {
     
+    /**
+    Returns an instance initialized from a raw SQLite statement pointer.
+    
+    - parameter sqliteStatement: A pointer to a SQLite statement.
+    - parameter index: The column index.
+    */
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = sqlite3_column_double(sqliteStatement, index)
     }
@@ -207,6 +237,12 @@ extension Double: DatabaseValueConvertible, MetalType {
 /// String adopts DatabaseValueConvertible and MetalType.
 extension String: DatabaseValueConvertible, MetalType {
     
+    /**
+    Returns an instance initialized from a raw SQLite statement pointer.
+    
+    - parameter sqliteStatement: A pointer to a SQLite statement.
+    - parameter index: The column index.
+    */
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
         self = String.fromCString(cString)!

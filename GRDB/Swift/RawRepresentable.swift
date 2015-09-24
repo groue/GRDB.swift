@@ -23,7 +23,6 @@ public protocol DatabaseIntRepresentable : DatabaseValueConvertible {
     init?(rawValue: Int)
 }
 
-// TODO: Metal
 extension DatabaseIntRepresentable {
     
     /// Returns a value that can be stored in the database.
