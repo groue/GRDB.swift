@@ -19,13 +19,25 @@ or single instances:
 RowConvertible is adopted by Record.
 */
 public protocol RowConvertible {
-    /// Create an instance initialized with `row`.
+    
+    /**
+    Create an instance initialized with `row`.
+    
+    For performance reasons, the row argument may be reused between several
+    instance initializations during the iteration of a fetch query. So if you
+    want to keep the row for later use, make sure to store a copy:
+    `self.row = row.copy()`.
+    
+    - parameter row: A Row.
+    */
     init(row: Row)
     
-    /// Do not call this method directly.
-    ///
-    /// Types that adopt RowConvertible have an opportunity to complete their
-    /// initialization.
+    /**
+    Do not call this method directly.
+
+    Types that adopt RowConvertible have an opportunity to complete their
+    initialization.
+    */
     func awakeFromFetch(row: Row)
 }
 
@@ -38,7 +50,6 @@ extension RowConvertible {
     // MARK: - Fetching From SelectStatement
     
     /**
-    TODO
     Fetches a sequence.
     
         let statement = db.selectStatement("SELECT * FROM persons")
