@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next version
+
+**Fixed**
+
+- It is now a programming error to miss arguments to a SQL statement.
+
+
 ## 0.17.0
 
 Released September 24, 2015
