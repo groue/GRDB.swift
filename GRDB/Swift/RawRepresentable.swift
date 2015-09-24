@@ -71,7 +71,6 @@ public protocol DatabaseStringRepresentable : DatabaseValueConvertible {
     init?(rawValue: String)
 }
 
-// TODO: Metal
 extension DatabaseStringRepresentable {
     
     /// Returns a value that can be stored in the database.
