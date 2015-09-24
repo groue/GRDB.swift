@@ -11,3 +11,4 @@
 - [ ] Metal: See what can be done about testRowSequenceCanBeIteratedIndependentlyFromSQLiteStatement()
 - [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into MetalType
 - [ ] Update or delete the "Value Extraction in Details" paragraph in README.md
+- [ ] Talk about MetalType. Maybe in a special "Performance" section.
