@@ -585,7 +585,7 @@ public protocol DatabaseValueConvertible {
 
 All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat. Those built-in types actually adopt it.
 
-The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), an enum for the five types supported by SQLite: NULL, integer, real, string and blob.
+The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and Blob.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
 
