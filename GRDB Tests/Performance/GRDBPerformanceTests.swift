@@ -19,61 +19,75 @@ class GRDBPerformanceTests: XCTestCase {
     }
     
     func testValueAtIndexPerformance() {
+        // Here we test the extraction of values by column index.
+        
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         self.measureBlock {
             dbQueue.inDatabase { db in
                 for row in Row.fetch(db, "SELECT * FROM items") {
-                    let _: Int64 = row.value(atIndex: 0)
-                    let _: Int64 = row.value(atIndex: 1)
-                    let _: Int64 = row.value(atIndex: 2)
-                    let _: Int64 = row.value(atIndex: 3)
-                    let _: Int64 = row.value(atIndex: 4)
-                    let _: Int64 = row.value(atIndex: 5)
-                    let _: Int64 = row.value(atIndex: 6)
-                    let _: Int64 = row.value(atIndex: 7)
-                    let _: Int64 = row.value(atIndex: 8)
-                    let _: Int64 = row.value(atIndex: 9)
+                    let _: Int = row.value(atIndex: 0)
+                    let _: Int = row.value(atIndex: 1)
+                    let _: Int = row.value(atIndex: 2)
+                    let _: Int = row.value(atIndex: 3)
+                    let _: Int = row.value(atIndex: 4)
+                    let _: Int = row.value(atIndex: 5)
+                    let _: Int = row.value(atIndex: 6)
+                    let _: Int = row.value(atIndex: 7)
+                    let _: Int = row.value(atIndex: 8)
+                    let _: Int = row.value(atIndex: 9)
                 }
             }
         }
     }
     
     func testValueNamedPerformance() {
+        // Here we test the extraction of values by column name.
+        
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         self.measureBlock {
             dbQueue.inDatabase { db in
                 for row in Row.fetch(db, "SELECT * FROM items") {
-                    let _: Int64 = row.value(named: "i0")
-                    let _: Int64 = row.value(named: "i1")
-                    let _: Int64 = row.value(named: "i2")
-                    let _: Int64 = row.value(named: "i3")
-                    let _: Int64 = row.value(named: "i4")
-                    let _: Int64 = row.value(named: "i5")
-                    let _: Int64 = row.value(named: "i6")
-                    let _: Int64 = row.value(named: "i7")
-                    let _: Int64 = row.value(named: "i8")
-                    let _: Int64 = row.value(named: "i9")
+                    let _: Int = row.value(named: "i0")
+                    let _: Int = row.value(named: "i1")
+                    let _: Int = row.value(named: "i2")
+                    let _: Int = row.value(named: "i3")
+                    let _: Int = row.value(named: "i4")
+                    let _: Int = row.value(named: "i5")
+                    let _: Int = row.value(named: "i6")
+                    let _: Int = row.value(named: "i7")
+                    let _: Int = row.value(named: "i8")
+                    let _: Int = row.value(named: "i9")
                 }
             }
         }
     }
     
     func testRecordPerformance() {
+        // Here we test that we can load "records".
+        //
+        // Two constraints:
+        //
+        // 1. Records MUST be initialized from a row, or a row-like object like
+        //    a dictionary: rows MUST be introspectable by column name, so that
+        //    the record can pick the columns it wants.
+        //
+        // 2. Fetched records MUST be flagged as having no change.
+        
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         self.measureBlock {
-            let items = dbQueue.inDatabase { db in
+            let records = dbQueue.inDatabase { db in
                 PerformanceRecord.fetchAll(db, "SELECT * FROM items")
             }
-            XCTAssertEqual(items[4].i2, 1)
-            XCTAssertEqual(items[4].i3, 0)
-            XCTAssertEqual(items[5].i2, 2)
-            XCTAssertEqual(items[5].i3, 1)
+            XCTAssertEqual(records[4].i2, 1)
+            XCTAssertEqual(records[4].i3, 0)
+            XCTAssertEqual(records[5].i2, 2)
+            XCTAssertEqual(records[5].i3, 1)
         }
     }
 }
