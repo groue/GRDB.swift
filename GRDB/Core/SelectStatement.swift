@@ -16,7 +16,7 @@ public final class SelectStatement : Statement {
         Int(sqlite3_column_count(self.sqliteStatement))
     }()
     
-    /// The names of columns, ordered from left to right.
+    /// The column names, ordered from left to right.
     public lazy var columnNames: [String] = { [unowned self] in
         (0..<self.columnCount).map { index in
             return String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32(index)))!
@@ -26,7 +26,7 @@ public final class SelectStatement : Statement {
     // MARK: - Not public
     
     /**
-    TODO
+    The DatabaseSequence builder.
     */
     func fetch<T>(arguments arguments: StatementArguments?, map: () -> T) -> DatabaseSequence<T> {
         if let arguments = arguments {
@@ -40,13 +40,12 @@ public final class SelectStatement : Statement {
         return DatabaseSequence(statement: self, map: map)
     }
     
-    /**
-    TODO
-    */
+    /// The column index, case insensitive.
     func indexForColumn(named name: String) -> Int? {
         return lowercaseColumnIndexes[name.lowercaseString]
     }
-
+    
+    /// Support for indexForColumn(named:)
     private lazy var lowercaseColumnIndexes: [String: Int] = { [unowned self] in
         var indexes = [String: Int]()
         let count = self.columnCount
@@ -61,11 +60,14 @@ public final class SelectStatement : Statement {
 }
 
 /**
-TODO
+A sequence of elements fetched from the database.
 */
 public struct DatabaseSequence<T>: SequenceType {
     let statement: SelectStatement
     let map: () -> T
+    
+    /// Return a *generator* over the elements of this *sequence*.
+    @warn_unused_result
     public func generate() -> DatabaseGenerator<T> {
         // Check that sequence is built on a valid database.
         // See DatabaseQueue.inSafeDatabase().
@@ -79,7 +81,7 @@ public struct DatabaseSequence<T>: SequenceType {
 }
 
 /**
-TODO
+A generator of elements fetched from the database.
 */
 public struct DatabaseGenerator<T>: GeneratorType {
     let statement: SelectStatement
@@ -94,6 +96,8 @@ public struct DatabaseGenerator<T>: GeneratorType {
         self.assertValid = statement.database.assertValid
     }
     
+    /// Advance to the next element and return it, or `nil` if no next
+    /// element exists.
     public func next() -> T? {
         // Check that generator is used on a valid database.
         // See DatabaseQueue.inSafeDatabase().
