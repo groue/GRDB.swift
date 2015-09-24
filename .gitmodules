@@ -1,3 +1,6 @@
 [submodule "GRDB Tests/Performance/fmdb"]
 	path = GRDB Tests/Performance/fmdb
 	url = https://github.com/ccgus/fmdb.git
+[submodule "GRDB Tests/Performance/SQLite.swift"]
+	path = GRDB Tests/Performance/SQLite.swift
+	url = https://github.com/stephencelis/SQLite.swift.git
