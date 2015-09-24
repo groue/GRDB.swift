@@ -217,8 +217,6 @@ public class Row: CollectionType {
     
     This method is case-insensitive.
     
-    TODO: the doc below is obsolete.
-    
     **WARNING**: type casting requires a very careful use of the `as` operator
     (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
     
@@ -264,8 +262,6 @@ public class Row: CollectionType {
         let value: Double? = row.value(named: "count")
     
     This method is case-insensitive.
-    
-    TODO: the doc below is obsolete.
     
     **WARNING**: type casting requires a very careful use of the `as` operator
     (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
@@ -378,24 +374,31 @@ public class Row: CollectionType {
     // MARK: - Fetching From SelectStatement
     
     /**
-    TODO
-    
-    Returns a row sequence that provides fast but unsafe access to database
-    values:
+    Returns a sequence of rows.
 
-        for row in MetalRow.fetch(db, "SELECT id, name FROM persons") {
+        for row in Row.fetch(db, "SELECT id, name FROM persons") {
             let id = row.int64(atIndex: 0)
             let name = row.string(atIndex: 1)
         }
     
-    The returned sequence is *unsafe* because it must be used with extra care,
-    and GRDB.swift will not prevent invalid usage.
+    Fetched rows are reused during the sequence iteration: don't wrap a row
+    sequence in an array with `Array(rows)` or `rows.filter { ... }` since you
+    would not get the distinct rows you expect. Use `Row.fetchAll(...)` instead.
     
-    - It MUST be iterated right away. Do not reserve it, do not wrap it in an
-      Array.
+    For the same reason, make sure you make a copy whenever you extract a row
+    for later use: `row.copy()`.
     
-    Granted with those constraints, the unsafe sequence grants extra speed for
-    the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
+    The returned sequence can be consumed several times, but it may yield
+    different results, should database changes have occurred between two
+    generations:
+    
+        let rows = Row.fetch(statement)
+        for row in rows { ... } // 3 steps
+        db.execute("DELETE ...")
+        for row in rows { ... } // 2 steps
+    
+    If the database is modified while the sequence is iterating, the remaining
+    elements of the sequence are undefined.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
@@ -446,24 +449,31 @@ public class Row: CollectionType {
     // MARK: - Fetching From Database
     
     /**
-    TODO
+    Returns a sequence of rows.
     
-    Returns a row sequence that provides fast but unsafe access to database
-    values:
-
         for row in Row.fetch(db, "SELECT id, name FROM persons") {
             let id = row.int64(atIndex: 0)
             let name = row.string(atIndex: 1)
         }
     
-    The returned sequence is *unsafe* because it must be used with extra care,
-    and GRDB.swift will not prevent invalid usage.
+    Fetched rows are reused during the sequence iteration: don't wrap a row
+    sequence in an array with `Array(rows)` or `rows.filter { ... }` since you
+    would not get the distinct rows you expect. Use `Row.fetchAll(...)` instead.
     
-    - It MUST be iterated right away. Do not reserve it, do not wrap it in an
-      Array.
+    For the same reason, make sure you make a copy whenever you extract a row
+    for later use: `row.copy()`.
     
-    Granted with those constraints, the unsafe sequence grants extra speed for
-    the typed row accessors Row.int64(atIndex:), Row.string(atIndex:), etc.
+    The returned sequence can be consumed several times, but it may yield
+    different results, should database changes have occurred between two
+    generations:
+    
+        let rows = Row.fetch(db, "SELECT...")
+        for row in rows { ... } // 3 steps
+        db.execute("DELETE ...")
+        for row in rows { ... } // 2 steps
+    
+    If the database is modified while the sequence is iterating, the remaining
+    elements of the sequence are undefined.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
