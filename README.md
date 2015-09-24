@@ -972,6 +972,8 @@ let persons = dbQueue.inDatabase { db in
 for person in persons { ... } // OK
 ```
 
+For performance reasons, the row argument to `updateFromRow(_)` may be reused between several Person records during the iteration of a fetch query. So if you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+
 
 #### Ad Hoc Subclasses
 
