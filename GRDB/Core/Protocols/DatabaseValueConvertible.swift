@@ -57,8 +57,7 @@ public extension DatabaseValueConvertible {
     // MARK: - Fetching From SelectStatement
     
     /**
-    TODO
-    Fetches a sequence of DatabaseValueConvertible values.
+    Fetches a sequence of values.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let names = String.fetch(statement) // DatabaseSequence<String?>
@@ -86,7 +85,7 @@ public extension DatabaseValueConvertible {
     }
     
     /**
-    Fetches an array of DatabaseValueConvertible values.
+    Fetches an array of values.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let names = String.fetchAll(statement)  // [String?]
@@ -100,7 +99,7 @@ public extension DatabaseValueConvertible {
     }
     
     /**
-    Fetches a single DatabaseValueConvertible value
+    Fetches a single value.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let name = String.fetchOne(statement)   // String?
@@ -120,7 +119,7 @@ public extension DatabaseValueConvertible {
     // MARK: - Fetching From Database
     
     /**
-    Fetches a sequence of DatabaseValueConvertible values.
+    Fetches a sequence of values.
     
         let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
     
@@ -146,7 +145,7 @@ public extension DatabaseValueConvertible {
     }
     
     /**
-    Fetches an array of DatabaseValueConvertible values.
+    Fetches an array of values.
     
         let names = String.fetchAll(db, "SELECT name FROM ...") // [String?]
     
@@ -160,7 +159,7 @@ public extension DatabaseValueConvertible {
     }
     
     /**
-    Fetches a single DatabaseValueConvertible value.
+    Fetches a single value.
     
         let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     
@@ -182,23 +181,15 @@ public extension DatabaseValueConvertible where Self: MetalType {
     // MARK: - Fetching From SelectStatement
     
     /**
-    TODO
-    Fetches a sequence of DatabaseValueConvertible values.
+    This method is an optimized specialization of
+    DatabaseValueConvertible.fetch(_,arguments:) for types that adopt both
+    DatabaseValueConvertible and MetalType protocols.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let names = String.fetch(statement) // DatabaseSequence<String?>
     
-    The returned sequence can be consumed several times, but it may yield
-    different results, should database changes have occurred between two
-    generations:
-    
-        let names = String.fetch(statement)
-        Array(names) // Arthur, Barbara
-        db.execute("DELETE ...")
-        Array(names) // Arthur
-    
-    If the database is modified while the sequence is iterating, the remaining
-    elements are undefined.
+    See the documentation of DatabaseValueConvertible.fetch(_,arguments:) for
+    more information.
     
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
@@ -216,10 +207,15 @@ public extension DatabaseValueConvertible where Self: MetalType {
     }
     
     /**
-    Fetches an array of DatabaseValueConvertible values.
+    This method is an optimized specialization of
+    DatabaseValueConvertible.fetchAll(_,arguments:) for types that adopt both
+    DatabaseValueConvertible and MetalType protocols.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let names = String.fetchAll(statement)  // [String?]
+    
+    See the documentation of DatabaseValueConvertible.fetchAll(_,arguments:) for
+    more information.
     
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
@@ -230,10 +226,15 @@ public extension DatabaseValueConvertible where Self: MetalType {
     }
     
     /**
-    Fetches a single DatabaseValueConvertible value
+    This method is an optimized specialization of
+    DatabaseValueConvertible.fetchOne(_,arguments:) for types that adopt both
+    DatabaseValueConvertible and MetalType protocols.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let name = String.fetchOne(statement)   // String?
+    
+    See the documentation of DatabaseValueConvertible.fetchOne(_,arguments:) for
+    more information.
     
     - parameter statement: The statement to run.
     - parameter arguments: Optional statement arguments.
@@ -250,21 +251,14 @@ public extension DatabaseValueConvertible where Self: MetalType {
     // MARK: - Fetching From Database
     
     /**
-    Fetches a sequence of DatabaseValueConvertible values.
+    This method is an optimized specialization of
+    DatabaseValueConvertible.fetch(_,sql:,arguments:) for types that adopt both
+    DatabaseValueConvertible and MetalType protocols.
     
         let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
     
-    The returned sequence can be consumed several times, but it may yield
-    different results, should database changes have occurred between two
-    generations:
-    
-        let names = String.fetch(db, "SELECT name FROM ...")
-        Array(names) // Arthur, Barbara
-        db.execute("DELETE ...")
-        Array(names) // Arthur
-    
-    If the database is modified while the sequence is iterating, the remaining
-    elements are undefined.
+    See the documentation of DatabaseValueConvertible.fetch(_,sql:,arguments:)
+    for more information.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
@@ -276,9 +270,14 @@ public extension DatabaseValueConvertible where Self: MetalType {
     }
     
     /**
-    Fetches an array of DatabaseValueConvertible values.
+    This method is an optimized specialization of
+    DatabaseValueConvertible.fetchAll(_,sql:,arguments:) for types that adopt
+    both DatabaseValueConvertible and MetalType protocols.
     
         let names = String.fetchAll(db, "SELECT name FROM ...") // [String?]
+    
+    See the documentation of DatabaseValueConvertible.fetchAll(_,sql:,arguments:)
+    for more information.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
@@ -290,9 +289,14 @@ public extension DatabaseValueConvertible where Self: MetalType {
     }
     
     /**
-    Fetches a single DatabaseValueConvertible value.
+    This method is an optimized specialization of
+    DatabaseValueConvertible.fetchOne(_,sql:,arguments:) for types that adopt
+    both DatabaseValueConvertible and MetalType protocols.
     
         let name = String.fetchOne(db, "SELECT name FROM ...") // String?
+    
+    See the documentation of DatabaseValueConvertible.fetchOne(_,sql:,arguments:)
+    for more information.
     
     - parameter db: A Database.
     - parameter sql: An SQL query.
