@@ -71,8 +71,14 @@ public final class Blob : Equatable {
 /// Blob adopts DatabaseValueConvertible and MetalType.
 extension Blob : DatabaseValueConvertible, MetalType {
     
-    /// Metal Blob does not copy, does not take ownership of statement bytes.
+    /**
+    Returns an instance initialized from a raw SQLite statement pointer.
+    
+    - parameter sqliteStatement: A pointer to a SQLite statement.
+    - parameter index: The column index.
+    */
     public convenience init(sqliteStatement: SQLiteStatement, index: Int32) {
+        // Metal Blob does not copy and does not take ownership of the statement bytes.
         let bytes = sqlite3_column_blob(sqliteStatement, index)
         let length = sqlite3_column_bytes(sqliteStatement, index)
         self.init(bytesNoCopy: bytes, length: Int(length), freeWhenDone: false)!
