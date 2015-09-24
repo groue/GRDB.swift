@@ -251,6 +251,7 @@ Row.fetch(db, "SELECT * FROM persons WHERE name = ?", arguments: ["Arthur"])
 Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "Arthur"])
 ```
 
+
 **Row sequences grant direct access to SQLite**, and are generally faster than row arrays. Yet:
 
 - Don't consume row sequences outside of a database queue. Extract arrays instead:
@@ -263,7 +264,9 @@ Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "A
     for row in rows { ... } // OK
     ```
 
-- Fetched rows are reused during the sequence iteration: make sure you make a copy whenever you extract a row for later use: `row.copy()`.
+- Fetched rows are reused during the sequence iteration: don't wrap a row sequence in an array with `Array(rows)` or `rows.filter { ... }` since you would not get the distinct rows you expect. Use `Row.fetchAll(...)` instead.
+
+- For the same reason, make sure you make a copy whenever you extract a row for later use: `row.copy()`.
 
 
 **Read row values** by index or column name:
@@ -298,6 +301,7 @@ row.value(...) as Int?   // OK: Int?
 row.value(...) as! Int   // NO NO NO DON'T DO THAT!
 row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 ```
+
 
 ##### Rows as Dictionaries
 
