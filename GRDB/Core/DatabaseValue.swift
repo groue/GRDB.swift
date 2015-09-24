@@ -11,33 +11,33 @@ public struct DatabaseValue : Equatable {
     // MARK: - Creating DatabaseValue
     
     /**
-    TODO
+    The NULL DatabaseValue.
     */
     public static let Null = DatabaseValue(storage: .Null)
     
     /**
-    TODO
+    Returns a DatabaseValue storing an Integer.
     */
     public init(int64: Int64) {
         self.storage = .Int64(int64)
     }
     
     /**
-    TODO
+    Returns a DatabaseValue storing an Double.
     */
     public init(double: Double) {
         self.storage = .Double(double)
     }
     
     /**
-    TODO
+    Returns a DatabaseValue storing a String.
     */
     public init(string: String) {
         self.storage = .String(string)
     }
     
     /**
-    TODO
+    Returns a DatabaseValue storing a Blob.
     */
     public init(blob: Blob) {
         self.storage = .Blob(blob)
@@ -89,33 +89,32 @@ public struct DatabaseValue : Equatable {
     **WARNING**: type casting requires a very careful use of the `as` operator
     (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
     
-        databaseValue.value()! as Int   // OK: Int
+        databaseValue.value() as Int    // OK: Int
         databaseValue.value() as Int?   // OK: Int?
         databaseValue.value() as! Int   // NO NO NO DON'T DO THAT!
         databaseValue.value() as? Int   // NO NO NO DON'T DO THAT!
-    
-    Your custom types that adopt the DatabaseValueConvertible protocol handle
-    their own conversion from raw SQLite values. Yet, here is the reference for
-    built-in types:
-    
-    SQLite value: | NULL    INTEGER         REAL            TEXT        BLOB
-    --------------|---------------------------------------------------------
-    Bool          | nil     false if 0      false if 0.0    nil         nil
-    Int           | nil     Int(*)          Int(*)          nil         nil
-    Int64         | nil     Int64           Int64(*)        nil         nil
-    Double        | nil     Double          Double          nil         nil
-    String        | nil     nil             nil             String      nil
-    Blob          | nil     nil             nil             nil         Blob
-    
-    (*) Conversions to Int and Int64 crash if the value is too big.
-    
     */
     public func value<Value: DatabaseValueConvertible>() -> Value? {
         return Value.fromDatabaseValue(self)
     }
     
     /**
-    TODO
+    Returns the wrapped value, converted to the requested type.
+    
+    Expect a crash if the SQLite value is NULL, or can't be converted to the
+    requested type.
+    
+        let value: Bool = databaseValue.value()
+        let value: Int = databaseValue.value()
+        let value: Double = databaseValue.value()
+    
+    **WARNING**: type casting requires a very careful use of the `as` operator
+    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+    
+        databaseValue.value() as Int    // OK: Int
+        databaseValue.value() as Int?   // OK: Int?
+        databaseValue.value() as! Int   // NO NO NO DON'T DO THAT!
+        databaseValue.value() as? Int   // NO NO NO DON'T DO THAT!
     */
     public func value<Value: DatabaseValueConvertible>() -> Value {
         return Value.fromDatabaseValue(self)!
