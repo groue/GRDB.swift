@@ -88,8 +88,9 @@ public struct StatementArguments {
         }
         
         func bindInStatement(statement: Statement) {
+            statement.validateArgumentCount(values.count)
             for (index, value) in values.enumerate() {
-                statement.bind(value, atIndex: index + 1)
+                statement.setArgument(value, atIndex: index + 1)
             }
         }
         
@@ -120,8 +121,9 @@ public struct StatementArguments {
         }
         
         func bindInStatement(statement: Statement) {
+            statement.validateCoveringArgumentKeys(Array(dictionary.keys))
             for (key, value) in dictionary {
-                statement.bind(value, forKey: key)
+                statement.setArgument(value, forKey: key)   // crash if key is not found
             }
         }
         

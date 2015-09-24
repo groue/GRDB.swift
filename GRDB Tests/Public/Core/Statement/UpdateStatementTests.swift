@@ -27,9 +27,9 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             try dbQueue.inTransaction { db in
                 try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', ?)").execute()
-                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('', ?)").execute()
+                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Barbara', ?)").execute()
                 try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', ?);").execute()
-                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('', ?);").execute()
+                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Barbara', ?);").execute()
                 return .Commit
             }
         }
@@ -39,8 +39,8 @@ class UpdateStatementTests : GRDBTestCase {
             XCTAssertEqual(rows.count, 4)
             XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
             XCTAssertEqual(rows[1].value(named: "name")! as String, "Arthur")
-            XCTAssertEqual(rows[2].value(named: "name")! as String, "")
-            XCTAssertEqual(rows[3].value(named: "name")! as String, "")
+            XCTAssertEqual(rows[2].value(named: "name")! as String, "Barbara")
+            XCTAssertEqual(rows[3].value(named: "name")! as String, "Barbara")
         }
     }
     
@@ -50,9 +50,9 @@ class UpdateStatementTests : GRDBTestCase {
             try dbQueue.inTransaction { db in
                 
                 let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-                let persons = [
+                let persons: [[DatabaseValueConvertible?]] = [
                     ["Arthur", 41],
-                    [""],
+                    ["Barbara", nil],
                 ]
                 for person in persons {
                     try statement.execute(arguments: StatementArguments(person))
@@ -66,7 +66,7 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "")
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
@@ -78,9 +78,9 @@ class UpdateStatementTests : GRDBTestCase {
             try dbQueue.inTransaction { db in
                 
                 let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-                let persons = [
+                let persons: [[DatabaseValueConvertible?]] = [
                     ["Arthur", 41],
-                    [""],
+                    ["Barbara", nil],
                 ]
                 for person in persons {
                     statement.arguments = StatementArguments(person)
@@ -95,7 +95,7 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "")
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
@@ -107,9 +107,9 @@ class UpdateStatementTests : GRDBTestCase {
             try dbQueue.inTransaction { db in
                 
                 let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-                let persons = [
+                let persons: [[String: DatabaseValueConvertible?]] = [
                     ["name": "Arthur", "age": 41],
-                    ["name": ""],
+                    ["name": "Barbara", "age": nil],
                 ]
                 for person in persons {
                     try statement.execute(arguments: StatementArguments(person))
@@ -123,7 +123,7 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "")
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
@@ -135,9 +135,9 @@ class UpdateStatementTests : GRDBTestCase {
             try dbQueue.inTransaction { db in
                 
                 let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-                let persons = [
+                let persons: [[String: DatabaseValueConvertible?]] = [
                     ["name": "Arthur", "age": 41],
-                    ["name": ""],
+                    ["name": "Barbara", "age": nil],
                 ]
                 for person in persons {
                     statement.arguments = StatementArguments(person)
@@ -152,7 +152,7 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
                 XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "")
+                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }

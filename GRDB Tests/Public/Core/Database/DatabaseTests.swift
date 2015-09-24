@@ -146,7 +146,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
                 
                 let statement = db.selectStatement("SELECT * FROM persons")
                 let rows = Row.fetchAll(statement)
@@ -160,7 +160,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
                 
                 let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?")
                 let rows = Row.fetchAll(statement, arguments: ["Arthur"])
@@ -174,7 +174,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
                 
                 let statement = db.selectStatement("SELECT * FROM persons WHERE name = :name")
                 let rows = Row.fetchAll(statement, arguments: ["name": "Arthur"])
@@ -188,7 +188,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
                 
                 var names: [String?] = []
                 var ages: [Int?] = []
@@ -214,7 +214,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara"])
+                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
                 
                 var names: [String?] = []
                 var ages: [Int?] = []

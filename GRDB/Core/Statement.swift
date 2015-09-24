@@ -69,8 +69,60 @@ public class Statement {
         }
     }
     
-    // Exposed for StatementArguments. Don't make this one public unless we keep the arguments property in sync.
-    final func bind(value: DatabaseValueConvertible?, atIndex index: Int) {
+    // Not public until a need for it.
+    final func reset() {
+        let code = sqlite3_reset(sqliteStatement)
+        if code != SQLITE_OK {
+            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
+        }
+    }
+    
+    
+    // MARK: - Arguments
+    
+    private var argumentCount: Int {
+        return Int(sqlite3_bind_parameter_count(sqliteStatement))
+    }
+    
+    private lazy var sqliteArgumentNames: Set<String> = { [unowned self] in
+        let sqliteStatement = self.sqliteStatement
+        var argumentNames = Set<String>()
+        for i in 1...self.argumentCount {
+            if let name = String.fromCString(sqlite3_bind_parameter_name(sqliteStatement, Int32(i))) {
+                argumentNames.insert(name)
+            }
+        }
+        return argumentNames
+    }()
+    
+    // Exposed for StatementArguments.
+    func validateArgumentCount(count: Int) {
+        guard count == argumentCount else {
+            fatalError("SQLite statement arguments mismatch: got \(count) argument(s) instead of \(argumentCount).")
+        }
+    }
+    
+    // Exposed for StatementArguments.
+    func validateCoveringArgumentKeys(keys: [String]) {
+        let inputArgumentNames = keys.map { ":\($0)" }
+        guard Set(inputArgumentNames) == sqliteArgumentNames else {
+            func caseInsensitiveSort(strings: [String]) -> [String] {
+                return strings
+                    .map { ($0.lowercaseString, $0) }
+                    .sort { $0.0 < $1.0 }
+                    .map { $0.1 }
+            }
+            let input = caseInsensitiveSort(inputArgumentNames).joinWithSeparator(",")
+            let expected = caseInsensitiveSort(Array(sqliteArgumentNames)).joinWithSeparator(",")
+            fatalError("SQLite statement argument names mismatch: got [\(input)] instead of [\(expected)].")
+        }
+    }
+    
+    // Exposed for StatementArguments. Don't make this one public unless we keep
+    // the arguments property in sync.
+    //
+    // As in sqlite3_bind_xxx methods, index is one-based.
+    final func setArgument(value: DatabaseValueConvertible?, atIndex index: Int) {
         let databaseValue = value?.databaseValue ?? .Null
         let code: Int32
         
@@ -92,24 +144,18 @@ public class Statement {
         }
     }
     
-    // Exposed for StatementArguments. Don't make this one public unless we keep the arguments property in sync.
-    final func bind(value: DatabaseValueConvertible?, forKey key: String) {
-        let index = Int(sqlite3_bind_parameter_index(sqliteStatement, ":\(key)"))
+    // Exposed for StatementArguments. Don't make this one public unless we keep
+    // the arguments property in sync.
+    final func setArgument(value: DatabaseValueConvertible?, forKey key: String) {
+        let argumentName = ":\(key)"
+        let index = Int(sqlite3_bind_parameter_index(sqliteStatement, argumentName))
         guard index > 0 else {
-            fatalError("Key not found in SQLite statement: `:\(key)`")
+            fatalError("Argument not found in SQLite statement: `\(argumentName)`")
         }
-        bind(value, atIndex: index)
+        setArgument(value, atIndex: index)
     }
     
-    // Not public until a need for it.
-    final func reset() {
-        let code = sqlite3_reset(sqliteStatement)
-        if code != SQLITE_OK {
-            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
-        }
-    }
-    
-    // Don't make this one public or internal unless we keep the arguments property in sync.
+    // Don't make this one public unless we keep the arguments property in sync.
     private func clearArguments() {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {

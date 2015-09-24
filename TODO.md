@@ -6,7 +6,6 @@
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
 - [ ] Update or delete the "Value Extraction in Details" paragraph in README.md
 - [ ] Talk about SQLiteStatementConvertible. Maybe in a special "Performance" section.
-- [ ] Statement arguments: crash when there are missing arguments. This will prevent another https://github.com/stephencelis/SQLite.swift/issues/232, because one argument was missing in the arguments array.
 
 Not sure:
 
