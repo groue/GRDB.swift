@@ -235,36 +235,6 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
-    // TODO: this test crash since we return metal rows
-//    func testRowSequenceCanBeIteratedIndependentlyFromSQLiteStatement() {
-//        assertNoError {
-//            var rows: [Row] = []
-//            try dbQueue.inTransaction { db in
-//                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-//                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-//                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara"])
-//                
-//                rows = Array(Row.fetch(db, "SELECT * FROM persons ORDER BY name"))
-//                return .Commit
-//            }
-//            
-//            var names: [String?] = []
-//            var ages: [Int?] = []
-//            
-//            for row in rows {
-//                let name: String? = row.value(named: "name")
-//                let age: Int? = row.value(named: "age")
-//                names.append(name)
-//                ages.append(age)
-//            }
-//            
-//            XCTAssertEqual(names[0]!, "Arthur")
-//            XCTAssertEqual(names[1]!, "Barbara")
-//            XCTAssertEqual(ages[0]!, 41)
-//            XCTAssertNil(ages[1])
-//        }
-//    }
-    
     func testRowSequenceCanBeIteratedTwice() {
         assertNoError {
             try dbQueue.inTransaction { db in

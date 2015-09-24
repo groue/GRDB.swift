@@ -8,7 +8,6 @@
     - [ ] Write test for how a fetched sequence should behave. It should contains the expected values. It can be restarted. Some of those are already written.
     - [ ] Update documentation (README.md and inline doc) when they metal rows are exposed, so that user is encouraged copying them.
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
-- [ ] Metal: See what can be done about testRowSequenceCanBeIteratedIndependentlyFromSQLiteStatement()
 - [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into MetalType
 - [ ] Update or delete the "Value Extraction in Details" paragraph in README.md
 - [ ] Talk about MetalType. Maybe in a special "Performance" section.
