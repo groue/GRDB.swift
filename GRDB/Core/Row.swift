@@ -78,8 +78,6 @@ public class Row: CollectionType {
     Indexes span from 0 for the leftmost column to (row.count - 1) for the
     righmost column.
     
-    TODO: the doc below is obsolete.
-    
     The conversion returns nil if the fetched SQLite value is NULL, or can't be
     converted to the requested type:
     
@@ -90,25 +88,10 @@ public class Row: CollectionType {
     **WARNING**: type casting requires a very careful use of the `as` operator
     (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
     
-        row.value(atIndex: 0)! as Int   // OK: Int
+        row.value(atIndex: 0) as Int    // OK: Int
         row.value(atIndex: 0) as Int?   // OK: Int?
         row.value(atIndex: 0) as? Int   // NO NO NO DON'T DO THAT!
         row.value(atIndex: 0) as! Int   // NO NO NO DON'T DO THAT!
-    
-    Your custom types that adopt the DatabaseValueConvertible protocol handle
-    their own conversion from raw SQLite values. Yet, here is the reference for
-    built-in types:
-    
-        SQLite value: | NULL    INTEGER         REAL            TEXT        BLOB
-        --------------|---------------------------------------------------------
-        Bool          | nil     false if 0      false if 0.0    nil         nil
-        Int           | nil     Int(*)          Int(*)          nil         nil
-        Int64         | nil     Int64           Int64(*)        nil         nil
-        Double        | nil     Double          Double          nil         nil
-        String        | nil     nil             nil             String      nil
-        Blob          | nil     nil             nil             nil         Blob
-    
-    (*) Conversions to Int and Int64 crash if the value is too big.
     
     - parameter index: The index of a column.
     - returns: An optional *Value*.
@@ -118,7 +101,17 @@ public class Row: CollectionType {
     }
     
     /**
-    TODO
+    This method is an optimized specialization of Row.value(atIndex:) for types
+    that adopt both DatabaseValueConvertible and MetalType protocols.
+    
+        let value: Bool? = row.value(atIndex: 0)
+        let value: Int? = row.value(atIndex: 0)
+        let value: Double? = row.value(atIndex: 0)
+    
+    See the documentation of Row.value(atIndex:) for more information.
+    
+    - parameter index: The index of a column.
+    - returns: An optional *Value*.
     */
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value? {
         let sqliteStatement = self.sqliteStatement
@@ -136,14 +129,45 @@ public class Row: CollectionType {
     }
     
     /**
-    TODO
+    Returns the value at given index, converted to the requested type.
+    
+    Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    righmost column.
+    
+    Expect a crash if the SQLite value is NULL, or can't be converted to the
+    requested type.
+    
+        let value: Bool = row.value(atIndex: 0)
+        let value: Int = row.value(atIndex: 0)
+        let value: Double = row.value(atIndex: 0)
+    
+    **WARNING**: type casting requires a very careful use of the `as` operator
+    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+    
+        row.value(atIndex: 0) as Int    // OK: Int
+        row.value(atIndex: 0) as Int?   // OK: Int?
+        row.value(atIndex: 0) as? Int   // NO NO NO DON'T DO THAT!
+        row.value(atIndex: 0) as! Int   // NO NO NO DON'T DO THAT!
+    
+    - parameter index: The index of a column.
+    - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
         return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
     }
     
     /**
-    TODO
+    This method is an optimized specialization of Row.value(atIndex:) for types
+    that adopt both DatabaseValueConvertible and MetalType protocols.
+    
+        let value: Bool = row.value(atIndex: 0)
+        let value: Int = row.value(atIndex: 0)
+        let value: Double = row.value(atIndex: 0)
+    
+    See the documentation of Row.value(atIndex:) for more information.
+    
+    - parameter index: The index of a column.
+    - returns: An optional *Value*.
     */
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value {
         let sqliteStatement = self.sqliteStatement
@@ -155,7 +179,6 @@ public class Row: CollectionType {
             return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
         }
     }
-    
     
     /**
     Returns the value for the given column.
@@ -199,25 +222,10 @@ public class Row: CollectionType {
     **WARNING**: type casting requires a very careful use of the `as` operator
     (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
     
-        row.value(named: "count")! as Int   // OK: Int
+        row.value(named: "count") as Int    // OK: Int
         row.value(named: "count") as Int?   // OK: Int?
         row.value(named: "count") as! Int   // NO NO NO DON'T DO THAT!
         row.value(named: "count") as? Int   // NO NO NO DON'T DO THAT!
-    
-    Your custom types that adopt the DatabaseValueConvertible protocol handle
-    their own conversion from raw SQLite values. Yet, here is the reference for
-    built-in types:
-    
-        SQLite value: | NULL    INTEGER         REAL            TEXT        BLOB
-        --------------|---------------------------------------------------------
-        Bool          | nil     false if 0      false if 0.0    nil         nil
-        Int           | nil     Int(*)          Int(*)          nil         nil
-        Int64         | nil     Int64           Int64(*)        nil         nil
-        Double        | nil     Double          Double          nil         nil
-        String        | nil     nil             nil             String      nil
-        Blob          | nil     nil             nil             nil         Blob
-    
-    (*) Conversions to Int and Int64 crash if the value is too big.
     
     - parameter name: A column name.
     - returns: An optional *Value*.
@@ -228,7 +236,17 @@ public class Row: CollectionType {
     }
     
     /**
-    TODO
+    This method is an optimized specialization of Row.value(named:) for types
+    that adopt both DatabaseValueConvertible and MetalType protocols.
+    
+        let value: Bool? = row.value(named: "count")
+        let value: Int? = row.value(named: "count")
+        let value: Double? = row.value(named: "count")
+    
+    See the documentation of Row.value(named:) for more information.
+    
+    - parameter name: A column name.
+    - returns: An optional *Value*.
     */
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(named columnName: String) -> Value? {
         let index = impl.indexForColumn(named: columnName)!
@@ -236,7 +254,29 @@ public class Row: CollectionType {
     }
     
     /**
-    TODO
+    Returns the value for the given column, converted to the requested type.
+    
+    Expect a crash if the SQLite value is NULL, or can't be converted to the
+    requested type.
+    
+        let value: Bool? = row.value(named: "count")
+        let value: Int? = row.value(named: "count")
+        let value: Double? = row.value(named: "count")
+    
+    This method is case-insensitive.
+    
+    TODO: the doc below is obsolete.
+    
+    **WARNING**: type casting requires a very careful use of the `as` operator
+    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+    
+        row.value(named: "count") as Int    // OK: Int
+        row.value(named: "count") as Int?   // OK: Int?
+        row.value(named: "count") as! Int   // NO NO NO DON'T DO THAT!
+        row.value(named: "count") as? Int   // NO NO NO DON'T DO THAT!
+    
+    - parameter name: A column name.
+    - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
         let index = impl.indexForColumn(named: columnName)!
@@ -244,7 +284,17 @@ public class Row: CollectionType {
     }
     
     /**
-    TODO
+    This method is an optimized specialization of Row.value(named:) for types
+    that adopt both DatabaseValueConvertible and MetalType protocols.
+    
+        let value: Bool = row.value(named: "count")
+        let value: Int = row.value(named: "count")
+        let value: Double = row.value(named: "count")
+    
+    See the documentation of Row.value(named:) for more information.
+    
+    - parameter name: A column name.
+    - returns: An optional *Value*.
     */
     public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(named columnName: String) -> Value {
         let index = impl.indexForColumn(named: columnName)!
