@@ -11,3 +11,4 @@
 - [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into MetalType when Swift allows for it.
 - [ ] Update or delete the "Value Extraction in Details" paragraph in README.md
 - [ ] Talk about MetalType. Maybe in a special "Performance" section.
+- [ ] Find a better name for MetalType (there may be some vocabulary in https://www.sqlite.org/c3ref/column_blob.html)
