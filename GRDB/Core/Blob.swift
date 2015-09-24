@@ -68,8 +68,8 @@ public final class Blob : Equatable {
 
 // MARK: - DatabaseValueConvertible
 
-/// Blob adopts DatabaseValueConvertible and MetalType.
-extension Blob : DatabaseValueConvertible, MetalType {
+/// Blob adopts DatabaseValueConvertible and SQLiteStatementConvertible.
+extension Blob : DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /**
     Returns an instance initialized from a raw SQLite statement pointer.

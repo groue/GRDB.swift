@@ -1,5 +1,5 @@
-/// Bool adopts DatabaseValueConvertible and MetalType.
-extension Bool: DatabaseValueConvertible, MetalType {
+/// Bool adopts DatabaseValueConvertible and SQLiteStatementConvertible.
+extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /**
     Returns an instance initialized from a raw SQLite statement pointer.
@@ -90,8 +90,8 @@ extension Bool: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// Int adopts DatabaseValueConvertible and MetalType.
-extension Int: DatabaseValueConvertible, MetalType {
+/// Int adopts DatabaseValueConvertible and SQLiteStatementConvertible.
+extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /**
     Returns an instance initialized from a raw SQLite statement pointer.
@@ -126,8 +126,8 @@ extension Int: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// Int32 adopts DatabaseValueConvertible and MetalType.
-extension Int32: DatabaseValueConvertible, MetalType {
+/// Int32 adopts DatabaseValueConvertible and SQLiteStatementConvertible.
+extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /**
     Returns an instance initialized from a raw SQLite statement pointer.
@@ -162,8 +162,8 @@ extension Int32: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// Int64 adopts DatabaseValueConvertible and MetalType.
-extension Int64: DatabaseValueConvertible, MetalType {
+/// Int64 adopts DatabaseValueConvertible and SQLiteStatementConvertible.
+extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /**
     Returns an instance initialized from a raw SQLite statement pointer.
@@ -198,8 +198,8 @@ extension Int64: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// Double adopts DatabaseValueConvertible and MetalType.
-extension Double: DatabaseValueConvertible, MetalType {
+/// Double adopts DatabaseValueConvertible and SQLiteStatementConvertible.
+extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /**
     Returns an instance initialized from a raw SQLite statement pointer.
@@ -234,8 +234,8 @@ extension Double: DatabaseValueConvertible, MetalType {
     }
 }
 
-/// String adopts DatabaseValueConvertible and MetalType.
-extension String: DatabaseValueConvertible, MetalType {
+/// String adopts DatabaseValueConvertible and SQLiteStatementConvertible.
+extension String: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /**
     Returns an instance initialized from a raw SQLite statement pointer.

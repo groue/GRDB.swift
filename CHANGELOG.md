@@ -7,7 +7,7 @@ Release Notes
 
 - Performance improvements.
 - You can extract non-optional values from Row and DatabaseValue.
-- Types that adopt MetalType on top of the DatabaseValueConvertible protocol are granted with faster database access.
+- Types that adopt SQLiteStatementConvertible on top of the DatabaseValueConvertible protocol are granted with faster database access.
 
 **Breaking Changes**
 

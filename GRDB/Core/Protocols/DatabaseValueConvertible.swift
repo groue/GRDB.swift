@@ -174,16 +174,16 @@ public extension DatabaseValueConvertible {
 }
 
 
-// MARK: - Fetching DatabaseValueConvertible + MetalType
+// MARK: - Fetching DatabaseValueConvertible + SQLiteStatementConvertible
 
-public extension DatabaseValueConvertible where Self: MetalType {
+public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible {
     
     // MARK: - Fetching From SelectStatement
     
     /**
     This method is an optimized specialization of
     DatabaseValueConvertible.fetch(_,arguments:) for types that adopt both
-    DatabaseValueConvertible and MetalType protocols.
+    DatabaseValueConvertible and SQLiteStatementConvertible protocols.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let names = String.fetch(statement) // DatabaseSequence<String?>
@@ -209,7 +209,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     /**
     This method is an optimized specialization of
     DatabaseValueConvertible.fetchAll(_,arguments:) for types that adopt both
-    DatabaseValueConvertible and MetalType protocols.
+    DatabaseValueConvertible and SQLiteStatementConvertible protocols.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let names = String.fetchAll(statement)  // [String?]
@@ -228,7 +228,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     /**
     This method is an optimized specialization of
     DatabaseValueConvertible.fetchOne(_,arguments:) for types that adopt both
-    DatabaseValueConvertible and MetalType protocols.
+    DatabaseValueConvertible and SQLiteStatementConvertible protocols.
     
         let statement = db.selectStatement("SELECT name FROM ...")
         let name = String.fetchOne(statement)   // String?
@@ -253,7 +253,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     /**
     This method is an optimized specialization of
     DatabaseValueConvertible.fetch(_,sql:,arguments:) for types that adopt both
-    DatabaseValueConvertible and MetalType protocols.
+    DatabaseValueConvertible and SQLiteStatementConvertible protocols.
     
         let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
     
@@ -272,7 +272,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     /**
     This method is an optimized specialization of
     DatabaseValueConvertible.fetchAll(_,sql:,arguments:) for types that adopt
-    both DatabaseValueConvertible and MetalType protocols.
+    both DatabaseValueConvertible and SQLiteStatementConvertible protocols.
     
         let names = String.fetchAll(db, "SELECT name FROM ...") // [String?]
     
@@ -291,7 +291,7 @@ public extension DatabaseValueConvertible where Self: MetalType {
     /**
     This method is an optimized specialization of
     DatabaseValueConvertible.fetchOne(_,sql:,arguments:) for types that adopt
-    both DatabaseValueConvertible and MetalType protocols.
+    both DatabaseValueConvertible and SQLiteStatementConvertible protocols.
     
         let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     

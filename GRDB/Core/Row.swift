@@ -102,7 +102,8 @@ public class Row: CollectionType {
     
     /**
     This method is an optimized specialization of Row.value(atIndex:) for types
-    that adopt both DatabaseValueConvertible and MetalType protocols.
+    that adopt both DatabaseValueConvertible and SQLiteStatementConvertible
+    protocols.
     
         let value: Bool? = row.value(atIndex: 0)
         let value: Int? = row.value(atIndex: 0)
@@ -113,7 +114,7 @@ public class Row: CollectionType {
     - parameter index: The index of a column.
     - returns: An optional *Value*.
     */
-    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value? {
+    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -158,7 +159,8 @@ public class Row: CollectionType {
     
     /**
     This method is an optimized specialization of Row.value(atIndex:) for types
-    that adopt both DatabaseValueConvertible and MetalType protocols.
+    that adopt both DatabaseValueConvertible and SQLiteStatementConvertible
+    protocols.
     
         let value: Bool = row.value(atIndex: 0)
         let value: Int = row.value(atIndex: 0)
@@ -169,7 +171,7 @@ public class Row: CollectionType {
     - parameter index: The index of a column.
     - returns: An optional *Value*.
     */
-    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(atIndex index: Int) -> Value {
+    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -235,7 +237,8 @@ public class Row: CollectionType {
     
     /**
     This method is an optimized specialization of Row.value(named:) for types
-    that adopt both DatabaseValueConvertible and MetalType protocols.
+    that adopt both DatabaseValueConvertible and SQLiteStatementConvertible
+    protocols.
     
         let value: Bool? = row.value(named: "count")
         let value: Int? = row.value(named: "count")
@@ -246,7 +249,7 @@ public class Row: CollectionType {
     - parameter name: A column name.
     - returns: An optional *Value*.
     */
-    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(named columnName: String) -> Value? {
+    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
         let index = impl.indexForColumn(named: columnName)!
         return value(atIndex: index)
     }
@@ -281,7 +284,8 @@ public class Row: CollectionType {
     
     /**
     This method is an optimized specialization of Row.value(named:) for types
-    that adopt both DatabaseValueConvertible and MetalType protocols.
+    that adopt both DatabaseValueConvertible and SQLiteStatementConvertible
+    protocols.
     
         let value: Bool = row.value(named: "count")
         let value: Int = row.value(named: "count")
@@ -292,7 +296,7 @@ public class Row: CollectionType {
     - parameter name: A column name.
     - returns: An optional *Value*.
     */
-    public func value<Value: protocol<DatabaseValueConvertible, MetalType>>(named columnName: String) -> Value {
+    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
         let index = impl.indexForColumn(named: columnName)!
         return value(atIndex: index)
     }
@@ -531,7 +535,7 @@ public class Row: CollectionType {
     /// Only metal rows have a SQLiteStatement.
     ///
     /// Making sqliteStatement a property of Row instead of a property of RowImpl
-    /// makes the extraction of MetalType values faster.
+    /// makes the extraction of SQLiteStatementConvertible values faster.
     let sqliteStatement: SQLiteStatement
     
     /**

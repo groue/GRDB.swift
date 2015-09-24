@@ -1,15 +1,15 @@
 /**
-When a type adopts both DatabaseValueConvertible and MetalType, it is granted
+When a type adopts both DatabaseValueConvertible and SQLiteStatementConvertible, it is granted
 with faster access to the SQLite database values.
 */
-public protocol MetalType {
+public protocol SQLiteStatementConvertible {
     
     /**
     Returns an instance initialized from a raw SQLite statement pointer.
     
-    As an example, here is the how Int64 adopts MetalType:
+    As an example, here is the how Int64 adopts SQLiteStatementConvertible:
     
-        extension Int64: MetalType {
+        extension Int64: SQLiteStatementConvertible {
             public init(sqliteStatement: SQLiteStatement, index: Int32) {
                 self = sqlite3_column_int64(sqliteStatement, index)
             }

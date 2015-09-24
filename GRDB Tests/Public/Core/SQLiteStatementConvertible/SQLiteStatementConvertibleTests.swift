@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class MetalTypeTests : GRDBTestCase {
+class SQLiteStatementConvertibleTests : GRDBTestCase {
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     

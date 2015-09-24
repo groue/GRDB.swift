@@ -8,7 +8,6 @@
     - [ ] Write test for how a fetched sequence should behave. It should contains the expected values. It can be restarted. Some of those are already written.
     - [ ] Update documentation (README.md and inline doc) when they metal rows are exposed, so that user is encouraged copying them.
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
-- [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into MetalType when Swift allows for it.
+- [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into SQLiteStatementConvertible when Swift allows for it.
 - [ ] Update or delete the "Value Extraction in Details" paragraph in README.md
-- [ ] Talk about MetalType. Maybe in a special "Performance" section.
-- [ ] Find a better name for MetalType (there may be some vocabulary in https://www.sqlite.org/c3ref/column_blob.html)
+- [ ] Talk about SQLiteStatementConvertible. Maybe in a special "Performance" section.
