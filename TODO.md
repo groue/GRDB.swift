@@ -10,3 +10,4 @@
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
 - [ ] Metal: See what can be done about testRowSequenceCanBeIteratedIndependentlyFromSQLiteStatement()
 - [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into MetalType
+- [ ] Update or delete the "Value Extraction in Details" paragraph in README.md
