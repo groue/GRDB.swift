@@ -151,6 +151,11 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
             }
         }
     
+    For performance reasons, the row argument may be reused between several
+    record initializations during the iteration of a fetch query. So if you
+    want to keep the row for later use, make sure to store a copy:
+    `self.row = row.copy()`.
+    
     Note that your subclass *could* support mangled column names, and be able to
     load from custom SQL queries like the following:
     
