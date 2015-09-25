@@ -367,7 +367,7 @@ let names = dbQueue.inDatabase { db in
 for name in names { ... } // OK
 ```
 
-The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value. If this ambiguity does not fit your need, use `Row.fetchOne(_:sql:arguments:)`.
+The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
 
 ### Values
