@@ -434,7 +434,7 @@ Extract NSDate from the database:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT birthDate, ...")!
-let date = row.value(named: "birthDate") as NSDate?
+let date = row.value(named: "birthDate") as NSDate
 
 NSDate.fetch(db, "SELECT ...")       // DatabaseSequence<NSDate>
 NSDate.fetchAll(db, "SELECT ...")    // [NSDate]
@@ -488,7 +488,7 @@ Extract NSDateComponents from the database:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT birthDate, ...")!
-let dbComponents = row.value(named: "birthDate")! as DatabaseDateComponents
+let dbComponents = row.value(named: "birthDate") as DatabaseDateComponents
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
 
@@ -560,8 +560,8 @@ try db.execute("INSERT INTO wines (grape, color) VALUES (?, ?)",
 
 // Extract from row:
 for rows in Row.fetch(db, "SELECT * FROM wines") {
-    let grape: Grape? = row.value(named: "grape")
-    let color: Color? = row.value(named: "color")
+    let grape: Grape = row.value(named: "grape")
+    let color: Color = row.value(named: "color")
 }
 
 // Direct fetch:
@@ -648,7 +648,7 @@ try db.execute("INSERT INTO persons (date, ...) " +
 
 // Extract NSDate from row:
 for rows in Row.fetch(db, "SELECT ...") {
-    let date = (row.value(named: "date") as DatabaseTimestamp?)?.date
+    let date = (row.value(named: "date") as DatabaseTimestamp).date
 }
 
 // Direct fetch:
