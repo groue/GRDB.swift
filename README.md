@@ -338,9 +338,9 @@ for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
 
 #### Value Queries
 
-Instead of rows, you can directly fetch **values**, extracted from the first column of the resulting rows.
+Instead of rows, you can directly fetch **values**, extracted from the first column.
 
-Like rows, values can be fetched as **sequences**, **arrays**, or **single** value:
+Fetch **sequences** of values, **arrays**, or a **single** value:
 
 ```swift
 dbQueue.inDatabase { db in
