@@ -336,6 +336,38 @@ for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
 ```
 
 
+##### RowConvertible
+
+Accessing row values through the `value(atIndex:)` and `value(named:)` is arguably verbose.
+
+Consider adopting the **RowConvertible protocol**:
+
+```swift
+struct PointOfInterest : RowConvertible {
+    var coordinate: CLLocationCoordinate2D
+    var title: String
+    
+    init(row: Row) {
+        self.coordinate = CLLocationCoordinate2DMake(
+            row.value(named: "latitude"),
+            row.value(named: "longitude"))
+        self.title = row.value(named: "title")
+    }
+}
+```
+
+Adopting types can then be fetched like rows:
+
+```
+PointOfInterest.fetch(db, "SELECT ...")    // DatabaseSequence<PointOfInterest>
+PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
+PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
+```
+
+
+See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
+
+
 #### Value Queries
 
 Instead of rows, you can directly fetch **values**, extracted from the first column.
