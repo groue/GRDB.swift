@@ -600,15 +600,13 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     
     // NSDate conversion
     //
-    // We consistently use the Swift nil to represent the database NULL: the
-    // date property is a non-optional NSDate, and the NSDate initializer is
-    // failable:
+    // Value types should consistently use the Swift nil to represent the
+    // database NULL: the date property is a non-optional NSDate.
     
-    /// The represented date
     let date: NSDate
     
-    /// Creates a DatabaseTimestamp from an NSDate.
-    /// The result is nil if and only if *date* is nil.
+    // As a convenience, the NSDate initializer accepts an optional NSDate, and
+    // is failable: the result is nil if and only if *date* is nil.
     init?(_ date: NSDate?) {
         guard let date = date else {
             return nil
