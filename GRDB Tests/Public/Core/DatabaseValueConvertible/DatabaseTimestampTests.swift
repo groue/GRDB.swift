@@ -34,6 +34,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
         // Double itself adopts DatabaseValueConvertible. So let's avoid
         // handling the raw DatabaseValue, and use built-in Double conversion:
         guard let timeInterval = Double.fromDatabaseValue(databaseValue) else {
+            // No Double, no NSDate!
             return nil
         }
         return DatabaseTimestamp(NSDate(timeIntervalSince1970: timeInterval))
