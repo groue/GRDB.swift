@@ -20,6 +20,7 @@ Released September 24, 2015
 
 **Breaking Changes**
 
+- Rows can be reused during a fetch query iteration. Use `row.copy()` to keep one.
 - Database sequences are now of type DatabaseSequence.
 - Blob and NSData relationships are cleaner.
 
