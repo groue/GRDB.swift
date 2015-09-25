@@ -258,8 +258,7 @@ Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "A
 
     ```swift
     let rows = dbQueue.inDatabase { db in
-        return Row.fetchAll(db, "SELECT ...")             // [Row]
-        return Row.fetch(db, "SELECT ...").filter { ... } // [Row]
+        Row.fetchAll(db, "SELECT ...")  // [Row]
     }
     for row in rows { ... } // OK
     ```
@@ -311,9 +310,10 @@ When you process an unknown row, you will prefer thinking of it as a dictionary 
 
 ```swift
 // Test if the column `name` is present:
-if let databaseValue = row["name"] {
+if let databaseValue = row["date"] {
     // Extract the desired Swift type from the database value:
-    let name: String? = databaseValue.value()
+    let dateString: String = databaseValue.value()    // "2015-09-11 18:14:15.123"
+    let date: NSDate       = databaseValue.value()    // NSDate
 }
 ```
 
@@ -338,9 +338,7 @@ for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
 
 ##### RowConvertible
 
-Accessing row values through the `value(atIndex:)` and `value(named:)` is arguably verbose.
-
-Consider adopting the **RowConvertible protocol**:
+You may use the `RowConvertible` protocol, which **grants fetching methods to any type** that can be initialized from a database row:
 
 ```swift
 struct PointOfInterest : RowConvertible {
@@ -356,7 +354,7 @@ struct PointOfInterest : RowConvertible {
 }
 ```
 
-Adopting types can then be fetched like rows:
+Adopting types can be fetched just like rows:
 
 ```
 PointOfInterest.fetch(db, "SELECT ...")    // DatabaseSequence<PointOfInterest>
