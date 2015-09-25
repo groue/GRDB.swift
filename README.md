@@ -244,12 +244,14 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Arguments are optional arrays or dictionaries that fill the positional `?` and named parameters like `:name` in the query. GRDB.swift only supports colon-prefixed named parameters, even though SQLite supports [other syntaxes](https://www.sqlite.org/lang_expr.html#varparam).
+Arguments are optional arrays or dictionaries that fill the positional `?` and colon-prefixed keys like `:name` in the query:
 
 ```swift
 Row.fetch(db, "SELECT * FROM persons WHERE name = ?", arguments: ["Arthur"])
 Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "Arthur"])
 ```
+
+Do use those arguments: they prevent nasty users from injecting [nasty SQL snippets](https://en.wikipedia.org/wiki/SQL_injection) into your SQL queries.
 
 
 **Row sequences grant direct access to SQLite**, and are generally faster than row arrays. Yet:
@@ -325,7 +327,7 @@ for (columnName, databaseValue) in row {
 }
 ```
 
-Beware that rows, unlike dictionaries, may contain duplicate keys:
+Rows, unlike dictionaries, may contain duplicate keys:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS a, 2 AS a")!
