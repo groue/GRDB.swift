@@ -602,7 +602,6 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     //
     // Value types should consistently use the Swift nil to represent the
     // database NULL: the date property is a non-optional NSDate.
-    
     let date: NSDate
     
     // As a convenience, the NSDate initializer accepts an optional NSDate, and
