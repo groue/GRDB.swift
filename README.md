@@ -441,6 +441,8 @@ NSDate.fetchAll(db, "SELECT ...")    // [NSDate]
 NSDate.fetchOne(db, "SELECT ...")    // NSDate?
 ```
 
+See [Value Queries](#value-queries) for more detail on value fetching.
+
 Use NSDate in a Record (see [Fetching Records](#fetching-records) for more information):
 
 ```swift
@@ -494,6 +496,8 @@ DatabaseDateComponents.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseDa
 DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents]
 DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
 ```
+
+See [Value Queries](#value-queries) for more detail on value fetching.
 
 Use NSDateComponents in a Record (see [Fetching Records](#fetching-records) for more information):
 
@@ -565,6 +569,8 @@ Color.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Color>
 Color.fetchAll(db, "SELECT ...", arguments: ...) // [Color]
 Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 ```
+
+See [Value Queries](#value-queries) for more detail on value fetching.
 
 
 #### Custom Value Types
@@ -651,6 +657,8 @@ DatabaseTimestamp.fetchAll(db, "SELECT ...") // [DatabaseTimestamp]
 DatabaseTimestamp.fetchOne(db, "SELECT ...") // DatabaseTimestamp?
 ```
 
+See [Value Queries](#value-queries) for more detail on value fetching.
+
 
 ### Transactions
 
@@ -718,6 +726,8 @@ dbQueue.inDatabase { db in
     Person.fetchOne(statement, arguments: ...)        // Person?
 }
 ```
+
+See [Row Queries](#row-queries), [Value Queries](#value-queries), and [Fetching Records](#fetching-records) for more information.
 
 
 ### Error Handling
