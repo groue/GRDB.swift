@@ -652,29 +652,6 @@ DatabaseTimestamp.fetchOne(db, "SELECT ...") // DatabaseTimestamp?
 ```
 
 
-#### Value Extraction in Details
-
-SQLite has a funny way to manage values. It is "funny" because it is a rather long read: https://www.sqlite.org/datatype3.html.
-
-The interested reader should know that GRDB.swift *does not* use SQLite built-in casting features when extracting values. Instead, it performs its *own conversions*, based on the storage class of database values:
-
-| Storage class |  Bool   |  Int ³  |  Int32  |  Int64   | Double | String ³  | Blob |
-|:------------- |:-------:|:-------:|:--------:|:--------:|:------:|:---------:|:----:|
-| NULL          |    -    |    -    |    -    |    -     |   -    |     -     |  -   |
-| INTEGER       |  Bool ¹ |  Int ²  | Int32 ² |  Int64   | Double |     -     |  -   |
-| REAL          |  Bool ¹ |  Int ²  | Int32 ² | Int64 ²  | Double |     -     |  -   |
-| TEXT          |    -    |    -    |    -    |    -     |   -    |  String   |  -   |
-| BLOB          |    -    |    -    |    -    |    -     |   -    |     -     | Blob |
-
-¹ The only false numbers are 0 (integer) and 0.0 (real).
-
-² You will get a fatal error if the value is too big for Int, Int32 or Int64.
-
-³ Applies also to Int and String-based [enums](#swift-enums).
-
-Your [Custom Value Types](#custom-value-types) can perform their own conversions to and from SQLite storage classes.
-
-
 ### Transactions
 
 The `DatabaseQueue.inTransaction()` method opens a SQLite transaction:

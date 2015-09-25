@@ -4,7 +4,6 @@
 - [ ] Metal: review all fetch() and fetchAll() methods, and make sure they still work even when they use metal row. This include:
     - [ ] Write test for how a fetched sequence should behave. It should contains the expected values. It can be restarted. Some of those are already written.
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
-- [ ] Update or delete the "Value Extraction in Details" paragraph in README.md
 - [ ] Talk about SQLiteStatementConvertible. Maybe in a special "Performance" section.
 
 Not sure:
