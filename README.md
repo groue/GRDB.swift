@@ -701,7 +701,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Select statements can fetch rows, values, and [Records](#records).
+Select statements can fetch [rows](#row-queries), [values](#value-queries), and [Records](#records).
 
 ```swift
 dbQueue.inDatabase { db in
@@ -723,8 +723,6 @@ dbQueue.inDatabase { db in
     Person.fetchOne(statement, arguments: ...)        // Person?
 }
 ```
-
-See [Row Queries](#row-queries), [Value Queries](#value-queries), and [Fetching Records](#fetching-records) for more information.
 
 
 ### Error Handling
