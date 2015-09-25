@@ -309,7 +309,7 @@ The `row.value(named:)` and `row.value(atIndex:)` methods above require that you
 When you process an unknown row, you will prefer thinking of it as a dictionary of `DatabaseValue`, an intermediate type between SQLite and your values:
 
 ```swift
-// Test if the column `name` is present:
+// Test if the column `date` is present:
 if let databaseValue = row["date"] {
     // Extract the desired Swift type from the database value:
     let dateString: String = databaseValue.value()    // "2015-09-11 18:14:15.123"
