@@ -83,15 +83,15 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
-                var names1: [String?] = Row.fetch(statement).map { $0.value(named: "name") as String? }
-                var names2: [String?] = Row.fetch(statement).map { $0.value(named: "name") as String? }
+                var names1 = Row.fetch(statement).map { $0.value(named: "name") as String }
+                var names2 = Row.fetch(statement).map { $0.value(named: "name") as String }
                 
-                XCTAssertEqual(names1[0]!, "Arthur")
-                XCTAssertEqual(names1[1]!, "Barbara")
-                XCTAssertEqual(names1[2]!, "Craig")
-                XCTAssertEqual(names2[0]!, "Arthur")
-                XCTAssertEqual(names2[1]!, "Barbara")
-                XCTAssertEqual(names2[2]!, "Craig")
+                XCTAssertEqual(names1[0], "Arthur")
+                XCTAssertEqual(names1[1], "Barbara")
+                XCTAssertEqual(names1[2], "Craig")
+                XCTAssertEqual(names2[0], "Arthur")
+                XCTAssertEqual(names2[1], "Barbara")
+                XCTAssertEqual(names2[2], "Craig")
             }
         }
     }
@@ -101,15 +101,15 @@ class SelectStatementTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
                 let rows = Row.fetch(statement)
-                var names1: [String?] = rows.map { $0.value(named: "name") as String? }
-                var names2: [String?] = rows.map { $0.value(named: "name") as String? }
+                var names1 = rows.map { $0.value(named: "name") as String }
+                var names2 = rows.map { $0.value(named: "name") as String }
                 
-                XCTAssertEqual(names1[0]!, "Arthur")
-                XCTAssertEqual(names1[1]!, "Barbara")
-                XCTAssertEqual(names1[2]!, "Craig")
-                XCTAssertEqual(names2[0]!, "Arthur")
-                XCTAssertEqual(names2[1]!, "Barbara")
-                XCTAssertEqual(names2[2]!, "Craig")
+                XCTAssertEqual(names1[0], "Arthur")
+                XCTAssertEqual(names1[1], "Barbara")
+                XCTAssertEqual(names1[2], "Craig")
+                XCTAssertEqual(names2[0], "Arthur")
+                XCTAssertEqual(names2[1], "Barbara")
+                XCTAssertEqual(names2[2], "Craig")
             }
         }
     }
@@ -118,15 +118,15 @@ class SelectStatementTests : GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
-                var names1: [String?] = Array(String.fetch(statement))
-                var names2: [String?] = Array(String.fetch(statement))
+                var names1 = Array(String.fetch(statement))
+                var names2 = Array(String.fetch(statement))
                 
-                XCTAssertEqual(names1[0]!, "Arthur")
-                XCTAssertEqual(names1[1]!, "Barbara")
-                XCTAssertEqual(names1[2]!, "Craig")
-                XCTAssertEqual(names2[0]!, "Arthur")
-                XCTAssertEqual(names2[1]!, "Barbara")
-                XCTAssertEqual(names2[2]!, "Craig")
+                XCTAssertEqual(names1[0], "Arthur")
+                XCTAssertEqual(names1[1], "Barbara")
+                XCTAssertEqual(names1[2], "Craig")
+                XCTAssertEqual(names2[0], "Arthur")
+                XCTAssertEqual(names2[1], "Barbara")
+                XCTAssertEqual(names2[2], "Craig")
             }
         }
     }
@@ -136,15 +136,15 @@ class SelectStatementTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
                 let nameSequence = String.fetch(statement)
-                var names1: [String?] = Array(nameSequence)
-                var names2: [String?] = Array(nameSequence)
+                var names1 = Array(nameSequence)
+                var names2 = Array(nameSequence)
                 
-                XCTAssertEqual(names1[0]!, "Arthur")
-                XCTAssertEqual(names1[1]!, "Barbara")
-                XCTAssertEqual(names1[2]!, "Craig")
-                XCTAssertEqual(names2[0]!, "Arthur")
-                XCTAssertEqual(names2[1]!, "Barbara")
-                XCTAssertEqual(names2[2]!, "Craig")
+                XCTAssertEqual(names1[0], "Arthur")
+                XCTAssertEqual(names1[1], "Barbara")
+                XCTAssertEqual(names1[2], "Craig")
+                XCTAssertEqual(names2[0], "Arthur")
+                XCTAssertEqual(names2[1], "Barbara")
+                XCTAssertEqual(names2[2], "Craig")
             }
         }
     }

@@ -358,7 +358,7 @@ class NSDateComponentsTests : GRDBTestCase {
                         arguments: [3, DatabaseDateComponents(dateComponents, format: .YMD_HMS)])
                 }
                 
-                let ids = Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate").map { $0! }
+                let ids = Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate")
                 XCTAssertEqual(ids, [1,2,3])
             }
         }

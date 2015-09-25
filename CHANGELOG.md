@@ -7,6 +7,10 @@ Release Notes
 
 - It is now a programming error to miss arguments to a SQL statement.
 
+**Breaking Changes**
+
+- `String.fetch...` now returns non NULL values. Use `Optional<String>.fetch...` when values may be NULL.
+
 
 ## 0.17.0
 

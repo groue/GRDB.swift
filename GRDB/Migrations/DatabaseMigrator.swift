@@ -102,7 +102,7 @@ public struct DatabaseMigrator {
     
     private func runMigrations(dbQueue: DatabaseQueue) throws {
         let appliedMigrationIdentifiers = dbQueue.inDatabase { db in
-            String.fetch(db, "SELECT identifier FROM grdb_migrations").map { $0! }
+            String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
         }
     
         for (position, migration) in self.migrations.enumerate() {

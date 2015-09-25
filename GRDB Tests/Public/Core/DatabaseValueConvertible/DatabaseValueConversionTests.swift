@@ -28,7 +28,7 @@ extension DatabaseValue {
     }
 }
 
-class DatabaseValueConvertibleTests : GRDBTestCase {
+class DatabaseValueConversionTests : GRDBTestCase {
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     

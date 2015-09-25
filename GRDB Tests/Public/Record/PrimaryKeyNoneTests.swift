@@ -57,7 +57,7 @@ class PrimaryKeyNoneTests: GRDBTestCase {
                 try record.insert(db)
                 try record.insert(db)
                 
-                let names = String.fetchAll(db, "SELECT name FROM items").map { $0! }
+                let names = String.fetchAll(db, "SELECT name FROM items")
                 XCTAssertEqual(names, ["Table", "Table"])
             }
         }
@@ -73,7 +73,7 @@ class PrimaryKeyNoneTests: GRDBTestCase {
                 try record.save(db)
                 try record.save(db)
                 
-                let names = String.fetchAll(db, "SELECT name FROM items").map { $0! }
+                let names = String.fetchAll(db, "SELECT name FROM items")
                 XCTAssertEqual(names, ["Table", "Table"])
             }
         }

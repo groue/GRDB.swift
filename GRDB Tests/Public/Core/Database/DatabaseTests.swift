@@ -347,7 +347,7 @@ class DatabaseTests : GRDBTestCase {
             // Extracting values out of a database block:
             
             let names = dbQueue.inDatabase { db in
-                String.fetch(db, "SELECT name FROM persons ORDER BY name").map { $0! }
+                String.fetchAll(db, "SELECT name FROM persons ORDER BY name")
             }
             XCTAssertEqual(names, ["Arthur", "Barbara"])
         }

@@ -53,7 +53,7 @@ class RawRepresentableTests: GRDBTestCase {
                 }
                 
                 do {
-                    let colors = Color.fetchAll(db, "SELECT color FROM wines ORDER BY color")
+                    let colors = Optional<Color>.fetchAll(db, "SELECT color FROM wines ORDER BY color")
                     XCTAssertTrue(colors[0] == nil)
                     XCTAssertEqual(colors[1]!, Color.Red)
                     XCTAssertEqual(colors[2]!, Color.White)
@@ -89,7 +89,7 @@ class RawRepresentableTests: GRDBTestCase {
                 }
                 
                 do {
-                    let grapes = Grape.fetchAll(db, "SELECT grape FROM wines ORDER BY grape")
+                    let grapes = Optional<Grape>.fetchAll(db, "SELECT grape FROM wines ORDER BY grape")
                     XCTAssertTrue(grapes[0] == nil)
                     XCTAssertEqual(grapes[1]!, Grape.Chardonnay)
                     XCTAssertEqual(grapes[2]!, Grape.Merlot)

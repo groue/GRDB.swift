@@ -209,19 +209,19 @@ You can fetch **Rows**, **Values**, and **Records**:
 
 ```swift
 dbQueue.inDatabase { db in
-    Row.fetch(db, "SELECT ...", arguments: ...)       // DatabaseSequence<Row>
-    Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
-    Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
-
-    String.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<String?>
-    String.fetchAll(db, "SELECT ...", arguments: ...) // [String?]
-    String.fetchOne(db, "SELECT ...", arguments: ...) // String?
-
-    Person.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Person>
-    Person.fetchAll(db, "SELECT ...", arguments: ...) // [Person]
-    Person.fetchOne(db, "SELECT ...", arguments: ...) // Person?
-    Person.fetchOne(db, primaryKey: 12)               // Person?
-    Person.fetchOne(db, key: ["name": "Arthur"])      // Person?
+    Row.fetch(db, "SELECT ...", ...)                 // DatabaseSequence<Row>
+    Row.fetchAll(db, "SELECT ...", ...)              // [Row]
+    Row.fetchOne(db, "SELECT ...", ...)              // Row?
+    
+    String.fetch(db, "SELECT ...", ...)              // DatabaseSequence<String>
+    String.fetchAll(db, "SELECT ...", ...)           // [String]
+    String.fetchOne(db, "SELECT ...", ...)           // String?
+    
+    Person.fetch(db, "SELECT ...", ...)              // DatabaseSequence<Person>
+    Person.fetchAll(db, "SELECT ...", ...)           // [Person]
+    Person.fetchOne(db, "SELECT ...", ...)           // Person?
+    Person.fetchOne(db, primaryKey: 12)              // Person?
+    Person.fetchOne(db, key: ["name": "Arthur"])     // Person?
 }
 ```
 
@@ -344,9 +344,16 @@ Like rows, values can be fetched as **sequences**, **arrays**, or **single** val
 
 ```swift
 dbQueue.inDatabase { db in
-    Int.fetch(db, "SELECT ...", arguments: ...)      // DatabaseSequence<Int?>
-    Int.fetchAll(db, "SELECT ...", arguments: ...)   // [Int?]
-    Int.fetchOne(db, "SELECT ...", arguments: ...)   // Int?
+    // Non-optional values (must be non NULL):
+    Int.fetch(db, "SELECT ...", arguments: ...)              // DatabaseSequence<Int>
+    Int.fetchAll(db, "SELECT ...", arguments: ...)           // [Int]
+    
+    // Optional values
+    Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
+    Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
+    
+    // Single value
+    Int.fetchOne(db, "SELECT ...", arguments: ...)           // Int?
 }
 ```
 
@@ -354,19 +361,10 @@ Sequences can not be consumed outside of a database queue, but arrays are OK:
 
 ```swift
 let names = dbQueue.inDatabase { db in
-    return String.fetchAll(db, "SELECT name ...")             // [String?]
-    return String.fetch(db, "SELECT name ...").filter { ... } // [String?]
+    return String.fetchAll(db, "SELECT name ...")             // [String]
+    return String.fetch(db, "SELECT name ...").filter { ... } // [String]
 }
 for name in names { ... } // OK
-```
-
-Sequences and arrays contain optional values. When you are sure that all results are not NULL, unwrap the optionals with the bang `!` operator:
-
-```swift
-// names is [String]
-let names = dbQueue.inDatabase { db in
-    String.fetchAll(db, "SELECT name FROM persons").map { $0! }
-}
 ```
 
 The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value. If this ambiguity does not fit your need, use `Row.fetchOne(_:sql:arguments:)`.
@@ -438,8 +436,8 @@ Extract NSDate from the database:
 let row = Row.fetchOne(db, "SELECT birthDate, ...")!
 let date = row.value(named: "birthDate") as NSDate?
 
-NSDate.fetch(db, "SELECT ...")       // DatabaseSequence<NSDate?>
-NSDate.fetchAll(db, "SELECT ...")    // [NSDate?]
+NSDate.fetch(db, "SELECT ...")       // DatabaseSequence<NSDate>
+NSDate.fetchAll(db, "SELECT ...")    // [NSDate]
 NSDate.fetchOne(db, "SELECT ...")    // NSDate?
 ```
 
@@ -492,8 +490,8 @@ let dbComponents = row.value(named: "birthDate")! as DatabaseDateComponents
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
 
-DatabaseDateComponents.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseDateComponents?>
-DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents?]
+DatabaseDateComponents.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseDateComponents>
+DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents]
 DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
 ```
 
@@ -563,8 +561,8 @@ for rows in Row.fetch(db, "SELECT * FROM wines") {
 }
 
 // Direct fetch:
-Color.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Color?>
-Color.fetchAll(db, "SELECT ...", arguments: ...) // [Color?]
+Color.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Color>
+Color.fetchAll(db, "SELECT ...", arguments: ...) // [Color]
 Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 ```
 
@@ -648,8 +646,8 @@ for rows in Row.fetch(db, "SELECT ...") {
 }
 
 // Direct fetch:
-DatabaseTimestamp.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseTimestamp?>
-DatabaseTimestamp.fetchAll(db, "SELECT ...") // [DatabaseTimestamp?]
+DatabaseTimestamp.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseTimestamp>
+DatabaseTimestamp.fetchAll(db, "SELECT ...") // [DatabaseTimestamp]
 DatabaseTimestamp.fetchOne(db, "SELECT ...") // DatabaseTimestamp?
 ```
 
@@ -728,17 +726,19 @@ dbQueue.inDatabase { db in
     
     let statement = db.selectStatement("SELECT ...")
     
-    Row.fetch(statement, arguments: ...)        // DatabaseSequence<Row>
-    Row.fetchAll(statement, arguments: ...)     // [Row]
-    Row.fetchOne(statement, arguments: ...)     // Row?
+    Row.fetch(statement, arguments: ...)              // DatabaseSequence<Row>
+    Row.fetchAll(statement, arguments: ...)           // [Row]
+    Row.fetchOne(statement, arguments: ...)           // Row?
     
-    Int.fetch(statement, arguments: ...)        // DatabaseSequence<Int?>
-    Int.fetchAll(statement, arguments: ...)     // [Int?]
-    Int.fetchOne(statement, arguments: ...)     // Int?
+    Int.fetch(statement, arguments: ...)              // DatabaseSequence<Int>
+    Int.fetchAll(statement, arguments: ...)           // [Int]
+    Int.fetchOne(statement, arguments: ...)           // Int?
+    Optional<Int>.fetch(statement, arguments: ...)    // DatabaseSequence<Int?>
+    Optional<Int>.fetchAll(statement, arguments: ...) // [Int?]
     
-    Person.fetch(statement, arguments: ...)     // DatabaseSequence<Person>
-    Person.fetchAll(statement, arguments: ...)  // [Person]
-    Person.fetchOne(statement, arguments: ...)  // Person?
+    Person.fetch(statement, arguments: ...)           // DatabaseSequence<Person>
+    Person.fetchAll(statement, arguments: ...)        // [Person]
+    Person.fetchOne(statement, arguments: ...)        // Person?
 }
 ```
 

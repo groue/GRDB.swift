@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class SQLiteStatementConvertibleTests : GRDBTestCase {
+class SQLiteStatementConversionTests : GRDBTestCase {
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     
@@ -42,14 +42,14 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Text storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "0")
                     XCTAssertEqual((row.value(atIndex: 0) as String), "0")
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -61,14 +61,14 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Text storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "0")
                     XCTAssertEqual((row.value(atIndex: 0) as String), "0")
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -80,14 +80,14 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Text storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "0")
                     XCTAssertEqual((row.value(atIndex: 0) as String), "0")
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -99,14 +99,14 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Text storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "0.0")
                     XCTAssertEqual((row.value(atIndex: 0) as String), "0.0")
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -118,14 +118,14 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Text storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "3.0e+5")
                     XCTAssertEqual((row.value(atIndex: 0) as String), "3.0e+5")
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -137,14 +137,14 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Text storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "foo")
                     XCTAssertEqual((row.value(atIndex: 0) as String), "foo")
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -156,12 +156,12 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Blob storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as Blob?), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
                 }
                 return .Rollback
@@ -235,8 +235,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -258,8 +258,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -281,8 +281,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -304,8 +304,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(300000))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, Double(300000))
                     XCTAssertEqual((row.value(atIndex: 0) as Double), Double(300000))
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -321,8 +321,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool), true)
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 1e20)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 1e20)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -344,8 +344,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(300000))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, Double(300000))
                     XCTAssertEqual((row.value(atIndex: 0) as Double), Double(300000))
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -361,8 +361,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool), true)
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 1e20)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 1e20)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -374,14 +374,14 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Text storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "foo")
                     XCTAssertEqual((row.value(atIndex: 0) as String), "foo")
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -393,12 +393,12 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Blob storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as Blob?), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
                 }
                 return .Rollback
@@ -432,8 +432,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -455,8 +455,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -478,8 +478,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -501,8 +501,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -514,14 +514,14 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Text storage
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "3.0e+5")
                     XCTAssertEqual((row.value(atIndex: 0) as String), "3.0e+5")
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -533,12 +533,12 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
                     
                     // Check SQLite conversions from Blob storage
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as Blob?), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
                 }
                 return .Rollback
@@ -586,8 +586,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -609,8 +609,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -632,8 +632,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(0))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 0.0)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -655,8 +655,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(300000))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, Double(300000))
                     XCTAssertEqual((row.value(atIndex: 0) as Double), Double(300000))
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -672,8 +672,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool), true)
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 1e20)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 1e20)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -695,8 +695,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Int64), Int64(300000))
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, Double(300000))
                     XCTAssertEqual((row.value(atIndex: 0) as Double), Double(300000))
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -712,8 +712,8 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool), true)
                     XCTAssertEqual((row.value(atIndex: 0) as Double?)!, 1e20)
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 1e20)
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -725,14 +725,14 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
                     
                     // Check SQLite conversions from Text storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "foo")
                     XCTAssertEqual((row.value(atIndex: 0) as String), "foo")
-                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Blob?) == nil)      // incompatible with DatabaseValue conversion
                 }
                 return .Rollback
             }
@@ -744,12 +744,12 @@ class SQLiteStatementConvertibleTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
                     
                     // Check SQLite conversions from Blob storage:
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with GRDB conversion
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with GRDB conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
                     XCTAssertEqual((row.value(atIndex: 0) as Blob?), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
                 }
                 return .Rollback

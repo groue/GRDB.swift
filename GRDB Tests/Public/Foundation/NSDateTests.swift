@@ -68,7 +68,7 @@ class NSDateTests : GRDBTestCase {
                     "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                     arguments: [3, NSDate().dateByAddingTimeInterval(1)])
                 
-                let ids = Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate").map { $0! }
+                let ids = Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate")
                 XCTAssertEqual(ids, [1,2,3])
             }
         }

@@ -5,6 +5,9 @@
 import XCTest
 import GRDB
 
+
+// MARK: - Support
+
 class RecordWithoutDatabaseTableName: Record { }
 
 class RecordWithInexistingDatabaseTable: Record {
@@ -58,6 +61,25 @@ class RecordWithRowIDPrimaryKeyNotExposedInStoredDatabaseDictionary : Record {
         return ["name": "foo"]
     }
 }
+
+// A type that adopts DatabaseValueConvertible but does not adopt SQLiteStatementConvertible
+struct IntConvertible: DatabaseValueConvertible {
+    let int: Int
+    init(int: Int) {
+        self.int = int
+    }
+    var databaseValue: DatabaseValue {
+        return DatabaseValue(int64: Int64(int))
+    }
+    static func fromDatabaseValue(databaseValue: DatabaseValue) -> IntConvertible? {
+        guard let int = Int.fromDatabaseValue(databaseValue) else {
+            return nil
+        }
+        return IntConvertible(int: int)
+    }
+}
+
+// MARK: - CrashTests
 
 class CrashTests: GRDBTestCase {
     
@@ -125,7 +147,7 @@ class CrashTests: GRDBTestCase {
                 try db.execute("CREATE TABLE persons (name TEXT)")
                 rows = Row.fetch(db, "SELECT * FROM persons")
             }
-            rows!.generate()
+            let _ = rows!.generate()
         }
     }
     
@@ -472,7 +494,7 @@ class CrashTests: GRDBTestCase {
     
     
     // =========================================================================
-    // MARK: Concurrency
+    // MARK: - Concurrency
     
     func testReaderCrashDuringExclusiveTransaction() {
         assertCrash("SQLite error 5 with statement `SELECT * FROM stuffs`: database is locked") {
@@ -512,5 +534,116 @@ class CrashTests: GRDBTestCase {
         }
     }
     
+    
+    // =========================================================================
+    // MARK: - DatabaseValueConvertible
+    
+    func testCrashFetchDatabaseValueConvertibleFromStatement() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let sequence = IntConvertible.fetch(statement)
+                for _ in sequence { }
+            }
+        }
+    }
+    
+    func testCrashFetchAllDatabaseValueConvertibleFromStatement() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let _ = IntConvertible.fetchAll(statement)
+            }
+        }
+    }
+    
+    func testCrashFetchDatabaseValueConvertibleFromDatabase() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let sequence = IntConvertible.fetch(db, "SELECT int FROM ints ORDER BY int")
+                for _ in sequence { }
+            }
+        }
+    }
+    
+    func testCrashFetchAllDatabaseValueConvertibleFromDatabase() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let _ = IntConvertible.fetchAll(db, "SELECT int FROM ints ORDER BY int")
+            }
+        }
+    }
+    
+    
+    // =========================================================================
+    // MARK: - SQLiteStatementConvertible
+    
+    func testCrashFetchSQLiteStatementConvertibleFromStatement() {
+        assertCrash("Found NULL") {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let sequence = Int.fetch(statement)
+                for _ in sequence { }
+            }
+        }
+    }
+    
+    func testCrashFetchAllSQLiteStatementConvertibleFromStatement() {
+        assertCrash("Found NULL") {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let _ = Int.fetchAll(statement)
+            }
+        }
+    }
+    
+    func testCrashFetchSQLiteStatementConvertibleFromDatabase() {
+        assertCrash("Found NULL") {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let sequence = Int.fetch(db, "SELECT int FROM ints ORDER BY int")
+                for _ in sequence { }
+            }
+        }
+    }
+    
+    func testCrashFetchAllSQLiteStatementConvertibleFromDatabase() {
+        assertCrash("Found NULL") {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (int Int)")
+                try db.execute("INSERT INTO ints (int) VALUES (1)")
+                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                
+                let _ = Int.fetchAll(db, "SELECT int FROM ints ORDER BY int")
+            }
+        }
+    }
 
 }
