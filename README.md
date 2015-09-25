@@ -264,9 +264,9 @@ Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "A
     for row in rows { ... } // OK
     ```
 
-- Fetched rows are reused during the sequence iteration: don't wrap a row sequence in an array with `Array(rows)` or `rows.filter { ... }` since you would not get the distinct rows you expect. Use `Row.fetchAll(...)` instead.
+- Don't wrap a row sequence in an array with `Array(rows)` or `rows.filter { ... }`: you would not get the distinct rows you expect. Use `Row.fetchAll(...)` instead.
 
-- For the same reason, make sure you make a copy whenever you extract a row for later use: `row.copy()`.
+- Make sure you make a copy whenever you extract a row from the sequence for later use: `row.copy()`.
 
 
 **Read row values** by index or column name:
@@ -986,7 +986,7 @@ let persons = dbQueue.inDatabase { db in
 for person in persons { ... } // OK
 ```
 
-For performance reasons, the row argument to `updateFromRow(_)` may be reused between several Person records during the iteration of a fetch query. So if you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. So if you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 
 #### Ad Hoc Subclasses
