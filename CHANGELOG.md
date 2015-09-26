@@ -9,7 +9,9 @@ Release Notes
 
 **New**
 
-- Introduce `Row.dataNoCopy(atIndex:)` and `Row.dataNoCopy(named:)`.
+- `Row.dataNoCopy(atIndex:)` and `Row.dataNoCopy(named:)`.
+- `Blob.dataNoCopy`
+- `DatabaseValue.dataNoCopy`
 
 **Breaking Changes**
 

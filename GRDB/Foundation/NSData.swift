@@ -73,7 +73,7 @@ extension Blob {
 extension Row {
     
     /**
-    Returns the NSData stored at index *index*.
+    Returns the optional NSData stored at index *index*.
     
     The returned data does not owns its bytes, and must not be used longer than
     the row's lifetime.
@@ -86,7 +86,7 @@ extension Row {
     }
     
     /**
-    Returns the NSData stored at column *name*.
+    Returns the optional NSData stored at column *name*.
     
     The returned data does not owns its bytes, and must not be used longer than
     the row's lifetime.
@@ -96,5 +96,23 @@ extension Row {
     */
     public func dataNoCopy(named name:String) -> NSData? {
         return (value(named: name) as Blob?)?.dataNoCopy
+    }
+}
+
+
+/// DatabaseValue support for NSData
+extension DatabaseValue {
+    
+    /**
+    Returns an optional NSData.
+    
+    The returned data does not owns its bytes, and must not be used longer than
+    the original row's lifetime.
+    
+    To get a long-lived NSData, use the regular value extraction method:
+    `databaseValue.value() as NSData?`.
+    */
+    public var dataNoCopy: NSData? {
+        return (value() as Blob?)?.dataNoCopy
     }
 }
