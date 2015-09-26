@@ -412,7 +412,7 @@ Custom value types are supported as well through the [DatabaseValueConvertible](
 
 #### NSData and Memory Savings
 
-**NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other types.
+**NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other value types.
 
 When extracting NSData from a row, you have two options:
 
