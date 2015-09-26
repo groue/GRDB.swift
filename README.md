@@ -414,16 +414,16 @@ Custom value types are supported as well through the [DatabaseValueConvertible](
 
 **NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other value types.
 
-When extracting NSData from a row, you have two options:
+Yet, when extracting NSData from a row, you have an extra option:
 
 ```swift
-let copiedData: NSData?    = row.value(named: "data")
-let notCopiedData: NSData? = row.dataNoCopy(named: "data")
+let copiedData: NSData?    = row.value(named: "data")       // Like other value types
+let notCopiedData: NSData? = row.dataNoCopy(named: "data")  // Specific to NSData
 ```
 
 Make sure that you do not use the non-copied data longer than the row's lifetime.
 
-Unless you want to save data for later use, the most memory-efficient way to consume database blobs is the following:
+Unless you want to save data for later use, **the most memory-efficient way** to consume database blobs is the following:
 
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
@@ -431,7 +431,7 @@ for row in Row.fetch(db, "SELECT data, ...") {
 }
 ```
 
-Compare with the anti-patterns below:
+Compare with the **anti-patterns** below:
 
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
