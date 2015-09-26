@@ -414,11 +414,16 @@ Custom value types are supported as well through the [DatabaseValueConvertible](
 
 **NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other value types.
 
-Yet, when extracting NSData from a row, you have an extra option:
+Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the database data**:
 
 ```swift
-let copiedData: NSData?    = row.value(named: "data")       // Like other value types
-let notCopiedData: NSData? = row.dataNoCopy(named: "data")  // Specific to NSData
+// When the "data" column is know to be there:
+let notCopiedData: NSData? = row.dataNoCopy(named: "data")
+
+// Test if the column `data` is present:
+if let databaseValue = row["data"] {
+    let notCopiedData: NSData? = databaseValue.dataNoCopy
+}
 ```
 
 Make sure that you do not use the non-copied data longer than the row's lifetime.
