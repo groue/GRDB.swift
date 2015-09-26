@@ -185,6 +185,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     
     - returns: A copy of self.
     */
+    @warn_unused_result
     public func copy() -> Self {
         let copy = self.dynamicType.init(row: Row(dictionary: self.storedDatabaseDictionary))
         copy.referenceRow = self.referenceRow
