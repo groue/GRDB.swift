@@ -344,9 +344,9 @@ for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
 You may use the `RowConvertible` protocol, which **grants fetching methods to any type** that can be initialized from a database row:
 
 ```swift
-struct PointOfInterest : RowConvertible {
+final class PointOfInterest : NSObject, MKAnnotation, RowConvertible {
     var coordinate: CLLocationCoordinate2D
-    var title: String
+    var title: String?
     
     init(row: Row) {
         self.coordinate = CLLocationCoordinate2DMake(
