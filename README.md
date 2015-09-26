@@ -414,7 +414,7 @@ Custom value types are supported as well through the [DatabaseValueConvertible](
 
 **NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other value types.
 
-Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the database data**:
+Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**:
 
 ```swift
 // When the "data" column is know to be there:
