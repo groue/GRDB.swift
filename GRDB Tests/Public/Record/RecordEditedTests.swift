@@ -462,7 +462,7 @@ class RecordEditedTests: GRDBTestCase {
                 XCTAssertEqual(person.copy().databaseChanges.count, 0)
                 
                 person.name = "Barbara"
-                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actal changes
+                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
                 XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
                 
                 person.databaseEdited = false
@@ -470,7 +470,7 @@ class RecordEditedTests: GRDBTestCase {
                 XCTAssertEqual(person.copy().databaseChanges.count, 0)
                 
                 person.databaseEdited = true
-                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actal changes
+                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
                 XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
             }
         }
