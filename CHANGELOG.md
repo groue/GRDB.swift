@@ -17,7 +17,7 @@ Released September 26, 2015
 
 **Breaking Changes**
 
-- `String.fetch...` now returns non NULL values. Use `Optional<String>.fetch...` when values may be NULL.
+- `String.fetch...` now returns non-optional values. Use `Optional<String>.fetch...` when values may be NULL.
 
 
 ## 0.17.0
