@@ -120,6 +120,9 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 - [SQLite Database](#sqlite-database)
     - [Fetch Queries](#fetch-queries)
         - [Row Queries](#row-queries)
+            - [Column Values](#column-values)
+            - [Rows as Dictionaries](#rows-as-dictionaries)
+            - [RowConvertible](#rowconvertible)
         - [Value Queries](#value-queries)
     - [Values](#values)
         - [NSData](#nsdata-and-memory-savings)
@@ -271,7 +274,9 @@ Do use those arguments: they prevent nasty users from injecting [nasty SQL snipp
 - Make sure you make a copy whenever you extract a row from the sequence for later use: `row.copy()`.
 
 
-**Read row values** by index or column name:
+##### Column Values
+
+**Read column values** by index or column name:
 
 ```swift
 let name: String = row.value(atIndex: 0)
