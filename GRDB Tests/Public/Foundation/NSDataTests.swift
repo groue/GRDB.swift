@@ -32,8 +32,8 @@ class NSDataTests: GRDBTestCase {
                     XCTAssertEqual(copiedData2, data)
                     XCTAssertNotEqual(copiedData2.bytes, blob.bytes)
                     
-                    // This data does not hold any copy, but the code is ugly (TODO).
-                    let nonCopiedData = NSData(bytesNoCopy: UnsafeMutablePointer(blob.bytes), length: blob.length, freeWhenDone: false)
+                    // This data does not hold any copy:
+                    let nonCopiedData = row.dataNoCopy(atIndex: 0)
                     XCTAssertEqual(nonCopiedData, data)
                 }
             }

@@ -122,6 +122,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
         - [Row Queries](#row-queries)
         - [Value Queries](#value-queries)
     - [Values](#values)
+        - [NSData](#nsdata-and-memory-savings)
         - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
         - [Swift enums](#swift-enums)
         - [Custom Value Types](#custom-value-types)
@@ -404,9 +405,50 @@ The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil i
 
 ### Values
 
-The library ships with built-in support for `Bool`, `Int`, `Int32`, `Int64`, `Double`, `String`, `NSData`, [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), and [Swift enums](#swift-enums).
+The library ships with built-in support for Bool, Int, Int32, Int64, Double, String, [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), and [Swift enums](#swift-enums).
 
 Custom value types are supported as well through the [DatabaseValueConvertible](#custom-value-types) protocol.
+
+
+#### NSData and Memory Savings
+
+**NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other types.
+
+When extracting NSData from a row, you have two options:
+
+```swift
+let copiedData: NSData?    = row.value(named: "data")
+let notCopiedData: NSData? = row.dataNoCopy(named: "data")
+```
+
+Make sure that you do not use the non-copied data longer than the row's lifetime.
+
+Unless you want to save data for later use, the most memory-efficient way to consume database blobs is the following:
+
+```swift
+for row in Row.fetch(db, "SELECT data, ...") {
+    let data = row.dataNoCopy(named: "data")!
+}
+```
+
+Compare with the anti-patterns below:
+
+```swift
+for row in Row.fetch(db, "SELECT data, ...") {
+    // Data is copied, row after row:
+    let data = row.value(named: "data") as NSData
+}
+
+// The fetchAll() method returns an Array: all rows have been copied in memory
+// when the loop begins:
+for row in Row.fetchAll(db, "SELECT data, ...") {
+    // Too late to do the right thing:
+    let data = row.dataNoCopy(named: "data")!
+    
+    // This data has been copied twice:
+    let data = row.value(named: "data") as NSData
+}
+```
 
 
 #### NSDate and NSDateComponents

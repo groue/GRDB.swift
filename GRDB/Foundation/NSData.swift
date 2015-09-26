@@ -49,10 +49,52 @@ extension Blob {
     /**
     Returns an NSData.
     
-    The data is *copied*. See NSData(bytesNoCopy:length:freeWhenDone:) for more
-    precise memory management.
+    The data is *copied*. See also the dataNoCopy property.
     */
     public var data: NSData {
         return NSData(bytes: bytes, length: length)
+    }
+    
+    /**
+    Returns an NSData.
+    
+    The returned data does not owns its bytes, and must not be used longer than
+    the blob's lifetime.
+    
+    To get a long-lived NSData, see the data property.
+    */
+    public var dataNoCopy: NSData {
+        return NSData(bytesNoCopy: UnsafeMutablePointer(bytes), length: length, freeWhenDone: false)
+    }
+}
+
+
+/// Row support for NSData
+extension Row {
+    
+    /**
+    Returns the NSData stored at index *index*.
+    
+    The returned data does not owns its bytes, and must not be used longer than
+    the row's lifetime.
+    
+    - parameter index: The index of a column.
+    - returns: An optional NSData.
+    */
+    public func dataNoCopy(atIndex index:Int) -> NSData? {
+        return (value(atIndex: index) as Blob?)?.dataNoCopy
+    }
+    
+    /**
+    Returns the NSData stored at column *name*.
+    
+    The returned data does not owns its bytes, and must not be used longer than
+    the row's lifetime.
+    
+    - parameter name: A column name.
+    - returns: An NSData.
+    */
+    public func dataNoCopy(named name:String) -> NSData? {
+        return (value(named: name) as Blob?)?.dataNoCopy
     }
 }
