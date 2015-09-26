@@ -7,7 +7,7 @@ Released September 26, 2015
 
 **Fixed**
 
-- It is now a programming error to miss arguments to a SQL statement.
+- It is now mandatory to provide values for all arguments of an SQL statement. GRDB used to assume NULL for missing ones.
 
 **New**
 
