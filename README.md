@@ -23,7 +23,8 @@ Features
 - **No smart query builder**. Your SQL skills are welcome here.
 - **A Record class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
 - **Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
-- **Database Migrations**
+- **Database migrations**
+- **Database changes observation hooks**
 
 
 Usage
