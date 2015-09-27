@@ -944,7 +944,7 @@ public protocol DatabaseTransactionDelegate: class {
 
 Those four callbacks are all optional, and all invoked on the database queue.
 
-Change notified to `database(_:didChangeWithEvent:)` are triggered by `INSERT`, `UPDATE` and `DELETE` statements, and also by `ON DELETE` and `ON UPDATE` actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+Changes notified to `database(_:didChangeWithEvent:)` are triggered by `INSERT`, `UPDATE` and `DELETE` statements, and also by `ON DELETE` and `ON UPDATE` actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
 Those changes are not actually applied until `databaseDidCommit(_)` is called. On the other side, `databaseDidRollback(_)` confirms their invalidation:
 
