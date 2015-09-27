@@ -1,7 +1,6 @@
 - [ ] #2: this commit may be how stephencelis fixed it: https://github.com/stephencelis/SQLite.swift/commit/8f64e357c3a6668c5f011c91ba33be3e8d4b88d0
 - [ ] Use @warn_unused_result where applicable
 - [ ] Metal: How does the code look like when one iterates metal row and extracts NSData without copy?
-- [ ] What tests break if we remove the Row.value(...) -> DatabaseConvertible? and DatabaseValue.value(...) -> DatabaseConvertible? methods?
 
 
 Not sure:
