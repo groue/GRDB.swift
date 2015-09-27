@@ -122,9 +122,6 @@ SQLite API:
 - [SQLite Database](#sqlite-database)
 - [Fetch Queries](#fetch-queries)
     - [Row Queries](#row-queries)
-        - [Column Values](#column-values)
-        - [Rows as Dictionaries](#rows-as-dictionaries)
-        - [RowConvertible](#rowconvertible)
     - [Value Queries](#value-queries)
 - [Values](#values)
     - [NSData](#nsdata-and-memory-savings)
@@ -143,10 +140,9 @@ Application tools:
 - [Records](#records)
     - [Core Methods](#core-methods)
     - [Fetching Records](#fetching-records)
-        - [Ad Hoc Subclasses](#ad-hoc-subclasses)
     - [Tables and Primary Keys](#tables-and-primary-keys)
-        - [Insert, Update and Delete](#insert-update-and-delete)
-        - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+    - [Insert, Update and Delete](#insert-update-and-delete)
+    - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
     - [Record Errors](#record-errors)
     - [Advice](#advice)
 
@@ -1044,8 +1040,8 @@ Yet, it does a few things well:
 - [Fetching Records](#fetching-records)
     - [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Tables and Primary Keys](#tables-and-primary-keys)
-    - [Insert, Update and Delete](#insert-update-and-delete)
-    - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+- [Insert, Update and Delete](#insert-update-and-delete)
+- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
 - [Record Errors](#record-errors)
 - [Advice](#advice)
 
@@ -1180,7 +1176,7 @@ Records with a multi-column primary key are not supported by `fetchOne(_:primary
 [Implicit RowIDs](https://www.sqlite.org/lang_createtable.html#rowid) are not supported.
 
 
-#### Insert, Update and Delete
+### Insert, Update and Delete
 
 With one more override, you get the `insert`, `update`, `delete`, `save`, `reload` and `exists` methods.
 
@@ -1218,7 +1214,7 @@ Records whose primary key is declared as "INTEGER PRIMARY KEY" have their id aut
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 
 
-#### Preventing Useless UPDATE Statements
+### Preventing Useless UPDATE Statements
 
 The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
 
