@@ -1,6 +1,29 @@
 Release Notes
 =============
 
+## Next Release
+
+**Experimental**
+
+- DatabaseTransactionDelegate:
+    
+    ```swift
+    public protocol DatabaseTransactionDelegate: class {
+        // Notify a database change (insert, update or delete):
+        func databaseDidChangeWithEvent(event: DatabaseEvent)
+        
+        // An opportunity to rollback previous changes:
+        func databaseShouldCommit() -> Bool
+        
+        // Previous change will be committed:
+        func databaseWillCommit()
+        
+        // Previous change will be rollbacked:
+        func databaseWillRollback()
+    }
+    ```
+
+
 ## 0.18.0
 
 Released September 26, 2015

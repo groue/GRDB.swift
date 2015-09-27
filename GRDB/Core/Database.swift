@@ -210,7 +210,12 @@ public final class Database {
     
     // MARK: - Transaction Delegate
     
-    /// EXPERIMENTAL
+    /**
+    EXPERIMENTAL
+    
+    The database transaction delegate is notified of database changes, commits,
+    and rollbacks.
+    */
     public weak var transactionDelegate: DatabaseTransactionDelegate? = nil {
         willSet {
             assertValidQueue()
