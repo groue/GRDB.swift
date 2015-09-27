@@ -211,52 +211,161 @@ public final class Database {
     // MARK: - Transaction Delegate
     
     /**
-    EXPERIMENTAL
-    
-    The database transaction delegate is notified of database changes, commits,
+    The transaction delegate is notified of database changes, commits,
     and rollbacks.
     */
     public weak var transactionDelegate: DatabaseTransactionDelegate? = nil {
         willSet {
             assertValidQueue()
         }
-        didSet {
-            if transactionDelegate == nil {
-                sqlite3_update_hook(sqliteConnection, nil, nil)
-                sqlite3_commit_hook(sqliteConnection, nil, nil)
-                sqlite3_rollback_hook(sqliteConnection, nil, nil)
-                return
+    }
+    
+    func updateStatementDidFail() {
+        // TODO: trigger this callback on a COMMIT or a ROLLBACK statement, and
+        // see if the callbacks of sqlite3_commit_hook and sqlite3_rollback_hook
+        // have been called before.
+        //
+        // If so, the pendingTransactionCompletion is set, and we *can* notify
+        // the delegate of the failed transaction completion.
+        //
+        // If not, we don't even now how to tell the delegate that something
+        // went wrong with previously notified databaseEvents :-(
+    }
+    
+    func updateStatementDidExecute() {
+        guard let pendingTransactionCompletion = pendingTransactionCompletion else {
+            // The executed statement did not trigger any COMMIT or ROLLBACK.
+            return
+        }
+        // Ready for next statement
+        self.pendingTransactionCompletion = nil
+        
+        if let transactionDelegate = transactionDelegate {
+            switch pendingTransactionCompletion {
+            case .Commit:
+                transactionDelegate.databaseDidCommit()
+            case .Rollback:
+                transactionDelegate.databaseDidRollback()
             }
-            
-            let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-            
-            sqlite3_update_hook( sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
-                let event = DatabaseEvent(
-                    kind: DatabaseEvent.Kind(rawValue: updateKind)!,
-                    databaseName: String.fromCString(databaseName)!,
-                    tableName: String.fromCString(tableName)!,
-                    rowID: rowID)
-                let database = unsafeBitCast(dbPointer, Database.self)
-                database.transactionDelegate!.databaseDidChangeWithEvent(event)
-                }, dbPointer)
-            
-            sqlite3_commit_hook(sqliteConnection, { dbPointer in
-                let database = unsafeBitCast(dbPointer, Database.self)
-                if database.transactionDelegate!.databaseShouldCommit() {
-                    database.transactionDelegate!.databaseWillCommit()
-                    return 0
-                } else {
-                    return 1
-                }
-                }, dbPointer)
-            
-            sqlite3_rollback_hook(sqliteConnection, { dbPointer in
-                let database = unsafeBitCast(dbPointer, Database.self)
-                database.transactionDelegate!.databaseWillRollback()
-                }, dbPointer)
         }
     }
     
+    // If not nil, the last executed statement has triggered a transaction
+    // completion. See setupTransactionHooks().
+    private var pendingTransactionCompletion: TransactionCompletion? = nil
+    
+    private func setupTransactionHooks() {
+        let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        
+        sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
+            let database = unsafeBitCast(dbPointer, Database.self)
+            
+            guard let transactionDelegate = database.transactionDelegate else {
+                return
+            }
+            
+            let event = DatabaseEvent(
+                kind: DatabaseEvent.Kind(rawValue: updateKind)!,
+                databaseName: String.fromCString(databaseName)!,
+                tableName: String.fromCString(tableName)!,  // Tests have shown that pointers are reused for various table names: we can't use those pointers as a cache key.
+                rowID: rowID)
+            transactionDelegate.databaseDidChangeWithEvent(event)
+            }, dbPointer)
+        
+        sqlite3_commit_hook(sqliteConnection, { dbPointer in
+            let database = unsafeBitCast(dbPointer, Database.self)
+            database.pendingTransactionCompletion = .Commit
+            
+            guard let transactionDelegate = database.transactionDelegate else {
+                return 0 // commit
+            }
+            
+            if transactionDelegate.databaseShouldCommit() {
+                return 0 // commit
+            }
+            
+            return 1 // rollback
+            }, dbPointer)
+        
+        sqlite3_rollback_hook(sqliteConnection, { dbPointer in
+            let database = unsafeBitCast(dbPointer, Database.self)
+            database.pendingTransactionCompletion = .Rollback
+            }, dbPointer)
+    }
+    
+    
+    // MARK: - Busy Mode
+    
+    /// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
+    public typealias BusyCallback = (numberOfTries: Int) -> Bool
+    
+    /**
+    When there are several connections to a database, a connection may try to
+    access the database while it is locked by another connection.
+    
+    The BusyMode enum describes the behavior of GRDB when such a situation
+    occurs:
+    
+    - .ImmediateError: The SQLITE_BUSY error is immediately returned to the
+      connection that tries to access the locked database.
+    
+    - .Timeout: The SQLITE_BUSY error will be returned only if the database
+      remains locked for more than the specified duration.
+    
+    - .Callback: Perform your custom lock handling.
+    
+    To set the busy mode of a database, use Configuration:
+    
+        let configuration = Configuration(busyMode: .Timeout(1))
+        let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
+    
+    Relevant SQLite documentation:
+    
+    - https://www.sqlite.org/c3ref/busy_timeout.html
+    - https://www.sqlite.org/c3ref/busy_handler.html
+    - https://www.sqlite.org/lang_transaction.html
+    - https://www.sqlite.org/wal.html
+    */
+    public enum BusyMode {
+        /// The SQLITE_BUSY error is immediately returned to the connection that
+        /// tries to access the locked database.
+        case ImmediateError
+        
+        /// The SQLITE_BUSY error will be returned only if the database remains
+        /// locked for more than the specified duration.
+        case Timeout(NSTimeInterval)
+        
+        /// A custom callback that is called when a database is locked.
+        /// See https://www.sqlite.org/c3ref/busy_handler.html
+        case Callback(BusyCallback)
+    }
+    
+    /// The busy handler callback, if any. See Configuration.busyMode.
+    private var busyCallback: BusyCallback?
+    
+    func setupBusyMode(busyMode: BusyMode) {
+        switch busyMode {
+        case .ImmediateError:
+            break
+            
+        case .Timeout(let duration):
+            let milliseconds = Int32(duration * 1000)
+            sqlite3_busy_timeout(sqliteConnection, milliseconds)
+            
+        case .Callback(let callback):
+            let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+            self.busyCallback = callback
+            
+            sqlite3_busy_handler(
+                sqliteConnection,
+                { (dbPointer: UnsafeMutablePointer<Void>, numberOfTries: Int32) in
+                    let database = unsafeBitCast(dbPointer, Database.self)
+                    let callback = database.busyCallback!
+                    return callback(numberOfTries: Int(numberOfTries)) ? 1 : 0
+                },
+                dbPointer)
+        }
+    }
     
     
     // MARK: - Database Informations
@@ -398,55 +507,8 @@ public final class Database {
     
     // MARK: - Initialization
     
-    /// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
-    public typealias BusyCallback = (numberOfTries: Int) -> Bool
-    
-    /**
-    When there are several connections to a database, a connection may try to
-    access the database while it is locked by another connection.
-    
-    The BusyMode enum describes the behavior of GRDB when such a situation
-    occurs:
-    
-    - .ImmediateError: The SQLITE_BUSY error is immediately returned to the
-      connection that tries to access the locked database.
-    
-    - .Timeout: The SQLITE_BUSY error will be returned only if the database
-      remains locked for more than the specified duration.
-    
-    - .Callback: Perform your custom lock handling.
-    
-    To set the busy mode of a database, use Configuration:
-    
-        let configuration = Configuration(busyMode: .Timeout(1))
-        let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
-    
-    Relevant SQLite documentation:
-    
-    - https://www.sqlite.org/c3ref/busy_timeout.html
-    - https://www.sqlite.org/c3ref/busy_handler.html
-    - https://www.sqlite.org/lang_transaction.html
-    - https://www.sqlite.org/wal.html
-    */
-    public enum BusyMode {
-        /// The SQLITE_BUSY error is immediately returned to the connection that
-        /// tries to access the locked database.
-        case ImmediateError
-        
-        /// The SQLITE_BUSY error will be returned only if the database remains
-        /// locked for more than the specified duration.
-        case Timeout(NSTimeInterval)
-        
-        /// A custom callback that is called when a database is locked.
-        /// See https://www.sqlite.org/c3ref/busy_handler.html
-        case Callback(BusyCallback)
-    }
-    
     /// The database configuration
     let configuration: Configuration
-    
-    /// The busy handler callback, if any. See Configuration.busyMode.
-    var busyCallback: BusyCallback?
     
     /// The SQLite connection handle
     let sqliteConnection: SQLiteConnection
@@ -472,6 +534,7 @@ public final class Database {
         }
         
         setupBusyMode(configuration.busyMode)
+        setupTransactionHooks()
     }
     
     // Initializes an in-memory database
@@ -483,33 +546,12 @@ public final class Database {
         sqlite3_close(sqliteConnection)
     }
     
+    
+    // MARK: - Misc
+    
     func assertValidQueue() {
         guard databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
             fatalError("Database was not used on the correct queue. Execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). Consider using fetchAll() method if this error message happens when iterating the result of the fetch() method.")
-        }
-    }
-    
-    func setupBusyMode(busyMode: BusyMode) {
-        switch busyMode {
-        case .ImmediateError:
-            break
-            
-        case .Timeout(let duration):
-            let milliseconds = Int32(duration * 1000)
-            sqlite3_busy_timeout(sqliteConnection, milliseconds)
-            
-        case .Callback(let callback):
-            let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-            self.busyCallback = callback
-            
-            sqlite3_busy_handler(
-                sqliteConnection,
-                { (dbPointer: UnsafeMutablePointer<Void>, numberOfTries: Int32) in
-                    let database = unsafeBitCast(dbPointer, Database.self)
-                    let callback = database.busyCallback!
-                    return callback(numberOfTries: Int(numberOfTries)) ? 1 : 0
-                },
-                dbPointer)
         }
     }
 }

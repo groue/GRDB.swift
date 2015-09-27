@@ -32,12 +32,19 @@ public final class UpdateStatement : Statement {
         
         let code = sqlite3_step(sqliteStatement)
         guard code == SQLITE_DONE else {
+            database.updateStatementDidFail()
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, arguments: self.arguments)
         }
         
         let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
         let lastInsertedRowID = sqlite3_last_insert_rowid(database.sqliteConnection)
         let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
+        
+        // Now that changes information has been loaded, we can trigger database
+        // transaction delegate callbacks that may eventually perform more
+        // changes to the database.
+        database.updateStatementDidExecute()
+        
         return DatabaseChanges(changedRowCount: changedRowCount, insertedRowID: insertedRowID)
     }
 }

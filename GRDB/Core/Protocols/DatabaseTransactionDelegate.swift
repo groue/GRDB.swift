@@ -3,21 +3,21 @@ public protocol DatabaseTransactionDelegate: class {
     // Notify a database change (insert, update or delete):
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
-    // An opportunity to rollback previous changes:
+    // An opportunity to rollback database changes:
     func databaseShouldCommit() -> Bool
     
-    // Previous change will be committed:
-    func databaseWillCommit()
+    // Database changes have been committed:
+    func databaseDidCommit()
     
-    // Previous change will be rollbacked:
-    func databaseWillRollback()
+    // Database changes have been rollbacked:
+    func databaseDidRollback()
 }
 
 public extension DatabaseTransactionDelegate {
     func databaseDidChangeWithEvent(event: DatabaseEvent) { }
     func databaseShouldCommit() -> Bool { return true }
-    func databaseWillCommit() { }
-    func databaseWillRollback() { }
+    func databaseDidCommit() { }
+    func databaseDidRollback() { }
 }
 
 /// EXPERIMENTAL
