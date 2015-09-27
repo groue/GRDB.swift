@@ -339,8 +339,8 @@ Rows, unlike dictionaries, may contain duplicate keys:
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS a, 2 AS a")!
 row.columnNames     // ["a", "a"]
-row.databaseValues  // [1, 2]
-row["a"]            // 1
+row.databaseValues  // [1, 2] ([DatabaseValue])
+row["a"]            // The value for the leftmost column `a`: 1 (DatabaseValue?)
 for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
 ```
 
