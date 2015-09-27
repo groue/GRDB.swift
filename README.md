@@ -25,6 +25,36 @@ Features
 - **Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **Database Migrations**
 
+
+Usage
+-----
+
+```swift
+import GRDB
+
+// Open database connection
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+
+try dbQueue.inTransaction { db in
+    let wine = Wine(grape: .Merlot, color: .Red, name: "Pomerol")
+    try wine.insert(db)
+    return .Commit
+}
+
+let redWinesCount = dbQueue.inDatabase { db in       // Int
+    Int.fetchOne(db,
+        "SELECT COUNT(*) FROM wines WHERE color = ?",
+        arguments: [Color.Red])!
+}
+
+dbQueue.inDatabase { db in
+    let wines = Wine.fetchAll(db, "SELECT ...")      // [Wine]
+    for wine in Wine.fetch(db, "SELECT ...") {       // DatabaseSequence<Wine>
+        ...
+    }
+}
+```
+
 **Users of [ccgus/fmdb](https://github.com/ccgus/fmdb)** will feel at ease with GRDB.swift. They may find GRDB to be easier when [fetching](#fetch-queries) data from the database. And they'll definitely be happy that [database errors](#error-handling) are handled in the Swift way.
 
 **Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that a boring and straightforward API is not a bad alternative.
@@ -59,35 +89,6 @@ let users = UserTable
     .map { User(dictionary: dictionaryFromRow($0)) }
 ```
 
-
-Usage
------
-
-```swift
-import GRDB
-
-// Open database connection
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-
-try dbQueue.inTransaction { db in
-    let wine = Wine(grape: .Merlot, color: .Red, name: "Pomerol")
-    try wine.insert(db)
-    return .Commit
-}
-
-let redWinesCount = dbQueue.inDatabase { db in       // Int
-    Int.fetchOne(db,
-        "SELECT COUNT(*) FROM wines WHERE color = ?",
-        arguments: [Color.Red])!
-}
-
-dbQueue.inDatabase { db in
-    let wines = Wine.fetchAll(db, "SELECT ...")      // [Wine]
-    for wine in Wine.fetch(db, "SELECT ...") {       // DatabaseSequence<Wine>
-        ...
-    }
-}
-```
 
 
 Benchmarks
