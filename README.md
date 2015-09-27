@@ -942,9 +942,31 @@ public protocol DatabaseTransactionDelegate: class {
 }
 ```
 
-Those four callbacks are invoked on the database queue.
+Those four callbacks are all optional, and all invoked on the database queue.
 
-The notified changes are not applied until the transaction eventually get committed or rollbacked.
+The changes notified to `database(_:didChangeWithEvent:)` are not actually applied until `databaseDidCommit(_)` is called. On the other side, `databaseDidRollback(_)` confirms the invalidation of those changes:
+
+```swift
+try dbQueue.inTransaction do { db in
+    try db.execute("INSERT ...")    // Change callback
+    try db.execute("UPDATE ...")    // Change callback
+    return .Commit                  // Commit callback
+}
+```
+
+Database statements that are executed outside of a transaction are wrapped in an *implicit transaction*:
+
+```swift
+try dbQueue.inDatabase do { db in
+    try db.execute("INSERT ...")    // Change callback + Commit callback
+    try db.execute("UPDATE ...")    // Change callback + Commit callback
+}
+```
+
+**Warning**: `database(_:didChangeWithEvent:)` and `databaseShouldCommit(_)` *must not* read or write to the database. This limitation does not apply to `databaseDidCommit(_)` and `databaseDidRollback(_)`.
+
+
+**Sample code**
 
 As a sample code, let's write an object that uses NSNotificationCenter to notify, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
 
