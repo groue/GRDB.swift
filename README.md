@@ -377,9 +377,7 @@ See also the [Record](#records) class, which builds on top of RowConvertible and
 
 ### Value Queries
 
-Instead of rows, you can directly fetch **values**, extracted from the first column.
-
-Fetch **sequences** of values, **arrays**, or a **single** value:
+Instead of rows, you can directly fetch **values** as **sequences**, **arrays**, or **single** values:
 
 ```swift
 dbQueue.inDatabase { db in
