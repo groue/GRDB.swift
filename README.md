@@ -944,13 +944,15 @@ public protocol DatabaseTransactionDelegate: class {
 
 Those four callbacks are all optional, and all invoked on the database queue.
 
-The changes notified to `database(_:didChangeWithEvent:)` are not actually applied until `databaseDidCommit(_)` is called. On the other side, `databaseDidRollback(_)` confirms the invalidation of those changes:
+Change notified to `database(_:didChangeWithEvent:)` are triggered by `INSERT`, `UPDATE` and `DELETE` statements, and also by `ON DELETE` and `ON UPDATE` actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+
+Those changes are not actually applied until `databaseDidCommit(_)` is called. On the other side, `databaseDidRollback(_)` confirms their invalidation:
 
 ```swift
 try dbQueue.inTransaction do { db in
     try db.execute("INSERT ...")    // Change callback
     try db.execute("UPDATE ...")    // Change callback
-    return .Commit                  // Commit callback
+    return .Commit / .Rollback      // Commit / Rollback callback
 }
 ```
 
@@ -962,6 +964,7 @@ try dbQueue.inDatabase do { db in
     try db.execute("UPDATE ...")    // Change callback + Commit callback
 }
 ```
+
 
 **Warning**: `database(_:didChangeWithEvent:)` and `databaseShouldCommit(_)` *must not* read or write to the database. This limitation does not apply to `databaseDidCommit(_)` and `databaseDidRollback(_)`.
 
