@@ -918,7 +918,7 @@ for path in migrationPaths {
 
 ## Database Changes Observation
 
-**The DatabaseTransactionDelegate protocol lets you observe database changes:**
+**The DatabaseTransactionDelegate protocol** lets you observe database changes:
 
 ```swift
 public protocol DatabaseTransactionDelegate: class {
@@ -982,7 +982,7 @@ dbQueue.inDatabase { db in
 
 ## Records
 
-**Record** is a class that wraps a table row, or the result of any query. It is designed to be subclassed.
+**Record** is a class that wraps a table row, or the result of any query, and provides CRUD operations. It is designed to be subclassed.
 
 ```swift
 class Person : Record { ... }
