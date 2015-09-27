@@ -431,11 +431,11 @@ Yet, when extracting NSData from a row, **you have the opportunity to save memor
 
 ```swift
 // When the "data" column is know to be there:
-let notCopiedData: NSData? = row.dataNoCopy(named: "data")
+let notCopiedData = row.dataNoCopy(named: "data")   // NSData?
 
 // When the column `data` may not be there:
 if let databaseValue = row["data"] {
-    let notCopiedData: NSData? = databaseValue.dataNoCopy
+    let notCopiedData = databaseValue.dataNoCopy    // NSData?
 }
 ```
 
@@ -445,7 +445,7 @@ Unless you want to save data for later use, **the most memory-efficient way** to
 
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
-    let data = row.dataNoCopy(named: "data")!
+    let data = row.dataNoCopy(named: "data")
 }
 ```
 
@@ -461,7 +461,7 @@ for row in Row.fetch(db, "SELECT data, ...") {
 // when the loop begins:
 for row in Row.fetchAll(db, "SELECT data, ...") {
     // Too late to do the right thing:
-    let data = row.dataNoCopy(named: "data")!
+    let data = row.dataNoCopy(named: "data")
     
     // This data has been copied twice:
     let data: NSData = row.value(named: "data")
