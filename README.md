@@ -27,7 +27,7 @@ Features
 
 **Users of [ccgus/fmdb](https://github.com/ccgus/fmdb)** will feel at ease with GRDB.swift. They may find GRDB to be easier when [fetching](#fetch-queries) data from the database. And they'll definitely be happy that [database errors](#error-handling) are handled in the Swift way.
 
-**Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that `Item.fetchAll(db, "SELECT * FROM items ORDER BY lastModified DESC")` is not a bad alternative to `Array(db["items"].order(ItemColumns.LastModified.desc)).map { Item(row: RowToDictionary($0))! }`.
+**Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that `Item.fetchAll(db, "SELECT * FROM items ORDER BY lastModified DESC")` is not a bad alternative to `Array(db["items"].order(ItemColumns.LastModified.desc)).map { Item(dictionary: dictionaryFromRow($0)) }`.
 
 
 Usage
