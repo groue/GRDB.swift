@@ -52,22 +52,43 @@ public protocol DatabaseTransactionDelegate: class {
     func databaseDidRollback(db: Database)
 }
 
+/// Default implementations for DatabaseTransactionDelegate methods.
 public extension DatabaseTransactionDelegate {
+    /// Default implementation does nothing.
     func database(db: Database, didChangeWithEvent event: DatabaseEvent) { }
+    
+    /// Default implementation return true.
     func databaseShouldCommit(db: Database) -> Bool { return true }
+    
+    /// Default implementation does nothing.
     func databaseDidCommit(db: Database) { }
+    
+    /// Default implementation does nothing.
     func databaseDidRollback(db: Database) { }
 }
 
+/**
+A database event, notified to DatabaseTransactionDelegate.
+
+See https://www.sqlite.org/c3ref/update_hook.html for more information.
+*/
 public struct DatabaseEvent {
+    /// An event kind
     public enum Kind: Int32 {
         case Insert = 18    // SQLITE_INSERT
         case Delete = 9     // SQLITE_DELETE
         case Update = 23    // SQLITE_UPDATE
     }
     
+    /// The event kind
     public let kind: Kind
+    
+    /// The database name
     public let databaseName: String
+    
+    /// The table name
     public let tableName: String
+    
+    /// The rowID of the changed row.
     public let rowID: Int64
 }
