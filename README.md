@@ -283,7 +283,7 @@ let name: String = row.value(atIndex: 0)
 let name: String = row.value(named: "name")
 ```
 
-Use optionals when the value may be NULL:
+Ask for an optional when the value may be NULL:
 
 ```swift
 let name: String? = row.value(named: "name")
@@ -300,11 +300,12 @@ let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.
 let date: NSDate       = row.value(named: "date")       // NSDate
 ```
 
-**WARNING**: You can use the `as` type casting operator, but beware (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+You can also use the `as` type casting operator, but **beware** (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
 
 ```swift
 row.value(...) as Int    // OK: Int
 row.value(...) as Int?   // OK: Int?
+row.value(...) as Int!   // OK: Int!
 row.value(...) as! Int   // NO NO NO DON'T DO THAT!
 row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 ```
