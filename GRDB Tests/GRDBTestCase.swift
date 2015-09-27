@@ -5,6 +5,7 @@ class GRDBTestCase: XCTestCase {
     var databasePath: String!
     var dbQueue: DatabaseQueue!
     var sqlQueries: [String]!
+    let transactionLogger = TransactionLogger()
     
     override func setUp() {
         super.setUp()
@@ -21,6 +22,9 @@ class GRDBTestCase: XCTestCase {
             }
         })
         dbQueue = try! DatabaseQueue(path: databasePath, configuration: configuration)
+        dbQueue.inDatabase { db in
+            db.transactionDelegate = self.transactionLogger
+        }
     }
     
     override func tearDown() {
@@ -40,5 +44,36 @@ class GRDBTestCase: XCTestCase {
         } catch {
             XCTFail("error: \(error)")
         }
+    }
+}
+
+// EXPERIMENTAL
+class TransactionLogger : DatabaseTransactionDelegate {
+    var events: [DatabaseEvent] = []
+    
+    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+        events.append(event)
+    }
+    
+    func databaseWillCommit() {
+        guard events.count > 0 else {
+            return
+        }
+        
+        print("DATABASE DID COMMIT")
+        for event in events {
+            switch event.kind {
+            case .Insert:
+                print("-> INSERT \(event.tableName) \(event.rowID)")
+            case .Delete:
+                print("-> DELETE \(event.tableName) \(event.rowID)")
+            case .Update:
+                print("-> UPDATE \(event.tableName) \(event.rowID)")
+            }
+        }
+    }
+    
+    func databaseWillRollback() {
+        events.removeAll()
     }
 }

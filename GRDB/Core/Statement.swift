@@ -34,7 +34,7 @@ public class Statement {
     let sqliteStatement: SQLiteStatement
     
     init(database: Database, sql: String) throws {
-        database.assertValid()
+        database.assertValidQueue()
         
         // See https://www.sqlite.org/c3ref/prepare.html
         

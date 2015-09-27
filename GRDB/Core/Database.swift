@@ -84,7 +84,7 @@ public final class Database {
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
     public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
-        assertValid()
+        assertValidQueue()
         
         if let trace = self.configuration.trace {
             trace(sql: sql, arguments: nil)
@@ -206,6 +206,52 @@ public final class Database {
     private func commit() throws {
         try execute("COMMIT TRANSACTION")
     }
+    
+    
+    // MARK: - Transaction Delegate
+    
+    /// EXPERIMENTAL
+    public weak var transactionDelegate: DatabaseTransactionDelegate? = nil {
+        willSet {
+            assertValidQueue()
+        }
+        didSet {
+            if transactionDelegate == nil {
+                sqlite3_update_hook(sqliteConnection, nil, nil)
+                sqlite3_commit_hook(sqliteConnection, nil, nil)
+                sqlite3_rollback_hook(sqliteConnection, nil, nil)
+                return
+            }
+            
+            let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+            
+            sqlite3_update_hook( sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
+                let event = DatabaseEvent(
+                    kind: DatabaseEvent.Kind(rawValue: updateKind)!,
+                    databaseName: String.fromCString(databaseName)!,
+                    tableName: String.fromCString(tableName)!,
+                    rowID: rowID)
+                let database = unsafeBitCast(dbPointer, Database.self)
+                database.transactionDelegate!.databaseDidChangeWithEvent(event)
+                }, dbPointer)
+            
+            sqlite3_commit_hook(sqliteConnection, { dbPointer in
+                let database = unsafeBitCast(dbPointer, Database.self)
+                if database.transactionDelegate!.databaseShouldCommit() {
+                    database.transactionDelegate!.databaseWillCommit()
+                    return 0
+                } else {
+                    return 1
+                }
+                }, dbPointer)
+            
+            sqlite3_rollback_hook(sqliteConnection, { dbPointer in
+                let database = unsafeBitCast(dbPointer, Database.self)
+                database.transactionDelegate!.databaseWillRollback()
+                }, dbPointer)
+        }
+    }
+    
     
     
     // MARK: - Database Informations
@@ -400,7 +446,7 @@ public final class Database {
     /// The SQLite connection handle
     let sqliteConnection: SQLiteConnection
     
-    /// The queue from which the database can be used. See assertValid().
+    /// The queue from which the database can be used. See assertValidQueue().
     /// Design note: this is not very clean. A delegation pattern may be a
     /// better fit.
     var databaseQueueID: DatabaseQueueID = nil
@@ -420,16 +466,7 @@ public final class Database {
             try execute("PRAGMA foreign_keys = ON")
         }
         
-        switch configuration.busyMode {
-        case .ImmediateError:
-            break
-        case .Timeout(let duration):
-            let milliseconds = Int32(duration * 1000)
-            sqlite3_busy_timeout(sqliteConnection, milliseconds)
-        case .Callback(let callback):
-            self.busyCallback = callback
-            sqlite3_busy_handler(sqliteConnection, sqliteBusyHandler, unsafeBitCast(self, UnsafeMutablePointer<Void>.self))
-        }
+        setupBusyMode(configuration.busyMode)
     }
     
     // Initializes an in-memory database
@@ -441,21 +478,39 @@ public final class Database {
         sqlite3_close(sqliteConnection)
     }
     
-    func assertValid() {
+    func assertValidQueue() {
         guard databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
             fatalError("Database was not used on the correct queue. Execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). Consider using fetchAll() method if this error message happens when iterating the result of the fetch() method.")
         }
     }
+    
+    func setupBusyMode(busyMode: BusyMode) {
+        switch busyMode {
+        case .ImmediateError:
+            break
+            
+        case .Timeout(let duration):
+            let milliseconds = Int32(duration * 1000)
+            sqlite3_busy_timeout(sqliteConnection, milliseconds)
+            
+        case .Callback(let callback):
+            let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+            self.busyCallback = callback
+            
+            sqlite3_busy_handler(
+                sqliteConnection,
+                { (dbPointer: UnsafeMutablePointer<Void>, numberOfTries: Int32) in
+                    let database = unsafeBitCast(dbPointer, Database.self)
+                    let callback = database.busyCallback!
+                    return callback(numberOfTries: Int(numberOfTries)) ? 1 : 0
+                },
+                dbPointer)
+        }
+    }
 }
 
-let sqliteBusyHandler: @convention(c) (UnsafeMutablePointer<Void>, Int32) -> Int32 = { dbPointer, numberOfTries in
-    let database = unsafeBitCast(dbPointer, Database.self)
-    let callback = database.busyCallback!
-    return callback(numberOfTries: Int(numberOfTries)) ? 1 : 0
-}
 
-
-// MARK: - Database Information
+// MARK: - PrimaryKey
 
 /// A primary key
 enum PrimaryKey {

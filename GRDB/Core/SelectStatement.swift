@@ -28,7 +28,7 @@ public final class SelectStatement : Statement {
     /**
     The DatabaseSequence builder.
     */
-    func fetch<T>(arguments arguments: StatementArguments?, map: () -> T) -> DatabaseSequence<T> {
+    func fetch<T>(arguments arguments: StatementArguments?, yield: () -> T) -> DatabaseSequence<T> {
         if let arguments = arguments {
             self.arguments = arguments
         }
@@ -37,7 +37,7 @@ public final class SelectStatement : Statement {
             trace(sql: self.sql, arguments: self.arguments)
         }
         
-        return DatabaseSequence(statement: self, map: map)
+        return DatabaseSequence(statement: self, yield: yield)
     }
     
     /// The column index, case insensitive.
@@ -64,19 +64,18 @@ A sequence of elements fetched from the database.
 */
 public struct DatabaseSequence<T>: SequenceType {
     let statement: SelectStatement
-    let map: () -> T
+    let yield: () -> T
     
     /// Return a *generator* over the elements of this *sequence*.
     @warn_unused_result
     public func generate() -> DatabaseGenerator<T> {
         // Check that sequence is built on a valid database.
-        // See DatabaseQueue.inSafeDatabase().
-        statement.database.assertValid()
+        statement.database.assertValidQueue()
         
         // DatabaseSequence can be restarted:
         statement.reset()
         
-        return DatabaseGenerator(statement: statement, map: map)
+        return DatabaseGenerator(statement: statement, yield: yield)
     }
 }
 
@@ -86,29 +85,28 @@ A generator of elements fetched from the database.
 public struct DatabaseGenerator<T>: GeneratorType {
     let statement: SelectStatement
     let sqliteStatement: SQLiteStatement
-    let assertValid: () -> ()
-    let map: () -> T
+    let assertValidQueue: () -> ()
+    let yield: () -> T
     
-    init(statement: SelectStatement, map: () -> T) {
+    init(statement: SelectStatement, yield: () -> T) {
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
-        self.map = map
-        self.assertValid = statement.database.assertValid
+        self.yield = yield
+        self.assertValidQueue = statement.database.assertValidQueue
     }
     
     /// Advance to the next element and return it, or `nil` if no next
     /// element exists.
     public func next() -> T? {
         // Check that generator is used on a valid database.
-        // See DatabaseQueue.inSafeDatabase().
-        assertValid()
+        assertValidQueue()
         
         let code = sqlite3_step(sqliteStatement)
         switch code {
         case SQLITE_DONE:
             return nil
         case SQLITE_ROW:
-            return map()
+            return yield()
         default:
             fatalError(DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments).description)
         }
