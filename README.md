@@ -117,24 +117,29 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 **Guides**
 
+SQLite API:
+
 - [SQLite Database](#sqlite-database)
-    - [Fetch Queries](#fetch-queries)
-        - [Row Queries](#row-queries)
-            - [Column Values](#column-values)
-            - [Rows as Dictionaries](#rows-as-dictionaries)
-            - [RowConvertible](#rowconvertible)
-        - [Value Queries](#value-queries)
-    - [Values](#values)
-        - [NSData](#nsdata-and-memory-savings)
-        - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
-        - [Swift enums](#swift-enums)
-        - [Custom Value Types](#custom-value-types)
-    - [Transactions](#transactions)
-    - [Prepared Statements](#prepared-statements)
-    - [Error Handling](#error-handling)
-    - [Transaction Delegate](#transaction-delegate)
-    - [Concurrency](#concurrency)
+- [Fetch Queries](#fetch-queries)
+    - [Row Queries](#row-queries)
+        - [Column Values](#column-values)
+        - [Rows as Dictionaries](#rows-as-dictionaries)
+        - [RowConvertible](#rowconvertible)
+    - [Value Queries](#value-queries)
+- [Values](#values)
+    - [NSData](#nsdata-and-memory-savings)
+    - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
+    - [Swift enums](#swift-enums)
+    - [Custom Value Types](#custom-value-types)
+- [Prepared Statements](#prepared-statements)
+- [Error Handling](#error-handling)
+- [Transactions](#transactions)
+- [Concurrency](#concurrency)
+
+Application tools:
+
 - [Migrations](#migrations)
+- [Database Changes Observation](#database-changes-observation)
 - [Records](#records)
     - [Core Methods](#core-methods)
     - [Fetching Records](#fetching-records)
@@ -208,7 +213,7 @@ See [Transactions](#transactions) for more information about GRDB transaction ha
 To create tables, we recommend using [migrations](#migrations).
 
 
-### Fetch Queries
+## Fetch Queries
 
 You can fetch **Rows**, **Values**, and **Records**:
 
@@ -237,7 +242,7 @@ The last two methods are the only ones that don't take a custom SQL query as an 
 - [Records](#records)
 
 
-#### Row Queries
+### Row Queries
 
 Fetch **sequences** of rows, **arrays**, or a **single** row:
 
@@ -275,7 +280,7 @@ Do use those arguments: they prevent nasty users from injecting [nasty SQL snipp
 - Make sure you make a copy whenever you extract a row from the sequence for later use: `row.copy()`.
 
 
-##### Column Values
+#### Column Values
 
 **Read column values** by index or column name:
 
@@ -311,7 +316,7 @@ row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 ```
 
 
-##### Rows as Dictionaries
+#### Rows as Dictionaries
 
 The `row.value(named:)` and `row.value(atIndex:)` methods above require that you know the row structure: which columns are available, in which order.
 
@@ -345,7 +350,7 @@ for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
 ```
 
 
-##### RowConvertible
+#### RowConvertible
 
 You may use the `RowConvertible` protocol, which **grants fetching methods to any type** that can be initialized from a database row:
 
@@ -375,7 +380,7 @@ PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
 See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
 
-#### Value Queries
+### Value Queries
 
 Instead of rows, you can directly fetch **values**, extracted from the first column.
 
@@ -409,14 +414,14 @@ for name in names { ... } // OK
 The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
 
-### Values
+## Values
 
 The library ships with built-in support for Bool, Int, Int32, Int64, Double, String, [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), and [Swift enums](#swift-enums).
 
 Custom value types are supported as well through the [DatabaseValueConvertible](#custom-value-types) protocol.
 
 
-#### NSData and Memory Savings
+### NSData (and Memory Savings)
 
 **NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other value types.
 
@@ -462,7 +467,7 @@ for row in Row.fetchAll(db, "SELECT data, ...") {
 ```
 
 
-#### NSDate and NSDateComponents
+### NSDate and NSDateComponents
 
 [**NSDate**](#nsdate) and [**NSDateComponents**](#nsdatecomponents) can be stored and fetched from the database.
 
@@ -488,7 +493,7 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 ² See https://en.wikipedia.org/wiki/Julian_day
 
 
-##### NSDate
+#### NSDate
 
 GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
 
@@ -548,7 +553,7 @@ class Person : Record {
 One could reasonably wonder if NSDate is a suitable type for a birth date. Well, NSDateComponents has built-in support in GRDB as well:
 
 
-##### NSDateComponents
+#### NSDateComponents
 
 NSDateComponents is indirectly supported, through the **DatabaseDateComponents** helper type.
 
@@ -609,7 +614,7 @@ class Person : Record {
 ```
 
 
-#### Swift Enums
+### Swift Enums
 
 **Swift enums** get full support from GRDB.swift as long as their raw values are Int or String.
 
@@ -658,7 +663,7 @@ Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 See [Value Queries](#value-queries) for more detail on value fetching.
 
 
-#### Custom Value Types
+### Custom Value Types
 
 Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
 
@@ -742,24 +747,7 @@ DatabaseTimestamp.fetchOne(db, "SELECT ...") // DatabaseTimestamp?
 See [Value Queries](#value-queries) for more detail on value fetching.
 
 
-### Transactions
-
-The `DatabaseQueue.inTransaction()` method opens a SQLite transaction:
-
-```swift
-try dbQueue.inTransaction { db in
-    let wine = Wine(grape: .Merlot, color: .Red, name: "Pomerol")
-    try wine.insert(db)
-    return .Commit
-}
-```
-
-A ROLLBACK statement is issued if an error is thrown within the transaction block.
-
-Otherwise, transactions are guaranteed to succeed, *provided there is a single DatabaseQueue connected to the database file*. See [Concurrency](#concurrency) for more information about concurrent database access.
-
-
-### Prepared Statements
+## Prepared Statements
 
 **Prepared Statements** can be reused.
 
@@ -810,7 +798,7 @@ dbQueue.inDatabase { db in
 ```
 
 
-### Error Handling
+## Error Handling
 
 **No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error.
 
@@ -849,71 +837,25 @@ do {
 See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 
-#### Transaction Delegate
 
-**The DatabaseTransactionDelegate protocol lets you observe database changes:**
+## Transactions
+
+The `DatabaseQueue.inTransaction()` method opens a SQLite transaction:
 
 ```swift
-public protocol DatabaseTransactionDelegate: class {
-    // Notifies a database change (insert, update, or delete):
-    func database(db: Database, didChangeWithEvent event: DatabaseEvent)
-    
-    // An opportunity to rollback pending changes.
-    func databaseShouldCommit(db: Database) -> Bool
-    
-    // Database changes have been committed.
-    func databaseDidCommit(db: Database)
-    
-    // Database changes have been rollbacked.
-    func databaseDidRollback(db: Database)
+try dbQueue.inTransaction { db in
+    let wine = Wine(grape: .Merlot, color: .Red, name: "Pomerol")
+    try wine.insert(db)
+    return .Commit
 }
 ```
 
-Those four callbacks are invoked on the database queue.
+A ROLLBACK statement is issued if an error is thrown within the transaction block.
 
-The notified changes are not applied until the transaction eventually get committed or rollbacked.
-
-As a sample code, let's write an object that uses NSNotificationCenter to notify, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
-
-```swift
-class TableChangeNotifier : DatabaseTransactionDelegate {
-    var changedTableNames: Set<String> = []
-    
-    func database(db: Database, didChangeWithEvent event: DatabaseEvent) {
-        // Wait until transaction ends
-        changedTableNames.insert(event.tableName)
-    }
-    
-    func databaseDidCommit(db: Database) {
-        // Notify changes
-        let changedTableNames = self.changedTableNames
-        dispatch_async(dispatch_get_main_queue()) {
-            NSNotificationCenter.defaultCenter().postNotificationName(
-                "DatabaseDidChangeNotification",
-                object: self,
-                userInfo: ["ChangedTableNames": changedTableNames])
-        }
-        
-        // Wait until next transaction
-        self.changedTableNames = []
-    }
-    
-    func databaseDidRollback(db: Database) {
-        // Wait until next transaction
-        self.changedTableNames = []
-    }
-}
-
-// Activate notifications:
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-let notifier = TableChangeNotifier()
-dbQueue.inDatabase { db in
-    db.transactionDelegate = notifier
-}
-```
+Otherwise, transactions are guaranteed to succeed, *provided there is a single DatabaseQueue connected to the database file*. See [Concurrency](#concurrency) for more information about concurrent database access.
 
 
-#### Concurrency
+## Concurrency
 
 **When your application has a single DatabaseQueue connected to the database file, it has no concurrency issue.** That is because all your database statements are executed in a single serial dispatch queue that is connected alone to the database.
 
@@ -977,6 +919,70 @@ for path in migrationPaths {
     }
 }
 ```
+
+## Database Changes Observation
+
+**The DatabaseTransactionDelegate protocol lets you observe database changes:**
+
+```swift
+public protocol DatabaseTransactionDelegate: class {
+    // Notifies a database change (insert, update, or delete):
+    func database(db: Database, didChangeWithEvent event: DatabaseEvent)
+    
+    // An opportunity to rollback pending changes.
+    func databaseShouldCommit(db: Database) -> Bool
+    
+    // Database changes have been committed.
+    func databaseDidCommit(db: Database)
+    
+    // Database changes have been rollbacked.
+    func databaseDidRollback(db: Database)
+}
+```
+
+Those four callbacks are invoked on the database queue.
+
+The notified changes are not applied until the transaction eventually get committed or rollbacked.
+
+As a sample code, let's write an object that uses NSNotificationCenter to notify, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+
+```swift
+class TableChangeNotifier : DatabaseTransactionDelegate {
+    var changedTableNames: Set<String> = []
+    
+    func database(db: Database, didChangeWithEvent event: DatabaseEvent) {
+        // Wait until transaction ends
+        changedTableNames.insert(event.tableName)
+    }
+    
+    func databaseDidCommit(db: Database) {
+        // Notify changes
+        let changedTableNames = self.changedTableNames
+        dispatch_async(dispatch_get_main_queue()) {
+            NSNotificationCenter.defaultCenter().postNotificationName(
+                "DatabaseDidChangeNotification",
+                object: self,
+                userInfo: ["ChangedTableNames": changedTableNames])
+        }
+        
+        // Wait until next transaction
+        self.changedTableNames = []
+    }
+    
+    func databaseDidRollback(db: Database) {
+        // Wait until next transaction
+        self.changedTableNames = []
+    }
+}
+
+// Activate notifications:
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+let notifier = TableChangeNotifier()
+dbQueue.inDatabase { db in
+    db.transactionDelegate = notifier
+}
+```
+
 
 ## Records
 
