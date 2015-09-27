@@ -953,26 +953,27 @@ class TableChangeNotifier : DatabaseTransactionDelegate {
     var changedTableNames: Set<String> = []
     
     func database(db: Database, didChangeWithEvent event: DatabaseEvent) {
-        // Wait until transaction ends
+        // Remember the name of the changed table:
         changedTableNames.insert(event.tableName)
     }
     
     func databaseDidCommit(db: Database) {
-        // Notify changes
+        // Extract the names of changed tables, and reset until
+        // next database event:
         let changedTableNames = self.changedTableNames
+        self.changedTableNames = []
+        
+        // Notify
         dispatch_async(dispatch_get_main_queue()) {
             NSNotificationCenter.defaultCenter().postNotificationName(
                 "DatabaseDidChangeNotification",
                 object: self,
                 userInfo: ["ChangedTableNames": changedTableNames])
         }
-        
-        // Wait until next transaction
-        self.changedTableNames = []
     }
     
     func databaseDidRollback(db: Database) {
-        // Wait until next transaction
+        // Forget the names of changed tables:
         self.changedTableNames = []
     }
 }
