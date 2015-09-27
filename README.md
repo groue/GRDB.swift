@@ -365,7 +365,7 @@ final class PointOfInterest : NSObject, MKAnnotation, RowConvertible {
 
 Adopting types can be fetched just like rows:
 
-```
+```swift
 PointOfInterest.fetch(db, "SELECT ...")    // DatabaseSequence<PointOfInterest>
 PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
 PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
