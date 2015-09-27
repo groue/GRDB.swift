@@ -417,7 +417,16 @@ Custom value types are supported as well through the [DatabaseValueConvertible](
 
 ### NSData (and Memory Savings)
 
-**NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other value types.
+**NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other value types:
+
+```swift
+let row = Row.fetchOne(db, "SELECT data, ...")!
+let data: NSData = row.value(named: "data")
+
+NSData.fetch(db, "SELECT ...")       // DatabaseSequence<NSData>
+NSData.fetchAll(db, "SELECT ...")    // [NSData]
+NSData.fetchOne(db, "SELECT ...")    // NSData?
+```
 
 Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**:
 
@@ -425,13 +434,13 @@ Yet, when extracting NSData from a row, **you have the opportunity to save memor
 // When the "data" column is know to be there:
 let notCopiedData: NSData? = row.dataNoCopy(named: "data")
 
-// Test if the column `data` is present:
+// When the column `data` may not be there:
 if let databaseValue = row["data"] {
     let notCopiedData: NSData? = databaseValue.dataNoCopy
 }
 ```
 
-Make sure that you do not use the non-copied data longer than the row's lifetime.
+In this case, make sure that you do not use the non-copied data longer than the row's lifetime.
 
 Unless you want to save data for later use, **the most memory-efficient way** to consume database blobs is the following:
 
@@ -446,7 +455,7 @@ Compare with the **anti-patterns** below:
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
     // Data is copied, row after row:
-    let data = row.value(named: "data") as NSData
+    let data: NSData = row.value(named: "data")
 }
 
 // The fetchAll() method returns an Array: all rows have been copied in memory
@@ -456,7 +465,7 @@ for row in Row.fetchAll(db, "SELECT data, ...") {
     let data = row.dataNoCopy(named: "data")!
     
     // This data has been copied twice:
-    let data = row.value(named: "data") as NSData
+    let data: NSData = row.value(named: "data")
 }
 ```
 
@@ -518,7 +527,7 @@ Extract NSDate from the database:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT birthDate, ...")!
-let date = row.value(named: "birthDate") as NSDate
+let date: NSDate = row.value(named: "birthDate")
 
 NSDate.fetch(db, "SELECT ...")       // DatabaseSequence<NSDate>
 NSDate.fetchAll(db, "SELECT ...")    // [NSDate]
@@ -572,7 +581,7 @@ Extract NSDateComponents from the database:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT birthDate, ...")!
-let dbComponents = row.value(named: "birthDate") as DatabaseDateComponents
+let dbComponents: DatabaseDateComponents = row.value(named: "birthDate")
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
 
