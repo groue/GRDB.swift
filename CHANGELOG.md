@@ -3,23 +3,7 @@ Release Notes
 
 ## Next Release
 
-- New protocol DatabaseTransactionDelegate:
-    
-    ```swift
-    public protocol DatabaseTransactionDelegate: class {
-        // Notify a database change (insert, update or delete):
-        func databaseDidChangeWithEvent(event: DatabaseEvent)
-
-        // An opportunity to rollback database changes:
-        func databaseShouldCommit() -> Bool
-
-        // Database changes have been committed:
-        func databaseDidCommit()
-
-        // Database changes have been rollbacked:
-        func databaseDidRollback()
-    }
-    ```
+- DatabaseTransactionDelegate protocol.
 
 
 ## 0.18.0

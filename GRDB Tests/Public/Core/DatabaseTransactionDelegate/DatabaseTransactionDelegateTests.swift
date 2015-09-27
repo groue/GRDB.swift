@@ -2,20 +2,23 @@ import XCTest
 import GRDB
 
 class TransactionDelegate : DatabaseTransactionDelegate {
-    var committedEvents: [DatabaseEvent] = []
+    var lastTransactionCompletion: Database.TransactionCompletion! = nil
+    var lastCommittedEvents: [DatabaseEvent] = []
     var events: [DatabaseEvent] = []
     
-    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+    func database(db: Database, didChangeWithEvent event: DatabaseEvent) {
         events.append(event)
     }
     
-    func databaseDidCommit() {
-        committedEvents = events
+    func databaseDidCommit(db: Database) {
+        lastTransactionCompletion = .Commit
+        lastCommittedEvents = events
         events = []
     }
     
-    func databaseDidRollback() {
-        committedEvents = []
+    func databaseDidRollback(db: Database) {
+        lastTransactionCompletion = .Rollback
+        lastCommittedEvents = []
         events = []
     }
 }
@@ -61,7 +64,7 @@ class Artwork : Record {
     var artistId: Int64?
     var title: String?
     
-    init(title: String?, artistId: Int64?) {
+    init(title: String?, artistId: Int64? = nil) {
         self.title = title
         self.artistId = artistId
         super.init()
@@ -122,8 +125,8 @@ class DatabaseTransactionDelegateTests: GRDBTestCase {
                 
                 //
                 try artist.save(db)
-                XCTAssertEqual(delegate.committedEvents.count, 1)
-                let event = delegate.committedEvents.filter { event in
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 1)
+                let event = delegate.lastCommittedEvents.filter { event in
                     self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
@@ -142,8 +145,8 @@ class DatabaseTransactionDelegateTests: GRDBTestCase {
                 
                 //
                 try artist.save(db)
-                XCTAssertEqual(delegate.committedEvents.count, 1)
-                let event = delegate.committedEvents.filter {
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 1)
+                let event = delegate.lastCommittedEvents.filter {
                     self.match(event: $0, kind: .Update, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
@@ -161,8 +164,8 @@ class DatabaseTransactionDelegateTests: GRDBTestCase {
                 
                 //
                 try artist.delete(db)
-                XCTAssertEqual(delegate.committedEvents.count, 1)
-                let event = delegate.committedEvents.filter {
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 1)
+                let event = delegate.lastCommittedEvents.filter {
                     self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
@@ -184,20 +187,88 @@ class DatabaseTransactionDelegateTests: GRDBTestCase {
                 
                 //
                 try artist.delete(db)
-                XCTAssertEqual(delegate.committedEvents.count, 3)
-                let artistEvent = delegate.committedEvents.filter {
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 3)
+                let artistEvent = delegate.lastCommittedEvents.filter {
                     self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(artistEvent != nil)
-                let artwork1Event = delegate.committedEvents.filter {
+                let artwork1Event = delegate.lastCommittedEvents.filter {
                     self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork1.id!)
                     }.first
                 XCTAssertTrue(artwork1Event != nil)
-                let artwork2Event = delegate.committedEvents.filter {
+                let artwork2Event = delegate.lastCommittedEvents.filter {
                     self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork2.id!)
                     }.first
                 XCTAssertTrue(artwork2Event != nil)
             }
+        }
+    }
+    
+    func testTransactionCommit() {
+        let delegate = TransactionDelegate()
+        assertNoError {
+            let artist = Artist(name: "Gerhard Richter")
+            let artwork1 = Artwork(title: "Cloud")
+            let artwork2 = Artwork(title: "Ema (Nude on a Staircase)")
+            
+            try dbQueue.inTransaction { db in
+                db.transactionDelegate = delegate
+                
+                try artist.save(db)
+                artwork1.artistId = artist.id
+                artwork2.artistId = artist.id
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 0)
+                
+                try artwork1.save(db)
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 0)
+                
+                try artwork2.save(db)
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 0)
+                
+                return .Commit
+            }
+            XCTAssertEqual(delegate.lastTransactionCompletion, Database.TransactionCompletion.Commit)
+            XCTAssertEqual(delegate.lastCommittedEvents.count, 3)
+            let artistEvent = delegate.lastCommittedEvents.filter {
+                self.match(event: $0, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                }.first
+            XCTAssertTrue(artistEvent != nil)
+            let artwork1Event = delegate.lastCommittedEvents.filter {
+                self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork1.id!)
+                }.first
+            XCTAssertTrue(artwork1Event != nil)
+            let artwork2Event = delegate.lastCommittedEvents.filter {
+                self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork2.id!)
+                }.first
+            XCTAssertTrue(artwork2Event != nil)
+        }
+    }
+    
+    func testTransactionRollback() {
+        let delegate = TransactionDelegate()
+        assertNoError {
+            let artist = Artist(name: "Gerhard Richter")
+            let artwork1 = Artwork(title: "Cloud")
+            let artwork2 = Artwork(title: "Ema (Nude on a Staircase)")
+            
+            try dbQueue.inTransaction { db in
+                db.transactionDelegate = delegate
+                
+                try artist.save(db)
+                artwork1.artistId = artist.id
+                artwork2.artistId = artist.id
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 0)
+                
+                try artwork1.save(db)
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 0)
+                
+                try artwork2.save(db)
+                XCTAssertEqual(delegate.lastCommittedEvents.count, 0)
+                
+                return .Rollback
+            }
+            XCTAssertEqual(delegate.lastTransactionCompletion, Database.TransactionCompletion.Rollback)
+            XCTAssertEqual(delegate.lastCommittedEvents.count, 0)
         }
     }
 }

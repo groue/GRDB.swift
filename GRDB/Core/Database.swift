@@ -243,9 +243,9 @@ public final class Database {
         if let transactionDelegate = transactionDelegate {
             switch pendingTransactionCompletion {
             case .Commit:
-                transactionDelegate.databaseDidCommit()
+                transactionDelegate.databaseDidCommit(self)
             case .Rollback:
-                transactionDelegate.databaseDidRollback()
+                transactionDelegate.databaseDidRollback(self)
             }
         }
     }
@@ -258,9 +258,9 @@ public final class Database {
         let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
         
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
-            let database = unsafeBitCast(dbPointer, Database.self)
+            let db = unsafeBitCast(dbPointer, Database.self)
             
-            guard let transactionDelegate = database.transactionDelegate else {
+            guard let transactionDelegate = db.transactionDelegate else {
                 return
             }
             
@@ -269,18 +269,18 @@ public final class Database {
                 databaseName: String.fromCString(databaseName)!,
                 tableName: String.fromCString(tableName)!,  // Tests have shown that pointers are reused for various table names: we can't use those pointers as a cache key.
                 rowID: rowID)
-            transactionDelegate.databaseDidChangeWithEvent(event)
+            transactionDelegate.database(db, didChangeWithEvent: event)
             }, dbPointer)
         
         sqlite3_commit_hook(sqliteConnection, { dbPointer in
-            let database = unsafeBitCast(dbPointer, Database.self)
-            database.pendingTransactionCompletion = .Commit
+            let db = unsafeBitCast(dbPointer, Database.self)
+            db.pendingTransactionCompletion = .Commit
             
-            guard let transactionDelegate = database.transactionDelegate else {
+            guard let transactionDelegate = db.transactionDelegate else {
                 return 0 // commit
             }
             
-            if transactionDelegate.databaseShouldCommit() {
+            if transactionDelegate.databaseShouldCommit(db) {
                 return 0 // commit
             }
             
@@ -288,8 +288,8 @@ public final class Database {
             }, dbPointer)
         
         sqlite3_rollback_hook(sqliteConnection, { dbPointer in
-            let database = unsafeBitCast(dbPointer, Database.self)
-            database.pendingTransactionCompletion = .Rollback
+            let db = unsafeBitCast(dbPointer, Database.self)
+            db.pendingTransactionCompletion = .Rollback
             }, dbPointer)
     }
     

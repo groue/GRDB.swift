@@ -132,6 +132,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [Transactions](#transactions)
     - [Prepared Statements](#prepared-statements)
     - [Error Handling](#error-handling)
+    - [Transaction Delegate](#transaction-delegate)
     - [Concurrency](#concurrency)
 - [Migrations](#migrations)
 - [Records](#records)
@@ -846,6 +847,70 @@ do {
 ```
 
 See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
+
+
+#### Transaction Delegate
+
+**The DatabaseTransactionDelegate protocol lets you observe database changes:**
+
+```swift
+public protocol DatabaseTransactionDelegate: class {
+    // Notifies a database change (insert, update, or delete):
+    func database(db: Database, didChangeWithEvent event: DatabaseEvent)
+    
+    // An opportunity to rollback pending changes.
+    func databaseShouldCommit(db: Database) -> Bool
+    
+    // Database changes have been committed.
+    func databaseDidCommit(db: Database)
+    
+    // Database changes have been rollbacked.
+    func databaseDidRollback(db: Database)
+}
+```
+
+Those four callbacks are invoked on the database queue.
+
+The notified changes are not applied until the transaction eventually get committed or rollbacked.
+
+As a sample code, let's write an object that uses NSNotificationCenter to notify, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+
+```swift
+class TableChangeNotifier : DatabaseTransactionDelegate {
+    var changedTableNames: Set<String> = []
+    
+    func database(db: Database, didChangeWithEvent event: DatabaseEvent) {
+        // Wait until transaction ends
+        changedTableNames.insert(event.tableName)
+    }
+    
+    func databaseDidCommit(db: Database) {
+        // Notify changes
+        let changedTableNames = self.changedTableNames
+        dispatch_async(dispatch_get_main_queue()) {
+            NSNotificationCenter.defaultCenter().postNotificationName(
+                "DatabaseDidChangeNotification",
+                object: self,
+                userInfo: ["ChangedTableNames": changedTableNames])
+        }
+        
+        // Wait until next transaction
+        self.changedTableNames = []
+    }
+    
+    func databaseDidRollback(db: Database) {
+        // Wait until next transaction
+        self.changedTableNames = []
+    }
+}
+
+// Activate notifications:
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+let notifier = TableChangeNotifier()
+dbQueue.inDatabase { db in
+    db.transactionDelegate = notifier
+}
+```
 
 
 #### Concurrency
