@@ -27,7 +27,37 @@ Features
 
 **Users of [ccgus/fmdb](https://github.com/ccgus/fmdb)** will feel at ease with GRDB.swift. They may find GRDB to be easier when [fetching](#fetch-queries) data from the database. And they'll definitely be happy that [database errors](#error-handling) are handled in the Swift way.
 
-**Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that `Item.fetchAll(db, "SELECT * FROM items ORDER BY lastModified DESC")` is not a bad alternative to `Array(db["items"].order(ItemColumns.LastModified.desc)).map { Item(dictionary: dictionaryFromRow($0)) }`.
+**Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that a boring and straightforward API is not a bad alternative.
+
+```swift
+// GRDB
+let users = dbQueue.inDatabase { db in
+    User.fetchAll(db,
+        "SELECT * FROM users WHERE email LIKE ? ORDER BY lastModified DESC",
+        arguments: ["%@mac.com"])
+}
+
+// FMDB
+var users: [User] = []
+dbQueue.inDatabase { db in
+    if let rs = db.executeQuery(
+        "SELECT * FROM users WHERE email LIKE ? ORDER BY lastModified DESC",
+        withArgumentsInArray: ["%@mac.com"])
+    {
+        while rs.next() {
+            users.append(User(dictionary: rs.resultDictionary()))
+        }
+    } else {
+        // Handle error
+    }
+}
+
+// SQLite.swift
+let users = UserTable
+    .filter(emailColumn.like("%@mac.com"))
+    .order(lastModifiedColumn.desc)
+    .map { User(dictionary: dictionaryFromRow($0)) }
+```
 
 
 Usage
