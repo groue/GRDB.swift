@@ -238,6 +238,8 @@ public final class Database {
     private var pendingTransactionCompletion: TransactionCompletion? = nil
     
     private func setupTransactionHooks() {
+        // TODO: now that transactionObserver is a `let` property, don't
+        // install any hook unless the observer is not null.
         let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
         
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
