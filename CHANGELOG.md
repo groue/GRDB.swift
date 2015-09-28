@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next release
+
+**Breaking Changes**
+
+- The improved TransactionObserverType protocol lets adopting types modify the database after a successful commit or rollback, and cancel a transaction with an error that pops up to the application code.
+
+
 ## 0.19.0
 
 Released September 28, 2015
