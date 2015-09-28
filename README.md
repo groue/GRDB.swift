@@ -68,6 +68,12 @@ let users = dbQueue.inDatabase { db in
         arguments: ["%@mac.com"])
 }
 
+// SQLite.swift
+let users = UserTable
+    .filter(emailColumn.like("%@mac.com"))
+    .order(lastModifiedColumn.desc)
+    .map { User(dictionary: dictionaryFromRow($0)) }
+
 // FMDB
 var users: [User] = []
 dbQueue.inDatabase { db in
@@ -82,12 +88,6 @@ dbQueue.inDatabase { db in
         // Handle error
     }
 }
-
-// SQLite.swift
-let users = UserTable
-    .filter(emailColumn.like("%@mac.com"))
-    .order(lastModifiedColumn.desc)
-    .map { User(dictionary: dictionaryFromRow($0)) }
 ```
 
 
