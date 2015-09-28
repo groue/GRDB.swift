@@ -958,7 +958,10 @@ The TransactionObserverType protocol lets you **observe database changes**:
 
 ```swift
 public protocol TransactionObserverType : class {
-    // Notifies a database change (insert, update, or delete):
+    // Notifies a database change:
+    // - event.kind (insert, update, or delete)
+    // - event.tableName
+    // - event.rowID
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
     // An opportunity to rollback pending changes by throwing an error.
@@ -980,9 +983,14 @@ Those changes are not actually applied until `databaseDidCommit(_)` is called. O
 
 ```swift
 try dbQueue.inTransaction do { db in
-    try db.execute("INSERT ...")    // Change callback
-    try db.execute("UPDATE ...")    // Change callback
-    return .Commit / .Rollback      // Commit / Rollback callback
+    try db.execute("INSERT ...")    // DidChange
+    try db.execute("UPDATE ...")    // DidChange
+    return .Commit                  // WillCommit, DidCommit
+}
+
+try dbQueue.inTransaction do { db in
+    ...
+    return .Rollback                // DidRollback
 }
 ```
 
@@ -990,18 +998,17 @@ Database statements that are executed outside of a transaction are wrapped in an
 
 ```swift
 try dbQueue.inDatabase do { db in
-    try db.execute("INSERT ...")    // Change callback + Commit callback
-    try db.execute("UPDATE ...")    // Change callback + Commit callback
+    try db.execute("INSERT ...")    // DidChange, WillCommit, DidCommit
+    try db.execute("UPDATE ...")    // DidChange, WillCommit, DidCommit
 }
 ```
 
-
-**Warning**: `databaseDidChangeWithEvent(_)` and `databaseShouldCommit()` *must not* read or write to the database. This limitation does not apply to `databaseDidCommit(_)` and `databaseDidRollback(_)`.
+**Warning**: `databaseDidChangeWithEvent(_)` and `databaseShouldCommit()` must not read or write to the database. This limitation does not apply to `databaseDidCommit(_)` and `databaseDidRollback(_)` which can use their database argument.
 
 
 **Sample code**
 
-As a sample code, let's write an object that uses NSNotificationCenter to notify, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+As a sample code, let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
 
 ```swift
 class TableChangeObserver : TransactionObserverType {
