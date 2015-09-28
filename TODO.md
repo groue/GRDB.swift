@@ -1,7 +1,9 @@
 - [ ] #2: this commit may be how stephencelis fixed it: https://github.com/stephencelis/SQLite.swift/commit/8f64e357c3a6668c5f011c91ba33be3e8d4b88d0
 - [ ] Use @warn_unused_result where applicable
 - [ ] Support for NSURL
-- [ ] Since TransactionObserver.databaseDidCommit() and databaseDidRollback() can touch the database, we need to provide the database instance.
+- [ ] TransactionObserver
+    - [ ] Since databaseDidCommit() and databaseDidRollback() can touch the database, we need to provide the database instance.
+    - [ ] databaseShouldCommit() should be renamed databaseWillCommit(), and throws. The error should obviously pop up.
 
 
 Not sure:
