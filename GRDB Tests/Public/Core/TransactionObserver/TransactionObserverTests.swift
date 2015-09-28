@@ -16,7 +16,7 @@ class TransactionObserver : TransactionObserverType {
         events = []
     }
     
-    func databaseDidRollback() {
+    func databaseDidRollback(db: Database) {
         lastTransactionCompletion = .Rollback
         lastCommittedEvents = []
         events = []

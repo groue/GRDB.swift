@@ -965,16 +965,16 @@ public protocol TransactionObserverType : class {
     func databaseShouldCommit() -> Bool
     
     // Database changes have been committed.
-    func databaseDidCommit()
+    func databaseDidCommit(db: Database)
     
     // Database changes have been rollbacked.
-    func databaseDidRollback()
+    func databaseDidRollback(db: Database)
 }
 ```
 
 Those four callbacks are all optional, and all invoked on the database queue.
 
-Changes notified to `database(_:didChangeWithEvent:)` are triggered by `INSERT`, `UPDATE` and `DELETE` statements, and also by `ON DELETE` and `ON UPDATE` actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+Changes notified to `databaseDidChangeWithEvent(_)` are triggered by `INSERT`, `UPDATE` and `DELETE` statements, and also by `ON DELETE` and `ON UPDATE` actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
 Those changes are not actually applied until `databaseDidCommit(_)` is called. On the other side, `databaseDidRollback(_)` confirms their invalidation:
 
@@ -996,7 +996,7 @@ try dbQueue.inDatabase do { db in
 ```
 
 
-**Warning**: `database(_:didChangeWithEvent:)` and `databaseShouldCommit(_)` *must not* read or write to the database. This limitation does not apply to `databaseDidCommit(_)` and `databaseDidRollback(_)`.
+**Warning**: `databaseDidChangeWithEvent(_)` and `databaseShouldCommit()` *must not* read or write to the database. This limitation does not apply to `databaseDidCommit(_)` and `databaseDidRollback(_)`.
 
 
 **Sample code**
@@ -1012,7 +1012,7 @@ class TableChangeObserver : TransactionObserverType {
         changedTableNames.insert(event.tableName)
     }
     
-    func databaseDidCommit() {
+    func databaseDidCommit(db: Database) {
         // Extract the names of changed tables, and reset until
         // next database event:
         let changedTableNames = self.changedTableNames
@@ -1027,7 +1027,7 @@ class TableChangeObserver : TransactionObserverType {
         }
     }
     
-    func databaseDidRollback() {
+    func databaseDidRollback(db: Database) {
         // Forget the names of changed tables:
         self.changedTableNames = []
     }

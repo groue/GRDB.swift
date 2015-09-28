@@ -582,15 +582,19 @@ public protocol TransactionObserverType : class {
     Database changes have been committed.
     
     This method is called on the database queue. It can change the database.
+    
+    - parameter db: A Database.
     */
-    func databaseDidCommit()
+    func databaseDidCommit(db: Database)
     
     /**
     Database changes have been rollbacked.
     
     This method is called on the database queue. It can change the database.
+    
+    - parameter db: A Database.
     */
-    func databaseDidRollback()
+    func databaseDidRollback(db: Database)
 }
 
 /// Default implementations for TransactionObserverType methods.
@@ -602,10 +606,10 @@ public extension TransactionObserverType {
     func databaseShouldCommit() -> Bool { return true }
     
     /// Default implementation does nothing.
-    func databaseDidCommit() { }
+    func databaseDidCommit(db: Database) { }
     
     /// Default implementation does nothing.
-    func databaseDidRollback() { }
+    func databaseDidRollback(db: Database) { }
 }
 
 /**
