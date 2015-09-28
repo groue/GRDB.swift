@@ -15,6 +15,7 @@ You don't create a database directly. Instead, you use a DatabaseQueue:
 */
 public final class Database {
     
+    // =========================================================================
     // MARK: - Select Statements
     
     /**
@@ -32,6 +33,7 @@ public final class Database {
     }
     
     
+    // =========================================================================
     // MARK: - Update Statements
     
     /**
@@ -68,7 +70,6 @@ public final class Database {
         return try statement.execute(arguments: arguments)
     }
     
-    
     /**
     Executes multiple SQL statements (separated by a semi-colon).
     
@@ -102,6 +103,7 @@ public final class Database {
     }
     
     
+    // =========================================================================
     // MARK: - Transactions
     
     /**
@@ -195,110 +197,138 @@ public final class Database {
     }
     
     
-    // MARK: - Transaction Delegate
+    // =========================================================================
+    // MARK: - Transaction Observer Support
     
-    /**
-    The transaction delegate is notified of database changes, commits,
-    and rollbacks.
-    */
-    let transactionObserver: TransactionObserverType?
+    private enum StatementCompletion {
+        // Statement has ended with a rollback.
+        case Rollback
+        
+        // Statement has ended with a commit (implicit or explicit).
+        case Commit
+        
+        // Statement has been interrupted by transactionObserver.
+        case InterruptedCommit(ErrorType)   // Interrupted commit by the transactionObserver.
+        
+        // All other cases (CREATE TABLE, etc.)
+        case Undefined
+    }
+    
+    /// Updated in SQLite callbacks (see setupTransactionHooks())
+    /// Consumed in updateStatementDidFail() and updateStatementDidExecute().
+    private var statementCompletion: StatementCompletion = .Undefined
+    
+    /// The transaction delegate is notified of database changes, commits,
+    /// and rollbacks.
+    private let transactionObserver: TransactionObserverType?
     
     func updateStatementDidFail() throws {
-        // TODO: trigger this callback on a COMMIT or a ROLLBACK statement, and
+        // Ready for next statement
+        let statementCompletion = self.statementCompletion
+        self.statementCompletion = .Undefined
+        
+        switch statementCompletion {
+        case .InterruptedCommit(let error):
+            // The transaction has been interrupted by the transactionObserver
+            // with an error. Notify the transactionObserver:
+            transactionObserver!.databaseDidRollback(self)
+            
+            // Throw transactionObserver's error
+            throw error
+        default:
+            break
+        }
+
+        // TODO: trigger this callback on a COMMIT or a ROLLBACK statement
+        // without an explicit error thrown by the transaction delegate, and
         // see if the callbacks of sqlite3_commit_hook and sqlite3_rollback_hook
         // have been called before.
         //
-        // If so, the pendingTransactionCompletion is set, and we *can* notify
+        // If so, the currentTransactionCompletion is set, and we *can* notify
         // the delegate of the failed transaction completion.
         //
         // If not, we don't even now how to tell the delegate that something
         // went wrong with previously notified databaseEvents :-(
-        //
-        // Anyway.
-        //
-        // Below, we handle the case of implicit transactions.
-        // The transactionObserver has thrown an error, and the implicit
-        // transactions around a statement has failed. Throw the transaction
-        // error instead of the statement error:
-        if let pendingTransactionError = self.pendingTransactionError {
-            self.pendingTransactionError = nil
-            self.pendingTransactionCompletion = nil
-            if let transactionObserver = transactionObserver {
-                transactionObserver.databaseDidRollback(self)
-            }
-            throw pendingTransactionError
-        }
     }
     
     func updateStatementDidExecute() {
-        guard let pendingTransactionCompletion = pendingTransactionCompletion else {
-            // The executed statement did not trigger any COMMIT or ROLLBACK.
-            return
-        }
         // Ready for next statement
-        self.pendingTransactionCompletion = nil
+        let statementCompletion = self.statementCompletion
+        self.statementCompletion = .Undefined
         
-        if let transactionObserver = transactionObserver {
-            switch pendingTransactionCompletion {
-            case .Commit:
-                transactionObserver.databaseDidCommit(self)
-            case .Rollback:
-                transactionObserver.databaseDidRollback(self)
-            }
+        switch statementCompletion {
+        case .Undefined:
+            break
+        case .Commit:
+            transactionObserver!.databaseDidCommit(self)
+        case .Rollback:
+            transactionObserver!.databaseDidRollback(self)
+        case .InterruptedCommit:
+            // Should have been handled in updateStatementDidFail()
+            fatalError("This should not happen.")
         }
     }
     
-    // If not nil, the last executed statement has triggered a transaction
-    // completion. See setupTransactionHooks().
-    private var pendingTransactionCompletion: TransactionCompletion? = nil
-    
-    // If not nil, the last commit hook has thrown an error.
-    private var pendingTransactionError: ErrorType?
-    
     private func setupTransactionHooks() {
-        // TODO: now that transactionObserver is a `let` property, don't
-        // install any hook unless the observer is not null.
+        // No need to setup any hook when there is no transactionObserver:
+        guard transactionObserver != nil else {
+            return
+        }
+        
         let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        
         
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
             let db = unsafeBitCast(dbPointer, Database.self)
             
-            guard let transactionObserver = db.transactionObserver else {
-                return
-            }
-            
+            // Notify change events to transactionObserver:
             let event = DatabaseEvent(
                 kind: DatabaseEvent.Kind(rawValue: updateKind)!,
                 databaseName: String.fromCString(databaseName)!,
-                tableName: String.fromCString(tableName)!,  // Tests have shown that pointers are reused for various table names: we can't use those pointers as a cache key.
+                tableName: String.fromCString(tableName)!,
                 rowID: rowID)
-            transactionObserver.databaseDidChangeWithEvent(event)
+            db.transactionObserver!.databaseDidChangeWithEvent(event)
             }, dbPointer)
+        
         
         sqlite3_commit_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
-            db.pendingTransactionCompletion = .Commit
-            
-            guard let transactionObserver = db.transactionObserver else {
-                return 0 // commit
-            }
             
             do {
-                try transactionObserver.databaseWillCommit()
-                return 0 // commit
+                try db.transactionObserver!.databaseWillCommit()
+                
+                // The transactionObserver did accept the transaction.
+                // Next step: updateStatementDidExecute()
+                db.statementCompletion = .Commit
+                return 0
             } catch {
-                db.pendingTransactionError = error
-                return 1 // rollback
+                // The transactionObserver has interrupted the transaction.
+                //
+                // Next step: sqlite3_rollback_hook callback
+                db.statementCompletion = .InterruptedCommit(error)
+                return 1
             }
             }, dbPointer)
         
+        
         sqlite3_rollback_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
-            db.pendingTransactionCompletion = .Rollback
+            
+            switch db.statementCompletion {
+            case .InterruptedCommit:
+                // The transactionObserver has interrupted the transaction.
+                // Don't lose that error.
+                // Next step: updateStatementDidFail()
+                break
+            default:
+                // Next step: updateStatementDidExecute()
+                db.statementCompletion = .Rollback
+            }
             }, dbPointer)
     }
     
     
+    // =========================================================================
     // MARK: - Concurrency
     
     /// The busy handler callback, if any. See Configuration.busyMode.
@@ -329,6 +359,7 @@ public final class Database {
     }
     
     
+    // =========================================================================
     // MARK: - Database Informations
     
     /// The last error message
@@ -466,6 +497,7 @@ public final class Database {
     }
     
     
+    // =========================================================================
     // MARK: - Initialization
     
     /// The database configuration
@@ -509,6 +541,7 @@ public final class Database {
     }
     
     
+    // =========================================================================
     // MARK: - Misc
     
     func assertValidQueue() {
@@ -519,6 +552,7 @@ public final class Database {
 }
 
 
+// =============================================================================
 // MARK: - PrimaryKey
 
 /// A primary key
@@ -549,7 +583,7 @@ enum PrimaryKey {
 
 
 // =============================================================================
-// MARK: - Transactions
+// MARK: - TransactionKind
 
 /// A SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
 public enum TransactionKind {
@@ -558,11 +592,19 @@ public enum TransactionKind {
     case Exclusive
 }
 
+
+// =============================================================================
+// MARK: - TransactionCompletion
+
 /// The end of a transaction: Commit, or Rollback
 public enum TransactionCompletion {
     case Commit
     case Rollback
 }
+
+
+// =============================================================================
+// MARK: - TransactionObserverType
 
 /**
 A transaction observer is notified of all changes and transactions committed or
@@ -632,6 +674,10 @@ public extension TransactionObserverType {
     func databaseDidRollback(db: Database) { }
 }
 
+
+// =============================================================================
+// MARK: - DatabaseEvent
+
 /**
 A database event, notified to TransactionObserverType.
 
@@ -660,7 +706,7 @@ public struct DatabaseEvent {
 
 
 // =============================================================================
-// MARK: - Concurrency
+// MARK: - ThreadingMode
 
 /// A SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
 enum ThreadingMode {
@@ -679,6 +725,10 @@ enum ThreadingMode {
         }
     }
 }
+
+
+// =============================================================================
+// MARK: - BusyMode
 
 /// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
 public typealias BusyCallback = (numberOfTries: Int) -> Bool

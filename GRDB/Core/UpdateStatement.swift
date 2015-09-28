@@ -32,7 +32,17 @@ public final class UpdateStatement : Statement {
         
         let code = sqlite3_step(sqliteStatement)
         guard code == SQLITE_DONE else {
+            // When sqlite3_commit_hook interrupts a transaction, SQLite
+            // generates an automatic SQLITE_CONSTRAINT error.
+            //
+            // We need to ignore this error, because in GRDB, transactions are
+            // interrupted with an *error*: TransactionObserverType.databaseWillCommit()
+            // is a throwing function.
+            //
+            // This error must bubble up:
             try database.updateStatementDidFail()
+            
+            // Process regular error
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, arguments: self.arguments)
         }
         
