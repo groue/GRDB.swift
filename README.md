@@ -193,7 +193,7 @@ The database connection is closed when the database queue gets deallocated.
 ```swift
 var config = Configuration()
 config.foreignKeysEnabled = true // Default true
-config.readonly: false           // Default false
+config.readonly = false          // Default false
 config.trace = LogSQL            // The built-in LogSQL function logs all SQL statements with NSLog.
 
 let dbQueue = try DatabaseQueue(
