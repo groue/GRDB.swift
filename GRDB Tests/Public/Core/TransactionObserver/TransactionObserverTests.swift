@@ -2,7 +2,6 @@ import XCTest
 import GRDB
 
 class TransactionObserver : TransactionObserverType {
-    var lastTransactionCompletion: TransactionCompletion! = nil
     var lastCommittedEvents: [DatabaseEvent] = []
     var events: [DatabaseEvent] = []
     var commitError: ErrorType?
@@ -33,14 +32,12 @@ class TransactionObserver : TransactionObserverType {
     
     func databaseDidCommit(db: Database) {
         didCommitCount++
-        lastTransactionCompletion = .Commit
         lastCommittedEvents = events
         events = []
     }
     
     func databaseDidRollback(db: Database) {
         didRollbackCount++
-        lastTransactionCompletion = .Rollback
         lastCommittedEvents = []
         events = []
     }
@@ -134,6 +131,8 @@ class TransactionObserverTests: GRDBTestCase {
                 try Artwork.setupInDatabase(db)
             }
         }
+        
+        self.observer.resetCounts()
     }
     
     override var dbConfiguration: Configuration {
@@ -146,6 +145,9 @@ class TransactionObserverTests: GRDBTestCase {
     func match(event event: DatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
         return (event.tableName == tableName) && (event.rowID == rowId) && (event.kind == kind)
     }
+    
+    
+    // MARK: - Events
 
     func testInsertEvent() {
         assertNoError {
@@ -153,12 +155,7 @@ class TransactionObserverTests: GRDBTestCase {
                 let artist = Artist(name: "Gerhard Richter")
                 
                 //
-                self.observer.resetCounts()
                 try artist.save(db)
-                XCTAssertEqual(self.observer.didChangeCount, 1)
-                XCTAssertEqual(self.observer.willCommitCount, 1)
-                XCTAssertEqual(self.observer.didCommitCount, 1)
-                XCTAssertEqual(self.observer.didRollbackCount, 0)
                 XCTAssertEqual(self.observer.lastCommittedEvents.count, 1)
                 let event = self.observer.lastCommittedEvents.filter { event in
                     self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
@@ -176,12 +173,7 @@ class TransactionObserverTests: GRDBTestCase {
                 artist.name = "Vincent Fournier"
                 
                 //
-                self.observer.resetCounts()
                 try artist.save(db)
-                XCTAssertEqual(self.observer.didChangeCount, 1)
-                XCTAssertEqual(self.observer.willCommitCount, 1)
-                XCTAssertEqual(self.observer.didCommitCount, 1)
-                XCTAssertEqual(self.observer.didRollbackCount, 0)
                 XCTAssertEqual(self.observer.lastCommittedEvents.count, 1)
                 let event = self.observer.lastCommittedEvents.filter {
                     self.match(event: $0, kind: .Update, tableName: "artists", rowId: artist.id!)
@@ -198,12 +190,7 @@ class TransactionObserverTests: GRDBTestCase {
                 try artist.save(db)
                 
                 //
-                self.observer.resetCounts()
                 try artist.delete(db)
-                XCTAssertEqual(self.observer.didChangeCount, 1)
-                XCTAssertEqual(self.observer.willCommitCount, 1)
-                XCTAssertEqual(self.observer.didCommitCount, 1)
-                XCTAssertEqual(self.observer.didRollbackCount, 0)
                 XCTAssertEqual(self.observer.lastCommittedEvents.count, 1)
                 let event = self.observer.lastCommittedEvents.filter {
                     self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
@@ -224,12 +211,7 @@ class TransactionObserverTests: GRDBTestCase {
                 try artwork2.save(db)
                 
                 //
-                self.observer.resetCounts()
                 try artist.delete(db)
-                XCTAssertEqual(self.observer.didChangeCount, 3)
-                XCTAssertEqual(self.observer.willCommitCount, 1)
-                XCTAssertEqual(self.observer.didCommitCount, 1)
-                XCTAssertEqual(self.observer.didRollbackCount, 0)
                 XCTAssertEqual(self.observer.lastCommittedEvents.count, 3)
                 let artistEvent = self.observer.lastCommittedEvents.filter {
                     self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
@@ -247,7 +229,64 @@ class TransactionObserverTests: GRDBTestCase {
         }
     }
     
-    func testTransactionCommit() {
+    
+    // MARK: - Commits & Rollback
+    
+    func testImplicitTransactionCommit() {
+        assertNoError {
+            let artist = Artist(name: "Gerhard Richter")
+            
+            try dbQueue.inDatabase { db in
+                self.observer.resetCounts()
+                try artist.save(db)
+                XCTAssertEqual(self.observer.didChangeCount, 1)
+                XCTAssertEqual(self.observer.willCommitCount, 1)
+                XCTAssertEqual(self.observer.didCommitCount, 1)
+                XCTAssertEqual(self.observer.didRollbackCount, 0)
+            }
+        }
+    }
+    
+    func testCascadeWithImplicitTransactionCommit() {
+        assertNoError {
+            let artist = Artist(name: "Gerhard Richter")
+            let artwork1 = Artwork(title: "Cloud")
+            let artwork2 = Artwork(title: "Ema (Nude on a Staircase)")
+            
+            try dbQueue.inDatabase { db in
+                try artist.save(db)
+                artwork1.artistId = artist.id
+                artwork2.artistId = artist.id
+                try artwork1.save(db)
+                try artwork2.save(db)
+                
+                //
+                self.observer.resetCounts()
+                try artist.delete(db)
+                XCTAssertEqual(self.observer.didChangeCount, 3) // 3 deletes
+                XCTAssertEqual(self.observer.willCommitCount, 1)
+                XCTAssertEqual(self.observer.didCommitCount, 1)
+                XCTAssertEqual(self.observer.didRollbackCount, 0)
+                
+                let artistDeleteEvent = self.observer.lastCommittedEvents.filter {
+                    self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
+                    }.first
+                XCTAssertTrue(artistDeleteEvent != nil)
+                
+                let artwork1DeleteEvent = self.observer.lastCommittedEvents.filter {
+                    self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork1.id!)
+                    }.first
+                XCTAssertTrue(artwork1DeleteEvent != nil)
+                
+                let artwork2DeleteEvent = self.observer.lastCommittedEvents.filter {
+                    self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork2.id!)
+                    }.first
+                XCTAssertTrue(artwork2DeleteEvent != nil)
+            }
+        }
+    }
+    
+    func testExplicitTransactionCommit() {
         assertNoError {
             let artist = Artist(name: "Gerhard Richter")
             let artwork1 = Artwork(title: "Cloud")
@@ -260,7 +299,6 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(self.observer.willCommitCount, 0)
                 XCTAssertEqual(self.observer.didCommitCount, 0)
                 XCTAssertEqual(self.observer.didRollbackCount, 0)
-                XCTAssertEqual(self.observer.lastCommittedEvents.count, 0)
                 
                 artwork1.artistId = artist.id
                 artwork2.artistId = artist.id
@@ -271,7 +309,6 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(self.observer.willCommitCount, 0)
                 XCTAssertEqual(self.observer.didCommitCount, 0)
                 XCTAssertEqual(self.observer.didRollbackCount, 0)
-                XCTAssertEqual(self.observer.lastCommittedEvents.count, 0)
                 
                 self.observer.resetCounts()
                 try artwork2.save(db)
@@ -279,7 +316,6 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(self.observer.willCommitCount, 0)
                 XCTAssertEqual(self.observer.didCommitCount, 0)
                 XCTAssertEqual(self.observer.didRollbackCount, 0)
-                XCTAssertEqual(self.observer.lastCommittedEvents.count, 0)
                 
                 self.observer.resetCounts()
                 return .Commit
@@ -288,16 +324,18 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(self.observer.willCommitCount, 1)
             XCTAssertEqual(self.observer.didCommitCount, 1)
             XCTAssertEqual(self.observer.didRollbackCount, 0)
-            XCTAssertEqual(observer.lastTransactionCompletion, TransactionCompletion.Commit)
             XCTAssertEqual(observer.lastCommittedEvents.count, 3)
+            
             let artistEvent = observer.lastCommittedEvents.filter {
                 self.match(event: $0, kind: .Insert, tableName: "artists", rowId: artist.id!)
                 }.first
             XCTAssertTrue(artistEvent != nil)
+            
             let artwork1Event = observer.lastCommittedEvents.filter {
                 self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork1.id!)
                 }.first
             XCTAssertTrue(artwork1Event != nil)
+            
             let artwork2Event = observer.lastCommittedEvents.filter {
                 self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork2.id!)
                 }.first
@@ -305,7 +343,7 @@ class TransactionObserverTests: GRDBTestCase {
         }
     }
     
-    func testTransactionRollback() {
+    func testCascadeWithExplicitTransactionCommit() {
         assertNoError {
             let artist = Artist(name: "Gerhard Richter")
             let artwork1 = Artwork(title: "Cloud")
@@ -315,13 +353,70 @@ class TransactionObserverTests: GRDBTestCase {
                 try artist.save(db)
                 artwork1.artistId = artist.id
                 artwork2.artistId = artist.id
-                XCTAssertEqual(self.observer.lastCommittedEvents.count, 0)
-                
                 try artwork1.save(db)
-                XCTAssertEqual(self.observer.lastCommittedEvents.count, 0)
-                
                 try artwork2.save(db)
-                XCTAssertEqual(self.observer.lastCommittedEvents.count, 0)
+                
+                //
+                self.observer.resetCounts()
+                try artist.delete(db)
+                XCTAssertEqual(self.observer.didChangeCount, 3) // 3 deletes
+                XCTAssertEqual(self.observer.willCommitCount, 0)
+                XCTAssertEqual(self.observer.didCommitCount, 0)
+                XCTAssertEqual(self.observer.didRollbackCount, 0)
+                
+                self.observer.resetCounts()
+                return .Commit
+            }
+            XCTAssertEqual(self.observer.didChangeCount, 0)
+            XCTAssertEqual(self.observer.willCommitCount, 1)
+            XCTAssertEqual(self.observer.didCommitCount, 1)
+            XCTAssertEqual(self.observer.didRollbackCount, 0)
+            XCTAssertEqual(self.observer.lastCommittedEvents.count, 6)  // 3 inserts, and 3 deletes
+            
+            let artistInsertEvent = self.observer.lastCommittedEvents.filter {
+                self.match(event: $0, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                }.first
+            XCTAssertTrue(artistInsertEvent != nil)
+            
+            let artwork1InsertEvent = self.observer.lastCommittedEvents.filter {
+                self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork1.id!)
+                }.first
+            XCTAssertTrue(artwork1InsertEvent != nil)
+            
+            let artwork2InsertEvent = self.observer.lastCommittedEvents.filter {
+                self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork2.id!)
+                }.first
+            XCTAssertTrue(artwork2InsertEvent != nil)
+            
+            let artistDeleteEvent = self.observer.lastCommittedEvents.filter {
+                self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
+                }.first
+            XCTAssertTrue(artistDeleteEvent != nil)
+            
+            let artwork1DeleteEvent = self.observer.lastCommittedEvents.filter {
+                self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork1.id!)
+                }.first
+            XCTAssertTrue(artwork1DeleteEvent != nil)
+            
+            let artwork2DeleteEvent = self.observer.lastCommittedEvents.filter {
+                self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork2.id!)
+                }.first
+            XCTAssertTrue(artwork2DeleteEvent != nil)
+        }
+    }
+    
+    func testExplicitTransactionRollback() {
+        assertNoError {
+            let artist = Artist(name: "Gerhard Richter")
+            let artwork1 = Artwork(title: "Cloud")
+            let artwork2 = Artwork(title: "Ema (Nude on a Staircase)")
+            
+            try dbQueue.inTransaction { db in
+                try artist.save(db)
+                artwork1.artistId = artist.id
+                artwork2.artistId = artist.id
+                try artwork1.save(db)
+                try artwork2.save(db)
                 
                 self.observer.resetCounts()
                 return .Rollback
@@ -330,62 +425,160 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(self.observer.willCommitCount, 0)
             XCTAssertEqual(self.observer.didCommitCount, 0)
             XCTAssertEqual(self.observer.didRollbackCount, 1)
-            XCTAssertEqual(observer.lastTransactionCompletion, TransactionCompletion.Rollback)
-            XCTAssertEqual(observer.lastCommittedEvents.count, 0)
         }
     }
     
-    func testWillCommitError() {
+    func testImplicitTransactionRollbackCausedByDatabaseError() {
         assertNoError {
-            try dbQueue.inDatabase { db in
-                let artist = Artist(name: "Gerhard Richter")
-                try artist.save(db)
-            }
-            
-            self.observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
             do {
                 try dbQueue.inDatabase { db in
-                    let artist = Artist(name: "Gerhard Richter")
-                    self.observer.resetCounts()
-                    try artist.save(db)
+                    do {
+                        try Artwork(title: "meh").save(db)
+                        XCTFail("Expected Error")
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 19)
+                        XCTAssertEqual(self.observer.didChangeCount, 0)
+                        XCTAssertEqual(self.observer.willCommitCount, 0)
+                        XCTAssertEqual(self.observer.didCommitCount, 0)
+                        XCTAssertEqual(self.observer.didRollbackCount, 0)
+                        throw error
+                    }
                 }
-                XCTFail("Error expected")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, 19)
+                XCTAssertEqual(self.observer.didChangeCount, 0)
+                XCTAssertEqual(self.observer.willCommitCount, 0)
+                XCTAssertEqual(self.observer.didCommitCount, 0)
+                XCTAssertEqual(self.observer.didRollbackCount, 0)
+            }
+        }
+    }
+
+    func testExplicitTransactionRollbackCausedByDatabaseError() {
+        assertNoError {
+            do {
+                try dbQueue.inTransaction { db in
+                    do {
+                        try Artwork(title: "meh").save(db)
+                        XCTFail("Expected Error")
+                    } catch let error as DatabaseError {
+                        // Immediate constraint check has failed.
+                        XCTAssertEqual(error.code, 19)
+                        XCTAssertEqual(self.observer.didChangeCount, 0)
+                        XCTAssertEqual(self.observer.willCommitCount, 0)
+                        XCTAssertEqual(self.observer.didCommitCount, 0)
+                        XCTAssertEqual(self.observer.didRollbackCount, 0)
+                        throw error
+                    }
+                    return .Commit
+                }
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, 19)
+                XCTAssertEqual(self.observer.didChangeCount, 0)
+                XCTAssertEqual(self.observer.willCommitCount, 0)
+                XCTAssertEqual(self.observer.didCommitCount, 0)
+                XCTAssertEqual(self.observer.didRollbackCount, 1)
+            }
+        }
+    }
+    
+    func testImplicitTransactionRollbackCausedByTransactionObserver() {
+        assertNoError {
+            self.observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+            dbQueue.inDatabase { db in
+                do {
+                    try Artist(name: "Gerhard Richter").save(db)
+                    XCTFail("Expected Error")
+                } catch let error as NSError {
+                    XCTAssertEqual(error.domain, "foo")
+                    XCTAssertEqual(error.code, 0)
+                    XCTAssertEqual(self.observer.didChangeCount, 1)
+                    XCTAssertEqual(self.observer.willCommitCount, 1)
+                    XCTAssertEqual(self.observer.didCommitCount, 0)
+                    XCTAssertEqual(self.observer.didRollbackCount, 1)
+                }
+            }
+        }
+    }
+    
+    func testExplicitTransactionRollbackCausedByTransactionObserver() {
+        assertNoError {
+            self.observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+            do {
+                try dbQueue.inTransaction { db in
+                    try Artist(name: "Gerhard Richter").save(db)
+                    return .Commit
+                }
+                XCTFail("Expected Error")
             } catch let error as NSError {
+                XCTAssertEqual(error.domain, "foo")
+                XCTAssertEqual(error.code, 0)
                 XCTAssertEqual(self.observer.didChangeCount, 1)
                 XCTAssertEqual(self.observer.willCommitCount, 1)
                 XCTAssertEqual(self.observer.didCommitCount, 0)
                 XCTAssertEqual(self.observer.didRollbackCount, 1)
-                XCTAssertEqual(error.domain, "foo")
-                XCTAssertEqual(error.code, 0)
             }
-            
-            do {
-                try dbQueue.inTransaction { db in
-                    let artist = Artist(name: "Gerhard Richter")
-                    try artist.save(db)
-                    self.observer.resetCounts()
-                    return .Commit
-                }
-                XCTFail("Error expected")
-            } catch let error as NSError {
-                XCTAssertEqual(self.observer.didChangeCount, 0)
-                XCTAssertEqual(self.observer.willCommitCount, 1)
-                XCTAssertEqual(self.observer.didCommitCount, 0)
-                XCTAssertEqual(self.observer.didRollbackCount, 1)
-                XCTAssertEqual(error.domain, "foo")
-                XCTAssertEqual(error.code, 0)
-            }
-            
-            self.observer.commitError = nil
-            try dbQueue.inDatabase { db in
-                let artist = Artist(name: "Gerhard Richter")
-                try artist.save(db)
-            }
-            
-            let artistCount = dbQueue.inDatabase { db in
-                Int.fetchOne(db, "SELECT COUNT(*) FROM artists")
-            }
-            XCTAssertEqual(artistCount, 2)
         }
     }
+    
+    func testImplicitTransactionRollbackCausedByDatabaseErrorSuperseedTransactionObserver() {
+        assertNoError {
+            self.observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+            do {
+                try dbQueue.inDatabase { db in
+                    do {
+                        try Artwork(title: "meh").save(db)
+                        XCTFail("Expected Error")
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.code, 19)
+                        XCTAssertEqual(self.observer.didChangeCount, 0)
+                        XCTAssertEqual(self.observer.willCommitCount, 0)
+                        XCTAssertEqual(self.observer.didCommitCount, 0)
+                        XCTAssertEqual(self.observer.didRollbackCount, 0)
+                        throw error
+                    }
+                }
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, 19)
+                XCTAssertEqual(self.observer.didChangeCount, 0)
+                XCTAssertEqual(self.observer.willCommitCount, 0)
+                XCTAssertEqual(self.observer.didCommitCount, 0)
+                XCTAssertEqual(self.observer.didRollbackCount, 0)
+            }
+        }
+    }
+    
+    func testExplicitTransactionRollbackCausedByDatabaseErrorSuperseedTransactionObserver() {
+        assertNoError {
+            self.observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+            do {
+                try dbQueue.inTransaction { db in
+                    do {
+                        try Artwork(title: "meh").save(db)
+                        XCTFail("Expected Error")
+                    } catch let error as DatabaseError {
+                        // Immediate constraint check has failed.
+                        XCTAssertEqual(error.code, 19)
+                        XCTAssertEqual(self.observer.didChangeCount, 0)
+                        XCTAssertEqual(self.observer.willCommitCount, 0)
+                        XCTAssertEqual(self.observer.didCommitCount, 0)
+                        XCTAssertEqual(self.observer.didRollbackCount, 0)
+                        throw error
+                    }
+                    return .Commit
+                }
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, 19)
+                XCTAssertEqual(self.observer.didChangeCount, 0)
+                XCTAssertEqual(self.observer.willCommitCount, 0)
+                XCTAssertEqual(self.observer.didCommitCount, 0)
+                XCTAssertEqual(self.observer.didRollbackCount, 1)
+            }
+        }
+    }
+    
 }
