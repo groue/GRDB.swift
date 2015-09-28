@@ -203,7 +203,7 @@ public final class Database {
     */
     let transactionObserver: TransactionObserverType?
     
-    func updateStatementDidFail() {
+    func updateStatementDidFail() throws {
         // TODO: trigger this callback on a COMMIT or a ROLLBACK statement, and
         // see if the callbacks of sqlite3_commit_hook and sqlite3_rollback_hook
         // have been called before.
@@ -213,6 +213,21 @@ public final class Database {
         //
         // If not, we don't even now how to tell the delegate that something
         // went wrong with previously notified databaseEvents :-(
+        //
+        // Anyway.
+        //
+        // Below, we handle the case of implicit transactions.
+        // The transactionObserver has thrown an error, and the implicit
+        // transactions around a statement has failed. Throw the transaction
+        // error instead of the statement error:
+        if let pendingTransactionError = self.pendingTransactionError {
+            self.pendingTransactionError = nil
+            self.pendingTransactionCompletion = nil
+            if let transactionObserver = transactionObserver {
+                transactionObserver.databaseDidRollback(self)
+            }
+            throw pendingTransactionError
+        }
     }
     
     func updateStatementDidExecute() {
@@ -226,9 +241,9 @@ public final class Database {
         if let transactionObserver = transactionObserver {
             switch pendingTransactionCompletion {
             case .Commit:
-                transactionObserver.databaseDidCommit()
+                transactionObserver.databaseDidCommit(self)
             case .Rollback:
-                transactionObserver.databaseDidRollback()
+                transactionObserver.databaseDidRollback(self)
             }
         }
     }
@@ -236,6 +251,9 @@ public final class Database {
     // If not nil, the last executed statement has triggered a transaction
     // completion. See setupTransactionHooks().
     private var pendingTransactionCompletion: TransactionCompletion? = nil
+    
+    // If not nil, the last commit hook has thrown an error.
+    private var pendingTransactionError: ErrorType?
     
     private func setupTransactionHooks() {
         // TODO: now that transactionObserver is a `let` property, don't
@@ -265,11 +283,13 @@ public final class Database {
                 return 0 // commit
             }
             
-            if transactionObserver.databaseShouldCommit() {
+            do {
+                try transactionObserver.databaseWillCommit()
                 return 0 // commit
+            } catch {
+                db.pendingTransactionError = error
+                return 1 // rollback
             }
-            
-            return 1 // rollback
             }, dbPointer)
         
         sqlite3_rollback_hook(sqliteConnection, { dbPointer in
@@ -568,15 +588,15 @@ public protocol TransactionObserverType : class {
     
     /**
     When a transaction is about to be committed, the transaction delegate has an
-    opportunity to rollback pending changes.
+    opportunity to rollback pending changes by throwing an error.
     
     This method is called on the database queue.
     
     **WARNING**: this method must not change the database.
     
-    - returns: Whether the transaction should be committed.
+    - throws: An eventual error that rollbacks pending changes.
     */
-    func databaseShouldCommit() -> Bool
+    func databaseWillCommit() throws
     
     /**
     Database changes have been committed.
@@ -603,7 +623,7 @@ public extension TransactionObserverType {
     func databaseDidChangeWithEvent(event: DatabaseEvent) { }
     
     /// Default implementation return true.
-    func databaseShouldCommit() -> Bool { return true }
+    func databaseWillCommit() throws { }
     
     /// Default implementation does nothing.
     func databaseDidCommit(db: Database) { }

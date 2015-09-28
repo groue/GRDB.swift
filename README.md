@@ -961,8 +961,8 @@ public protocol TransactionObserverType : class {
     // Notifies a database change (insert, update, or delete):
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
-    // An opportunity to rollback pending changes.
-    func databaseShouldCommit() -> Bool
+    // An opportunity to rollback pending changes by throwing an error.
+    func databaseWillCommit() throws
     
     // Database changes have been committed.
     func databaseDidCommit(db: Database)

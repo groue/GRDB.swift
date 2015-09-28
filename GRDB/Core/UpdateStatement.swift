@@ -32,7 +32,7 @@ public final class UpdateStatement : Statement {
         
         let code = sqlite3_step(sqliteStatement)
         guard code == SQLITE_DONE else {
-            database.updateStatementDidFail()
+            try database.updateStatementDidFail()
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, arguments: self.arguments)
         }
         
