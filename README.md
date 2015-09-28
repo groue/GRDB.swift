@@ -58,7 +58,7 @@ dbQueue.inDatabase { db in
 
 **Users of [ccgus/fmdb](https://github.com/ccgus/fmdb)** will feel at ease with GRDB.swift. They may find GRDB to be easier when [fetching](#fetch-queries) data from the database. And they'll definitely be happy that [database errors](#error-handling) are handled in the Swift way.
 
-**Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that a boring and straightforward API is not a bad alternative.
+**Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that a straightforward API around SQL is not a bad alternative.
 
 ```swift
 // GRDB
