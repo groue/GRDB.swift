@@ -4,6 +4,7 @@
 - [ ] TransactionObserver
     - [ ] Since databaseDidCommit() and databaseDidRollback() can touch the database, we need to provide the database instance.
     - [ ] databaseShouldCommit() should be renamed databaseWillCommit(), and throws. The error should obviously pop up.
+    - [ ] See if TransactionObserver makes it possible to provide external data storage.
 
 
 Not sure:
