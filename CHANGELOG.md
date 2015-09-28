@@ -3,7 +3,9 @@ Release Notes
 
 ## Next Release
 
-- DatabaseTransactionDelegate protocol.
+**New**
+
+- The `Configuration.transactionObserver` lets you observe database changes.
 
 
 ## 0.18.0

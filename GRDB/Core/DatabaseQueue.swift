@@ -112,16 +112,16 @@ public final class DatabaseQueue {
     This method is *not* reentrant.
     
     - parameter type: The transaction type (default nil). If nil, the
-      transaction type is configuration.transactionType, which itself defaults
-      to .Immediate. See https://www.sqlite.org/lang_transaction.html for more
-      information.
+      transaction type is configuration.defaultTransactionKind, which itself
+      defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+      for more information.
     - parameter block: A block that executes SQL statements and return either
       .Commit or .Rollback.
     - throws: The error thrown by the block.
     */
-    public func inTransaction(type: Database.TransactionType? = nil, block: (db: Database) throws -> Database.TransactionCompletion) throws {
+    public func inTransaction(kind: TransactionKind? = nil, block: (db: Database) throws -> TransactionCompletion) throws {
         try inQueue {
-            try self.database.inTransaction(type) {
+            try self.database.inTransaction(kind) {
                 try block(db: self.database)
             }
         }

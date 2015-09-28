@@ -3,7 +3,7 @@ import GRDB
 
 class ConcurrencyTests: XCTestCase {
     var databasePath: String!
-    var busyCallback: Database.BusyCallback?
+    var busyCallback: BusyCallback?
     
     var dbQueue1: DatabaseQueue!
     var dbLog1: [String]!
@@ -17,7 +17,7 @@ class ConcurrencyTests: XCTestCase {
         databasePath = "/tmp/GRDBConcurrencyTests.sqlite"
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
         self.busyCallback = nil
-        let busyCallback: Database.BusyCallback = {
+        let busyCallback: BusyCallback = {
             if let busyCallback = self.busyCallback {
                 return busyCallback(numberOfTries: $0)
             } else {
@@ -25,9 +25,9 @@ class ConcurrencyTests: XCTestCase {
                 return false
             }
         }
-        let baseConfiguration = Configuration(
-            trace: Configuration.logSQL,
-            busyMode: .Callback(busyCallback))
+        var baseConfiguration = Configuration()
+        baseConfiguration.trace = LogSQL
+        baseConfiguration.busyMode = .Callback(busyCallback)
         
         dbLog1 = []
         var configuration1 = baseConfiguration

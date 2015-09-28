@@ -191,16 +191,14 @@ The database connection is closed when the database queue gets deallocated.
 **Configure** databases:
 
 ```swift
-let configuration = Configuration(
-    foreignKeysEnabled: true,   // Default true
-    readonly: false,            // Default false
-    trace: Configuration.logSQL // An optional trace function.
-                                // Configuration.logSQL logs all SQL statements.
-)
+var config = Configuration()
+config.foreignKeysEnabled = true // Default true
+config.readonly: false           // Default false
+config.trace = LogSQL            // The built-in LogSQL function logs all SQL statements with NSLog.
 
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
-    configuration: configuration)
+    configuration: config)
 ```
 
 See [Concurrency](#concurrency) for more details on database configuration.
@@ -956,21 +954,21 @@ for path in migrationPaths {
 
 ## Database Changes Observation
 
-**The DatabaseTransactionDelegate protocol** lets you observe database changes:
+The TransactionObserverType protocol lets you **observe database changes**:
 
 ```swift
-public protocol DatabaseTransactionDelegate: class {
+public protocol TransactionObserverType : class {
     // Notifies a database change (insert, update, or delete):
-    func database(db: Database, didChangeWithEvent event: DatabaseEvent)
+    func databaseDidChangeWithEvent(event: DatabaseEvent)
     
     // An opportunity to rollback pending changes.
-    func databaseShouldCommit(db: Database) -> Bool
+    func databaseShouldCommit() -> Bool
     
     // Database changes have been committed.
-    func databaseDidCommit(db: Database)
+    func databaseDidCommit()
     
     // Database changes have been rollbacked.
-    func databaseDidRollback(db: Database)
+    func databaseDidRollback()
 }
 ```
 
@@ -1006,15 +1004,15 @@ try dbQueue.inDatabase do { db in
 As a sample code, let's write an object that uses NSNotificationCenter to notify, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
 
 ```swift
-class TableChangeNotifier : DatabaseTransactionDelegate {
+class TableChangeObserver : TransactionObserverType {
     var changedTableNames: Set<String> = []
     
-    func database(db: Database, didChangeWithEvent event: DatabaseEvent) {
+    func databaseDidChangeWithEvent(event: DatabaseEvent) {
         // Remember the name of the changed table:
         changedTableNames.insert(event.tableName)
     }
     
-    func databaseDidCommit(db: Database) {
+    func databaseDidCommit() {
         // Extract the names of changed tables, and reset until
         // next database event:
         let changedTableNames = self.changedTableNames
@@ -1029,18 +1027,18 @@ class TableChangeNotifier : DatabaseTransactionDelegate {
         }
     }
     
-    func databaseDidRollback(db: Database) {
+    func databaseDidRollback() {
         // Forget the names of changed tables:
         self.changedTableNames = []
     }
 }
 
 // Activate notifications:
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-let notifier = TableChangeNotifier()
-dbQueue.inDatabase { db in
-    db.transactionDelegate = notifier
-}
+var config = Configuration()
+config.transactionObserver = TableChangeNotifier()
+let dbQueue = try DatabaseQueue(
+    path: "/path/to/database.sqlite",
+    configuration: config)
 ```
 
 

@@ -104,19 +104,6 @@ public final class Database {
     
     // MARK: - Transactions
     
-    /// A SQLite transaction type. See https://www.sqlite.org/lang_transaction.html
-    public enum TransactionType {
-        case Deferred
-        case Immediate
-        case Exclusive
-    }
-    
-    /// The end of a transaction: Commit, or Rollback
-    public enum TransactionCompletion {
-        case Commit
-        case Rollback
-    }
-    
     /**
     Executes a block inside a database transaction.
     
@@ -130,17 +117,17 @@ public final class Database {
     
     This method is not reentrant: you can't nest transactions.
     
-    - parameter type:  The transaction type
+    - parameter kind:  The transaction kind
                        See https://www.sqlite.org/lang_transaction.html
     - parameter block: A block that executes SQL statements and return either
                        .Commit or .Rollback.
     - throws: The error thrown by the block.
     */
-    func inTransaction(type: TransactionType?, block: () throws -> TransactionCompletion) throws {
+    func inTransaction(kind: TransactionKind?, block: () throws -> TransactionCompletion) throws {
         var completion: TransactionCompletion = .Rollback
         var blockError: ErrorType? = nil
         
-        try beginTransaction(type)
+        try beginTransaction(kind)
         
         do {
             completion = try block()
@@ -156,7 +143,7 @@ public final class Database {
             // https://www.sqlite.org/lang_transaction.html#immediate
             //
             // > Response To Errors Within A Transaction
-            //
+            // >
             // > If certain kinds of errors occur within a transaction, the
             // > transaction may or may not be rolled back automatically. The
             // > errors that can cause an automatic rollback include:
@@ -188,8 +175,8 @@ public final class Database {
         }
     }
     
-    private func beginTransaction(type: TransactionType? = nil) throws {
-        switch type ?? configuration.transactionType {
+    private func beginTransaction(kind: TransactionKind? = nil) throws {
+        switch kind ?? configuration.defaultTransactionKind {
         case .Deferred:
             try execute("BEGIN DEFERRED TRANSACTION")
         case .Immediate:
@@ -214,11 +201,7 @@ public final class Database {
     The transaction delegate is notified of database changes, commits,
     and rollbacks.
     */
-    public weak var transactionDelegate: DatabaseTransactionDelegate? = nil {
-        willSet {
-            assertValidQueue()
-        }
-    }
+    let transactionObserver: TransactionObserverType?
     
     func updateStatementDidFail() {
         // TODO: trigger this callback on a COMMIT or a ROLLBACK statement, and
@@ -240,12 +223,12 @@ public final class Database {
         // Ready for next statement
         self.pendingTransactionCompletion = nil
         
-        if let transactionDelegate = transactionDelegate {
+        if let transactionObserver = transactionObserver {
             switch pendingTransactionCompletion {
             case .Commit:
-                transactionDelegate.databaseDidCommit(self)
+                transactionObserver.databaseDidCommit()
             case .Rollback:
-                transactionDelegate.databaseDidRollback(self)
+                transactionObserver.databaseDidRollback()
             }
         }
     }
@@ -260,7 +243,7 @@ public final class Database {
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
             let db = unsafeBitCast(dbPointer, Database.self)
             
-            guard let transactionDelegate = db.transactionDelegate else {
+            guard let transactionObserver = db.transactionObserver else {
                 return
             }
             
@@ -269,18 +252,18 @@ public final class Database {
                 databaseName: String.fromCString(databaseName)!,
                 tableName: String.fromCString(tableName)!,  // Tests have shown that pointers are reused for various table names: we can't use those pointers as a cache key.
                 rowID: rowID)
-            transactionDelegate.database(db, didChangeWithEvent: event)
+            transactionObserver.databaseDidChangeWithEvent(event)
             }, dbPointer)
         
         sqlite3_commit_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
             db.pendingTransactionCompletion = .Commit
             
-            guard let transactionDelegate = db.transactionDelegate else {
+            guard let transactionObserver = db.transactionObserver else {
                 return 0 // commit
             }
             
-            if transactionDelegate.databaseShouldCommit(db) {
+            if transactionObserver.databaseShouldCommit() {
                 return 0 // commit
             }
             
@@ -294,51 +277,7 @@ public final class Database {
     }
     
     
-    // MARK: - Busy Mode
-    
-    /// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
-    public typealias BusyCallback = (numberOfTries: Int) -> Bool
-    
-    /**
-    When there are several connections to a database, a connection may try to
-    access the database while it is locked by another connection.
-    
-    The BusyMode enum describes the behavior of GRDB when such a situation
-    occurs:
-    
-    - .ImmediateError: The SQLITE_BUSY error is immediately returned to the
-      connection that tries to access the locked database.
-    
-    - .Timeout: The SQLITE_BUSY error will be returned only if the database
-      remains locked for more than the specified duration.
-    
-    - .Callback: Perform your custom lock handling.
-    
-    To set the busy mode of a database, use Configuration:
-    
-        let configuration = Configuration(busyMode: .Timeout(1))
-        let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
-    
-    Relevant SQLite documentation:
-    
-    - https://www.sqlite.org/c3ref/busy_timeout.html
-    - https://www.sqlite.org/c3ref/busy_handler.html
-    - https://www.sqlite.org/lang_transaction.html
-    - https://www.sqlite.org/wal.html
-    */
-    public enum BusyMode {
-        /// The SQLITE_BUSY error is immediately returned to the connection that
-        /// tries to access the locked database.
-        case ImmediateError
-        
-        /// The SQLITE_BUSY error will be returned only if the database remains
-        /// locked for more than the specified duration.
-        case Timeout(NSTimeInterval)
-        
-        /// A custom callback that is called when a database is locked.
-        /// See https://www.sqlite.org/c3ref/busy_handler.html
-        case Callback(BusyCallback)
-    }
+    // MARK: - Concurrency
     
     /// The busy handler callback, if any. See Configuration.busyMode.
     private var busyCallback: BusyCallback?
@@ -475,7 +414,7 @@ public final class Database {
     // 0   | id        | INTEGER | 0       | NULL       | 1  |
     // 1   | firstName | TEXT    | 0       | NULL       | 0  |
     // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
-    struct ColumnInfo : RowConvertible {
+    private struct ColumnInfo : RowConvertible {
         let name: String
         let type: String
         let notNull: Bool
@@ -492,7 +431,7 @@ public final class Database {
     
     // Cache for columnInfosForTable(named:)
     private var columnInfosCache: [String: [ColumnInfo]] = [:]
-    func columnInfosForTable(named tableName: String) -> [ColumnInfo] {
+    private func columnInfosForTable(named tableName: String) -> [ColumnInfo] {
         if let columnInfos = columnInfosCache[tableName] {
             return columnInfos
         } else {
@@ -520,6 +459,7 @@ public final class Database {
     
     init(path: String, configuration: Configuration) throws {
         self.configuration = configuration
+        self.transactionObserver = configuration.transactionObserver
         
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection = SQLiteConnection()
@@ -585,3 +525,175 @@ enum PrimaryKey {
     }
 }
 
+
+// =============================================================================
+// MARK: - Transactions
+
+/// A SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
+public enum TransactionKind {
+    case Deferred
+    case Immediate
+    case Exclusive
+}
+
+/// The end of a transaction: Commit, or Rollback
+public enum TransactionCompletion {
+    case Commit
+    case Rollback
+}
+
+/**
+A transaction observer is notified of all changes and transactions committed or
+rollbacked on a database.
+
+Adopting types must be a class.
+*/
+public protocol TransactionObserverType : class {
+    
+    /**
+    Notifies a database change (insert, update, or delete).
+    
+    The change is pending until the end of the current transaction, notified to
+    databaseShouldCommit(_), databaseDidCommit(_) and databaseDidRollback(_).
+    
+    This method is called on the database queue.
+    
+    **WARNING**: this method must not change the database.
+    
+    - parameter event: A database event.
+    */
+    func databaseDidChangeWithEvent(event: DatabaseEvent)
+    
+    /**
+    When a transaction is about to be committed, the transaction delegate has an
+    opportunity to rollback pending changes.
+    
+    This method is called on the database queue.
+    
+    **WARNING**: this method must not change the database.
+    
+    - returns: Whether the transaction should be committed.
+    */
+    func databaseShouldCommit() -> Bool
+    
+    /**
+    Database changes have been committed.
+    
+    This method is called on the database queue. It can change the database.
+    */
+    func databaseDidCommit()
+    
+    /**
+    Database changes have been rollbacked.
+    
+    This method is called on the database queue. It can change the database.
+    */
+    func databaseDidRollback()
+}
+
+/// Default implementations for TransactionObserverType methods.
+public extension TransactionObserverType {
+    /// Default implementation does nothing.
+    func databaseDidChangeWithEvent(event: DatabaseEvent) { }
+    
+    /// Default implementation return true.
+    func databaseShouldCommit() -> Bool { return true }
+    
+    /// Default implementation does nothing.
+    func databaseDidCommit() { }
+    
+    /// Default implementation does nothing.
+    func databaseDidRollback() { }
+}
+
+/**
+A database event, notified to TransactionObserverType.
+
+See https://www.sqlite.org/c3ref/update_hook.html for more information.
+*/
+public struct DatabaseEvent {
+    /// An event kind
+    public enum Kind: Int32 {
+        case Insert = 18    // SQLITE_INSERT
+        case Delete = 9     // SQLITE_DELETE
+        case Update = 23    // SQLITE_UPDATE
+    }
+    
+    /// The event kind
+    public let kind: Kind
+    
+    /// The database name
+    public let databaseName: String
+    
+    /// The table name
+    public let tableName: String
+    
+    /// The rowID of the changed row.
+    public let rowID: Int64
+}
+
+
+// =============================================================================
+// MARK: - Concurrency
+
+/// A SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
+enum ThreadingMode {
+    case Default
+    case MultiThread
+    case Serialized
+    
+    var sqliteOpenFlags: Int32 {
+        switch self {
+        case .Default:
+            return 0
+        case .MultiThread:
+            return SQLITE_OPEN_NOMUTEX
+        case .Serialized:
+            return SQLITE_OPEN_FULLMUTEX
+        }
+    }
+}
+
+/// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
+public typealias BusyCallback = (numberOfTries: Int) -> Bool
+
+/**
+When there are several connections to a database, a connection may try to
+access the database while it is locked by another connection.
+
+The BusyMode enum describes the behavior of GRDB when such a situation
+occurs:
+
+- .ImmediateError: The SQLITE_BUSY error is immediately returned to the
+connection that tries to access the locked database.
+
+- .Timeout: The SQLITE_BUSY error will be returned only if the database
+remains locked for more than the specified duration.
+
+- .Callback: Perform your custom lock handling.
+
+To set the busy mode of a database, use Configuration:
+
+let configuration = Configuration(busyMode: .Timeout(1))
+let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
+
+Relevant SQLite documentation:
+
+- https://www.sqlite.org/c3ref/busy_timeout.html
+- https://www.sqlite.org/c3ref/busy_handler.html
+- https://www.sqlite.org/lang_transaction.html
+- https://www.sqlite.org/wal.html
+*/
+public enum BusyMode {
+    /// The SQLITE_BUSY error is immediately returned to the connection that
+    /// tries to access the locked database.
+    case ImmediateError
+    
+    /// The SQLITE_BUSY error will be returned only if the database remains
+    /// locked for more than the specified duration.
+    case Timeout(NSTimeInterval)
+    
+    /// A custom callback that is called when a database is locked.
+    /// See https://www.sqlite.org/c3ref/busy_handler.html
+    case Callback(BusyCallback)
+}

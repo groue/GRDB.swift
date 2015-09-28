@@ -5,6 +5,18 @@ class GRDBTestCase: XCTestCase {
     var databasePath: String!
     var dbQueue: DatabaseQueue!
     var sqlQueries: [String]!
+    var dbConfiguration: Configuration {
+        var dbConfiguration = Configuration()
+        dbConfiguration.trace = { (sql, arguments) in
+            self.sqlQueries.append(sql)
+            if let arguments = arguments {
+                NSLog("GRDB: %@ -- arguments: %@", sql, arguments.description)
+            } else {
+                NSLog("GRDB: %@", sql)
+            }
+        }
+        return dbConfiguration
+    }
     
     override func setUp() {
         super.setUp()
@@ -12,15 +24,7 @@ class GRDBTestCase: XCTestCase {
         sqlQueries = []
         databasePath = "/tmp/GRDB.sqlite"
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
-        let configuration = Configuration(trace: { (sql, arguments) in
-            self.sqlQueries.append(sql)
-            if let arguments = arguments {
-                NSLog("GRDB: %@ -- arguments: %@", sql, arguments.description)
-            } else {
-                NSLog("GRDB: %@", sql)
-            }
-        })
-        dbQueue = try! DatabaseQueue(path: databasePath, configuration: configuration)
+        dbQueue = try! DatabaseQueue(path: databasePath, configuration: dbConfiguration)
     }
     
     override func tearDown() {
