@@ -1035,7 +1035,7 @@ class TableChangeObserver : TransactionObserverType {
 
 // Activate notifications:
 var config = Configuration()
-config.transactionObserver = TableChangeNotifier()
+config.transactionObserver = TableChangeObserver()
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
     configuration: config)
