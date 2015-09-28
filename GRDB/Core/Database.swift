@@ -201,14 +201,14 @@ public final class Database {
     // MARK: - Transaction Observer Support
     
     private enum StatementCompletion {
-        // Statement has ended with a rollback.
-        case Rollback
-        
         // Statement has ended with a commit (implicit or explicit).
         case Commit
         
-        // Statement has been interrupted by transactionObserver.
-        case InterruptedCommit(ErrorType)   // Interrupted commit by the transactionObserver.
+        // Statement has ended with a rollback.
+        case Rollback
+        
+        // Statement has been rollbacked by transactionObserver.
+        case ErrorRollback(ErrorType)
         
         // All other cases (CREATE TABLE, etc.)
         case Undefined
@@ -218,7 +218,7 @@ public final class Database {
     /// Consumed in updateStatementDidFail() and updateStatementDidExecute().
     private var statementCompletion: StatementCompletion = .Undefined
     
-    /// The transaction delegate is notified of database changes, commits,
+    /// The transaction observer is notified of database changes, commits,
     /// and rollbacks.
     private let transactionObserver: TransactionObserverType?
     
@@ -228,8 +228,8 @@ public final class Database {
         self.statementCompletion = .Undefined
         
         switch statementCompletion {
-        case .InterruptedCommit(let error):
-            // The transaction has been interrupted by the transactionObserver
+        case .ErrorRollback(let error):
+            // The transaction has been rollbacked by the transactionObserver
             // with an error. Notify the transactionObserver:
             transactionObserver!.databaseDidRollback(self)
             
@@ -240,14 +240,14 @@ public final class Database {
         }
 
         // TODO: trigger this callback on a COMMIT or a ROLLBACK statement
-        // without an explicit error thrown by the transaction delegate, and
+        // without an explicit error thrown by the transaction observer, and
         // see if the callbacks of sqlite3_commit_hook and sqlite3_rollback_hook
         // have been called before.
         //
         // If so, the currentTransactionCompletion is set, and we *can* notify
-        // the delegate of the failed transaction completion.
+        // the observer of the failed transaction completion.
         //
-        // If not, we don't even now how to tell the delegate that something
+        // If not, we don't even now how to tell the observer that something
         // went wrong with previously notified databaseEvents :-(
     }
     
@@ -257,15 +257,12 @@ public final class Database {
         self.statementCompletion = .Undefined
         
         switch statementCompletion {
-        case .Undefined:
-            break
         case .Commit:
             transactionObserver!.databaseDidCommit(self)
         case .Rollback:
             transactionObserver!.databaseDidRollback(self)
-        case .InterruptedCommit:
-            // Should have been handled in updateStatementDidFail()
-            fatalError("This should not happen.")
+        default:
+            break
         }
     }
     
@@ -297,15 +294,15 @@ public final class Database {
             do {
                 try db.transactionObserver!.databaseWillCommit()
                 
-                // The transactionObserver did accept the transaction.
+                // The transactionObserver accepts the transaction.
                 // Next step: updateStatementDidExecute()
                 db.statementCompletion = .Commit
                 return 0
             } catch {
-                // The transactionObserver has interrupted the transaction.
+                // The transactionObserver rollbacks the transaction.
                 //
                 // Next step: sqlite3_rollback_hook callback
-                db.statementCompletion = .InterruptedCommit(error)
+                db.statementCompletion = .ErrorRollback(error)
                 return 1
             }
             }, dbPointer)
@@ -315,9 +312,9 @@ public final class Database {
             let db = unsafeBitCast(dbPointer, Database.self)
             
             switch db.statementCompletion {
-            case .InterruptedCommit:
-                // The transactionObserver has interrupted the transaction.
-                // Don't lose that error.
+            case .ErrorRollback:
+                // The transactionObserver has rollbacked the transaction.
+                // Don't lose this information.
                 // Next step: updateStatementDidFail()
                 break
             default:
@@ -629,7 +626,7 @@ public protocol TransactionObserverType : class {
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
     /**
-    When a transaction is about to be committed, the transaction delegate has an
+    When a transaction is about to be committed, the transaction observer has an
     opportunity to rollback pending changes by throwing an error.
     
     This method is called on the database queue.
