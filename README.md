@@ -263,20 +263,22 @@ Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "A
 Do use those arguments: they prevent nasty users from injecting [nasty SQL snippets](https://en.wikipedia.org/wiki/SQL_injection) into your SQL queries.
 
 
-**Row sequences grant direct access to SQLite**, and are generally faster than row arrays. Yet:
+**Row sequences grant the fastest access to SQLite**, much faster than row arrays that hold copies of the database rows.
 
-- Don't consume row sequences outside of a database queue. Extract arrays instead:
-
-    ```swift
-    let rows = dbQueue.inDatabase { db in
-        Row.fetchAll(db, "SELECT ...")  // [Row]
-    }
-    for row in rows { ... } // OK
-    ```
-
-- Don't wrap a row sequence in an array with `Array(rows)` or `rows.filter { ... }`: you would not get the distinct rows you expect. Use `Row.fetchAll(...)` instead.
-
-- Make sure you make a copy whenever you extract a row from the sequence for later use: `row.copy()`.
+> **Note**: this performance advantage comes with extra precautions when using row sequences:
+> 
+> - **Don't consume a row sequence outside of the database queue.** Extract a row array with `Row.fetchAll(...)` instead:
+> 
+>     ```swift
+>     let rows = dbQueue.inDatabase { db in
+>         Row.fetchAll(db, "SELECT ...")  // [Row]
+>     }
+>     for row in rows { ... } // OK
+>     ```
+> 
+> - **Don't wrap a row sequence in an array** with `Array(rows)` or `rows.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
+> 
+> - **Make sure you copy a row** whenever you extract it from the sequence for later use: `row.copy()`.
 
 
 #### Column Values
@@ -305,15 +307,20 @@ let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.
 let date: NSDate       = row.value(named: "date")       // NSDate
 ```
 
-You can also use the `as` type casting operator, but **beware** (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+You can also use the `as` type casting operator:
 
 ```swift
 row.value(...) as Int    // OK: Int
 row.value(...) as Int?   // OK: Int?
 row.value(...) as Int!   // OK: Int!
-row.value(...) as! Int   // NO NO NO DON'T DO THAT!
-row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 ```
+
+> **Warning**: avoid the `as!` and `as?` operators (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+> 
+> ```swift
+> row.value(...) as! Int   // NO NO NO DON'T DO THAT!
+> row.value(...) as? Int   // NO NO NO DON'T DO THAT!
+> ```
 
 
 #### Rows as Dictionaries
@@ -502,7 +509,7 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
 
-> This format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
+> **Note**: This format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
 >
 > Yet, this format may not fit your needs. We provide [below](#custom-value-types) some sample code for storing dates as timestamps. You can adapt it for your application.
 
@@ -1144,6 +1151,8 @@ class Person : Record {
 
 See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
 
+> **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. So if you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+
 Now you can fetch **sequences** of records, **arrays**, or **single** instances:
 
 ```swift
@@ -1164,8 +1173,6 @@ let persons = dbQueue.inDatabase { db in
 }
 for person in persons { ... } // OK
 ```
-
-For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. So if you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 
 #### Ad Hoc Subclasses
