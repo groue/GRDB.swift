@@ -975,20 +975,20 @@ let dbQueue = try DatabaseQueue(path: databasePath, configuration: config)
 
 All protocol callbacks are optional, and invoked on the database queue.
 
-**All INSERT, UPDATE AND DELETE statements notify changes** to databaseDidChangeWithEvent(_), including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+**All INSERT, UPDATE AND DELETE statements notify changes** to databaseDidChangeWithEvent, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
-Those changes are not actually applied until databaseDidCommit(_) is called. On the other side, databaseDidRollback(_) confirms their invalidation:
+Those changes are not actually applied until databaseDidCommit is called. On the other side, databaseDidRollback confirms their invalidation:
 
 ```swift
 try dbQueue.inTransaction do { db in
-    try db.execute("INSERT ...")    // DidChange
-    try db.execute("UPDATE ...")    // DidChange
-    return .Commit                  // WillCommit, DidCommit
+    try db.execute("INSERT ...")    // didChange
+    try db.execute("UPDATE ...")    // didChange
+    return .Commit                  // willCommit, didCommit
 }
 
 try dbQueue.inTransaction do { db in
     ...
-    return .Rollback                // DidRollback
+    return .Rollback                // didRollback
 }
 ```
 
@@ -996,25 +996,25 @@ Database statements that are executed outside of a transaction do not drop off t
 
 ```swift
 try dbQueue.inDatabase do { db in
-    try db.execute("INSERT ...")    // DidChange, WillCommit, DidCommit
-    try db.execute("UPDATE ...")    // DidChange, WillCommit, DidCommit
+    try db.execute("INSERT ...")    // didChange, willCommit, didCommit
+    try db.execute("UPDATE ...")    // didChange, willCommit, didCommit
 }
 ```
 
-**Eventual errors** thrown from databaseWillCommit() are exposed to the application code:
+**Eventual errors** thrown from databaseWillCommit are exposed to the application code:
 
 ```swift
 do {
     try dbQueue.inTransaction do { db in
         ...
-        return .Commit                  // WillCommit, DidRollback
+        return .Commit                  // willCommit, didRollback
     }
 } catch {
     // The error thrown by the transaction observer.
 }
 ```
 
-The databaseDidChangeWithEvent(_) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit(_) and databaseDidRollback(_) which can use their database argument.
+The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
 **Sample code**
