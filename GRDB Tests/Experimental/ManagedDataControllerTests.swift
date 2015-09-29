@@ -216,6 +216,9 @@ class RecordWithManagedData : Record {
     }
     
     // Not OK: what is this useless "data" columns?
+    // Answer: this is an artificial column that makes our tests run despite
+    // the fact that Record.update() does nothing when there is nothing to
+    // update.
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "data": nil]
     }
