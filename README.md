@@ -975,9 +975,17 @@ public protocol TransactionObserverType : class {
 }
 ```
 
-Those four callbacks are all optional, and all invoked on the database queue.
+**There is one transaction observer per database:**
 
-Changes notified to `databaseDidChangeWithEvent(_)` are triggered by `INSERT`, `UPDATE` and `DELETE` statements, and also by `ON DELETE` and `ON UPDATE` actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+```swift
+var config = Configuration()
+config.transactionObserver = MyObserver()
+let dbQueue = try DatabaseQueue(path: databasePath, configuration: config)
+```
+
+All protocol callbacks are optional, and invoked on the database queue.
+
+**All INSERT, UPDATE AND DELETE statements notify changes** to `databaseDidChangeWithEvent(_)`, including indirect ones triggered by `ON DELETE` and `ON UPDATE` actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
 Those changes are not actually applied until `databaseDidCommit(_)` is called. On the other side, `databaseDidRollback(_)` confirms their invalidation:
 
@@ -994,7 +1002,7 @@ try dbQueue.inTransaction do { db in
 }
 ```
 
-Database statements that are executed outside of a transaction are wrapped in an *implicit transaction*:
+Database statements that are executed outside of a transaction do not drop off the radar:
 
 ```swift
 try dbQueue.inDatabase do { db in
@@ -1003,12 +1011,27 @@ try dbQueue.inDatabase do { db in
 }
 ```
 
-**Warning**: `databaseDidChangeWithEvent(_)` and `databaseShouldCommit()` must not read or write to the database. This limitation does not apply to `databaseDidCommit(_)` and `databaseDidRollback(_)` which can use their database argument.
+**Eventual errors** thrown from `databaseWillCommit()` are exposed to the application code:
+
+```swift
+do {
+    try dbQueue.inTransaction do { db in
+        ...
+        return .Commit                  // WillCommit, DidRollback
+    }
+} catch {
+    // The error thrown by the transaction observer.
+}
+```
+
+The `databaseDidChangeWithEvent(_)` and `databaseWillCommit()` callbacks must not touch the SQLite database. This limitation does not apply to `databaseDidCommit(_)` and `databaseDidRollback(_)` which can use their database argument.
 
 
 **Sample code**
 
-As a sample code, let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+Users of Core Data have recognized the roots of NSFetchedResultsControllerDelegate. Our sample code won't go so far.
+
+Still, let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
 
 ```swift
 class TableChangeObserver : TransactionObserverType {
@@ -1039,13 +1062,6 @@ class TableChangeObserver : TransactionObserverType {
         self.changedTableNames = []
     }
 }
-
-// Activate notifications:
-var config = Configuration()
-config.transactionObserver = TableChangeObserver()
-let dbQueue = try DatabaseQueue(
-    path: "/path/to/database.sqlite",
-    configuration: config)
 ```
 
 
