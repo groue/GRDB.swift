@@ -270,27 +270,66 @@ class ManagedDataControllerTests : GRDBTestCase {
         }
     }
     
-    func testBlah() {
+    func testImplicitTransaction() {
         assertNoError {
+            // Test that we can store data in the file system...
+            let record = RecordWithManagedData()
             try dbQueue.inDatabase { db in
-                let record = RecordWithManagedData()
                 // TODO: this explicit line is a problem
                 record.managedData.controller = self.managedDataController
                 record.data = "foo".dataUsingEncoding(NSUTF8StringEncoding)
                 try record.save(db)
             }
             
+            // ... and get it back after a fetch:
             dbQueue.inDatabase { db in
-                let record = RecordWithManagedData.fetchOne(db, "SELECT * FROM datas")!
-                // TODO: this explicit line is a problem
-                record.managedData.controller = self.managedDataController
-                XCTAssertEqual(record.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                reloadedRecord.managedData.controller = self.managedDataController
+                XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
             }
         }
     }
     
-    func testError() {
+    func testExplicitTransaction() {
         assertNoError {
+            // Test that we can stored data in the file system...
+            let record = RecordWithManagedData()
+            record.managedData.controller = self.managedDataController
+            try dbQueue.inDatabase { db in
+                record.data = "foo".dataUsingEncoding(NSUTF8StringEncoding)
+                try record.save(db)
+            }
+            
+            try dbQueue.inTransaction { db in
+                // ... and that changes...
+                record.data = "bar".dataUsingEncoding(NSUTF8StringEncoding)
+                try record.save(db)
+                
+                // ... after changes...
+                record.data = "baz".dataUsingEncoding(NSUTF8StringEncoding)
+                try record.save(db)
+                
+                // ... are not applied...
+                let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                reloadedRecord.managedData.controller = self.managedDataController
+                XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                
+                // ... until database commit:
+                return .Commit
+            }
+            
+            // We find our modified data after commit:
+            dbQueue.inDatabase { db in
+                let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                reloadedRecord.managedData.controller = self.managedDataController
+                XCTAssertEqual(reloadedRecord.data, "baz".dataUsingEncoding(NSUTF8StringEncoding))
+            }
+        }
+    }
+    
+    func testCommitError() {
+        assertNoError {
+            // Test that we can stored data in the file system...
             let record = RecordWithManagedData()
             record.managedData.controller = self.managedDataController
             try dbQueue.inDatabase { db in
@@ -300,12 +339,20 @@ class ManagedDataControllerTests : GRDBTestCase {
             
             do {
                 try dbQueue.inTransaction { db in
+                    // ... and that changes...
                     record.data = "bar".dataUsingEncoding(NSUTF8StringEncoding)
                     try record.save(db)
-
+                    
+                    // ... after changes...
                     record.data = "baz".dataUsingEncoding(NSUTF8StringEncoding)
                     try record.save(db)
                     
+                    // ... are not applied...
+                    let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                    reloadedRecord.managedData.controller = self.managedDataController
+                    XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
+
+                    // ... until database commit, which may fail:
                     let forbiddenRecord = RecordWithManagedData()
                     forbiddenRecord.managedData.controller = self.managedDataController
                     forbiddenRecord.data = "Bunny".dataUsingEncoding(NSUTF8StringEncoding)
@@ -317,12 +364,12 @@ class ManagedDataControllerTests : GRDBTestCase {
                 XCTAssertEqual(error.domain, "ManagedDataController")
             }
             
-            let data = dbQueue.inDatabase { db -> NSData? in
-                let record = RecordWithManagedData.fetchOne(db, "SELECT * FROM datas")!
-                record.managedData.controller = self.managedDataController
-                return record.data
+            // We find our original data back after failure:
+            dbQueue.inDatabase { db in
+                let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                reloadedRecord.managedData.controller = self.managedDataController
+                XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
             }
-            XCTAssertEqual(data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
         }
     }
 }
