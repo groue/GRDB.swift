@@ -304,7 +304,7 @@ Ask for an optional when the value may be NULL:
 let name: String? = row.value(named: "name")
 ```
 
-All types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol can be extracted. Pick the one you need:
+Pick the type you need. All types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol can be extracted:
 
 ```swift
 let bookCount: Int     = row.value(named: "bookCount")
