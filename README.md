@@ -237,6 +237,12 @@ The last two methods are the only ones that don't take a custom SQL query as an 
 
 ### Row Queries
 
+- [Fetching Rows](#fetching-rows)
+- [Column Values](#column-values)
+- [Rows as Dictionaries](#rows-as-dictionaries)
+- [RowConvertible Protocol](#rowconvertible-protocol)
+
+
 Fetch **sequences** of rows, **arrays**, or a **single** row:
 
 ```swift
@@ -342,7 +348,7 @@ for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
 ```
 
 
-#### RowConvertible
+#### RowConvertible Protocol
 
 You may use the `RowConvertible` protocol, which **grants fetching methods to any type** that can be initialized from a database row:
 
