@@ -360,7 +360,7 @@ Rows are not real dictionaries, though. They may contain duplicate keys:
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
 row.columnNames     // ["foo", "foo"]
 row.databaseValues  // [1, 2]
-row["foo"]          // 1 (the value for the leftmost column `a`)
+row["foo"]          // 1 (the value for the leftmost column "foo")
 for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
