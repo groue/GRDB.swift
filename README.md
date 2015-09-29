@@ -243,19 +243,19 @@ You can fetch **Rows**, **Values**, and **Records**:
 
 ```swift
 dbQueue.inDatabase { db in
-    Row.fetch(db, "SELECT ...", ...)                 // DatabaseSequence<Row>
-    Row.fetchAll(db, "SELECT ...", ...)              // [Row]
-    Row.fetchOne(db, "SELECT ...", ...)              // Row?
+    Row.fetch(db, "SELECT ...", ...)             // DatabaseSequence<Row>
+    Row.fetchAll(db, "SELECT ...", ...)          // [Row]
+    Row.fetchOne(db, "SELECT ...", ...)          // Row?
     
-    String.fetch(db, "SELECT ...", ...)              // DatabaseSequence<String>
-    String.fetchAll(db, "SELECT ...", ...)           // [String]
-    String.fetchOne(db, "SELECT ...", ...)           // String?
+    String.fetch(db, "SELECT ...", ...)          // DatabaseSequence<String>
+    String.fetchAll(db, "SELECT ...", ...)       // [String]
+    String.fetchOne(db, "SELECT ...", ...)       // String?
     
-    Person.fetch(db, "SELECT ...", ...)              // DatabaseSequence<Person>
-    Person.fetchAll(db, "SELECT ...", ...)           // [Person]
-    Person.fetchOne(db, "SELECT ...", ...)           // Person?
-    Person.fetchOne(db, primaryKey: 12)              // Person?
-    Person.fetchOne(db, key: ["name": "Arthur"])     // Person?
+    Person.fetch(db, "SELECT ...", ...)          // DatabaseSequence<Person>
+    Person.fetchAll(db, "SELECT ...", ...)       // [Person]
+    Person.fetchOne(db, "SELECT ...", ...)       // Person?
+    Person.fetchOne(db, primaryKey: 12)          // Person?
+    Person.fetchOne(db, key: ["name": "Arthur"]) // Person?
 }
 ```
 
