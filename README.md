@@ -1075,9 +1075,11 @@ let person = Person(name: "Arthur")
 person.save(db)
 ```
 
-**Record is not a smart class.** It is no replacement for Core Data, or for an Active Record pattern. It does not provide any uniquing. It has no knowledge of your database schema, no notion of external references and table relationships, and will not generate JOIN queries for you.
+**Record is not a smart class.** It is no replacement for Core Data's NSManagedObject, or for an Active Record pattern. It does not provide any uniquing. It has no knowledge of your database schema, no notion of external references and table relationships, and will not generate JOIN queries for you.
 
 Yet, it does a few things well:
+
+- **Records can be used from any thread**. Not being a replacement for NSManagedObject comes with advantages.
 
 - **It eats any SQL query.** A Record subclass is often tied to a database table, but this is not a requirement at all.
 
