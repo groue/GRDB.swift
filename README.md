@@ -975,9 +975,9 @@ let dbQueue = try DatabaseQueue(path: databasePath, configuration: config)
 
 All protocol callbacks are optional, and invoked on the database queue.
 
-**All INSERT, UPDATE AND DELETE statements notify changes** to `databaseDidChangeWithEvent(_)`, including indirect ones triggered by `ON DELETE` and `ON UPDATE` actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+**All INSERT, UPDATE AND DELETE statements notify changes** to databaseDidChangeWithEvent(_), including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
-Those changes are not actually applied until `databaseDidCommit(_)` is called. On the other side, `databaseDidRollback(_)` confirms their invalidation:
+Those changes are not actually applied until databaseDidCommit(_) is called. On the other side, databaseDidRollback(_) confirms their invalidation:
 
 ```swift
 try dbQueue.inTransaction do { db in
@@ -1001,7 +1001,7 @@ try dbQueue.inDatabase do { db in
 }
 ```
 
-**Eventual errors** thrown from `databaseWillCommit()` are exposed to the application code:
+**Eventual errors** thrown from databaseWillCommit() are exposed to the application code:
 
 ```swift
 do {
@@ -1014,7 +1014,7 @@ do {
 }
 ```
 
-The `databaseDidChangeWithEvent(_)` and `databaseWillCommit()` callbacks must not touch the SQLite database. This limitation does not apply to `databaseDidCommit(_)` and `databaseDidRollback(_)` which can use their database argument.
+The databaseDidChangeWithEvent(_) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit(_) and databaseDidRollback(_) which can use their database argument.
 
 
 **Sample code**
