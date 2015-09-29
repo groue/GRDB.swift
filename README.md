@@ -263,7 +263,7 @@ Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "A
 Do use those arguments: they prevent nasty users from injecting [nasty SQL snippets](https://en.wikipedia.org/wiki/SQL_injection) into your SQL queries.
 
 
-**Row sequences grant the fastest access to SQLite**, much faster than row arrays that hold copies of the database rows.
+**Row sequences grant the fastest and the most memory-efficient access to SQLite**, much more than row arrays that hold copies of the database rows.
 
 > **Note**: this performance advantage comes with extra precautions when using row sequences:
 > 
