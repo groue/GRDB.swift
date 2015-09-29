@@ -1045,21 +1045,21 @@ class TableChangeObserver : TransactionObserverType {
     func databaseDidCommit(db: Database) {
         // Extract the names of changed tables, and reset until
         // next database event:
-        let changedTableNames = self.changedTableNames
-        self.changedTableNames = []
+        let notifiedChangedTableNames = changedTableNames
+        changedTableNames = []
         
         // Notify
         dispatch_async(dispatch_get_main_queue()) {
             NSNotificationCenter.defaultCenter().postNotificationName(
                 "DatabaseDidChangeNotification",
                 object: self,
-                userInfo: ["ChangedTableNames": changedTableNames])
+                userInfo: ["ChangedTableNames": notifiedChangedTableNames])
         }
     }
     
     func databaseDidRollback(db: Database) {
         // Forget the names of changed tables:
-        self.changedTableNames = []
+        changedTableNames = []
     }
 }
 ```
