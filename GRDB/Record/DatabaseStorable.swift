@@ -123,8 +123,7 @@ final class DataMapper {
         return insertStatement
     }
     
-    /// Returns nil if there is no column to update
-    func updateStatement() -> UpdateStatement? {
+    func updateStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
             fatalError("Invalid primary key in \(storable)")
@@ -137,8 +136,16 @@ final class DataMapper {
         }
         
         // We need something to update.
-        guard updatedDictionary.count > 0 else {
-            return nil
+        if updatedDictionary.count == 0 {
+            // IMPLEMENTATION NOTE
+            //
+            // It is important to update something, so that
+            // TransactionObserverType can observe a change even though this
+            // change is useless.
+            //
+            // The goal is to be able to write tests with minimal tables,
+            // including tables made of a single primary key column.
+            updatedDictionary = storedDatabaseDictionary
         }
         
         // Update

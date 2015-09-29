@@ -6,7 +6,6 @@
     - [X] databaseShouldCommit() should be renamed databaseWillCommit(), and throws. The error should obviously pop up.
     - [X] test callbacks when a regular error is thrown (such as a constraint error, for example)
     - [ ] See if TransactionObserver makes it possible to provide external data storage.
-- [ ] Have Record.update(_) execute a database statement even if there is no column to update. The fact that it does not today makes TransitionObserver unable to handle this kind of records like others. Drop this exception, and make sure we have a test for it.
 
 
 Not sure:

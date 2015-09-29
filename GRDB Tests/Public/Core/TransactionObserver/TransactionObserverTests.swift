@@ -581,4 +581,31 @@ class TransactionObserverTests: GRDBTestCase {
         }
     }
     
+    func testMinimalRowIDUpdateObservation() {
+        // Here we test that updating a Record made of a single primary key
+        // column performs an actual UPDATE statement, even though it is
+        // totally useless (UPDATE id = 1 FROM records WHERE id = 1).
+        //
+        // It is important to update something, so that TransactionObserverType
+        // can observe a change.
+        //
+        // The goal is to be able to write tests with minimal tables,
+        // including tables made of a single primary key column. The less we
+        // have exceptions, the better it is.
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try MinimalRowID.setupInDatabase(db)
+                
+                let record = MinimalRowID()
+                try record.save(db)
+                
+                self.observer.resetCounts()
+                try record.update(db)
+                XCTAssertEqual(self.observer.didChangeCount, 1)
+                XCTAssertEqual(self.observer.willCommitCount, 1)
+                XCTAssertEqual(self.observer.didCommitCount, 1)
+                XCTAssertEqual(self.observer.didRollbackCount, 0)
+            }
+        }
+    }
 }

@@ -329,22 +329,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
               updated.
     */
     public func update(db: Database) throws {
-        // We'll throw RecordError.RecordNotFound if record does not exist.
-        let exists: Bool
-        
-        if let statement = DataMapper(db, self).updateStatement() {
-            let changes = try statement.execute()
-            exists = changes.changedRowCount > 0
-        } else {
-            // No statement means that there is no column to update.
-            //
-            // I remember opening rdar://10236982 because CoreData was crashing
-            // with entities without any attribute. So let's accept Record
-            // that don't have any column to update.
-            exists = self.exists(db)
-        }
-        
-        if !exists {
+        let changes = try DataMapper(db, self).updateStatement().execute()
+        if changes.changedRowCount == 0 {
             throw RecordError.RecordNotFound(self)
         }
         
