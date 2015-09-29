@@ -1,6 +1,13 @@
 import XCTest
 import GRDB
 
+// See if TransactionObserverType can provide robust NSData external storage.
+//
+// The answer is yes, we can.
+//
+// However this requires records to be *managed*. All instances of our
+// RecordWithManagedData must be given their manager after instanciation.
+
 class ManagedDataController : TransactionObserverType {
     // Base directory
     let path: String
@@ -312,7 +319,7 @@ class ManagedDataControllerTests : GRDBTestCase {
                 record.data = "baz".dataUsingEncoding(NSUTF8StringEncoding)
                 try record.save(db)
                 
-                // ... are not applied...
+                // ... are not applied in the file system...
                 let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
                 reloadedRecord.managedData.controller = self.managedDataController
                 XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
@@ -350,7 +357,7 @@ class ManagedDataControllerTests : GRDBTestCase {
                     record.data = "baz".dataUsingEncoding(NSUTF8StringEncoding)
                     try record.save(db)
                     
-                    // ... are not applied...
+                    // ... are not applied in the file system...
                     let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
                     reloadedRecord.managedData.controller = self.managedDataController
                     XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
