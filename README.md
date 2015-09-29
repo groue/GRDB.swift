@@ -312,20 +312,18 @@ row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 
 #### Rows as Dictionaries
 
-The `row.value(named:)` and `row.value(atIndex:)` methods above require that you know the row structure: which columns are available, in which order.
-
-When you process an unknown row, you will prefer thinking of it as a dictionary of `DatabaseValue`, an intermediate type between SQLite and your values:
+You may prefer thinking of rows as dictionaries of `DatabaseValue`, an intermediate type between SQLite and your values:
 
 ```swift
 // Test if the column `date` is present:
 if let databaseValue = row["date"] {
     // Extract the desired Swift type from the database value:
-    let dateString: String = databaseValue.value()    // "2015-09-11 18:14:15.123"
-    let date: NSDate       = databaseValue.value()    // NSDate
+    let dateString: String = databaseValue.value() // "2015-09-11 18:14:15.123"
+    let date: NSDate       = databaseValue.value() // NSDate
 }
 ```
 
-You can also iterate all the tuples (columnName, databaseValue) in a row:
+Iterate all the tuples (columnName, databaseValue) in a row:
 
 ```swift
 for (columnName, databaseValue) in row {
@@ -333,7 +331,7 @@ for (columnName, databaseValue) in row {
 }
 ```
 
-Rows, unlike dictionaries, may contain duplicate keys:
+Rows are not real dictionaries, though. They may contain duplicate keys:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS a, 2 AS a")!
