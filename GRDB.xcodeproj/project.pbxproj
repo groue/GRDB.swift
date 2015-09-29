@@ -157,6 +157,8 @@
 		56DAC7101BB504400010FE01 /* StephenCelisSQLitePerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA221B1BB41533009A04C5 /* StephenCelisSQLitePerformanceTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56E589161BB8666F00CC0140 /* ExperimentalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E589151BB8666F00CC0140 /* ExperimentalTests.swift */; settings = {ASSET_TAGS = (); }; };
 		56E589171BB8666F00CC0140 /* ExperimentalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E589151BB8666F00CC0140 /* ExperimentalTests.swift */; settings = {ASSET_TAGS = (); }; };
+		56E5891F1BBA5D5400CC0140 /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E5891E1BBA5D5400CC0140 /* NSURL.swift */; settings = {ASSET_TAGS = (); }; };
+		56E589201BBA5D5400CC0140 /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E5891E1BBA5D5400CC0140 /* NSURL.swift */; settings = {ASSET_TAGS = (); }; };
 		56E5D7D41B4D3FEE00430942 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E5D7CA1B4D3FED00430942 /* GRDB.framework */; };
 		56E5D7FE1B4D422E00430942 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3773F319C8CBB3004FCF85 /* GRDB.framework */; };
 		56E5D8041B4D424400430942 /* GRDBTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */; };
@@ -358,6 +360,7 @@
 		56CB92EC1BA453E500DFD5FC /* CrashTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CrashTests.swift; sourceTree = "<group>"; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		56E589151BB8666F00CC0140 /* ExperimentalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExperimentalTests.swift; sourceTree = "<group>"; };
+		56E5891E1BBA5D5400CC0140 /* NSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSURL.swift; sourceTree = "<group>"; };
 		56E5D7CA1B4D3FED00430942 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		56E5D7D31B4D3FEE00430942 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56E5D7F91B4D422D00430942 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -471,6 +474,7 @@
 				56A238AC1B9C90090082EB20 /* NSNull.swift */,
 				56A238B21B9C919D0082EB20 /* NSNumber.swift */,
 				56A238AF1B9C90BB0082EB20 /* NSString.swift */,
+				56E5891E1BBA5D5400CC0140 /* NSURL.swift */,
 				56A238A91B9C7E540082EB20 /* StatementArgumentsFoundationInitializers.swift */,
 			);
 			path = Foundation;
@@ -1058,6 +1062,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				56A238901B9C75030082EB20 /* UpdateStatement.swift in Sources */,
+				56E589201BBA5D5400CC0140 /* NSURL.swift in Sources */,
 				56A2388E1B9C75030082EB20 /* StatementArguments.swift in Sources */,
 				56A2380A1B9C6DD20082EB20 /* StandardLibraryTypes.swift in Sources */,
 				5614DEF11BA9DA15003163B3 /* SQLiteStatementConvertible.swift in Sources */,
@@ -1209,6 +1214,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				56A238AD1B9C90090082EB20 /* NSNull.swift in Sources */,
+				56E5891F1BBA5D5400CC0140 /* NSURL.swift in Sources */,
 				56A2389D1B9C752B0082EB20 /* RowConvertible.swift in Sources */,
 				56A2388D1B9C75030082EB20 /* StatementArguments.swift in Sources */,
 				5614DEF01BA9DA15003163B3 /* SQLiteStatementConvertible.swift in Sources */,
