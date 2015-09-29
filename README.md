@@ -357,11 +357,11 @@ for (columnName, databaseValue) in row {
 Rows are not real dictionaries, though. They may contain duplicate keys:
 
 ```swift
-let row = Row.fetchOne(db, "SELECT 1 AS a, 2 AS a")!
-row.columnNames     // ["a", "a"]
+let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
+row.columnNames     // ["foo", "foo"]
 row.databaseValues  // [1, 2]
-row["a"]            // 1 (the value for the leftmost column `a`)
-for (columnName, databaseValue) in row { ... } // ("a", 1), ("a", 2)
+row["foo"]          // 1 (the value for the leftmost column `a`)
+for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
 
