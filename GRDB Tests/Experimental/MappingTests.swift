@@ -102,6 +102,8 @@ class MappedRecord : Record {
         super.init()
     }
     
+    // The experiment:
+    
     func map(mapping: Mapping) {
         id <-> mapping["id"]
         firstName <-> mapping["firstName"]
@@ -131,7 +133,7 @@ class MappedRecord : Record {
 }
 
 
-class ExperimentalTests: GRDBTestCase {
+class MappingTests: GRDBTestCase {
 
     func testExample() {
         assertNoError {
