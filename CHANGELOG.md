@@ -3,6 +3,10 @@ Release Notes
 
 ## Next release
 
+**New**
+
+- Support for NSURL
+
 **Breaking Changes**
 
 - The improved TransactionObserverType protocol lets adopting types modify the database after a successful commit or rollback, and abort a transaction with an error.
