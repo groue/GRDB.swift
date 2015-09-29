@@ -243,6 +243,8 @@ The last two methods are the only ones that don't take a custom SQL query as an 
 - [RowConvertible Protocol](#rowconvertible-protocol)
 
 
+#### Fetching Rows
+
 Fetch **sequences** of rows, **arrays**, or a **single** row:
 
 ```swift
@@ -263,7 +265,13 @@ Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "A
 Do use those arguments: they prevent nasty users from injecting [nasty SQL snippets](https://en.wikipedia.org/wiki/SQL_injection) into your SQL queries.
 
 
-**Row sequences grant the fastest and the most memory-efficient access to SQLite**, much more than row arrays that hold copies of the database rows.
+**Row sequences grant the fastest and the most memory-efficient access to SQLite**, much more than row arrays that hold copies of the database rows:
+
+```swift
+for row in Row.fetch(db, "SELECT ...") {
+    // Can't be closer to SQLite
+}
+```
 
 > **Note**: this performance advantage comes with extra precautions when using row sequences:
 > 
@@ -306,6 +314,8 @@ let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
 let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.123"
 let date: NSDate       = row.value(named: "date")       // NSDate
 ```
+
+Don't miss the [NSData](#nsdata-and-memory-savings) paragraph if you target memory efficiency.
 
 You can also use the `as` type casting operator:
 
