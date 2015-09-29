@@ -213,7 +213,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
                  
         // Saves the person if it is edited (fetched then modified, or created):
         if person.databaseEdited {
-            person.save(db) // inserts or updates
+            try person.save(db) // inserts or updates
         }
     
     Precisely speaking, a record is edited if its *storedDatabaseDictionary*
