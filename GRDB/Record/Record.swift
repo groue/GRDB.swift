@@ -180,7 +180,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     Returns a copy of `self`, initialized from the values of
     storedDatabaseDictionary.
 
-    Note thet the eventual primary key is copied, as well as the
+    Note that the eventual primary key is copied, as well as the
     databaseEdited flag.
     
     - returns: A copy of self.
