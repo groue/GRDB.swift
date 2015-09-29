@@ -1119,7 +1119,7 @@ Yet, it does a few things well:
     person.age = 41
     person.databaseChanges.keys // ["name"]
     if person.databaseEdited {
-        person.save(db)
+        try person.save(db)
     }
     ```
 
