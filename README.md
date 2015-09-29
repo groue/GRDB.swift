@@ -340,7 +340,7 @@ You may prefer thinking of rows as dictionaries of `DatabaseValue`, an intermedi
 ```swift
 // Test if the column `date` is present:
 if let databaseValue = row["date"] {
-    // Extract the desired Swift type from the database value:
+    // Pick the type you need:
     let dateString: String = databaseValue.value() // "2015-09-11 18:14:15.123"
     let date: NSDate       = databaseValue.value() // NSDate
 }
