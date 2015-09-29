@@ -60,37 +60,6 @@ dbQueue.inDatabase { db in
 
 **Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that a straightforward API around SQL is not a bad alternative.
 
-```swift
-// GRDB
-let users = dbQueue.inDatabase { db in
-    User.fetchAll(db,
-        "SELECT * FROM users WHERE email LIKE ? ORDER BY lastModified DESC",
-        arguments: ["%@mac.com"])
-}
-
-// SQLite.swift
-let users = UserTable
-    .filter(emailColumn.like("%@mac.com"))
-    .order(lastModifiedColumn.desc)
-    .map { User(dictionary: dictionaryFromRow($0)) }
-
-// FMDB
-var users: [User] = []
-dbQueue.inDatabase { db in
-    if let rs = db.executeQuery(
-        "SELECT * FROM users WHERE email LIKE ? ORDER BY lastModified DESC",
-        withArgumentsInArray: ["%@mac.com"])
-    {
-        while rs.next() {
-            users.append(User(dictionary: rs.resultDictionary()))
-        }
-    } else {
-        // Handle error
-    }
-}
-```
-
-
 
 Benchmarks
 ----------
