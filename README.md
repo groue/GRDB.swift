@@ -1318,7 +1318,7 @@ try dbQueue.inTransaction { db in
                  
     // Saves the person if it is edited (fetched then modified, or created):
     if person.databaseEdited {
-        person.save(db) // inserts or updates
+        try person.save(db) // inserts or updates
     }
     
     return .Commit
