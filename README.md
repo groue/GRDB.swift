@@ -404,15 +404,15 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Sequences can not be consumed outside of a database queue, but arrays are OK:
-
-```swift
-let names = dbQueue.inDatabase { db in
-    return String.fetchAll(db, "SELECT name ...")             // [String]
-    return String.fetch(db, "SELECT name ...").filter { ... } // [String]
-}
-for name in names { ... } // OK
-```
+> **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
+> 
+> ```swift
+> let names = dbQueue.inDatabase { db in
+>     return String.fetchAll(db, "SELECT name ...")             // [String]
+>     return String.fetch(db, "SELECT name ...").filter { ... } // [String]
+> }
+> for name in names { ... } // OK
+> ```
 
 The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
@@ -1151,7 +1151,7 @@ class Person : Record {
 
 See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
 
-> **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. So if you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+> **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 Now you can fetch **sequences** of records, **arrays**, or **single** instances:
 
@@ -1164,15 +1164,15 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Sequences can not be consumed outside of a database queue, but arrays are OK:
-
-```swift
-let persons = dbQueue.inDatabase { db in
-    return Person.fetchAll(db, "SELECT ...")             // [Person]
-    return Person.fetch(db, "SELECT ...").filter { ... } // [Person]
-}
-for person in persons { ... } // OK
-```
+> **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
+> 
+> ```swift
+> let persons = dbQueue.inDatabase { db in
+>     return Person.fetchAll(db, "SELECT ...")             // [Person]
+>     return Person.fetch(db, "SELECT ...").filter { ... } // [Person]
+> }
+> for person in persons { ... } // OK
+> ```
 
 
 #### Ad Hoc Subclasses
