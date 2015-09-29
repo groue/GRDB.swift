@@ -310,9 +310,9 @@ let date: NSDate       = row.value(named: "date")       // NSDate
 You can also use the `as` type casting operator:
 
 ```swift
-row.value(...) as Int    // OK: Int
-row.value(...) as Int?   // OK: Int?
-row.value(...) as Int!   // OK: Int!
+row.value(...) as Int
+row.value(...) as Int?
+row.value(...) as Int!
 ```
 
 > **Warning**: avoid the `as!` and `as?` operators (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
