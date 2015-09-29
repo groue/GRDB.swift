@@ -747,8 +747,8 @@ remains locked for more than the specified duration.
 
 To set the busy mode of a database, use Configuration:
 
-let configuration = Configuration(busyMode: .Timeout(1))
-let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
+    let configuration = Configuration(busyMode: .Timeout(1))
+    let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
 
 Relevant SQLite documentation:
 
