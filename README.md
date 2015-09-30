@@ -238,8 +238,8 @@ The last two methods are the only ones that don't take a custom SQL query as an 
 - [Fetching Rows](#fetching-rows)
 - [Column Values](#column-values)
 - [Rows as Dictionaries](#rows-as-dictionaries)
-- [RowConvertible Protocol](#rowconvertible-protocol)
 - [Convenience Rows](#convenience-rows)
+- [RowConvertible Protocol](#rowconvertible-protocol)
 
 
 #### Fetching Rows
@@ -371,6 +371,13 @@ row.toDictionary()  // NSDictionary
 ```
 
 
+#### Convenience Rows
+
+Rows is a fundamental type in GRDB, used by many other APIs.
+
+From time to time, you'll want to build a custom one from scratch: use `Row(dictionary:)`.
+
+
 #### RowConvertible Protocol
 
 You may use the `RowConvertible` protocol, which **grants fetching methods to any type** that can be initialized from a database row:
@@ -399,18 +406,6 @@ PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
 
 
 See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
-
-
-#### Convenience Rows
-
-Rows is a fundamental type in GRDB, used by many other APIs.
-
-From time to time, you'll want to build a custom one from scratch: use `Row(dictionary:)`.
-
-```swift
-let row = Row(dictionary: ["title": "Rome", "latitude": 41.8919, "longitude": 12.5113])
-let poi = PointOfInterest(row: row)
-```
 
 
 ### Value Queries
