@@ -519,7 +519,7 @@ public final class Database {
         try setupForeignKeys()
         setupBusyMode()
         setupTransactionHooks()
-        setupTrace()
+        setupTrace()    // Last, after initialization queries have been performed.
     }
     
     // Initializes an in-memory database
