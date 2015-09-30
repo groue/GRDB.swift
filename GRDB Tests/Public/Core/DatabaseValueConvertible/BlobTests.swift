@@ -9,9 +9,15 @@ class BlobTests: GRDBTestCase {
         XCTAssertTrue(blob == nil)
     }
     
-    func testBlobCanNotStoreZeroLengthBuffer() {
+    func testBlobCanNotCopyZeroLengthBuffer() {
         // SQLite can't store zero-length blob.
         let blob = Blob(bytes: nil, length: 0)
+        XCTAssertTrue(blob == nil)
+    }
+    
+    func testBlobCanNotReferebceZeroLengthBuffer() {
+        // SQLite can't store zero-length blob.
+        let blob = Blob(bytesNoCopy: nil, length: 0, freeWhenDone: false)
         XCTAssertTrue(blob == nil)
     }
     
