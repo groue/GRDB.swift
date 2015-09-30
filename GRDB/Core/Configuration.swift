@@ -94,6 +94,6 @@ public typealias TraceFunction = (String) -> Void
 
 /// A tracing function that logs SQL statements with NSLog
 public func LogSQL(sql: String) {
-    NSLog("GRDB: %@", sql)
+    NSLog("SQLite: %@", sql)
 }
 
