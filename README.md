@@ -302,7 +302,7 @@ Ask for an optional when the value may be NULL:
 let name: String? = row.value(named: "name")
 ```
 
-Pick the type you need. All types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol can be extracted:
+The `value` function generally returns the type you ask for:
 
 ```swift
 let bookCount: Int     = row.value(named: "bookCount")
@@ -312,8 +312,6 @@ let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
 let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.123"
 let date: NSDate       = row.value(named: "date")       // NSDate
 ```
-
-Don't miss the [NSData](#nsdata-and-memory-savings) paragraph if you target memory efficiency.
 
 You can also use the `as` type casting operator:
 
@@ -329,6 +327,8 @@ row.value(...) as Int!
 > row.value(...) as! Int   // NO NO NO DON'T DO THAT!
 > row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 > ```
+
+See [Values](#values) for more information on supported types. Don't miss [NSData](#nsdata-and-memory-savings) if you target memory efficiency.
 
 
 #### Rows as Dictionaries
