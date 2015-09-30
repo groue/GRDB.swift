@@ -9,7 +9,7 @@ class GRDBTestCase: XCTestCase {
         var dbConfiguration = Configuration()
         dbConfiguration.trace = { (sql) in
             self.sqlQueries.append(sql)
-            NSLog("GRDB: %@", sql)
+            // LogSQL(sql) // Uncomment for verbose tests
         }
         return dbConfiguration
     }
