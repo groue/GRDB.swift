@@ -309,8 +309,8 @@ let bookCount: Int     = row.value(named: "bookCount")
 let bookCount64: Int64 = row.value(named: "bookCount")
 let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
 
-let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.123"
-let date: NSDate       = row.value(named: "date")       // NSDate
+let dateString: String = row.value(named: "date") // "2015-09-11 18:14:15.123"
+let date: NSDate       = row.value(named: "date") // NSDate
 ```
 
 You can also use the `as` type casting operator:
