@@ -1098,7 +1098,7 @@ Yet, it does a few things well:
     try citizenship.save(db)
     
     try citizenship.delete(db)
-    country.exists(db)  // false
+    citizenship.exists(db)  // false
     ```
     
 - **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
