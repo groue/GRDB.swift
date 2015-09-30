@@ -11,8 +11,8 @@ class DictionaryRowTests: GRDBTestCase {
         var bools = Set<Bool>()
         for (columnName, databaseValue) in row {
             columnNames.insert(columnName)
-            ints.insert(databaseValue.value()! as Int)
-            bools.insert(databaseValue.value()! as Bool)
+            ints.insert(databaseValue.value() as Int)
+            bools.insert(databaseValue.value() as Bool)
         }
         
         XCTAssertEqual(columnNames, ["a", "b", "c"])
@@ -122,8 +122,9 @@ class DictionaryRowTests: GRDBTestCase {
         XCTAssertEqual(row["name"], "foo".databaseValue)
         XCTAssertEqual(row["NAME"], "foo".databaseValue)
         XCTAssertEqual(row["NaMe"], "foo".databaseValue)
-        XCTAssertEqual(row.value(named: "name")! as String, "foo")
-        XCTAssertEqual(row.value(named: "NAME")! as String, "foo")
-        XCTAssertEqual(row.value(named: "NaMe")! as String, "foo")
+        XCTAssertEqual(row.value(named: "name") as String, "foo")
+        XCTAssertEqual(row.value(named: "NAME") as String, "foo")
+        XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
     }
+    
 }

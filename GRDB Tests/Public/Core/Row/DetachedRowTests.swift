@@ -16,8 +16,8 @@ class DetachedRowTests: GRDBTestCase {
                 var bools = [Bool]()
                 for (columnName, databaseValue) in row {
                     columnNames.append(columnName)
-                    ints.append(databaseValue.value()! as Int)
-                    bools.append(databaseValue.value()! as Bool)
+                    ints.append(databaseValue.value() as Int)
+                    bools.append(databaseValue.value() as Bool)
                 }
                 
                 XCTAssertEqual(columnNames, ["a", "b", "c"])
@@ -167,9 +167,9 @@ class DetachedRowTests: GRDBTestCase {
                 XCTAssertEqual(row["name"], "foo".databaseValue)
                 XCTAssertEqual(row["NAME"], "foo".databaseValue)
                 XCTAssertEqual(row["NaMe"], "foo".databaseValue)
-                XCTAssertEqual(row.value(named: "name")! as String, "foo")
-                XCTAssertEqual(row.value(named: "NAME")! as String, "foo")
-                XCTAssertEqual(row.value(named: "NaMe")! as String, "foo")
+                XCTAssertEqual(row.value(named: "name") as String, "foo")
+                XCTAssertEqual(row.value(named: "NAME") as String, "foo")
+                XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
             }
         }
     }

@@ -37,10 +37,10 @@ class UpdateStatementTests : GRDBTestCase {
         dbQueue.inDatabase { db in
             let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 4)
-            XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
-            XCTAssertEqual(rows[1].value(named: "name")! as String, "Arthur")
-            XCTAssertEqual(rows[2].value(named: "name")! as String, "Barbara")
-            XCTAssertEqual(rows[3].value(named: "name")! as String, "Barbara")
+            XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+            XCTAssertEqual(rows[1].value(named: "name") as String, "Arthur")
+            XCTAssertEqual(rows[2].value(named: "name") as String, "Barbara")
+            XCTAssertEqual(rows[3].value(named: "name") as String, "Barbara")
         }
     }
     
@@ -64,9 +64,9 @@ class UpdateStatementTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
-                XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+                XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
@@ -93,9 +93,9 @@ class UpdateStatementTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
-                XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+                XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
@@ -121,9 +121,9 @@ class UpdateStatementTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
-                XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+                XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
@@ -150,9 +150,9 @@ class UpdateStatementTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
                 XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0].value(named: "name")! as String, "Arthur")
-                XCTAssertEqual(rows[0].value(named: "age")! as Int, 41)
-                XCTAssertEqual(rows[1].value(named: "name")! as String, "Barbara")
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+                XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
                 XCTAssertTrue(rows[1].value(named: "age") == nil)
             }
         }
