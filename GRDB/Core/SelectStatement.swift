@@ -32,10 +32,6 @@ public final class SelectStatement : Statement {
         if let arguments = arguments {
             self.arguments = arguments
         }
-
-        if let trace = self.database.configuration.trace {
-            trace(sql: self.sql, arguments: self.arguments)
-        }
         
         return DatabaseSequence(statement: self, yield: yield)
     }

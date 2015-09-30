@@ -42,8 +42,8 @@ public struct Configuration {
     /**
     An optional tracing function.
 
-    You can use Configuration.logSQL as a tracing function: it logs all SQL
-    statements with NSLog().
+    You can use the global GRDB.LogSQL function as a tracing function: it logs
+    all SQL statements with NSLog().
     */
     public var trace: TraceFunction?
     
@@ -90,14 +90,10 @@ A tracing function.
 - parameter sql: An SQL query
 - parameter arguments: Eventual query arguments.
 */
-public typealias TraceFunction = (sql: String, arguments: StatementArguments?) -> Void
+public typealias TraceFunction = (String) -> Void
 
-/// A tracing function that logs SQL statements
-public func LogSQL(sql: String, arguments: StatementArguments?) {
-    if let arguments = arguments {
-        NSLog("GRDB: %@ -- arguments: %@", sql, arguments.description)
-    } else {
-        NSLog("GRDB: %@", sql)
-    }
+/// A tracing function that logs SQL statements with NSLog
+public func LogSQL(sql: String) {
+    NSLog("GRDB: %@", sql)
 }
 

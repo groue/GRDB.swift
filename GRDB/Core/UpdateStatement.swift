@@ -26,10 +26,6 @@ public final class UpdateStatement : Statement {
         
         reset()
         
-        if let trace = database.configuration.trace {
-            trace(sql: sql, arguments: self.arguments)
-        }
-        
         let code = sqlite3_step(sqliteStatement)
         guard code == SQLITE_DONE else {
             // When sqlite3_commit_hook interrupts a transaction, SQLite

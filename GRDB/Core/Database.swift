@@ -87,10 +87,6 @@ public final class Database {
     public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
         assertValidQueue()
         
-        if let trace = self.configuration.trace {
-            trace(sql: sql, arguments: nil)
-        }
-        
         let changedRowsBefore = sqlite3_total_changes(self.sqliteConnection)
         
         let code = sqlite3_exec(self.sqliteConnection, sql, nil, nil, nil)
@@ -331,8 +327,8 @@ public final class Database {
     /// The busy handler callback, if any. See Configuration.busyMode.
     private var busyCallback: BusyCallback?
     
-    func setupBusyMode(busyMode: BusyMode) {
-        switch busyMode {
+    func setupBusyMode() {
+        switch configuration.busyMode {
         case .ImmediateError:
             break
             
@@ -371,7 +367,7 @@ public final class Database {
     public func tableExists(tableName: String) -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         return Row.fetchOne(self,
-            "SELECT \"sql\" FROM sqlite_master WHERE \"type\" = 'table' AND LOWER(name) = ?",
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND LOWER(name) = ?",
             arguments: [tableName.lowercaseString]) != nil
     }
     
@@ -520,12 +516,10 @@ public final class Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
-        if configuration.foreignKeysEnabled {
-            try execute("PRAGMA foreign_keys = ON")
-        }
-        
-        setupBusyMode(configuration.busyMode)
+        try setupForeignKeys()
+        setupBusyMode()
         setupTransactionHooks()
+        setupTrace()
     }
     
     // Initializes an in-memory database
@@ -545,6 +539,23 @@ public final class Database {
         guard databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
             fatalError("Database was not used on the correct queue. Execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). Consider using fetchAll() method if this error message happens when iterating the result of the fetch() method.")
         }
+    }
+    
+    func setupForeignKeys() throws {
+        if configuration.foreignKeysEnabled {
+            try execute("PRAGMA foreign_keys = ON")
+        }
+    }
+    
+    func setupTrace() {
+        guard configuration.trace != nil else {
+            return
+        }
+        let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
+            let database = unsafeBitCast(dbPointer, Database.self)
+            database.configuration.trace!(String.fromCString(sql)!)
+            }, dbPointer)
     }
 }
 

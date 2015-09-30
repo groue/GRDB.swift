@@ -7,13 +7,9 @@ class GRDBTestCase: XCTestCase {
     var sqlQueries: [String]!
     var dbConfiguration: Configuration {
         var dbConfiguration = Configuration()
-        dbConfiguration.trace = { (sql, arguments) in
+        dbConfiguration.trace = { (sql) in
             self.sqlQueries.append(sql)
-            if let arguments = arguments {
-                NSLog("GRDB: %@ -- arguments: %@", sql, arguments.description)
-            } else {
-                NSLog("GRDB: %@", sql)
-            }
+            NSLog("GRDB: %@", sql)
         }
         return dbConfiguration
     }

@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking Changes**
+
+- `TraceFunction` is now defined as `(String) -> ()`
+
+
 ## 0.20.0
 
 Released September 29, 2015

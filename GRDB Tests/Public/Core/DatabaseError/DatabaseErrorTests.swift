@@ -19,7 +19,7 @@ class DatabaseErrorTests: GRDBTestCase {
             XCTAssertEqual(error.description, "SQLite error 19 with statement `INSERT INTO pets (masterId, name) VALUES (?, ?)` arguments [1, \"Bobby\"]: FOREIGN KEY constraint failed")
             
             XCTAssertEqual(sqlQueries.count, 2)
-            XCTAssertEqual(sqlQueries[0], "INSERT INTO pets (masterId, name) VALUES (?, ?)")
+            XCTAssertEqual(sqlQueries[0], "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
             XCTAssertEqual(sqlQueries[1], "ROLLBACK TRANSACTION")
         } catch {
             XCTFail("\(error)")
