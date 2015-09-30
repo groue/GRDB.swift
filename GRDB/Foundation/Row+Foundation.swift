@@ -11,7 +11,7 @@ extension Row {
     
     - parameter dictionary: An NSDictionary.
     */
-    public convenience init(dictionary: [NSObject: AnyObject]) {
+    public convenience init(dictionary: NSDictionary) {
         var initDictionary = [String: DatabaseValueConvertible?]()
         for (key, value) in dictionary {
             guard let columnName = key as? String else {
@@ -33,7 +33,7 @@ extension Row {
     
     - returns: An NSDictionary.
     */
-    public func toDictionary() -> [NSObject: AnyObject] {
+    public func toDictionary() -> NSDictionary {
         var dictionary = [NSObject: AnyObject]()
         // Reverse so that the result dictionary contains values for the leftmost columns.
         for (columnName, databaseValue) in reverse() {

@@ -239,6 +239,7 @@ The last two methods are the only ones that don't take a custom SQL query as an 
 - [Column Values](#column-values)
 - [Rows as Dictionaries](#rows-as-dictionaries)
 - [RowConvertible Protocol](#rowconvertible-protocol)
+- [Convenience Rows](#convenience-rows)
 
 
 #### Fetching Rows
@@ -363,6 +364,13 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
 
+Still, as a convenience, row can be converted to and from **NSDictionary**:
+
+```swift
+row.toDictionary()  // NSDictionary
+```
+
+
 #### RowConvertible Protocol
 
 You may use the `RowConvertible` protocol, which **grants fetching methods to any type** that can be initialized from a database row:
@@ -393,36 +401,45 @@ PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
 See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
 
+#### Convenience Rows
+
+Rows is a fundamental type in GRDB, used by many other APIs.
+
+From time to time, you'll want to build a custom one from scratch: use `Row(dictionary:)`.
+
+```swift
+let row = Row(dictionary: ["title": "Rome", "latitude": 41.8919, "longitude": 12.5113])
+let poi = PointOfInterest(row: row)
+```
+
+
 ### Value Queries
 
-Instead of rows, you can directly fetch **values** as **sequences**, **arrays**, or **single** values:
+Instead of rows, you can directly fetch **values**. Like rows, fetch them as **sequences**, **arrays**, or **single** values:
 
 ```swift
 dbQueue.inDatabase { db in
-    // Non-optional values (must be non NULL):
-    Int.fetch(db, "SELECT ...", arguments: ...)              // DatabaseSequence<Int>
-    Int.fetchAll(db, "SELECT ...", arguments: ...)           // [Int]
-    
-    // Optional values
+    Int.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int>
+    Int.fetchAll(db, "SELECT ...", arguments: ...) // [Int]
+    Int.fetchOne(db, "SELECT ...", arguments: ...) // Int?
+
+    // When database may contain NULL:
     Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
     Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
-    
-    // Single value
-    Int.fetchOne(db, "SELECT ...", arguments: ...)           // Int?
 }
 ```
+
+The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
 > **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
 > 
 > ```swift
 > let names = dbQueue.inDatabase { db in
->     return String.fetchAll(db, "SELECT name ...")             // [String]
->     return String.fetch(db, "SELECT name ...").filter { ... } // [String]
+>     return String.fetchAll(db, "SELECT name FROM ...")             // [String]
+>     return String.fetch(db, "SELECT name FROM ...").filter { ... } // [String]
 > }
 > for name in names { ... } // OK
 > ```
-
-The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
 
 ## Values

@@ -12,7 +12,7 @@ extension StatementArguments {
     - parameter array: An NSArray
     - returns: A StatementArguments.
     */
-    public init(_ array: [AnyObject]) {
+    public init(_ array: NSArray) {
         // IMPLEMENTATION NOTE
         //
         // This initializer is required for the following code to compile:
@@ -53,7 +53,7 @@ extension StatementArguments {
     - parameter dictionary: An NSDictionary
     - returns: A StatementArguments.
     */
-    public init(_ dictionary: [NSObject: AnyObject]) {
+    public init(_ dictionary: NSDictionary) {
         // IMPLEMENTATION NOTE
         //
         // This initializer is required for the following code to compile:

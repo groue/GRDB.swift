@@ -1,8 +1,28 @@
 import XCTest
 import GRDB
 
-class StatementArguments_FoundationTests: GRDBTestCase {
+class StatementArgumentsFoundationTests: GRDBTestCase {
 
+    override func setUp() {
+        super.setUp()
+        
+        var migrator = DatabaseMigrator()
+        
+        migrator.registerMigration("createPersons") { db in
+            try db.execute(
+                "CREATE TABLE persons (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "creationDate TEXT, " +
+                    "name TEXT NOT NULL, " +
+                    "age INT" +
+                ")")
+        }
+        
+        assertNoError {
+            try migrator.migrate(dbQueue)
+        }
+    }
+    
     func testStatementArgumentsNSArrayInitializer() {
         assertNoError {
             
