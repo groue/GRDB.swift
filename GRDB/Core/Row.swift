@@ -203,8 +203,11 @@ public final class Row: CollectionType {
         //     if row.value(named: "foo") != nil { ... }
         //
         // Without this method, the code above would not compile.
-        let index = impl.indexForColumn(named: columnName)!
-        return impl.databaseValue(atIndex: index).value()
+        if let index = impl.indexForColumn(named: columnName) {
+            return impl.databaseValue(atIndex: index).value()
+        } else {
+            fatalError("No such column: \(String(reflecting: columnName))")
+        }
     }
     
     /**
@@ -231,8 +234,11 @@ public final class Row: CollectionType {
     - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
-        let index = impl.indexForColumn(named: columnName)!
-        return value(atIndex: index)
+        if let index = impl.indexForColumn(named: columnName) {
+            return value(atIndex: index)
+        } else {
+            fatalError("No such column: \(String(reflecting: columnName))")
+        }
     }
     
     /**
@@ -250,8 +256,11 @@ public final class Row: CollectionType {
     - returns: An optional *Value*.
     */
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
-        let index = impl.indexForColumn(named: columnName)!
-        return value(atIndex: index)
+        if let index = impl.indexForColumn(named: columnName) {
+            return value(atIndex: index)
+        } else {
+            fatalError("No such column: \(String(reflecting: columnName))")
+        }
     }
     
     /**
@@ -278,8 +287,11 @@ public final class Row: CollectionType {
     - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
-        let index = impl.indexForColumn(named: columnName)!
-        return value(atIndex: index)
+        if let index = impl.indexForColumn(named: columnName) {
+            return value(atIndex: index)
+        } else {
+            fatalError("No such column: \(String(reflecting: columnName))")
+        }
     }
     
     /**
@@ -297,8 +309,11 @@ public final class Row: CollectionType {
     - returns: An optional *Value*.
     */
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
-        let index = impl.indexForColumn(named: columnName)!
-        return value(atIndex: index)
+        if let index = impl.indexForColumn(named: columnName) {
+            return value(atIndex: index)
+        } else {
+            fatalError("No such column: \(String(reflecting: columnName))")
+        }
     }
     
     
