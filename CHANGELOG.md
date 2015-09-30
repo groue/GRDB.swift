@@ -3,6 +3,22 @@ Release Notes
 
 ## Next Release
 
+**New**
+
+- `RowConvertible` and `Record` get a dictionary initializer for free:
+
+    ```swift
+    class Person: Record { ... }
+    let person = Person(dictionary: ["name": "Arthur", "age": 41])
+    ```
+
+- Improved Foundation support:
+    
+    ```swift
+    Row(dictionary: NSDictionary)
+    Row.toDictionary() -> NSDictionary
+    ```
+
 **Breaking Changes**
 
 - `TraceFunction` is now defined as `(String) -> ()`

@@ -388,10 +388,10 @@ final class PointOfInterest : NSObject, MKAnnotation, RowConvertible {
     var title: String?
     
     init(row: Row) {
-        self.coordinate = CLLocationCoordinate2DMake(
+        coordinate = CLLocationCoordinate2DMake(
             row.value(named: "latitude"),
             row.value(named: "longitude"))
-        self.title = row.value(named: "title")
+        title = row.value(named: "title")
     }
 }
 ```
@@ -404,6 +404,14 @@ PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
 PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
 ```
 
+You also get a dictionary initializer for free:
+
+```swift
+PointOfInterest(dictionary: [
+    "latitude": 41.8919300,
+    "longitude": 12.5113300,
+    "title": "Rome"])
+```
 
 See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
@@ -1193,6 +1201,12 @@ dbQueue.inDatabase { db in
 > }
 > for person in persons { ... } // OK
 > ```
+
+Oh, and you also get a dictionary initializer for free:
+
+```swift
+let person = Person(dictionary: ["name": "Arthur", "age": 41])
+```
 
 
 #### Ad Hoc Subclasses

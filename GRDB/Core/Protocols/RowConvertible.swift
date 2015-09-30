@@ -43,6 +43,16 @@ public protocol RowConvertible {
 
 extension RowConvertible {
     
+    /**
+    Dictionary initializer.
+    
+    - parameter dictionary: A Dictionary.
+    */
+    public init(dictionary: [String: DatabaseValueConvertible?]) {
+        let row = Row(dictionary: dictionary)
+        self.init(row: row)
+    }
+    
     /// Default implementation, which does nothing.
     public func awakeFromFetch(row: Row) { }
 
