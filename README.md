@@ -33,24 +33,22 @@ Usage
 ```swift
 import GRDB
 
-// Open database connection
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
 try dbQueue.inTransaction { db in
-    let wine = Wine(grape: .Merlot, color: .Red, name: "Pomerol")
+    let wine = Wine(color: .Red, name: "Pomerol")
     try wine.insert(db)
     return .Commit
 }
 
-let redWinesCount = dbQueue.inDatabase { db in       // Int
+let redWineCount = dbQueue.inDatabase { db in
     Int.fetchOne(db,
         "SELECT COUNT(*) FROM wines WHERE color = ?",
         arguments: [Color.Red])!
 }
 
 dbQueue.inDatabase { db in
-    let wines = Wine.fetchAll(db, "SELECT ...")      // [Wine]
-    for wine in Wine.fetch(db, "SELECT ...") {       // DatabaseSequence<Wine>
+    for wine in Wine.fetch(db, "SELECT * FROM wines") {
         ...
     }
 }
