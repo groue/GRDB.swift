@@ -42,6 +42,7 @@ extension DatabaseTableMapping {
             fatalError("Primary key of table \(databaseTableName.quotedDatabaseIdentifier) is not made of a single column. See \(self).databaseTableName()")
         }
         
+        // Avoid performing a useless SELECT with NULL primary key
         guard let primaryKeyValue = primaryKeyValue else {
             return nil
         }
