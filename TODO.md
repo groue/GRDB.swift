@@ -8,6 +8,7 @@
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
 
+
 Not sure:
 
 - [ ] Since Records' primary key are infered, no operation is possible on the primary key unless we have a Database instance. It's impossible to define the record.primaryKey property, or to provide a copy() function that does not clone the primary key: they miss the database that is the only object aware of the primary key. Should we change our mind, and have Record explicitly expose their primary key again?

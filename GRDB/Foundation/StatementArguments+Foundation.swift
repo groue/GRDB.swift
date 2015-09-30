@@ -12,7 +12,7 @@ extension StatementArguments {
     - parameter array: An NSArray
     - returns: A StatementArguments.
     */
-    public init(_ array: NSArray) {
+    public init(_ array: [AnyObject]) {
         // IMPLEMENTATION NOTE
         //
         // This initializer is required for the following code to compile:
@@ -20,7 +20,7 @@ extension StatementArguments {
         //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
         //    let persons = [   // NSArray of NSArray, actually
         //        ["Arthur", 41],
-        //        ["Barbara"],
+        //        ["Barbara", 38],
         //    ]
         //    for person in persons {
         //        try statement.execute(StatementArguments(person))   // Avoid an error here
@@ -53,7 +53,7 @@ extension StatementArguments {
     - parameter dictionary: An NSDictionary
     - returns: A StatementArguments.
     */
-    public init(_ dictionary: NSDictionary) {
+    public init(_ dictionary: [NSObject: AnyObject]) {
         // IMPLEMENTATION NOTE
         //
         // This initializer is required for the following code to compile:
@@ -61,7 +61,7 @@ extension StatementArguments {
         //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
         //    let persons = [   // NSArray of NSDictionary, actually
         //        ["name": "Arthur", "age": 41],
-        //        ["name": "Barbara"],
+        //        ["name": "Barbara", "age": 38],
         //    ]
         //    for person in persons {
         //        try statement.execute(StatementArguments(person))   // Avoid an error here
