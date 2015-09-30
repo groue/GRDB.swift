@@ -375,7 +375,18 @@ row.toDictionary()  // NSDictionary
 
 Rows is a fundamental type in GRDB, used by many other APIs.
 
-From time to time, you'll want to build a custom one from scratch: use `Row(dictionary:)`.
+From time to time, you'll want to build a custom one from scratch. Use dictionary initializers:
+
+```swift
+// Row(dictionary: [String: DatabaseValueConvertible?]):
+Row(dictionary: ["name": "foo", "date": nil])
+
+// Row(dictionary: NSDictionary):
+let d: NSDictionary = ...
+Row(dictionary: d)
+```
+
+See [Values](#values) for more information on types that adopt DatabaseValueConvertible.
 
 
 #### RowConvertible Protocol
