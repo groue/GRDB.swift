@@ -1467,19 +1467,6 @@ person.insert(db)   // Replace any existing person named "Arthur"
 ```
 
 
-
-
-**First, your SELECT queries can fail.** Database may be locked by a writer that and expell a readers from performing aWriters can prevent readers to read
-You must wrap your reading statements in transactions when 
-Given that SQLite only supports a [single writer](https://www.sqlite.org/isolation.html) on a given database file, things turn more complex as soon as there are several connections to a database file.
-
-Here are a few steps that you *need*
-
-
-
-
-
-
 ## Thanks
 
 - [Pierlis](http://pierlis.com), where we write great software.
