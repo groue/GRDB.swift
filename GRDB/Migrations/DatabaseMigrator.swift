@@ -93,10 +93,7 @@ public struct DatabaseMigrator {
     private func setupMigrations(dbQueue: DatabaseQueue) throws {
         try dbQueue.inDatabase { db in
             try db.execute(
-                "CREATE TABLE IF NOT EXISTS grdb_migrations (" +
-                    "identifier VARCHAR(128) PRIMARY KEY NOT NULL," +
-                    "position INT" +
-                ")")
+                "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
         }
     }
     
@@ -104,15 +101,15 @@ public struct DatabaseMigrator {
         let appliedMigrationIdentifiers = dbQueue.inDatabase { db in
             String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
         }
-    
-        for (position, migration) in self.migrations.enumerate() {
-            if appliedMigrationIdentifiers.indexOf(migration.identifier) == nil {
+        
+        try migrations
+            .filter { !appliedMigrationIdentifiers.contains($0.identifier) }
+            .forEach { migration in
                 try dbQueue.inTransaction { db in
                     try migration.block(db: db)
-                    try db.execute("INSERT INTO grdb_migrations (position, identifier) VALUES (?, ?)", arguments: [position, migration.identifier])
+                    try db.execute("INSERT INTO grdb_migrations (identifier) VALUES (?)", arguments: [migration.identifier])
                     return .Commit
                 }
             }
-        }
     }
 }
