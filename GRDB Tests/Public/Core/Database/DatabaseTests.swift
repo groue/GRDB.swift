@@ -264,92 +264,16 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name) VALUES (:name)", arguments: ["name": "Barbara"])
                 
                 let nameSequence = String.fetch(db, "SELECT name FROM persons ORDER BY name")
-                var names1: [String?] = Array(nameSequence).map { $0 }
-                var names2: [String?] = Array(nameSequence).map { $0 }
+                var names1 = Array(nameSequence)
+                var names2 = Array(nameSequence)
                 
-                XCTAssertEqual(names1[0]!, "Arthur")
-                XCTAssertEqual(names1[1]!, "Barbara")
-                XCTAssertEqual(names2[0]!, "Arthur")
-                XCTAssertEqual(names2[1]!, "Barbara")
-                
-                return .Commit
-            }
-        }
-    }
-    
-    func testREADME() {
-        assertNoError {
-            // DatabaseMigrator sets up migrations:
-            
-            var migrator = DatabaseMigrator()
-            migrator.registerMigration("createPersons") { db in
-                try db.execute(
-                    "CREATE TABLE persons (" +
-                        "id INTEGER PRIMARY KEY, " +
-                        "name TEXT, " +
-                        "age INT" +
-                    ")")
-            }
-            migrator.registerMigration("createPets") { db in
-                // Support for foreign keys is enabled by default:
-                try db.execute(
-                    "CREATE TABLE pets (" +
-                        "id INTEGER PRIMARY KEY, " +
-                        "masterID INTEGER NOT NULL " +
-                        "         REFERENCES persons(id) " +
-                        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
-                        "name TEXT" +
-                    ")")
-            }
-            
-            try migrator.migrate(dbQueue)
-            
-            
-            // Transactions:
-            
-            try dbQueue.inTransaction { db in
-                try db.execute(
-                    "INSERT INTO persons (name, age) VALUES (?, ?)",
-                    arguments: ["Arthur", 36])
-                
-                try db.execute(
-                    "INSERT INTO persons (name, age) VALUES (:name, :age)",
-                    arguments: ["name": "Barbara", "age": 37])
+                XCTAssertEqual(names1[0], "Arthur")
+                XCTAssertEqual(names1[1], "Barbara")
+                XCTAssertEqual(names2[0], "Arthur")
+                XCTAssertEqual(names2[1], "Barbara")
                 
                 return .Commit
             }
-            
-            
-            // Fetching rows and values:
-            
-            dbQueue.inDatabase { db in
-                for row in Row.fetch(db, "SELECT * FROM persons") {
-                    // Leverage Swift type inference
-                    let name: String? = row.value(atIndex: 1)
-                    
-                    // Force unwrap when column is NOT NULL
-                    let id: Int64 = row.value(named: "id")!
-                    
-                    // Both Int and Int64 are supported
-                    let age: Int? = row.value(named: "age")
-                    
-                    print("id: \(id), name: \(name), age: \(age)")
-                }
-                
-                // Value sequences require explicit `type` parameter
-                for name in String.fetch(db, "SELECT name FROM persons") {
-                    // name is `String?` because some rows may have a NULL name.
-                    print(name)
-                }
-            }
-            
-            
-            // Extracting values out of a database block:
-            
-            let names = dbQueue.inDatabase { db in
-                String.fetchAll(db, "SELECT name FROM persons ORDER BY name")
-            }
-            XCTAssertEqual(names, ["Arthur", "Barbara"])
         }
     }
     
@@ -359,7 +283,7 @@ class DatabaseTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 database = db
             }
-            try dbQueue.inDatabase { db in
+            try dbQueue.inDatabase { _ in
                 try database!.execute("CREATE TABLE persons (name TEXT)")
             }
         }
