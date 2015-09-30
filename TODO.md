@@ -2,6 +2,11 @@
 - [ ] Use @warn_unused_result where applicable
 - [ ] Turn DatabaseTableMapping into a private protocol
 - [ ] Ship TableChangeObserver with the library.
+- [ ] Study full text search
+- [ ] Study SQLCipher
+- [ ] Study save points
+- [ ] Study custom SQL functions
+- [ ] Study custom collations
 
 Not sure:
 
