@@ -11,6 +11,7 @@
 - [ ] Study custom collations
 - [ ] Study https://www.sqlite.org/undoredo.html
 - [ ] Study http://www.sqlite.org/intern-v-extern-blob.html
+- [ ] Check if we have tests for DatabaseValueConvertible adoption by DatabaseValue
 
 
 Not sure:
