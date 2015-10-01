@@ -197,4 +197,26 @@ class MetalRowTests: GRDBTestCase {
             }
         }
     }
+    
+    func testRowHasColumnIsCaseInsensitive() {
+        assertNoError {
+            let dbQueue = DatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE stuffs (name TEXT)")
+                try db.execute("INSERT INTO stuffs (name) VALUES ('foo')")
+                var rowFetched = false
+                for row in Row.fetch(db, "SELECT nAmE, 1 AS foo FROM stuffs") {
+                    rowFetched = true
+                    XCTAssertTrue(row.hasColumn("name"))
+                    XCTAssertTrue(row.hasColumn("NAME"))
+                    XCTAssertTrue(row.hasColumn("Name"))
+                    XCTAssertTrue(row.hasColumn("NaMe"))
+                    XCTAssertTrue(row.hasColumn("foo"))
+                    XCTAssertTrue(row.hasColumn("Foo"))
+                    XCTAssertTrue(row.hasColumn("FOO"))
+                }
+                XCTAssertTrue(rowFetched)
+            }
+        }
+    }
 }

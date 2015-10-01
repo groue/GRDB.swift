@@ -5,11 +5,13 @@ Release Notes
 
 **New**
 
+- `Row.hasColumn(_)`
+
 - `RowConvertible` and `Record` get a dictionary initializer for free:
 
     ```swift
     class Person: Record { ... }
-    let person = Person(dictionary: ["name": "Arthur", "age": 41])
+    let person = Person(dictionary: ["name": "Arthur", "birthDate": nil])
     ```
 
 - Improved Foundation support:

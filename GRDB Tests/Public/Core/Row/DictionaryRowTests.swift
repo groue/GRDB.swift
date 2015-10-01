@@ -127,4 +127,14 @@ class DictionaryRowTests: GRDBTestCase {
         XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
     }
     
+    func testRowHasColumnIsCaseInsensitive() {
+        let row = Row(dictionary: ["nAmE": "foo", "foo": 1])
+        XCTAssertTrue(row.hasColumn("name"))
+        XCTAssertTrue(row.hasColumn("NAME"))
+        XCTAssertTrue(row.hasColumn("Name"))
+        XCTAssertTrue(row.hasColumn("NaMe"))
+        XCTAssertTrue(row.hasColumn("foo"))
+        XCTAssertTrue(row.hasColumn("Foo"))
+        XCTAssertTrue(row.hasColumn("FOO"))
+    }
 }

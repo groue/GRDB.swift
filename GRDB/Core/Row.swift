@@ -46,6 +46,19 @@ public final class Row: CollectionType {
     // MARK: - Extracting Swift Values
     
     /**
+    Returns true if and only if the row has that column.
+    
+    This method is case-insensitive.
+    
+    - parameter columnName: A column name.
+    - returns: Whether the row has this column.
+    */
+    public func hasColumn(columnName: String) -> Bool {
+        return impl.indexForColumn(named: columnName) != nil
+    }
+    
+    
+    /**
     Returns the value at given index.
     
     Indexes span from 0 for the leftmost column to (row.count - 1) for the
@@ -192,7 +205,7 @@ public final class Row: CollectionType {
     
     This method is case-insensitive.
     
-    - parameter name: A column name.
+    - parameter columnName: A column name.
     - returns: An optional DatabaseValueConvertible.
     */
     public func value(named columnName: String) -> DatabaseValueConvertible? {
@@ -230,7 +243,7 @@ public final class Row: CollectionType {
         row.value(named: "count") as! Int   // NO NO NO DON'T DO THAT!
         row.value(named: "count") as? Int   // NO NO NO DON'T DO THAT!
     
-    - parameter name: A column name.
+    - parameter columnName: A column name.
     - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
@@ -252,7 +265,7 @@ public final class Row: CollectionType {
     
     See the documentation of Row.value(named:) for more information.
     
-    - parameter name: A column name.
+    - parameter columnName: A column name.
     - returns: An optional *Value*.
     */
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
@@ -283,7 +296,7 @@ public final class Row: CollectionType {
         row.value(named: "count") as! Int   // NO NO NO DON'T DO THAT!
         row.value(named: "count") as? Int   // NO NO NO DON'T DO THAT!
     
-    - parameter name: A column name.
+    - parameter columnName: A column name.
     - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
@@ -305,7 +318,7 @@ public final class Row: CollectionType {
     
     See the documentation of Row.value(named:) for more information.
     
-    - parameter name: A column name.
+    - parameter columnName: A column name.
     - returns: An optional *Value*.
     */
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {

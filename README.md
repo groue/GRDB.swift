@@ -499,10 +499,15 @@ Compare with the **anti-patterns** below:
 for row in Row.fetch(db, "SELECT data, ...") {
     // Data is copied, row after row:
     let data: NSData = row.value(named: "data")
+    
+    // Data is copied, row after row (prefer row.hasColumn("data") in this case):
+    if let databaseValue = row["data"] {
+        // Too late to do the right thing:
+        let data = databaseValue.dataNoCopy
+    }
 }
 
-// The fetchAll() method returns an Array: all rows have been copied in memory
-// when the loop begins:
+// All rows have been copied in memory when the loop begins:
 for row in Row.fetchAll(db, "SELECT data, ...") {
     // Too late to do the right thing:
     let data = row.dataNoCopy(named: "data")

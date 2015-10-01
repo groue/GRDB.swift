@@ -173,4 +173,22 @@ class DetachedRowTests: GRDBTestCase {
             }
         }
     }
+    
+    func testRowHasColumnIsCaseInsensitive() {
+        assertNoError {
+            let dbQueue = DatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE stuffs (name TEXT)")
+                try db.execute("INSERT INTO stuffs (name) VALUES ('foo')")
+                let row = Row.fetchOne(db, "SELECT nAmE, 1 AS foo FROM stuffs")!
+                XCTAssertTrue(row.hasColumn("name"))
+                XCTAssertTrue(row.hasColumn("NAME"))
+                XCTAssertTrue(row.hasColumn("Name"))
+                XCTAssertTrue(row.hasColumn("NaMe"))
+                XCTAssertTrue(row.hasColumn("foo"))
+                XCTAssertTrue(row.hasColumn("Foo"))
+                XCTAssertTrue(row.hasColumn("FOO"))
+            }
+        }
+    }
 }
