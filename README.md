@@ -911,13 +911,16 @@ migrator.registerMigration("AddAgeToPersons") { db in
 try migrator.migrate(dbQueue)
 ```
 
-You might prefer to use Database.executeMultiStatement(). This method takes a SQL string containing multiple statements separated by semi-colons.
+Each migration runs in a separate transaction. Should one throw an error, its transaction is rollbacked, and subsequent migrations do not run.
+
+You might use Database.executeMultiStatement(): this method takes a SQL string containing multiple statements separated by semi-colons:
 
 ```swift
 migrator.registerMigration("createTables") { db in
     try db.executeMultiStatement(
         "CREATE TABLE persons (...);" +
-        "CREATE TABLE books (...)")
+        "CREATE TABLE books (...);" +
+        "...")
 }
 ```
 
