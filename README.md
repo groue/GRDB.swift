@@ -312,6 +312,7 @@ let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
 
 let dateString: String = row.value(named: "date") // "2015-09-11 18:14:15.123"
 let date: NSDate       = row.value(named: "date") // NSDate
+self.date = row.value(named: "date") // Depends on the type of the property.
 ```
 
 You can also use the `as` type casting operator:
@@ -342,6 +343,7 @@ if let databaseValue = row["date"] {
     // Pick the type you need:
     let dateString: String = databaseValue.value() // "2015-09-11 18:14:15.123"
     let date: NSDate       = databaseValue.value() // NSDate
+    self.date = databaseValue.value() // Depends on the type of the property.
 }
 ```
 
