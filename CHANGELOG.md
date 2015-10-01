@@ -3,6 +3,11 @@ Release Notes
 
 ## Next Release
 
+**Fixed**
+
+- `RowConvertible.awakeFromFetch(_)` is declared as `mutating`.
+
+
 **New**
 
 - `Row.hasColumn(_)`
@@ -20,6 +25,7 @@ Release Notes
     Row(dictionary: NSDictionary)
     Row.toDictionary() -> NSDictionary
     ```
+
 
 **Breaking Changes**
 

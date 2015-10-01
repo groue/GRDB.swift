@@ -38,7 +38,7 @@ public protocol RowConvertible {
     Types that adopt RowConvertible have an opportunity to complete their
     initialization.
     */
-    func awakeFromFetch(row: Row)
+    mutating func awakeFromFetch(row: Row)
 }
 
 extension RowConvertible {
@@ -85,7 +85,7 @@ extension RowConvertible {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(metalStatement: statement)
         return statement.fetch(arguments: arguments) {
-            let value = Self.init(row: row)
+            var value = Self.init(row: row)
             value.awakeFromFetch(row)
             return value
         }

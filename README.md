@@ -395,7 +395,7 @@ public protocol RowConvertible {
     
     /// Optional method which gives adopting types an opportunity to complete
     /// their initialization. Do not call it directly.
-    func awakeFromFetch(row: Row)
+    mutating func awakeFromFetch(row: Row)
 }
 
 final class PointOfInterest : NSObject, MKAnnotation, RowConvertible {

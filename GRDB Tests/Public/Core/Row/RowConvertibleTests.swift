@@ -4,10 +4,15 @@ import GRDB
 struct SimpleRowConvertible : RowConvertible {
     var firstName: String
     var lastName: String
+    var fetched: Bool = false
     
     init(row: Row) {
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
+    }
+    
+    mutating func awakeFromFetch(row: Row) {
+        fetched = true
     }
 }
 
@@ -28,12 +33,14 @@ class RowConvertibleTests: GRDBTestCase {
         let s = SimpleRowConvertible(row: row)
         XCTAssertEqual(s.firstName, "Arthur")
         XCTAssertEqual(s.lastName, "Martin")
+        XCTAssertFalse(s.fetched)
     }
     
     func testDictionaryInitializer() {
         let s = SimpleRowConvertible(dictionary: ["firstName": "Arthur", "lastName": "Martin"])
         XCTAssertEqual(s.firstName, "Arthur")
         XCTAssertEqual(s.lastName, "Martin")
+        XCTAssertFalse(s.fetched)
     }
     
     func testFetchFromDatabase() {
@@ -44,6 +51,7 @@ class RowConvertibleTests: GRDBTestCase {
                 let s = Array(ss).first!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
+                XCTAssertTrue(s.fetched)
             }
         }
     }
@@ -56,6 +64,7 @@ class RowConvertibleTests: GRDBTestCase {
                 let s = ss.first!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
+                XCTAssertTrue(s.fetched)
             }
         }
     }
@@ -70,6 +79,7 @@ class RowConvertibleTests: GRDBTestCase {
                 let s = SimpleRowConvertible.fetchOne(db, "SELECT * FROM structs")!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
+                XCTAssertTrue(s.fetched)
             }
         }
     }
@@ -83,6 +93,7 @@ class RowConvertibleTests: GRDBTestCase {
                 let s = Array(ss).first!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
+                XCTAssertTrue(s.fetched)
             }
         }
     }
@@ -96,6 +107,7 @@ class RowConvertibleTests: GRDBTestCase {
                 let s = ss.first!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
+                XCTAssertTrue(s.fetched)
             }
         }
     }
@@ -111,6 +123,7 @@ class RowConvertibleTests: GRDBTestCase {
                 let s = SimpleRowConvertible.fetchOne(statement)!
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
+                XCTAssertTrue(s.fetched)
             }
         }
     }
