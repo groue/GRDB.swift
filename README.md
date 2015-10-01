@@ -364,7 +364,7 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
 
-Still, as a convenience, row can be converted to and from **NSDictionary**:
+Still, as a convenience, row can be converted to and from **NSDictionary** (in case of duplicate colum names, the leftmost value is returned):
 
 ```swift
 row.toDictionary()  // NSDictionary
