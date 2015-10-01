@@ -389,6 +389,15 @@ See [Values](#values) for more information on supported types.
 You may use the `RowConvertible` protocol, which **grants fetching methods to any type** that can be initialized from a database row:
 
 ```swift
+public protocol RowConvertible {
+    /// Create an instance initialized with `row`.
+    init(row: Row)
+    
+    /// Optional method which gives adopting types an opportunity to complete
+    /// their initialization. Do not call it directly.
+    func awakeFromFetch(row: Row)
+}
+
 final class PointOfInterest : NSObject, MKAnnotation, RowConvertible {
     var coordinate: CLLocationCoordinate2D
     var title: String?
