@@ -7,6 +7,7 @@
 - [ ] Study save points
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
+- [ ] Study https://www.sqlite.org/undoredo.html
 
 
 Not sure:
