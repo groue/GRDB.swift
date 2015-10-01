@@ -475,11 +475,11 @@ Yet, when extracting NSData from a row, **you have the opportunity to save memor
 
 ```swift
 // When the "data" column is know to be there:
-let notCopiedData = row.dataNoCopy(named: "data")   // NSData?
+let notCopiedData = row.dataNoCopy(named: "data")     // NSData?
 
 // When the column `data` may not be there:
-if let databaseValue = row["data"] {
-    let notCopiedData = databaseValue.dataNoCopy    // NSData?
+if row.hasColumn("data") {
+    let notCopiedData = row.dataNoCopy(named: "data") // NSData?
 }
 ```
 
