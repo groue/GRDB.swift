@@ -927,15 +927,17 @@ migrator.registerMigration("createTables") { db in
 You might even store your migrations as bundle resources:
 
 ```swift
-// Load paths to migration01.sql, migration02.sql, etc.
-let migrationPaths = NSBundle.mainBundle()
+// Execute migration01.sql, migration02.sql, etc.
+NSBundle.mainBundle()
     .pathsForResourcesOfType("sql", inDirectory: "databaseMigrations")
     .sort()
-for path in migrationPaths {
-    migrator.registerMigration((path as NSString).lastPathComponent) { db in
-        try db.executeMultiStatement(String(contentsOfFile: path))
+    .forEach { path in
+        let migrationName = (path as NSString).lastPathComponent
+        migrator.registerMigration(migrationName) { db in
+            let sql = try String(contentsOfFile: path, encoding: NSUTF8StringEncoding)
+            try db.executeMultiStatement(sql)
+        }
     }
-}
 ```
 
 ## Database Changes Observation
