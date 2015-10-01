@@ -1090,7 +1090,7 @@ class TableChangeObserver : TransactionObserverType {
 
 ```swift
 class Person : Record { ... }
-let person = Person(dictionary: ["name": "Arthur"])
+let person = Person(name: "Arthur")
 try person.save(db)
 ```
 
