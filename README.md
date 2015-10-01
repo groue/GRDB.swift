@@ -676,7 +676,7 @@ class Person : Record {
 
 ### Swift Enums
 
-**Swift enums** get full support from GRDB.swift as long as their raw values are Int or String.
+**Swift enums** get full support from GRDB.swift as long as their raw values are Int, Int32, Int64 or String.
 
 Given those two enums:
 
@@ -697,7 +697,7 @@ enum Grape : String {
 Simply add those two lines:
 
 ```swift
-extension Color : DatabaseIntRepresentable { }
+extension Color : DatabaseIntRepresentable { } // DatabaseInt32Representable for Int32, DatabaseInt64Representable for Int64
 extension Grape : DatabaseStringRepresentable { }
 ```
 

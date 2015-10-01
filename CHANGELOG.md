@@ -26,6 +26,8 @@ Release Notes
     Row.toDictionary() -> NSDictionary
     ```
 
+- Int32 and Int64 enums are supported via DatabaseInt32Representable and DatabaseInt64Representable.
+
 
 **Breaking Changes**
 
