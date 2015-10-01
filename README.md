@@ -134,6 +134,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 - [Migrations](#migrations)
 - [Database Changes Observation](#database-changes-observation)
+- [RowConvertible Protocol](#rowconvertible-protocol)
 - [Records](#records)
     - [Core Methods](#core-methods)
     - [Fetching Records](#fetching-records)
@@ -230,7 +231,7 @@ The last two methods are the only ones that don't take a custom SQL query as an 
 
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
-- [Records](#records)
+- [RowConvertible Protocol](#rowconvertible-protocol) and [Records](#records)
 
 
 ### Row Queries
@@ -239,7 +240,6 @@ The last two methods are the only ones that don't take a custom SQL query as an 
 - [Column Values](#column-values)
 - [Rows as Dictionaries](#rows-as-dictionaries)
 - [Convenience Rows](#convenience-rows)
-- [RowConvertible Protocol](#rowconvertible-protocol)
 
 
 #### Fetching Rows
@@ -384,53 +384,6 @@ Row(dictionary: ["name": "foo", "date": nil])
 ```
 
 See [Values](#values) for more information on supported types.
-
-
-#### RowConvertible Protocol
-
-You may use the `RowConvertible` protocol, which **grants fetching methods to any type** that can be initialized from a database row:
-
-```swift
-public protocol RowConvertible {
-    /// Create an instance initialized with `row`.
-    init(row: Row)
-    
-    /// Optional method which gives adopting types an opportunity to complete
-    /// their initialization. Do not call it directly.
-    mutating func awakeFromFetch(row: Row)
-}
-
-final class PointOfInterest : NSObject, MKAnnotation, RowConvertible {
-    var coordinate: CLLocationCoordinate2D
-    var title: String?
-    
-    init(row: Row) {
-        coordinate = CLLocationCoordinate2DMake(
-            row.value(named: "latitude"),
-            row.value(named: "longitude"))
-        title = row.value(named: "title")
-    }
-}
-```
-
-Adopting types can be fetched just like rows:
-
-```swift
-PointOfInterest.fetch(db, "SELECT ...")    // DatabaseSequence<PointOfInterest>
-PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
-PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
-```
-
-You also get a dictionary initializer for free:
-
-```swift
-PointOfInterest(dictionary: [
-    "latitude": 41.8919300,
-    "longitude": 12.5113300,
-    "title": "Rome"])
-```
-
-See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
 
 ### Value Queries
@@ -1093,6 +1046,53 @@ class TableChangeObserver : TransactionObserverType {
     }
 }
 ```
+
+
+## RowConvertible Protocol
+
+**The `RowConvertible` protocol grants fetching methods to any type** that can be initialized from a database row:
+
+```swift
+public protocol RowConvertible {
+    /// Create an instance initialized with `row`.
+    init(row: Row)
+    
+    /// Optional method which gives adopting types an opportunity to complete
+    /// their initialization. Do not call it directly.
+    mutating func awakeFromFetch(row: Row)
+}
+
+struct PointOfInterest : RowConvertible {
+    var coordinate: CLLocationCoordinate2D
+    var title: String?
+    
+    init(row: Row) {
+        coordinate = CLLocationCoordinate2DMake(
+            row.value(named: "latitude"),
+            row.value(named: "longitude"))
+        title = row.value(named: "title")
+    }
+}
+```
+
+Adopting types can be fetched just like rows:
+
+```swift
+PointOfInterest.fetch(db, "SELECT ...")    // DatabaseSequence<PointOfInterest>
+PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
+PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
+```
+
+You also get a dictionary initializer for free:
+
+```swift
+PointOfInterest(dictionary: [
+    "latitude": 41.8919300,
+    "longitude": 12.5113300,
+    "title": "Rome"])
+```
+
+See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
 
 ## Records
