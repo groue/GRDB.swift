@@ -1086,12 +1086,12 @@ class TableChangeObserver : TransactionObserverType {
 
 ## Records
 
-**Record** is a class that wraps a table row, or the result of any query, and provides CRUD operations. It is designed to be subclassed.
+**Record** is a class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking. It is designed to be subclassed.
 
 ```swift
 class Person : Record { ... }
-let person = Person(name: "Arthur")
-person.save(db)
+let person = Person(dictionary: ["name": "Arthur"])
+try person.save(db)
 ```
 
 **Record is not a smart class.** It is no replacement for Core Data's NSManagedObject, or for an Active Record pattern. It does not provide any uniquing. It has no knowledge of your database schema, no notion of external references and table relationships, and will not generate JOIN queries for you.
@@ -1213,7 +1213,7 @@ dbQueue.inDatabase { db in
 > for person in persons { ... } // OK
 > ```
 
-Oh, and you also get a dictionary initializer for free:
+Oh, and you also get a dictionary initializer for free, because Record adopts the [RowConvertible protocol](#rowconvertible-protocol):
 
 ```swift
 let person = Person(dictionary: ["name": "Arthur", "age": 41])
