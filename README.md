@@ -789,7 +789,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Select statements can fetch [rows](#row-queries), [values](#value-queries), and [Records](#records).
+Select statements can fetch [Rows](#row-queries), [Values](#value-queries), and [RowConvertible](#rowconvertible-protocol) types, including [Records](#records).
 
 ```swift
 dbQueue.inDatabase { db in
