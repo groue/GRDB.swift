@@ -59,9 +59,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
             let sqliteStatement = statement.sqliteStatement
             if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
                 if let arguments = statement.arguments {
-                    fatalError("Found NULL \(Self.self) while iterating `\(statement.sql)` with arguments \(arguments).")
+                    fatalError("Could not convert NULL to \(Self.self) while iterating `\(statement.sql)` with arguments \(arguments).")
                 } else {
-                    fatalError("Found NULL \(Self.self) while iterating `\(statement.sql)`.")
+                    fatalError("Could not convert NULL to \(Self.self) while iterating `\(statement.sql)`.")
                 }
             } else {
                 return Self.init(sqliteStatement: sqliteStatement, index: 0)

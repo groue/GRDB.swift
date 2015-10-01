@@ -167,7 +167,7 @@ public final class Row: CollectionType {
     - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
-        return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+        return impl.databaseValue(atIndex: index).value()
     }
     
     /**

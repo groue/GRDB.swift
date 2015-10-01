@@ -117,7 +117,11 @@ public struct DatabaseValue : Equatable {
         databaseValue.value() as? Int   // NO NO NO DON'T DO THAT!
     */
     public func value<Value: DatabaseValueConvertible>() -> Value {
-        return Value.fromDatabaseValue(self)!
+        if let value = Value.fromDatabaseValue(self) as Value? {
+            return value
+        } else {
+            fatalError("Could not convert \(self) to \(Value.self).")
+        }
     }
     
     

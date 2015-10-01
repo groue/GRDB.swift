@@ -539,7 +539,7 @@ class CrashTests: GRDBTestCase {
     // MARK: - DatabaseValueConvertible
     
     func testCrashFetchDatabaseValueConvertibleFromStatement() {
-        assertNoError {
+        assertCrash("Could not convert NULL to IntConvertible while iterating `SELECT int FROM ints ORDER BY int`.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -553,7 +553,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testCrashFetchAllDatabaseValueConvertibleFromStatement() {
-        assertNoError {
+        assertCrash("Could not convert NULL to IntConvertible while iterating `SELECT int FROM ints ORDER BY int`.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -566,7 +566,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testCrashFetchDatabaseValueConvertibleFromDatabase() {
-        assertNoError {
+        assertCrash("Could not convert NULL to IntConvertible while iterating `SELECT int FROM ints ORDER BY int`.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -579,7 +579,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testCrashFetchAllDatabaseValueConvertibleFromDatabase() {
-        assertNoError {
+        assertCrash("Could not convert NULL to IntConvertible while iterating `SELECT int FROM ints ORDER BY int`.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -587,6 +587,20 @@ class CrashTests: GRDBTestCase {
                 
                 let _ = IntConvertible.fetchAll(db, "SELECT int FROM ints ORDER BY int")
             }
+        }
+    }
+
+    func testCrashDatabaseValueConvertibleInvalidConversionFromNULL() {
+        assertCrash("Could not convert NULL to IntConvertible.") {
+            let row = Row(dictionary: ["int": nil])
+            let _ = row.value(named: "int") as IntConvertible
+        }
+    }
+    
+    func testCrashDatabaseValueConvertibleInvalidConversionFromInvalidType() {
+        assertCrash("Could not convert \"foo\" to IntConvertible.") {
+            let row = Row(dictionary: ["int": "foo"])
+            let _ = row.value(named: "int") as IntConvertible
         }
     }
     
