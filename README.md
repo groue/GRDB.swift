@@ -979,14 +979,14 @@ Those changes are not actually applied until databaseDidCommit is called. On the
 
 ```swift
 try dbQueue.inTransaction do { db in
-    try db.execute("INSERT ...")    // didChange
-    try db.execute("UPDATE ...")    // didChange
-    return .Commit                  // willCommit, didCommit
+    try db.execute("INSERT ...") // didChange
+    try db.execute("UPDATE ...") // didChange
+    return .Commit               // willCommit, didCommit
 }
 
 try dbQueue.inTransaction do { db in
     ...
-    return .Rollback                // didRollback
+    return .Rollback             // didRollback
 }
 ```
 
@@ -994,8 +994,8 @@ Database statements that are executed outside of a transaction do not drop off t
 
 ```swift
 try dbQueue.inDatabase do { db in
-    try db.execute("INSERT ...")    // didChange, willCommit, didCommit
-    try db.execute("UPDATE ...")    // didChange, willCommit, didCommit
+    try db.execute("INSERT ...") // didChange, willCommit, didCommit
+    try db.execute("UPDATE ...") // didChange, willCommit, didCommit
 }
 ```
 
@@ -1005,7 +1005,7 @@ try dbQueue.inDatabase do { db in
 do {
     try dbQueue.inTransaction do { db in
         ...
-        return .Commit                  // willCommit, didRollback
+        return .Commit           // willCommit, didRollback
     }
 } catch {
     // The error thrown by the transaction observer.
