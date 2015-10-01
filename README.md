@@ -819,8 +819,8 @@ dbQueue.inDatabase { db in
 
 **The rule** is:
 
-- All methods that *read* data crash without notice.
-- All methods that *write* data throw.
+- All methods that *write* to the database throw.
+- All other methods crash without notice (but with a detailed error message).
 
 ```swift
 // fatal error:
