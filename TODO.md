@@ -2,12 +2,14 @@
 - [ ] Use @warn_unused_result where applicable
 - [ ] Turn DatabaseTableMapping into a private protocol
 - [ ] Ship TableChangeObserver with the library.
-- [ ] Study full text search
+- [ ] Study VACUUM (https://blogs.gnome.org/jnelson/)
+- [ ] Study full text search (related: https://blogs.gnome.org/jnelson/)
 - [ ] Study SQLCipher
-- [ ] Study save points
+- [ ] Study save points http://www.sqlite.org/lang_savepoint.html
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
 - [ ] Study https://www.sqlite.org/undoredo.html
+- [ ] Study http://www.sqlite.org/intern-v-extern-blob.html
 
 
 Not sure:
