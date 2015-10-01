@@ -10,6 +10,8 @@ Release Notes
 
 **New**
 
+- Improved value extraction errors.
+
 - `Row.hasColumn(_)`
 
 - `RowConvertible` and `Record` get a dictionary initializer for free:
