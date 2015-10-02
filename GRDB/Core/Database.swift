@@ -1,5 +1,5 @@
-/// A nicer name than COpaquePointer for SQLite connection handle
-typealias SQLiteConnection = COpaquePointer
+/// A raw SQLite connection, suitable for the SQLite C API.
+public typealias SQLiteConnection = COpaquePointer
 
 /**
 A Database connection.
@@ -491,13 +491,21 @@ public final class Database {
     
     
     // =========================================================================
-    // MARK: - Initialization
+    // MARK: - Raw SQLite connetion
+    
+    /// The raw SQLite connection, suitable for the SQLite C API.
+    public let sqliteConnection: SQLiteConnection
+    
+    
+    // =========================================================================
+    // MARK: - Configuration
     
     /// The database configuration
-    let configuration: Configuration
+    public let configuration: Configuration
     
-    /// The SQLite connection handle
-    let sqliteConnection: SQLiteConnection
+    
+    // =========================================================================
+    // MARK: - Initialization
     
     /// The queue from which the database can be used. See assertValidQueue().
     /// Design note: this is not very clean. A delegation pattern may be a

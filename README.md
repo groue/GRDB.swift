@@ -129,6 +129,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 - [Error Handling](#error-handling)
 - [Transactions](#transactions)
 - [Concurrency](#concurrency)
+- [Raw SQLite Pointers](#raw-sqlite-pointers)
 
 **[Application Tools](#application-tools)**
 
@@ -889,6 +890,46 @@ SQLite concurrency management is fragmented. Documents of interest include:
 By default, GRDB opens database in the **default journal mode**, uses **IMMEDIATE transactions**, and registers **no busy handler** of any kind.
 
 See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTransaction()](GRDB/Core/DatabaseQueue.swift) method for more precise handling of transactions and eventual SQLITE_BUSY errors.
+
+
+## Raw SQLite Pointers
+
+Not all SQLite APIs are exposed in GRDB.
+
+The `Database.sqliteConnection` and `Statement.sqliteStatement` properties provide the raw pointers that are suitable for [SQLite C API](https://www.sqlite.org/c3ref/funclist.html):
+
+```swift
+dbQueue.inDatabase { db in
+    let sqliteConnection = db.sqliteConnection
+    sqlite3_db_config(sqliteConnection, ...)
+    
+    let statement = db.selectStatement("SELECT ...")
+    let sqliteStatement = statement.sqliteStatement
+    sqlite3_step(sqliteStatement)
+}
+```
+
+> :point_up: **Notes**
+>
+> - Those pointers are owned by GRDB: don't close connections or finalize statements created by GRDB.
+> - SQLite connections are opened in the [Multi-thread mode](https://www.sqlite.org/threadsafe.html) mode, which (oddly) means that **they are not thread-safe**. Make sure you touch raw databases and statements inside the database queues.
+
+Before jumping in the low-level wagon, here is a reminder of SQLite APIs supported by GRDB:
+
+- Connections & statements, obviously.
+- Errors (pervasive)
+    - [sqlite3_errmsg](https://www.sqlite.org/c3ref/errcode.html)
+- Inserted RowIDs (as the result of Database.execute()).
+    - [sqlite3_last_insert_rowid](https://www.sqlite.org/c3ref/last_insert_rowid.html)
+- Changes count (as the result of Database.execute()).
+    - [sqlite3_changes](https://www.sqlite.org/c3ref/changes.html)
+- Busy mode (see [Concurrency](#concurrency)).
+    - [sqlite3_busy_handler](https://www.sqlite.org/c3ref/busy_handler.html)
+    - [sqlite3_busy_timeout](https://www.sqlite.org/c3ref/busy_timeout.html)
+- Update, commit and rollback hooks (see [Database Changes Observation](#database-changes-observation)):
+    - [sqlite3_update_hook](https://www.sqlite.org/c3ref/update_hook.html)
+    - [sqlite3_commit_hook](https://www.sqlite.org/c3ref/commit_hook.html)
+    - [sqlite3_rollback_hook](https://www.sqlite.org/c3ref/commit_hook.html)
 
 
 Application Tools

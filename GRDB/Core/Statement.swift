@@ -1,4 +1,4 @@
-/// The pointer to a raw SQLite statement.
+/// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = COpaquePointer
 
 private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
@@ -10,6 +10,9 @@ It is the base class of UpdateStatement that executes *update statements*, and
 SelectStatement that fetches rows.
 */
 public class Statement {
+    
+    /// The raw SQLite statement, suitable for the SQLite C API.
+    public let sqliteStatement: SQLiteStatement
     
     /// The SQL query
     public var sql: String
@@ -29,9 +32,6 @@ public class Statement {
     
     /// The database
     let database: Database
-    
-    /// The SQLite statement handle
-    let sqliteStatement: SQLiteStatement
     
     init(database: Database, sql: String) throws {
         database.assertValidQueue()

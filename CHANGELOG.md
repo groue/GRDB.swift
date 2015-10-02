@@ -1,6 +1,14 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `Database.sqliteConnection`: the raw SQLite connection, suitable for SQLite C API.
+- `Statement.sqliteStatement`: the raw SQLite statement, suitable for SQLite C API.
+
+
 ## 0.21.0
 
 Released october 1, 2015
