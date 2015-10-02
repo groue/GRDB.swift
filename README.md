@@ -114,7 +114,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 - [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.21.0/index.html) on cocoadocs.org. Beware that it is incomplete: you may prefer reading the inline documentation right into the [source](https://github.com/groue/GRDB.swift/tree/master/GRDB).
 
-**SQLite API**
+**[SQLite API](#sqlite-api)**
 
 - [SQLite Database](#sqlite-database)
 - [Fetch Queries](#fetch-queries)
@@ -130,7 +130,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 - [Transactions](#transactions)
 - [Concurrency](#concurrency)
 
-**Application tools**
+**[Application Tools](#application-tools)**
 
 - [Migrations](#migrations)
 - [Database Changes Observation](#database-changes-observation)
@@ -144,6 +144,9 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [Record Errors](#record-errors)
     - [Advice](#advice)
 
+
+SQLite API
+==========
 
 ## SQLite Database
 
@@ -886,6 +889,17 @@ SQLite concurrency management is fragmented. Documents of interest include:
 By default, GRDB opens database in the **default journal mode**, uses **IMMEDIATE transactions**, and registers **no busy handler** of any kind.
 
 See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTransaction()](GRDB/Core/DatabaseQueue.swift) method for more precise handling of transactions and eventual SQLITE_BUSY errors.
+
+
+Application Tools
+=================
+
+On top of the SQLite API described above, GRDB provides a toolkit for applications. While none of those are mandatory, all of them help dealing with the database:
+
+- [Migrations](#migrations): Transform your database as your application evolves.
+- [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
+- [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing peformance.
+- [Records](#records): CRUD operations and changes tracking.
 
 
 ## Migrations
