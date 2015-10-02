@@ -912,7 +912,7 @@ dbQueue.inDatabase { db in
 > :point_up: **Notes**
 >
 > - Those pointers are owned by GRDB: don't close connections or finalize statements created by GRDB.
-> - SQLite connections are opened in the [Multi-thread mode](https://www.sqlite.org/threadsafe.html) mode, which (oddly) means that **they are not thread-safe**. Make sure you touch raw databases and statements inside the database queues.
+> - SQLite connections are opened in the [Multi-thread mode](https://www.sqlite.org/threadsafe.html), which (oddly) means that **they are not thread-safe**. Make sure you touch raw databases and statements inside the database queues.
 
 Before jumping in the low-level wagon, here is a reminder of SQLite APIs supported by GRDB:
 
