@@ -272,7 +272,7 @@ for row in Row.fetch(db, "SELECT ...") {
 }
 ```
 
-> **Note**: this performance advantage comes with extra precautions when using row sequences:
+> :point_up: **Note**: this performance advantage comes with extra precautions when using row sequences:
 > 
 > - **Don't consume a row sequence outside of the database queue.** Extract a row array with `Row.fetchAll(...)` instead:
 > 
@@ -323,7 +323,7 @@ row.value(...) as Int?
 row.value(...) as Int!
 ```
 
-> **Warning**: avoid the `as!` and `as?` operators (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+> :warning: **Warning**: avoid the `as!` and `as?` operators (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
 > 
 > ```swift
 > row.value(...) as! Int   // NO NO NO DON'T DO THAT!
@@ -404,7 +404,7 @@ dbQueue.inDatabase { db in
 
 The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
-> **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
+> :point_up: **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
 > 
 > ```swift
 > let names = dbQueue.inDatabase { db in
@@ -510,9 +510,9 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 #### NSDate
 
-GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.
+**GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.**
 
-> **Note**: This format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
+> :point_up: **Note**: This format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
 >
 > Yet, this format may not fit your needs. We provide [below](#custom-value-types) some sample code for storing dates as timestamps. You can adapt it for your application.
 
@@ -1206,7 +1206,7 @@ class Person : Record {
 
 See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
 
-> **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+> :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 Now you can fetch **sequences** of records, **arrays**, or **single** instances:
 
@@ -1219,7 +1219,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-> **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
+> :point_up: **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
 > 
 > ```swift
 > let persons = dbQueue.inDatabase { db in
