@@ -2,7 +2,7 @@
 - [ ] Use @warn_unused_result where applicable
 - [ ] Turn DatabaseTableMapping into a private protocol
 - [ ] Study VACUUM (https://blogs.gnome.org/jnelson/)
-- [ ] Study full text search (related: https://blogs.gnome.org/jnelson/)
+- [ ] Study full text search (https://www.sqlite.org/fts3.html. Related: https://blogs.gnome.org/jnelson/)
 - [ ] Study SQLCipher
 - [ ] Study save points http://www.sqlite.org/lang_savepoint.html
 - [ ] Study custom SQL functions
