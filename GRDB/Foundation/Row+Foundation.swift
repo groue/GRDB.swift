@@ -20,7 +20,7 @@ extension Row {
             guard let convertible = value as? DatabaseValueConvertible else {
                 fatalError("Dictionary value is not a string: \(key)")
             }
-            initDictionary[columnName] = convertible.databaseValue
+            initDictionary[columnName] = convertible.databaseValue // Because databaseValue adopts DatabaseValueConvertible?
         }
         self.init(dictionary: initDictionary)
     }
