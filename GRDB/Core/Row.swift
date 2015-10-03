@@ -191,7 +191,7 @@ public final class Row: CollectionType {
             return Value(sqliteStatement: sqliteStatement, index: Int32(index))
         } else {
             // Detached row
-            return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))!
+            return impl.databaseValue(atIndex: index).value()
         }
     }
     
