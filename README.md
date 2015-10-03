@@ -1028,7 +1028,7 @@ let dbQueue = try DatabaseQueue(path: databasePath, configuration: config)
 
 All protocol callbacks are optional, and invoked on the database queue.
 
-**All INSERT, UPDATE AND DELETE statements notify changes** to databaseDidChangeWithEvent, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+**All database changes are notified** to databaseDidChangeWithEvent, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
 Those changes are not actually applied until databaseDidCommit is called. On the other side, databaseDidRollback confirms their invalidation:
 
@@ -1044,7 +1044,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-Database statements that are executed outside of a transaction do not drop off the radar:
+Database statements that are executed outside of an explicit transaction do not drop off the radar:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -1069,15 +1069,17 @@ do {
 > :point_up: **Note**: The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
-**Sample code**
+### Sample Transaction Observer: TableChangeObserver
 
-Users of Core Data have recognized the roots of NSFetchedResultsControllerDelegate. Our sample code won't go so far.
-
-Still, let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+Let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
 
 ```swift
+/// The notification posted when database tables have changed:
 let DatabaseTablesDidChangeNotification = "DatabaseTablesDidChangeNotification"
 let ChangedTableNamesKey = "ChangedTableNames"
+
+/// TableChangeObserver posts a DatabaseTablesDidChangeNotification on the main
+/// thread after database tables have changed:
 class TableChangeObserver : NSObject, TransactionObserverType {
     private var changedTableNames: Set<String> = []
     
