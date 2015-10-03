@@ -1,7 +1,6 @@
 - [ ] #2: this commit may be how stephencelis fixed it: https://github.com/stephencelis/SQLite.swift/commit/8f64e357c3a6668c5f011c91ba33be3e8d4b88d0
 - [ ] Use @warn_unused_result where applicable
 - [ ] Turn DatabaseTableMapping into a private protocol
-- [ ] Ship TableChangeObserver with the library.
 - [ ] Study VACUUM (https://blogs.gnome.org/jnelson/)
 - [ ] Study full text search (related: https://blogs.gnome.org/jnelson/)
 - [ ] Study SQLCipher
