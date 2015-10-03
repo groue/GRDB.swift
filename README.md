@@ -1059,7 +1059,7 @@ try dbQueue.inDatabase { db in
 do {
     try dbQueue.inTransaction { db in
         ...
-        return .Commit           // willCommit, didRollback
+        return .Commit           // willCommit (throws), didRollback
     }
 } catch {
     // The error thrown by the transaction observer.
@@ -1079,7 +1079,7 @@ let DatabaseTablesDidChangeNotification = "DatabaseTablesDidChangeNotification"
 let ChangedTableNamesKey = "ChangedTableNames"
 
 /// TableChangeObserver posts a DatabaseTablesDidChangeNotification on the main
-/// thread after database tables have changed:
+/// thread after database tables have changed.
 class TableChangeObserver : NSObject, TransactionObserverType {
     private var changedTableNames: Set<String> = []
     
