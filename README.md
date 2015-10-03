@@ -1123,7 +1123,11 @@ public protocol RowConvertible {
     /// their initialization. Do not call it directly.
     mutating func awakeFromFetch(row: Row)
 }
+```
 
+Adopting types can be fetched just like rows:
+
+```swift
 struct PointOfInterest : RowConvertible {
     var coordinate: CLLocationCoordinate2D
     var title: String?
@@ -1135,11 +1139,7 @@ struct PointOfInterest : RowConvertible {
         title = row.value(named: "title")
     }
 }
-```
 
-Adopting types can be fetched just like rows:
-
-```swift
 PointOfInterest.fetch(db, "SELECT ...")    // DatabaseSequence<PointOfInterest>
 PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
 PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
