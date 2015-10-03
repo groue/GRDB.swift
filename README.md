@@ -1033,14 +1033,13 @@ All protocol callbacks are optional, and invoked on the database queue.
 Those changes are not actually applied until databaseDidCommit is called. On the other side, databaseDidRollback confirms their invalidation:
 
 ```swift
-try dbQueue.inTransaction do { db in
+try dbQueue.inTransaction { db in
     try db.execute("INSERT ...") // didChange
-    try db.execute("UPDATE ...") // didChange
     return .Commit               // willCommit, didCommit
 }
 
-try dbQueue.inTransaction do { db in
-    ...
+try dbQueue.inTransaction { db in
+    try db.execute("INSERT ...") // didChange
     return .Rollback             // didRollback
 }
 ```
@@ -1048,7 +1047,7 @@ try dbQueue.inTransaction do { db in
 Database statements that are executed outside of a transaction do not drop off the radar:
 
 ```swift
-try dbQueue.inDatabase do { db in
+try dbQueue.inDatabase { db in
     try db.execute("INSERT ...") // didChange, willCommit, didCommit
     try db.execute("UPDATE ...") // didChange, willCommit, didCommit
 }
@@ -1058,7 +1057,7 @@ try dbQueue.inDatabase do { db in
 
 ```swift
 do {
-    try dbQueue.inTransaction do { db in
+    try dbQueue.inTransaction { db in
         ...
         return .Commit           // willCommit, didRollback
     }
