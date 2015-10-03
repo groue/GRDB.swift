@@ -7,14 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		56900E421BBFF7D500B815B5 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56900E411BBFF7D500B815B5 /* PersonEditionViewController.swift */; settings = {ASSET_TAGS = (); }; };
 		56B8F4581B4E22B200C24296 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4571B4E22B200C24296 /* AppDelegate.swift */; };
 		56B8F45A1B4E22B200C24296 /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4591B4E22B200C24296 /* MasterViewController.swift */; };
 		56B8F45C1B4E22B200C24296 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F45B1B4E22B200C24296 /* DetailViewController.swift */; };
 		56B8F45F1B4E22B200C24296 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B8F45D1B4E22B200C24296 /* Main.storyboard */; };
 		56B8F4611B4E22B200C24296 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56B8F4601B4E22B200C24296 /* Assets.xcassets */; };
 		56B8F4641B4E22B200C24296 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B8F4621B4E22B200C24296 /* LaunchScreen.storyboard */; };
-		56B8F46F1B4E22B200C24296 /* GRDBDemoiOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F46E1B4E22B200C24296 /* GRDBDemoiOSTests.swift */; };
-		56B8F47A1B4E22B200C24296 /* GRDBDemoiOSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4791B4E22B200C24296 /* GRDBDemoiOSUITests.swift */; };
 		56B8F4991B4E23AA00C24296 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4981B4E23AA00C24296 /* Person.swift */; };
 /* End PBXBuildFile section */
 
@@ -54,23 +53,10 @@
 			remoteGlobalIDString = 56E5D7C91B4D3FED00430942;
 			remoteInfo = GRDBiOS;
 		};
-		56B8F46B1B4E22B200C24296 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56B8F44C1B4E22B200C24296 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 56B8F4531B4E22B200C24296;
-			remoteInfo = GRDBDemoiOS;
-		};
-		56B8F4761B4E22B200C24296 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56B8F44C1B4E22B200C24296 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 56B8F4531B4E22B200C24296;
-			remoteInfo = GRDBDemoiOS;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		56900E411BBFF7D500B815B5 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
 		56B8F4541B4E22B200C24296 /* GRDBDemoiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56B8F4571B4E22B200C24296 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		56B8F4591B4E22B200C24296 /* MasterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterViewController.swift; sourceTree = "<group>"; };
@@ -79,32 +65,12 @@
 		56B8F4601B4E22B200C24296 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		56B8F4631B4E22B200C24296 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		56B8F4651B4E22B200C24296 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		56B8F46A1B4E22B200C24296 /* GRDBDemoiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBDemoiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		56B8F46E1B4E22B200C24296 /* GRDBDemoiOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRDBDemoiOSTests.swift; sourceTree = "<group>"; };
-		56B8F4701B4E22B200C24296 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		56B8F4751B4E22B200C24296 /* GRDBDemoiOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBDemoiOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		56B8F4791B4E22B200C24296 /* GRDBDemoiOSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRDBDemoiOSUITests.swift; sourceTree = "<group>"; };
-		56B8F47B1B4E22B200C24296 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		56B8F4871B4E235C00C24296 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../../GRDB.xcodeproj; sourceTree = "<group>"; };
 		56B8F4981B4E23AA00C24296 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		56B8F4511B4E22B200C24296 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		56B8F4671B4E22B200C24296 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		56B8F4721B4E22B200C24296 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -125,12 +91,54 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		56900E3C1BBFF2C400B815B5 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				56B8F4601B4E22B200C24296 /* Assets.xcassets */,
+				56B8F4621B4E22B200C24296 /* LaunchScreen.storyboard */,
+				56B8F45D1B4E22B200C24296 /* Main.storyboard */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		56900E3D1BBFF2DB00B815B5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				56B8F4871B4E235C00C24296 /* GRDB.xcodeproj */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		56900E3E1BBFF2E900B815B5 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				56B8F45B1B4E22B200C24296 /* DetailViewController.swift */,
+				56B8F4591B4E22B200C24296 /* MasterViewController.swift */,
+				56900E411BBFF7D500B815B5 /* PersonEditionViewController.swift */,
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		56900E3F1BBFF2F200B815B5 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				56B8F4981B4E23AA00C24296 /* Person.swift */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+		56900E401BBFF31800B815B5 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				56B8F4651B4E22B200C24296 /* Info.plist */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		56B8F44B1B4E22B200C24296 = {
 			isa = PBXGroup;
 			children = (
 				56B8F4561B4E22B200C24296 /* GRDBDemoiOS */,
-				56B8F46D1B4E22B200C24296 /* GRDBDemoiOSTests */,
-				56B8F4781B4E22B200C24296 /* GRDBDemoiOSUITests */,
 				56B8F4551B4E22B200C24296 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -139,8 +147,6 @@
 			isa = PBXGroup;
 			children = (
 				56B8F4541B4E22B200C24296 /* GRDBDemoiOS.app */,
-				56B8F46A1B4E22B200C24296 /* GRDBDemoiOSTests.xctest */,
-				56B8F4751B4E22B200C24296 /* GRDBDemoiOSUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -148,35 +154,14 @@
 		56B8F4561B4E22B200C24296 /* GRDBDemoiOS */ = {
 			isa = PBXGroup;
 			children = (
-				56B8F4871B4E235C00C24296 /* GRDB.xcodeproj */,
 				56B8F4571B4E22B200C24296 /* AppDelegate.swift */,
-				56B8F4591B4E22B200C24296 /* MasterViewController.swift */,
-				56B8F45B1B4E22B200C24296 /* DetailViewController.swift */,
-				56B8F4981B4E23AA00C24296 /* Person.swift */,
-				56B8F45D1B4E22B200C24296 /* Main.storyboard */,
-				56B8F4601B4E22B200C24296 /* Assets.xcassets */,
-				56B8F4621B4E22B200C24296 /* LaunchScreen.storyboard */,
-				56B8F4651B4E22B200C24296 /* Info.plist */,
+				56900E3E1BBFF2E900B815B5 /* Controllers */,
+				56900E3F1BBFF2F200B815B5 /* Models */,
+				56900E3C1BBFF2C400B815B5 /* Resources */,
+				56900E3D1BBFF2DB00B815B5 /* Frameworks */,
+				56900E401BBFF31800B815B5 /* Supporting Files */,
 			);
 			path = GRDBDemoiOS;
-			sourceTree = "<group>";
-		};
-		56B8F46D1B4E22B200C24296 /* GRDBDemoiOSTests */ = {
-			isa = PBXGroup;
-			children = (
-				56B8F46E1B4E22B200C24296 /* GRDBDemoiOSTests.swift */,
-				56B8F4701B4E22B200C24296 /* Info.plist */,
-			);
-			path = GRDBDemoiOSTests;
-			sourceTree = "<group>";
-		};
-		56B8F4781B4E22B200C24296 /* GRDBDemoiOSUITests */ = {
-			isa = PBXGroup;
-			children = (
-				56B8F4791B4E22B200C24296 /* GRDBDemoiOSUITests.swift */,
-				56B8F47B1B4E22B200C24296 /* Info.plist */,
-			);
-			path = GRDBDemoiOSUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -200,42 +185,6 @@
 			productReference = 56B8F4541B4E22B200C24296 /* GRDBDemoiOS.app */;
 			productType = "com.apple.product-type.application";
 		};
-		56B8F4691B4E22B200C24296 /* GRDBDemoiOSTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 56B8F4811B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOSTests" */;
-			buildPhases = (
-				56B8F4661B4E22B200C24296 /* Sources */,
-				56B8F4671B4E22B200C24296 /* Frameworks */,
-				56B8F4681B4E22B200C24296 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				56B8F46C1B4E22B200C24296 /* PBXTargetDependency */,
-			);
-			name = GRDBDemoiOSTests;
-			productName = GRDBDemoiOSTests;
-			productReference = 56B8F46A1B4E22B200C24296 /* GRDBDemoiOSTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		56B8F4741B4E22B200C24296 /* GRDBDemoiOSUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 56B8F4841B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOSUITests" */;
-			buildPhases = (
-				56B8F4711B4E22B200C24296 /* Sources */,
-				56B8F4721B4E22B200C24296 /* Frameworks */,
-				56B8F4731B4E22B200C24296 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				56B8F4771B4E22B200C24296 /* PBXTargetDependency */,
-			);
-			name = GRDBDemoiOSUITests;
-			productName = GRDBDemoiOSUITests;
-			productReference = 56B8F4751B4E22B200C24296 /* GRDBDemoiOSUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -247,14 +196,6 @@
 				TargetAttributes = {
 					56B8F4531B4E22B200C24296 = {
 						CreatedOnToolsVersion = 7.0;
-					};
-					56B8F4691B4E22B200C24296 = {
-						CreatedOnToolsVersion = 7.0;
-						TestTargetID = 56B8F4531B4E22B200C24296;
-					};
-					56B8F4741B4E22B200C24296 = {
-						CreatedOnToolsVersion = 7.0;
-						TestTargetID = 56B8F4531B4E22B200C24296;
 					};
 				};
 			};
@@ -278,8 +219,6 @@
 			projectRoot = "";
 			targets = (
 				56B8F4531B4E22B200C24296 /* GRDBDemoiOS */,
-				56B8F4691B4E22B200C24296 /* GRDBDemoiOSTests */,
-				56B8F4741B4E22B200C24296 /* GRDBDemoiOSUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -326,20 +265,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		56B8F4681B4E22B200C24296 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		56B8F4731B4E22B200C24296 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -350,23 +275,8 @@
 				56B8F45C1B4E22B200C24296 /* DetailViewController.swift in Sources */,
 				56B8F45A1B4E22B200C24296 /* MasterViewController.swift in Sources */,
 				56B8F4991B4E23AA00C24296 /* Person.swift in Sources */,
+				56900E421BBFF7D500B815B5 /* PersonEditionViewController.swift in Sources */,
 				56B8F4581B4E22B200C24296 /* AppDelegate.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		56B8F4661B4E22B200C24296 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				56B8F46F1B4E22B200C24296 /* GRDBDemoiOSTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		56B8F4711B4E22B200C24296 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				56B8F47A1B4E22B200C24296 /* GRDBDemoiOSUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -377,16 +287,6 @@
 			isa = PBXTargetDependency;
 			name = GRDBiOS;
 			targetProxy = 567AA8AC1B4E41CF0082C3E4 /* PBXContainerItemProxy */;
-		};
-		56B8F46C1B4E22B200C24296 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 56B8F4531B4E22B200C24296 /* GRDBDemoiOS */;
-			targetProxy = 56B8F46B1B4E22B200C24296 /* PBXContainerItemProxy */;
-		};
-		56B8F4771B4E22B200C24296 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 56B8F4531B4E22B200C24296 /* GRDBDemoiOS */;
-			targetProxy = 56B8F4761B4E22B200C24296 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -515,54 +415,6 @@
 			};
 			name = Release;
 		};
-		56B8F4821B4E22B200C24296 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				INFOPLIST_FILE = GRDBDemoiOSTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOSTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GRDBDemoiOS.app/GRDBDemoiOS";
-			};
-			name = Debug;
-		};
-		56B8F4831B4E22B200C24296 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				INFOPLIST_FILE = GRDBDemoiOSTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOSTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GRDBDemoiOS.app/GRDBDemoiOS";
-			};
-			name = Release;
-		};
-		56B8F4851B4E22B200C24296 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				INFOPLIST_FILE = GRDBDemoiOSUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOSUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_TARGET_NAME = GRDBDemoiOS;
-				USES_XCTRUNNER = YES;
-			};
-			name = Debug;
-		};
-		56B8F4861B4E22B200C24296 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				INFOPLIST_FILE = GRDBDemoiOSUITests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOSUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_TARGET_NAME = GRDBDemoiOS;
-				USES_XCTRUNNER = YES;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -580,24 +432,6 @@
 			buildConfigurations = (
 				56B8F47F1B4E22B200C24296 /* Debug */,
 				56B8F4801B4E22B200C24296 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		56B8F4811B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOSTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				56B8F4821B4E22B200C24296 /* Debug */,
-				56B8F4831B4E22B200C24296 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		56B8F4841B4E22B200C24296 /* Build configuration list for PBXNativeTarget "GRDBDemoiOSUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				56B8F4851B4E22B200C24296 /* Debug */,
-				56B8F4861B4E22B200C24296 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

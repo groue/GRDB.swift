@@ -133,10 +133,10 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 **[Application Tools](#application-tools)**
 
-- [Migrations](#migrations)
-- [Database Changes Observation](#database-changes-observation)
-- [RowConvertible Protocol](#rowconvertible-protocol)
-- [Records](#records)
+- [Migrations](#migrations): Transform your database as your application evolves.
+- [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
+- [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing peformance.
+- [Records](#records): CRUD operations and changes tracking.
     - [Core Methods](#core-methods)
     - [Fetching Records](#fetching-records)
     - [Tables and Primary Keys](#tables-and-primary-keys)
@@ -144,6 +144,10 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
     - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
     - [Record Errors](#record-errors)
     - [Advice](#advice)
+
+**Sample Code**
+
+- [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
 
 
 SQLite API
