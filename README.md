@@ -1077,8 +1077,10 @@ Users of Core Data have recognized the roots of NSFetchedResultsControllerDelega
 Still, let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
 
 ```swift
-class TableChangeObserver : TransactionObserverType {
-    var changedTableNames: Set<String> = []
+let DatabaseTablesDidChangeNotification = "DatabaseTablesDidChangeNotification"
+let ChangedTableNamesKey = "ChangedTableNames"
+class TableChangeObserver : NSObject, TransactionObserverType {
+    private var changedTableNames: Set<String> = []
     
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
         // Remember the name of the changed table:
@@ -1086,23 +1088,23 @@ class TableChangeObserver : TransactionObserverType {
     }
     
     func databaseDidCommit(db: Database) {
-        // Extract the names of changed tables, and reset until
-        // next database event:
-        let notifiedChangedTableNames = changedTableNames
-        changedTableNames = []
+        // Extract the names of changed tables, and reset until next
+        // database event:
+        let changedTableNames = self.changedTableNames
+        self.changedTableNames = []
         
         // Notify
         dispatch_async(dispatch_get_main_queue()) {
             NSNotificationCenter.defaultCenter().postNotificationName(
-                "DatabaseDidChangeNotification",
+                DatabaseTablesDidChangeNotification,
                 object: self,
-                userInfo: ["ChangedTableNames": notifiedChangedTableNames])
+                userInfo: [ChangedTableNamesKey: changedTableNames])
         }
     }
     
     func databaseDidRollback(db: Database) {
-        // Forget the names of changed tables:
-        changedTableNames = []
+        // Reset until next database event:
+        self.changedTableNames = []
     }
 }
 ```
