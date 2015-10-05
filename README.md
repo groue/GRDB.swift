@@ -135,7 +135,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
-- [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing peformance.
+- [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
 - [Records](#records): CRUD operations and changes tracking.
     - [Core Methods](#core-methods)
     - [Fetching Records](#fetching-records)
@@ -943,7 +943,7 @@ On top of the SQLite API described above, GRDB provides a toolkit for applicatio
 
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
-- [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing peformance.
+- [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
 - [Records](#records): CRUD operations and changes tracking.
 
 
