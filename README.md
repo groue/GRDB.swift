@@ -215,26 +215,21 @@ To create tables, we recommend using [migrations](#migrations).
 
 ## Fetch Queries
 
-You can fetch **[Rows](#row-queries)**, **[Values](#value-queries)**, and **[RowConvertible](#rowconvertible-protocol) types**, including **[Records](#records)**.
+You can fetch **Rows**, **Values**, and **Records**:
 
 ```swift
 dbQueue.inDatabase { db in
-    // Rows
     Row.fetch(db, "SELECT ...", ...)             // DatabaseSequence<Row>
     Row.fetchAll(db, "SELECT ...", ...)          // [Row]
     Row.fetchOne(db, "SELECT ...", ...)          // Row?
     
-    // Values
     String.fetch(db, "SELECT ...", ...)          // DatabaseSequence<String>
     String.fetchAll(db, "SELECT ...", ...)       // [String]
     String.fetchOne(db, "SELECT ...", ...)       // String?
     
-    // RowConvertible & Records
     Person.fetch(db, "SELECT ...", ...)          // DatabaseSequence<Person>
     Person.fetchAll(db, "SELECT ...", ...)       // [Person]
     Person.fetchOne(db, "SELECT ...", ...)       // Person?
-    
-    // Records
     Person.fetchOne(db, primaryKey: 12)          // Person?
     Person.fetchOne(db, key: ["name": "Arthur"]) // Person?
 }
@@ -809,19 +804,16 @@ dbQueue.inDatabase { db in
     
     let statement = db.selectStatement("SELECT ...")
     
-    // Rows
     Row.fetch(statement, arguments: ...)              // DatabaseSequence<Row>
     Row.fetchAll(statement, arguments: ...)           // [Row]
     Row.fetchOne(statement, arguments: ...)           // Row?
     
-    // Values
     Int.fetch(statement, arguments: ...)              // DatabaseSequence<Int>
     Int.fetchAll(statement, arguments: ...)           // [Int]
     Int.fetchOne(statement, arguments: ...)           // Int?
     Optional<Int>.fetch(statement, arguments: ...)    // DatabaseSequence<Int?>
     Optional<Int>.fetchAll(statement, arguments: ...) // [Int?]
     
-    // RowConvertible & Records
     Person.fetch(statement, arguments: ...)           // DatabaseSequence<Person>
     Person.fetchAll(statement, arguments: ...)        // [Person]
     Person.fetchOne(statement, arguments: ...)        // Person?
