@@ -196,13 +196,13 @@ dbQueue.inDatabase { db in
 
 // Wrap database statements in a transaction:
 try dbQueue.inTransaction { db in
-    try db.execute(
+    let insertedRowID = try db.execute(
         "INSERT INTO persons (name, age) VALUES (?, ?)",
-        arguments: ["Arthur", 36])
+        arguments: ["Arthur", 36]).insertedRowID
     
     try db.execute(
-        "INSERT INTO persons (name, age) VALUES (:name, :age)",
-        arguments: ["name": "Barbara", "age": 37])
+        "DELETE FROM persons WHERE name = :name",
+        arguments: ["name": "Barbara"])
     
     return .Commit
 }
