@@ -130,18 +130,21 @@ class RecordEditedTests: GRDBTestCase {
         // record that is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
+                let person = Person(name: "Arthur")
                 try person.insert(db)
                 
+                XCTAssertTrue(person.name != nil)
                 person.name = "Bobby"           // non-nil vs. non-nil
                 XCTAssertTrue(person.databaseEdited)
                 try person.reload(db)
                 
+                XCTAssertTrue(person.name != nil)
                 person.name = nil               // non-nil vs. nil
                 XCTAssertTrue(person.databaseEdited)
                 try person.reload(db)
                 
-                person.creationDate = NSDate()  // nil vs. non-nil
+                XCTAssertTrue(person.age == nil)
+                person.age = 41                 // nil vs. non-nil
                 XCTAssertTrue(person.databaseEdited)
                 try person.reload(db)
             }
