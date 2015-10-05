@@ -73,8 +73,8 @@ Row.fetchAll(db, "SELECT ...", arguments: ...)     // [Row]
 Row.fetchOne(db, "SELECT ...", arguments: ...)     // Row?
 
 // DatabaseValueConvertible
-String.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<String?>
-String.fetchAll(db, "SELECT ...", arguments: ...)  // [String?]
+String.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<String>
+String.fetchAll(db, "SELECT ...", arguments: ...)  // [String]
 String.fetchOne(db, "SELECT ...", arguments: ...)  // String?
 
 // Record (via RowConvertible)
