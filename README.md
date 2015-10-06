@@ -1274,9 +1274,13 @@ class Person : Record {
 }
 ```
 
+Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and some will mourn [Key-Value Coding](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/KeyValueCoding.html). But wait until you have to store types such as NSDate, NSURL, Swift enums, or compound properties such as CLLocationCoordinate2D: then you may remember how KVO would have turned your clean model into a mess of ad-hoc properties mandated by the devoring KVO-Goddess.
+
+Anyway.
+
 Given those three core methods, you are granted with a lot more:
 
-```
+```swift
 class Record {
     // Initializers
     init()
