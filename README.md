@@ -1242,7 +1242,7 @@ Subclasses opt in Record features by overriding all or part of the core methods 
 | `storedDatabaseDictionary` |       |   ✓    |   ✓    |   ✓    |   ✓    |   ✓    |
 
 
-Here is below the typical Record boilerplate:
+**The typical Record boilerplate reads as below:**
 
 ```swift
 class Person : Record {
