@@ -1247,16 +1247,16 @@ Subclasses opt in Record features by overriding all or part of the core methods 
 ```swift
 class Person : Record {
     // Declare regular properties
-    var id: Int64?      // matches "id" column
-    var age: Int?       // matches "age" column
-    var name: String?   // matches "name" column
+    var id: Int64?
+    var age: Int?
+    var name: String?
     
     /// The table name
     override class func databaseTableName() -> String? {
         return "persons"
     }
     
-    /// Updates from a database row
+    /// Update from a database row
     override func updateFromRow(row: Row) {
         if let dbv = row["id"]   { id = dbv.value() }
         if let dbv = row["age"]  { age = dbv.value() }
@@ -1274,9 +1274,7 @@ class Person : Record {
 }
 ```
 
-Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and some will mourn [Key-Value Coding](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/KeyValueCoding/Articles/KeyValueCoding.html). But wait until you have to store types such as NSDate, NSURL, Swift enums, or compound properties such as CLLocationCoordinate2D: then you may remember how KVO would have turned your clean model into a mess of ad-hoc properties mandated by the devoring KVO-Goddess.
-
-Anyway.
+Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there is no fancy mapping operators. That's because fancy operators make trivial things look magic, and non-trivial things look ugly. Record boilerplate is not magic, and not ugly: it's plain.
 
 **Given those three core methods, you are granted with a lot more:**
 
@@ -1301,17 +1299,17 @@ class Record {
     func reload(db: Database) throws
     func exists(db: Database) -> Bool
     
-    // Fetching: from Prepared Statement
+    // Fetching from Prepared Statement
     static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self>
     static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self]
     static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self?
     
-    // Fetching: from Database
+    // Fetching from Database
     static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self>
     static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self]
     static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self?
     
-    // Fetching: from Keys
+    // Fetching from Keys
     static func fetchOne(db: Database, primaryKey: DatabaseValueConvertible?) -> Self?
     static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self?
     
@@ -1358,7 +1356,7 @@ class Person : Record {
         return "persons"
     }
     
-    /// Updates from a database row
+    /// Update from a database row
     override func updateFromRow(row: Row) {
         if let dbv = row["id"]   { id = dbv.value() }
         if let dbv = row["age"]  { age = dbv.value() }
