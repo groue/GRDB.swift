@@ -1279,7 +1279,7 @@ Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there
 **Given those three core methods, you are granted with a lot more:**
 
 ```swift
-class Record {
+class Person {
     // Initializers
     init()
     init(row: Row)
@@ -1294,7 +1294,7 @@ class Record {
     // CRUD
     func insert(db: Database) throws
     func update(db: Database) throws
-    func save(db: Database) throws
+    func save(db: Database) throws  // inserts or updates
     func delete(db: Database) throws -> DeletionResult
     func reload(db: Database) throws
     func exists(db: Database) -> Bool
