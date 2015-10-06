@@ -1266,7 +1266,10 @@ class Person : Record {
     
     /// The values stored in the database:
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "age": age]
+        return [
+            "id": id,
+            "name": name,
+            "age": age]
     }
 }
 ```
