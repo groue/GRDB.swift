@@ -1191,12 +1191,15 @@ Yet, it does a few things well:
     (person.name, person.citizenshipsCount)
     ```
 
-- **It provides the classic CRUD operations.** Primary keys can be an automatically generated RowID, or a multi-column primary key.
+- **It provides the classic CRUD operations.**
     
     ```swift
-    let person = Person(name: "Arthur")                  // RowID primary key
-    let country = Country(isoCode: "FR", name: "France") // String primary key
-    let citizenship = Citizenship(personId: person.id, countryIsoCode: country.isoCode)   // Multiple columns primary key
+    // RowID primary key
+    let person = Person(name: "Arthur")
+    // String primary key
+    let country = Country(isoCode: "FR", name: "France")
+    // Multiple columns primary key
+    let citizenship = Citizenship(personId: person.id, countryIsoCode: country.isoCode)
     
     try person.insert(db)   // Automatically fills person.id
     person.name = "Barbara"
@@ -1215,7 +1218,7 @@ Yet, it does a few things well:
     person = Person.fetch...
     person.name = "Barbara"
     person.age = 41
-    person.databaseChanges.keys // ["name"]
+    person.databaseChanges.keys // ["age"]
     if person.databaseEdited {
         try person.save(db)
     }
