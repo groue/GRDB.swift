@@ -1278,7 +1278,7 @@ Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and some 
 
 Anyway.
 
-Given those three core methods, you are granted with a lot more:
+**Given those three core methods, you are granted with a lot more:**
 
 ```swift
 class Record {
