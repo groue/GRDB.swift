@@ -1,6 +1,8 @@
 import XCTest
 import GRDB
 
+// Taking inspiration from https://github.com/LoganWright/Genome
+
 class Mapping {
     enum Direction {
         case Fetch(Row)
