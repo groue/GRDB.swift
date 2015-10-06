@@ -1206,7 +1206,6 @@ Yet, it does a few things well:
     try person.update(db)
     
     try country.save(db) // inserts or update
-    try citizenship.save(db)
     
     try citizenship.delete(db)
     citizenship.exists(db)  // false
