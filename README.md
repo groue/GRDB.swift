@@ -1348,7 +1348,7 @@ dbQueue.inDatabase { db in
 
 The method `fetchOne(_:primaryKey:)` accepts a single value as a key. For Record with multiple-column primary keys, use `fetchOne(_:key:)`.
 
-Those fetching records are based on the `updateFromRow` and `databaseTableName` core methods:
+Those fetching methods are based on the `updateFromRow` and `databaseTableName` core methods:
 
 ```swift
 class Person : Record {
@@ -1367,7 +1367,7 @@ class Person : Record {
 }
 ```
 
-See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
+See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported property types.
 
 > :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
