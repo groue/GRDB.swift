@@ -10,6 +10,7 @@ It ships with a low-level database API, plus application-level tools.
 Jump to:
 
 - [Features](#features)
+- [Requirements](#requirements)
 - [Usage](#usage)
 - [Benchmarks](#benchmarks)
 - [Installation](#installation)
@@ -25,6 +26,13 @@ Features
 - **Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **Database migrations**
 - **Database changes observation hooks**
+
+
+Requirements
+------------
+
+- iOS 7.0+ / OSX 10.9+
+- Xcode 7
 
 
 Usage
