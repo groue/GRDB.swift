@@ -301,7 +301,7 @@ for row in Row.fetch(db, "SELECT ...") {
 **Read column values** by index or column name:
 
 ```swift
-let name: String = row.value(atIndex: 0)
+let name: String = row.value(atIndex: 0)    // 0 is the leftmost column
 let name: String = row.value(named: "name")
 ```
 
@@ -396,7 +396,7 @@ See [Values](#values) for more information on supported types.
 
 ### Value Queries
 
-Instead of rows, you can directly fetch **values**. Like rows, fetch them as **sequences**, **arrays**, or **single** values:
+Instead of rows, you can directly fetch **values**. Like rows, fetch them as **sequences**, **arrays**, or **single** values. Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
 dbQueue.inDatabase { db in
