@@ -1321,6 +1321,7 @@ class Person {
 }
 ```
 
+
 ### Fetching Records
 
 You can fetch **sequences**, **arrays**, or **single** records:
@@ -1369,47 +1370,6 @@ class Person : Record {
 See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
 
 > :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
-
-
-
-#### Ad Hoc Subclasses
-
-Swift makes it very easy to create small and private types. This is a wonderful opportunity to create **ad hoc subclasses** that provide support for custom queries with extra columns.
-
-We think that this is the killer feature of GRDB.swift :bowtie:. For example:
-
-```swift
-class PersonsViewController: UITableViewController {
-    
-    // Private subclass of Person, with an extra `bookCount` property:
-    private class PersonWithBookCount : Person {
-        var bookCount: Int!
-        
-        override func updateFromRow(row: Row) {
-            if dbv = row["bookCount"] { bookCount = dbv.value() }
-            super.updateFromRow(row) // Let Person superclass finish the job.
-        }
-    }
-    
-    var persons: [PersonWithBookCount]!
-    
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        persons = dbQueue.inDatabase { db in
-            PersonWithBookCount.fetchAll(db,
-                "SELECT persons.*, COUNT(*) AS bookCount " +
-                "FROM persons " +
-                "JOIN books ON books.ownerID = persons.id " +
-                "GROUP BY persons.id")
-        }
-        
-        tableView.reloadData()
-    }
-    
-    ...
-}
-```
 
 
 ### Insert, Update and Delete
@@ -1486,6 +1446,7 @@ Record methods can throw [DatabaseError](#error-handling) and also specific erro
 ### Advice
 
 - [Autoincrement](#autoincrement)
+- [Ad Hoc Subclasses](#ad-hoc-subclasses)
 - [Validation](#validation)
 - [Default Values](#default-values)
 - [INSERT OR REPLACE](#insert-or-replace)
@@ -1528,6 +1489,56 @@ let person = Person(...)
 person.id   // nil
 try person.insert(db)
 person.id   // some value
+```
+
+
+#### Ad Hoc Subclasses
+
+Don't hesitate deriving subclasses from your base records when you have a need for a specific query.
+
+For example, if a view controller needs to display a list of persons along with the number of books they own, it would be unreasonable to fetch the list of persons, and then, for each of them, fetch the number of books they own. That would perform N+1 requests, and [this is a well known issue](http://stackoverflow.com/questions/97197/what-is-the-n1-selects-issue).
+
+Instead, subclass Person:
+
+```swift
+class PersonsViewController: UITableViewController {
+    private class PersonWithBookCount : Person {
+        var bookCount: Int?
+    
+        override func updateFromRow(row: Row) {
+            if dbv = row["bookCount"] { bookCount = dbv.value() }
+            super.updateFromRow(row) // Let Person superclass finish the job.
+        }
+    }
+```
+
+Perform a single request:
+
+```swift
+    var persons: [PersonWithBookCount]!
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        persons = dbQueue.inDatabase { db in
+            PersonWithBookCount.fetchAll(db,
+                "SELECT persons.*, COUNT(books.id) AS bookCount " +
+                "FROM persons " +
+                "LEFT JOIN books ON books.ownerId = persons.id " +
+                "GROUP BY persons.id")
+        }
+        tableView.reloadData()
+    }
+```
+
+Other application objects that expect a Person will gently accept the private subclass:
+
+```swift
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if segue.identifier == "showPerson" {
+            let personVC: PersonViewController = segue...
+            personVC.person = persons[self.tableView.indexPathForSelectedRow!.row]
+        }
+    }
+}
 ```
 
 
