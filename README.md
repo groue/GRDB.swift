@@ -1150,6 +1150,8 @@ PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
 PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
 ```
 
+> :point_up: **Note**: For performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+
 You also get a dictionary initializer for free:
 
 ```swift
