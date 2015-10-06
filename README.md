@@ -139,9 +139,8 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 - [Records](#records): CRUD operations and changes tracking.
     - [Core Methods](#core-methods)
     - [Fetching Records](#fetching-records)
-    - [Tables and Primary Keys](#tables-and-primary-keys)
     - [Insert, Update and Delete](#insert-update-and-delete)
-    - [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+    - [Changes Tracking](#changes-tracking)
     - [Record Errors](#record-errors)
     - [Advice](#advice)
 
@@ -1224,10 +1223,8 @@ Yet, it does a few things well:
 
 - [Core Methods](#core-methods)
 - [Fetching Records](#fetching-records)
-    - [Ad Hoc Subclasses](#ad-hoc-subclasses)
-- [Tables and Primary Keys](#tables-and-primary-keys)
 - [Insert, Update and Delete](#insert-update-and-delete)
-- [Preventing Useless UPDATE Statements](#preventing-useless-update-statements)
+- [Changes Tracking](#changes-tracking)
 - [Record Errors](#record-errors)
 - [Advice](#advice)
 
@@ -1236,50 +1233,98 @@ Yet, it does a few things well:
 
 Subclasses opt in Record features by overriding all or part of the core methods that define their relationship with the database:
 
-| Core Methods               | fetch | insert | update | delete | reload |
-|:-------------------------- |:-----:|:------:|:------:|:------:|:------:|
-| `updateFromRow`            |   ✓   |        |        |        |   ✓    |
-| `databaseTableName`        |       |   ✓    |   ✓    |   ✓    |   ✓    |
-| `storedDatabaseDictionary` |       |   ✓    |   ✓    |   ✓    |   ✓    |
+| Core Methods               | fetch | insert | update | delete | exists | reload |
+|:-------------------------- |:-----:|:------:|:------:|:------:|:------:|:------:|
+| `updateFromRow`            |   ✓   |        |        |        |        |   ✓    |
+| `databaseTableName`        |       |   ✓    |   ✓    |   ✓    |   ✓    |   ✓    |
+| `storedDatabaseDictionary` |       |   ✓    |   ✓    |   ✓    |   ✓    |   ✓    |
 
 
-### Fetching Records
-
-The Person subclass below will be our guinea pig. It declares properties for the `persons` table:
+Here is below the typical Record boilerplate:
 
 ```swift
 class Person : Record {
+    // Declare regular properties
     var id: Int64?      // matches "id" column
     var age: Int?       // matches "age" column
     var name: String?   // matches "name" column
-}
-```
-
-The `updateFromRow` method assigns database values to properties:
-
-```swift
-class Person : Record {
+    
+    /// The table name
+    override class func databaseTableName() -> String? {
+        return "persons"
+    }
+    
+    /// Updates from a database row
     override func updateFromRow(row: Row) {
         if let dbv = row["id"]   { id = dbv.value() }
         if let dbv = row["age"]  { age = dbv.value() }
         if let dbv = row["name"] { name = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
+    
+    /// The values stored in the database:
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "name": name, "age": age]
+    }
 }
 ```
 
-See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
+Given those three core methods, you are granted with a lot more:
 
-> :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+```
+class Record {
+    // Initializers
+    init()
+    init(row: Row)
+    convenience init(dictionary: [String: DatabaseValueConvertible?])
+    convenience init(dictionary: NSDictionary)
+    func copy() -> Self
+    
+    // Change Tracking
+    var databaseEdited: Bool
+    var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)]
+    
+    // CRUD
+    func insert(db: Database) throws
+    func update(db: Database) throws
+    func save(db: Database) throws
+    func delete(db: Database) throws -> DeletionResult
+    func reload(db: Database) throws
+    func exists(db: Database) -> Bool
+    
+    // Fetching: from Prepared Statement
+    static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self>
+    static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self]
+    static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self?
+    
+    // Fetching: from Database
+    static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self>
+    static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self]
+    static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self?
+    
+    // Fetching: from Keys
+    static func fetchOne(db: Database, primaryKey: DatabaseValueConvertible?) -> Self?
+    static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self?
+    
+    // Events
+    func awakeFromFetch(row: Row)
+    
+    // Description
+    var description: String
+}
+```
 
-Now you can fetch **sequences** of records, **arrays**, or **single** instances:
+### Fetching Records
+
+You can fetch **sequences**, **arrays**, or **single** records:
 
 ```swift
-
 dbQueue.inDatabase { db in
     Person.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<Person>
     Person.fetchAll(db, "SELECT ...", arguments:...) // [Person]
     Person.fetchOne(db, "SELECT ...", arguments:...) // Person?
+    Person.fetchOne(db, primaryKey: ...)             // Person?
+    Person.fetchOne(db, key: ["name": "Arthur"])     // Person?
 }
 ```
 
@@ -1293,11 +1338,31 @@ dbQueue.inDatabase { db in
 > for person in persons { ... } // OK
 > ```
 
-Oh, and you also get a dictionary initializer for free, because Record adopts the [RowConvertible protocol](#rowconvertible-protocol):
+The method `fetchOne(_:primaryKey:)` accepts a single value as a key. For Record with multiple-column primary keys, use `fetchOne(_:key:)`.
+
+Those fetching records are based on the `updateFromRow` and `databaseTableName` core methods:
 
 ```swift
-let person = Person(dictionary: ["name": "Arthur", "age": 41])
+class Person : Record {
+    /// The table name
+    override class func databaseTableName() -> String? {
+        return "persons"
+    }
+    
+    /// Updates from a database row
+    override func updateFromRow(row: Row) {
+        if let dbv = row["id"]   { id = dbv.value() }
+        if let dbv = row["age"]  { age = dbv.value() }
+        if let dbv = row["name"] { name = dbv.value() }
+        super.updateFromRow(row) // Subclasses are required to call super.
+    }
+}
 ```
+
+See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type, and [Values](#values) about the supported property types.
+
+> :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+
 
 
 #### Ad Hoc Subclasses
@@ -1340,37 +1405,9 @@ class PersonsViewController: UITableViewController {
 ```
 
 
-### Tables and Primary Keys
-
-If you declare a **Table name**, GRDB infers your table's primary key automatically and you can fetch instances by ID or any other key.
-
-```swift
-class Person : Record {
-    override class func databaseTableName() -> String? {
-        return "persons"
-    }
-}
-
-try dbQueue.inDatabase { db in
-    // Person?
-    let person = Person.fetchOne(db, primaryKey: 123)
-    
-    // Citizenship?
-    let citizenship = Citizenship.fetchOne(db,
-        key: ["personId": 123, "countryIsoCode": "FR"])
-}
-```
-
-Records with a multi-column primary key are not supported by `fetchOne(_:primaryKey:)`, which accepts a single value as a key. Instead, use `fetchOne(_:key:)` that uses a dictionary.
-
-`fetchOne(_:key:)` returns the first Record with matching values. Its result is undefined unless the dictionary is *actually* a key.
-
-[Implicit RowIDs](https://www.sqlite.org/lang_createtable.html#rowid) are not supported.
-
-
 ### Insert, Update and Delete
 
-With one more override, you get the `insert`, `update`, `delete`, `save`, `reload` and `exists` methods.
+Records can store themselves in the database through the `storedDatabaseDictionary` core property:
 
 ```swift
 class Person : Record {
@@ -1380,11 +1417,11 @@ class Person : Record {
     }
 }
 
-try dbQueue.inTransaction { db in
-    
+try dbQueue.inDatabase { db in
     // Insert
     let person = Person(name: "Arthur", age: 41)
     try person.insert(db)
+    person.exists(db) // true
     
     // Update
     person.age = 42
@@ -1396,8 +1433,7 @@ try dbQueue.inTransaction { db in
     
     // Delete
     try person.delete(db)
-    
-    return .Commit
+    person.exists(db) // false
 }
 ```
 
@@ -1406,7 +1442,7 @@ Records whose primary key is declared as "INTEGER PRIMARY KEY" have their id aut
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
 
 
-### Preventing Useless UPDATE Statements
+### Changes Tracking
 
 The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
 
