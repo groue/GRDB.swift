@@ -1171,8 +1171,8 @@ Yet, it does a few things well:
     try person.insert(db)   // Automatically fills person.id if primary key is an auto-incremented RowID.
     try person.update(db)
     try person.save(db)     // Inserts or updates
-    try person.delete(db)
     try person.reload(db)
+    try person.delete(db)
     ```
     
 - **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
@@ -1349,22 +1349,13 @@ class Person : Record {
 }
 
 try dbQueue.inDatabase { db in
-    // Insert
-    let person = Person(name: "Arthur", age: 41)
+    let person = Person(...)
     try person.insert(db)
-    person.exists(db) // true
-    
-    // Update
-    person.age = 42
     try person.update(db)
-    
-    // Reload
-    person.age = 666
+    try person.save(db)     // Inserts or updates
     try person.reload(db)
-    
-    // Delete
     try person.delete(db)
-    person.exists(db) // false
+    person.exists(db)       // Bool
 }
 ```
 
