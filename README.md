@@ -1374,7 +1374,12 @@ Avoid it with the `databaseEdited` property, which returns whether the record ha
 let json = ...
 try dbQueue.inTransaction { db in
     // Fetches or create a new person given its ID:
-    let person = Person.fetchOne(db, primaryKey: json["id"]) ?? Person()
+    let person: Person
+    if let existingPerson = Person.fetchOne(db, primaryKey: json["id"]) {
+        person = existingPerson
+    } else {
+        person = Person()
+    }
     
     // Apply json payload:
     person.updateFromJSON(json)
