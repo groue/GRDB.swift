@@ -357,7 +357,7 @@ You may prefer thinking of rows as dictionaries of `DatabaseValue`, an intermedi
 if let databaseValue = row["date"] {
     // Pick the type you need:
     let dateString: String = databaseValue.value() // "2015-09-11 18:14:15.123"
-    let date: NSDate       = databaseValue.value() // NSDate
+    let date: NSDate = databaseValue.value()       // NSDate
     self.date = databaseValue.value() // Depends on the type of the property.
 }
 ```
