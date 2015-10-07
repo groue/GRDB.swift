@@ -531,6 +531,43 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 >
 > Yet, this format may not fit your needs. We provide [below](#custom-value-types) some sample code for storing dates as timestamps. You can adapt it for your application.
 
+Declare DATETIME columns in your tables:
+
+```swift
+try db.execute(
+    "CREATE TABLE persons (" +
+    "creationDate DATETIME, " +
+    "...)")
+```
+
+Store NSDate into the database:
+
+```swift
+let creationDate = NSDate()
+try db.execute("INSERT INTO persons (creationDate, ...) " +
+                            "VALUES (?, ...)",
+                         arguments: [creationDate, ...])
+```
+
+Extract NSDate from the database:
+
+```swift
+let row = Row.fetchOne(db, "SELECT creationDate, ...")!
+let date: NSDate = row.value(named: "creationDate")
+
+NSDate.fetch(db, "SELECT ...")       // DatabaseSequence<NSDate>
+NSDate.fetchAll(db, "SELECT ...")    // [NSDate]
+NSDate.fetchOne(db, "SELECT ...")    // NSDate?
+```
+
+See [Value Queries](#value-queries) for more detail on value fetching.
+
+
+#### NSDateComponents
+
+NSDateComponents is indirectly supported, through the **DatabaseDateComponents** helper type.
+
+DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to YYYY-MM-DD HH:MM:SS.SSS.
 
 Declare DATETIME columns in your tables:
 
@@ -540,54 +577,6 @@ try db.execute(
     "birthDate DATETIME, " +
     "...)")
 ```
-
-Store NSDate into the database:
-
-```swift
-let birthDate = NSDate()
-try db.execute("INSERT INTO persons (birthDate, ...) " +
-                            "VALUES (?, ...)",
-                         arguments: [birthDate, ...])
-```
-
-Extract NSDate from the database:
-
-```swift
-let row = Row.fetchOne(db, "SELECT birthDate, ...")!
-let date: NSDate = row.value(named: "birthDate")
-
-NSDate.fetch(db, "SELECT ...")       // DatabaseSequence<NSDate>
-NSDate.fetchAll(db, "SELECT ...")    // [NSDate]
-NSDate.fetchOne(db, "SELECT ...")    // NSDate?
-```
-
-See [Value Queries](#value-queries) for more detail on value fetching.
-
-Use NSDate in a Record (see [Fetching Records](#fetching-records) for more information):
-
-```swift
-class Person : Record {
-    var birthDate: NSDate?
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["birthDate": birthDate, ...]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["birthDate"] { birthDate = dbv.value() }
-        ...
-    }
-}
-```
-
-One could reasonably wonder if NSDate is a suitable type for a birth date. Well, NSDateComponents has built-in support in GRDB as well:
-
-
-#### NSDateComponents
-
-NSDateComponents is indirectly supported, through the **DatabaseDateComponents** helper type.
-
-DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to YYYY-MM-DD HH:MM:SS.SSS.
 
 Store NSDateComponents into the database:
 
@@ -618,30 +607,6 @@ DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
 ```
 
 See [Value Queries](#value-queries) for more detail on value fetching.
-
-Use NSDateComponents in a Record (see [Fetching Records](#fetching-records) for more information):
-
-```swift
-class Person : Record {
-    var birthDateComponents: NSDateComponents?
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        // Store birth date as YYYY-MM-DD:
-        let dbComponents = DatabaseDateComponents(
-            birthDateComponents,
-            format: .YMD)
-        return ["birthDate": dbComponents, ...]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["birthDate"] {
-            let dbComponents = dbv.value() as DatabaseDateComponents?
-            birthDateComponents = dbComponents?.dateComponents
-        }
-        ...
-    }
-}
-```
 
 
 ### Swift Enums
