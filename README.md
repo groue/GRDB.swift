@@ -1164,24 +1164,15 @@ Yet, it does a few things well:
     (person.name, person.citizenshipsCount)
     ```
 
-- **It provides the classic CRUD operations.**
+- **It provides the classic CRUD operations.** GRDB supports all primary keys (auto-incremented RowIDs, single column, multiple columns).
     
     ```swift
-    // RowID primary key
-    let person = Person(name: "Arthur")
-    // String primary key
-    let country = Country(isoCode: "FR", name: "France")
-    // Multiple columns primary key
-    let citizenship = Citizenship(personId: person.id, countryIsoCode: country.isoCode)
-    
-    try person.insert(db)   // Automatically fills person.id
-    person.name = "Barbara"
+    let person = Person(...)
+    try person.insert(db)   // Automatically fills person.id if primary key is an auto-incremented RowID.
     try person.update(db)
-    
-    try country.save(db) // inserts or update
-    
-    try citizenship.delete(db)
-    citizenship.exists(db)  // false
+    try person.save(db)     // Inserts or updates
+    try person.delete(db)
+    try person.reload(db)
     ```
     
 - **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
