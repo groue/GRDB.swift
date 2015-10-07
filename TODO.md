@@ -4,6 +4,7 @@
 - [ ] Study SQLCipher
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
+- [ ] Provide some sample code for external data storage.
 
 
 Not sure:
