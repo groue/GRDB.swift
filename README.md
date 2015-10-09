@@ -185,13 +185,14 @@ The `inDatabase` and `inTransaction` methods perform your **database statements*
 ```swift
 // Extract values from the database:
 let rows = dbQueue.inDatabase { db in
-    Row.fetch(db, "SELECT ...")
+    Row.fetchAll(db, "SELECT ...")
 }
 
 // Execute database statements:
 dbQueue.inDatabase { db in
-    let persons = Person.fetchAll(db, "SELECT...")
-    let books = Book.fetchAll(db, "SELECT ...")
+    for person in Person.fetch(db, "SELECT...") {
+        ...
+    }
     ...
 }
 
