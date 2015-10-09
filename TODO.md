@@ -6,6 +6,7 @@
 - [ ] Study custom collations
 - [ ] Provide some sample code for external data storage (investigate UpdateStatement didCommit + didRollback hooks)
 - [ ] `IN (?)` sql snippet, with an array argument.
+- [ ] Investigate the invalidation of RowSequence by storing a weak reference to the SelectStatement. The idea being that when the statement is nil, the sequence is invalid.
 
 
 Not sure:
