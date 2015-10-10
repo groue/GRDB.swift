@@ -27,7 +27,8 @@ class Person : Record {
         return [firstName, lastName].flatMap { $0 }.joinWithSeparator(" ")
     }
     
-    init(firstName: String? = nil, lastName: String? = nil) {
+    init(id: Int64? = nil, firstName: String?, lastName: String?) {
+        self.id = id
         self.firstName = firstName
         self.lastName = lastName
         super.init()
@@ -64,7 +65,7 @@ class Person : Record {
 try! dbQueue.inTransaction { db in
     try Person(firstName: "Arthur", lastName: "Miller").insert(db)
     try Person(firstName: "Barbara", lastName: "Streisand").insert(db)
-    try Person(firstName: "Cinderella").insert(db)
+    try Person(firstName: "Cinderella", lastName: nil).insert(db)
     return .Commit
 }
 

@@ -1185,6 +1185,7 @@ Yet, it does a few things well:
 - [Core Methods](#core-methods)
 - [Fetching Records](#fetching-records)
 - [Insert, Update and Delete](#insert-update-and-delete)
+- [Record Initializers](#record-initializers)
 - [Changes Tracking](#changes-tracking)
 - [Record Errors](#record-errors)
 - [Advice](#advice)
@@ -1357,6 +1358,48 @@ try dbQueue.inDatabase { db in
 Records whose primary key is declared as "INTEGER PRIMARY KEY" have their id automatically set after successful insertion.
 
 Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
+
+
+### Record Initializers
+
+**Record has four initializers:**
+
+```swift
+class Record {
+    // Designated initializers:
+    init()
+    required init(row: Row)
+    
+    // Convenience initializers:
+    convenience init(dictionary: [String: DatabaseValueConvertible?])
+    convenience init(dictionary: NSDictionary)
+}
+```
+
+**Whenever you add your own custom initializer**, Swift requires you to call one of the designated initializers of your Record superclass, and to provide an implementation of the required `init(row:)`:
+
+```swift
+class Person : Record {
+    var id: Int64?
+    var age: Int?
+    var name: String?
+    
+    // Person(age: 41, name: "Arthur")
+    init(id: Int64? = nil, age: Int?, name: String?) {
+        self.id = id
+        self.age = age
+        self.name = name
+        
+        // Required by Swift
+        super.init()
+    }
+    
+    // Required by Swift
+    required init(row: Row) {
+        super.init(row: row)
+    }
+}
+```
 
 
 ### Changes Tracking
