@@ -46,7 +46,7 @@ class RecordEventsTests: GRDBTestCase {
     }
     
     func testAwakeFromFetchIsNotTriggeredByInitFromRow() {
-        let record = EventRecorder(row: Row(dictionary: ["foo":"bar"]))
+        let record = EventRecorder(row: Row())
         XCTAssertEqual(record.awakeFromFetchCount, 0)
     }
     

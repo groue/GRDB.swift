@@ -18,6 +18,14 @@ public final class Row: CollectionType {
     // MARK: - Building rows
     
     /**
+    Builds an empty row.
+    */
+    public init() {
+        self.sqliteStatement = nil
+        self.impl = EmptyRowImpl()
+    }
+    
+    /**
     Builds a row from an dictionary of values.
     */
     public init(dictionary: [String: DatabaseValueConvertible?]) {
@@ -558,6 +566,8 @@ public final class Row: CollectionType {
     ///
     /// - DictionaryRowImpl: dictionary rows are created by the library users.
     ///   They do not come from the database.
+    ///
+    /// - EmptyRowImpl: empty row
     let impl: RowImpl
     
     /// Only metal rows have a SQLiteStatement.
@@ -698,7 +708,30 @@ public final class Row: CollectionType {
             return Row(detachedStatement: statement)
         }
     }
-
+    
+    
+    // MARK: - EmptyRowImpl
+    
+    /// See Row.init()
+    private struct EmptyRowImpl : RowImpl {
+        var count: Int { return 0 }
+        
+        func databaseValue(atIndex index: Int) -> DatabaseValue {
+            fatalError("Empty row has no column")
+        }
+        
+        func columnName(atIndex index: Int) -> String {
+            fatalError("Empty row has no column")
+        }
+        
+        func indexForColumn(named name: String) -> Int? {
+            return nil
+        }
+        
+        func detachedRow(row: Row) -> Row {
+            return row
+        }
+    }
 }
 
 

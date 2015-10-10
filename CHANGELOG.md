@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `Row()` initializes an empty row.
+
+
 ## 0.22.0
 
 Released october 8, 2015
