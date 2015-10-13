@@ -445,9 +445,7 @@ NSData.fetchAll(db, "SELECT ...")    // [NSData]
 NSData.fetchOne(db, "SELECT ...")    // NSData?
 ```
 
-Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**:
-
-**The most memory-efficient way** to consume database blobs is the following:
+Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**, using the `dataNoCopy()` method:
 
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
