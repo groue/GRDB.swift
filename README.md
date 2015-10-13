@@ -469,7 +469,6 @@ for row in Row.fetch(db, "SELECT data, ...") {
     
     // Data is copied, row after row:
     if let databaseValue = row["data"] {
-        // Too late to do the right thing:
         let data: NSData = databaseValue.value()
     }
 }
