@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Release
+## 0.23.0
+
+Released October 13, 2015
 
 **New**
 
@@ -15,7 +17,7 @@ Release Notes
 
 ## 0.22.0
 
-Released october 8, 2015
+Released October 8, 2015
 
 **New**
 
@@ -25,7 +27,7 @@ Released october 8, 2015
 
 ## 0.21.0
 
-Released october 1, 2015
+Released October 1, 2015
 
 **Fixed**
 
