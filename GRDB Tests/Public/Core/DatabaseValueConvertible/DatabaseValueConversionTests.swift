@@ -20,7 +20,7 @@ extension DatabaseValue {
             return .Real
         case is String:
             return .Text
-        case is GRDB.Blob:
+        case is NSData:
             return .Blob
         default:
             fatalError("Unexpected type")
@@ -77,7 +77,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertEqual((dbv.value() as String?)!, "0")
                 XCTAssertEqual((dbv.value() as String), "0")
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -97,7 +97,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertEqual((dbv.value() as String?)!, "0")
                 XCTAssertEqual((dbv.value() as String), "0")
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -117,7 +117,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertEqual((dbv.value() as String?)!, "0")
                 XCTAssertEqual((dbv.value() as String), "0")
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -137,7 +137,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertEqual((dbv.value() as String?)!, "0.0")
                 XCTAssertEqual((dbv.value() as String), "0.0")
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -157,7 +157,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertEqual((dbv.value() as String?)!, "3.0e+5")
                 XCTAssertEqual((dbv.value() as String), "3.0e+5")
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -177,7 +177,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertEqual((dbv.value() as String?)!, "foo")
                 XCTAssertEqual((dbv.value() as String), "foo")
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -196,7 +196,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Int64?) == nil)
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertEqual((dbv.value() as Blob?), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
+                XCTAssertEqual((dbv.value() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
                 
                 return .Rollback
             }
@@ -271,7 +271,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -295,7 +295,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -319,7 +319,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -343,7 +343,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
                 XCTAssertEqual((dbv.value() as Double), Double(300000))
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -361,7 +361,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 1e20)
                 XCTAssertEqual((dbv.value() as Double), 1e20)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -385,7 +385,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
                 XCTAssertEqual((dbv.value() as Double), Double(300000))
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -403,7 +403,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 1e20)
                 XCTAssertEqual((dbv.value() as Double), 1e20)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -423,7 +423,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertEqual((dbv.value() as String?)!, "foo")
                 XCTAssertEqual((dbv.value() as String), "foo")
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -442,7 +442,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Int64?) == nil)
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertEqual((dbv.value() as Blob?), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
+                XCTAssertEqual((dbv.value() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
                 
                 return .Rollback
             }
@@ -477,7 +477,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -501,7 +501,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -525,7 +525,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -549,7 +549,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -569,7 +569,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertEqual((dbv.value() as String?)!, "3.0e+5")
                 XCTAssertEqual((dbv.value() as String), "3.0e+5")
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -588,7 +588,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Int64?) == nil)
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertEqual((dbv.value() as Blob?), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
+                XCTAssertEqual((dbv.value() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
                 
                 return .Rollback
             }
@@ -637,7 +637,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -661,7 +661,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -685,7 +685,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -709,7 +709,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
                 XCTAssertEqual((dbv.value() as Double), Double(300000))
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -727,7 +727,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 1e20)
                 XCTAssertEqual((dbv.value() as Double), 1e20)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -751,7 +751,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
                 XCTAssertEqual((dbv.value() as Double), Double(300000))
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -769,7 +769,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Double?)!, 1e20)
                 XCTAssertEqual((dbv.value() as Double), 1e20)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -789,7 +789,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertEqual((dbv.value() as String?)!, "foo")
                 XCTAssertEqual((dbv.value() as String), "foo")
-                XCTAssertTrue((dbv.value() as Blob?) == nil)
+                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -808,7 +808,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue((dbv.value() as Int64?) == nil)
                 XCTAssertTrue((dbv.value() as Double?) == nil)
                 XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertEqual((dbv.value() as Blob?), Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!)
+                XCTAssertEqual((dbv.value() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
                 
                 return .Rollback
             }

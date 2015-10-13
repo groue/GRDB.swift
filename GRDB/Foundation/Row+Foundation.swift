@@ -46,8 +46,8 @@ extension Row {
                 dictionary[columnName] = NSNumber(double: double)
             case .String(let string):
                 dictionary[columnName] = string as NSString
-            case .Blob(let blob):
-                dictionary[columnName] = blob.data
+            case .Blob(let data):
+                dictionary[columnName] = data
             }
         }
         return dictionary

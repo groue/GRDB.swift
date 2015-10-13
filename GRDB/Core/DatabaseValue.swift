@@ -1,3 +1,5 @@
+import Foundation
+
 // MARK: - DatabaseValue
 
 /**
@@ -39,8 +41,12 @@ public struct DatabaseValue : Equatable {
     /**
     Returns a DatabaseValue storing a Blob.
     */
-    public init(blob: Blob) {
-        self.storage = .Blob(blob)
+    public init(data: NSData) {
+        if data.length == 0 {
+            self.storage = .Null
+        } else {
+            self.storage = .Blob(data)
+        }
     }
     
     
@@ -50,7 +56,7 @@ public struct DatabaseValue : Equatable {
     Returns the wrapped value.
     
     If not nil (for the database NULL), its type is guaranteed to be one of the
-    following: Int64, Double, String, and Blob.
+    following: Int64, Double, String, and NSData.
     
     let value = databaseValue.value()
     */
@@ -71,8 +77,8 @@ public struct DatabaseValue : Equatable {
             return double
         case .String(let string):
             return string
-        case .Blob(let blob):
-            return blob
+        case .Blob(let data):
+            return data
         }
     }
     
@@ -141,7 +147,7 @@ public struct DatabaseValue : Equatable {
         case String(Swift.String)
         
         /// The BLOB storage class, wrapping a Blob.
-        case Blob(GRDB.Blob)
+        case Blob(NSData)
         
         init(sqliteStatement: SQLiteStatement, index: Int) {
             switch sqlite3_column_type(sqliteStatement, Int32(index)) {
@@ -157,7 +163,7 @@ public struct DatabaseValue : Equatable {
             case SQLITE_BLOB:
                 let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
                 let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-                self = .Blob(GRDB.Blob(bytes: bytes, length: Int(length))!) // copy bytes
+                self = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
             default:
                 fatalError("Unexpected SQLite column type")
             }
@@ -245,8 +251,8 @@ extension DatabaseValue : CustomStringConvertible {
             return String(double)
         case .String(let string):
             return String(reflecting: string)
-        case .Blob(let blob):
-            return blob.description
+        case .Blob(let data):
+            return data.description
         }
     }
 }

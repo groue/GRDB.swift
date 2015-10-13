@@ -1,3 +1,5 @@
+import Foundation
+
 /**
 A database row.
 */
@@ -118,7 +120,7 @@ public final class Row: CollectionType {
     - returns: An optional *Value*.
     */
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
-        return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
+        return impl.databaseValue(atIndex: index).value()
     }
     
     /**
@@ -146,7 +148,7 @@ public final class Row: CollectionType {
             }
         } else {
             // Detached row
-            return Value.fromDatabaseValue(impl.databaseValue(atIndex: index))
+            return impl.databaseValue(atIndex: index).value()
         }
     }
     
@@ -332,6 +334,39 @@ public final class Row: CollectionType {
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
         if let index = impl.indexForColumn(named: columnName) {
             return value(atIndex: index)
+        } else {
+            fatalError("No such column: \(String(reflecting: columnName))")
+        }
+    }
+    
+    
+    // MARK: - Extracting NSData
+    
+    /**
+    Returns the optional NSData stored at index *index*.
+    
+    The returned data does not owns its bytes, and must not be used longer than
+    the row's lifetime.
+    
+    - parameter index: The index of a column.
+    - returns: An optional NSData.
+    */
+    public func dataNoCopy(atIndex index:Int) -> NSData? {
+        return impl.dataNoCopy(atIndex: index)
+    }
+    
+    /**
+    Returns the optional NSData stored at column *name*.
+    
+    The returned data does not owns its bytes, and must not be used longer than
+    the row's lifetime.
+    
+    - parameter name: A column name.
+    - returns: An NSData.
+    */
+    public func dataNoCopy(named columnName: String) -> NSData? {
+        if let index = impl.indexForColumn(named: columnName) {
+            return dataNoCopy(atIndex: index)
         } else {
             fatalError("No such column: \(String(reflecting: columnName))")
         }
@@ -614,6 +649,10 @@ public final class Row: CollectionType {
             return databaseDictionary.count
         }
         
+        func dataNoCopy(atIndex index:Int) -> NSData? {
+            return databaseValue(atIndex: index).value()
+        }
+        
         func databaseValue(atIndex index: Int) -> DatabaseValue {
             return databaseDictionary[databaseDictionary.startIndex.advancedBy(index)].1
         }
@@ -655,6 +694,10 @@ public final class Row: CollectionType {
             return columnNames.count
         }
         
+        func dataNoCopy(atIndex index:Int) -> NSData? {
+            return databaseValue(atIndex: index).value()
+        }
+        
         func databaseValue(atIndex index: Int) -> DatabaseValue {
             return databaseValues[index]
         }
@@ -691,6 +734,15 @@ public final class Row: CollectionType {
             return Int(sqlite3_column_count(sqliteStatement))
         }
         
+        func dataNoCopy(atIndex index:Int) -> NSData? {
+            guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+                return nil
+            }
+            let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
+            let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
+            return NSData(bytesNoCopy: UnsafeMutablePointer(bytes), length: Int(length), freeWhenDone: false)
+        }
+        
         func databaseValue(atIndex index: Int) -> DatabaseValue {
             return DatabaseValue(sqliteStatement: sqliteStatement, index: index)
         }
@@ -717,6 +769,10 @@ public final class Row: CollectionType {
         var count: Int { return 0 }
         
         func databaseValue(atIndex index: Int) -> DatabaseValue {
+            fatalError("Empty row has no column")
+        }
+        
+        func dataNoCopy(atIndex index:Int) -> NSData? {
             fatalError("Empty row has no column")
         }
         
@@ -756,6 +812,7 @@ extension Row: CustomStringConvertible {
 protocol RowImpl {
     var count: Int { get }
     func databaseValue(atIndex index: Int) -> DatabaseValue
+    func dataNoCopy(atIndex index:Int) -> NSData?
     func columnName(atIndex index: Int) -> String
     func indexForColumn(named name: String) -> Int? // This method MUST be case-insensitive.
     func detachedRow(row: Row) -> Row               // The row argument has the receiver as an impl.

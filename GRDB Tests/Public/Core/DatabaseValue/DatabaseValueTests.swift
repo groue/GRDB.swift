@@ -16,14 +16,14 @@ class DatabaseValueTests: GRDBTestCase {
     }
     
     func testDatabaseValueEquatable() {
-        let fooBlob = Blob(data: "foo".dataUsingEncoding(NSUTF8StringEncoding))!
-        let barBlob = Blob(data: "bar".dataUsingEncoding(NSUTF8StringEncoding))!
+        let fooData = "foo".dataUsingEncoding(NSUTF8StringEncoding)!
+        let barData = "bar".dataUsingEncoding(NSUTF8StringEncoding)!
         
         XCTAssertEqual(DatabaseValue.Null, DatabaseValue.Null)
         XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(int64: 1))
         XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(double: 1.0))
         XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(string: "foo"))
-        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(blob: fooBlob))
+        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(data: fooData))
         
         XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue.Null)
         XCTAssertEqual(DatabaseValue(int64: 1), DatabaseValue(int64: 1))
@@ -38,7 +38,7 @@ class DatabaseValueTests: GRDBTestCase {
         XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(string: "foo"))
         XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(string: "1"))
         XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(string: "1.0"))
-        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(blob: fooBlob))
+        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(data: fooData))
         
         XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue.Null)
         XCTAssertEqual(DatabaseValue(double: 1.0), DatabaseValue(int64: 1))
@@ -53,20 +53,20 @@ class DatabaseValueTests: GRDBTestCase {
         XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(string: "foo"))
         XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(string: "1"))
         XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(string: "1.0"))
-        XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(blob: fooBlob))
+        XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(data: fooData))
         
         XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue.Null)
         XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue(int64: 1))
         XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue(double: 1.0))
         XCTAssertEqual(DatabaseValue(string: "foo"), DatabaseValue(string: "foo"))
         XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue(string: "bar"))
-        XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue(blob: fooBlob))
+        XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue(data: fooData))
         
-        XCTAssertNotEqual(DatabaseValue(blob: fooBlob), DatabaseValue.Null)
-        XCTAssertNotEqual(DatabaseValue(blob: fooBlob), DatabaseValue(int64: 1))
-        XCTAssertNotEqual(DatabaseValue(blob: fooBlob), DatabaseValue(double: 1.0))
-        XCTAssertNotEqual(DatabaseValue(blob: fooBlob), DatabaseValue(string: "foo"))
-        XCTAssertEqual(DatabaseValue(blob: fooBlob), DatabaseValue(blob: fooBlob))
-        XCTAssertNotEqual(DatabaseValue(blob: fooBlob), DatabaseValue(blob: barBlob))
+        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue.Null)
+        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue(int64: 1))
+        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue(double: 1.0))
+        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue(string: "foo"))
+        XCTAssertEqual(DatabaseValue(data: fooData), DatabaseValue(data: fooData))
+        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue(data: barData))
     }
 }
