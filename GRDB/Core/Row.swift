@@ -75,7 +75,7 @@ public final class Row: CollectionType {
     righmost column.
     
     If not nil (for the database NULL), its type is guaranteed to be one of the
-    following: Int64, Double, String, and Blob.
+    following: Int64, Double, String, and NSData.
     
         let value = row.value(atIndex: 0)
     
@@ -209,7 +209,7 @@ public final class Row: CollectionType {
     Returns the value for the given column.
     
     If not nil (for the database NULL), its type is guaranteed to be one of the
-    following: Int64, Double, String, and Blob.
+    following: Int64, Double, String, and NSData.
     
         let value = row.value(named: "name")
     

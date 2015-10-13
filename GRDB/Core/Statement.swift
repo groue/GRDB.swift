@@ -135,8 +135,8 @@ public class Statement {
             code = sqlite3_bind_double(sqliteStatement, Int32(index), double)
         case .String(let text):
             code = sqlite3_bind_text(sqliteStatement, Int32(index), text, -1, SQLITE_TRANSIENT)
-        case .Blob(let blob):
-            code = sqlite3_bind_blob(sqliteStatement, Int32(index), blob.bytes, Int32(blob.length), SQLITE_TRANSIENT)
+        case .Blob(let data):
+            code = sqlite3_bind_blob(sqliteStatement, Int32(index), data.bytes, Int32(data.length), SQLITE_TRANSIENT)
         }
         
         if code != SQLITE_OK {

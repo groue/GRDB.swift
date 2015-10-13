@@ -39,7 +39,7 @@ public struct DatabaseValue : Equatable {
     }
     
     /**
-    Returns a DatabaseValue storing a Blob.
+    Returns a DatabaseValue storing NSData.
     */
     public init(data: NSData) {
         if data.length == 0 {
@@ -146,7 +146,7 @@ public struct DatabaseValue : Equatable {
         /// The TEXT storage class, wrapping a String.
         case String(Swift.String)
         
-        /// The BLOB storage class, wrapping a Blob.
+        /// The BLOB storage class, wrapping NSData.
         case Blob(NSData)
         
         init(sqliteStatement: SQLiteStatement, index: Int) {

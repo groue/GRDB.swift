@@ -7,7 +7,6 @@
 - [ ] Provide some sample code for external data storage (investigate UpdateStatement didCommit + didRollback hooks)
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Investigate the invalidation of RowSequence.
-- [ ] Criticize the Blob type (couldn't we just use NSData?)
 
 
 Not sure:

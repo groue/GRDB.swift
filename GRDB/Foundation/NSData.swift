@@ -8,7 +8,8 @@ extension NSData : DatabaseValueConvertible {
     /**
     Returns an NSData initialized from *databaseValue*, if it contains a Blob.
     
-    The data is *copied*.
+    Whether the data is copied or not depends on the behavior of
+    `Self.init(data: NSData)`. For NSData itself, the data is *not copied*.
     
     - parameter databaseValue: A DatabaseValue.
     - returns: An optional NSData.
@@ -16,7 +17,7 @@ extension NSData : DatabaseValueConvertible {
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         switch databaseValue.storage {
         case .Blob(let data):
-            return self.init(data: data)
+            return self.init(data: data)    // When Self is NSData, the buffer is not copied.
         default:
             return nil
         }

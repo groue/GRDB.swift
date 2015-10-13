@@ -447,25 +447,20 @@ NSData.fetchOne(db, "SELECT ...")    // NSData?
 
 Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**:
 
-```swift
-// When the "data" column is know to be there:
-let notCopiedData = row.dataNoCopy(named: "data")     // NSData?
+**The most memory-efficient way** to consume database blobs is the following:
 
-// When the column `data` may not be there:
-if row.hasColumn("data") {
-    let notCopiedData = row.dataNoCopy(named: "data") // NSData?
+```swift
+for row in Row.fetch(db, "SELECT data, ...") {
+    let data = row.dataNoCopy(named: "data")     // NSData?
+
+    // When the column `data` may not be there:
+    if row.hasColumn("data") {
+        let data = row.dataNoCopy(named: "data") // NSData?
+    }
 }
 ```
 
 In this case, make sure that you do not use the non-copied data longer than the row's lifetime.
-
-Unless you want to save data for later use, **the most memory-efficient way** to consume database blobs is the following:
-
-```swift
-for row in Row.fetch(db, "SELECT data, ...") {
-    let data = row.dataNoCopy(named: "data")
-}
-```
 
 Compare with the **anti-patterns** below:
 
@@ -474,10 +469,10 @@ for row in Row.fetch(db, "SELECT data, ...") {
     // Data is copied, row after row:
     let data: NSData = row.value(named: "data")
     
-    // Data is copied, row after row (prefer row.hasColumn("data") in this case):
+    // Data is copied, row after row:
     if let databaseValue = row["data"] {
         // Too late to do the right thing:
-        let data = databaseValue.dataNoCopy
+        let data: NSData = databaseValue.value()
     }
 }
 
@@ -485,9 +480,6 @@ for row in Row.fetch(db, "SELECT data, ...") {
 for row in Row.fetchAll(db, "SELECT data, ...") {
     // Too late to do the right thing:
     let data = row.dataNoCopy(named: "data")
-    
-    // This data has been copied twice:
-    let data: NSData = row.value(named: "data")
 }
 ```
 
@@ -669,7 +661,7 @@ public protocol DatabaseValueConvertible {
 
 All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat. Those built-in types actually adopt it.
 
-The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and Blob.
+The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and NSData.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
 

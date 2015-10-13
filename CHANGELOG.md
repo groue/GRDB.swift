@@ -7,6 +7,11 @@ Release Notes
 
 - `Row()` initializes an empty row.
 
+**Breaking Change**
+
+- NSData is now the canonical type for blobs. The former intermediate `Blob` type has been removed.
+- `DatabaseValue.dataNoCopy()` has turned useless, and has been removed.
+
 
 ## 0.22.0
 
