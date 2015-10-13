@@ -458,7 +458,7 @@ for row in Row.fetch(db, "SELECT data, ...") {
 }
 ```
 
-In this case, make sure that you do not use the non-copied data longer than the row's lifetime.
+> :point_up: **Note**: In this case, make sure that you do not use the non-copied data longer than the row's lifetime.
 
 Compare with the **anti-patterns** below:
 
