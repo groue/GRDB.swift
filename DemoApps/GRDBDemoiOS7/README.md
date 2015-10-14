@@ -5,7 +5,7 @@ This application runs an application that displays an editable list of persons a
 
 To integrate GRDB in your iOS7 application:
 
-1. Drag all Swift files contained in the [GRDB folder](../../../GRDB) in your project.
+1. Drag all Swift files contained in the [GRDB folder](../../GRDB/) in your project.
 
 2. In the **Build Phase** tab of your target, add `libsqlite3.tbd` in the **Link Binary With Libraries** section.
 

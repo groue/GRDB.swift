@@ -80,7 +80,7 @@ Installation
 
 ### iOS7
 
-You can use GRDB.swift in a project targetting iOS7. See [GRDBDemoiOS7](DemoApps/GRDBDemoiOS) for more information.
+You can use GRDB.swift in a project targetting iOS7. See [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7) for more information.
 
 
 ### CocoaPods
@@ -149,7 +149,7 @@ To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a
 **Sample Code**
 
 - [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
-- [GRDBDemoiOS7](DemoApps/GRDBDemoiOS): A sample iOS7 application.
+- [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7): A sample iOS7 application.
 
 
 SQLite API
