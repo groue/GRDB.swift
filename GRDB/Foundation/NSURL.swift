@@ -1,3 +1,5 @@
+import Foundation
+
 /// NSURL adopts DatabaseValueConvertible.
 extension NSURL : DatabaseValueConvertible {
     

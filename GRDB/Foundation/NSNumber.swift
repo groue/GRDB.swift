@@ -1,3 +1,5 @@
+import Foundation
+
 /// NSNumber adopts DatabaseValueConvertible
 extension NSNumber: DatabaseValueConvertible {
     

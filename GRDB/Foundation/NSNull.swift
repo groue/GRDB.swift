@@ -1,3 +1,5 @@
+import Foundation
+
 /// NSNull adopts DatabaseValueConvertible
 extension NSNull: DatabaseValueConvertible {
     

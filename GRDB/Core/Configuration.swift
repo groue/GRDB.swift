@@ -1,3 +1,5 @@
+import Foundation
+
 /**
 Configuration are arguments to the DatabaseQueue initializers.
 */

@@ -1,3 +1,5 @@
+import Foundation
+
 /**
 A Database Queue serializes access to an SQLite database.
 */

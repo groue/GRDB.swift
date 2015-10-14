@@ -1,3 +1,5 @@
+import Foundation
+
 /// NSString adopts DatabaseValueConvertible
 extension NSString: DatabaseValueConvertible {
     
