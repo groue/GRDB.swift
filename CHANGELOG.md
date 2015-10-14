@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.24.0
+
+Released October 14, 2015
+
+**Fixed**
+
+- Restored iOS7 compatibility
+
+
 ## 0.23.0
 
 Released October 13, 2015
