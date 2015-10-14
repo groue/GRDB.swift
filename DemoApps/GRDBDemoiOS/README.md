@@ -3,7 +3,16 @@ GRDBDemoiOS
 
 This application runs an universal (iPhone + iPad) application that displays an editable list of persons.
 
-To see usage of GRDB, check the following files:
+**To integrate GRDB as a Framework in your iOS application:**
+
+1. Drag the [GRDB project](../../GRDB.xcodeproj) in your own project.
+
+2. In the **Build Phase** tab of your target, add `GRDBiOS` in the **Target Dependencies** section.
+
+3. Run
+
+
+**To see usage of GRDB, check the following files:**
 
 - [AppDelegate.swift](GRDBDemoiOS/AppDelegate.swift)
 

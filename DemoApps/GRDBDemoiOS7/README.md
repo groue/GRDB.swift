@@ -3,7 +3,7 @@ GRDBDemoiOS7
 
 This application runs an application that displays an editable list of persons and targets iOS7.
 
-To integrate GRDB in your iOS7 application:
+**To integrate GRDB in your iOS7 application:**
 
 1. Drag all Swift files contained in the [GRDB folder](../../GRDB/) in your project.
 
