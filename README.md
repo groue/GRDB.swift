@@ -514,7 +514,7 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 > :point_up: **Note**: This format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
 >
-> Yet, this format may not fit your needs. We provide [below](#custom-value-types) some sample code for storing dates as timestamps. You can adapt it for your application.
+> Yet, this format may not fit your needs. We provide below some sample code for [storing dates as timestamps](#custom-value-types). You can adapt it for your application.
 
 Declare DATETIME columns in your tables:
 
