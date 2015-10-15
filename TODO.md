@@ -2,9 +2,7 @@
 - [ ] Study SQLCipher
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
-- [ ] Provide some sample code for external data storage (investigate UpdateStatement didCommit + didRollback hooks)
 - [ ] `IN (?)` sql snippet, with an array argument.
-- [ ] Investigate the invalidation of RowSequence.
 
 
 Not sure:
