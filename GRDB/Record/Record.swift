@@ -403,7 +403,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
               not match any row in the database and record could not be
               reloaded.
     */
-    final public func reload(db: Database) throws {
+    public func reload(db: Database) throws {
         let statement = DataMapper(db, self).reloadStatement()
         if let row = Row.fetchOne(statement) {
             updateFromRow(row)

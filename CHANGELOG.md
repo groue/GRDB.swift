@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**Fixed**
+
+- `Record.reload(_)` is no longer a final method.
+
+
 ## 0.24.0
 
 Released October 14, 2015
