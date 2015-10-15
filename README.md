@@ -1161,11 +1161,11 @@ Yet, it does a few things well:
     (person.name, person.citizenshipsCount)
     ```
 
-- **It provides the classic CRUD operations.** GRDB supports all primary keys (auto-incremented RowIDs, single column, multiple columns).
+- **It provides the classic CRUD operations.** GRDB supports all primary keys (auto-incremented INTEGER PRIMARY KEY, single column, multiple columns).
     
     ```swift
     let person = Person(...)
-    try person.insert(db)   // Automatically fills person.id if primary key is an auto-incremented RowID.
+    try person.insert(db)   // Automatically fills person.id for INTEGER PRIMARY KEY.
     try person.update(db)
     try person.save(db)     // Inserts or updates
     try person.reload(db)
