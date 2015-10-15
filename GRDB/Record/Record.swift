@@ -294,6 +294,10 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     This method is guaranteed to have inserted a row in the database if it
     returns without error.
     
+    Records whose primary key is declared as "INTEGER PRIMARY KEY" have their
+    id automatically set after successful insertion, if it was nil before the
+    insertion.
+    
     - parameter db: A Database.
     - throws: A DatabaseError whenever a SQLite error occurs.
     */
@@ -301,14 +305,9 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         
-        // Update managed primary key if needed
-        if case .Managed(let managedColumn) = dataMapper.primaryKey {
-            guard let rowID = dataMapper.storedDatabaseDictionary[managedColumn] else {
-                fatalError("\(self.dynamicType).storedDatabaseDictionary must return the value for the primary key \(managedColumn.quotedDatabaseIdentifier)")
-            }
-            if rowID == nil {
-                updateFromRow(Row(dictionary: [managedColumn: changes.insertedRowID]))
-            }
+        if case .Managed(let rowIDColumnName) = dataMapper.primaryKey {
+            // Update RowID
+            updateFromRow(Row(dictionary: [rowIDColumnName: changes.insertedRowID]))
         }
         
         databaseEdited = false
