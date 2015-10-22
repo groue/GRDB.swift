@@ -38,26 +38,57 @@ Requirements
 Usage
 -----
 
+**SQLite API**
+
 ```swift
 import GRDB
 
+// Open connection to database:
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
-try dbQueue.inTransaction { db in
-    let wine = Wine(color: .Red, name: "Pomerol")
-    try wine.insert(db)
-    return .Commit
+// Create tables & insert rows:
+try dbQueue.inDatabase { db in
+    try db.execute("CREATE TABLE wines (...)")
+    let wineId = try db.execute(
+        "INSERT INTO wines (color, name) VALUES (?, ?)",
+        arguments: [Color.Red, "Pomerol"]).insertedRowID
+    print("Inserted wine id: \(wineID)")
 }
 
+// Fetch values:
 let redWineCount = dbQueue.inDatabase { db in
     Int.fetchOne(db,
         "SELECT COUNT(*) FROM wines WHERE color = ?",
         arguments: [Color.Red])!
 }
 
+// Fetch rows:
+dbQueue.inDatabase { db in
+    for row in Row.fetch(db, "SELECT * FROM wines") {
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
+    }
+}
+```
+
+**Using Records**
+
+```swift
+// Define Record subclass:
+class Wine : Record { ... }
+
+// Insert
+try dbQueue.inDatabase { db in
+    let wine = Wine(color: .Red, name: "Pomerol")
+    try wine.save(db)
+    print("Inserted wine id: \(wine.id)")
+}
+
+// Fetch
 dbQueue.inDatabase { db in
     for wine in Wine.fetch(db, "SELECT * FROM wines") {
-        ...
+        print(wine.name, wine.color)
     }
 }
 ```
