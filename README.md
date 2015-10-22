@@ -51,9 +51,10 @@ try dbQueue.inDatabase { db in
     try db.execute("CREATE TABLE wines (...)")
     
     // Insert
-    let wineId = try db.execute(
+    let changes = try db.execute(
         "INSERT INTO wines (color, name) VALUES (?, ?)",
-        arguments: [Color.Red, "Pomerol"]).insertedRowID
+        arguments: [Color.Red, "Pomerol"])
+    let wineId = changes.insertedRowID
     print("Inserted wine id: \(wineID)")
     
     // Fetch values
