@@ -1260,7 +1260,7 @@ class Person : Record {
 }
 ```
 
-Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there is no fancy mapping operators. That's because fancy operators make trivial things look magic, and non-trivial things look ugly. Record boilerplate is not magic, and not ugly: it's plain.
+Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there is no fancy mapping operators. That's because fancy operators make trivial things look magic, and non-trivial things look ugly. Record boilerplate is not magic, and not ugly: it's just as complex as you want it to be.
 
 **Given those three core methods, you are granted with a lot more:**
 
