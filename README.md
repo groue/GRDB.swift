@@ -54,7 +54,7 @@ try dbQueue.inDatabase { db in
     let changes = try db.execute("INSERT INTO wines (color, name) VALUES (?, ?)",
         arguments: [Color.Red, "Pomerol"])
     let wineId = changes.insertedRowID
-    print("Inserted wine id: \(wineID)")
+    print("Inserted wine id: \(wineId)")
     
     // Fetch values
     let redWineCount = Int.fetchOne(db,
