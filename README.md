@@ -1193,7 +1193,7 @@ Yet, it does a few things well:
     (person.name, person.citizenshipsCount)
     ```
 
-- **It provides the classic CRUD operations.** GRDB supports all primary keys (auto-incremented INTEGER PRIMARY KEY, single column, multiple columns).
+- **It provides the classic CRUD operations.** All primary keys are supported (auto-incremented INTEGER PRIMARY KEY, single column, multiple columns).
     
     ```swift
     let person = Person(...)
