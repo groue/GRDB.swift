@@ -43,27 +43,25 @@ Usage
 ```swift
 import GRDB
 
-// Open connection to database:
+// Open connection to database
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
-// Create tables & insert rows:
 try dbQueue.inDatabase { db in
+    // Create tables
     try db.execute("CREATE TABLE wines (...)")
+    
+    // Insert
     let wineId = try db.execute(
         "INSERT INTO wines (color, name) VALUES (?, ?)",
         arguments: [Color.Red, "Pomerol"]).insertedRowID
     print("Inserted wine id: \(wineID)")
-}
-
-// Fetch values:
-let redWineCount = dbQueue.inDatabase { db in
-    Int.fetchOne(db,
+    
+    // Fetch values
+    let redWineCount = Int.fetchOne(db,
         "SELECT COUNT(*) FROM wines WHERE color = ?",
         arguments: [Color.Red])!
-}
-
-// Fetch rows:
-dbQueue.inDatabase { db in
+    
+    // Fetch rows
     for row in Row.fetch(db, "SELECT * FROM wines") {
         let name: String = row.value(named: "name")
         let color: Color = row.value(named: "color")
@@ -75,18 +73,16 @@ dbQueue.inDatabase { db in
 **Using Records**
 
 ```swift
-// Define Record subclass:
+// Define Record subclass
 class Wine : Record { ... }
 
-// Insert
 try dbQueue.inDatabase { db in
+    // Insert
     let wine = Wine(color: .Red, name: "Pomerol")
     try wine.save(db)
     print("Inserted wine id: \(wine.id)")
-}
-
-// Fetch
-dbQueue.inDatabase { db in
+    
+    // Fetch
     for wine in Wine.fetch(db, "SELECT * FROM wines") {
         print(wine.name, wine.color)
     }
