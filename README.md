@@ -1247,17 +1247,17 @@ class Person : Record {
         return "persons"
     }
     
+    /// The values stored in the database:
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "name": name, "age": age]
+    }
+    
     /// Update from a database row
     override func updateFromRow(row: Row) {
         if let dbv = row["id"]   { id = dbv.value() }
         if let dbv = row["age"]  { age = dbv.value() }
         if let dbv = row["name"] { name = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
-    }
-    
-    /// The values stored in the database:
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "age": age]
     }
 }
 ```
