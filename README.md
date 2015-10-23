@@ -1238,7 +1238,7 @@ Subclasses opt in Record features by overriding all or part of the core methods 
 ```swift
 class Person : Record {
     // Declare regular properties
-    var id: Int64?
+    var id: Int64?  // Int64 is the preferred type for auto-incremented IDs.
     var age: Int?
     var name: String?
     
