@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		56900E421BBFF7D500B815B5 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56900E411BBFF7D500B815B5 /* PersonEditionViewController.swift */; settings = {ASSET_TAGS = (); }; };
+		56900E421BBFF7D500B815B5 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56900E411BBFF7D500B815B5 /* PersonEditionViewController.swift */; };
 		56B8F4581B4E22B200C24296 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4571B4E22B200C24296 /* AppDelegate.swift */; };
 		56B8F45A1B4E22B200C24296 /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4591B4E22B200C24296 /* MasterViewController.swift */; };
 		56B8F45C1B4E22B200C24296 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F45B1B4E22B200C24296 /* DetailViewController.swift */; };
@@ -15,6 +15,8 @@
 		56B8F4611B4E22B200C24296 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56B8F4601B4E22B200C24296 /* Assets.xcassets */; };
 		56B8F4641B4E22B200C24296 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56B8F4621B4E22B200C24296 /* LaunchScreen.storyboard */; };
 		56B8F4991B4E23AA00C24296 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4981B4E23AA00C24296 /* Person.swift */; };
+		56F1DA9C1BDA00C600BCC28E /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 567AA8A91B4E3F120082C3E4 /* GRDB.framework */; };
+		56F1DA9D1BDA00C600BCC28E /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 567AA8A91B4E3F120082C3E4 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,7 +55,37 @@
 			remoteGlobalIDString = 56E5D7C91B4D3FED00430942;
 			remoteInfo = GRDBiOS;
 		};
+		56F1DA9E1BDA00C700BCC28E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B8F4871B4E235C00C24296 /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 56E5D7C91B4D3FED00430942;
+			remoteInfo = GRDBiOS;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		56F1DA981BDA009600BCC28E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56F1DAA01BDA00C700BCC28E /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				56F1DA9D1BDA00C600BCC28E /* GRDB.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		56900E411BBFF7D500B815B5 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
@@ -74,6 +106,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56F1DA9C1BDA00C600BCC28E /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -174,11 +207,14 @@
 				56B8F4501B4E22B200C24296 /* Sources */,
 				56B8F4511B4E22B200C24296 /* Frameworks */,
 				56B8F4521B4E22B200C24296 /* Resources */,
+				56F1DA981BDA009600BCC28E /* CopyFiles */,
+				56F1DAA01BDA00C700BCC28E /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				567AA8AD1B4E41CF0082C3E4 /* PBXTargetDependency */,
+				56F1DA9F1BDA00C700BCC28E /* PBXTargetDependency */,
 			);
 			name = GRDBDemoiOS;
 			productName = GRDBDemoiOS;
@@ -287,6 +323,11 @@
 			isa = PBXTargetDependency;
 			name = GRDBiOS;
 			targetProxy = 567AA8AC1B4E41CF0082C3E4 /* PBXContainerItemProxy */;
+		};
+		56F1DA9F1BDA00C700BCC28E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDBiOS;
+			targetProxy = 56F1DA9E1BDA00C700BCC28E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -397,6 +438,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
@@ -408,6 +450,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
 				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
