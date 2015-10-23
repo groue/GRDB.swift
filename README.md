@@ -1432,25 +1432,23 @@ The `update()` method always executes an UPDATE statement. When the record has n
 Avoid it with the `databaseEdited` property, which returns whether the record has changes that have not been saved:
 
 ```swift
-let json = ...
-try dbQueue.inTransaction { db in
-    // Fetches or create a new person given its ID:
-    let person: Person
-    if let existingPerson = Person.fetchOne(db, primaryKey: json["id"]) {
-        person = existingPerson
-    } else {
-        person = Person()
-    }
-    
-    // Apply json payload:
-    person.updateFromJSON(json)
-                 
-    // Saves the person if it is edited (fetched then modified, or created):
-    if person.databaseEdited {
-        try person.save(db) // inserts or updates
-    }
-    
-    return .Commit
+let json = try! NSJSONSerialization.JSONObjectWithData(...) as! NSDictionary
+
+// Fetches or create a new person given its ID:
+let id = json["id"] as! Int?
+let person: Person
+if let existingPerson = Person.fetchOne(db, primaryKey: id) {
+    person = existingPerson
+} else {
+    person = Person()
+}
+
+// Apply JSON payload (assuming json keys are column names)
+person.updateFromRow(Row(dictionary: json))
+             
+// Saves the person if it has changes that have not been saved:
+if person.databaseEdited {
+    try person.save(db) // inserts or updates
 }
 ```
 
