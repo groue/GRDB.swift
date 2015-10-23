@@ -357,7 +357,11 @@ The `value` function generally returns the type you ask for:
 let bookCount: Int     = row.value(named: "bookCount")
 let bookCount64: Int64 = row.value(named: "bookCount")
 let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
+```
 
+I mean, really, the type that you want:
+
+```swift
 let dateString: String = row.value(named: "date") // "2015-09-11 18:14:15.123"
 let date: NSDate       = row.value(named: "date") // NSDate
 self.date = row.value(named: "date") // Depends on the type of the property.
