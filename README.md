@@ -1264,6 +1264,19 @@ class Person : Record {
 
 Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there is no fancy mapping operators. That's because fancy operators make trivial things look magic, and non-trivial things look ugly. Record boilerplate is not magic, and not ugly: it's just as complex as you want it to be.
 
+> :point_up: **Note**: The `updateFromRow` method MUST NOT assume the presence of particular columns. The Record class itself reserves the right to call `updateFromRow` with arbitrary columns. The following implementation is thus discouraged:
+>
+> ```swift
+> // BAD: this implementation may crash with "No such column" errors:
+> override func updateFromRow(row: Row) {
+>     self.id = row.value(named: "id")
+>     self.age = row.value(named: "age")
+>     self.name = row.value(named: "name")
+>     super.updateFromRow(row)
+> }
+> ```
+
+
 **Given those three core methods, you are granted with a lot more:**
 
 ```swift
