@@ -363,7 +363,7 @@ I mean, really, the type that you want:
 
 ```swift
 let dateString: String = row.value(named: "date") // "2015-09-11 18:14:15.123"
-let date: NSDate       = row.value(named: "date") // NSDate
+let date: NSDate?      = row.value(named: "date") // NSDate?
 self.date = row.value(named: "date") // Depends on the type of the property.
 ```
 
