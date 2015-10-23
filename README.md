@@ -1267,7 +1267,7 @@ Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there
 > :point_up: **Note**: The `updateFromRow` method MUST NOT assume the presence of particular columns. The Record class itself reserves the right to call `updateFromRow` with arbitrary columns. The following implementation is thus discouraged:
 >
 > ```swift
-> // BAD: this implementation may crash with "No such column" errors:
+> // BAD: this implementation will eventually crash with "No such column" errors:
 > override func updateFromRow(row: Row) {
 >     self.id = row.value(named: "id")
 >     self.age = row.value(named: "age")
