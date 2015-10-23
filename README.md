@@ -142,7 +142,12 @@ github "groue/GRDB.swift" == 0.24.0
 
 ### Manually
 
-Download a copy of GRDB.swift, embed the `GRDB.xcodeproj` project in your own project, and add the `GRDBOSX` or `GRDBiOS` target as a dependency of your own target. See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
+1. Download a copy of GRDB.swift.
+2. Embed the `GRDB.xcodeproj` project in your own project.
+3. Add the `GRDBOSX` or `GRDBiOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
+4. Add `GRDB.framework` to the **Embedded Binaries** section of the **General**  tab of your target.
+
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
 
 Documentation
