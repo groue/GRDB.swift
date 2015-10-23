@@ -1264,10 +1264,13 @@ class Person : Record {
 
 Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there is no fancy mapping operators. That's because fancy operators make trivial things look magic, and non-trivial things look ugly. Record boilerplate is not magic, and not ugly: it's just as complex as you want it to be.
 
+The `updateFromRow` method updates properties from the columns found in the row. See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported property types.
+
 > :point_up: **Note**: The `updateFromRow` method MUST NOT assume the presence of particular columns. The Record class itself reserves the right to call `updateFromRow` with arbitrary columns. The following implementation is thus discouraged:
 >
 > ```swift
-> // BAD: this implementation will eventually crash with "No such column" errors:
+> // BAD: this implementation will eventually crash
+> // with "No such column" errors:
 > override func updateFromRow(row: Row) {
 >     self.id = row.value(named: "id")
 >     self.age = row.value(named: "age")
@@ -1275,6 +1278,8 @@ Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there
 >     super.updateFromRow(row)
 > }
 > ```
+>
+> :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow` is reused for all records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 
 **Given those three core methods, you are granted with a lot more:**
@@ -1317,7 +1322,7 @@ class Person {
     // Events
     func awakeFromFetch(row: Row)
     
-    // Description
+    // Description (from the CustomStringConvertible protocol)
     var description: String
 }
 ```
@@ -1348,29 +1353,6 @@ dbQueue.inDatabase { db in
 > ```
 
 The method `fetchOne(_:primaryKey:)` accepts a single value as a key. For Record with multiple-column primary keys, use `fetchOne(_:key:)`.
-
-Those fetching methods are based on the `updateFromRow` and `databaseTableName` core methods:
-
-```swift
-class Person : Record {
-    /// The table name
-    override class func databaseTableName() -> String? {
-        return "persons"
-    }
-    
-    /// Update from a database row
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"]   { id = dbv.value() }
-        if let dbv = row["age"]  { age = dbv.value() }
-        if let dbv = row["name"] { name = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-}
-```
-
-See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported property types.
-
-> :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow(_)` is reused for all Person records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 
 ### Insert, Update and Delete
