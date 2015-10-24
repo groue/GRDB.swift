@@ -154,8 +154,6 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 Documentation
 =============
 
-To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains GRDB-enabled playgrounds at the top of the files list.
-
 **Reference**
 
 - [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.24.0/index.html) on cocoadocs.org. Beware that it is incomplete: you may prefer reading the inline documentation right into the [source](https://github.com/groue/GRDB.swift/tree/master/GRDB).
@@ -1666,6 +1664,7 @@ person.insert(db)   // Replace any existing person named "Arthur"
 Sample Code
 ===========
 
+- Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to synchronize a database table with a JSON payload: https://gist.github.com/groue/dcdd3784461747874f41
 
 
