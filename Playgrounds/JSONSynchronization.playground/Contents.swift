@@ -61,10 +61,14 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
         return jsonPersonId($0) < jsonPersonId($1)
     }
     
-    // Sort database persons by id:
-    let persons = Person.fetch(db, "SELECT * FROM persons ORDER BY id")
+    // Load database persons, sorted by id.
+    let persons = Person.fetchAll(db, "SELECT * FROM persons ORDER BY id")
     
-    // Now that both lists are sorted by id, we can use the sortedMerge() function.
+    // Now that both lists are sorted by id, we can compare them with 
+    // the sortedMerge() function.
+    //
+    // We'll delete, insert or update persons, depending on their presence
+    // in either lists.
     for mergeStep in sortedMerge(
         left: persons,          // Database persons
         right: jsonPersons,     // JSON persons
