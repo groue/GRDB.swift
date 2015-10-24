@@ -57,16 +57,16 @@ try dbQueue.inDatabase { db in
     let wineId = changes.insertedRowID
     print("Inserted wine id: \(wineId)")
     
-    // Fetch values
-    let redWineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines WHERE color = ?",
-        arguments: [Color.Red])!
-    
     // Fetch rows
     for row in Row.fetch(db, "SELECT * FROM wines") {
         let name: String = row.value(named: "name")
         let color: Color = row.value(named: "color")
         print(name, color)
     }
+    
+    // Fetch values
+    let redWineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines WHERE color = ?",
+        arguments: [Color.Red])!
 }
 ```
 
