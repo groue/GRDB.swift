@@ -1448,7 +1448,8 @@ if let existingPerson = Person.fetchOne(db, primaryKey: id) {
 }
 
 // Apply JSON payload (assuming json keys are column names)
-person.updateFromRow(Row(dictionary: json))
+let row = Row(dictionary: json)
+person.updateFromRow(row)
              
 // Saves the person if it has changes that have not been saved:
 if person.databaseEdited {
@@ -1457,6 +1458,8 @@ if person.databaseEdited {
 ```
 
 Note that `databaseEdited` is based on value comparison: **setting a property to the same value does not set the edited flag**.
+
+For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check this [sample code](https://gist.github.com/groue/dcdd3784461747874f41).
 
 
 ### Record Errors
