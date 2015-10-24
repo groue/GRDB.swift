@@ -15,6 +15,7 @@ Jump to:
 - [Benchmarks](#benchmarks)
 - [Installation](#installation)
 - [Documentation](#documentation)
+- [Sample Code](#sample-code)
 
 
 Features
@@ -1662,7 +1663,15 @@ person.insert(db)   // Replace any existing person named "Arthur"
 ```
 
 
-## Thanks
+Sample Code
+===========
+
+- How to synchronize a database table with a JSON payload: https://gist.github.com/groue/dcdd3784461747874f41
+
+
+---
+
+**Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
 - [@pierlo](https://github.com/pierlo) for his feedback on GRDB.
