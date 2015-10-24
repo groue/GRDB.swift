@@ -154,7 +154,7 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 Documentation
 =============
 
-To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains a GRDB-enabled Playground at the top of the files list.
+To fiddle with the library, open the `GRDB.xcworkspace` workspace: it contains GRDB-enabled playgrounds at the top of the files list.
 
 **Reference**
 
