@@ -15,7 +15,7 @@ public class Statement {
     public let sqliteStatement: SQLiteStatement
     
     /// The SQL query
-    public var sql: String
+    public let sql: String
     
     /// The query arguments
     public var arguments: StatementArguments? {
