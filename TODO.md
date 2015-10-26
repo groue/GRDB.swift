@@ -3,7 +3,6 @@
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
-- [ ] We have a performance regression.
 - [ ] http://stackoverflow.com/questions/33306519/fmdb-retrieval-of-null-values-for-value-types-in-swift - stop letting sqlite silently converting NULL to zero (see Row.swift).
 
 
