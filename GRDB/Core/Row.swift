@@ -53,7 +53,7 @@ public final class Row: CollectionType {
     }
     
     
-    // MARK: - Extracting Swift Values
+    // MARK: - Extracting Column Values
     
     /**
     Returns true if and only if the row has that column.
@@ -67,21 +67,14 @@ public final class Row: CollectionType {
         return impl.indexForColumn(named: columnName) != nil
     }
     
-    
-    /**
-    Returns the value at given index.
-    
-    Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    righmost column.
-    
-    If not nil (for the database NULL), its type is guaranteed to be one of the
-    following: Int64, Double, String, and NSData.
-    
-        let value = row.value(atIndex: 0)
-    
-    - parameter index: The index of a column.
-    - returns: An optional DatabaseValueConvertible.
-    */
+    /// Returns Int64, Double, String, NSData or nil, depending on the value
+    /// stored at the given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    ///
+    /// - parameter index: A column index.
+    /// - returns: An Int64, Double, String, NSData or nil.
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
         // IMPLEMENTATION NOTE
         // This method has a single know use case: checking if the value is nil,
@@ -95,48 +88,55 @@ public final class Row: CollectionType {
             .value()
     }
     
-    /**
-    Returns the value at given index, converted to the requested type.
-    
-    Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    righmost column.
-    
-    The conversion returns nil if the fetched SQLite value is NULL, or can't be
-    converted to the requested type:
-    
-        let value: Bool? = row.value(atIndex: 0)
-        let value: Int? = row.value(atIndex: 0)
-        let value: Double? = row.value(atIndex: 0)
-    
-    **WARNING**: type casting requires a very careful use of the `as` operator
-    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
-    
-        row.value(atIndex: 0) as Int    // OK: Int
-        row.value(atIndex: 0) as Int?   // OK: Int?
-        row.value(atIndex: 0) as? Int   // NO NO NO DON'T DO THAT!
-        row.value(atIndex: 0) as! Int   // NO NO NO DON'T DO THAT!
-    
-    - parameter index: The index of a column.
-    - returns: An optional *Value*.
-    */
+    /// Returns the value of type `Value` at given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    ///
+    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
+    /// value can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
+    ///   only false boolean).
+    /// - Text SQLite values to Swift strings.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible can provide more conversions.
+    ///
+    /// - parameter index: A column index.
+    /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
-        return impl.databaseValue(atIndex: index).value()
+        return impl
+            .databaseValue(atIndex: index)
+            .value()
     }
     
-    /**
-    This method is an optimized specialization of Row.value(atIndex:) for types
-    that adopt both DatabaseValueConvertible and SQLiteStatementConvertible
-    protocols.
-    
-        let value: Bool? = row.value(atIndex: 0)
-        let value: Int? = row.value(atIndex: 0)
-        let value: Double? = row.value(atIndex: 0)
-    
-    See the documentation of Row.value(atIndex:) for more information.
-    
-    - parameter index: The index of a column.
-    - returns: An optional *Value*.
-    */
+    /// Returns the value of type `Value` at given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    ///
+    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
+    /// value can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
+    ///   only false boolean).
+    /// - Text SQLite values to Swift strings.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// can provide more conversions.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// (see https://www.sqlite.org/datatype3.html).
+    ///
+    /// - parameter index: A column index.
+    /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
@@ -152,72 +152,78 @@ public final class Row: CollectionType {
         }
     }
     
-    /**
-    Returns the value at given index, converted to the requested type.
-    
-    Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    righmost column.
-    
-    Expect a crash if the SQLite value is NULL, or can't be converted to the
-    requested type.
-    
-        let value: Bool = row.value(atIndex: 0)
-        let value: Int = row.value(atIndex: 0)
-        let value: Double = row.value(atIndex: 0)
-    
-    **WARNING**: type casting requires a very careful use of the `as` operator
-    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
-    
-        row.value(atIndex: 0) as Int    // OK: Int
-        row.value(atIndex: 0) as Int?   // OK: Int?
-        row.value(atIndex: 0) as? Int   // NO NO NO DON'T DO THAT!
-        row.value(atIndex: 0) as! Int   // NO NO NO DON'T DO THAT!
-    
-    - parameter index: The index of a column.
-    - returns: An optional *Value*.
-    */
+    /// Returns the value of type `Value` at given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    ///
+    /// This method crashes if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
+    ///   only false boolean).
+    /// - Text SQLite values to Swift strings.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible can provide more conversions.
+    ///
+    /// - parameter index: A column index.
+    /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
-        return impl.databaseValue(atIndex: index).value()
+        return impl
+            .databaseValue(atIndex: index)
+            .value()
     }
     
-    /**
-    This method is an optimized specialization of Row.value(atIndex:) for types
-    that adopt both DatabaseValueConvertible and SQLiteStatementConvertible
-    protocols.
-    
-        let value: Bool = row.value(atIndex: 0)
-        let value: Int = row.value(atIndex: 0)
-        let value: Double = row.value(atIndex: 0)
-    
-    See the documentation of Row.value(atIndex:) for more information.
-    
-    - parameter index: The index of a column.
-    - returns: An optional *Value*.
-    */
+    /// Returns the value of type `Value` at given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    ///
+    /// This method crashes if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
+    ///   only false boolean).
+    /// - Text SQLite values to Swift strings.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// can provide more conversions.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// (see https://www.sqlite.org/datatype3.html).
+    ///
+    /// - parameter index: A column index.
+    /// - returns: A *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
-            return Value(sqliteStatement: sqliteStatement, index: Int32(index))
+            //
+            // Perform a NULL check, and prevent SQLite from converting NULL to
+            // a 0 integer, for example.
+            if sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL {
+                fatalError("Could not convert NULL to \(Value.self).")
+            } else {
+                return Value(sqliteStatement: sqliteStatement, index: Int32(index))
+            }
         } else {
             // Detached row
             return impl.databaseValue(atIndex: index).value()
         }
     }
     
-    /**
-    Returns the value for the given column.
-    
-    If not nil (for the database NULL), its type is guaranteed to be one of the
-    following: Int64, Double, String, and NSData.
-    
-        let value = row.value(named: "name")
-    
-    This method is case-insensitive.
-    
-    - parameter columnName: A column name.
-    - returns: An optional DatabaseValueConvertible.
-    */
+    /// Returns Int64, Double, String, NSData or nil, depending on the value
+    /// stored at the given column.
+    ///
+    /// - parameter columnName: A column name.
+    /// - returns: An Int64, Double, String, NSData or nil.
     public func value(named columnName: String) -> DatabaseValueConvertible? {
         // IMPLEMENTATION NOTE
         // This method has a single know use case: checking if the value is nil,
@@ -233,29 +239,25 @@ public final class Row: CollectionType {
         }
     }
     
-    /**
-    Returns the value for the given column, converted to the requested type.
-    
-    The conversion returns nil if the fetched SQLite value is NULL, or can't be
-    converted to the requested type:
-    
-        let value: Bool? = row.value(named: "count")
-        let value: Int? = row.value(named: "count")
-        let value: Double? = row.value(named: "count")
-    
-    This method is case-insensitive.
-    
-    **WARNING**: type casting requires a very careful use of the `as` operator
-    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
-    
-        row.value(named: "count") as Int    // OK: Int
-        row.value(named: "count") as Int?   // OK: Int?
-        row.value(named: "count") as! Int   // NO NO NO DON'T DO THAT!
-        row.value(named: "count") as? Int   // NO NO NO DON'T DO THAT!
-    
-    - parameter columnName: A column name.
-    - returns: An optional *Value*.
-    */
+    /// Returns the value of type `Value` at given column.
+    ///
+    /// Column name is case-insensitive. If the row does not contain the column,
+    /// a fatal error is raised.
+    ///
+    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
+    /// value can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
+    ///   only false boolean).
+    /// - Text SQLite values to Swift strings.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible can provide more conversions.
+    ///
+    /// - parameter columnName: A column name.
+    /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
         if let index = impl.indexForColumn(named: columnName) {
             return value(atIndex: index)
@@ -264,20 +266,30 @@ public final class Row: CollectionType {
         }
     }
     
-    /**
-    This method is an optimized specialization of Row.value(named:) for types
-    that adopt both DatabaseValueConvertible and SQLiteStatementConvertible
-    protocols.
-    
-        let value: Bool? = row.value(named: "count")
-        let value: Int? = row.value(named: "count")
-        let value: Double? = row.value(named: "count")
-    
-    See the documentation of Row.value(named:) for more information.
-    
-    - parameter columnName: A column name.
-    - returns: An optional *Value*.
-    */
+    /// Returns the value of type `Value` at given column.
+    ///
+    /// Column name is case-insensitive. If the row does not contain the column,
+    /// a fatal error is raised.
+    ///
+    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
+    /// value can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
+    ///   only false boolean).
+    /// - Text SQLite values to Swift strings.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// can provide more conversions.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// (see https://www.sqlite.org/datatype3.html).
+    ///
+    /// - parameter columnName: A column name.
+    /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
         if let index = impl.indexForColumn(named: columnName) {
             return value(atIndex: index)
@@ -286,29 +298,25 @@ public final class Row: CollectionType {
         }
     }
     
-    /**
-    Returns the value for the given column, converted to the requested type.
-    
-    Expect a crash if the SQLite value is NULL, or can't be converted to the
-    requested type.
-    
-        let value: Bool? = row.value(named: "count")
-        let value: Int? = row.value(named: "count")
-        let value: Double? = row.value(named: "count")
-    
-    This method is case-insensitive.
-    
-    **WARNING**: type casting requires a very careful use of the `as` operator
-    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
-    
-        row.value(named: "count") as Int    // OK: Int
-        row.value(named: "count") as Int?   // OK: Int?
-        row.value(named: "count") as! Int   // NO NO NO DON'T DO THAT!
-        row.value(named: "count") as? Int   // NO NO NO DON'T DO THAT!
-    
-    - parameter columnName: A column name.
-    - returns: An optional *Value*.
-    */
+    /// Returns the value of type `Value` at given column.
+    ///
+    /// Column name is case-insensitive. If the row does not contain the column,
+    /// a fatal error is raised.
+    ///
+    /// This method crashes if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
+    ///   only false boolean).
+    /// - Text SQLite values to Swift strings.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible can provide more conversions.
+    ///
+    /// - parameter columnName: A column name.
+    /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
         if let index = impl.indexForColumn(named: columnName) {
             return value(atIndex: index)
@@ -317,20 +325,30 @@ public final class Row: CollectionType {
         }
     }
     
-    /**
-    This method is an optimized specialization of Row.value(named:) for types
-    that adopt both DatabaseValueConvertible and SQLiteStatementConvertible
-    protocols.
-    
-        let value: Bool = row.value(named: "count")
-        let value: Int = row.value(named: "count")
-        let value: Double = row.value(named: "count")
-    
-    See the documentation of Row.value(named:) for more information.
-    
-    - parameter columnName: A column name.
-    - returns: An optional *Value*.
-    */
+    /// Returns the value of type `Value` at given column.
+    ///
+    /// Column name is case-insensitive. If the row does not contain the column,
+    /// a fatal error is raised.
+    ///
+    /// This method crashes if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
+    ///   only false boolean).
+    /// - Text SQLite values to Swift strings.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// can provide more conversions.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// (see https://www.sqlite.org/datatype3.html).
+    ///
+    /// - parameter columnName: A column name.
+    /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
         if let index = impl.indexForColumn(named: columnName) {
             return value(atIndex: index)
@@ -339,31 +357,36 @@ public final class Row: CollectionType {
         }
     }
     
-    
-    // MARK: - Extracting NSData
-    
-    /**
-    Returns the optional NSData stored at index *index*.
-    
-    The returned data does not owns its bytes, and must not be used longer than
-    the row's lifetime.
-    
-    - parameter index: The index of a column.
-    - returns: An optional NSData.
-    */
+    /// Returns the optional `NSData` at given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    ///
+    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
+    /// value is not a blob.
+    ///
+    /// Otherwise, the returned data does not owns its bytes: it must not be
+    /// used longer than the row's lifetime.
+    ///
+    /// - parameter index: A column index.
+    /// - returns: An optional NSData.
     public func dataNoCopy(atIndex index:Int) -> NSData? {
         return impl.dataNoCopy(atIndex: index)
     }
     
-    /**
-    Returns the optional NSData stored at column *name*.
-    
-    The returned data does not owns its bytes, and must not be used longer than
-    the row's lifetime.
-    
-    - parameter name: A column name.
-    - returns: An NSData.
-    */
+    /// Returns the optional `NSData` at given column.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    ///
+    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
+    /// value is not a blob.
+    ///
+    /// Otherwise, the returned data does not owns its bytes: it must not be
+    /// used longer than the row's lifetime.
+    ///
+    /// - parameter columnName: A column name.
+    /// - returns: An optional NSData.
     public func dataNoCopy(named columnName: String) -> NSData? {
         if let index = impl.indexForColumn(named: columnName) {
             return dataNoCopy(atIndex: index)
