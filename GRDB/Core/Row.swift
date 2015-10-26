@@ -98,9 +98,9 @@ public final class Row: CollectionType {
     ///
     /// Successful conversions include:
     ///
-    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
-    ///   only false boolean).
-    /// - Text SQLite values to Swift strings.
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible can provide more conversions.
@@ -123,9 +123,9 @@ public final class Row: CollectionType {
     ///
     /// Successful conversions include:
     ///
-    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
-    ///   only false boolean).
-    /// - Text SQLite values to Swift strings.
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
@@ -162,9 +162,9 @@ public final class Row: CollectionType {
     ///
     /// Successful conversions include:
     ///
-    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
-    ///   only false boolean).
-    /// - Text SQLite values to Swift strings.
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible can provide more conversions.
@@ -187,9 +187,9 @@ public final class Row: CollectionType {
     ///
     /// Successful conversions include:
     ///
-    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
-    ///   only false boolean).
-    /// - Text SQLite values to Swift strings.
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
@@ -249,9 +249,9 @@ public final class Row: CollectionType {
     ///
     /// Successful conversions include:
     ///
-    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
-    ///   only false boolean).
-    /// - Text SQLite values to Swift strings.
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible can provide more conversions.
@@ -276,9 +276,9 @@ public final class Row: CollectionType {
     ///
     /// Successful conversions include:
     ///
-    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
-    ///   only false boolean).
-    /// - Text SQLite values to Swift strings.
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
@@ -308,9 +308,9 @@ public final class Row: CollectionType {
     ///
     /// Successful conversions include:
     ///
-    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
-    ///   only false boolean).
-    /// - Text SQLite values to Swift strings.
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible can provide more conversions.
@@ -335,9 +335,9 @@ public final class Row: CollectionType {
     ///
     /// Successful conversions include:
     ///
-    /// - Numeric SQLite values to Swift numeric types and Bool (zero is the
-    ///   only false boolean).
-    /// - Text SQLite values to Swift strings.
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
