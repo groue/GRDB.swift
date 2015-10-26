@@ -3,6 +3,7 @@
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
+- [ ] We have a performance regression
 
 
 Not sure:
