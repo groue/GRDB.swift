@@ -381,9 +381,7 @@ row.value(...) as Int!
 > row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 > ```
 
-See [Values](#values) for more information on supported types. Don't miss [NSData](#nsdata-and-memory-savings) if you target memory efficiency.
-
-Readers that are familiar with SQLite value extraction should know that:
+Generally speaking:
 
 - **GRDB always crashes when you try to convert NULL to a non-optional value.**
     
@@ -399,6 +397,8 @@ Readers that are familiar with SQLite value extraction should know that:
     Types that adopt the [DatabaseValueConvertible protocol](#custom-value-types) can provide more conversions (NSDate, Swift enums, etc.).
 
 - **SQLite built-in conversions, such as blob to String, are not guaranteed to apply.** You must not rely on them.
+
+See [Values](#values) for more information on supported types. Don't miss [NSData](#nsdata-and-memory-savings) if you target memory efficiency.
 
 
 #### Rows as Dictionaries
