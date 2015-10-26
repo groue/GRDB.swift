@@ -59,19 +59,44 @@ public final class SelectStatement : Statement {
 A sequence of elements fetched from the database.
 */
 public struct DatabaseSequence<T>: SequenceType {
-    let statement: SelectStatement
-    let yield: () -> T
+    private let generateImpl: () -> DatabaseGenerator<T>
+    
+    private init(statement: SelectStatement, yield: () -> T) {
+        generateImpl = {
+            let assertValidQueue = statement.database.assertValidQueue
+            let sqliteStatement = statement.sqliteStatement
+            
+            // Check that sequence is built on a valid database.
+            assertValidQueue()
+            
+            // DatabaseSequence can be restarted:
+            statement.reset()
+            
+            return DatabaseGenerator {
+                // Check that generator is used on a valid database.
+                assertValidQueue()
+                
+                let code = sqlite3_step(sqliteStatement)
+                switch code {
+                case SQLITE_DONE:
+                    return nil
+                case SQLITE_ROW:
+                    return yield()
+                default:
+                    fatalError(DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments).description)
+                }
+            }
+        }
+    }
+    
+    init() {
+        generateImpl = { return DatabaseGenerator { return nil } }
+    }
     
     /// Return a *generator* over the elements of this *sequence*.
     @warn_unused_result
     public func generate() -> DatabaseGenerator<T> {
-        // Check that sequence is built on a valid database.
-        statement.database.assertValidQueue()
-        
-        // DatabaseSequence can be restarted:
-        statement.reset()
-        
-        return DatabaseGenerator(statement: statement, yield: yield)
+        return generateImpl()
     }
 }
 
@@ -79,32 +104,8 @@ public struct DatabaseSequence<T>: SequenceType {
 A generator of elements fetched from the database.
 */
 public struct DatabaseGenerator<T>: GeneratorType {
-    let statement: SelectStatement
-    let sqliteStatement: SQLiteStatement
-    let assertValidQueue: () -> ()
-    let yield: () -> T
-    
-    init(statement: SelectStatement, yield: () -> T) {
-        self.statement = statement
-        self.sqliteStatement = statement.sqliteStatement
-        self.yield = yield
-        self.assertValidQueue = statement.database.assertValidQueue
-    }
-    
-    /// Advance to the next element and return it, or `nil` if no next
-    /// element exists.
+    private let nextImpl: () -> T?
     public func next() -> T? {
-        // Check that generator is used on a valid database.
-        assertValidQueue()
-        
-        let code = sqlite3_step(sqliteStatement)
-        switch code {
-        case SQLITE_DONE:
-            return nil
-        case SQLITE_ROW:
-            return yield()
-        default:
-            fatalError(DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments).description)
-        }
+        return nextImpl()
     }
 }
