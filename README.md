@@ -383,6 +383,23 @@ row.value(...) as Int!
 
 See [Values](#values) for more information on supported types. Don't miss [NSData](#nsdata-and-memory-savings) if you target memory efficiency.
 
+Readers that are familiar with SQLite value extraction should know that:
+
+- **GRDB always crashes when you try to convert NULL to a non-optional value.**
+    
+    This behavior is different from SQLite C API, or from ccgus/fmdb, that both turn NULL to 0 when extracting an integer, for example.
+    
+- **The success of the following conversions is guaranteed:**
+    
+    - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+      Bool (zero is the only false boolean).
+    - Text SQLite values to Swift String.
+    - Blob SQLite values to NSData.
+    
+    Types that adopt the [DatabaseValueConvertible protocol](#custom-value-types) can provide more conversions (NSDate, Swift enums, etc.).
+
+- **SQLite built-in conversions, such as blob to String, are not guaranteed to apply.** You must not rely on them.
+
 
 #### Rows as Dictionaries
 
