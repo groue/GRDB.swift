@@ -34,15 +34,22 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     
     // MARK: - Fetching From SelectStatement
     
-    /// This method is an optimized specialization of
-    /// DatabaseValueConvertible.fetch(_:arguments:) for types that adopt both
-    /// DatabaseValueConvertible and SQLiteStatementConvertible protocols.
+    /// Fetches a sequence of non null values.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetch(statement) // DatabaseSequence<String>
     ///
-    /// See the documentation of DatabaseValueConvertible.fetch(_:arguments:)
-    /// for more information.
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let names = String.fetch(statement)
+    ///     Array(names) // Arthur, Barbara
+    ///     db.execute("DELETE ...")
+    ///     Array(names) // Arthur
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements are undefined.
     ///
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
@@ -62,15 +69,10 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
         }
     }
     
-    /// This method is an optimized specialization of
-    /// DatabaseValueConvertible.fetchAll(_:arguments:) for types that adopt
-    /// both DatabaseValueConvertible and SQLiteStatementConvertible protocols.
+    /// Fetches an array of non null values.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetchAll(statement)  // [String]
-    ///
-    /// See the documentation of DatabaseValueConvertible.fetchAll(_:arguments:)
-    /// for more information.
     ///
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
@@ -79,40 +81,24 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
         return Array(fetch(statement, arguments: arguments))
     }
     
-    /// This method is an optimized specialization of
-    /// DatabaseValueConvertible.fetchOne(_:arguments:) for types that adopt
-    /// both DatabaseValueConvertible and SQLiteStatementConvertible protocols.
-    ///
-    ///     let statement = db.selectStatement("SELECT name FROM ...")
-    ///     let name = String.fetchOne(statement)   // String?
-    ///
-    /// See the documentation of DatabaseValueConvertible.fetchOne(_:arguments:)
-    /// for more information.
-    ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
-    /// - returns: An optional value.
-    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
-        let optionals = statement.fetch(arguments: arguments) {
-            Self.fromDatabaseValue(DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0))
-        }
-        guard let value = optionals.generate().next() else {
-            return nil
-        }
-        return value
-    }
-    
     
     // MARK: - Fetching From Database
     
-    /// This method is an optimized specialization of
-    /// DatabaseValueConvertible.fetch(_:sql:arguments:) for types that adopt
-    /// both DatabaseValueConvertible and SQLiteStatementConvertible protocols.
+    /// Fetches a sequence of non null values.
     ///
     ///     let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String>
     ///
-    /// See the documentation of DatabaseValueConvertible.fetch(_:sql:arguments:)
-    /// for more information.
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let names = String.fetch(db, "SELECT name FROM ...")
+    ///     Array(names) // Arthur, Barbara
+    ///     execute("DELETE ...")
+    ///     Array(names) // Arthur
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements are undefined.
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
@@ -122,14 +108,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// This method is an optimized specialization of
-    /// DatabaseValueConvertible.fetchAll(_:sql:arguments:) for types that adopt
-    /// both DatabaseValueConvertible and SQLiteStatementConvertible protocols.
+    /// Fetches an array of non null values.
     ///
-    ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String?]
-    ///
-    /// See the documentation of DatabaseValueConvertible.fetchAll(_:sql:arguments:)
-    /// for more information.
+    ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
@@ -137,22 +118,5 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// - returns: An array of non null values.
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
         return fetchAll(db.selectStatement(sql), arguments: arguments)
-    }
-    
-    /// This method is an optimized specialization of
-    /// DatabaseValueConvertible.fetchOne(_:sql:arguments:) for types that
-    /// adopt both DatabaseValueConvertible and SQLiteStatementConvertible protocols.
-    ///
-    ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
-    ///
-    /// See the documentation of DatabaseValueConvertible.fetchOne(_:sql:arguments:)
-    /// for more information.
-    ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
-    /// - returns: An optional value.
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return fetchOne(db.selectStatement(sql), arguments: arguments)
     }
 }
