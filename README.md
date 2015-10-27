@@ -1408,12 +1408,12 @@ For example:
 ```swift
 dbQueue.inDatabase { db in
     // All persons with an email ending in @domain.com:
-    let persons = Person.fetch(db,
+    Person.fetch(db,
         "SELECT * FROM persons WHERE email LIKE ?",
         arguments: ["%@domain.com"])
     
     // All persons who own at least two pets:
-    let persons = Person.fetch(db,
+    Person.fetch(db,
         "SELECT persons.* " +
         "FROM persons " +
         "JOIN pets ON pets.masterId = persons.id " +
