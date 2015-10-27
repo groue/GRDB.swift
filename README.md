@@ -258,22 +258,25 @@ You can fetch **Rows**, **Values**, and **Records**:
 
 ```swift
 dbQueue.inDatabase { db in
-    Row.fetch(db, "SELECT ...", ...)             // DatabaseSequence<Row>
-    Row.fetchAll(db, "SELECT ...", ...)          // [Row]
-    Row.fetchOne(db, "SELECT ...", ...)          // Row?
-    
-    String.fetch(db, "SELECT ...", ...)          // DatabaseSequence<String>
-    String.fetchAll(db, "SELECT ...", ...)       // [String]
-    String.fetchOne(db, "SELECT ...", ...)       // String?
-    
-    Person.fetch(db, "SELECT ...", ...)          // DatabaseSequence<Person>
-    Person.fetchAll(db, "SELECT ...", ...)       // [Person]
-    Person.fetchOne(db, "SELECT ...", ...)       // Person?
-    
-    Person.fetch(db, primaryKeys: ...)           // DatabaseSequence<Person>
-    Person.fetchAll(db, primaryKeys: ...)        // [Person]
-    Person.fetchOne(db, primaryKey: ...)         // Person?
-    Person.fetchOne(db, key: ...)                // Person?
+    Row.fetch(db, "SELECT ...", ...)       // DatabaseSequence<Row>
+    Row.fetchAll(db, "SELECT ...", ...)    // [Row]
+    Row.fetchOne(db, "SELECT ...", ...)    // Row?
+                                           
+    String.fetch(db, "SELECT ...", ...)    // DatabaseSequence<String>
+    String.fetchAll(db, "SELECT ...", ...) // [String]
+    String.fetchOne(db, "SELECT ...", ...) // String?
+                                           
+    Person.fetch(db, "SELECT ...", ...)    // DatabaseSequence<Person>
+    Person.fetchAll(db, "SELECT ...", ...) // [Person]
+    Person.fetchOne(db, "SELECT ...", ...) // Person?
+                                           
+    Person.fetch(db, primaryKeys: ...)     // DatabaseSequence<Person>
+    Person.fetchAll(db, primaryKeys: ...)  // [Person]
+    Person.fetchOne(db, primaryKey: ...)   // Person?
+                                           
+    Person.fetch(db, keys: ...)            // DatabaseSequence<Person>
+    Person.fetchAll(db, keys: ...)         // [Person]
+    Person.fetchOne(db, key: ...)          // Person?
 }
 ```
 
@@ -1357,14 +1360,17 @@ You can fetch **sequences**, **arrays**, or **single** records:
 
 ```swift
 dbQueue.inDatabase { db in
-    Person.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<Person>
-    Person.fetchAll(db, "SELECT ...", arguments:...) // [Person]
-    Person.fetchOne(db, "SELECT ...", arguments:...) // Person?
+    Person.fetch(db, "SELECT ...", arguments:...)     // DatabaseSequence<Person>
+    Person.fetchAll(db, "SELECT ...", arguments:...)  // [Person]
+    Person.fetchOne(db, "SELECT ...", arguments:...)  // Person?
     
-    Person.fetch(db, primaryKeys: [1,2,3])           // DatabaseSequence<Person>
-    Person.fetchAll(db, primaryKeys: [1,2,3])        // [Person]
-    Person.fetchOne(db, primaryKey: 1)               // Person?
-    Person.fetchOne(db, key: ["name": "Arthur"])     // Person?
+    Person.fetch(db, primaryKeys: [1,2,3])            // DatabaseSequence<Person>
+    Person.fetchAll(db, primaryKeys: [1,2,3])         // [Person]
+    Person.fetchOne(db, primaryKey: 1)                // Person?
+    
+    Person.fetch(db, keys: [["name": "Joe"], ...])    // DatabaseSequence<Person>
+    Person.fetchAll(db, keys: [["name": "Joe"], ...]) // [Person]
+    Person.fetchOne(db, key: ["name": "Joe"])         // Person?
 }
 ```
 
@@ -1377,8 +1383,6 @@ dbQueue.inDatabase { db in
 > }
 > for person in persons { ... } // OK
 > ```
-
-The method `fetchOne(_:primaryKey:)` accepts a single value as a key. For Record with multiple-column primary keys, use `fetchOne(_:key:)`.
 
 
 ### Insert, Update and Delete
