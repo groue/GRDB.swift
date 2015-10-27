@@ -261,19 +261,19 @@ dbQueue.inDatabase { db in
     Row.fetch(db, "SELECT ...", ...)       // DatabaseSequence<Row>
     Row.fetchAll(db, "SELECT ...", ...)    // [Row]
     Row.fetchOne(db, "SELECT ...", ...)    // Row?
-                                           
+    
     String.fetch(db, "SELECT ...", ...)    // DatabaseSequence<String>
     String.fetchAll(db, "SELECT ...", ...) // [String]
     String.fetchOne(db, "SELECT ...", ...) // String?
-                                           
+    
     Person.fetch(db, "SELECT ...", ...)    // DatabaseSequence<Person>
     Person.fetchAll(db, "SELECT ...", ...) // [Person]
     Person.fetchOne(db, "SELECT ...", ...) // Person?
-                                           
+    
     Person.fetch(db, primaryKeys: ...)     // DatabaseSequence<Person>
     Person.fetchAll(db, primaryKeys: ...)  // [Person]
     Person.fetchOne(db, primaryKey: ...)   // Person?
-                                           
+    
     Person.fetch(db, keys: ...)            // DatabaseSequence<Person>
     Person.fetchAll(db, keys: ...)         // [Person]
     Person.fetchOne(db, key: ...)          // Person?
@@ -1356,7 +1356,7 @@ class Person {
 
 ### Fetching Records
 
-You can fetch **sequences**, **arrays**, or **single** records:
+You can fetch **sequences**, **arrays**, or **single** records with raw SQL queries, by primary key, or by any key:
 
 ```swift
 dbQueue.inDatabase { db in
