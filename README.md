@@ -65,7 +65,8 @@ try dbQueue.inDatabase { db in
     }
     
     // Fetch values
-    let redWineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines WHERE color = ?",
+    let redWineCount = Int.fetchOne(db,
+        "SELECT COUNT(*) FROM wines WHERE color = ?",
         arguments: [Color.Red])!
 }
 ```
