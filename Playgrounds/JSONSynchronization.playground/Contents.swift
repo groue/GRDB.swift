@@ -11,7 +11,7 @@ import GRDB
 // Create the databsae
 
 var configuration = Configuration()
-configuration.trace = { print($0) }
+configuration.trace = LogSQL
 let dbQueue = DatabaseQueue(configuration: configuration)   // Memory database
 try dbQueue.inDatabase { db in
     try db.execute(

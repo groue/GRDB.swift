@@ -5,7 +5,9 @@ import GRDB
 
 // Create the databsae
 
-let dbQueue = DatabaseQueue()
+var configuration = Configuration()
+configuration.trace = LogSQL
+let dbQueue = DatabaseQueue(configuration: configuration)   // Memory database
 var migrator = DatabaseMigrator()
 migrator.registerMigration("createPersons") { db in
     try db.execute("CREATE TABLE persons (" +
@@ -20,7 +22,7 @@ try! migrator.migrate(dbQueue)
 // Define a Record
 
 class Person : Record {
-    var id: Int64!
+    var id: Int64?
     var firstName: String?
     var lastName: String?
     var fullName: String {
