@@ -1216,7 +1216,6 @@ See also the [Record](#records) class, which builds on top of RowConvertible and
 - [Insert, Update and Delete](#insert-update-and-delete)
 - [Record Initializers](#record-initializers)
 - [Changes Tracking](#changes-tracking)
-- [Record Errors](#record-errors)
 - [Advice](#advice)
 
 
@@ -1484,7 +1483,9 @@ try dbQueue.inDatabase { db in
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever a SQLite integrity check fails.
 
-- `update` and `reload` methods can also throw a [RecordError](#record-errors) of type RecordNotFound, whenever the record does not exist in the database.
+- `update` and `reload` methods can also throw a RecordError of type RecordNotFound, whenever the record does not exist in the database.
+    
+    When saving a record that may, or may not, exist in the database, prefer the `save` method: it performs the necessary UPDATE or INSERT statement.
 
 - `delete` returns whether a row has been deleted from the database.
 
@@ -1562,13 +1563,6 @@ if person.databaseEdited {
 Note that `databaseEdited` is based on value comparison: **setting a property to the same value does not set the edited flag**.
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check this [sample code](https://gist.github.com/groue/dcdd3784461747874f41).
-
-
-### Record Errors
-
-Record methods can throw [DatabaseError](#error-handling) and also specific errors of type **RecordError**:
-
-- **RecordError.RecordNotFound**: thrown by `update` and `reload` when the primary key does not match any row in the database.
 
 
 ### Advice
