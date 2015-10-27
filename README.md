@@ -310,11 +310,13 @@ dbQueue.inDatabase { db in
 Arguments are optional arrays or dictionaries that fill the positional `?` and colon-prefixed keys like `:name` in the query:
 
 ```swift
-Row.fetch(db, "SELECT * FROM persons WHERE name = ?", arguments: ["Arthur"])
-Row.fetch(db, "SELECT * FROM persons WHERE name = :name", arguments: ["name": "Arthur"])
+let rows = Row.fetch(db,
+    "SELECT * FROM persons WHERE name = ?",
+    arguments: ["Arthur"])
+let rows = Row.fetch(db,
+    "SELECT * FROM persons WHERE name = :name",
+    arguments: ["name": "Arthur"])
 ```
-
-Do use those arguments: they prevent nasty users from injecting [nasty SQL snippets](https://en.wikipedia.org/wiki/SQL_injection) into your SQL queries.
 
 
 **Row sequences grant the fastest and the most memory-efficient access to SQLite**, much more than row arrays that hold copies of the database rows:
@@ -476,7 +478,16 @@ dbQueue.inDatabase { db in
 }
 ```
 
-The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
+For example:
+
+```swift
+dbQueue.inDatabase { db in
+    // All emails ending in @domain.com:
+    let emails = String.fetch(db,
+        "SELECT emails FROM persons WHERE email LIKE ?",
+        arguments: ["%@domain.com"])
+}
+```
 
 > :point_up: **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
 > 
@@ -487,6 +498,8 @@ The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil i
 > }
 > for name in names { ... } // OK
 > ```
+>
+> :point_up: **Note**: The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
 
 ## Values
@@ -1374,6 +1387,17 @@ dbQueue.inDatabase { db in
 }
 ```
 
+For example:
+
+```swift
+dbQueue.inDatabase { db in
+    // All persons with an email ending in @domain.com:
+    let persons = Person.fetch(db,
+        "SELECT * FROM persons WHERE email LIKE ?",
+        arguments: ["%@domain.com"])
+}
+```
+
 > :point_up: **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
 > 
 > ```swift
@@ -1383,6 +1407,35 @@ dbQueue.inDatabase { db in
 > }
 > for person in persons { ... } // OK
 > ```
+>
+> :point_up: **Note**: The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
+
+The primary key-based methods can only be used with tables that have a single-column primary key. They generate those kinds of SQL queries:
+
+```swift
+// SELECT * FROM persons WHERE id = 1
+Person.fetchOne(db, primaryKey: 1)
+
+// SELECT * FROM persons WHERE id IN (1,2,3)
+Person.fetch(db, primaryKeys: [1,2,3])
+
+// SELECT * FROM countries WHERE isoCode = 'FR'
+Country.fetchOne(db, primaryKey: 'FR')
+```
+
+The dictionary-based methods map dictionary keys to columns. They generate those kinds of SQL queries:
+
+```swift
+// SELECT * FROM persons WHERE email = 'me@domain.com'
+Person.fetchOne(db, key: ["email": "me@domain.com"])
+
+// SELECT * FROM citizenships
+//  WHERE (personId = 1 AND countryIsoCode = 'FR')
+//     OR (personId = 2 AND countryIsoCode = 'US')
+Citizenship.fetch(db, keys: [
+    ["personId": 1, "countryIsoCode": "FR"],
+    ["personId": 2, "countryIsoCode": "US"]])
+```
 
 
 ### Insert, Update and Delete
