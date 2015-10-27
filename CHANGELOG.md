@@ -13,6 +13,8 @@ Release Notes
 
 - `Person.fetch(_:primaryKeys:)` returns a sequence of objects with matching primary keys.
 - `Person.fetchAll(_:primaryKeys:)` returns an array of objects with matching primary keys.
+- `Person.fetch(_:keys:)` returns a sequence of objects with matching keys.
+- `Person.fetchAll(_:keys:)` returns an array of objects with matching keys.
 
 
 ## 0.24.0
