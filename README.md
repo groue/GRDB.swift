@@ -486,6 +486,14 @@ dbQueue.inDatabase { db in
     let emails = String.fetch(db,
         "SELECT emails FROM persons WHERE email LIKE ?",
         arguments: ["%@domain.com"])
+    
+    // The emails of people who own at least two pets:
+    let emails = String.fetch(db,
+        "SELECT persons.email " +
+        "FROM persons " +
+        "JOIN pets ON pets.masterId = persons.id " +
+        "GROUP BY persons.id " +
+        "HAVING COUNT(pets.id) > 1")
 }
 ```
 
@@ -1395,6 +1403,14 @@ dbQueue.inDatabase { db in
     let persons = Person.fetch(db,
         "SELECT * FROM persons WHERE email LIKE ?",
         arguments: ["%@domain.com"])
+    
+    // All persons who own at least two pets:
+    let persons = Person.fetch(db,
+        "SELECT persons.* " +
+        "FROM persons " +
+        "JOIN pets ON pets.masterId = persons.id " +
+        "GROUP BY persons.id " +
+        "HAVING COUNT(pets.id) > 1")
 }
 ```
 
