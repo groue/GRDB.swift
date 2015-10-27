@@ -38,7 +38,7 @@ extension DatabaseTableMapping {
     /// The order of values in the returned array is undefined.
     ///
     /// - parameter db: A Database.
-    /// - parameter primaryKeys: A array of primary keys.
+    /// - parameter primaryKeys: An array of primary keys.
     /// - returns: An array.
     public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, primaryKeys: Sequence) -> [Self] {
         if let statement = self.fetchByPrimaryKeyStatement(db, primaryKeys: primaryKeys) {
@@ -62,6 +62,40 @@ extension DatabaseTableMapping {
         return self.fetchOne(self.fetchByPrimaryKeyStatement(db, primaryKeys: [primaryKey])!)
     }
     
+    /// Fetches a sequence of values, given an array of key dictionaries.
+    ///
+    ///     let persons = Person.fetch(db, keys: [["name": "Arthur"], ["name": "Barbara"]]) // DatabaseSequence<Person>
+    ///
+    /// The order of values in the returned sequence is undefined.
+    ///
+    /// - parameter db: A Database.
+    /// - parameter keys: An array of key dictionaries.
+    /// - returns: A sequence.
+    public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
+        if let statement = self.fetchByKeyStatement(db, keys: keys) {
+            return self.fetch(statement)
+        } else {
+            return DatabaseSequence()
+        }
+    }
+    
+    /// Fetches an array of values, given an array of key dictionaries.
+    ///
+    ///     let persons = Person.fetchAll(db, primaryKeys: [["name": "Arthur"], ["name": "Barbara"]]) // [Person]
+    ///
+    /// The order of values in the returned array is undefined.
+    ///
+    /// - parameter db: A Database.
+    /// - parameter keys: An array of key dictionaries.
+    /// - returns: An array.
+    public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
+        if let statement = self.fetchByKeyStatement(db, keys: keys) {
+            return self.fetchAll(statement)
+        } else {
+            return []
+        }
+    }
+    
     /// Fetches a single value given a key.
     ///
     ///     let person = Person.fetchOne(db, key: ["name": Arthur"]) // Person?
@@ -69,20 +103,8 @@ extension DatabaseTableMapping {
     /// - parameter db: A Database.
     /// - parameter key: A dictionary of values.
     /// - returns: An optional value.
-    public static func fetchOne(db: Database, key dictionary: [String: DatabaseValueConvertible?]) -> Self? {
-        // Fail early if databaseTable is nil
-        guard let databaseTableName = self.databaseTableName() else {
-            fatalError("Nil returned from \(self).databaseTableName()")
-        }
-        
-        // Fail early if key is empty.
-        guard dictionary.count > 0 else {
-            fatalError("Invalid empty key")
-        }
-        
-        let whereSQL = dictionary.keys.map { column in "\(column.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
-        let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
-        return fetchOne(db.selectStatement(sql), arguments: StatementArguments(dictionary.values))
+    public static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
+        return self.fetchOne(self.fetchByKeyStatement(db, keys: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE id IN (?,?,?)"
@@ -125,5 +147,37 @@ extension DatabaseTableMapping {
             statement.arguments = StatementArguments(primaryKeys)
             return statement
         }
+    }
+    
+    // Returns "SELECT * FROM table WHERE (a = ? AND b = ?) OR (a = ? AND b = ?) ...
+    //
+    // Returns nil if keys is empty.
+    private static func fetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> SelectStatement? {
+        // Fail early if databaseTable is nil
+        guard let databaseTableName = self.databaseTableName() else {
+            fatalError("Nil returned from \(self).databaseTableName()")
+        }
+        
+        // Avoid performing useless SELECT
+        guard keys.count > 0 else {
+            return nil
+        }
+        
+        var arguments: [DatabaseValueConvertible?] = []
+        var whereClauses: [String] = []
+        for dictionary in keys {
+            guard dictionary.count > 0 else {
+                fatalError("Invalid empty key")
+            }
+            
+            arguments.appendContentsOf(dictionary.values)
+            whereClauses.append("(" + dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" }.joinWithSeparator(" AND ") + ")")
+        }
+        
+        let whereClause = whereClauses.joinWithSeparator(" OR ")
+        let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereClause)"
+        let statement = db.selectStatement(sql)
+        statement.arguments = StatementArguments(arguments)
+        return statement
     }
 }

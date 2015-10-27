@@ -343,9 +343,65 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
     }
     
     
-    // MARK: - Select
+    // MARK: - Fetch
     
-    func testSelectWithPrimaryKey() {
+    func testFetchWithKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = MinimalRowID()
+                try record1.insert(db)
+                let record2 = MinimalRowID()
+                try record2.insert(db)
+                
+                do {
+                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: []))
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: [["id": record1.id], ["id": record2.id]]))
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                }
+                
+                do {
+                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: [["id": record1.id], ["id": nil]]))
+                    XCTAssertEqual(fetchedRecords.count, 1)
+                    XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
+                }
+            }
+        }
+    }
+    
+    func testFetchAllWithKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = MinimalRowID()
+                try record1.insert(db)
+                let record2 = MinimalRowID()
+                try record2.insert(db)
+                
+                do {
+                    let fetchedRecords = MinimalRowID.fetchAll(db, keys: [])
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let fetchedRecords = MinimalRowID.fetchAll(db, keys: [["id": record1.id], ["id": record2.id]])
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                }
+                
+                do {
+                    let fetchedRecords = MinimalRowID.fetchAll(db, keys: [["id": record1.id], ["id": nil]])
+                    XCTAssertEqual(fetchedRecords.count, 1)
+                    XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
+                }
+            }
+        }
+    }
+    
+    func testFetchOneWithPrimaryKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
@@ -357,7 +413,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
         }
     }
     
-    func testSelectWithKey() {
+    func testFetchOneWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
