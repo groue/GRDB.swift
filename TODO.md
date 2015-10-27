@@ -4,6 +4,7 @@
 - [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] http://stackoverflow.com/questions/33306519/fmdb-retrieval-of-null-values-for-value-types-in-swift - stop letting sqlite silently converting NULL to zero (see Row.swift).
+- [ ] fetchAll(db:primaryKeys:) shoud let this code work: `let ids = [1,2,3]; let persons = Person.fetchAll(db, primaryKeys: ids)`
 
 
 Not sure:
