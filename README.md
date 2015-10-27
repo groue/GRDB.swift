@@ -1427,7 +1427,7 @@ dbQueue.inDatabase { db in
     Person.fetch(db, primaryKeys: [1,2,3])
 
     // SELECT * FROM countries WHERE isoCode = 'FR'
-    Country.fetchOne(db, primaryKey: 'FR')
+    Country.fetchOne(db, primaryKey: "FR")
 
     // SELECT * FROM persons WHERE email = 'me@domain.com'
     Person.fetchOne(db, key: ["email": "me@domain.com"])
