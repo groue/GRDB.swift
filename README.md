@@ -1354,25 +1354,10 @@ class Person {
     func reload(db: Database) throws
     func exists(db: Database) -> Bool
     
-    // Fetching from Prepared Statement
-    static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self>
-    static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self]
-    static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self?
-    
-    // Fetching from Database
-    static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self>
-    static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self]
-    static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self?
-    
-    // Fetching from Primary Key
-    static func fetch(db: Database, primaryKeys: Sequence) -> DatabaseSequence<Self>
-    static func fetchAll(db: Database, primaryKeys: Sequence) -> [Self]
-    static func fetchOne(db: Database, primaryKey: DatabaseValueConvertible?) -> Self?
-    
-    // Fetching from Key Dictionaries:
-    static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self>
-    static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self]
-    static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self?
+    // Fetching
+    static func fetch(...) -> DatabaseSequence<Self>
+    static func fetchAll(...) -> [Self]
+    static func fetchOne(...) -> Self?
     
     // Events
     func awakeFromFetch(row: Row)
