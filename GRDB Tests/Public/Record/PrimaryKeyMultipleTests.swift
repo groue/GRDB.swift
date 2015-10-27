@@ -355,15 +355,73 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     }
     
     
-    // MARK: - Select
     
-    func testSelectWithKey() {
+    
+    // MARK: - Fetch With Key
+    
+    func testFetchWithKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
+                try record1.insert(db)
+                let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
+                try record2.insert(db)
+                
+                do {
+                    let fetchedRecords = Array(Citizenship.fetch(db, keys: []))
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let fetchedRecords = Array(Citizenship.fetch(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]]))
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
+                }
+                
+                do {
+                    let fetchedRecords = Array(Citizenship.fetch(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]]))
+                    XCTAssertEqual(fetchedRecords.count, 1)
+                    XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
+                }
+            }
+        }
+    }
+    
+    func testFetchAllWithKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
+                try record1.insert(db)
+                let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
+                try record2.insert(db)
+                
+                do {
+                    let fetchedRecords = Citizenship.fetchAll(db, keys: [])
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let fetchedRecords = Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.personName }), Set([record1.personName, record2.personName]))
+                }
+                
+                do {
+                    let fetchedRecords = Citizenship.fetchAll(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])
+                    XCTAssertEqual(fetchedRecords.count, 1)
+                    XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
+                }
+            }
+        }
+    }
+    
+    func testFetchOneWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
                 
-                let fetchedRecord = Citizenship.fetchOne(db, key: ["personName": "Arthur", "countryName": "France"])!
+                let fetchedRecord = Citizenship.fetchOne(db, key: ["personName": record.personName, "countryName": record.countryName])!
                 XCTAssertTrue(fetchedRecord.personName == record.personName)
                 XCTAssertTrue(fetchedRecord.countryName == record.countryName)
                 XCTAssertTrue(fetchedRecord.native == record.native)
