@@ -6,6 +6,7 @@ Release Notes
 **Fixed**
 
 - `Record.reload(_)` is no longer a final method.
+- GRDB always crashes when you try to convert a database NULL to a non-optional value.
 
 
 ## 0.24.0
