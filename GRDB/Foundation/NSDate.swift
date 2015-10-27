@@ -1,44 +1,7 @@
 import Foundation
 
-/**
-NSDate are stored in the database using the format "yyyy-MM-dd HH:mm:ss.SSS", in
-the UTC time zone.
-
-This format is not ISO-8601. However it is lexically comparable with the
-format used by SQLite's `CURRENT_TIMESTAMP`: "yyyy-MM-dd HH:mm:ss".
-
-Usage:
-
-    // Store NSDate into the database:
-    let date = NSDate()
-    try db.execute("INSERT INTO persons (date, ...) " +
-                                "VALUES (?, ...)",
-                             arguments: [date, ...])
-
-    // Extract NSDate from the database:
-    let row in Row.fetchOne(db, "SELECT ...")!
-    let date = row.value(named: "date") as NSDate?
-
-    // Direct fetch:
-    NSDate.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<NSDate?>
-    NSDate.fetchAll(db, "SELECT ...", arguments: ...) // [NSDate?]
-    NSDate.fetchOne(db, "SELECT ...", arguments: ...) // NSDate?
-    
-    // Use NSDate in a Record:
-    class Person : Record {
-        var birthDate: NSDate?
-
-        override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-            return ["birthDate": birthDate, ...]
-        }
-        
-        override func updateFromRow(row: Row) {
-            if let dbv = row["birthDate"] { birthDate = dbv.value() }
-            ...
-        }
-    }
-
-*/
+/// NSDate are stored in the database using the format
+/// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
 extension NSDate : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
@@ -46,12 +9,10 @@ extension NSDate : DatabaseValueConvertible {
         return DatabaseValue(string: storageDateFormatter.stringFromDate(self))
     }
     
-    /**
-    Returns an NSDate initialized from *databaseValue*, if possible.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: An optional NSDate.
-    */
+    /// Returns an NSDate initialized from *databaseValue*, if possible.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional NSDate.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
             // Julian day number

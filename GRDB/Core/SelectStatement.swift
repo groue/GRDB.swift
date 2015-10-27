@@ -1,14 +1,12 @@
-/**
-A subclass of Statement that fetches database rows.
-
-You create SelectStatement with the Database.selectStatement() method:
-
-    dbQueue.inDatabase { db in
-        let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
-        let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
-        let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
-    }
-*/
+/// A subclass of Statement that fetches database rows.
+///
+/// You create SelectStatement with the Database.selectStatement() method:
+///
+///     dbQueue.inDatabase { db in
+///         let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
+///         let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
+///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
+///     }
 public final class SelectStatement : Statement {
     
     /// The number of columns in the resulting rows.
@@ -25,9 +23,7 @@ public final class SelectStatement : Statement {
     
     // MARK: - Not public
     
-    /**
-    The DatabaseSequence builder.
-    */
+    /// The DatabaseSequence builder.
     func fetch<T>(arguments arguments: StatementArguments?, yield: () -> T) -> DatabaseSequence<T> {
         if let arguments = arguments {
             self.arguments = arguments
@@ -55,9 +51,7 @@ public final class SelectStatement : Statement {
     
 }
 
-/**
-A sequence of elements fetched from the database.
-*/
+/// A sequence of elements fetched from the database.
 public struct DatabaseSequence<T>: SequenceType {
     private let generateImpl: () -> DatabaseGenerator<T>
     
@@ -100,9 +94,7 @@ public struct DatabaseSequence<T>: SequenceType {
     }
 }
 
-/**
-A generator of elements fetched from the database.
-*/
+/// A generator of elements fetched from the database.
 public struct DatabaseGenerator<T>: GeneratorType {
     private let nextImpl: () -> T?
     public func next() -> T? {

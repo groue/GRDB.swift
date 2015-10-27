@@ -1,8 +1,6 @@
 import Foundation
 
-/**
-A database row.
-*/
+/// A database row.
 public final class Row: CollectionType {
     // IMPLEMENTATION NOTE:
     //
@@ -19,17 +17,13 @@ public final class Row: CollectionType {
     
     // MARK: - Building rows
     
-    /**
-    Builds an empty row.
-    */
+    /// Builds an empty row.
     public init() {
         self.sqliteStatement = nil
         self.impl = EmptyRowImpl()
     }
     
-    /**
-    Builds a row from an dictionary of values.
-    */
+    /// Builds a row from an dictionary of values.
     public init(dictionary: [String: DatabaseValueConvertible?]) {
         var databaseDictionary = [String: DatabaseValue]()
         for (key, value) in dictionary {
@@ -39,13 +33,11 @@ public final class Row: CollectionType {
         self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
     }
     
-    /**
-    Returns a copy of the row.
-    
-    Fetched rows are reused during the iteration of a query, for performance
-    reasons: make sure to make a copy of it whenever you want to keep a specific
-    one: `row.copy()`.
-    */
+    /// Returns a copy of the row.
+    ///
+    /// Fetched rows are reused during the iteration of a query, for performance
+    /// reasons: make sure to make a copy of it whenever you want to keep a
+    /// specific one: `row.copy()`.
     @warn_unused_result
     public func copy() -> Row {
         // Return a row that is detached from its eventual SQLite statement:
@@ -55,14 +47,12 @@ public final class Row: CollectionType {
     
     // MARK: - Extracting Column Values
     
-    /**
-    Returns true if and only if the row has that column.
-    
-    This method is case-insensitive.
-    
-    - parameter columnName: A column name.
-    - returns: Whether the row has this column.
-    */
+    /// Returns true if and only if the row has that column.
+    ///
+    /// This method is case-insensitive.
+    ///
+    /// - parameter columnName: A column name.
+    /// - returns: Whether the row has this column.
     public func hasColumn(columnName: String) -> Bool {
         return impl.indexForColumn(named: columnName) != nil
     }
@@ -222,6 +212,8 @@ public final class Row: CollectionType {
     /// Returns Int64, Double, String, NSData or nil, depending on the value
     /// stored at the given column.
     ///
+    /// Column name is case-insensitive.
+    ///
     /// - parameter columnName: A column name.
     /// - returns: An Int64, Double, String, NSData or nil.
     public func value(named columnName: String) -> DatabaseValueConvertible? {
@@ -376,8 +368,8 @@ public final class Row: CollectionType {
     
     /// Returns the optional `NSData` at given column.
     ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
+    /// Column name is case-insensitive. If the row does not contain the column,
+    /// a fatal error is raised.
     ///
     /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
     /// value is not a blob.
@@ -398,20 +390,18 @@ public final class Row: CollectionType {
     
     // MARK: - Extracting DatabaseValue
     
-    /**
-    Returns a DatabaseValue, the intermediate type between SQLite and your
-    values, if and only if the row contains the requested column.
-    
-        // Test if the column `name` is present:
-        if let databaseValue = row["name"] {
-            let name: String? = databaseValue.value()
-        }
-    
-    This method is case-insensitive.
-
-    - parameter columnName: A column name.
-    - returns: A DatabaseValue if the row contains the requested column.
-    */
+    /// Returns a DatabaseValue, the intermediate type between SQLite and your
+    /// values, if and only if the row contains the requested column.
+    ///
+    ///     // Test if the column `name` is present:
+    ///     if let databaseValue = row["name"] {
+    ///         let name: String? = databaseValue.value()
+    ///     }
+    ///
+    /// This method is case-insensitive.
+    ///
+    /// - parameter columnName: A column name.
+    /// - returns: A DatabaseValue if the row contains the requested column.
     public subscript(columnName: String) -> DatabaseValue? {
         if let index = impl.indexForColumn(named: columnName) {
             return impl.databaseValue(atIndex: index)
@@ -471,54 +461,51 @@ public final class Row: CollectionType {
     
     // MARK: - Fetching From SelectStatement
     
-    /**
-    Returns a sequence of rows.
-
-        for row in Row.fetch(db, "SELECT id, name FROM persons") {
-            let id = row.int64(atIndex: 0)
-            let name = row.string(atIndex: 1)
-        }
-    
-    Fetched rows are reused during the sequence iteration: don't wrap a row
-    sequence in an array with `Array(rows)` or `rows.filter { ... }` since you
-    would not get the distinct rows you expect. Use `Row.fetchAll(...)` instead.
-    
-    For the same reason, make sure you make a copy whenever you extract a row
-    for later use: `row.copy()`.
-    
-    The returned sequence can be consumed several times, but it may yield
-    different results, should database changes have occurred between two
-    generations:
-    
-        let rows = Row.fetch(statement)
-        for row in rows { ... } // 3 steps
-        db.execute("DELETE ...")
-        for row in rows { ... } // 2 steps
-    
-    If the database is modified while the sequence is iterating, the remaining
-    elements of the sequence are undefined.
-    
-    - parameter db: A Database.
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional statement arguments.
-    - returns: A sequence of rows.
-    */
+    /// Returns a sequence of rows.
+    ///
+    ///     for row in Row.fetch(db, "SELECT id, name FROM persons") {
+    ///         let id = row.int64(atIndex: 0)
+    ///         let name = row.string(atIndex: 1)
+    ///     }
+    ///
+    /// Fetched rows are reused during the sequence iteration: don't wrap a row
+    /// sequence in an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let rows = Row.fetch(statement)
+    ///     for row in rows { ... } // 3 steps
+    ///     db.execute("DELETE ...")
+    ///     for row in rows { ... } // 2 steps
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements of the sequence are undefined.
+    ///
+    /// - parameter db: A Database.
+    /// - parameter sql: An SQL query.
+    /// - parameter arguments: Optional statement arguments.
+    /// - returns: A sequence of rows.
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(metalStatement: statement)
         return statement.fetch(arguments: arguments) { row }
     }
     
-    /**
-    Fetches an array of rows.
-    
-        let statement = db.selectStatement("SELECT ...")
-        let rows = Row.fetchAll(statement)
-    
-    - parameter statement: The statement to run.
-    - parameter arguments: Optional statement arguments.
-    - returns: An array of rows.
-    */
+    /// Fetches an array of rows.
+    ///
+    ///     let statement = db.selectStatement("SELECT ...")
+    ///     let rows = Row.fetchAll(statement)
+    ///
+    /// - parameter statement: The statement to run.
+    /// - parameter arguments: Optional statement arguments.
+    /// - returns: An array of rows.
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
         let sequence = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
@@ -526,16 +513,14 @@ public final class Row: CollectionType {
         return Array(sequence)
     }
     
-    /**
-    Fetches a single row.
-    
-        let statement = db.selectStatement("SELECT ...")
-        let row = Row.fetchOne(statement)
-    
-    - parameter statement: The statement to run.
-    - parameter arguments: Optional statement arguments.
-    - returns: An optional row.
-    */
+    /// Fetches a single row.
+    ///
+    ///     let statement = db.selectStatement("SELECT ...")
+    ///     let row = Row.fetchOne(statement)
+    ///
+    /// - parameter statement: The statement to run.
+    /// - parameter arguments: Optional statement arguments.
+    /// - returns: An optional row.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
         let rows = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
@@ -546,66 +531,61 @@ public final class Row: CollectionType {
     
     // MARK: - Fetching From Database
     
-    /**
-    Returns a sequence of rows.
-    
-        for row in Row.fetch(db, "SELECT id, name FROM persons") {
-            let id = row.int64(atIndex: 0)
-            let name = row.string(atIndex: 1)
-        }
-    
-    Fetched rows are reused during the sequence iteration: don't wrap a row
-    sequence in an array with `Array(rows)` or `rows.filter { ... }` since you
-    would not get the distinct rows you expect. Use `Row.fetchAll(...)` instead.
-    
-    For the same reason, make sure you make a copy whenever you extract a row
-    for later use: `row.copy()`.
-    
-    The returned sequence can be consumed several times, but it may yield
-    different results, should database changes have occurred between two
-    generations:
-    
-        let rows = Row.fetch(db, "SELECT...")
-        for row in rows { ... } // 3 steps
-        db.execute("DELETE ...")
-        for row in rows { ... } // 2 steps
-    
-    If the database is modified while the sequence is iterating, the remaining
-    elements of the sequence are undefined.
-    
-    - parameter db: A Database.
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional statement arguments.
-    - returns: A sequence of rows.
-    */
+    /// Returns a sequence of rows.
+    ///
+    ///     for row in Row.fetch(db, "SELECT id, name FROM persons") {
+    ///         let id = row.int64(atIndex: 0)
+    ///         let name = row.string(atIndex: 1)
+    ///     }
+    ///
+    /// Fetched rows are reused during the sequence iteration: don't wrap a row
+    /// sequence in an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let rows = Row.fetch(db, "SELECT...")
+    ///     for row in rows { ... } // 3 steps
+    ///     db.execute("DELETE ...")
+    ///     for row in rows { ... } // 2 steps
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements of the sequence are undefined.
+    ///
+    /// - parameter db: A Database.
+    /// - parameter sql: An SQL query.
+    /// - parameter arguments: Optional statement arguments.
+    /// - returns: A sequence of rows.
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
-    /**
-    Fetches an array of rows.
-    
-        let rows = Row.fetchAll(db, "SELECT ...")
-    
-    - parameter db: A Database.
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional statement arguments.
-    - returns: An array of rows.
-    */
+    /// Fetches an array of rows.
+    ///
+    ///     let rows = Row.fetchAll(db, "SELECT ...")
+    ///
+    /// - parameter db: A Database.
+    /// - parameter sql: An SQL query.
+    /// - parameter arguments: Optional statement arguments.
+    /// - returns: An array of rows.
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
         return fetchAll(db.selectStatement(sql), arguments: arguments)
     }
     
-    /**
-    Fetches a single row.
-    
-        let row = Row.fetchOne(db, "SELECT ...")
-    
-    - parameter db: A Database.
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional statement arguments.
-    - returns: An optional row.
-    */
+    /// Fetches a single row.
+    ///
+    ///     let row = Row.fetchOne(db, "SELECT ...")
+    ///
+    /// - parameter db: A Database.
+    /// - parameter sql: An SQL query.
+    /// - parameter arguments: Optional statement arguments.
+    /// - returns: An optional row.
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
         return fetchOne(db.selectStatement(sql), arguments: arguments)
     }
@@ -630,28 +610,26 @@ public final class Row: CollectionType {
     
     /// Only metal rows have a SQLiteStatement.
     ///
-    /// Making sqliteStatement a property of Row instead of a property of RowImpl
-    /// makes the extraction of SQLiteStatementConvertible values faster.
+    /// Making sqliteStatement a property of Row instead of a property of
+    /// RowImpl makes the extraction of SQLiteStatementConvertible
+    /// values faster.
     let sqliteStatement: SQLiteStatement
     
-    /**
-    Builds a row from the an SQLite statement.
-    
-    The row is implemented on top of MetalRowImpl, which grants *direct* access
-    to the SQLite statement. Iteration of the statement does modify the row.
-    */
+    /// Builds a row from the an SQLite statement.
+    ///
+    /// The row is implemented on top of MetalRowImpl, which grants *direct*
+    /// access to the SQLite statement. Iteration of the statement does modify
+    /// the row.
     init(metalStatement statement: SelectStatement) {
         self.sqliteStatement = statement.sqliteStatement
         self.impl = MetalRowImpl(statement: statement)
     }
     
-    /**
-    Builds a row from the *current state* of the SQLite statement.
-    
-    The row is implemented on top of DetachedRowImpl, which *copies* the values
-    from the SQLite statement so that further iteration of the statement does
-    not modify the row.
-    */
+    /// Builds a row from the *current state* of the SQLite statement.
+    ///
+    /// The row is implemented on top of DetachedRowImpl, which *copies* the
+    /// values from the SQLite statement so that further iteration of the
+    /// statement does not modify the row.
     init(detachedStatement statement: SelectStatement) {
         self.sqliteStatement = nil
         self.impl = DetachedRowImpl(statement: statement)

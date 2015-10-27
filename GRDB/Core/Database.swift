@@ -3,33 +3,29 @@ import Foundation
 /// A raw SQLite connection, suitable for the SQLite C API.
 public typealias SQLiteConnection = COpaquePointer
 
-/**
-A Database connection.
-
-You don't create a database directly. Instead, you use a DatabaseQueue:
-
-    let dbQueue = DatabaseQueue(...)
-
-    // The Database is the `db` in the closure:
-    dbQueue.inDatabase { db in
-        db.execute(...)
-    }
-*/
+/// A Database connection.
+///
+/// You don't create a database directly. Instead, you use a DatabaseQueue:
+///
+///     let dbQueue = DatabaseQueue(...)
+///
+///     // The Database is the `db` in the closure:
+///     dbQueue.inDatabase { db in
+///         db.execute(...)
+///     }
 public final class Database {
     
     // =========================================================================
     // MARK: - Select Statements
     
-    /**
-    Returns a select statement that can be reused.
-    
-        let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
-        let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
-        let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
-    
-    - parameter sql: An SQL query.
-    - returns: A SelectStatement.
-    */
+    /// Returns a select statement that can be reused.
+    ///
+    ///     let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
+    ///     let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
+    ///     let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
+    ///
+    /// - parameter sql: An SQL query.
+    /// - returns: A SelectStatement.
     public func selectStatement(sql: String) -> SelectStatement {
         return try! SelectStatement(database: self, sql: sql)
     }
@@ -38,54 +34,49 @@ public final class Database {
     // =========================================================================
     // MARK: - Update Statements
     
-    /**
-    Returns an update statement that can be reused.
-    
-        let statement = try db.updateStatement("INSERT INTO persons (name) VALUES (?)")
-        try statement.execute(arguments: ["Arthur"])
-        try statement.execute(arguments: ["Barbara"])
-    
-    This method may throw a DatabaseError.
-    
-    - parameter sql: An SQL query.
-    - returns: An UpdateStatement.
-    - throws: A DatabaseError whenever a SQLite error occurs.
-    */
+    /// Returns an update statement that can be reused.
+    ///
+    ///     let statement = try db.updateStatement("INSERT INTO persons (name) VALUES (?)")
+    ///     try statement.execute(arguments: ["Arthur"])
+    ///     try statement.execute(arguments: ["Barbara"])
+    ///
+    /// This method may throw a DatabaseError.
+    ///
+    /// - parameter sql: An SQL query.
+    /// - returns: An UpdateStatement.
+    /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func updateStatement(sql: String) -> UpdateStatement {
         return try! UpdateStatement(database: self, sql: sql)
     }
     
-    /**
-    Executes an update statement.
-    
-        db.excute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
-    
-    This method may throw a DatabaseError.
-    
-    - parameter sql: An SQL query.
-    - parameter arguments: Optional query arguments.
-    - returns: A DatabaseChanges.
-    - throws: A DatabaseError whenever a SQLite error occurs.
-    */
+    /// Executes an update statement.
+    ///
+    ///     db.excute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+    ///
+    /// This method may throw a DatabaseError.
+    ///
+    /// - parameter sql: An SQL query.
+    /// - parameter arguments: Optional query arguments.
+    /// - returns: A DatabaseChanges.
+    /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         let statement = updateStatement(sql)
         return try statement.execute(arguments: arguments)
     }
     
-    /**
-    Executes multiple SQL statements (separated by a semi-colon).
-    
-        try db.executeMultiStatement(
-            "INSERT INTO persons (name) VALUES ('Harry');" +
-            "INSERT INTO persons (name) VALUES ('Ron');" +
-            "INSERT INTO persons (name) VALUES ('Hermione');")
-    
-    This method may throw a DatabaseError.
-    
-    - parameter sql: SQL containing multiple statements separated by semi-colons.
-    - returns: A DatabaseChanges. Note that insertedRowID will always be nil.
-    - throws: A DatabaseError whenever a SQLite error occurs.
-    */
+    /// Executes multiple SQL statements (separated by a semi-colon).
+    ///
+    ///     try db.executeMultiStatement(
+    ///         "INSERT INTO persons (name) VALUES ('Harry');" +
+    ///         "INSERT INTO persons (name) VALUES ('Ron');" +
+    ///         "INSERT INTO persons (name) VALUES ('Hermione');")
+    ///
+    /// This method may throw a DatabaseError.
+    ///
+    /// - parameter sql: SQL containing multiple statements separated by
+    ///   semi-colons.
+    /// - returns: A DatabaseChanges. Note that insertedRowID will always be nil.
+    /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
         assertValidQueue()
         
@@ -104,25 +95,23 @@ public final class Database {
     // =========================================================================
     // MARK: - Transactions
     
-    /**
-    Executes a block inside a database transaction.
-    
-        try dbQueue.inTransaction do {
-            try db.execute("INSERT ...")
-            return .Commit
-        }
-    
-    If the block throws an error, the transaction is rollbacked and the error is
-    rethrown.
-    
-    This method is not reentrant: you can't nest transactions.
-    
-    - parameter kind:  The transaction kind
-                       See https://www.sqlite.org/lang_transaction.html
-    - parameter block: A block that executes SQL statements and return either
-                       .Commit or .Rollback.
-    - throws: The error thrown by the block.
-    */
+    /// Executes a block inside a database transaction.
+    ///
+    ///     try dbQueue.inTransaction do {
+    ///         try db.execute("INSERT ...")
+    ///         return .Commit
+    ///     }
+    ///
+    /// If the block throws an error, the transaction is rollbacked and the
+    /// error is rethrown.
+    ///
+    /// This method is not reentrant: you can't nest transactions.
+    ///
+    /// - parameter kind:  The transaction kind.
+    ///   See https://www.sqlite.org/lang_transaction.html
+    /// - parameter block: A block that executes SQL statements and return
+    ///   either .Commit or .Rollback.
+    /// - throws: The error thrown by the block.
     func inTransaction(kind: TransactionKind?, block: () throws -> TransactionCompletion) throws {
         var completion: TransactionCompletion = .Rollback
         var blockError: ErrorType? = nil
@@ -337,12 +326,10 @@ public final class Database {
     /// The last error message
     var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
     
-    /**
-    Returns whether a table exists.
-    
-    - parameter tableName: A table name.
-    - returns: true if the table exists.
-    */
+    /// Returns whether a table exists.
+    ///
+    /// - parameter tableName: A table name.
+    /// - returns: True if the table exists.
     public func tableExists(tableName: String) -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         return Row.fetchOne(self,
@@ -600,56 +587,46 @@ public enum TransactionCompletion {
 // =============================================================================
 // MARK: - TransactionObserverType
 
-/**
-A transaction observer is notified of all changes and transactions committed or
-rollbacked on a database.
-
-Adopting types must be a class.
-*/
+/// A transaction observer is notified of all changes and transactions committed
+/// or rollbacked on a database.
+///
+/// Adopting types must be a class.
 public protocol TransactionObserverType : class {
     
-    /**
-    Notifies a database change (insert, update, or delete).
-    
-    The change is pending until the end of the current transaction, notified to
-    databaseWillCommit(_), databaseDidCommit(_) and databaseDidRollback(_).
-    
-    This method is called on the database queue.
-    
-    **WARNING**: this method must not change the database.
-    
-    - parameter event: A database event.
-    */
+    /// Notifies a database change (insert, update, or delete).
+    ///
+    /// The change is pending until the end of the current transaction, notified
+    /// to databaseWillCommit, databaseDidCommit and databaseDidRollback.
+    ///
+    /// This method is called on the database queue.
+    ///
+    /// **WARNING**: this method must not change the database.
+    ///
+    /// - parameter event: A database event.
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
-    /**
-    When a transaction is about to be committed, the transaction observer has an
-    opportunity to rollback pending changes by throwing an error.
-    
-    This method is called on the database queue.
-    
-    **WARNING**: this method must not change the database.
-    
-    - throws: An eventual error that rollbacks pending changes.
-    */
+    /// When a transaction is about to be committed, the transaction observer
+    /// has an opportunity to rollback pending changes by throwing an error.
+    ///
+    /// This method is called on the database queue.
+    ///
+    /// **WARNING**: this method must not change the database.
+    ///
+    /// - throws: An eventual error that rollbacks pending changes.
     func databaseWillCommit() throws
     
-    /**
-    Database changes have been committed.
-    
-    This method is called on the database queue. It can change the database.
-    
-    - parameter db: A Database.
-    */
+    /// Database changes have been committed.
+    ///
+    /// This method is called on the database queue. It can change the database.
+    ///
+    /// - parameter db: A Database.
     func databaseDidCommit(db: Database)
     
-    /**
-    Database changes have been rollbacked.
-    
-    This method is called on the database queue. It can change the database.
-    
-    - parameter db: A Database.
-    */
+    /// Database changes have been rollbacked.
+    ///
+    /// This method is called on the database queue. It can change the database.
+    ///
+    /// - parameter db: A Database.
     func databaseDidRollback(db: Database)
 }
 
@@ -672,11 +649,9 @@ public extension TransactionObserverType {
 // =============================================================================
 // MARK: - DatabaseEvent
 
-/**
-A database event, notified to TransactionObserverType.
-
-See https://www.sqlite.org/c3ref/update_hook.html for more information.
-*/
+/// A database event, notified to TransactionObserverType.
+///
+/// See https://www.sqlite.org/c3ref/update_hook.html for more information.
 public struct DatabaseEvent {
     /// An event kind
     public enum Kind: Int32 {
@@ -727,33 +702,31 @@ enum ThreadingMode {
 /// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
 public typealias BusyCallback = (numberOfTries: Int) -> Bool
 
-/**
-When there are several connections to a database, a connection may try to
-access the database while it is locked by another connection.
-
-The BusyMode enum describes the behavior of GRDB when such a situation
-occurs:
-
-- .ImmediateError: The SQLITE_BUSY error is immediately returned to the
-connection that tries to access the locked database.
-
-- .Timeout: The SQLITE_BUSY error will be returned only if the database
-remains locked for more than the specified duration.
-
-- .Callback: Perform your custom lock handling.
-
-To set the busy mode of a database, use Configuration:
-
-    let configuration = Configuration(busyMode: .Timeout(1))
-    let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
-
-Relevant SQLite documentation:
-
-- https://www.sqlite.org/c3ref/busy_timeout.html
-- https://www.sqlite.org/c3ref/busy_handler.html
-- https://www.sqlite.org/lang_transaction.html
-- https://www.sqlite.org/wal.html
-*/
+/// When there are several connections to a database, a connection may try to
+/// access the database while it is locked by another connection.
+///
+/// The BusyMode enum describes the behavior of GRDB when such a situation
+/// occurs:
+///
+/// - .ImmediateError: The SQLITE_BUSY error is immediately returned to the
+///   connection that tries to access the locked database.
+///
+/// - .Timeout: The SQLITE_BUSY error will be returned only if the database
+///   remains locked for more than the specified duration.
+///
+/// - .Callback: Perform your custom lock handling.
+///
+/// To set the busy mode of a database, use Configuration:
+///
+///     let configuration = Configuration(busyMode: .Timeout(1))
+///     let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
+///
+/// Relevant SQLite documentation:
+///
+/// - https://www.sqlite.org/c3ref/busy_timeout.html
+/// - https://www.sqlite.org/c3ref/busy_handler.html
+/// - https://www.sqlite.org/lang_transaction.html
+/// - https://www.sqlite.org/wal.html
 public enum BusyMode {
     /// The SQLITE_BUSY error is immediately returned to the connection that
     /// tries to access the locked database.

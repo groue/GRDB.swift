@@ -27,12 +27,10 @@ final class DataMapper {
     /// The table primary key
     let primaryKey: PrimaryKey
     
-    /**
-    An excerpt from storedDatabaseDictionary whose keys are primary key
-    columns.
-    
-    It is nil when storable has no primary key.
-    */
+    /// An excerpt from storedDatabaseDictionary whose keys are primary key
+    /// columns.
+    ///
+    /// It is nil when storable has no primary key.
     lazy var primaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
         let columns = self.primaryKey.columns
         guard columns.count > 0 else {
@@ -46,13 +44,11 @@ final class DataMapper {
         return dictionary
         }()
     
-    /**
-    An excerpt from storedDatabaseDictionary whose keys are primary key
-    columns. It is able to resolve a row in the database.
-    
-    It is nil when the primaryKeyDictionary is nil or unable to identify a
-    row in the database.
-    */
+    /// An excerpt from storedDatabaseDictionary whose keys are primary key
+    /// columns. It is able to resolve a row in the database.
+    ///
+    /// It is nil when the primaryKeyDictionary is nil or unable to identify a
+    /// row in the database.
     lazy var resolvingPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
         // IMPLEMENTATION NOTE
         //

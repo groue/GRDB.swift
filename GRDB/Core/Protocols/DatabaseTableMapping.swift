@@ -1,15 +1,13 @@
-/**
-Types that adopt DatabaseTableMapping can be initialized from rows that come
-from a particular table.
-
-The protocol comes with built-in  methods that allow to fetch instances
-identified by their primary key, or any other key:
-
-    Person.fetchOne(db, primaryKey: 123)  // Person?
-    Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
-
-DatabaseTableMapping is adopted by Record.
-*/
+/// Types that adopt DatabaseTableMapping can be initialized from rows that come
+/// from a particular table.
+///
+/// The protocol comes with built-in methods that allow to fetch instances
+/// identified by their primary key, or any other key:
+///
+///     Person.fetchOne(db, primaryKey: 123)  // Person?
+///     Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
+///
+/// DatabaseTableMapping is adopted by Record.
 public protocol DatabaseTableMapping : RowConvertible {
     static func databaseTableName() -> String?
 }
@@ -45,17 +43,15 @@ extension DatabaseTableMapping {
         return statement
     }
     
-    /**
-     Fetches a sequence of values, given their primary keys.
-     
-         let persons = Person.fetch(db, primaryKeys:[1, 2, 3]) // DatabaseSequence<Person>
-     
-     The order of values in the sequence is undefined.
-     
-     - parameter db: A Database.
-     - parameter primaryKey: A value.
-     - returns: A sequence.
-     */
+    /// Fetches a sequence of values, given their primary keys.
+    ///
+    ///     let persons = Person.fetch(db, primaryKeys:[1, 2, 3]) // DatabaseSequence<Person>
+    ///
+    /// The order of values in the sequence is undefined.
+    ///
+    /// - parameter db: A Database.
+    /// - parameter primaryKey: A value.
+    /// - returns: A sequence.
     public static func fetch(db: Database, primaryKeys: [DatabaseValueConvertible]) -> DatabaseSequence<Self> {
         if let statement = self.fetchByPrimaryKeyStatement(db, primaryKeys: primaryKeys) {
             return self.fetch(statement)
@@ -64,17 +60,15 @@ extension DatabaseTableMapping {
         }
     }
     
-    /**
-     Fetches an array of values, given their primary keys.
-     
-         let persons = Person.fetchAll(db, primaryKeys:[1, 2, 3]) // [Person]
-     
-     The order of values in the array is undefined.
-     
-     - parameter db: A Database.
-     - parameter primaryKey: A value.
-     - returns: An array.
-    */
+    /// Fetches an array of values, given their primary keys.
+    ///
+    ///     let persons = Person.fetchAll(db, primaryKeys:[1, 2, 3]) // [Person]
+    ///
+    /// The order of values in the array is undefined.
+    ///
+    /// - parameter db: A Database.
+    /// - parameter primaryKey: A value.
+    /// - returns: An array.
     public static func fetchAll(db: Database, primaryKeys: [DatabaseValueConvertible]) -> [Self] {
         if let statement = self.fetchByPrimaryKeyStatement(db, primaryKeys: primaryKeys) {
             return self.fetchAll(statement)
@@ -83,15 +77,13 @@ extension DatabaseTableMapping {
         }
     }
     
-    /**
-    Fetches a single value given its primary key.
-    
-        let person = Person.fetchOne(db, primaryKey: 123) // Person?
-    
-    - parameter db: A Database.
-    - parameter primaryKey: A value.
-    - returns: An optional value.
-    */
+    /// Fetches a single value given its primary key.
+    ///
+    ///     let person = Person.fetchOne(db, primaryKey: 123) // Person?
+    ///
+    /// - parameter db: A Database.
+    /// - parameter primaryKey: A value.
+    /// - returns: An optional value.
     public static func fetchOne(db: Database, primaryKey: DatabaseValueConvertible?) -> Self? {
         let primaryKeys = primaryKey.map { [$0] } ?? []
         if let statement = self.fetchByPrimaryKeyStatement(db, primaryKeys: primaryKeys) {
@@ -101,15 +93,13 @@ extension DatabaseTableMapping {
         }
     }
     
-    /**
-    Fetches a single value given a key.
-    
-        let person = Person.fetchOne(db, key: ["name": Arthur"]) // Person?
-    
-    - parameter db: A Database.
-    - parameter key: A dictionary of values.
-    - returns: An optional value.
-    */
+    /// Fetches a single value given a key.
+    ///
+    ///     let person = Person.fetchOne(db, key: ["name": Arthur"]) // Person?
+    ///
+    /// - parameter db: A Database.
+    /// - parameter key: A dictionary of values.
+    /// - returns: An optional value.
     public static func fetchOne(db: Database, key dictionary: [String: DatabaseValueConvertible?]) -> Self? {
         // Fail early if databaseTable is nil
         guard let databaseTableName = self.databaseTableName() else {

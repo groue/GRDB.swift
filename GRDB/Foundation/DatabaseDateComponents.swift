@@ -1,8 +1,6 @@
 import Foundation
 
-/**
-DatabaseDateComponents reads and stores NSDateComponents in the database.
-*/
+/// DatabaseDateComponents reads and stores NSDateComponents in the database.
 public struct DatabaseDateComponents : DatabaseValueConvertible {
     
     /// The available formats for reading and storing date components.
@@ -44,16 +42,14 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     /// The database format
     public let format: Format
     
-    /**
-    Creates a DatabaseDateComponents from an NSDateComponents and a format.
-    
-    The result is nil if and only if *dateComponents* is nil.
-    
-    - parameter dateComponents: An optional NSDateComponents.
-    - parameter format: The format used for storing the date components in the
-                        database.
-    - returns: An optional DatabaseDateComponents.
-    */
+    /// Creates a DatabaseDateComponents from an NSDateComponents and a format.
+    ///
+    /// The result is nil if and only if *dateComponents* is nil.
+    ///
+    /// - parameter dateComponents: An optional NSDateComponents.
+    /// - parameter format: The format used for storing the date components in
+    ///   the database.
+    /// - returns: An optional DatabaseDateComponents.
     public init?(_ dateComponents: NSDateComponents?, format: Format) {
         if let dateComponents = dateComponents {
             self.format = format
@@ -103,12 +99,11 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         return DatabaseValue(string: [dateString, timeString].flatMap { $0 }.joinWithSeparator(" "))
     }
     
-    /**
-    Returns a DatabaseDateComponents if *databaseValue* contains a valid date.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: An optional DatabaseDateComponents.
-    */
+    /// Returns a DatabaseDateComponents if *databaseValue* contains a
+    /// valid date.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional DatabaseDateComponents.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseDateComponents? {
         // https://www.sqlite.org/lang_datefunc.html
         //

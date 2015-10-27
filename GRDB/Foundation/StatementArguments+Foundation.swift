@@ -2,18 +2,16 @@ import Foundation
 
 extension StatementArguments {
     
-    /**
-    Initializes arguments from an NSArray.
-    
-    The array must contain objects that adopt the DatabaseValueConvertible
-    protocol, NSNull, NSNumber or NSString. A fatal error is thrown otherwise.
-    
-        let values: NSArray = ["foo", "bar", "baz"]
-        db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
-    
-    - parameter array: An NSArray
-    - returns: A StatementArguments.
-    */
+    /// Initializes arguments from an NSArray.
+    ///
+    /// The array must contain objects that adopt the DatabaseValueConvertible
+    /// protocol. A fatal error is thrown otherwise.
+    ///
+    ///     let values: NSArray = ["foo", "bar", "baz"]
+    ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
+    ///
+    /// - parameter array: An NSArray
+    /// - returns: A StatementArguments.
     public init(_ array: NSArray) {
         // IMPLEMENTATION NOTE
         //
@@ -39,22 +37,20 @@ extension StatementArguments {
         self.init(values)
     }
     
-    /**
-    Initializes arguments from an NSDictionary.
-    
-    The dictionary must contain objects that adopt the DatabaseValueConvertible
-    protocol, NSNull, NSNumber or NSString. A fatal error is thrown otherwise.
-    
-        let values: NSDictionary = ["firstName": "Arthur", "lastName": "Miller"]
-        db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
-    
-    GRDB.swift only supports colon-prefixed named arguments, even though SQLite
-    supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
-    for more information.
-    
-    - parameter dictionary: An NSDictionary
-    - returns: A StatementArguments.
-    */
+    /// Initializes arguments from an NSDictionary.
+    ///
+    /// The dictionary must contain objects that adopt the
+    /// DatabaseValueConvertible protocol. A fatal error is thrown otherwise.
+    ///
+    ///     let values: NSDictionary = ["firstName": "Arthur", "lastName": "Miller"]
+    ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
+    ///
+    /// GRDB.swift only supports colon-prefixed named arguments, even though
+    /// SQLite supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
+    /// for more information.
+    ///
+    /// - parameter dictionary: An NSDictionary
+    /// - returns: A StatementArguments.
     public init(_ dictionary: NSDictionary) {
         // IMPLEMENTATION NOTE
         //

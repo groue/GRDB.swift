@@ -1,6 +1,5 @@
-/** 
-Represents the various changes made to the database via execution of one or more SQL statements.
-*/
+/// Represents the various changes made to the database via execution of one or
+/// more SQL statements.
 public struct DatabaseChanges {
     
     /// The number of rows affected by the statement(s)

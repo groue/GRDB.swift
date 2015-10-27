@@ -1,8 +1,6 @@
 import Foundation
 
-/**
-Configuration are arguments to the DatabaseQueue initializers.
-*/
+/// Configuration are arguments to the DatabaseQueue initializers.
 public struct Configuration {
     
     // =========================================================================
@@ -41,28 +39,24 @@ public struct Configuration {
     // =========================================================================
     // MARK: - Logging
     
-    /**
-    An optional tracing function.
-
-    You can use the global GRDB.LogSQL function as a tracing function: it logs
-    all SQL statements with NSLog().
-    */
+    /// An optional tracing function.
+    ///
+    /// You can use the global GRDB.LogSQL function as a tracing function: it
+    /// logs all SQL statements with NSLog().
     public var trace: TraceFunction?
     
     
     // =========================================================================
     // MARK: - Factory Configuration
     
-    /**
-    Returns a factory configuration:
-    
-    - `foreignKeysEnabled`: true
-    - `readonly`: false
-    - `defaultTransactionKind`: Immediate
-    - `transactionDelegate`: nil
-    - `busyMode`: Immediate error
-    - `trace`: nil
-    */
+    /// Returns a factory configuration:
+    ///
+    /// - `foreignKeysEnabled`: true
+    /// - `readonly`: false
+    /// - `defaultTransactionKind`: Immediate
+    /// - `transactionDelegate`: nil
+    /// - `busyMode`: Immediate error
+    /// - `trace`: nil
     public init()
     {
         self.foreignKeysEnabled = true
@@ -86,12 +80,9 @@ public struct Configuration {
     }
 }
 
-/**
-A tracing function.
-
-- parameter sql: An SQL query
-- parameter arguments: Eventual query arguments.
-*/
+/// A tracing function.
+///
+/// - parameter sql: An SQL query
 public typealias TraceFunction = (String) -> Void
 
 /// A tracing function that logs SQL statements with NSLog

@@ -3,12 +3,10 @@ public typealias SQLiteStatement = COpaquePointer
 
 private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
 
-/**
-A statement represents a SQL query.
-
-It is the base class of UpdateStatement that executes *update statements*, and
-SelectStatement that fetches rows.
-*/
+/// A statement represents a SQL query.
+///
+/// It is the base class of UpdateStatement that executes *update statements*,
+/// and SelectStatement that fetches rows.
 public class Statement {
     
     /// The raw SQLite statement, suitable for the SQLite C API.
@@ -167,12 +165,10 @@ public class Statement {
 // MARK: - SQLite identifier quoting
 
 extension String {
-    /**
-    Returns the receiver, quoted for safe insertion as an identifier in an SQL
-    query.
-
-        db.execute("SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
-    */
+    /// Returns the receiver, quoted for safe insertion as an identifier in an
+    /// SQL query.
+    ///
+    ///     db.execute("SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
     public var quotedDatabaseIdentifier: String {
         // See https://www.sqlite.org/lang_keywords.html
         return "\"\(self)\""

@@ -1,12 +1,10 @@
 /// Bool adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /**
-    Returns an instance initialized from a raw SQLite statement pointer.
-    
-    - parameter sqliteStatement: A pointer to a SQLite statement.
-    - parameter index: The column index.
-    */
+    /// Returns an instance initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameter sqliteStatement: A pointer to a SQLite statement.
+    /// - parameter index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = sqlite3_column_int64(sqliteStatement, index) != 0
     }
@@ -16,12 +14,10 @@ extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
         return DatabaseValue(int64: self ? 1 : 0)
     }
     
-    /**
-    Returns a Bool initialized from *databaseValue*, if possible.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: An optional Bool.
-    */
+    /// Returns a Bool initialized from *databaseValue*, if possible.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional Bool.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Bool? {
         // IMPLEMENTATION NOTE
         //
@@ -93,12 +89,10 @@ extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// Int adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /**
-    Returns an instance initialized from a raw SQLite statement pointer.
-    
-    - parameter sqliteStatement: A pointer to a SQLite statement.
-    - parameter index: The column index.
-    */
+    /// Returns an instance initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameter sqliteStatement: A pointer to a SQLite statement.
+    /// - parameter index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = Int(sqlite3_column_int64(sqliteStatement, index))
     }
@@ -108,12 +102,10 @@ extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
         return DatabaseValue(int64: Int64(self))
     }
     
-    /**
-    Returns an Int initialized from *databaseValue*, if possible.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: An optional Int.
-    */
+    /// Returns an Int initialized from *databaseValue*, if possible.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional Int.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int? {
         switch databaseValue.storage {
         case .Int64(let int64):
@@ -129,12 +121,10 @@ extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// Int32 adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /**
-    Returns an instance initialized from a raw SQLite statement pointer.
-    
-    - parameter sqliteStatement: A pointer to a SQLite statement.
-    - parameter index: The column index.
-    */
+    /// Returns an instance initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameter sqliteStatement: A pointer to a SQLite statement.
+    /// - parameter index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = Int32(sqlite3_column_int64(sqliteStatement, index))
     }
@@ -144,12 +134,10 @@ extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
         return DatabaseValue(int64: Int64(self))
     }
     
-    /**
-    Returns an Int32 initialized from *databaseValue*, if possible.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: An optional Int32.
-    */
+    /// Returns an Int32 initialized from *databaseValue*, if possible.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional Int32.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int32? {
         switch databaseValue.storage {
         case .Int64(let int64):
@@ -165,12 +153,10 @@ extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// Int64 adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /**
-    Returns an instance initialized from a raw SQLite statement pointer.
-    
-    - parameter sqliteStatement: A pointer to a SQLite statement.
-    - parameter index: The column index.
-    */
+    /// Returns an instance initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameter sqliteStatement: A pointer to a SQLite statement.
+    /// - parameter index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = sqlite3_column_int64(sqliteStatement, index)
     }
@@ -180,12 +166,10 @@ extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
         return DatabaseValue(int64: self)
     }
     
-    /**
-    Returns an Int64 initialized from *databaseValue*, if possible.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: An optional Int64.
-    */
+    /// Returns an Int64 initialized from *databaseValue*, if possible.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional Int64.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int64? {
         switch databaseValue.storage {
         case .Int64(let int64):
@@ -201,12 +185,10 @@ extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// Double adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /**
-    Returns an instance initialized from a raw SQLite statement pointer.
-    
-    - parameter sqliteStatement: A pointer to a SQLite statement.
-    - parameter index: The column index.
-    */
+    /// Returns an instance initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameter sqliteStatement: A pointer to a SQLite statement.
+    /// - parameter index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = sqlite3_column_double(sqliteStatement, index)
     }
@@ -216,12 +198,10 @@ extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
         return DatabaseValue(double: self)
     }
     
-    /**
-    Returns a Double initialized from *databaseValue*, if possible.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: An optional Double.
-    */
+    /// Returns a Double initialized from *databaseValue*, if possible.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional Double.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Double? {
         switch databaseValue.storage {
         case .Int64(let int64):
@@ -237,12 +217,10 @@ extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// String adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension String: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /**
-    Returns an instance initialized from a raw SQLite statement pointer.
-    
-    - parameter sqliteStatement: A pointer to a SQLite statement.
-    - parameter index: The column index.
-    */
+    /// Returns an instance initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameter sqliteStatement: A pointer to a SQLite statement.
+    /// - parameter index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
         self = String.fromCString(cString)!
@@ -253,12 +231,10 @@ extension String: DatabaseValueConvertible, SQLiteStatementConvertible {
         return DatabaseValue(string: self)
     }
     
-    /**
-    Returns a String initialized from *databaseValue*, if possible.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: An optional String.
-    */
+    /// Returns a String initialized from *databaseValue*, if possible.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional String.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> String? {
         switch databaseValue.storage {
         case .String(let string):

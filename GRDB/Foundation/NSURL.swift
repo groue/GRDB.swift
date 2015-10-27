@@ -9,12 +9,10 @@ extension NSURL : DatabaseValueConvertible {
         return DatabaseValue(string: absoluteString)
     }
     
-    /**
-    Returns an NSURL initialized from *databaseValue*, if possible.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: An optional NSURL.
-    */
+    /// Returns an NSURL initialized from *databaseValue*, if possible.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional NSURL.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         if let string = String.fromDatabaseValue(databaseValue) {
             return self.init(string: string)

@@ -2,45 +2,32 @@ import Foundation
 
 // MARK: - DatabaseValue
 
-/**
-DatabaseValue is the intermediate type between SQLite and your values.
-
-It has five cases that match the SQLite "storage classes":
-https://www.sqlite.org/datatype3.html
-*/
+/// DatabaseValue is the intermediate type between SQLite and your values.
+///
+/// See https://www.sqlite.org/datatype3.html
 public struct DatabaseValue : Equatable {
     
     // MARK: - Creating DatabaseValue
     
-    /**
-    The NULL DatabaseValue.
-    */
+    /// The NULL DatabaseValue.
     public static let Null = DatabaseValue(storage: .Null)
     
-    /**
-    Returns a DatabaseValue storing an Integer.
-    */
+    /// Returns a DatabaseValue storing an Integer.
     public init(int64: Int64) {
         self.storage = .Int64(int64)
     }
     
-    /**
-    Returns a DatabaseValue storing an Double.
-    */
+    /// Returns a DatabaseValue storing an Double.
     public init(double: Double) {
         self.storage = .Double(double)
     }
     
-    /**
-    Returns a DatabaseValue storing a String.
-    */
+    /// Returns a DatabaseValue storing a String.
     public init(string: String) {
         self.storage = .String(string)
     }
     
-    /**
-    Returns a DatabaseValue storing NSData.
-    */
+    /// Returns a DatabaseValue storing NSData.
     public init(data: NSData) {
         if data.length == 0 {
             self.storage = .Null
@@ -52,14 +39,7 @@ public struct DatabaseValue : Equatable {
     
     // MARK: - Extracting Swift Value
     
-    /**
-    Returns the wrapped value.
-    
-    If not nil (for the database NULL), its type is guaranteed to be one of the
-    following: Int64, Double, String, and NSData.
-    
-    let value = databaseValue.value()
-    */
+    /// Returns Int64, Double, String, NSData or nil.
     public func value() -> DatabaseValueConvertible? {
         // IMPLEMENTATION NOTE
         // This method has a single know use case: checking if the value is nil,
@@ -82,46 +62,40 @@ public struct DatabaseValue : Equatable {
         }
     }
     
-    /**
-    Returns the wrapped value, converted to the requested type.
-    
-    The conversion returns nil if the SQLite value is NULL, or can't be
-    converted to the requested type:
-    
-        let value: Bool? = databaseValue.value()
-        let value: Int? = databaseValue.value()
-        let value: Double? = databaseValue.value()
-    
-    **WARNING**: type casting requires a very careful use of the `as` operator
-    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
-    
-        databaseValue.value() as Int    // OK: Int
-        databaseValue.value() as Int?   // OK: Int?
-        databaseValue.value() as! Int   // NO NO NO DON'T DO THAT!
-        databaseValue.value() as? Int   // NO NO NO DON'T DO THAT!
-    */
+    /// Returns an optional value of type `Value`.
+    ///
+    /// The result is nil if the SQLite value is NULL, or if the SQLite value
+    /// can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible can provide more conversions.
+    ///
+    /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>() -> Value? {
         return Value.fromDatabaseValue(self)
     }
     
-    /**
-    Returns the wrapped value, converted to the requested type.
-    
-    Expect a crash if the SQLite value is NULL, or can't be converted to the
-    requested type.
-    
-        let value: Bool = databaseValue.value()
-        let value: Int = databaseValue.value()
-        let value: Double = databaseValue.value()
-    
-    **WARNING**: type casting requires a very careful use of the `as` operator
-    (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
-    
-        databaseValue.value() as Int    // OK: Int
-        databaseValue.value() as Int?   // OK: Int?
-        databaseValue.value() as! Int   // NO NO NO DON'T DO THAT!
-        databaseValue.value() as? Int   // NO NO NO DON'T DO THAT!
-    */
+    /// Returns a value of type `Value`.
+    ///
+    /// This method crashes if the SQLite value is NULL, or if the SQLite value
+    /// can not be converted to `Value`.
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible can provide more conversions.
+    ///
+    /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>() -> Value {
         if let value = Value.fromDatabaseValue(self) as Value? {
             return value
@@ -224,12 +198,10 @@ extension DatabaseValue : DatabaseValueConvertible {
         return self
     }
     
-    /**
-    Returns *databaseValue*.
-    
-    - parameter databaseValue: A DatabaseValue.
-    - returns: *databaseValue*.
-    */
+    /// Returns *databaseValue*.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: *databaseValue*.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseValue? {
         return databaseValue
     }

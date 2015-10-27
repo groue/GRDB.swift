@@ -1,8 +1,6 @@
 import Foundation
 
-/**
-A Database Queue serializes access to an SQLite database.
-*/
+/// A Database Queue serializes access to an SQLite database.
 public final class DatabaseQueue {
     
     // MARK: - Configuration
@@ -15,17 +13,15 @@ public final class DatabaseQueue {
     
     // MARK: - Initializers
     
-    /**
-    Opens the SQLite database at path *path*.
-    
-        let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-    
-    Database connections get closed when the database queue gets deallocated.
-    
-    - parameter path: The path to the database file.
-    - parameter configuration: A configuration
-    - throws: A DatabaseError whenever a SQLite error occurs.
-    */
+    /// Opens the SQLite database at path *path*.
+    ///
+    ///     let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+    ///
+    /// Database connections get closed when the database queue gets deallocated.
+    ///
+    /// - parameter path: The path to the database file.
+    /// - parameter configuration: A configuration
+    /// - throws: A DatabaseError whenever a SQLite error occurs.
     public convenience init(path: String, var configuration: Configuration = Configuration()) throws {
         // IMPLEMENTATION NOTE
         //
@@ -46,15 +42,13 @@ public final class DatabaseQueue {
         try self.init(database: Database(path: path, configuration: configuration))
     }
     
-    /**
-    Opens an in-memory SQLite database.
-    
-        let dbQueue = DatabaseQueue()
-    
-    Database memory is released when the database queue gets deallocated.
-    
-    - parameter configuration: A configuration
-    */
+    /// Opens an in-memory SQLite database.
+    ///
+    ///     let dbQueue = DatabaseQueue()
+    ///
+    /// Database memory is released when the database queue gets deallocated.
+    ///
+    /// - parameter configuration: A configuration
     public convenience init(var configuration: Configuration = Configuration()) {
         configuration.threadingMode = .MultiThread  // See IMPLEMENTATION NOTE in init(_:configuration:)
         self.init(database: Database(configuration: configuration))
@@ -63,64 +57,58 @@ public final class DatabaseQueue {
     
     // MARK: - Database access
     
-    /**
-    Synchronously executes a block in the database queue.
-    
-        dbQueue.inDatabase { db in
-            db.fetch(...)
-        }
-    
-    This method is *not* reentrant.
-    
-    - parameter block: A block that accesses the database.
-    - throws: The error thrown by the block.
-    */
+    /// Synchronously executes a block in the database queue.
+    ///
+    ///     dbQueue.inDatabase { db in
+    ///         db.fetch(...)
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
     public func inDatabase(block: (db: Database) throws -> Void) rethrows {
         try inQueue {
             try block(db: self.database)
         }
     }
     
-    /**
-    Executes a block in the database queue, and returns its result.
-    
-        let rows = dbQueue.inDatabase { db in
-            db.fetch(...)
-        }
-    
-    This method is *not* reentrant.
-    
-    - parameter block: A block that accesses the database.
-    - throws: The error thrown by the block.
-    */
+    /// Executes a block in the database queue, and returns its result.
+    ///
+    ///     let rows = dbQueue.inDatabase { db in
+    ///         db.fetch(...)
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
     public func inDatabase<R>(block: (db: Database) throws -> R) rethrows -> R {
         return try inQueue {
             try block(db: self.database)
         }
     }
     
-    /**
-    Synchronously executes a block in the database queue, wrapped inside a
-    transaction.
-    
-    If the block throws an error, the transaction is rollbacked and the error is
-    rethrown.
-    
-        try dbQueue.inTransaction { db in
-            db.execute(...)
-            return .Commit
-        }
-    
-    This method is *not* reentrant.
-    
-    - parameter type: The transaction type (default nil). If nil, the
-      transaction type is configuration.defaultTransactionKind, which itself
-      defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
-      for more information.
-    - parameter block: A block that executes SQL statements and return either
-      .Commit or .Rollback.
-    - throws: The error thrown by the block.
-    */
+    /// Synchronously executes a block in the database queue, wrapped inside a
+    /// transaction.
+    ///
+    /// If the block throws an error, the transaction is rollbacked and the error is
+    /// rethrown.
+    ///
+    ///     try dbQueue.inTransaction { db in
+    ///         db.execute(...)
+    ///         return .Commit
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter type: The transaction type (default nil). If nil, the
+    ///   transaction type is configuration.defaultTransactionKind, which itself
+    ///   defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+    ///   for more information.
+    /// - parameter block: A block that executes SQL statements and return
+    ///   either .Commit or .Rollback.
+    /// - throws: The error thrown by the block.
     public func inTransaction(kind: TransactionKind? = nil, block: (db: Database) throws -> TransactionCompletion) throws {
         try inQueue {
             try self.database.inTransaction(kind) {
