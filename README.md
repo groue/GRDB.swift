@@ -314,6 +314,7 @@ Arguments are optional arrays or dictionaries that fill the positional `?` and c
 let rows = Row.fetch(db,
     "SELECT * FROM persons WHERE name = ?",
     arguments: ["Arthur"])
+
 let rows = Row.fetch(db,
     "SELECT * FROM persons WHERE name = :name",
     arguments: ["name": "Arthur"])
@@ -1363,8 +1364,14 @@ class Person {
     static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self]
     static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self?
     
-    // Fetching from Keys
+    // Fetching from Primary Key
+    static func fetch(db: Database, primaryKeys: Sequence) -> DatabaseSequence<Self>
+    static func fetchAll(db: Database, primaryKeys: Sequence) -> [Self]
     static func fetchOne(db: Database, primaryKey: DatabaseValueConvertible?) -> Self?
+    
+    // Fetching from Key Dictionaries:
+    static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self>
+    static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self]
     static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self?
     
     // Events
