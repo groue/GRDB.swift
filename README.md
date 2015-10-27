@@ -495,7 +495,7 @@ dbQueue.inDatabase { db in
         "FROM persons " +
         "JOIN pets ON pets.masterId = persons.id " +
         "GROUP BY persons.id " +
-        "HAVING COUNT(pets.id) > 1")
+        "HAVING COUNT(pets.id) >= 2")
 }
 ```
 
@@ -1418,7 +1418,7 @@ dbQueue.inDatabase { db in
         "FROM persons " +
         "JOIN pets ON pets.masterId = persons.id " +
         "GROUP BY persons.id " +
-        "HAVING COUNT(pets.id) > 1")
+        "HAVING COUNT(pets.id) >= 2")
 
     // SELECT * FROM persons WHERE id = 1
     Person.fetchOne(db, primaryKey: 1)
