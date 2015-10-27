@@ -1477,9 +1477,15 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-Records whose primary key is declared as "INTEGER PRIMARY KEY" have their id automatically set after successful insertion.
+- `insert` automatically sets the primary key of record whose primary key is declared as "INTEGER PRIMARY KEY".
 
-Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
+    Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
+
+- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever a SQLite integrity check fails.
+
+- `update` and `reload` methods can also throw a [RecordError](#record-errors) of type RecordNotFound, whenever the record does not exist in the database.
+
+- `delete` returns whether a row has been deleted from the database.
 
 
 ### Record Initializers
