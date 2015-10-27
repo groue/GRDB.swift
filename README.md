@@ -484,10 +484,10 @@ For example:
 
 ```swift
 dbQueue.inDatabase { db in
-    // All emails ending in @domain.com:
-    let emails = String.fetch(db,
-        "SELECT emails FROM persons WHERE email LIKE ?",
-        arguments: ["%@domain.com"])
+    // The number of persons with an email ending in @domain.com:
+    let count = Int.fetchOne(db,
+        "SELECT COUNT(*) FROM persons WHERE email LIKE ?",
+        arguments: ["%@domain.com"])!
     
     // The emails of people who own at least two pets:
     let emails = String.fetch(db,
