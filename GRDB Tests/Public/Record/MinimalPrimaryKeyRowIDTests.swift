@@ -408,7 +408,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 try record.insert(db)
                 
                 let fetchedRecord = MinimalRowID.fetchOne(db, key: ["id": record.id])!
-                XCTAssertEqual(fetchedRecord.id, record.id)
+                XCTAssertTrue(fetchedRecord.id == record.id)
             }
         }
     }
@@ -478,7 +478,7 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 
                 do {
                     let fetchedRecord = MinimalRowID.fetchOne(db, primaryKey: record.id)!
-                    XCTAssertEqual(fetchedRecord.id, record.id)
+                    XCTAssertTrue(fetchedRecord.id == record.id)
                 }
             }
         }

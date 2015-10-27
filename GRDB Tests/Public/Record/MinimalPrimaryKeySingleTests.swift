@@ -413,7 +413,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 try record.insert(db)
                 
                 let fetchedRecord = MinimalSingle.fetchOne(db, key: ["UUID": record.UUID])!
-                XCTAssertEqual(fetchedRecord.UUID, record.UUID)
+                XCTAssertTrue(fetchedRecord.UUID == record.UUID)
             }
         }
     }
@@ -488,7 +488,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let fetchedRecord = MinimalSingle.fetchOne(db, primaryKey: record.UUID)!
-                    XCTAssertEqual(fetchedRecord.UUID, record.UUID)
+                    XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 }
             }
         }

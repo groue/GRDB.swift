@@ -348,30 +348,145 @@ class PrimaryKeySingleTests: GRDBTestCase {
     }
     
     
-    // MARK: - Select
+    // MARK: - Fetch With Key
     
-    func testSelectWithPrimaryKey() {
+    func testFetchWithKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record1.insert(db)
+                let record2 = Pet(UUID: "CainUUID", name: "Cain")
+                try record2.insert(db)
+                
+                do {
+                    let fetchedRecords = Array(Pet.fetch(db, keys: []))
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let fetchedRecords = Array(Pet.fetch(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]]))
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set([record1.UUID, record2.UUID]))
+                }
+                
+                do {
+                    let fetchedRecords = Array(Pet.fetch(db, keys: [["UUID": record1.UUID], ["UUID": nil]]))
+                    XCTAssertEqual(fetchedRecords.count, 1)
+                    XCTAssertEqual(fetchedRecords.first!.UUID, record1.UUID!)
+                }
+            }
+        }
+    }
+    
+    func testFetchAllWithKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record1.insert(db)
+                let record2 = Pet(UUID: "CainUUID", name: "Cain")
+                try record2.insert(db)
+                
+                do {
+                    let fetchedRecords = Pet.fetchAll(db, keys: [])
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let fetchedRecords = Pet.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set([record1.UUID, record2.UUID]))
+                }
+                
+                do {
+                    let fetchedRecords = Pet.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": nil]])
+                    XCTAssertEqual(fetchedRecords.count, 1)
+                    XCTAssertEqual(fetchedRecords.first!.UUID, record1.UUID!)
+                }
+            }
+        }
+    }
+    
+    func testFetchOneWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
                 
-                let fetchedRecord = Pet.fetchOne(db, primaryKey: record.UUID)!
+                let fetchedRecord = Pet.fetchOne(db, key: ["UUID": record.UUID])!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 XCTAssertTrue(fetchedRecord.name == record.name)
             }
         }
     }
     
-    func testSelectWithKey() {
+    
+    // MARK: - Fetch With Primary Key
+    
+    func testFetchWithPrimaryKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record1.insert(db)
+                let record2 = Pet(UUID: "CainUUID", name: "Cain")
+                try record2.insert(db)
+                
+                do {
+                    let UUIDs: [String] = []
+                    let fetchedRecords = Array(Pet.fetch(db, primaryKeys: UUIDs))
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let UUIDs = [record1.UUID!, record2.UUID!]
+                    let fetchedRecords = Array(Pet.fetch(db, primaryKeys: UUIDs))
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
+                }
+            }
+        }
+    }
+    
+    func testFetchAllWithPrimaryKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
+                try record1.insert(db)
+                let record2 = Pet(UUID: "CainUUID", name: "Cain")
+                try record2.insert(db)
+                
+                do {
+                    let UUIDs: [String] = []
+                    let fetchedRecords = Pet.fetchAll(db, primaryKeys: UUIDs)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let UUIDs = [record1.UUID!, record2.UUID!]
+                    let fetchedRecords = Pet.fetchAll(db, primaryKeys: UUIDs)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
+                }
+            }
+        }
+    }
+    
+    func testFetchOneWithPrimaryKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
                 
-                let fetchedRecord = Pet.fetchOne(db, key: ["name": record.name])!
-                XCTAssertTrue(fetchedRecord.UUID == record.UUID)
-                XCTAssertTrue(fetchedRecord.name == record.name)
+                do {
+                    let id: String? = nil
+                    let fetchedRecord = Pet.fetchOne(db, primaryKey: id)
+                    XCTAssertTrue(fetchedRecord == nil)
+                }
+                
+                do {
+                    let fetchedRecord = Pet.fetchOne(db, primaryKey: record.UUID)!
+                    XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                    XCTAssertTrue(fetchedRecord.name == record.name)
+                }
             }
         }
     }

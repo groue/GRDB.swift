@@ -414,15 +414,71 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
     }
     
     
-    // MARK: - Select
+    // MARK: - Fetch With Key
     
-    func testSelectWithPrimaryKey() {
+    func testFetchWithKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Person(name: "Arthur")
+                try record1.insert(db)
+                let record2 = Person(name: "Barbara")
+                try record2.insert(db)
+                
+                do {
+                    let fetchedRecords = Array(Person.fetch(db, keys: []))
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let fetchedRecords = Array(Person.fetch(db, keys: [["id": record1.id], ["id": record2.id]]))
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                }
+                
+                do {
+                    let fetchedRecords = Array(Person.fetch(db, keys: [["id": record1.id], ["id": nil]]))
+                    XCTAssertEqual(fetchedRecords.count, 1)
+                    XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
+                }
+            }
+        }
+    }
+    
+    func testFetchAllWithKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Person(name: "Arthur")
+                try record1.insert(db)
+                let record2 = Person(name: "Barbara")
+                try record2.insert(db)
+                
+                do {
+                    let fetchedRecords = Person.fetchAll(db, keys: [])
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let fetchedRecords = Person.fetchAll(db, keys: [["id": record1.id], ["id": record2.id]])
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                }
+                
+                do {
+                    let fetchedRecords = Person.fetchAll(db, keys: [["id": record1.id], ["id": nil]])
+                    XCTAssertEqual(fetchedRecords.count, 1)
+                    XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
+                }
+            }
+        }
+    }
+    
+    func testFetchOneWithKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = Person(name: "Arthur")
                 try record.insert(db)
                 
-                let fetchedRecord = Person.fetchOne(db, primaryKey: record.id)!
+                let fetchedRecord = Person.fetchOne(db, key: ["id": record.id])!
                 XCTAssertTrue(fetchedRecord.id == record.id)
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
@@ -431,17 +487,76 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
         }
     }
     
-    func testSelectWithKey() {
+    
+    // MARK: - Fetch With Primary Key
+    
+    func testFetchWithPrimaryKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Person(name: "Arthur")
+                try record1.insert(db)
+                let record2 = Person(name: "Barbara")
+                try record2.insert(db)
+                
+                do {
+                    let ids: [Int64] = []
+                    let fetchedRecords = Array(Person.fetch(db, primaryKeys: ids))
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let ids = [record1.id!, record2.id!]
+                    let fetchedRecords = Array(Person.fetch(db, primaryKeys: ids))
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                }
+            }
+        }
+    }
+    
+    func testFetchAllWithPrimaryKeys() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let record1 = Person(name: "Arthur")
+                try record1.insert(db)
+                let record2 = Person(name: "Barbara")
+                try record2.insert(db)
+                
+                do {
+                    let ids: [Int64] = []
+                    let fetchedRecords = Person.fetchAll(db, primaryKeys: ids)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let ids = [record1.id!, record2.id!]
+                    let fetchedRecords = Person.fetchAll(db, primaryKeys: ids)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                }
+            }
+        }
+    }
+    
+    func testFetchOneWithPrimaryKey() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = Person(name: "Arthur")
                 try record.insert(db)
                 
-                let fetchedRecord = Person.fetchOne(db, key: ["name": record.name])!
-                XCTAssertTrue(fetchedRecord.id == record.id)
-                XCTAssertTrue(fetchedRecord.name == record.name)
-                XCTAssertTrue(fetchedRecord.age == record.age)
-                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                do {
+                    let id: Int64? = nil
+                    let fetchedRecord = Person.fetchOne(db, primaryKey: id)
+                    XCTAssertTrue(fetchedRecord == nil)
+                }
+                
+                do {
+                    let fetchedRecord = Person.fetchOne(db, primaryKey: record.id)!
+                    XCTAssertTrue(fetchedRecord.id == record.id)
+                    XCTAssertTrue(fetchedRecord.name == record.name)
+                    XCTAssertTrue(fetchedRecord.age == record.age)
+                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                }
             }
         }
     }
