@@ -14,7 +14,10 @@ public protocol DatabaseTableMapping : RowConvertible {
 
 extension DatabaseTableMapping {
     
-    private static func fetchByPrimaryKeyStatement(db: Database, primaryKeys: [DatabaseValueConvertible]) -> SelectStatement? {
+    // Returns SELECT * FROM table WHERE id IN (?,?,?,?)
+    //
+    // Returns nil if primaryKeys contains no non-nil values.
+    private static func fetchByPrimaryKeyStatement(db: Database, primaryKeys: [DatabaseValueConvertible?]) -> SelectStatement? {
         // Fail early if databaseTable is nil
         guard let databaseTableName = self.databaseTableName() else {
             fatalError("Nil returned from \(self).databaseTableName()")
@@ -31,15 +34,17 @@ extension DatabaseTableMapping {
             fatalError("Primary key of table \(databaseTableName.quotedDatabaseIdentifier) is not made of a single column. See \(self).databaseTableName()")
         }
         
+        let nonNilPrimaryKeys = primaryKeys.filter { $0 != nil }
+        
         // Avoid performing useless SELECT
-        guard primaryKeys.count > 0 else {
+        guard nonNilPrimaryKeys.count > 0 else {
             return nil
         }
         
-        let questionMarks = Array(count: primaryKeys.count, repeatedValue: "?").joinWithSeparator(",")
+        let questionMarks = Array(count: nonNilPrimaryKeys.count, repeatedValue: "?").joinWithSeparator(",")
         let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) IN (\(questionMarks))"
         let statement = db.selectStatement(sql)
-        statement.arguments = StatementArguments(primaryKeys.map { $0 })
+        statement.arguments = StatementArguments(nonNilPrimaryKeys)
         return statement
     }
     
@@ -47,12 +52,12 @@ extension DatabaseTableMapping {
     ///
     ///     let persons = Person.fetch(db, primaryKeys:[1, 2, 3]) // DatabaseSequence<Person>
     ///
-    /// The order of values in the sequence is undefined.
+    /// The order of values in the returned sequence is undefined.
     ///
     /// - parameter db: A Database.
-    /// - parameter primaryKey: A value.
+    /// - parameter primaryKeys: An array of primary keys.
     /// - returns: A sequence.
-    public static func fetch(db: Database, primaryKeys: [DatabaseValueConvertible]) -> DatabaseSequence<Self> {
+    public static func fetch(db: Database, primaryKeys: [DatabaseValueConvertible?]) -> DatabaseSequence<Self> {
         if let statement = self.fetchByPrimaryKeyStatement(db, primaryKeys: primaryKeys) {
             return self.fetch(statement)
         } else {
@@ -64,12 +69,12 @@ extension DatabaseTableMapping {
     ///
     ///     let persons = Person.fetchAll(db, primaryKeys:[1, 2, 3]) // [Person]
     ///
-    /// The order of values in the array is undefined.
+    /// The order of values in the returned array is undefined.
     ///
     /// - parameter db: A Database.
-    /// - parameter primaryKey: A value.
+    /// - parameter primaryKeys: A array of primary keys.
     /// - returns: An array.
-    public static func fetchAll(db: Database, primaryKeys: [DatabaseValueConvertible]) -> [Self] {
+    public static func fetchAll(db: Database, primaryKeys: [DatabaseValueConvertible?]) -> [Self] {
         if let statement = self.fetchByPrimaryKeyStatement(db, primaryKeys: primaryKeys) {
             return self.fetchAll(statement)
         } else {
@@ -85,8 +90,7 @@ extension DatabaseTableMapping {
     /// - parameter primaryKey: A value.
     /// - returns: An optional value.
     public static func fetchOne(db: Database, primaryKey: DatabaseValueConvertible?) -> Self? {
-        let primaryKeys = primaryKey.map { [$0] } ?? []
-        if let statement = self.fetchByPrimaryKeyStatement(db, primaryKeys: primaryKeys) {
+        if let statement = self.fetchByPrimaryKeyStatement(db, primaryKeys: [primaryKey]) {
             return self.fetchOne(statement)
         } else {
             return nil
