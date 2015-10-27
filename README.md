@@ -1419,6 +1419,25 @@ dbQueue.inDatabase { db in
         "JOIN pets ON pets.masterId = persons.id " +
         "GROUP BY persons.id " +
         "HAVING COUNT(pets.id) > 1")
+
+    // SELECT * FROM persons WHERE id = 1
+    Person.fetchOne(db, primaryKey: 1)
+
+    // SELECT * FROM persons WHERE id IN (1,2,3)
+    Person.fetch(db, primaryKeys: [1,2,3])
+
+    // SELECT * FROM countries WHERE isoCode = 'FR'
+    Country.fetchOne(db, primaryKey: 'FR')
+
+    // SELECT * FROM persons WHERE email = 'me@domain.com'
+    Person.fetchOne(db, key: ["email": "me@domain.com"])
+
+    // SELECT * FROM citizenships
+    //  WHERE (personId = 1 AND countryIsoCode = 'FR')
+    //     OR (personId = 2 AND countryIsoCode = 'US')
+    Citizenship.fetch(db, keys: [
+        ["personId": 1, "countryIsoCode": "FR"],
+        ["personId": 2, "countryIsoCode": "US"]])
 }
 ```
 
@@ -1433,33 +1452,6 @@ dbQueue.inDatabase { db in
 > ```
 >
 > :point_up: **Note**: The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
-
-The primary key-based methods can only be used with tables that have a single-column primary key. They generate those kinds of SQL queries:
-
-```swift
-// SELECT * FROM persons WHERE id = 1
-Person.fetchOne(db, primaryKey: 1)
-
-// SELECT * FROM persons WHERE id IN (1,2,3)
-Person.fetch(db, primaryKeys: [1,2,3])
-
-// SELECT * FROM countries WHERE isoCode = 'FR'
-Country.fetchOne(db, primaryKey: 'FR')
-```
-
-The dictionary-based methods map dictionary keys to columns. They generate those kinds of SQL queries:
-
-```swift
-// SELECT * FROM persons WHERE email = 'me@domain.com'
-Person.fetchOne(db, key: ["email": "me@domain.com"])
-
-// SELECT * FROM citizenships
-//  WHERE (personId = 1 AND countryIsoCode = 'FR')
-//     OR (personId = 2 AND countryIsoCode = 'US')
-Citizenship.fetch(db, keys: [
-    ["personId": 1, "countryIsoCode": "FR"],
-    ["personId": 2, "countryIsoCode": "US"]])
-```
 
 
 ### Insert, Update and Delete
