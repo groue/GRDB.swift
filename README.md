@@ -269,8 +269,11 @@ dbQueue.inDatabase { db in
     Person.fetch(db, "SELECT ...", ...)          // DatabaseSequence<Person>
     Person.fetchAll(db, "SELECT ...", ...)       // [Person]
     Person.fetchOne(db, "SELECT ...", ...)       // Person?
-    Person.fetchOne(db, primaryKey: 12)          // Person?
-    Person.fetchOne(db, key: ["name": "Arthur"]) // Person?
+    
+    Person.fetch(db, primaryKeys: ...)           // DatabaseSequence<Person>
+    Person.fetchAll(db, primaryKeys: ...)        // [Person]
+    Person.fetchOne(db, primaryKey: ...)         // Person?
+    Person.fetchOne(db, key: ...)                // Person?
 }
 ```
 
@@ -1357,7 +1360,10 @@ dbQueue.inDatabase { db in
     Person.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<Person>
     Person.fetchAll(db, "SELECT ...", arguments:...) // [Person]
     Person.fetchOne(db, "SELECT ...", arguments:...) // Person?
-    Person.fetchOne(db, primaryKey: ...)             // Person?
+    
+    Person.fetch(db, primaryKeys: [1,2,3])           // DatabaseSequence<Person>
+    Person.fetchAll(db, primaryKeys: [1,2,3])        // [Person]
+    Person.fetchOne(db, primaryKey: 1)               // Person?
     Person.fetchOne(db, key: ["name": "Arthur"])     // Person?
 }
 ```
