@@ -499,6 +499,8 @@ dbQueue.inDatabase { db in
 }
 ```
 
+The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
+
 > :point_up: **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
 > 
 > ```swift
@@ -508,8 +510,7 @@ dbQueue.inDatabase { db in
 > }
 > for name in names { ... } // OK
 > ```
->
-> :point_up: **Note**: The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
+
 
 
 ## Values
@@ -1441,6 +1442,8 @@ dbQueue.inDatabase { db in
 }
 ```
 
+The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
+
 > :point_up: **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
 > 
 > ```swift
@@ -1450,8 +1453,6 @@ dbQueue.inDatabase { db in
 > }
 > for person in persons { ... } // OK
 > ```
->
-> :point_up: **Note**: The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
 
 
 ### Insert, Update and Delete
