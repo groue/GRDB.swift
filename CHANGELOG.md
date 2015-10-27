@@ -9,6 +9,12 @@ Release Notes
 - GRDB always crashes when you try to convert a database NULL to a non-optional value.
 
 
+**New**
+
+- `Person.fetch(_:primaryKeys:)` returns a sequence of objects with matching primary keys.
+- `Person.fetchAll(_:primaryKeys:)` returns an array of objects with matching primary keys.
+
+
 ## 0.24.0
 
 Released October 14, 2015
