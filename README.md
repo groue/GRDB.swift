@@ -1417,12 +1417,8 @@ dbQueue.inDatabase { db in
     // SELECT * FROM persons WHERE email = 'me@domain.com'
     Person.fetchOne(db, key: ["email": "me@domain.com"])
 
-    // SELECT * FROM citizenships
-    //  WHERE (personId = 1 AND countryIsoCode = 'FR')
-    //     OR (personId = 2 AND countryIsoCode = 'US')
-    Citizenship.fetch(db, keys: [
-        ["personId": 1, "countryIsoCode": "FR"],
-        ["personId": 2, "countryIsoCode": "US"]])
+    // SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
+    Citizenship.fetch(db, key: ["personId": 1, "countryIsoCode": "FR"])
 }
 ```
 
