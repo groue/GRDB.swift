@@ -285,7 +285,7 @@ try db.execute(
     arguments: ["name": "Barbara", "age": 39])
 ```
 
-See [Values](#values) for more information on supported types (Bool, Int, String, NSDate, Swift enums, etc.).
+See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
 
 You extract the inserted Row ID from the result of the `execute` method:
 
@@ -366,6 +366,8 @@ let rows = Row.fetch(db,
     "SELECT * FROM persons WHERE name = :name",
     arguments: ["name": "Arthur"])
 ```
+
+See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
 
 
 **Row sequences grant the fastest and the most memory-efficient access to SQLite**, much more than row arrays that hold copies of the database rows:
