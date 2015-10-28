@@ -404,11 +404,9 @@ Generally speaking:
     - Text SQLite values to Swift String.
     - Blob SQLite values to NSData.
     
-    Types that adopt the [DatabaseValueConvertible protocol](#custom-value-types) can provide more conversions (NSDate, Swift enums, etc.).
+    See [Values](#values) for more information on supported types (NSDate, Swift enums, ec.). Don't miss [NSData](#nsdata-and-memory-savings) if you target memory efficiency.
 
 - **SQLite built-in conversions, such as blob to String, are not guaranteed to apply.** You must not rely on them.
-
-See [Values](#values) for more information on supported types. Don't miss [NSData](#nsdata-and-memory-savings) if you target memory efficiency.
 
 
 #### Rows as Dictionaries
