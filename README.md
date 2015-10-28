@@ -778,8 +778,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     
     /// Returns an instance initialized from *databaseValue*, if possible.
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseTimestamp? {
-        // Double itself adopts DatabaseValueConvertible. So let's avoid
-        // handling the raw DatabaseValue, and use built-in Double conversion:
+        // Double itself adopts DatabaseValueConvertible:
         guard let timeInterval = Double.fromDatabaseValue(databaseValue) else {
             // No Double, no NSDate!
             return nil
