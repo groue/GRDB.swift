@@ -162,6 +162,8 @@ Documentation
 **[SQLite API](#sqlite-api)**
 
 - [SQLite Database](#sqlite-database)
+- [Creating Tables](#creating-tables)
+- [Inserting Rows](#inserting-rows)
 - [Fetch Queries](#fetch-queries)
     - [Row Queries](#row-queries)
     - [Value Queries](#value-queries)
@@ -250,7 +252,63 @@ try dbQueue.inTransaction { db in
 
 See [Transactions](#transactions) for more information about GRDB transaction handling.
 
-To create tables, we recommend using [migrations](#migrations).
+
+## Creating Tables
+
+**To create a database table**, execute a [CREATE TABLE](https://www.sqlite.org/lang_createtable.html) statement:
+
+```swift
+try dbQueue.inDatabase { db in
+    try db.execute(
+        "CREATE TABLE persons (" +
+            "id INTEGER PRIMARY KEY, " +
+            "name TEXT NOT NULL, " +
+            "email TEXT" +
+        ")")
+}
+```
+
+Database schemas usually evolve over time: you should probably create your tables with [migrations](#migrations).
+
+
+## Inserting Rows
+
+**To insert a database row**, execute an [INSERT](https://www.sqlite.org/lang_insert.html) statement:
+
+```swift
+try dbQueue.inDatabase { db in
+    try db.execute("INSERT ...", arguments: ...)
+}
+```
+
+Arguments are optional arrays or dictionaries that fill the positional `?` and colon-prefixed keys like `:name` in the query:
+
+```swift
+try db.execute(
+    "INSERT INTO persons (name, age) VALUES (?, ?)",
+    arguments: ["Arthur", 36])
+try db.execute(
+    "INSERT INTO persons (name, age) VALUES (:name, :age)",
+    arguments: ["name": "Barbara", "age": 39]).insertedRowID
+```
+
+See [Values](#values) for more information on supported types (Bool, Int, String, NSDate, Swift enums, etc.).
+
+You extract the inserted Row ID from the result of the `execute` method:
+
+```swift
+let insertedRowID = try db.execute(
+    "INSERT INTO persons (name, age) VALUES (?, ?)",
+    arguments: ["Arthur", 36]).insertedRowID
+```
+
+Don't miss the [Record](#records) class, which helps inserting rows in the database:
+
+```
+let person = Person(name: "Arthur", age: 36)
+try person.insert(db)
+print("Inserted person id: \(person.id)")
+```
 
 
 ## Fetch Queries
@@ -509,7 +567,7 @@ The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil i
 
 ## Values
 
-The following value types can be stored and read from [row columns](#column-values) or [directly fetched](#value-queries) from the database.
+The following value types can be [stored](#inserting-rows) and read from [row columns](#column-values) or [directly fetched](#value-queries) from the database.
 
 - Swift:
     - Bool
@@ -923,7 +981,7 @@ The `DatabaseQueue.inTransaction()` method opens a SQLite transaction:
 
 ```swift
 try dbQueue.inTransaction { db in
-    let wine = Wine(grape: .Merlot, color: .Red, name: "Pomerol")
+    let wine = Wine(color: .Red, name: "Pomerol")
     try wine.insert(db)
     return .Commit
 }
@@ -979,7 +1037,7 @@ Before jumping in the low-level wagon, here is a reminder of SQLite APIs support
 - Connections & statements, obviously.
 - Errors (pervasive)
     - [sqlite3_errmsg](https://www.sqlite.org/c3ref/errcode.html)
-- Inserted RowIDs (as the result of Database.execute()).
+- Inserted Row IDs (as the result of Database.execute()).
     - [sqlite3_last_insert_rowid](https://www.sqlite.org/c3ref/last_insert_rowid.html)
 - Changes count (as the result of Database.execute()).
     - [sqlite3_changes](https://www.sqlite.org/c3ref/changes.html)
