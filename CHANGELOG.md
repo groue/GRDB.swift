@@ -11,6 +11,7 @@ Release Notes
 
 **New**
 
+- CGFloat can be stored and read from the database.
 - `Person.fetch(_:primaryKeys:)` returns a sequence of objects with matching primary keys.
 - `Person.fetchAll(_:primaryKeys:)` returns an array of objects with matching primary keys.
 - `Person.fetch(_:keys:)` returns a sequence of objects with matching keys.

@@ -3,6 +3,7 @@
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
+- [ ] CGFloat
 
 
 Not sure:
