@@ -233,19 +233,12 @@ dbQueue.inDatabase { db in
     for person in Person.fetch(db, "SELECT...") {
         ...
     }
-    ...
 }
 
 // Wrap database statements in a transaction:
 try dbQueue.inTransaction { db in
-    let insertedRowID = try db.execute(
-        "INSERT INTO persons (name, age) VALUES (?, ?)",
-        arguments: ["Arthur", 36]).insertedRowID
-    
-    try db.execute(
-        "DELETE FROM persons WHERE name = :name",
-        arguments: ["name": "Barbara"])
-    
+    try db.execute("INSERT ...")
+    try db.execute("DELETE FROM ...")
     return .Commit
 }
 ```
