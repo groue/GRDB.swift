@@ -565,23 +565,11 @@ The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil i
 The following value types can be [stored](#inserting-rows) and read from [row columns](#column-values) or [directly fetched](#value-queries) from the database.
 
 - Swift:
-    - Bool
-    - Double
-    - Int
-    - Int32
-    - Int64
-    - String
-    - [Swift enums](#swift-enums)
+    - Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
 - Foundation:
-    - [NSData](#nsdata-and-memory-savings)
-    - [NSDate](#nsdate-and-nsdatecomponents)
-    - [NSDateComponents](#nsdate-and-nsdatecomponents)
-    - NSNull
-    - NSNumber
-    - NSString
-    - NSURL
+    - [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
 - CoreGraphics:
-    - CGFloat
+    - CGFloat.
 
 Your custom value types are supported as well, through the [DatabaseValueConvertible](#custom-value-types) protocol.
 
