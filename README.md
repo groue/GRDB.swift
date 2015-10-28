@@ -289,7 +289,7 @@ try db.execute(
     arguments: ["Arthur", 36])
 try db.execute(
     "INSERT INTO persons (name, age) VALUES (:name, :age)",
-    arguments: ["name": "Barbara", "age": 39]).insertedRowID
+    arguments: ["name": "Barbara", "age": 39])
 ```
 
 See [Values](#values) for more information on supported types (Bool, Int, String, NSDate, Swift enums, etc.).
@@ -304,7 +304,7 @@ let insertedRowID = try db.execute(
 
 Don't miss the [Record](#records) class, which helps inserting rows in the database:
 
-```
+```swift
 let person = Person(name: "Arthur", age: 36)
 try person.insert(db)
 print("Inserted person id: \(person.id)")
