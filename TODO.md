@@ -3,8 +3,6 @@
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
-- [ ] http://stackoverflow.com/questions/33306519/fmdb-retrieval-of-null-values-for-value-types-in-swift - stop letting sqlite silently converting NULL to zero (see Row.swift).
-- [ ] Since we have Person.fetch(_:primaryKeys:), we need Person.fetch(_:keys:).
 
 
 Not sure:
