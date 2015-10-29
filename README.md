@@ -1495,7 +1495,7 @@ class Person : Record {
 
 try dbQueue.inDatabase { db in
     let person = Person(...)
-    try person.insert(db)
+    try person.insert(db)   // Automatically fills person.id for INTEGER PRIMARY KEY.
     try person.update(db)
     try person.save(db)     // Inserts or updates
     try person.reload(db)
