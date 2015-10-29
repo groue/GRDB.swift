@@ -405,7 +405,7 @@ Make sure to ask for an optional when the value may be NULL:
 let name: String? = row.value(named: "name")
 ```
 
-The `value` function generally returns the type you ask for:
+The `value` function returns the type you ask for:
 
 ```swift
 let bookCount: Int     = row.value(named: "bookCount")
@@ -413,7 +413,7 @@ let bookCount64: Int64 = row.value(named: "bookCount")
 let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
 ```
 
-Did I say the type you ask for?
+Did I say the type you ask for? See [Values](#values) for more information on supported value types:
 
 ```swift
 let dateString: String = row.value(named: "date") // "2015-09-11 18:14:15.123"
@@ -436,7 +436,7 @@ row.value(...) as Int!
 > row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 > ```
 
-Generally speaking, you can extract the type you need, provided it can be converted from the underlying SQLite value:
+Generally speaking, you can extract the type you need, *provided it can be converted from the underlying SQLite value*:
 
 - **GRDB always crashes when you try to convert NULL to a non-optional value.**
     
@@ -444,14 +444,13 @@ Generally speaking, you can extract the type you need, provided it can be conver
     
 - **Successful conversions include:**
     
-    - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
-      Bool (zero is the only false boolean).
+    - Numeric (integer and real) SQLite values to Swift Int, Int32, Int64, Double and Bool (zero is the only false boolean).
     - Text SQLite values to Swift String.
     - Blob SQLite values to NSData.
     
     See [Values](#values) for more information on supported types (NSDate, Swift enums, etc.). Don't miss the [NSData chapter](#nsdata-and-memory-savings) if you target memory efficiency.
 
-- **The convenience conversions of SQLite, such as Blob to String, are not guaranteed to apply.** You must not rely on them.
+- **The convenience conversions of SQLite, such as Blob to String or String to Integer are not guaranteed to apply.** You must not rely on them.
 
 
 #### Rows as Dictionaries
