@@ -372,7 +372,7 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 Both `fetch` and `fetchAll` let you iterate the full list of fetched rows. The differences are:
 
 - The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
-- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
 - The sequence returned by `fetch` may return a different set of results if the database has been modified between two sequence iterations.
 
 **Row sequences grant the fastest and the most memory-efficient access to SQLite**, much more than row arrays that hold copies of the database rows:
@@ -545,7 +545,7 @@ dbQueue.inDatabase { db in
 Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The differences are:
 
 - The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
-- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
 - The sequence returned by `fetch` may return a different set of results if the database has been modified between two sequence iterations.
 
 `fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
@@ -1241,7 +1241,7 @@ PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
 
 - The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
-- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
 - The sequence returned by `fetch` may return a different set of results if the database has been modified between two sequence iterations.
 
 > :point_up: **Note**: For performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
@@ -1441,7 +1441,7 @@ dbQueue.inDatabase { db in
 Both `fetch` and `fetchAll` let you iterate the full list of fetched records. The differences are:
 
 - The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
-- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
 - The sequence returned by `fetch` may return a different set of results if the database has been modified between two sequence iterations.
 
 For example:
