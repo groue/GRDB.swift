@@ -3,6 +3,7 @@
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
+- [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 
 
 Not sure:
