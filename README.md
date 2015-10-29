@@ -369,6 +369,11 @@ let rows = Row.fetch(db,
 
 See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
 
+Both `fetch` and `fetchAll` let you iterate the full list of fetched rows. The differences are:
+
+- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue.
+- The sequence returned by `fetch` may return a different set of results if the database has been modified between two sequence iterations.
 
 **Row sequences grant the fastest and the most memory-efficient access to SQLite**, much more than row arrays that hold copies of the database rows:
 
@@ -379,15 +384,6 @@ for row in Row.fetch(db, "SELECT ...") {
 ```
 
 > :point_up: **Note**: this performance advantage comes with extra precautions when using row sequences:
-> 
-> - **Don't consume a row sequence outside of the database queue.** Extract a row array with `Row.fetchAll(...)` instead:
-> 
->     ```swift
->     let rows = dbQueue.inDatabase { db in
->         Row.fetchAll(db, "SELECT ...")  // [Row]
->     }
->     for row in rows { ... } // OK
->     ```
 > 
 > - **Don't wrap a row sequence in an array** with `Array(rows)` or `rows.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
 > 
@@ -546,18 +542,13 @@ dbQueue.inDatabase { db in
 }
 ```
 
-The `fetchOne(_:sql:arguments:)` method returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
+Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The differences are:
 
-> :point_up: **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
-> 
-> ```swift
-> let names = dbQueue.inDatabase { db in
->     return String.fetchAll(db, "SELECT name FROM ...")             // [String]
->     return String.fetch(db, "SELECT name FROM ...").filter { ... } // [String]
-> }
-> for name in names { ... } // OK
-> ```
+- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue.
+- The sequence returned by `fetch` may return a different set of results if the database has been modified between two sequence iterations.
 
+`fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
 
 ## Values
@@ -1247,6 +1238,12 @@ PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
 PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
 ```
 
+Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
+
+- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue.
+- The sequence returned by `fetch` may return a different set of results if the database has been modified between two sequence iterations.
+
 > :point_up: **Note**: For performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 You also get a dictionary initializer for free:
@@ -1441,6 +1438,12 @@ dbQueue.inDatabase { db in
 }
 ```
 
+Both `fetch` and `fetchAll` let you iterate the full list of fetched records. The differences are:
+
+- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue.
+- The sequence returned by `fetch` may return a different set of results if the database has been modified between two sequence iterations.
+
 For example:
 
 ```swift
@@ -1476,16 +1479,6 @@ dbQueue.inDatabase { db in
 ```
 
 The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
-
-> :point_up: **Note**: Sequences can not be consumed outside of a database queue, but arrays are OK:
-> 
-> ```swift
-> let persons = dbQueue.inDatabase { db in
->     return Person.fetchAll(db, "SELECT ...")             // [Person]
->     return Person.fetch(db, "SELECT ...").filter { ... } // [Person]
-> }
-> for person in persons { ... } // OK
-> ```
 
 
 ### Insert, Update and Delete
