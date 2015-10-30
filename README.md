@@ -460,7 +460,7 @@ if let databaseValue = row["date"] {
 }
 ```
 
-Iterate all the tuples (columnName, databaseValue) in a row:
+Iterate all the tuples (columnName, databaseValue) in a row, from left to right:
 
 ```swift
 for (columnName, databaseValue) in row {
