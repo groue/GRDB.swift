@@ -369,19 +369,11 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched rows. The d
 - The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
 - The sequence returned by `fetch` will return a different set of results if the database has been modified between two sequence iterations.
 
-**Row sequences grant the fastest and the most memory-efficient access to SQLite**, much more than row arrays that hold copies of the database rows:
+Row sequences also grant the fastest access to the database. This performance advantage comes with extra precautions:
 
-```swift
-for row in Row.fetch(db, "SELECT ...") {
-    // Can't be closer to SQLite
-}
-```
-
-> :point_up: **Note**: this performance advantage comes with extra precautions when using row sequences:
+> :point_up: **Don't wrap a row sequence in an array** with `Array(rowSequence)` or `rowSequence.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
 > 
-> - **Don't wrap a row sequence in an array** with `Array(rows)` or `rows.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
-> 
-> - **Make sure you copy a row** whenever you extract it from the sequence for later use: `row.copy()`.
+> :point_up: **Make sure you copy a row** whenever you extract it from a sequence for later use: `row.copy()`. This does not apply to row arrays.
 
 
 #### Column Values
