@@ -83,12 +83,6 @@ try dbQueue.inDatabase { db in
     try wine.insert(db)
     print("Inserted wine id: \(wine.id)")
     
-    // Track changes
-    wine.name = "Pomerol"
-    if wine.databaseEdited {    // false since name has not changed.
-        try wine.save(db)
-    }
-    
     // Fetch
     for wine in Wine.fetch(db, "SELECT * FROM wines") {
         print(wine.name, wine.color)
