@@ -430,7 +430,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     - Text SQLite values to Swift String.
     - Blob SQLite values to NSData.
     
-    See [Values](#values) for more information on supported types (NSDate, Swift enums, etc.). Don't miss the [NSData chapter](#nsdata-and-memory-savings) if you target memory efficiency.
+    See [Values](#values) for more information on supported types (NSDate, Swift enums, etc.).
 
 - **Invalid conversions return nil.**
 
