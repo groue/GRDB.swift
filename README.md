@@ -424,10 +424,17 @@ row.value(...) as Int!
 
 Generally speaking, you can extract the type you need, *provided it can be converted from the underlying SQLite value*:
 
-- **GRDB always crashes when you try to convert NULL to a non-optional value.**
+- **GRDB crashes when you try to convert NULL to a non-optional value.**
     
     This behavior is notably different from SQLite C API, or from ccgus/fmdb, that both turn NULL to 0 when extracting an integer, for example.
     
+- **Invalid conversions return nil.**
+
+    ```swift
+    row.value(named: "foo") as String  // "bar"
+    row.value(named: "foo") as NSDate? // nil: can't convert "bar" to NSDate
+    ```
+
 - **Successful conversions include:**
     
     - Numeric (integer and real) SQLite values to Swift Int, Int32, Int64, Double and Bool (zero is the only false boolean).
