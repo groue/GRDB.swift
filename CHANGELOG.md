@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+## Next Release
+
+- `DatabaseCoder` reads and stores objects that conform to NSCoding in the database.
+
+
 ## 0.26.1
 
 Released October 31, 2015

@@ -164,6 +164,7 @@ Documentation
 - [Values](#values)
     - [NSData](#nsdata-and-memory-savings)
     - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
+    - [NSCoding](#nscoding)
     - [Swift enums](#swift-enums)
     - [Custom Value Types](#custom-value-types)
 - [Prepared Statements](#prepared-statements)
@@ -550,7 +551,7 @@ The following value types can be [stored](#inserting-rows) and read from [row co
 - Swift:
     - Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
 - Foundation:
-    - [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
+    - [NSCoding](#nscoding), [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
 - CoreGraphics:
     - CGFloat.
 
@@ -669,7 +670,7 @@ NSDate.fetchAll(db, "SELECT ...")    // [NSDate]
 NSDate.fetchOne(db, "SELECT ...")    // NSDate?
 ```
 
-See [Value Queries](#value-queries) for more detail on value fetching.
+See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
 
 
 #### NSDateComponents
@@ -705,7 +706,7 @@ try db.execute("INSERT INTO persons (birthDate, ...) " +
 Extract NSDateComponents from the database:
 
 ```swift
-let row = Row.fetchOne(db, "SELECT birthDate, ...")!
+let row = Row.fetchOne(db, "SELECT birthDate ...")!
 let dbComponents: DatabaseDateComponents = row.value(named: "birthDate")
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
@@ -715,7 +716,38 @@ DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents]
 DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
 ```
 
-See [Value Queries](#value-queries) for more detail on value fetching.
+See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
+
+
+### NSCoding
+
+NSCoding is indirectly supported, through the **DatabaseCoder** helper type.
+
+DatabaseCoder reads and writes objects that adopt NSCoding into Blob columns.
+
+For example, store NSArray into the database:
+
+```swift
+let ints = [1, 2, 3]
+try db.execute(
+    "INSERT INTO ... (ints, ...) VALUES (?, ...)",
+    arguments: [DatabaseCoder(ints), ...])
+```
+
+Extract NSArray from the database:
+
+```swift
+let row = Row.fetchOne(db, "SELECT ints ...")!
+let coder = row.value(named: "array") as DatabaseCoder // DatabaseCoder
+let array = coder.object as! NSArray                   // NSArray
+let ints = array.map { $0 as! Int }                    // [Int]
+
+DatabaseCoder.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseCoder>
+DatabaseCoder.fetchAll(db, "SELECT ...") // [DatabaseCoder]
+DatabaseCoder.fetchOne(db, "SELECT ...") // DatabaseCoder?
+```
+
+See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
 
 
 ### Swift Enums
@@ -764,7 +796,7 @@ Color.fetchAll(db, "SELECT ...", arguments: ...) // [Color]
 Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 ```
 
-See [Value Queries](#value-queries) for more detail on value fetching.
+See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
 
 
 ### Custom Value Types
@@ -847,7 +879,7 @@ DatabaseTimestamp.fetchAll(db, "SELECT ...") // [DatabaseTimestamp]
 DatabaseTimestamp.fetchOne(db, "SELECT ...") // DatabaseTimestamp?
 ```
 
-See [Value Queries](#value-queries) for more detail on value fetching.
+See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
 
 
 ## Prepared Statements
