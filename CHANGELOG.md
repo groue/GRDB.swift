@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Releaes
+## 0.26.0
+
+Released October 31, 2015
 
 **Breaking Change**
 

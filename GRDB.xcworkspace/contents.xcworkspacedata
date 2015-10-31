@@ -10,6 +10,9 @@
       <FileRef
          location = "group:Record.playground">
       </FileRef>
+      <FileRef
+         location = "group:FetchedResultsController.playground">
+      </FileRef>
    </Group>
    <FileRef
       location = "group:GRDB.xcodeproj">
