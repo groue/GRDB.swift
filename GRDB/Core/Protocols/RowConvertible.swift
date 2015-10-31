@@ -102,7 +102,8 @@ extension RowConvertible {
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional value.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
-        guard let first = fetch(statement, arguments: arguments).generate().next() else {
+        var generator = fetch(statement, arguments: arguments).generate()
+        guard let first = generator.next() else {
             return nil
         }
         return first

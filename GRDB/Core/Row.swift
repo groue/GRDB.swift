@@ -525,7 +525,8 @@ public final class Row: CollectionType {
         let rows = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
         }
-        return rows.generate().next()
+        var generator = rows.generate()
+        return generator.next()
     }
     
     

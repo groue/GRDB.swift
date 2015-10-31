@@ -97,7 +97,7 @@ public struct DatabaseSequence<T>: SequenceType {
 /// A generator of elements fetched from the database.
 public struct DatabaseGenerator<T>: GeneratorType {
     private let nextImpl: () -> T?
-    public func next() -> T? {
+    public mutating func next() -> T? {
         return nextImpl()
     }
 }

@@ -106,7 +106,8 @@ public extension DatabaseValueConvertible {
         let optionals = statement.fetch(arguments: arguments) {
             Self.fromDatabaseValue(DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0))
         }
-        guard let value = optionals.generate().next() else {
+        var generator = optionals.generate()
+        guard let value = generator.next() else {
             return nil
         }
         return value
