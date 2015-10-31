@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## 0.26.1
+
+Released October 31, 2015
+
+**Fixed repository mess introduced by 0.26.0**
+
+
 ## 0.26.0
 
 Released October 31, 2015
