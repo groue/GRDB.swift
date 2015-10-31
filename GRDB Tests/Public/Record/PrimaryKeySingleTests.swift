@@ -432,13 +432,13 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let UUIDs: [String] = []
-                    let fetchedRecords = Array(Pet.fetch(db, primaryKeys: UUIDs))
+                    let fetchedRecords = Array(Pet.fetch(db, keys: UUIDs))
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let UUIDs = [record1.UUID!, record2.UUID!]
-                    let fetchedRecords = Array(Pet.fetch(db, primaryKeys: UUIDs))
+                    let fetchedRecords = Array(Pet.fetch(db, keys: UUIDs))
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
                 }
@@ -456,13 +456,13 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let UUIDs: [String] = []
-                    let fetchedRecords = Pet.fetchAll(db, primaryKeys: UUIDs)
+                    let fetchedRecords = Pet.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let UUIDs = [record1.UUID!, record2.UUID!]
-                    let fetchedRecords = Pet.fetchAll(db, primaryKeys: UUIDs)
+                    let fetchedRecords = Pet.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
                 }
@@ -478,12 +478,12 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let id: String? = nil
-                    let fetchedRecord = Pet.fetchOne(db, primaryKey: id)
+                    let fetchedRecord = Pet.fetchOne(db, key: id)
                     XCTAssertTrue(fetchedRecord == nil)
                 }
                 
                 do {
-                    let fetchedRecord = Pet.fetchOne(db, primaryKey: record.UUID)!
+                    let fetchedRecord = Pet.fetchOne(db, key: record.UUID)!
                     XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                 }

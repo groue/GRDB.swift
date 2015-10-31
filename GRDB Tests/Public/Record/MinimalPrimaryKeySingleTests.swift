@@ -433,13 +433,13 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let UUIDs: [String] = []
-                    let fetchedRecords = Array(MinimalSingle.fetch(db, primaryKeys: UUIDs))
+                    let fetchedRecords = Array(MinimalSingle.fetch(db, keys: UUIDs))
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let UUIDs = [record1.UUID!, record2.UUID!]
-                    let fetchedRecords = Array(MinimalSingle.fetch(db, primaryKeys: UUIDs))
+                    let fetchedRecords = Array(MinimalSingle.fetch(db, keys: UUIDs))
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
                 }
@@ -459,13 +459,13 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let UUIDs: [String] = []
-                    let fetchedRecords = MinimalSingle.fetchAll(db, primaryKeys: UUIDs)
+                    let fetchedRecords = MinimalSingle.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let UUIDs = [record1.UUID!, record2.UUID!]
-                    let fetchedRecords = MinimalSingle.fetchAll(db, primaryKeys: UUIDs)
+                    let fetchedRecords = MinimalSingle.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
                 }
@@ -482,12 +482,12 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 
                 do {
                     let id: String? = nil
-                    let fetchedRecord = MinimalSingle.fetchOne(db, primaryKey: id)
+                    let fetchedRecord = MinimalSingle.fetchOne(db, key: id)
                     XCTAssertTrue(fetchedRecord == nil)
                 }
                 
                 do {
-                    let fetchedRecord = MinimalSingle.fetchOne(db, primaryKey: record.UUID)!
+                    let fetchedRecord = MinimalSingle.fetchOne(db, key: record.UUID)!
                     XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 }
             }

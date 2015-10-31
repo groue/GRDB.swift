@@ -426,13 +426,13 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 
                 do {
                     let ids: [Int64] = []
-                    let fetchedRecords = Array(MinimalRowID.fetch(db, primaryKeys: ids))
+                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: ids))
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let ids = [record1.id!, record2.id!]
-                    let fetchedRecords = Array(MinimalRowID.fetch(db, primaryKeys: ids))
+                    let fetchedRecords = Array(MinimalRowID.fetch(db, keys: ids))
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
                 }
@@ -450,13 +450,13 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 
                 do {
                     let ids: [Int64] = []
-                    let fetchedRecords = MinimalRowID.fetchAll(db, primaryKeys: ids)
+                    let fetchedRecords = MinimalRowID.fetchAll(db, keys: ids)
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let ids = [record1.id!, record2.id!]
-                    let fetchedRecords = MinimalRowID.fetchAll(db, primaryKeys: ids)
+                    let fetchedRecords = MinimalRowID.fetchAll(db, keys: ids)
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
                 }
@@ -472,12 +472,12 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 
                 do {
                     let id: Int64? = nil
-                    let fetchedRecord = MinimalRowID.fetchOne(db, primaryKey: id)
+                    let fetchedRecord = MinimalRowID.fetchOne(db, key: id)
                     XCTAssertTrue(fetchedRecord == nil)
                 }
                 
                 do {
-                    let fetchedRecord = MinimalRowID.fetchOne(db, primaryKey: record.id)!
+                    let fetchedRecord = MinimalRowID.fetchOne(db, key: record.id)!
                     XCTAssertTrue(fetchedRecord.id == record.id)
                 }
             }

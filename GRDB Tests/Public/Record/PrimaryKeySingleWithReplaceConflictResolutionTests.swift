@@ -443,13 +443,13 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 
                 do {
                     let emails: [String] = []
-                    let fetchedRecords = Array(Email.fetch(db, primaryKeys: emails))
+                    let fetchedRecords = Array(Email.fetch(db, keys: emails))
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let emails = [record1.email!, record2.email!]
-                    let fetchedRecords = Array(Email.fetch(db, primaryKeys: emails))
+                    let fetchedRecords = Array(Email.fetch(db, keys: emails))
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set(emails))
                 }
@@ -469,13 +469,13 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 
                 do {
                     let emails: [String] = []
-                    let fetchedRecords = Email.fetchAll(db, primaryKeys: emails)
+                    let fetchedRecords = Email.fetchAll(db, keys: emails)
                     XCTAssertEqual(fetchedRecords.count, 0)
                 }
                 
                 do {
                     let emails = [record1.email!, record2.email!]
-                    let fetchedRecords = Email.fetchAll(db, primaryKeys: emails)
+                    let fetchedRecords = Email.fetchAll(db, keys: emails)
                     XCTAssertEqual(fetchedRecords.count, 2)
                     XCTAssertEqual(Set(fetchedRecords.map { $0.email }), Set(emails))
                 }
@@ -492,12 +492,12 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 
                 do {
                     let id: String? = nil
-                    let fetchedRecord = Email.fetchOne(db, primaryKey: id)
+                    let fetchedRecord = Email.fetchOne(db, key: id)
                     XCTAssertTrue(fetchedRecord == nil)
                 }
                 
                 do {
-                    let fetchedRecord = Email.fetchOne(db, primaryKey: record.email)!
+                    let fetchedRecord = Email.fetchOne(db, key: record.email)!
                     XCTAssertTrue(fetchedRecord.email == record.email)
                 }
             }

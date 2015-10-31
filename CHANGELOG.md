@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Releaes
+
+**Breaking Change**
+
+- The `fetch(:primaryKeys:)`, `fetchAll(:primaryKeys:)` and `fetchOne(:primaryKey:)` methods have been renamed `fetch(:keys:)`, `fetchAll(:keys:)` and `fetchOne(:key:)`.
+
+
 ## 0.25.0
 
 Released October 29, 2015

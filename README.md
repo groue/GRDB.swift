@@ -316,9 +316,9 @@ dbQueue.inDatabase { db in
     Person.fetchAll(db, "SELECT ...", ...) // [Person]
     Person.fetchOne(db, "SELECT ...", ...) // Person?
     
-    Person.fetch(db, primaryKeys: ...)     // DatabaseSequence<Person>
-    Person.fetchAll(db, primaryKeys: ...)  // [Person]
-    Person.fetchOne(db, primaryKey: ...)   // Person?
+    Person.fetch(db, keys: ...)            // DatabaseSequence<Person>
+    Person.fetchAll(db, keys: ...)         // [Person]
+    Person.fetchOne(db, key: ...)          // Person?
 }
 ```
 
@@ -1416,14 +1416,17 @@ You can fetch **sequences**, **arrays**, or **single** records with raw SQL quer
 
 ```swift
 dbQueue.inDatabase { db in
+    // SQL
     Person.fetch(db, "SELECT ...", arguments:...)     // DatabaseSequence<Person>
     Person.fetchAll(db, "SELECT ...", arguments:...)  // [Person]
     Person.fetchOne(db, "SELECT ...", arguments:...)  // Person?
     
-    Person.fetch(db, primaryKeys: [1,2,3])            // DatabaseSequence<Person>
-    Person.fetchAll(db, primaryKeys: [1,2,3])         // [Person]
-    Person.fetchOne(db, primaryKey: 1)                // Person?
+    // When database table has a single column primary key
+    Person.fetch(db, keys: [1,2,3])                   // DatabaseSequence<Person>
+    Person.fetchAll(db, keys: [1,2,3])                // [Person]
+    Person.fetchOne(db, key: 1)                       // Person?
     
+    // For multi-column primary keys and secondary keys
     Person.fetch(db, keys: [["name": "Joe"], ...])    // DatabaseSequence<Person>
     Person.fetchAll(db, keys: [["name": "Joe"], ...]) // [Person]
     Person.fetchOne(db, key: ["name": "Joe"])         // Person?
@@ -1454,13 +1457,13 @@ dbQueue.inDatabase { db in
         "HAVING COUNT(pets.id) >= 2")
 
     // SELECT * FROM persons WHERE id = 1
-    Person.fetchOne(db, primaryKey: 1)
+    Person.fetchOne(db, key: 1)
 
     // SELECT * FROM persons WHERE id IN (1,2,3)
-    Person.fetch(db, primaryKeys: [1,2,3])
+    Person.fetch(db, keys: [1,2,3])
 
     // SELECT * FROM countries WHERE isoCode = 'FR'
-    Country.fetchOne(db, primaryKey: "FR")
+    Country.fetchOne(db, key: "FR")
 
     // SELECT * FROM persons WHERE email = 'me@domain.com'
     Person.fetchOne(db, key: ["email": "me@domain.com"])
@@ -1563,7 +1566,7 @@ let json = try! NSJSONSerialization.JSONObjectWithData(...) as! NSDictionary
 // Fetches or create a new person given its ID:
 let id = json["id"] as! Int?
 let person: Person
-if let existingPerson = Person.fetchOne(db, primaryKey: id) {
+if let existingPerson = Person.fetchOne(db, key: id) {
     person = existingPerson
 } else {
     person = Person()

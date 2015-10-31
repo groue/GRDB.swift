@@ -293,7 +293,7 @@ class ManagedDataControllerTests : GRDBTestCase {
             
             // ... and get it back after a fetch:
             dbQueue.inDatabase { db in
-                let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
                 reloadedRecord.managedData.controller = self.managedDataController
                 XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
             }
@@ -320,7 +320,7 @@ class ManagedDataControllerTests : GRDBTestCase {
                 try record.save(db)
                 
                 // ... are not applied in the file system...
-                let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
                 reloadedRecord.managedData.controller = self.managedDataController
                 XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
                 
@@ -330,7 +330,7 @@ class ManagedDataControllerTests : GRDBTestCase {
             
             // We find our modified data after commit:
             dbQueue.inDatabase { db in
-                let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
                 reloadedRecord.managedData.controller = self.managedDataController
                 XCTAssertEqual(reloadedRecord.data, "baz".dataUsingEncoding(NSUTF8StringEncoding))
             }
@@ -358,7 +358,7 @@ class ManagedDataControllerTests : GRDBTestCase {
                     try record.save(db)
                     
                     // ... are not applied in the file system...
-                    let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                    let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
                     reloadedRecord.managedData.controller = self.managedDataController
                     XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
 
@@ -376,7 +376,7 @@ class ManagedDataControllerTests : GRDBTestCase {
             
             // We find our original data back after failure:
             dbQueue.inDatabase { db in
-                let reloadedRecord = RecordWithManagedData.fetchOne(db, primaryKey: record.id)!
+                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
                 reloadedRecord.managedData.controller = self.managedDataController
                 XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
             }
