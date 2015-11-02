@@ -186,14 +186,19 @@ SQLite API
 
 ## SQLite Database
 
-You access SQLite databases through thread-safe **database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
+You access SQLite databases through **thread-safe database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
 
 ```swift
+import GRDB
+
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 let inMemoryDBQueue = DatabaseQueue()
 ```
 
-The database connection is closed when the database queue gets deallocated.
+The database file is created if it does not already exist.
+
+The connection is closed when the database queue gets deallocated.
+
 
 **Configure** databases:
 
@@ -209,6 +214,7 @@ let dbQueue = try DatabaseQueue(
 ```
 
 See [Concurrency](#concurrency) for more details on database configuration.
+
 
 The `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
 
