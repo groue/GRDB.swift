@@ -180,11 +180,6 @@ Documentation
 - [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
 - [Records](#records): CRUD operations and changes tracking.
 
-**Sample Code**
-
-- [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
-- [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7): A sample iOS7 application.
-
 
 SQLite API
 ==========
@@ -1816,6 +1811,8 @@ Sample Code
 ===========
 
 - The [Documentation](#documentation) is full of GRDB snippets.
+- [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
+- [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7): A sample iOS7 application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to synchronize a database table with a JSON payload: https://gist.github.com/groue/dcdd3784461747874f41
 
