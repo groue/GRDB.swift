@@ -4,7 +4,6 @@
 - [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
-- [ ] Record.insert() should return a DatabaseResult, which exposes insertedRowId. Record.delete() should also return a DatabaseResult, then, for consistency. And Record.save(), Record.update().
 
 
 Not sure:

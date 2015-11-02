@@ -261,8 +261,8 @@ class PrimaryKeySingleTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
-                let deletionResult = try record.delete(db)
-                XCTAssertEqual(deletionResult, Record.DeletionResult.NoRowDeleted)
+                let changes = try record.delete(db)
+                XCTAssertEqual(changes.changedRowCount, 0)
             }
         }
     }
@@ -272,8 +272,8 @@ class PrimaryKeySingleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
-                let deletionResult = try record.delete(db)
-                XCTAssertEqual(deletionResult, Record.DeletionResult.RowDeleted)
+                let changes = try record.delete(db)
+                XCTAssertEqual(changes.changedRowCount, 1)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])
                 XCTAssertTrue(row == nil)
@@ -286,10 +286,10 @@ class PrimaryKeySingleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
-                var deletionResult = try record.delete(db)
-                XCTAssertEqual(deletionResult, Record.DeletionResult.RowDeleted)
-                deletionResult = try record.delete(db)
-                XCTAssertEqual(deletionResult, Record.DeletionResult.NoRowDeleted)
+                var changes = try record.delete(db)
+                XCTAssertEqual(changes.changedRowCount, 1)
+                changes = try record.delete(db)
+                XCTAssertEqual(changes.changedRowCount, 0)
             }
         }
     }

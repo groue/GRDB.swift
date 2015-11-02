@@ -1422,10 +1422,10 @@ class Person {
     var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)]
     
     // CRUD
-    func insert(db: Database) throws
-    func update(db: Database) throws
-    func save(db: Database) throws  // inserts or updates
-    func delete(db: Database) throws -> DeletionResult
+    func insert(db: Database) throws -> DatabaseChanges
+    func update(db: Database) throws -> DatabaseChanges
+    func save(db: Database) throws -> DatabaseChanges  // inserts or updates
+    func delete(db: Database) throws -> DatabaseChanges
     func reload(db: Database) throws
     func exists(db: Database) -> Bool
     
@@ -1542,7 +1542,7 @@ try dbQueue.inDatabase { db in
     
     When saving a record that may, or may not, exist in the database, prefer the `save` method: it performs the necessary UPDATE or INSERT statement.
 
-- `delete` returns whether a row has been deleted from the database.
+- `insert`, `update`, `save` and `delete` return a DatabaseChanges value. Use its `changedRowCount` and `insertedRowID` properties to get information about the changes.
 
 
 ### Record Initializers
@@ -1729,16 +1729,16 @@ You can use some external library such as [GRValidation](https://github.com/grou
 class Person : Record, Validable {
     var name: String?
     
-    override func update(db: Database) throws {
+    override func update(db: Database) throws -> DatabaseChanges {
         // Validate before update
         try validate()
-        try super.update(db)
+        return try super.update(db)
     }
     
-    override func insert(db: Database) throws {
+    override func insert(db: Database) throws -> DatabaseChanges {
         // Validate before insert
         try validate()
-        try super.insert(db)
+        return try super.insert(db)
     }
     
     func validate() throws {
@@ -1785,11 +1785,11 @@ class Person : Record {
         return ["creationDate": creationDate, ...]
     }
     
-    override func insert(db: Database) throws {
+    override func insert(db: Database) throws -> DatabaseChanges {
         if creationDate == nil {
             creationDate = NSDate()
         }
-        try super.insert(db)
+        return try super.insert(db)
     }
 }
 ```

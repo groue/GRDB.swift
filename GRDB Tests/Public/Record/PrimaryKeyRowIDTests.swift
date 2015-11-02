@@ -41,13 +41,13 @@ class Person: Record {
         super.init(row: row)
     }
     
-    override func insert(db: Database) throws {
+    override func insert(db: Database) throws -> DatabaseChanges {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = NSDate()
         }
         
-        try super.insert(db)
+        return try super.insert(db)
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -327,8 +327,8 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = Person(id: 123456, name: "Arthur")
-                let deletionResult = try record.delete(db)
-                XCTAssertEqual(deletionResult, Record.DeletionResult.NoRowDeleted)
+                let changes = try record.delete(db)
+                XCTAssertEqual(changes.changedRowCount, 0)
             }
         }
     }
@@ -338,8 +338,8 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Person(name: "Arthur")
                 try record.insert(db)
-                let deletionResult = try record.delete(db)
-                XCTAssertEqual(deletionResult, Record.DeletionResult.RowDeleted)
+                let changes = try record.delete(db)
+                XCTAssertEqual(changes.changedRowCount, 1)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])
                 XCTAssertTrue(row == nil)
@@ -352,10 +352,10 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Person(name: "Arthur")
                 try record.insert(db)
-                var deletionResult = try record.delete(db)
-                XCTAssertEqual(deletionResult, Record.DeletionResult.RowDeleted)
-                deletionResult = try record.delete(db)
-                XCTAssertEqual(deletionResult, Record.DeletionResult.NoRowDeleted)
+                var changes = try record.delete(db)
+                XCTAssertEqual(changes.changedRowCount, 1)
+                changes = try record.delete(db)
+                XCTAssertEqual(changes.changedRowCount, 0)
             }
         }
     }

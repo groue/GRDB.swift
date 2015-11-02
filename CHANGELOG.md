@@ -5,6 +5,10 @@ Release Notes
 
 - `DatabaseCoder` reads and stores objects that conform to NSCoding in the database.
 
+**Breaking Changes**
+
+- `Record.insert`, `update`, `save` and `delete` return a DatabaseChanges object.
+
 
 ## 0.26.1
 
@@ -17,7 +21,7 @@ Released October 31, 2015
 
 Released October 31, 2015
 
-**Breaking Change**
+**Breaking Changes**
 
 - The `fetch(:primaryKeys:)`, `fetchAll(:primaryKeys:)` and `fetchOne(:primaryKey:)` methods have been renamed `fetch(:keys:)`, `fetchAll(:keys:)` and `fetchOne(:key:)`.
 
@@ -58,7 +62,7 @@ Released October 13, 2015
 
 - `Row()` initializes an empty row.
 
-**Breaking Change**
+**Breaking Changes**
 
 - NSData is now the canonical type for blobs. The former intermediate `Blob` type has been removed.
 - `DatabaseValue.dataNoCopy()` has turned useless, and has been removed.

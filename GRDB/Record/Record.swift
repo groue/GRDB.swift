@@ -11,16 +11,6 @@
 /// - storedDatabaseDictionary
 public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     
-    /// The result of the Record.delete() method
-    public enum DeletionResult {
-        /// A row was deleted.
-        case RowDeleted
-        
-        /// No row was deleted.
-        case NoRowDeleted
-    }
-    
-    
     // MARK: - Initializers
     
     /// Initializes a Record.
@@ -264,17 +254,17 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// before the insertion.
     ///
     /// - parameter db: A Database.
+    /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func insert(db: Database) throws {
+    public func insert(db: Database) throws -> DatabaseChanges {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
-        
         if case .Managed(let rowIDColumnName) = dataMapper.primaryKey {
             // Update RowID
             updateFromRow(Row(dictionary: [rowIDColumnName: changes.insertedRowID]))
         }
-        
         databaseEdited = false
+        return changes
     }
     
     /// Executes an UPDATE statement to update the record.
@@ -285,16 +275,17 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// returns without error.
     ///
     /// - parameter db: A Database.
+    /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     ///   RecordError.RecordNotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
-    public func update(db: Database) throws {
+    public func update(db: Database) throws -> DatabaseChanges {
         let changes = try DataMapper(db, self).updateStatement().execute()
         if changes.changedRowCount == 0 {
             throw RecordError.RecordNotFound(self)
         }
-        
         databaseEdited = false
+        return DatabaseChanges(changedRowCount: changes.changedRowCount, insertedRowID: nil)
     }
     
     /// Saves the record in the database.
@@ -310,9 +301,10 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// database if it returns without error.
     ///
     /// - parameter db: A Database.
+    /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
     ///   thrown by update().
-    final public func save(db: Database) throws {
+    final public func save(db: Database) throws -> DatabaseChanges {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         
@@ -321,7 +313,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         }
         
         do {
-            try update(db)
+            return try update(db)
         } catch RecordError.RecordNotFound {
             return try insert(db)
         }
@@ -332,21 +324,15 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// On success, this method sets the *databaseEdited* flag to true.
     ///
     /// - parameter db: A Database.
-    /// - returns: Whether a row was deleted or not.
+    /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
-    public func delete(db: Database) throws -> DeletionResult {
+    public func delete(db: Database) throws -> DatabaseChanges {
         let changes = try DataMapper(db, self).deleteStatement().execute()
-        
-        // Future calls to update will throw RecordNotFound. Make the user
+        // Future calls to update() will throw RecordNotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
         // databaseEdited flag:
         databaseEdited = true
-        
-        if changes.changedRowCount > 0 {
-            return .RowDeleted
-        } else {
-            return .NoRowDeleted
-        }
+        return DatabaseChanges(changedRowCount: changes.changedRowCount, insertedRowID: nil)
     }
     
     /// Executes a SELECT statetement to reload the record.
