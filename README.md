@@ -373,9 +373,9 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched rows. The d
 
 Row sequences also grant the fastest access to the database. This performance advantage comes with extra precautions:
 
-> :point_up: **Don't wrap a row sequence in an array** with `Array(rowSequence)` or `rowSequence.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
+> :point_up: **Don't turn a row sequence into an array** with `Array(rowSequence)` or `rowSequence.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
 > 
-> :point_up: **Make sure you copy a row** whenever you extract it from a sequence for later use: `row.copy()`. This does not apply to row arrays.
+> :point_up: **Make sure you copy a row** whenever you extract it from a sequence for later use: `row.copy()`. This does not apply to row arrays, which already contain independent copies of the database rows.
 
 
 #### Column Values
