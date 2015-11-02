@@ -13,8 +13,8 @@ Jump to:
 - [Requirements](#requirements)
 - [Usage](#usage)
 - [Benchmarks](#benchmarks)
-- [Installation](#installation)
-- [Documentation](#documentation)
+- **[Installation](#installation)**
+- **[Documentation](#documentation)**
 - [Sample Code](#sample-code)
 
 
@@ -1815,6 +1815,7 @@ person.insert(db)   // Replace any existing person named "Arthur"
 Sample Code
 ===========
 
+- The [Documentation](#documentation) is full of GRDB snippets.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to synchronize a database table with a JSON payload: https://gist.github.com/groue/dcdd3784461747874f41
 
