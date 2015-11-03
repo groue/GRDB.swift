@@ -549,15 +549,15 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The
 
 GRDB ships with built-in support for the following value types:
 
-- Swift:
+- **Swift**:
     
     Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
-- Foundation:
+- **Foundation**:
     
     [NSCoding](#nscoding), [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
     
-- CoreGraphics:
+- **CoreGraphics**:
     
     CGFloat.
 
@@ -574,16 +574,16 @@ try db.execute(
 They can be [extracted from rows](#column-values):
 
 ```swift
-for row in Row.fetch("SELECT * FROM urls") {
-    let url = row.value("url") as NSURL
-    let verified = row.value("verified") as Bool
+for row in Row.fetch(db, "SELECT * FROM urls") {
+    let url = row.value(named: "url") as NSURL
+    let verified = row.value(named: "verified") as Bool
 }
 ```
 
 They can be [directly fetched](#value-queries) from the database:
 
 ```swift
-let urls = NSURL.fetchAll("SELECT url FROM urls")  // [NSURL]
+let urls = NSURL.fetchAll(db, "SELECT url FROM urls")  // [NSURL]
 ```
 
 Your custom value types are supported as well, through the [DatabaseValueConvertible](#custom-value-types) protocol.
