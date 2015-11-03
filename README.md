@@ -1611,7 +1611,7 @@ dbQueue.inDatabase { db in
     Person.fetchOne(db, key: ["email": "me@domain.com"])
     
     // SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
-    Citizenship.fetch(db, key: ["personId": 1, "countryIsoCode": "FR"])
+    Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
 }
 ```
 
