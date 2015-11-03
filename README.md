@@ -1552,36 +1552,6 @@ The `updateFromRow` method updates properties from the columns found in the row.
 >
 > :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow` is reused for all records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
-The example classes above have one property per database column. You can of course do otherwise:
-
-```swift
-// CREATE TABLE pois (
-//     title TEXT NOT NULL,
-//     latitude DOUBLE NOT NULL,
-//     longitude DOUBLE NOT NULL,
-// )
-class PointOfInterest : Record {
-    var title: String?
-    var coordinate: CLLocationCoordinate2D?
-    
-    override class func databaseTableName() -> String? {
-        return "pois"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["title": title, "latitude": coordinate.latitude, "longitude": coordinate.latitude]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["title"] { title = dbv.value() }
-        if let dbLat = row["latitude"], let dbLon = row["longitude"] {
-            coordinate = CLLocationCoordinate2DMake(dbLat.value(), dbLon.value())
-        }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-}
-```
-
 
 ### Fetching Records
 
