@@ -1396,12 +1396,12 @@ class Record {
 For example:
 
 ```swift
-// A table with an auto-incremented id:
+// A table with an auto-incremented primary id and a secondary key:
 //
 // CREATE TABLE persons (
 //     id INTEGER PRIMARY KEY,
 //     name TEXT,
-//     email TEXT,
+//     email TEXT UNIQUE COLLATE NOCASE
 // )
 class Person : Record {
     var id: Int64?  // Int64 is the preferred type for auto-incremented IDs.
