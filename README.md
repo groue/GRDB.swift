@@ -1316,7 +1316,7 @@ See also the [Record](#records) class, which builds on top of RowConvertible and
 ## Records
 
 - [Overview](#record-overview)
-- [Core Methods](#core-methods)
+- [Subclassing Record](#subclassing-record)
 - [Fetching Records](#fetching-records)
 - [Insert, Update and Delete](#insert-update-and-delete)
 - [Record Initializers](#record-initializers)
@@ -1376,41 +1376,105 @@ Yet, it does a few things well:
     ```
 
 
-### Core Methods
+### Subclassing Record
 
-Subclasses opt in Record features by overriding all or part of the core methods that define their relationship with the database:
-
-| Core Methods               | fetch | insert | update | delete | exists | reload |
-|:-------------------------- |:-----:|:------:|:------:|:------:|:------:|:------:|
-| `updateFromRow`            |   ✓   |        |        |        |        |   ✓    |
-| `databaseTableName`        |       |   ✓    |   ✓    |   ✓    |   ✓    |   ✓    |
-| `storedDatabaseDictionary` |       |   ✓    |   ✓    |   ✓    |   ✓    |   ✓    |
-
-
-**The typical Record boilerplate reads as below:**
+**Record subclasses override the three core methods that define their relationship with the database:**
 
 ```swift
-class Person : Record {
-    // Declare regular properties
-    var id: Int64?  // Int64 is the preferred type for auto-incremented IDs.
-    var age: Int?
-    var name: String?
-    
+class Record {
     /// The table name
+    class func databaseTableName() -> String?
+    
+    /// The values stored in the database
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?]
+    
+    /// Update the record from a database row
+    func updateFromRow(row: Row)
+}
+```
+
+For example:
+
+```swift
+// A table with an auto-incremented id:
+//
+// CREATE TABLE persons (
+//     id INTEGER PRIMARY KEY,
+//     name TEXT,
+//     email TEXT,
+// )
+class Person : Record {
+    var id: Int64?  // Int64 is the preferred type for auto-incremented IDs.
+    var name: String?
+    var email: String?
+    
     override class func databaseTableName() -> String? {
         return "persons"
     }
     
-    /// The values stored in the database:
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "age": age]
+        return ["id": id, "name": name, "email": email]
     }
     
-    /// Update from a database row
     override func updateFromRow(row: Row) {
-        if let dbv = row["id"]   { id = dbv.value() }
-        if let dbv = row["age"]  { age = dbv.value() }
+        if let dbv = row["id"]    { id = dbv.value() }
+        if let dbv = row["name"]  { name = dbv.value() }
+        if let dbv = row["email"] { email = dbv.value() }
+        super.updateFromRow(row) // Subclasses are required to call super.
+    }
+}
+
+// A table with a string primary key:
+//
+// CREATE TABLE countries (
+//     isoCode TEXT NOT NULL PRIMARY KEY,
+//     name TEXT NOT NULL
+// )
+class Country : Record {
+    var isoCode: String?
+    var name: String?
+    
+    override class func databaseTableName() -> String? {
+        return "countries"
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["isoCode": isoCode, "name": name]
+    }
+    
+    override func updateFromRow(row: Row) {
+        if let dbv = row["isoCode"] { isoCode = dbv.value() }
         if let dbv = row["name"] { name = dbv.value() }
+        super.updateFromRow(row) // Subclasses are required to call super.
+    }
+}
+
+// A table with a multi-column primary key:
+//
+// CREATE TABLE citizenships (
+//     isoCode TEXT NOT NULL
+//         REFERENCES countries(isoCode)
+//         ON UPDATE CASCADE ON DELETE CASCADE,
+//     personId INTEGER NOT NULL
+//         REFERENCES persons(id)
+//         ON UPDATE CASCADE ON DELETE CASCADE,
+//     PRIMARY KEY (personId, isoCode)
+// )
+class Citizenships : Record {
+    var isoCode: String?
+    var personId: Int64?
+    
+    override class func databaseTableName() -> String? {
+        return "citizenships"
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["isoCode": isoCode, "personId": personId]
+    }
+    
+    override func updateFromRow(row: Row) {
+        if let dbv = row["isoCode"] { isoCode = dbv.value() }
+        if let dbv = row["personId"] { personId = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
@@ -1511,26 +1575,26 @@ dbQueue.inDatabase { db in
         "SELECT * FROM persons WHERE email LIKE ?",
         arguments: ["%@domain.com"])
     
-    // All persons who own at least two pets:
+    // All persons who have a single citizenship:
     Person.fetch(db,
         "SELECT persons.* " +
         "FROM persons " +
-        "JOIN pets ON pets.masterId = persons.id " +
+        "JOIN citizenships ON citizenships.personId = persons.id " +
         "GROUP BY persons.id " +
-        "HAVING COUNT(pets.id) >= 2")
-
+        "HAVING COUNT(citizenships.id) = 1")
+    
     // SELECT * FROM persons WHERE id = 1
     Person.fetchOne(db, key: 1)
-
+    
     // SELECT * FROM persons WHERE id IN (1,2,3)
     Person.fetch(db, keys: [1,2,3])
-
+    
     // SELECT * FROM countries WHERE isoCode = 'FR'
     Country.fetchOne(db, key: "FR")
-
+    
     // SELECT * FROM persons WHERE email = 'me@domain.com'
     Person.fetchOne(db, key: ["email": "me@domain.com"])
-
+    
     // SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
     Citizenship.fetch(db, key: ["personId": 1, "countryIsoCode": "FR"])
 }
@@ -1545,7 +1609,7 @@ Records can store themselves in the database through the `storedDatabaseDictiona
 
 ```swift
 class Person : Record {
-    // The values stored in the database:
+    // The values stored in the database
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name, "age": age]
     }
