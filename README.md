@@ -1408,11 +1408,9 @@ class Record {
 }
 ```
 
-For example:
+For example, a Record that wraps a table with an auto-incremented primary key:
 
 ```swift
-// A table with an auto-incremented primary key:
-//
 // CREATE TABLE persons (
 //     id INTEGER PRIMARY KEY,
 //     name TEXT,
@@ -1438,9 +1436,11 @@ class Person : Record {
         super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
+```
 
-// A table with a string primary key:
-//
+Other primary keys are supported as well:
+
+```swift
 // CREATE TABLE countries (
 //     isoCode TEXT NOT NULL PRIMARY KEY,
 //     name TEXT NOT NULL
@@ -1463,9 +1463,11 @@ class Country : Record {
         super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
+```
 
-// A table with a multi-column primary key:
-//
+Even multi-column primary keys:
+
+```swift
 // CREATE TABLE citizenships (
 //     countryIsoCode TEXT NOT NULL
 //         REFERENCES countries(isoCode)
@@ -1495,7 +1497,7 @@ class Citizenships : Record {
 }
 ```
 
-Yes, that's not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there is no fancy mapping operators. That's because fancy operators make trivial things look magic, and non-trivial things look ugly. Record boilerplate is not magic, and not ugly: it's just as complex as you want it to be.
+Yes, the Record boilerplate is not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there is no fancy mapping operators. Fancy operators make trivial things look magic, and non-trivial things look ugly. Record boilerplate is not magic, and not ugly: it's just as complex as you want it to be.
 
 The `updateFromRow` method updates properties from the columns found in the row. See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported property types.
 
