@@ -547,14 +547,44 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The
 
 ## Values
 
-The following value types can be [stored](#inserting-rows) and read from [row columns](#column-values) or [directly fetched](#value-queries) from the database.
+GRDB ships with built-in support for the following value types:
 
 - Swift:
-    - Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
+    
+    Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
+    
 - Foundation:
-    - [NSCoding](#nscoding), [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
+    
+    [NSCoding](#nscoding), [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
+    
 - CoreGraphics:
-    - CGFloat.
+    
+    CGFloat.
+
+All those types can be [stored](#inserting-rows):
+
+```swift
+let url: NSURL = ...
+let verified: Bool = ...
+try db.execute(
+    "INSERT INTO urls (url, verified) VALUES (?, ?)",
+    arguments: [url, verified])
+```
+
+They can be [extracted from rows](#column-values):
+
+```swift
+for row in Row.fetch("SELECT * FROM urls") {
+    let url = row.value("url") as NSURL
+    let verified = row.value("verified") as Bool
+}
+```
+
+They can be [directly fetched](#value-queries) from the database:
+
+```swift
+let urls = NSURL.fetchAll("SELECT url FROM urls")  // [NSURL]
+```
 
 Your custom value types are supported as well, through the [DatabaseValueConvertible](#custom-value-types) protocol.
 
@@ -739,7 +769,7 @@ Extract NSArray from the database:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT ints ...")!
-let coder = row.value(named: "array") as DatabaseCoder // DatabaseCoder
+let coder = row.value(named: "ints") as DatabaseCoder // DatabaseCoder
 let array = coder.object as! NSArray                   // NSArray
 let ints = array.map { $0 as! Int }                    // [Int]
 
