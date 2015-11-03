@@ -1408,6 +1408,42 @@ class Record {
 }
 ```
 
+**Given an implementation of those three core methods, you are granted with the full Record toolkit:**
+
+```swift
+class Person {
+    // Initializers
+    init()
+    init(row: Row)
+    convenience init(dictionary: [String: DatabaseValueConvertible?])
+    convenience init(dictionary: NSDictionary)
+    func copy() -> Self
+    
+    // Change Tracking
+    var databaseEdited: Bool
+    var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)]
+    
+    // CRUD
+    func insert(db: Database) throws -> DatabaseChanges
+    func update(db: Database) throws -> DatabaseChanges
+    func save(db: Database) throws -> DatabaseChanges  // inserts or updates
+    func delete(db: Database) throws -> DatabaseChanges
+    func reload(db: Database) throws
+    func exists(db: Database) -> Bool
+    
+    // Fetching
+    static func fetch(...) -> DatabaseSequence<Self>
+    static func fetchAll(...) -> [Self]
+    static func fetchOne(...) -> Self?
+    
+    // Events
+    func awakeFromFetch(row: Row)
+    
+    // Description (from the CustomStringConvertible protocol)
+    var description: String
+}
+```
+
 For example, a Record that wraps a table with an auto-incremented primary key:
 
 ```swift
@@ -1515,43 +1551,6 @@ The `updateFromRow` method updates properties from the columns found in the row.
 > ```
 >
 > :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow` is reused for all records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
-
-
-**Given those three core methods, you are granted with the full Record toolkit:**
-
-```swift
-class Person {
-    // Initializers
-    init()
-    init(row: Row)
-    convenience init(dictionary: [String: DatabaseValueConvertible?])
-    convenience init(dictionary: NSDictionary)
-    func copy() -> Self
-    
-    // Change Tracking
-    var databaseEdited: Bool
-    var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)]
-    
-    // CRUD
-    func insert(db: Database) throws -> DatabaseChanges
-    func update(db: Database) throws -> DatabaseChanges
-    func save(db: Database) throws -> DatabaseChanges  // inserts or updates
-    func delete(db: Database) throws -> DatabaseChanges
-    func reload(db: Database) throws
-    func exists(db: Database) -> Bool
-    
-    // Fetching
-    static func fetch(...) -> DatabaseSequence<Self>
-    static func fetchAll(...) -> [Self]
-    static func fetchOne(...) -> Self?
-    
-    // Events
-    func awakeFromFetch(row: Row)
-    
-    // Description (from the CustomStringConvertible protocol)
-    var description: String
-}
-```
 
 
 ### Fetching Records
