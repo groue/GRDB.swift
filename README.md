@@ -915,53 +915,67 @@ See [Column Values](#column-values) and [Value Queries](#value-queries) for more
 
 ## Prepared Statements
 
-**Prepared Statements** can be reused.
+**Prepared Statements** let you prepare an SQL query and execute it later, several times if you need, with different arguments.
 
-Update statements:
+There are two kinds to prepared statements: **select statements**, and **update statements**:
 
 ```swift
 try dbQueue.inTransaction { db in
+    let updateSQL = "INSERT INTO persons (name, age) VALUES (:name, :age)"
+    let updateStatement = db.updateStatement(updateSQL)
     
-    let sql = "INSERT INTO persons (name, age) VALUES (:name, :age)"
-    let statement = db.updateStatement(sql)
-    
-    let persons = [
-        ["name": "Arthur", "age": 41],
-        ["name": "Barbara", "age": 37],
-    ]
-    
-    for person in persons {
-        let changes = try statement.execute(arguments: StatementArguments(person))
-        changes.changedRowCount // The number of rows changed by the statement.
-        changes.insertedRowID   // The inserted Row ID.
-    }
-    
-    return .Commit
+    let selectSQL = "SELECT * FROM persons WHERE name = ?"
+    let selectStatement = db.selectStatement(selectSQL)
 }
 ```
 
-Select statements can fetch [Rows](#row-queries), [Values](#value-queries), and [RowConvertible](#rowconvertible-protocol) types, including [Records](#records).
+The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type StatementArguments, which happens to adopt the ArrayLiteralConvertible and DictionaryLiteralConvertible protocols).
 
 ```swift
-dbQueue.inDatabase { db in
-    
-    let statement = db.selectStatement("SELECT ...")
-    
-    Row.fetch(statement, arguments: ...)              // DatabaseSequence<Row>
-    Row.fetchAll(statement, arguments: ...)           // [Row]
-    Row.fetchOne(statement, arguments: ...)           // Row?
-    
-    Int.fetch(statement, arguments: ...)              // DatabaseSequence<Int>
-    Int.fetchAll(statement, arguments: ...)           // [Int]
-    Int.fetchOne(statement, arguments: ...)           // Int?
-    Optional<Int>.fetch(statement, arguments: ...)    // DatabaseSequence<Int?>
-    Optional<Int>.fetchAll(statement, arguments: ...) // [Int?]
-    
-    Person.fetch(statement, arguments: ...)           // DatabaseSequence<Person>
-    Person.fetchAll(statement, arguments: ...)        // [Person]
-    Person.fetchOne(statement, arguments: ...)        // Person?
-}
+// INSERT INTO persons (name, age) VALUES (:name, :age)
+updateStatement.arguments = ["name": "Arthur", "age": 41]
+// SELECT * FROM persons WHERE name = ?
+selectStatement.arguments = ["Arthur"]
 ```
+
+After arguments are set, you can execute the prepared statement:
+
+```swift
+let changes = try updateStatement.execute()
+changes.changedRowCount // The number of rows changed by the statement.
+changes.insertedRowID   // For INSERT statements, the inserted Row ID.
+
+for row in Row.fetch(selectStatement) { ... }
+for person in Person.fetch(selectStatement) { ... }
+```
+
+It is possible to set the arguments at the moment of the statement execution:
+
+```swift
+// INSERT INTO persons (name, age) VALUES (:name, :age)
+try statement.execute(arguments: ["name": "Arthur", "age": 41])
+
+// SELECT * FROM persons WHERE name = ?
+let person = Person.fetchOne(selectStatement, arguments: ["Arthur"])
+```
+
+Select statements can be used wherever a raw SQL query would fit:
+
+```swift
+Row.fetch(statement, arguments: ...)       // DatabaseSequence<Row>
+Row.fetchAll(statement, arguments: ...)    // [Row]
+Row.fetchOne(statement, arguments: ...)    // Row?
+
+String.fetch(statement, arguments: ...)    // DatabaseSequence<String>
+String.fetchAll(statement, arguments: ...) // [String]
+String.fetchOne(statement, arguments: ...) // String?
+
+Person.fetch(statement, arguments: ...)    // DatabaseSequence<Person>
+Person.fetchAll(statement, arguments: ...) // [Person]
+Person.fetchOne(statement, arguments: ...) // Person?
+```
+
+See [Row Queries](#row-queries), [Value Queries](#value-queries), [RowConvertible](#rowconvertible-protocol), and [Records](#fetching-records) for more information.
 
 
 ## Error Handling
