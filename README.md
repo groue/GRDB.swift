@@ -1444,7 +1444,7 @@ class Person {
 }
 ```
 
-For example, a Record that wraps a table with an auto-incremented primary key:
+For example:
 
 ```swift
 // CREATE TABLE persons (
@@ -1469,65 +1469,6 @@ class Person : Record {
         if let dbv = row["id"]    { id = dbv.value() }
         if let dbv = row["name"]  { name = dbv.value() }
         if let dbv = row["email"] { email = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-}
-```
-
-Other primary keys are supported as well:
-
-```swift
-// CREATE TABLE countries (
-//     isoCode TEXT NOT NULL PRIMARY KEY,
-//     name TEXT NOT NULL
-// )
-class Country : Record {
-    var isoCode: String?
-    var name: String?
-    
-    override class func databaseTableName() -> String? {
-        return "countries"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["isoCode": isoCode, "name": name]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["isoCode"] { isoCode = dbv.value() }
-        if let dbv = row["name"] { name = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-}
-```
-
-Even multi-column primary keys:
-
-```swift
-// CREATE TABLE citizenships (
-//     countryIsoCode TEXT NOT NULL
-//         REFERENCES countries(isoCode)
-//         ON UPDATE CASCADE ON DELETE CASCADE,
-//     personId INTEGER NOT NULL
-//         REFERENCES persons(id)
-//         ON UPDATE CASCADE ON DELETE CASCADE,
-//     PRIMARY KEY (personId, countryIsoCode)
-// )
-class Citizenship : Record {
-    var countryIsoCode: String?
-    var personId: Int64?
-    
-    override class func databaseTableName() -> String? {
-        return "citizenships"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["countryIsoCode": countryIsoCode, "personId": personId]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["countryIsoCode"] { countryIsoCode = dbv.value() }
-        if let dbv = row["personId"] { personId = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
 }
