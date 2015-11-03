@@ -575,8 +575,8 @@ They can be [extracted from rows](#column-values):
 
 ```swift
 for row in Row.fetch(db, "SELECT * FROM urls") {
-    let url = row.value(named: "url") as NSURL
-    let verified = row.value(named: "verified") as Bool
+    let url: NSURL = row.value(named: "url")
+    let verified: Bool = row.value(named: "verified")
 }
 ```
 
