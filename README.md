@@ -1396,7 +1396,7 @@ class Record {
 For example:
 
 ```swift
-// A table with an auto-incremented primary id and a secondary key:
+// A table with an auto-incremented primary key:
 //
 // CREATE TABLE persons (
 //     id INTEGER PRIMARY KEY,
@@ -1452,16 +1452,16 @@ class Country : Record {
 // A table with a multi-column primary key:
 //
 // CREATE TABLE citizenships (
-//     isoCode TEXT NOT NULL
+//     countryIsoCode TEXT NOT NULL
 //         REFERENCES countries(isoCode)
 //         ON UPDATE CASCADE ON DELETE CASCADE,
 //     personId INTEGER NOT NULL
 //         REFERENCES persons(id)
 //         ON UPDATE CASCADE ON DELETE CASCADE,
-//     PRIMARY KEY (personId, isoCode)
+//     PRIMARY KEY (personId, countryIsoCode)
 // )
 class Citizenships : Record {
-    var isoCode: String?
+    var countryIsoCode: String?
     var personId: Int64?
     
     override class func databaseTableName() -> String? {
@@ -1469,11 +1469,11 @@ class Citizenships : Record {
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["isoCode": isoCode, "personId": personId]
+        return ["countryIsoCode": countryIsoCode, "personId": personId]
     }
     
     override func updateFromRow(row: Row) {
-        if let dbv = row["isoCode"] { isoCode = dbv.value() }
+        if let dbv = row["countryIsoCode"] { countryIsoCode = dbv.value() }
         if let dbv = row["personId"] { personId = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
     }
@@ -1611,7 +1611,7 @@ Records can store themselves in the database through the `storedDatabaseDictiona
 class Person : Record {
     // The values stored in the database
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "age": age]
+        return ["id": id, "name": name, "email": email]
     }
 }
 
@@ -1627,8 +1627,15 @@ try dbQueue.inDatabase { db in
 ```
 
 - `insert` automatically sets the primary key of record whose primary key is declared as "INTEGER PRIMARY KEY".
-
-    Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. You can for example override the `insert` primitive method, and make sure your primary key is set before calling `super.insert`.
+    
+    ```swift
+    let person = Person()
+    person.id   // nil
+    try person.insert(db)
+    person.id   // some value
+    ```
+    
+    Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. For example, you can override the `insert` primitive method, and generate an UUID before calling `super.insert`.
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever a SQLite integrity check fails.
 
@@ -1636,7 +1643,7 @@ try dbQueue.inDatabase { db in
     
     When saving a record that may, or may not, exist in the database, prefer the `save` method: it performs the necessary UPDATE or INSERT statement.
 
-- `insert`, `update`, `save` and `delete` return a DatabaseChanges value. Use its `changedRowCount` and `insertedRowID` properties to get information about the changes.
+- `insert`, `update`, `save` and `delete` return a DatabaseChanges value. Use its `changedRowCount` and `insertedRowID` properties to get information about the performed changes.
 
 
 ### Record Initializers
