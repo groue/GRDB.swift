@@ -1544,8 +1544,8 @@ The `updateFromRow` method updates properties from the columns found in the row.
 > // with "No such column" errors:
 > override func updateFromRow(row: Row) {
 >     self.id = row.value(named: "id")
->     self.age = row.value(named: "age")
 >     self.name = row.value(named: "name")
+>     self.email = row.value(named: "email")
 >     super.updateFromRow(row)
 > }
 > ```
