@@ -1513,7 +1513,7 @@ Even multi-column primary keys:
 //         ON UPDATE CASCADE ON DELETE CASCADE,
 //     PRIMARY KEY (personId, countryIsoCode)
 // )
-class Citizenships : Record {
+class Citizenship : Record {
     var countryIsoCode: String?
     var personId: Int64?
     
@@ -1532,8 +1532,6 @@ class Citizenships : Record {
     }
 }
 ```
-
-Yes, the Record boilerplate is not very [DRY](http://c2.com/cgi/wiki?DontRepeatYourself), and there is no fancy mapping operators. Fancy operators make trivial things look magic, and non-trivial things look ugly. Record boilerplate is not magic, and not ugly: it's just as complex as you want it to be.
 
 The `updateFromRow` method updates properties from the columns found in the row. See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported property types.
 
