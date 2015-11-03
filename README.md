@@ -934,6 +934,7 @@ The `?` and colon-prefixed keys like `:name` in the SQL query are the statement 
 ```swift
 // INSERT INTO persons (name, age) VALUES (:name, :age)
 updateStatement.arguments = ["name": "Arthur", "age": 41]
+
 // SELECT * FROM persons WHERE name = ?
 selectStatement.arguments = ["Arthur"]
 ```
@@ -1514,7 +1515,7 @@ The `updateFromRow` method updates properties from the columns found in the row.
 > :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow` is reused for all records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 
-**Given those three core methods, you are granted with a lot more:**
+**Given those three core methods, you are granted with the full Record toolkit:**
 
 ```swift
 class Person {
