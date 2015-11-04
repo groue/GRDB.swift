@@ -7,6 +7,8 @@ Release Notes
 
 - `DatabaseCoder` reads and stores objects that conform to NSCoding in the database.
 - `Database.inTransaction()` executes a block inside a database transaction.
+- `DatabaseMigrator.registerMigrationWithoutForeignKeyChecks()` let you make arbitrary changes to the database schema, as described at https://www.sqlite.org/lang_altertable.html#otheralter.
+
 
 **Breaking Changes**
 
