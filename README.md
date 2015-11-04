@@ -1125,10 +1125,14 @@ migrator.registerMigration("AddAgeToPersons") { db in
     try db.execute("ALTER TABLE persons ADD COLUMN age INT")
 }
 
+// (Future migrations here)
+
 try migrator.migrate(dbQueue)
 ```
 
-Each migration runs in a separate transaction. Should one throw an error, its transaction is rollbacked, and subsequent migrations do not run.
+**Each migration runs in a separate transaction.** Should one throw an error, its transaction is rollbacked, subsequent migrations do not run, and the error is eventually thrown by `migrator.migrate(dbQueue)`.
+
+**The memory of applied migrations is stored in the database itself** (in a reserved table). When you are tuning your migrations, you may need to execute one several times. All you need then is to feed your application with a database file from a previous state.
 
 You might use Database.executeMultiStatement(): this method takes a SQL string containing multiple statements separated by semi-colons:
 
