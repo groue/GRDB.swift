@@ -102,7 +102,7 @@ public final class DatabaseQueue {
     ///
     /// This method is *not* reentrant.
     ///
-    /// - parameter type: The transaction type (default nil). If nil, the
+    /// - parameter kind: The transaction type (default nil). If nil, the
     ///   transaction type is configuration.defaultTransactionKind, which itself
     ///   defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
     ///   for more information.
