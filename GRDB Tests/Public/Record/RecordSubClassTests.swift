@@ -15,14 +15,14 @@ class PersonWithOverrides: Person {
         super.updateFromRow(row) // Subclasses are required to call super.
     }
     
-    override func insert(db: Database) throws -> DatabaseChanges {
+    override func insert(db: Database) throws {
         lastSavingMethod = .Insert
-        return try super.insert(db)
+        try super.insert(db)
     }
     
-    override func update(db: Database) throws -> DatabaseChanges {
+    override func update(db: Database) throws {
         lastSavingMethod = .Update
-        return try super.update(db)
+        try super.update(db)
     }
 }
 

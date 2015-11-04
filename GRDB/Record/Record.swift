@@ -254,9 +254,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// before the insertion.
     ///
     /// - parameter db: A Database.
-    /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func insert(db: Database) throws -> DatabaseChanges {
+    public func insert(db: Database) throws {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         if case .Managed(let rowIDColumnName) = dataMapper.primaryKey {
@@ -264,7 +263,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
             updateFromRow(Row(dictionary: [rowIDColumnName: changes.insertedRowID]))
         }
         databaseEdited = false
-        return changes
     }
     
     /// Executes an UPDATE statement to update the record.
@@ -275,17 +273,15 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// returns without error.
     ///
     /// - parameter db: A Database.
-    /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     ///   RecordError.RecordNotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
-    public func update(db: Database) throws -> DatabaseChanges {
+    public func update(db: Database) throws {
         let changes = try DataMapper(db, self).updateStatement().execute()
         if changes.changedRowCount == 0 {
             throw RecordError.RecordNotFound(self)
         }
         databaseEdited = false
-        return DatabaseChanges(changedRowCount: changes.changedRowCount, insertedRowID: nil)
     }
     
     /// Saves the record in the database.
@@ -301,21 +297,21 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// database if it returns without error.
     ///
     /// - parameter db: A Database.
-    /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
     ///   thrown by update().
-    final public func save(db: Database) throws -> DatabaseChanges {
+    final public func save(db: Database) throws {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         
         if DataMapper(db, self).resolvingPrimaryKeyDictionary == nil {
-            return try insert(db)
+            try insert(db)
+            return
         }
         
         do {
-            return try update(db)
+            try update(db)
         } catch RecordError.RecordNotFound {
-            return try insert(db)
+            try insert(db)
         }
     }
     
@@ -324,15 +320,15 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// On success, this method sets the *databaseEdited* flag to true.
     ///
     /// - parameter db: A Database.
-    /// - returns: A DatabaseChanges.
+    /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
-    public func delete(db: Database) throws -> DatabaseChanges {
+    public func delete(db: Database) throws -> Bool {
         let changes = try DataMapper(db, self).deleteStatement().execute()
         // Future calls to update() will throw RecordNotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
         // databaseEdited flag:
         databaseEdited = true
-        return DatabaseChanges(changedRowCount: changes.changedRowCount, insertedRowID: nil)
+        return changes.changedRowCount > 0
     }
     
     /// Executes a SELECT statetement to reload the record.

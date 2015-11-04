@@ -262,8 +262,8 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
-                let changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 0)
+                let deleted = try record.delete(db)
+                XCTAssertFalse(deleted)
             }
         }
     }
@@ -274,8 +274,8 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 let record = Email()
                 record.email = "me@domain.com"
                 try record.insert(db)
-                let changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 1)
+                let deleted = try record.delete(db)
+                XCTAssertTrue(deleted)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])
                 XCTAssertTrue(row == nil)
@@ -289,10 +289,10 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 let record = Email()
                 record.email = "me@domain.com"
                 try record.insert(db)
-                var changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 1)
-                changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 0)
+                var deleted = try record.delete(db)
+                XCTAssertTrue(deleted)
+                deleted = try record.delete(db)
+                XCTAssertFalse(deleted)
             }
         }
     }

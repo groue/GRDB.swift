@@ -239,16 +239,16 @@ class RecordWithManagedData : Record {
         super.updateFromRow(row)
     }
     
-    override func insert(db: Database) throws -> DatabaseChanges {
+    override func insert(db: Database) throws {
         // Hmm.
         managedData.willSave()
-        return try super.insert(db)
+        try super.insert(db)
     }
     
-    override func update(db: Database) throws -> DatabaseChanges {
+    override func update(db: Database) throws {
         // Hmm.
         managedData.willSave()
-        return try super.update(db)
+        try super.update(db)
     }
     
     // OK

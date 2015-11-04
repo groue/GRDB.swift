@@ -7,7 +7,7 @@ Release Notes
 
 **Breaking Changes**
 
-- `Record.insert`, `update`, `save` and `delete` return a DatabaseChanges object.
+- `Record.delete` returns a Bool which tells whether a database row was deleted or not.
 
 
 ## 0.26.1

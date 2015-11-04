@@ -268,8 +268,8 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                let changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 0)
+                let deleted = try record.delete(db)
+                XCTAssertFalse(deleted)
             }
         }
     }
@@ -279,8 +279,8 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
-                let changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 1)
+                let deleted = try record.delete(db)
+                XCTAssertTrue(deleted)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])
                 XCTAssertTrue(row == nil)
@@ -293,10 +293,10 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
-                var changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 1)
-                changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 0)
+                var deleted = try record.delete(db)
+                XCTAssertTrue(deleted)
+                deleted = try record.delete(db)
+                XCTAssertFalse(deleted)
             }
         }
     }

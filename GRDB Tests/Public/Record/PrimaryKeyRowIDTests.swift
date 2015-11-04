@@ -41,13 +41,13 @@ class Person: Record {
         super.init(row: row)
     }
     
-    override func insert(db: Database) throws -> DatabaseChanges {
+    override func insert(db: Database) throws {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = NSDate()
         }
         
-        return try super.insert(db)
+        try super.insert(db)
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -327,8 +327,8 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let record = Person(id: 123456, name: "Arthur")
-                let changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 0)
+                let deleted = try record.delete(db)
+                XCTAssertFalse(deleted)
             }
         }
     }
@@ -338,8 +338,8 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Person(name: "Arthur")
                 try record.insert(db)
-                let changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 1)
+                let deleted = try record.delete(db)
+                XCTAssertTrue(deleted)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])
                 XCTAssertTrue(row == nil)
@@ -352,10 +352,10 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = Person(name: "Arthur")
                 try record.insert(db)
-                var changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 1)
-                changes = try record.delete(db)
-                XCTAssertEqual(changes.changedRowCount, 0)
+                var deleted = try record.delete(db)
+                XCTAssertTrue(deleted)
+                deleted = try record.delete(db)
+                XCTAssertFalse(deleted)
             }
         }
     }
