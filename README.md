@@ -1129,7 +1129,7 @@ migrator.registerMigration("AddYearToBooks") { db in
     try db.execute("ALTER TABLE books ADD COLUMN year INT")
 }
 
-// (Future migrations here)
+// (Insert migrations for future versions here)
 
 try migrator.migrate(dbQueue)
 ```
