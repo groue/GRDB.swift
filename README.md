@@ -1177,6 +1177,8 @@ migrator.registerMigrationWithoutForeignKeyChecks("dropTableColumn") { db in
 }
 ```
 
+While your migration code runs with disabled foreign key checks, they are enabled afterwards, regardless of eventual errors.
+
 
 ## Database Changes Observation
 
