@@ -97,9 +97,11 @@ public final class Database {
     
     /// Executes a block inside a database transaction.
     ///
-    ///     try dbQueue.inTransaction do {
-    ///         try db.execute("INSERT ...")
-    ///         return .Commit
+    ///     try dbQueue.inDatabase do {
+    ///         try db.inTransaction {
+    ///             try db.execute("INSERT ...")
+    ///             return .Commit
+    ///         }
     ///     }
     ///
     /// If the block throws an error, the transaction is rollbacked and the
@@ -107,12 +109,16 @@ public final class Database {
     ///
     /// This method is not reentrant: you can't nest transactions.
     ///
-    /// - parameter kind:  The transaction kind.
-    ///   See https://www.sqlite.org/lang_transaction.html
+    /// - parameter kind: The transaction type (default nil). If nil, the
+    ///   transaction type is configuration.defaultTransactionKind, which itself
+    ///   defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+    ///   for more information.
     /// - parameter block: A block that executes SQL statements and return
     ///   either .Commit or .Rollback.
     /// - throws: The error thrown by the block.
-    func inTransaction(kind: TransactionKind?, block: () throws -> TransactionCompletion) throws {
+    public func inTransaction(kind: TransactionKind? = nil, block: () throws -> TransactionCompletion) throws {
+        assertValidQueue()
+        
         var completion: TransactionCompletion = .Rollback
         var blockError: ErrorType? = nil
         

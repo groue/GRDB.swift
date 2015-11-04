@@ -3,7 +3,10 @@ Release Notes
 
 ## Next Release
 
+**New**
+
 - `DatabaseCoder` reads and stores objects that conform to NSCoding in the database.
+- `Database.inTransaction()` executes a block inside a database transaction.
 
 **Breaking Changes**
 
