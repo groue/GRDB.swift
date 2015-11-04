@@ -1165,6 +1165,19 @@ NSBundle.mainBundle()
     }
 ```
 
+### Advanced Database Schema Changes
+
+SQLite does not support many schema changes, and won't let you drop a table column with "ALTER TABLE ... DROP COLUMN ...", for example.
+
+Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by a specific  method of DatabaseMigrator:
+
+```swift
+migrator.registerMigrationWithoutForeignKeyChecks("dropTableColumn") { db in
+    try db.execute("...")
+}
+```
+
+
 ## Database Changes Observation
 
 The TransactionObserverType protocol lets you **observe database changes**:
