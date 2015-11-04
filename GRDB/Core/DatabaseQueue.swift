@@ -168,7 +168,7 @@ public final class DatabaseQueue {
         database.databaseQueueID = databaseQueueID
     }
     
-    func inQueue<R>(block: () throws -> R) rethrows -> R {
+    private func inQueue<R>(block: () throws -> R) rethrows -> R {
         // IMPLEMENTATION NOTE
         //
         // DatabaseQueue.inDatabase() and DatabaseQueue.inTransaction() are not
