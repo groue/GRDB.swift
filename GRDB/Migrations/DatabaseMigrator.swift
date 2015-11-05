@@ -56,10 +56,7 @@ public struct DatabaseMigrator {
     /// - parameter identifier: The migration identifier. It must be unique.
     /// - parameter block: The migration block that performs SQL statements.
     public mutating func registerMigration(identifier: String, _ block: (db: Database) throws -> Void) {
-        guard migrations.map({ $0.identifier }).indexOf(identifier) == nil else {
-            fatalError("Already registered migration: \"\(identifier)\"")
-        }
-        migrations.append(Migration(identifier: identifier, disableForeignKeys: false, block: block))
+        registerMigration(Migration(identifier: identifier, disableForeignKeys: false, block: block))
     }
     
     /// Registers a migration with disabled foreign key checks.
@@ -77,10 +74,7 @@ public struct DatabaseMigrator {
     /// - parameter identifier: The migration identifier. It must be unique.
     /// - parameter block: The migration block that performs SQL statements.
     public mutating func registerMigrationWithoutForeignKeyChecks(identifier: String, _ block: (db: Database) throws -> Void) {
-        guard migrations.map({ $0.identifier }).indexOf(identifier) == nil else {
-            fatalError("Already registered migration: \"\(identifier)\"")
-        }
-        migrations.append(Migration(identifier: identifier, disableForeignKeys: true, block: block))
+        registerMigration(Migration(identifier: identifier, disableForeignKeys: true, block: block))
     }
     
     /// Iterate migrations in the same order as they were registered. If a
@@ -176,6 +170,13 @@ public struct DatabaseMigrator {
     }
     
     private var migrations: [Migration] = []
+    
+    private mutating func registerMigration(migration: Migration) {
+        guard migrations.map({ $0.identifier }).indexOf(migration.identifier) == nil else {
+            fatalError("Already registered migration: \"\(migration.identifier)\"")
+        }
+        migrations.append(migration)
+    }
     
     private func setupMigrations(dbQueue: DatabaseQueue) throws {
         try dbQueue.inDatabase { db in
