@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking Change**
+
+- The methods of protocol `TransactionObserverType` are no longer optional.
+
+
 ## 0.27.0
 
 Released November 4, 2015

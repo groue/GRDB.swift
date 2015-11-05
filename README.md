@@ -917,7 +917,7 @@ See [Column Values](#column-values) and [Value Queries](#value-queries) for more
 
 **Prepared Statements** let you prepare an SQL query and execute it later, several times if you need, with different arguments.
 
-There are two kinds to prepared statements: **select statements**, and **update statements**:
+There are two kinds of prepared statements: **select statements**, and **update statements**:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -1229,7 +1229,7 @@ config.transactionObserver = MyObserver()
 let dbQueue = try DatabaseQueue(path: databasePath, configuration: config)
 ```
 
-All protocol callbacks are optional, and invoked on the database queue.
+Protocol callbacks are all invoked on the database queue.
 
 **All database changes are notified** to databaseDidChangeWithEvent, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
@@ -1289,6 +1289,10 @@ class TableChangeObserver : NSObject, TransactionObserverType {
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
         // Remember the name of the changed table:
         changedTableNames.insert(event.tableName)
+    }
+    
+    func databaseWillCommit() throws {
+        // Let go
     }
     
     func databaseDidCommit(db: Database) {

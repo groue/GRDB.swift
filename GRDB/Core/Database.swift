@@ -636,21 +636,6 @@ public protocol TransactionObserverType : class {
     func databaseDidRollback(db: Database)
 }
 
-/// Default implementations for TransactionObserverType methods.
-public extension TransactionObserverType {
-    /// Default implementation does nothing.
-    func databaseDidChangeWithEvent(event: DatabaseEvent) { }
-    
-    /// Default implementation does nothing.
-    func databaseWillCommit() throws { }
-    
-    /// Default implementation does nothing.
-    func databaseDidCommit(db: Database) { }
-    
-    /// Default implementation does nothing.
-    func databaseDidRollback(db: Database) { }
-}
-
 
 // =============================================================================
 // MARK: - DatabaseEvent
