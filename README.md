@@ -1185,8 +1185,12 @@ SQLite does not support many schema changes, and won't let you drop a table colu
 Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by a specific  method of DatabaseMigrator:
 
 ```swift
-migrator.registerMigrationWithoutForeignKeyChecks("dropTableColumn") { db in
-    try db.execute("...")
+migrator.registerMigrationWithoutForeignKeyChecks("AddNotNullCheckOnName") { db in
+    try db.executeMultiStatement(
+        "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
+        "INSERT INTO new_persons SELECT id, name FROM persons;" +
+        "DROP TABLE persons;" +
+        "ALTER TABLE new_persons RENAME TO persons;")
 }
 ```
 
