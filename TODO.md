@@ -3,7 +3,7 @@
 - [ ] Study custom SQL functions
 - [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
-- [ ] TransactionObserverType methods should not be optional. Non-optional methods force the user to adapt his code if the protocol eventually evolves.
+- [ ] TransactionObserverType methods should not be optional. Non-optional methods force the user to adapt his code if the protocol eventually evolves. Requires TableChangeObserver sample code update.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 
 
