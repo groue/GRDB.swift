@@ -122,23 +122,23 @@ public struct DatabaseMigrator {
             // > 12. If foreign keys constraints were originally enabled, reenable them now.
 
             try dbQueue.inDatabase { db in
-                let restoreForeignKeys: Bool
+                let foreignKeysWereEnabled: Bool
                 if self.disableForeignKeys {
                     // Restore foreign keys if and only if they are active.
-                    restoreForeignKeys = Bool.fetchOne(db, "PRAGMA foreign_keys")!
+                    foreignKeysWereEnabled = Bool.fetchOne(db, "PRAGMA foreign_keys")!
                 } else {
-                    restoreForeignKeys = false
+                    foreignKeysWereEnabled = false
                 }
                 
                 // > 1. If foreign key constraints are enabled, disable them using
                 // > PRAGMA foreign_keys=OFF.
-                if restoreForeignKeys {
+                if foreignKeysWereEnabled {
                     try db.execute("PRAGMA foreign_keys = OFF")
                 }
                 
                 // > 12. If foreign keys constraints were originally enabled, reenable them now.
                 defer {
-                    if restoreForeignKeys {
+                    if foreignKeysWereEnabled {
                         try! db.execute("PRAGMA foreign_keys = ON")
                     }
                 }
@@ -151,7 +151,7 @@ public struct DatabaseMigrator {
                     // > 10. If foreign key constraints were originally enabled then run PRAGMA
                     // > foreign_key_check to verify that the schema change did not break any foreign key
                     // > constraints.
-                    if restoreForeignKeys && Row.fetchOne(db, "PRAGMA foreign_key_check") != nil {
+                    if foreignKeysWereEnabled && Row.fetchOne(db, "PRAGMA foreign_key_check") != nil {
                         // https://www.sqlite.org/pragma.html#pragma_foreign_key_check
                         //
                         // PRAGMA foreign_key_check does not return an error,
