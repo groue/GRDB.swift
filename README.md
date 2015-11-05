@@ -1188,7 +1188,7 @@ Yet any kind of schema change is still possible. The SQLite documentation explai
 migrator.registerMigrationWithoutForeignKeyChecks("AddNotNullCheckOnName") { db in
     try db.executeMultiStatement(
         "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
-        "INSERT INTO new_persons SELECT id, name FROM persons;" +
+        "INSERT INTO new_persons SELECT * FROM persons;" +
         "DROP TABLE persons;" +
         "ALTER TABLE new_persons RENAME TO persons;")
 }
