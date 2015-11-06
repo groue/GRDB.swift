@@ -1021,7 +1021,7 @@ See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 ## Transactions
 
-The `DatabaseQueue.inTransaction()` method opens a SQLite transaction:
+The `DatabaseQueue.inTransaction()` method opens an SQLite transaction:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -1151,7 +1151,7 @@ try migrator.migrate(dbQueue)
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table). When you are tuning your migrations, you may need to execute one several times. All you need then is to feed your application with a database file from a previous state.
 
-You might use Database.executeMultiStatement(): this method takes a SQL string containing multiple statements separated by semi-colons:
+You might use Database.executeMultiStatement(): this method takes an SQL string containing multiple statements separated by semi-colons:
 
 ```swift
 migrator.registerMigration("createTables") { db in
@@ -1640,7 +1640,7 @@ try dbQueue.inDatabase { db in
     
     Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. For example, you can override the `insert` primitive method, and generate an UUID before calling `super.insert`.
 
-- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever a SQLite integrity check fails.
+- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
 
 - `update` and `reload` methods can also throw a RecordError of type RecordNotFound, whenever the record does not exist in the database.
     
