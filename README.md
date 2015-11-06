@@ -1592,6 +1592,9 @@ dbQueue.inDatabase { db in
     // SELECT * FROM countries WHERE isoCode = 'FR'
     Country.fetchOne(db, key: "FR")
     
+    // SELECT * FROM countries WHERE isoCode IN ('FR', 'ES', 'US')
+    Country.fetchAll(db, keys: ["FR", "ES", "US"])
+    
     // SELECT * FROM persons WHERE email = 'me@domain.com'
     Person.fetchOne(db, key: ["email": "me@domain.com"])
     
