@@ -1642,9 +1642,9 @@ try dbQueue.inDatabase { db in
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
 
-- `update` and `reload` methods can also throw a RecordError of type RecordNotFound, whenever the record does not exist in the database.
+- `update` and `reload` methods can also throw a RecordError of type RecordNotFound,  should the update or reload fail because the record does not exist in the database.
     
-    When saving a record that may, or may not, exist in the database, prefer the `save` method: it performs the necessary UPDATE or INSERT statement.
+    When saving a record that may or may not already exist in the database, prefer the `save` method: it performs the UPDATE or INSERT statement that makes sure your values are saved in the database.
 
 - `delete` returns whether a database row was deleted or not.
 
