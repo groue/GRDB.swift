@@ -4,13 +4,11 @@ struct Migration {
     let disableForeignKeys: Bool
     let block: (db: Database) throws -> Void
     
-    func run(dbQueue: DatabaseQueue) throws {
-        try dbQueue.inDatabase { db in
-            if self.disableForeignKeys && Bool.fetchOne(db, "PRAGMA foreign_keys")! {
-                try self.runWithDisabledForeignKeys(db)
-            } else {
-                try self.runWithoutDisabledForeignKeys(db)
-            }
+    func run(db: Database) throws {
+        if self.disableForeignKeys && Bool.fetchOne(db, "PRAGMA foreign_keys")! {
+            try self.runWithDisabledForeignKeys(db)
+        } else {
+            try self.runWithoutDisabledForeignKeys(db)
         }
     }
     

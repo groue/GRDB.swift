@@ -84,8 +84,10 @@ public struct DatabaseMigrator {
     /// - parameter dbQueue: The Database Queue where migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(dbQueue: DatabaseQueue) throws {
-        try setupMigrations(dbQueue)
-        try runMigrations(dbQueue)
+        try dbQueue.inDatabase { db in
+            try self.setupMigrations(db)
+            try self.runMigrations(db)
+        }
     }
     
     
@@ -100,20 +102,14 @@ public struct DatabaseMigrator {
         migrations.append(migration)
     }
     
-    private func setupMigrations(dbQueue: DatabaseQueue) throws {
-        try dbQueue.inDatabase { db in
-            try db.execute(
-                "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
-        }
+    private func setupMigrations(db: Database) throws {
+        try db.execute("CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
     }
     
-    private func runMigrations(dbQueue: DatabaseQueue) throws {
-        let appliedMigrationIdentifiers = dbQueue.inDatabase { db in
-            String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
-        }
-        
+    private func runMigrations(db: Database) throws {
+        let appliedMigrationIdentifiers = String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
         try migrations
             .filter { !appliedMigrationIdentifiers.contains($0.identifier) }
-            .forEach { try $0.run(dbQueue) }
+            .forEach { try $0.run(db) }
     }
 }
