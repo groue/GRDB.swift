@@ -35,7 +35,7 @@ Features
 Documentation
 =============
 
-- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.27.0/index.html)** on cocoadocs.org.
+- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.27.0/index.html)** (on cocoadocs.org)
 
 - **[Installation](#installation)**
 
