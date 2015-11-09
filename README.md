@@ -5,106 +5,62 @@ GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the 
 
 It ships with a low-level database API, plus application-level tools.
 
+**Users of [ccgus/fmdb](https://github.com/ccgus/fmdb)**, welcome: you will feel at ease with GRDB, and use the familiar and safe database queues you are used to. Yet GRDB is somewhat easier when [fetching](#fetch-queries) data from the database. And you may appreciate that [database errors](#error-handling) are handled in the Swift way.
+
+**If you have been using [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** already, you may be happy to use a [straightforward API](#sqlite-api) around the well-proven tool that is SQL.
+
+**Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
+
 **November 4, 2015: GRDB.swift 0.27.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
-
-Jump to:
-
-- [Features](#features)
-- [Requirements](#requirements)
-- [Usage](#usage)
-- [Benchmarks](#benchmarks)
-- **[Installation](#installation)**
-- **[Documentation](#documentation)**
-- [Sample Code](#sample-code)
 
 
 Features
 --------
 
-- **A low-level SQLite API** that leverages the Swift 2 standard library.
-- **No smart query builder**. Your SQL skills are welcome here.
-- **A Record class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
-- **Swift type freedom**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
-- **Database migrations**
-- **Database changes observation hooks**
+- **A low-level [SQLite API](#sqlite-api)** that leverages the Swift 2 standard library.
+- **A [Records](#records) class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
+- **[Swift type freedom](#values)**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
+- **[Database migrations](#migrations)**
+- **[Database changes observation hooks](#database-changes-observation)**
 
 
-Requirements
-------------
+Documentation
+=============
 
-- iOS 7.0+ / OSX 10.9+
-- Xcode 7
+- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.27.0/index.html)** on cocoadocs.org.
 
+- **[Installation](#installation)**
 
-Usage
------
-
-**SQLite API**
-
-```swift
-import GRDB
-
-// Open connection to database
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-
-try dbQueue.inDatabase { db in
-    // Create tables
-    try db.execute("CREATE TABLE wines (...)")
+- **[SQLite API](#sqlite-api)**
+    - [SQLite API Overview](#sqlite-api-overview)
+    - [Database Queues](#database-queues)
+    - [Executing Updates](#executing-updates)
+    - [Fetch Queries](#fetch-queries)
+        - [Row Queries](#row-queries)
+        - [Value Queries](#value-queries)
+    - [Values](#values)
+        - [NSData](#nsdata-and-memory-savings)
+        - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
+        - [NSCoding](#nscoding)
+        - [Swift enums](#swift-enums)
+        - [Custom Value Types](#custom-value-types)
+    - [Prepared Statements](#prepared-statements)
+    - [Error Handling](#error-handling)
+    - [Transactions](#transactions)
+    - [Concurrency](#concurrency)
+    - [Raw SQLite Pointers](#raw-sqlite-pointers)
     
-    // Insert
-    let changes = try db.execute("INSERT INTO wines (color, name) VALUES (?, ?)",
-        arguments: [Color.Red, "Pomerol"])
-    let wineId = changes.insertedRowID
-    print("Inserted wine id: \(wineId)")
-    
-    // Fetch rows
-    for row in Row.fetch(db, "SELECT * FROM wines") {
-        let name: String = row.value(named: "name")
-        let color: Color = row.value(named: "color")
-        print(name, color)
-    }
-    
-    // Fetch values
-    let redWineCount = Int.fetchOne(db,
-        "SELECT COUNT(*) FROM wines WHERE color = ?",
-        arguments: [Color.Red])!
-}
-```
+- **[Application Tools](#application-tools)**
+    - [Migrations](#migrations): Transform your database as your application evolves.
+    - [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
+    - [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
+    - [Records](#records): CRUD operations and changes tracking.
 
-**Using Records**
-
-```swift
-// Define Record subclass
-class Wine : Record { ... }
-
-try dbQueue.inDatabase { db in
-    // Store
-    let wine = Wine(color: .Red, name: "Pomerol")
-    try wine.insert(db)
-    print("Inserted wine id: \(wine.id)")
-    
-    // Fetch
-    for wine in Wine.fetch(db, "SELECT * FROM wines") {
-        print(wine.name, wine.color)
-    }
-}
-```
-
-**Users of [ccgus/fmdb](https://github.com/ccgus/fmdb)** will feel at ease with GRDB.swift. They may find GRDB to be easier when [fetching](#fetch-queries) data from the database. And they'll definitely be happy that [database errors](#error-handling) are handled in the Swift way.
-
-**Users of [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** may eventually find that a straightforward API around SQL is not a bad alternative.
-
-
-Benchmarks
-----------
-
-GRDB.swift runs as fast as ccgus/fmdb, or faster.
-
-For precise benchmarks, select the GRDBOSX scheme, run the tests in Release configuration, and check the results under the "Performance" tab in the Xcode Report Navigator.
+**[Sample Code](#sample-code)**
 
 
 Installation
-------------
+============
 
 ### iOS7
 
@@ -146,45 +102,43 @@ github "groue/GRDB.swift" == 0.27.0
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
 
-Documentation
-=============
-
-**Reference**
-
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.27.0/index.html) on cocoadocs.org. Beware that it is incomplete: you may prefer reading the inline documentation right into the [source](https://github.com/groue/GRDB.swift/tree/master/GRDB).
-
-**[SQLite API](#sqlite-api)**
-
-- [SQLite Database](#sqlite-database)
-- [Creating Tables](#creating-tables)
-- [Inserting Rows](#inserting-rows)
-- [Fetch Queries](#fetch-queries)
-    - [Row Queries](#row-queries)
-    - [Value Queries](#value-queries)
-- [Values](#values)
-    - [NSData](#nsdata-and-memory-savings)
-    - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
-    - [NSCoding](#nscoding)
-    - [Swift enums](#swift-enums)
-    - [Custom Value Types](#custom-value-types)
-- [Prepared Statements](#prepared-statements)
-- [Error Handling](#error-handling)
-- [Transactions](#transactions)
-- [Concurrency](#concurrency)
-- [Raw SQLite Pointers](#raw-sqlite-pointers)
-
-**[Application Tools](#application-tools)**
-
-- [Migrations](#migrations): Transform your database as your application evolves.
-- [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
-- [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
-- [Records](#records): CRUD operations and changes tracking.
-
-
 SQLite API
 ==========
 
-## SQLite Database
+## SQLite API Overview
+
+```swift
+import GRDB
+
+// Open connection to database
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+
+try dbQueue.inDatabase { db in
+    // Create tables
+    try db.execute("CREATE TABLE wines (...)")
+    
+    // Insert
+    let changes = try db.execute("INSERT INTO wines (color, name) VALUES (?, ?)",
+        arguments: [Color.Red, "Pomerol"])
+    let wineId = changes.insertedRowID
+    print("Inserted wine id: \(wineId)")
+    
+    // Fetch rows
+    for row in Row.fetch(db, "SELECT * FROM wines") {
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
+    }
+    
+    // Fetch values
+    let redWineCount = Int.fetchOne(db,
+        "SELECT COUNT(*) FROM wines WHERE color = ?",
+        arguments: [Color.Red])!
+}
+```
+
+
+## Database Queues
 
 You access SQLite databases through **thread-safe database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
 
@@ -195,7 +149,7 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 let inMemoryDBQueue = DatabaseQueue()
 ```
 
-The database file is created if it does not already exist.
+SQLite creates the database file if it does not already exist.
 
 The connection is closed when the database queue gets deallocated.
 
@@ -204,31 +158,31 @@ The connection is closed when the database queue gets deallocated.
 
 ```swift
 var config = Configuration()
-config.foreignKeysEnabled = true // Default true
-config.readonly = false          // Default false
-config.trace = LogSQL            // The built-in LogSQL function logs all SQL statements with NSLog.
+config.trace = LogSQL // Log all SQL statements with NSLog.
 
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
     configuration: config)
 ```
 
-See [Concurrency](#concurrency) for more details on database configuration.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.27.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 
-The `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
+Once connected, the `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
 
 ```swift
-// Extract values from the database:
-let rows = dbQueue.inDatabase { db in
-    Row.fetchAll(db, "SELECT ...")
-}
-
 // Execute database statements:
 dbQueue.inDatabase { db in
-    for person in Person.fetch(db, "SELECT...") {
-        ...
+    for row in Row.fetch(db, "SELECT * FROM wines") {
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
     }
+}
+
+// Extract values from the database:
+let wineCount = dbQueue.inDatabase { db in
+    Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
 }
 
 // Wrap database statements in a transaction:
@@ -242,48 +196,36 @@ try dbQueue.inTransaction { db in
 See [Transactions](#transactions) for more information about GRDB transaction handling.
 
 
-## Creating Tables
+## Executing Updates
 
-**To create a database table**, execute a [CREATE TABLE](https://www.sqlite.org/lang_createtable.html) statement:
+The `Database.execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
+
+For example:
 
 ```swift
 try dbQueue.inDatabase { db in
     try db.execute(
         "CREATE TABLE persons (" +
-            "id INTEGER PRIMARY KEY, " +
-            "name TEXT NOT NULL, " +
-            "email TEXT" +
+            "id INTEGER PRIMARY KEY," +
+            "name TEXT NOT NULL," +
+            "age INT" +
         ")")
+        
+    try db.execute(
+        "INSERT INTO persons (name, age) VALUES (?, ?)",
+        arguments: ["Arthur", 36])
+        
+    try db.execute(
+        "INSERT INTO persons (name, age) VALUES (:name, :age)",
+        arguments: ["name": "Barbara", "age": 39])
 }
 ```
 
-Database schemas usually evolve over time: you should probably create your tables with [migrations](#migrations).
-
-
-## Inserting Rows
-
-**To insert a database row**, execute an [INSERT](https://www.sqlite.org/lang_insert.html) statement:
-
-```swift
-try dbQueue.inDatabase { db in
-    try db.execute("INSERT ...", arguments: ...)
-}
-```
-
-Arguments are optional arrays or dictionaries that fill the positional `?` and colon-prefixed keys like `:name` in the query:
-
-```swift
-try db.execute(
-    "INSERT INTO persons (name, age) VALUES (?, ?)",
-    arguments: ["Arthur", 36])
-try db.execute(
-    "INSERT INTO persons (name, age) VALUES (:name, :age)",
-    arguments: ["name": "Barbara", "age": 39])
-```
+The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments in with arrays or dictionaries, as in the example above (arguments are actually of type StatementArguments, which happens to adopt the ArrayLiteralConvertible and DictionaryLiteralConvertible protocols).
 
 See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
 
-You extract the inserted Row ID from the result of the `execute` method:
+**After an INSERT statement**, you extract the inserted Row ID from the result of the `execute` method:
 
 ```swift
 let insertedRowID = try db.execute(
@@ -291,33 +233,29 @@ let insertedRowID = try db.execute(
     arguments: ["Arthur", 36]).insertedRowID
 ```
 
-Don't miss the [Record](#records) class, which helps inserting rows in the database:
-
-```swift
-let person = Person(name: "Arthur", age: 36)
-try person.insert(db)
-print("Inserted person id: \(person.id)")
-```
-
 
 ## Fetch Queries
 
-You can fetch **Rows**, **Values**, and **Records**:
+You can fetch **rows**, **values**, and **custom models**:
 
 ```swift
 dbQueue.inDatabase { db in
+    // Plain rows from the database:
     Row.fetch(db, "SELECT ...", ...)       // DatabaseSequence<Row>
     Row.fetchAll(db, "SELECT ...", ...)    // [Row]
     Row.fetchOne(db, "SELECT ...", ...)    // Row?
     
+    // Values, such as String, Int, etc:
     String.fetch(db, "SELECT ...", ...)    // DatabaseSequence<String>
     String.fetchAll(db, "SELECT ...", ...) // [String]
     String.fetchOne(db, "SELECT ...", ...) // String?
     
+    // Custom models
     Person.fetch(db, "SELECT ...", ...)    // DatabaseSequence<Person>
     Person.fetchAll(db, "SELECT ...", ...) // [Person]
     Person.fetchOne(db, "SELECT ...", ...) // Person?
     
+    // Custom models, given their database keys:
     Person.fetch(db, keys: ...)            // DatabaseSequence<Person>
     Person.fetchAll(db, keys: ...)         // [Person]
     Person.fetchOne(db, key: ...)          // Person?
@@ -328,7 +266,7 @@ Most methods take a custom SQL query as an argument. If SQL is not your cup of t
 
 - [Row Queries](#row-queries)
 - [Value Queries](#value-queries)
-- [RowConvertible Protocol](#rowconvertible-protocol) and [Records](#records)
+- Custom models: [RowConvertible](#rowconvertible-protocol) and [Records](#records)
 
 
 ### Row Queries
@@ -348,6 +286,12 @@ dbQueue.inDatabase { db in
     Row.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Row>
     Row.fetchAll(db, "SELECT ...", arguments: ...)  // [Row]
     Row.fetchOne(db, "SELECT ...", arguments: ...)  // Row?
+    
+    for row in Row.fetch(db, "SELECT * FROM wines") {
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
+    }
 }
 ```
 
@@ -481,13 +425,6 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
 
-Still, as a convenience, row can be converted to and from **NSDictionary** (in case of duplicate colum names, the leftmost value is returned):
-
-```swift
-row.toDictionary()  // NSDictionary
-```
-
-
 #### Convenience Rows
 
 Rows is a fundamental type in GRDB, used by many other APIs.
@@ -503,7 +440,7 @@ See [Values](#values) for more information on supported types.
 
 ### Value Queries
 
-Instead of rows, you can directly fetch **values**. Like rows, fetch them as **sequences**, **arrays**, or **single** values. Values are extracted from the leftmost column of the SQL queries:
+Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **sequences**, **arrays**, or **single** values. Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -615,7 +552,7 @@ for row in Row.fetch(db, "SELECT data, ...") {
 }
 ```
 
-> :point_up: **Note**: The non-copied data does not live longer that the iteration step: make sure that you do not use it past this point.
+> :point_up: **Note**: The non-copied data does not live longer than the iteration step: make sure that you do not use it past this point.
 
 Compare with the **anti-patterns** below:
 
@@ -1389,9 +1326,19 @@ See also the [Record](#records) class, which builds on top of RowConvertible and
 **Record** is a class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking. It is designed to be subclassed.
 
 ```swift
+// Define Record subclass
 class Person : Record { ... }
-let person = Person(name: "Arthur")
-try person.save(db)
+
+try dbQueue.inDatabase { db in
+    // Store
+    let person = Person(name: "Arthur")
+    try person.save(db)
+    
+    // Fetch
+    for person in Person.fetch(db, "SELECT * FROM persons") {
+        print(person.name)
+    }
+}
 ```
 
 **Record is not a smart class.** It is no replacement for Core Data’s NSManagedObject, [Realm](https://realm.io)’s Object, or for an Active Record pattern. It does not provide any uniquing, automatic refresh, or synthesized properties. It has no knowledge of external references and table relationships, and will not generate JOIN queries for you.
