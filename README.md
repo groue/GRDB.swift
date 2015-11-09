@@ -17,7 +17,7 @@ Why GRDB, when there already exits the excellent [ccgus/fmdb](https://github.com
 
 GRDB owns a lot to FMDB. You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
 
-GRDB also makes sure that it is easy to feed your application with database data, with [support](#values) for types like NSDate, NSURL or Swift enums. The built-in [Record](#records) class takes care of turning plain database rows in standard Swift objects with good old properties, without bringing in all the complexities of NSManagedObject.
+GRDB also makes sure that it is easy to feed your application with database data, with [support](#values) for types like NSDate, NSURL or Swift enums. The built-in [Record](#records) class takes care of turning plain database rows in standard Swift objects with good old properties, without bringing in all the complexities of Core Data.
 
 Finally, your SQL skills are rewarded here. You won't lose a single feature or convenience of GRDB by crafting custom SQL queries, on the contrary.
 
