@@ -4,6 +4,7 @@
 - [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
+- [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
 
 
 Not sure:
