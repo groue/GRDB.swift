@@ -5,13 +5,21 @@ GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the 
 
 It ships with a low-level database API, plus application-level tools.
 
-**Users of [ccgus/fmdb](https://github.com/ccgus/fmdb)**, welcome: you will feel at ease with GRDB, and use the familiar and safe database queues you are used to. Yet GRDB is somewhat easier when [fetching](#fetch-queries) data from the database. And you may appreciate that [database errors](#error-handling) are handled in the Swift way.
-
-**If you have been using [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)** already, you may be happy to use a [straightforward API](#sqlite-api) around the well-proven tool that is SQL.
+**November 4, 2015: GRDB.swift 0.27.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
-**November 4, 2015: GRDB.swift 0.27.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+
+But Why?
+--------
+
+Why GRDB, when there already exits the excellent [ccgus/fmdb](https://github.com/ccgus/fmdb), and the very popular [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)?
+
+GRDB owns a lot to FMDB. You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
+
+GRDB also makes sure that it is easy to feed your application with database data, with [support](#values) for types like NSDate, NSURL or Swift enums. The built-in [Record](#records) class takes care of turning plain database rows in standard Swift objects with good old properties, without bringing in all the complexities of NSManagedObject.
+
+Finally, your SQL skills are rewarded here. You won't lose a single feature or convenience of GRDB by crafting custom SQL queries, on the contrary.
 
 
 Features
