@@ -7,26 +7,36 @@ public struct Configuration {
     // MARK: - Misc options
     
     /// If true, the database has support for foreign keys.
+    ///
+    /// Default is true.
     public var foreignKeysEnabled: Bool
     
     /// If true, the database is opened readonly.
+    ///
+    /// Default is false.
     public var readonly: Bool
     
     
     // =========================================================================
     // MARK: - Transactions
     
-    /// Default transaction kind
+    /// The transaction kind used by Database.inTransaction().
+    ///
+    /// Default is `.Immediate`.
     public var defaultTransactionKind: TransactionKind
     
     /// The optional transaction observer
+    ///
+    /// Default is nil.
     public var transactionObserver: TransactionObserverType?
     
     
     // =========================================================================
     // MARK: - Concurrency
     
-    /// Busy Mode
+    /// The busy Mode.
+    ///
+    /// Default is `.ImmediateError`.
     public var busyMode: BusyMode
     
     /// The Threading mode
@@ -39,10 +49,12 @@ public struct Configuration {
     // =========================================================================
     // MARK: - Logging
     
-    /// An optional tracing function.
+    /// A tracing function.
     ///
     /// You can use the global GRDB.LogSQL function as a tracing function: it
     /// logs all SQL statements with NSLog().
+    ///
+    /// The default is nil.
     public var trace: TraceFunction?
     
     
@@ -54,7 +66,7 @@ public struct Configuration {
     /// - `foreignKeysEnabled`: true
     /// - `readonly`: false
     /// - `defaultTransactionKind`: Immediate
-    /// - `transactionDelegate`: nil
+    /// - `transactionObserver`: nil
     /// - `busyMode`: Immediate error
     /// - `trace`: nil
     public init()
