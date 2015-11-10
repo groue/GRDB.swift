@@ -1449,11 +1449,13 @@ For example:
 ```swift
 // CREATE TABLE persons (
 //     id INTEGER PRIMARY KEY,
+//     url TEXT,
 //     name TEXT,
 //     email TEXT UNIQUE COLLATE NOCASE
 // )
 class Person : Record {
     var id: Int64?  // Int64 is the preferred type for auto-incremented IDs.
+    var url: NSURL?
     var name: String?
     var email: String?
     
@@ -1462,11 +1464,12 @@ class Person : Record {
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "email": email]
+        return ["id": id, "url": url, "name": name, "email": email]
     }
     
     override func updateFromRow(row: Row) {
         if let dbv = row["id"]    { id = dbv.value() }
+        if let dbv = row["url"]   { url = dbv.value() }
         if let dbv = row["name"]  { name = dbv.value() }
         if let dbv = row["email"] { email = dbv.value() }
         super.updateFromRow(row) // Subclasses are required to call super.
@@ -1483,6 +1486,7 @@ The `updateFromRow` method updates properties from the columns found in the row.
 > // with "No such column" errors:
 > override func updateFromRow(row: Row) {
 >     self.id = row.value(named: "id")
+>     self.url = row.value(named: "url")
 >     self.name = row.value(named: "name")
 >     self.email = row.value(named: "email")
 >     super.updateFromRow(row)
