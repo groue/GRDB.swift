@@ -1496,10 +1496,10 @@ The `updateFromRow` method updates properties from the columns found in the row.
 > // BAD: this implementation will eventually crash
 > // with "No such column" errors:
 > override func updateFromRow(row: Row) {
->     self.id = row.value(named: "id")
->     self.url = row.value(named: "url")
->     self.name = row.value(named: "name")
->     self.email = row.value(named: "email")
+>     id = row.value(named: "id")
+>     url = row.value(named: "url")
+>     name = row.value(named: "name")
+>     email = row.value(named: "email")
 >     super.updateFromRow(row)
 > }
 > ```
