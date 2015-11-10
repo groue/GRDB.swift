@@ -64,7 +64,7 @@ Documentation
     - [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
     - [Records](#records): CRUD operations and changes tracking.
 
-**[Sample Code](#sample-code)**
+- **[Sample Code](#sample-code)**
 
 
 Installation
