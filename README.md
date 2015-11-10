@@ -506,20 +506,20 @@ GRDB ships with built-in support for the following value types:
     
     CGFloat.
 
-All those types can be [stored](#inserting-rows):
+All those types can be used as [statement arguments](#executing-updates):
 
 ```swift
 let url: NSURL = ...
 let verified: Bool = ...
 try db.execute(
-    "INSERT INTO urls (url, verified) VALUES (?, ?)",
+    "INSERT INTO links (url, verified) VALUES (?, ?)",
     arguments: [url, verified])
 ```
 
 They can be [extracted from rows](#column-values):
 
 ```swift
-for row in Row.fetch(db, "SELECT * FROM urls") {
+for row in Row.fetch(db, "SELECT * FROM links") {
     let url: NSURL = row.value(named: "url")
     let verified: Bool = row.value(named: "verified")
 }
@@ -528,7 +528,18 @@ for row in Row.fetch(db, "SELECT * FROM urls") {
 They can be [directly fetched](#value-queries) from the database:
 
 ```swift
-let urls = NSURL.fetchAll(db, "SELECT url FROM urls")  // [NSURL]
+let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
+```
+
+Use them as [Record](#records) properties:
+
+```swift
+class Link : Record {
+    var url: NSURL?
+    var verified: Bool
+    
+    ...
+}
 ```
 
 Your custom value types are supported as well, through the [DatabaseValueConvertible](#custom-value-types) protocol.
