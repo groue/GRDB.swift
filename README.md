@@ -1584,7 +1584,7 @@ Records can store themselves in the database through the `storedDatabaseDictiona
 class Person : Record {
     // The values stored in the database
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name, "email": email]
+        return ["id": id, "url": url, "name": name, "email": email]
     }
 }
 
