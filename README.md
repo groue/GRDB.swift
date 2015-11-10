@@ -494,17 +494,11 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The
 
 GRDB ships with built-in support for the following value types:
 
-- **Swift**:
+- **Swift**: Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
-    Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
+- **Foundation**: [NSCoding](#nscoding), [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
     
-- **Foundation**:
-    
-    [NSCoding](#nscoding), [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
-    
-- **CoreGraphics**:
-    
-    CGFloat.
+- **CoreGraphics**: CGFloat.
 
 All those types can be used as [statement arguments](#executing-updates):
 
