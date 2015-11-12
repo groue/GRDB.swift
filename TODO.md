@@ -5,7 +5,6 @@
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
-- [ ] Should we have RowConvertible use a static func fromRow(_) -> Self?. This would allow NSDictionary to implement RowConvertible, and this may simplify the initializers of Record, by only requiring init().
 
 
 Not sure:
