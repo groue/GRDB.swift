@@ -36,6 +36,11 @@ public struct DatabaseValue : Equatable {
         }
     }
     
+    /// Copy initializer
+    public init(_ databaseValue: DatabaseValue) {
+        self.storage = databaseValue.storage
+    }
+    
     
     // MARK: - Extracting Swift Value
     

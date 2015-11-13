@@ -4,15 +4,15 @@ extension StatementArguments {
     
     /// Initializes arguments from an NSArray.
     ///
-    /// The array must contain objects that adopt the DatabaseValueConvertible
-    /// protocol. A fatal error is thrown otherwise.
+    /// The result is nil unless all objects adopt DatabaseValueConvertible
+    /// (NSData, NSDate, NSNull, NSNumber, NSString, NSURL).
     ///
     ///     let values: NSArray = ["foo", "bar", "baz"]
-    ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
+    ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values)!)
     ///
     /// - parameter array: An NSArray
     /// - returns: A StatementArguments.
-    public init(_ array: NSArray) {
+    public init?(_ array: NSArray) {
         // IMPLEMENTATION NOTE
         //
         // This initializer is required for the following code to compile:
@@ -27,23 +27,22 @@ extension StatementArguments {
         //    }
         var values = [DatabaseValueConvertible?]()
         for object in array {
-            switch object {
-            case let value as DatabaseValueConvertible:
-                values.append(value)
-            default:
-                fatalError("Not DatabaseValueConvertible: \(object)")
+            guard let databaseValue = DatabaseValue(object: object) else {
+                return nil
             }
+            values.append(databaseValue)
         }
         self.init(values)
     }
     
     /// Initializes arguments from an NSDictionary.
     ///
-    /// The dictionary must contain objects that adopt the
-    /// DatabaseValueConvertible protocol. A fatal error is thrown otherwise.
+    /// The result is nil unless all dictionary keys are strings, and values
+    /// adopt DatabaseValueConvertible (NSData, NSDate, NSNull, NSNumber,
+    /// NSString, NSURL).
     ///
     ///     let values: NSDictionary = ["firstName": "Arthur", "lastName": "Miller"]
-    ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
+    ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values)!)
     ///
     /// GRDB.swift only supports colon-prefixed named arguments, even though
     /// SQLite supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
@@ -51,7 +50,7 @@ extension StatementArguments {
     ///
     /// - parameter dictionary: An NSDictionary
     /// - returns: A StatementArguments.
-    public init(_ dictionary: NSDictionary) {
+    public init?(_ dictionary: NSDictionary) {
         // IMPLEMENTATION NOTE
         //
         // This initializer is required for the following code to compile:
@@ -64,19 +63,16 @@ extension StatementArguments {
         //    for person in persons {
         //        try statement.execute(StatementArguments(person))   // Avoid an error here
         //    }
-        var values = [String: DatabaseValueConvertible?]()
-        for (key, object) in dictionary {
-            if let key = key as? String {
-                switch object {
-                case let value as DatabaseValueConvertible:
-                    values[key] = value
-                default:
-                    fatalError("Not DatabaseValueConvertible: \(object)")
-                }
-            } else {
-                fatalError("Not a String key: \(key)")
+        var initDictionary = [String: DatabaseValueConvertible?]()
+        for (key, value) in dictionary {
+            guard let columnName = key as? String else {
+                return nil
             }
+            guard let databaseValue = DatabaseValue(object: value) else {
+                return nil
+            }
+            initDictionary[columnName] = databaseValue
         }
-        self.init(values)
+        self.init(initDictionary)
     }
 }

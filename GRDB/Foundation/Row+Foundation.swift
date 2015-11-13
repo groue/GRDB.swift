@@ -5,21 +5,21 @@ extension Row {
     
     /// Builds a row from an NSDictionary.
     ///
-    /// All keys must be strings, and values must adopt
-    /// DatabaseValueConvertible: NSData, NSDate, NSNull, NSNumber, NSString,
-    /// NSURL.
+    /// The result is nil unless all dictionary keys are strings, and values
+    /// adopt DatabaseValueConvertible (NSData, NSDate, NSNull, NSNumber,
+    /// NSString, NSURL).
     ///
     /// - parameter dictionary: An NSDictionary.
-    public convenience init(dictionary: NSDictionary) {
+    public convenience init?(dictionary: NSDictionary) {
         var initDictionary = [String: DatabaseValueConvertible?]()
         for (key, value) in dictionary {
             guard let columnName = key as? String else {
-                fatalError("Dictionary key is not a string: \(key)")
+                return nil
             }
-            guard let convertible = value as? DatabaseValueConvertible else {
-                fatalError("Dictionary value is not a string: \(key)")
+            guard let databaseValue = DatabaseValue(object: value) else {
+                return nil
             }
-            initDictionary[columnName] = convertible.databaseValue // Because databaseValue adopts DatabaseValueConvertible?
+            initDictionary[columnName] = databaseValue
         }
         self.init(dictionary: initDictionary)
     }

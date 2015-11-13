@@ -160,6 +160,8 @@
 		56BB862C1BA988F2001F9168 /* FMResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86221BA988F2001F9168 /* FMResultSet.m */; };
 		56BB862F1BA98AA9001F9168 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB862E1BA98AA9001F9168 /* libsqlite3.tbd */; };
 		56BB86311BA98AB0001F9168 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
+		56CA0D411BF5D8E20019C023 /* DatabaseValue+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA0D401BF5D8E20019C023 /* DatabaseValue+Foundation.swift */; };
+		56CA0D421BF5D8E20019C023 /* DatabaseValue+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA0D401BF5D8E20019C023 /* DatabaseValue+Foundation.swift */; };
 		56CA21BA1BB3FCF7009A04C5 /* NSDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */; };
 		56CA21BB1BB3FCF7009A04C5 /* NSDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */; };
 		56CA221D1BB41533009A04C5 /* FMDBPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA221A1BB41533009A04C5 /* FMDBPerformanceTests.swift */; };
@@ -382,6 +384,7 @@
 		56BB862D1BA98933001F9168 /* GRDBTests-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging.h"; sourceTree = "<group>"; };
 		56BB862E1BA98AA9001F9168 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.0.sdk/usr/lib/libsqlite3.tbd; sourceTree = DEVELOPER_DIR; };
 		56BB86301BA98AB0001F9168 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		56CA0D401BF5D8E20019C023 /* DatabaseValue+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DatabaseValue+Foundation.swift"; sourceTree = "<group>"; };
 		56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDataTests.swift; sourceTree = "<group>"; };
 		56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
 		56CA221A1BB41533009A04C5 /* FMDBPerformanceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FMDBPerformanceTests.swift; sourceTree = "<group>"; };
@@ -497,6 +500,7 @@
 			children = (
 				56A238011B9C6A650082EB20 /* DatabaseDateComponents.swift */,
 				56B7F4331BE4BF1600E39BBF /* DatabaseCoder.swift */,
+				56CA0D401BF5D8E20019C023 /* DatabaseValue+Foundation.swift */,
 				56A2380B1B9C6E440082EB20 /* NSData.swift */,
 				56A238041B9C6D670082EB20 /* NSDate.swift */,
 				56A238AC1B9C90090082EB20 /* NSNull.swift */,
@@ -1136,6 +1140,7 @@
 				56A238101B9C74460082EB20 /* RawRepresentable.swift in Sources */,
 				56A238061B9C6D670082EB20 /* NSDate.swift in Sources */,
 				56A2380D1B9C6E440082EB20 /* NSData.swift in Sources */,
+				56CA0D421BF5D8E20019C023 /* DatabaseValue+Foundation.swift in Sources */,
 				56A2387C1B9C75030082EB20 /* Configuration.swift in Sources */,
 				56A238B11B9C90BB0082EB20 /* NSString.swift in Sources */,
 				56A238B41B9C919D0082EB20 /* NSNumber.swift in Sources */,
@@ -1306,6 +1311,7 @@
 				56A238891B9C75030082EB20 /* SelectStatement.swift in Sources */,
 				56A238811B9C75030082EB20 /* DatabaseError.swift in Sources */,
 				56A238991B9C752B0082EB20 /* DatabaseTableMapping.swift in Sources */,
+				56CA0D411BF5D8E20019C023 /* DatabaseValue+Foundation.swift in Sources */,
 				56A238851B9C75030082EB20 /* DatabaseValue.swift in Sources */,
 				56A238A41B9C753B0082EB20 /* Record.swift in Sources */,
 				56A2388F1B9C75030082EB20 /* UpdateStatement.swift in Sources */,

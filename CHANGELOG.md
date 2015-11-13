@@ -1,6 +1,21 @@
 Release Notes
 =============
 
+## Next Releases
+
+**New**
+
+- `DatabaseValue.init?(object: AnyObject)` initializer.
+
+
+**Breaking Changes**
+
+- `Row.init?(dictionary: NSDictionary)` is now a failable initializer which returns nil if the NSDictionary contains invalid values.
+- `RowConvertible.init?(dictionary: NSDictionary)` is now a failable initializer which returns nil if the NSDictionary contains invalid values.
+- `StatementArguments.init?(_ array: NSArray)` is now a failable initializer which returns nil if the NSArray contains invalid values.
+- `StatementArguments.init?(_ dictionary: NSDictionary)` is now a failable initializer which returns nil if the NSDictionary contains invalid values.
+
+
 ## 0.28.0
 
 Released November 13, 2015

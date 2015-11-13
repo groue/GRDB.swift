@@ -3,9 +3,15 @@ import GRDB
 
 class RowFoundationTests: GRDBTestCase {
 
+    func testRowFromInvalidNSDictionary() {
+        let dictionary: NSDictionary = ["a": NSObject()]
+        let row = Row(dictionary: dictionary)
+        XCTAssertTrue(row == nil)
+    }
+    
     func testRowFromNSDictionary() {
         let dictionary: NSDictionary = ["a": "foo", "b": 1, "c": NSNull(), "d": NSDate(timeIntervalSince1970: 1443642439)]
-        let row = Row(dictionary: dictionary)
+        let row = Row(dictionary: dictionary)!
         
         XCTAssertEqual(row.count, 4)
         XCTAssertEqual(row.value(named: "a") as String, "foo")
