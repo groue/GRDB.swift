@@ -5,6 +5,7 @@
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
+- [ ] Row(dictionary: NSDictionary) should be failable initializer, so that the user can test for invalid dictionaries. It should be the same for all APIs that eat potentially invalid AnyObject or NSDictionaries.
 
 
 Not sure:
