@@ -490,9 +490,9 @@ public final class Row: CollectionType {
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: A sequence of rows.
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(metalStatement: statement)
         return statement.fetch(arguments: arguments) { row }
@@ -504,9 +504,9 @@ public final class Row: CollectionType {
     ///     let rows = Row.fetchAll(statement)
     ///
     /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: An array of rows.
-    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
+    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> [Row] {
         let sequence = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
         }
@@ -519,9 +519,9 @@ public final class Row: CollectionType {
     ///     let row = Row.fetchOne(statement)
     ///
     /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: An optional row.
-    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
+    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> Row? {
         let rows = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
         }
@@ -561,9 +561,9 @@ public final class Row: CollectionType {
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: A sequence of rows.
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Row> {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
@@ -573,9 +573,9 @@ public final class Row: CollectionType {
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: An array of rows.
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Row] {
         return fetchAll(db.selectStatement(sql), arguments: arguments)
     }
     
@@ -585,9 +585,9 @@ public final class Row: CollectionType {
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: An optional row.
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> Row? {
         return fetchOne(db.selectStatement(sql), arguments: arguments)
     }
 

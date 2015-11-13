@@ -34,7 +34,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
                     ["Barbara", 38],
                 ]
                 for person in persons {
-                    try statement.execute(arguments: StatementArguments(person))
+                    try statement.execute(arguments: StatementArguments(person)!)
                 }
                 
                 return .Commit
@@ -62,7 +62,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
                     ["name": "Barbara", "age": 38],
                 ]
                 for person in persons {
-                    try statement.execute(arguments: StatementArguments(person))
+                    try statement.execute(arguments: StatementArguments(person)!)
                 }
                 
                 return .Commit

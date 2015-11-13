@@ -24,8 +24,8 @@ public final class SelectStatement : Statement {
     // MARK: - Not public
     
     /// The DatabaseSequence builder.
-    func fetch<T>(arguments arguments: StatementArguments?, yield: () -> T) -> DatabaseSequence<T> {
-        if let arguments = arguments {
+    func fetch<T>(arguments arguments: StatementArguments, yield: () -> T) -> DatabaseSequence<T> {
+        if !arguments.isDefault {
             self.arguments = arguments
         }
         

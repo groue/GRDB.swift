@@ -52,9 +52,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// remaining elements are undefined.
     ///
     /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: A sequence of non null values.
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
         return statement.fetch(arguments: arguments) {
             let sqliteStatement = statement.sqliteStatement
             if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
@@ -75,9 +75,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///     let names = String.fetchAll(statement)  // [String]
     ///
     /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: An array of non null values.
-    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
+    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> [Self] {
         return Array(fetch(statement, arguments: arguments))
     }
     
@@ -102,9 +102,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: A sequence of non null values.
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
@@ -114,9 +114,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: An array of non null values.
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Self] {
         return fetchAll(db.selectStatement(sql), arguments: arguments)
     }
 }

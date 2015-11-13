@@ -58,9 +58,47 @@ public struct StatementArguments {
     }
     
     
+    // MARK: - Default Arguments
+    
+    /// Whenever you need to write a method with optional statement arguments,
+    /// do not use nil as a sentinel. This is because StatementArguments has
+    /// failable initializers, and you do not want such a failed initializer
+    /// have your method behave as if no arguments was given.
+    ///
+    /// Instead, use a non-optional StatementArguments parameter type, and use
+    /// StatementArguments.Default as its default value.
+    ///
+    /// Compare:
+    ///
+    ///     func bad(arguments: StatementArguments? = nil)
+    ///     func good(arguments: StatementArguments = StatementArguments.Default)
+    ///
+    ///     let badDict: NSDictionary = ["foo": NSObject()] // can't be used as arguments
+    ///     let arguments = StatementArguments(badDict)     // nil, actually
+    ///
+    ///     // Bad function swallows nil. Bad, bad function!
+    ///     bad(arguments: arguments)
+    ///
+    ///     // Good function forces the user to handle the invalid input case:
+    ///     good(arguments: arguments)  // won't compile
+    ///     if let arguments = arguments {
+    ///         good(arguments: arguments)
+    ///     } else {
+    ///         // handle wrong dictionary
+    ///     }
+    public static var Default = StatementArguments(impl: DefaultStatementArgumentsImpl())
+    
+    /// True if and only if the receiver is StatementArguments.Default.
+    public var isDefault: Bool { return impl.isDefault }
+    
+    
     // MARK: - Not Public
     
     let impl: StatementArgumentsImpl
+    
+    init(impl: StatementArgumentsImpl) {
+        self.impl = impl
+    }
     
     // Supported usage: Statement.arguments property
     //
@@ -71,11 +109,27 @@ public struct StatementArguments {
     }
     
     
+    // Mark: - StatementArguments.DefaultImpl
+    
+    private struct DefaultStatementArgumentsImpl : StatementArgumentsImpl {
+        var isDefault: Bool { return true }
+        
+        func bindInStatement(statement: Statement) {
+            fatalError("StatementArguments.DefaultImpl can not be bound.")
+        }
+        
+        var description: String {
+            return "StatementArguments.DefaultImpl"
+        }
+    }
+    
+    
     // MARK: - StatementArgumentsArrayImpl
     
     /// Support for positional arguments
     private struct StatementArgumentsArrayImpl : StatementArgumentsImpl {
         let values: [DatabaseValueConvertible?]
+        var isDefault: Bool { return false }
         
         init(values: [DatabaseValueConvertible?]) {
             self.values = values
@@ -109,6 +163,7 @@ public struct StatementArguments {
     /// Support for named arguments
     private struct StatementArgumentsDictionaryImpl : StatementArgumentsImpl {
         let dictionary: [String: DatabaseValueConvertible?]
+        var isDefault: Bool { return false }
         
         init(dictionary: [String: DatabaseValueConvertible?]) {
             self.dictionary = dictionary
@@ -139,6 +194,7 @@ public struct StatementArguments {
 
 // The protocol for StatementArguments underlying implementation
 protocol StatementArgumentsImpl : CustomStringConvertible {
+    var isDefault: Bool { get }
     func bindInStatement(statement: Statement)
 }
 

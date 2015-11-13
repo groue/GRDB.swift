@@ -36,7 +36,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         // IMPLEMENTATION NOTE
         //
         // Swift requires a required initializer so that we can fetch Records
-        // in SelectStatement.fetch<Record: GRDB.Record>(type: Record.Type, arguments: StatementArguments? = nil) -> DatabaseSequence<Record>
+        // in SelectStatement.fetch<Record: GRDB.Record>(type: Record.Type, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Record>
         //
         // This required initializer *can not* be the simple init(), because it
         // would prevent subclasses to provide handy initializers made of

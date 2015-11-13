@@ -6,6 +6,7 @@ Release Notes
 **New**
 
 - `DatabaseValue.init?(object: AnyObject)` initializer.
+- `StatementArguments.Default` is the preferred sentinel for functions that have an optional arguments parameter.
 
 
 **Breaking Changes**
@@ -14,6 +15,7 @@ Release Notes
 - `RowConvertible.init?(dictionary: NSDictionary)` is now a failable initializer which returns nil if the NSDictionary contains invalid values.
 - `StatementArguments.init?(_ array: NSArray)` is now a failable initializer which returns nil if the NSArray contains invalid values.
 - `StatementArguments.init?(_ dictionary: NSDictionary)` is now a failable initializer which returns nil if the NSDictionary contains invalid values.
+- All methods that used to have an `StatementArguments?` parameter with nil default value now have a non-optional `StatementArguments` parameter with `StatementArguments.Default` as a default value. This makes sure failable StatementArguments initializers don't let invalid inputs sneak in your queries.
 
 
 ## 0.28.0

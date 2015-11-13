@@ -56,10 +56,10 @@ public final class Database {
     /// This method may throw a DatabaseError.
     ///
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional query arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
+    public func execute(sql: String, arguments: StatementArguments = StatementArguments.Default) throws -> DatabaseChanges {
         let statement = updateStatement(sql)
         return try statement.execute(arguments: arguments)
     }

@@ -12,11 +12,11 @@ public final class UpdateStatement : Statement {
         
     /// Executes the SQL query.
     ///
-    /// - parameter arguments: Optional query arguments.
+    /// - parameter arguments: Statement arguments.
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
-        if let arguments = arguments {
+    public func execute(arguments arguments: StatementArguments = StatementArguments.Default) throws -> DatabaseChanges {
+        if !arguments.isDefault {
             self.arguments = arguments
         }
         
