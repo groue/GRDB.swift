@@ -115,7 +115,6 @@ public struct StatementArguments {
         var isDefault: Bool { return true }
         
         func bindInStatement(statement: Statement) {
-            fatalError("StatementArguments.DefaultImpl can not be bound.")
         }
         
         var description: String {

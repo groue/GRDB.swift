@@ -21,6 +21,9 @@ public class Statement {
             reset() // necessary before applying new arguments
             clearArguments()
             if let arguments = arguments {
+                guard !arguments.isDefault else {
+                    fatalError("Invalid StatementArguments.Default arguments.")
+                }
                 arguments.bindInStatement(self)
             }
         }
