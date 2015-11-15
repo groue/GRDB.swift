@@ -186,11 +186,10 @@ public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
 }
 
 private func int64EqualDouble(i: Int64, _ d: Double) -> Bool {
-    if d >= Double(Int64.min) && d < Double(Int64.max) {
-        return round(d) == d && i == Int64(d)
-    } else {
-        return false
-    }
+    return (d >= Double(Int64.min))
+        && (d < Double(Int64.max))
+        && (round(d) == d)
+        && (i == Int64(d))
 }
 
 
