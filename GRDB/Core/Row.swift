@@ -40,8 +40,7 @@ public final class Row: CollectionType {
     /// specific one: `row.copy()`.
     @warn_unused_result
     public func copy() -> Row {
-        // Return a row that is detached from its eventual SQLite statement:
-        return impl.detachedRow(self)
+        return impl.copiedRow(self)
     }
     
     
@@ -198,11 +197,10 @@ public final class Row: CollectionType {
             //
             // Perform a NULL check, and prevent SQLite from converting NULL to
             // a 0 integer, for example.
-            if sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL {
+            guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
                 fatalError("Could not convert NULL to \(Value.self).")
-            } else {
-                return Value(sqliteStatement: sqliteStatement, index: Int32(index))
             }
+            return Value(sqliteStatement: sqliteStatement, index: Int32(index))
         } else {
             // Detached row
             return impl.databaseValue(atIndex: index).value()
@@ -224,11 +222,10 @@ public final class Row: CollectionType {
         //     if row.value(named: "foo") != nil { ... }
         //
         // Without this method, the code above would not compile.
-        if let index = impl.indexForColumn(named: columnName) {
-            return impl.databaseValue(atIndex: index).value()
-        } else {
+        guard let index = impl.indexForColumn(named: columnName) else {
             fatalError("No such column: \(String(reflecting: columnName))")
         }
+        return impl.databaseValue(atIndex: index).value()
     }
     
     /// Returns the value of type `Value` at given column.
@@ -251,11 +248,10 @@ public final class Row: CollectionType {
     /// - parameter columnName: A column name.
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
-        if let index = impl.indexForColumn(named: columnName) {
-            return value(atIndex: index)
-        } else {
+        guard let index = impl.indexForColumn(named: columnName) else {
             fatalError("No such column: \(String(reflecting: columnName))")
         }
+        return value(atIndex: index)
     }
     
     /// Returns the value of type `Value` at given column.
@@ -283,11 +279,10 @@ public final class Row: CollectionType {
     /// - parameter columnName: A column name.
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
-        if let index = impl.indexForColumn(named: columnName) {
-            return value(atIndex: index)
-        } else {
+        guard let index = impl.indexForColumn(named: columnName) else {
             fatalError("No such column: \(String(reflecting: columnName))")
         }
+        return value(atIndex: index)
     }
     
     /// Returns the value of type `Value` at given column.
@@ -310,11 +305,10 @@ public final class Row: CollectionType {
     /// - parameter columnName: A column name.
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
-        if let index = impl.indexForColumn(named: columnName) {
-            return value(atIndex: index)
-        } else {
+        guard let index = impl.indexForColumn(named: columnName) else {
             fatalError("No such column: \(String(reflecting: columnName))")
         }
+        return value(atIndex: index)
     }
     
     /// Returns the value of type `Value` at given column.
@@ -342,11 +336,10 @@ public final class Row: CollectionType {
     /// - parameter columnName: A column name.
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
-        if let index = impl.indexForColumn(named: columnName) {
-            return value(atIndex: index)
-        } else {
+        guard let index = impl.indexForColumn(named: columnName) else {
             fatalError("No such column: \(String(reflecting: columnName))")
         }
+        return value(atIndex: index)
     }
     
     /// Returns the optional `NSData` at given index.
@@ -380,11 +373,10 @@ public final class Row: CollectionType {
     /// - parameter columnName: A column name.
     /// - returns: An optional NSData.
     public func dataNoCopy(named columnName: String) -> NSData? {
-        if let index = impl.indexForColumn(named: columnName) {
-            return dataNoCopy(atIndex: index)
-        } else {
+        guard let index = impl.indexForColumn(named: columnName) else {
             fatalError("No such column: \(String(reflecting: columnName))")
         }
+        return dataNoCopy(atIndex: index)
     }
     
     
@@ -403,11 +395,10 @@ public final class Row: CollectionType {
     /// - parameter columnName: A column name.
     /// - returns: A DatabaseValue if the row contains the requested column.
     public subscript(columnName: String) -> DatabaseValue? {
-        if let index = impl.indexForColumn(named: columnName) {
-            return impl.databaseValue(atIndex: index)
-        } else {
+        guard let index = impl.indexForColumn(named: columnName) else {
             return nil
         }
+        return impl.databaseValue(atIndex: index)
     }
     
     
@@ -666,14 +657,13 @@ public final class Row: CollectionType {
         // This method MUST be case-insensitive.
         func indexForColumn(named name: String) -> Int? {
             let lowercaseName = name.lowercaseString
-            if let index = databaseDictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) {
-                return databaseDictionary.startIndex.distanceTo(index)
-            } else {
+            guard let index = databaseDictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) else {
                 return nil
             }
+            return databaseDictionary.startIndex.distanceTo(index)
         }
         
-        func detachedRow(row: Row) -> Row {
+        func copiedRow(row: Row) -> Row {
             return row
         }
     }
@@ -714,7 +704,7 @@ public final class Row: CollectionType {
             return columnNames.indexOf { $0.lowercaseString == lowercaseName }
         }
         
-        func detachedRow(row: Row) -> Row {
+        func copiedRow(row: Row) -> Row {
             return row
         }
     }
@@ -758,7 +748,7 @@ public final class Row: CollectionType {
             return statement.indexForColumn(named: name)
         }
         
-        func detachedRow(row: Row) -> Row {
+        func copiedRow(row: Row) -> Row {
             return Row(detachedStatement: statement)
         }
     }
@@ -786,7 +776,7 @@ public final class Row: CollectionType {
             return nil
         }
         
-        func detachedRow(row: Row) -> Row {
+        func copiedRow(row: Row) -> Row {
             return row
         }
     }
@@ -817,7 +807,7 @@ protocol RowImpl {
     func dataNoCopy(atIndex index:Int) -> NSData?
     func columnName(atIndex index: Int) -> String
     func indexForColumn(named name: String) -> Int? // This method MUST be case-insensitive.
-    func detachedRow(row: Row) -> Row               // The row argument has the receiver as an impl.
+    func copiedRow(row: Row) -> Row                 // row.impl is guaranteed to be self.
 }
 
 
