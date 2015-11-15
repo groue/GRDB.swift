@@ -60,14 +60,14 @@ public struct DatabaseSequence<T>: SequenceType {
             let assertValidQueue = statement.database.assertValidQueue
             let sqliteStatement = statement.sqliteStatement
             
-            // Check that sequence is built on a valid database.
+            // Check that sequence is built on a valid queue.
             assertValidQueue()
             
             // DatabaseSequence can be restarted:
             statement.reset()
             
             return DatabaseGenerator {
-                // Check that generator is used on a valid database.
+                // Check that generator is used on a valid queue.
                 assertValidQueue()
                 
                 let code = sqlite3_step(sqliteStatement)
