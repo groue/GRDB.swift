@@ -115,6 +115,7 @@ public struct StatementArguments {
         var isDefault: Bool { return true }
         
         func bindInStatement(statement: Statement) {
+            fatalError("DefaultStatementArgumentsImpl is a sentinel value and must not be used.")
         }
         
         var description: String {
