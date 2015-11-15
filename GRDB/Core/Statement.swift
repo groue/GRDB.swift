@@ -54,13 +54,11 @@ public class Statement {
         self.sql = sql
         self.sqliteStatement = sqliteStatement
         
-        switch code {
-        case SQLITE_OK:
-            guard consumedCharactersCount == sqlCodeUnits.count else {
-                fatalError("Invalid SQL string: multiple statements found. To execute multiple statements, use Database.executeMultiStatement() instead.")
-            }
-        default:
+        guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
+        }
+        guard consumedCharactersCount == sqlCodeUnits.count else {
+            fatalError("Invalid SQL string: multiple statements found. To execute multiple statements, use Database.executeMultiStatement() instead.")
         }
     }
     
