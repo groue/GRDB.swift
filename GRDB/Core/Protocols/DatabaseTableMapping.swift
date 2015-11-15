@@ -26,11 +26,10 @@ extension DatabaseTableMapping {
     /// - parameter keys: An array of primary keys.
     /// - returns: A sequence.
     public static func fetch<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> DatabaseSequence<Self> {
-        if let statement = self.fetchByPrimaryKeyStatement(db, keys: keys) {
-            return self.fetch(statement)
-        } else {
+        guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
             return DatabaseSequence()
         }
+        return fetch(statement)
     }
     
     /// Fetches an array of values, given their primary keys.
@@ -43,11 +42,10 @@ extension DatabaseTableMapping {
     /// - parameter keys: An array of primary keys.
     /// - returns: An array.
     public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> [Self] {
-        if let statement = self.fetchByPrimaryKeyStatement(db, keys: keys) {
-            return self.fetchAll(statement)
-        } else {
+        guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
             return []
         }
+        return fetchAll(statement)
     }
     
     /// Fetches a single value given its primary key.
@@ -119,11 +117,10 @@ extension DatabaseTableMapping {
     /// - parameter keys: An array of key dictionaries.
     /// - returns: A sequence.
     public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
-        if let statement = self.fetchByKeyStatement(db, keys: keys) {
-            return self.fetch(statement)
-        } else {
+        guard let statement = self.fetchByKeyStatement(db, keys: keys) else {
             return DatabaseSequence()
         }
+        return self.fetch(statement)
     }
     
     /// Fetches an array of values, given an array of key dictionaries.
@@ -136,11 +133,10 @@ extension DatabaseTableMapping {
     /// - parameter keys: An array of key dictionaries.
     /// - returns: An array.
     public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
-        if let statement = self.fetchByKeyStatement(db, keys: keys) {
-            return self.fetchAll(statement)
-        } else {
+        guard let statement = self.fetchByKeyStatement(db, keys: keys) else {
             return []
         }
+        return self.fetchAll(statement)
     }
     
     /// Fetches a single value given a key dictionary.
