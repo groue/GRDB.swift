@@ -28,27 +28,16 @@ public struct DatabaseError : ErrorType {
 extension DatabaseError: CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        // How to write this with a switch?
+        var description = "SQLite error \(code)"
         if let sql = sql {
-            if let message = message {
-                if let arguments = arguments {
-                    return "SQLite error \(code) with statement `\(sql)` arguments \(arguments): \(message)"
-                } else {
-                    return "SQLite error \(code) with statement `\(sql)`: \(message)"
-                }
-            } else {
-                if let arguments = arguments {
-                    return "SQLite error \(code) with statement `\(sql)` arguments \(arguments)"
-                } else {
-                    return "SQLite error \(code) with statement `\(sql)`"
-                }
-            }
-        } else {
-            if let message = message {
-                return "SQLite error \(code): \(message)"
-            } else {
-                return "SQLite error \(code)"
-            }
+            description += " with statement `\(sql)`"
         }
+        if let arguments = arguments {
+            description += " arguments \(arguments)"
+        }
+        if let message = message {
+            description += ": \(message)"
+        }
+        return description
     }
 }
