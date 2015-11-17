@@ -1,7 +1,18 @@
 Release Notes
 =============
 
+## 0.30.0
+
+Released November 17, 2015
+
+**Fixed**
+
+- Prepared statements won't execute unless their arguments are all set.
+
+
 ## 0.29.0
+
+Released November 14, 2015
 
 **New**
 
