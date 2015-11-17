@@ -18,12 +18,10 @@ public class Statement {
     /// The query arguments
     public var arguments: StatementArguments? {
         didSet {
+            validateArguments()
             reset() // necessary before applying new arguments
-            clearArguments()
+            clearBindings()
             if let arguments = arguments {
-                guard !arguments.isDefault else {
-                    fatalError("Invalid StatementArguments.Default arguments.")
-                }
                 arguments.bindInStatement(self)
             }
         }
@@ -94,26 +92,33 @@ public class Statement {
         return argumentNames
     }()
     
-    // Exposed for StatementArguments.
-    func validateArgumentCount(count: Int) {
-        guard count == argumentCount else {
-            fatalError("SQLite statement arguments mismatch: got \(count) argument(s) instead of \(argumentCount).")
-        }
-    }
-    
-    // Exposed for StatementArguments.
-    func validateCoveringArgumentKeys(keys: [String]) {
-        let inputArgumentNames = keys.map { ":\($0)" }
-        guard Set(inputArgumentNames) == sqliteArgumentNames else {
-            func caseInsensitiveSort(strings: [String]) -> [String] {
-                return strings
-                    .map { ($0.lowercaseString, $0) }
-                    .sort { $0.0 < $1.0 }
-                    .map { $0.1 }
+    func validateArguments() {
+        if let argumentsKind = arguments?.kind {
+            switch argumentsKind {
+            case .Default:
+                if argumentCount > 0 {
+                    fatalError("Invalid StatementArguments.Default arguments in `\(sql)`.")
+                }
+            case .Array(count: let count):
+                if count != argumentCount {
+                    fatalError("SQLite statement arguments mismatch: got \(count) argument(s) instead of \(argumentCount) in `\(sql)`.")
+                }
+            case .Dictionary(keys: let keys):
+                let inputArgumentNames = keys.map { ":\($0)" }
+                if Set(inputArgumentNames) != sqliteArgumentNames {
+                    func caseInsensitiveSort(strings: [String]) -> [String] {
+                        return strings
+                            .map { ($0.lowercaseString, $0) }
+                            .sort { $0.0 < $1.0 }
+                            .map { $0.1 }
+                    }
+                    let input = caseInsensitiveSort(inputArgumentNames).joinWithSeparator(",")
+                    let expected = caseInsensitiveSort(Array(sqliteArgumentNames)).joinWithSeparator(",")
+                    fatalError("SQLite statement argument names mismatch: got [\(input)] instead of [\(expected)] in `\(sql)`.")
+                }
             }
-            let input = caseInsensitiveSort(inputArgumentNames).joinWithSeparator(",")
-            let expected = caseInsensitiveSort(Array(sqliteArgumentNames)).joinWithSeparator(",")
-            fatalError("SQLite statement argument names mismatch: got [\(input)] instead of [\(expected)].")
+        } else if argumentCount > 0 {
+            fatalError("SQLite statement arguments mismatch: got 0 argument(s) instead of \(argumentCount) in `\(sql)`.")
         }
     }
     
@@ -155,7 +160,7 @@ public class Statement {
     }
     
     // Don't make this one public unless we keep the arguments property in sync.
-    private func clearArguments() {
+    private func clearBindings() {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {
             fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)

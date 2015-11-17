@@ -28,7 +28,7 @@ public final class SelectStatement : Statement {
         if !arguments.isDefault {
             self.arguments = arguments
         }
-        
+        validateArguments()
         return DatabaseSequence(statement: self, yield: yield)
     }
     

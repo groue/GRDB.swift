@@ -26,21 +26,17 @@ class UpdateStatementTests : GRDBTestCase {
     func testTrailingSemiColonIsAcceptedAndOptional() {
         assertNoError {
             try dbQueue.inTransaction { db in
-                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', ?)").execute()
-                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Barbara', ?)").execute()
-                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', ?);").execute()
-                try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Barbara', ?);").execute()
+                try db.updateStatement("INSERT INTO persons (name) VALUES ('Arthur')").execute()
+                try db.updateStatement("INSERT INTO persons (name) VALUES ('Barbara');").execute()
                 return .Commit
             }
         }
         
         dbQueue.inDatabase { db in
             let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
-            XCTAssertEqual(rows.count, 4)
+            XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
-            XCTAssertEqual(rows[1].value(named: "name") as String, "Arthur")
-            XCTAssertEqual(rows[2].value(named: "name") as String, "Barbara")
-            XCTAssertEqual(rows[3].value(named: "name") as String, "Barbara")
+            XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
         }
     }
     

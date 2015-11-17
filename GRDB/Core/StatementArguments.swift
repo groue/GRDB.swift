@@ -89,12 +89,13 @@ public struct StatementArguments {
     public static var Default = StatementArguments(impl: DefaultStatementArgumentsImpl())
     
     /// True if and only if the receiver is StatementArguments.Default.
-    public var isDefault: Bool { return impl.isDefault }
+    public var isDefault: Bool { return kind.isDefault }
     
     
     // MARK: - Not Public
     
     let impl: StatementArgumentsImpl
+    var kind: StatementArgumentsKind { return impl.kind }
     
     init(impl: StatementArgumentsImpl) {
         self.impl = impl
@@ -112,7 +113,7 @@ public struct StatementArguments {
     // Mark: - StatementArguments.DefaultImpl
     
     private struct DefaultStatementArgumentsImpl : StatementArgumentsImpl {
-        var isDefault: Bool { return true }
+        var kind: StatementArgumentsKind { return .Default }
         
         func bindInStatement(statement: Statement) {
             fatalError("DefaultStatementArgumentsImpl is a sentinel value and must not be used.")
@@ -129,14 +130,13 @@ public struct StatementArguments {
     /// Support for positional arguments
     private struct StatementArgumentsArrayImpl : StatementArgumentsImpl {
         let values: [DatabaseValueConvertible?]
-        var isDefault: Bool { return false }
+        var kind: StatementArgumentsKind { return .Array(count: values.count) }
         
         init(values: [DatabaseValueConvertible?]) {
             self.values = values
         }
         
         func bindInStatement(statement: Statement) {
-            statement.validateArgumentCount(values.count)
             for (index, value) in values.enumerate() {
                 statement.setArgument(value, atIndex: index + 1)
             }
@@ -163,14 +163,13 @@ public struct StatementArguments {
     /// Support for named arguments
     private struct StatementArgumentsDictionaryImpl : StatementArgumentsImpl {
         let dictionary: [String: DatabaseValueConvertible?]
-        var isDefault: Bool { return false }
+        var kind: StatementArgumentsKind { return .Dictionary(keys: Array(dictionary.keys)) }
         
         init(dictionary: [String: DatabaseValueConvertible?]) {
             self.dictionary = dictionary
         }
         
         func bindInStatement(statement: Statement) {
-            statement.validateCoveringArgumentKeys(Array(dictionary.keys))
             for (key, value) in dictionary {
                 statement.setArgument(value, forKey: key)   // crash if key is not found
             }
@@ -192,9 +191,24 @@ public struct StatementArguments {
 }
 
 
+// This enum lets Statement validate its arguments.
+enum StatementArgumentsKind {
+    case Default
+    case Array(count: Int)
+    case Dictionary(keys: [String])
+    var isDefault: Bool {
+        switch self {
+        case .Default:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
 // The protocol for StatementArguments underlying implementation
 protocol StatementArgumentsImpl : CustomStringConvertible {
-    var isDefault: Bool { get }
+    var kind: StatementArgumentsKind { get }
     func bindInStatement(statement: Statement)
 }
 

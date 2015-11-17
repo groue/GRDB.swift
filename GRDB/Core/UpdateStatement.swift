@@ -19,7 +19,7 @@ public final class UpdateStatement : Statement {
         if !arguments.isDefault {
             self.arguments = arguments
         }
-        
+        validateArguments()
         reset()
         
         let code = sqlite3_step(sqliteStatement)
