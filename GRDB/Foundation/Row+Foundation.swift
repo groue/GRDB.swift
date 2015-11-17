@@ -30,22 +30,11 @@ extension Row {
     /// the value of the leftmost column.
     ///
     /// - returns: An NSDictionary.
-    public func toDictionary() -> NSDictionary {
+    public func toNSDictionary() -> NSDictionary {
         var dictionary = [NSObject: AnyObject]()
         // Reverse so that the result dictionary contains values for the leftmost columns.
         for (columnName, databaseValue) in reverse() {
-            switch databaseValue.storage {
-            case .Null:
-                dictionary[columnName] = NSNull()
-            case .Int64(let int64):
-                dictionary[columnName] = NSNumber(longLong: int64)
-            case .Double(let double):
-                dictionary[columnName] = NSNumber(double: double)
-            case .String(let string):
-                dictionary[columnName] = string as NSString
-            case .Blob(let data):
-                dictionary[columnName] = data
-            }
+            dictionary[columnName] = databaseValue.toAnyObject()
         }
         return dictionary
     }
