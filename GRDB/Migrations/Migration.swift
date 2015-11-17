@@ -5,10 +5,10 @@ struct Migration {
     let block: (db: Database) throws -> Void
     
     func run(db: Database) throws {
-        if self.disableForeignKeys && Bool.fetchOne(db, "PRAGMA foreign_keys")! {
-            try self.runWithDisabledForeignKeys(db)
+        if disableForeignKeys && Bool.fetchOne(db, "PRAGMA foreign_keys")! {
+            try runWithDisabledForeignKeys(db)
         } else {
-            try self.runWithoutDisabledForeignKeys(db)
+            try runWithoutDisabledForeignKeys(db)
         }
     }
     

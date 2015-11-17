@@ -49,8 +49,9 @@ extension NSDate : DatabaseValueConvertible {
             
             let date = UTCCalendar.dateFromComponents(dateComponents)!
             return self.init(timeInterval: 0, sinceDate: date)
-            
-        } else if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
+        }
+        
+        if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
             // Date components
             
             switch databaseDateComponents.format {
@@ -63,9 +64,9 @@ extension NSDate : DatabaseValueConvertible {
                 // dangerous.
                 return nil
             }
-        } else {
-            return nil
         }
+        
+        return nil
     }
 }
 

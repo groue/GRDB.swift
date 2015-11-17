@@ -51,12 +51,11 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     ///   the database.
     /// - returns: An optional DatabaseDateComponents.
     public init?(_ dateComponents: NSDateComponents?, format: Format) {
-        if let dateComponents = dateComponents {
-            self.format = format
-            self.dateComponents = dateComponents
-        } else {
+        guard let dateComponents = dateComponents else {
             return nil
         }
+        self.format = format
+        self.dateComponents = dateComponents
     }
     
     

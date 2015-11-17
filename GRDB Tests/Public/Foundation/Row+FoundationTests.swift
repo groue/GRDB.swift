@@ -22,7 +22,7 @@ class RowFoundationTests: GRDBTestCase {
     
     func testRowToNSDictionary() {
         let row = Row(dictionary: ["a": "foo", "b": 1, "c": nil, "d": NSDate(timeIntervalSince1970: 1443642439)])
-        let dictionary = row.toDictionary()
+        let dictionary = row.toNSDictionary()
         XCTAssertEqual(dictionary.count, 4)
         XCTAssertTrue((dictionary["a"] as! NSString).isEqualToString("foo"))
         XCTAssertTrue((dictionary["b"] as! NSNumber).isEqualToNumber(NSNumber(integer: 1)))

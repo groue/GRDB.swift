@@ -30,6 +30,7 @@ public struct DatabaseValue : Equatable {
     /// Returns a DatabaseValue storing NSData.
     public init(data: NSData) {
         if data.length == 0 {
+            // SQLite cant' store zero-length blobs.
             self.storage = .Null
         } else {
             self.storage = .Blob(data)
@@ -102,11 +103,10 @@ public struct DatabaseValue : Equatable {
     ///
     /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>() -> Value {
-        if let value = Value.fromDatabaseValue(self) as Value? {
-            return value
-        } else {
+        guard let value = Value.fromDatabaseValue(self) as Value? else {
             fatalError("Could not convert \(self) to \(Value.self).")
         }
+        return value
     }
     
     

@@ -33,11 +33,10 @@ extension DatabaseIntRepresentable {
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional Self.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
-        if let int = Int.fromDatabaseValue(databaseValue) {
-            return self.init(rawValue: int)
-        } else {
+        guard let int = Int.fromDatabaseValue(databaseValue) else {
             return nil
         }
+        return self.init(rawValue: int)
     }
 }
 
@@ -77,11 +76,10 @@ extension DatabaseInt32Representable {
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional Self.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
-        if let int = Int32.fromDatabaseValue(databaseValue) {
-            return self.init(rawValue: int)
-        } else {
+        guard let int = Int32.fromDatabaseValue(databaseValue) else {
             return nil
         }
+        return self.init(rawValue: int)
     }
 }
 
@@ -121,11 +119,10 @@ extension DatabaseInt64Representable {
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional Self.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
-        if let int = Int64.fromDatabaseValue(databaseValue) {
-            return self.init(rawValue: int)
-        } else {
+        guard let int = Int64.fromDatabaseValue(databaseValue) else {
             return nil
         }
+        return self.init(rawValue: int)
     }
 }
 
@@ -165,10 +162,9 @@ extension DatabaseStringRepresentable {
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional Self.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
-        if let string = String.fromDatabaseValue(databaseValue) {
-            return self.init(rawValue: string)
-        } else {
+        guard let string = String.fromDatabaseValue(databaseValue) else {
             return nil
         }
+        return self.init(rawValue: string)
     }
 }

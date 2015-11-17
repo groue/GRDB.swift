@@ -340,12 +340,11 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     ///   not match any row in the database and record could not be reloaded.
     public func reload(db: Database) throws {
         let statement = DataMapper(db, self).reloadStatement()
-        if let row = Row.fetchOne(statement) {
-            updateFromRow(row)
-            awakeFromFetch(row)
-        } else {
+        guard let row = Row.fetchOne(statement) else {
             throw RecordError.RecordNotFound(self)
         }
+        updateFromRow(row)
+        awakeFromFetch(row)
     }
     
     /// Returns true if and only if the primary key matches a row in

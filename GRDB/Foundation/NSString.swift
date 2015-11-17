@@ -13,10 +13,9 @@ extension NSString: DatabaseValueConvertible {
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional NSString.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
-        if let string = String.fromDatabaseValue(databaseValue) {
-            return self.init(string: string)
-        } else {
+        guard let string = String.fromDatabaseValue(databaseValue) else {
             return nil
         }
+        return self.init(string: string)
     }
 }
