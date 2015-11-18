@@ -329,109 +329,80 @@ public final class Database {
     // =========================================================================
     // MARK: - Functions
     
-    public func removeFunction(function: DatabaseFunction) {
-        functions.remove(function)
-        
+    /// TODO
+    public func removeFunction(identifier: DatabaseFunctionIdentifier) {
+        functions.removeValueForKey(identifier)
         let code = sqlite3_create_function_v2(
             sqliteConnection,
-            function.name,
-            function.argumentCount,
-            function.eTextRep,
+            identifier.name,
+            identifier.argumentCount,
+            SQLITE_UTF8,
             nil, nil, nil, nil, nil)
-        
         guard code == SQLITE_OK else {
             fatalError(DatabaseError(code: code, message: self.lastErrorMessage, sql: nil, arguments: nil).description)
         }
     }
     
-    public func addVariadicFunction(name: String, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) -> DatabaseFunction {
-        let dbFunction = DatabaseFunction(name: name, argumentCount: -1, pure: pure) { (context, argc, argv) in
+    /// TODO
+    public func addVariadicFunction(name: String, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) -> DatabaseFunctionIdentifier {
+        let identifier = DatabaseFunctionIdentifier(name: name, argumentCount: -1)
+        let dbFunction = DatabaseFunction(pure: pure) { (context, argc, argv) in
             let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv[index]) }
             return try function(arguments)?.databaseValue ?? .Null
         }
-        addFunction(dbFunction)
-        return dbFunction
+        addFunction(dbFunction, forIdentifier: identifier)
+        return identifier
     }
     
-    public func addFunction(name: String, argumentCount: Int, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) -> DatabaseFunction {
+    /// TODO
+    public func addFunction(name: String, argumentCount: Int, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) -> DatabaseFunctionIdentifier {
         guard argumentCount >= 0 else {
             fatalError("Invalid negative argument count. Use addVariadicFunction() for arguments with variable arguments count.")
         }
-        let dbFunction = DatabaseFunction(name: name, argumentCount: argumentCount, pure: pure) { (context, argc, argv) in
+        let identifier = DatabaseFunctionIdentifier(name: name, argumentCount: Int32(argumentCount))
+        let dbFunction = DatabaseFunction(pure: pure) { (context, argc, argv) in
             let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv[index]) }
             return try function(arguments)?.databaseValue ?? .Null
         }
-        addFunction(dbFunction)
-        return dbFunction
+        addFunction(dbFunction, forIdentifier: identifier)
+        return identifier
     }
+
+    private var functions = [DatabaseFunctionIdentifier: DatabaseFunction]()
     
-    public func addFunction(name: String, pure: Bool = false, function: Void throws -> DatabaseValueConvertible?) -> DatabaseFunction {
-        let dbFunction = DatabaseFunction(name: name, argumentCount: 0, pure: pure) { (context, argc, argv) in
-            return try function()?.databaseValue ?? .Null
-        }
-        addFunction(dbFunction)
-        return dbFunction
-    }
-    
-    public func addFunction<T: DatabaseValueConvertible>(name: String, pure: Bool = false, function: T throws -> DatabaseValueConvertible?) -> DatabaseFunction {
-        let dbFunction = DatabaseFunction(name: name, argumentCount: 1, pure: pure) { (context, argc, argv) in
-            let dbv = DatabaseValue(sqliteValue: argv[0])
-            guard let arg = dbv.value() as T? else {
-                throw DatabaseError(message: "Could not convert \(dbv) to \(T.self) while evaluating function \(name)().")
-            }
-            return try function(arg)?.databaseValue ?? .Null
-        }
-        addFunction(dbFunction)
-        return dbFunction
-    }
-    
-    public func addFunction<T: DatabaseValueConvertible>(name: String, pure: Bool = false, function: T? throws -> DatabaseValueConvertible?) -> DatabaseFunction {
-        let dbFunction = DatabaseFunction(name: name, argumentCount: 1, pure: pure) { (context, argc, argv) in
-            let arg = DatabaseValue(sqliteValue: argv[0]).value() as T?
-            return try function(arg)?.databaseValue ?? .Null
-        }
-        addFunction(dbFunction)
-        return dbFunction
-    }
-    
-    private var functions = Set<DatabaseFunction>()
-    
-    private func addFunction(function: DatabaseFunction) {
-        functions.remove(function)
-        functions.insert(function)
+    private func addFunction(function: DatabaseFunction, forIdentifier identifier: DatabaseFunctionIdentifier) {
+        functions[identifier] = function
+        
         let functionPointer = unsafeBitCast(function, UnsafeMutablePointer<Void>.self)
         let code = sqlite3_create_function_v2(
             sqliteConnection,
-            function.name,
-            function.argumentCount,
-            function.eTextRep,
+            identifier.name,
+            identifier.argumentCount,
+            SQLITE_UTF8 | function.eTextRep,
             functionPointer,
             { (context, argc, argv) in
                 let function = unsafeBitCast(sqlite3_user_data(context), DatabaseFunction.self)
-                let result: DatabaseValue
                 do {
-                    result = try function.function(context: context, argc: argc, argv: argv)
+                    let result = try function.function(context, argc, argv)
+                    switch result.storage {
+                    case .Null:
+                        sqlite3_result_null(context)
+                    case .Int64(let int64):
+                        sqlite3_result_int64(context, int64)
+                    case .Double(let double):
+                        sqlite3_result_double(context, double)
+                    case .String(let string):
+                        sqlite3_result_text(context, string, -1, SQLITE_TRANSIENT)
+                    case .Blob(let data):
+                        sqlite3_result_blob(context, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
+                    }
                 } catch let error as DatabaseError {
                     if let message = error.message {
                         sqlite3_result_error(context, message, -1)
                     }
                     sqlite3_result_error_code(context, Int32(error.code))
-                    return
                 } catch {
                     sqlite3_result_error(context, "\(error)", -1)
-                    return
-                }
-                switch result.storage {
-                case .Null:
-                    sqlite3_result_null(context)
-                case .Int64(let int64):
-                    sqlite3_result_int64(context, int64)
-                case .Double(let double):
-                    sqlite3_result_double(context, double)
-                case .String(let string):
-                    sqlite3_result_text(context, string, -1, SQLITE_TRANSIENT)
-                case .Blob(let data):
-                    sqlite3_result_blob(context, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
                 }
             }, nil, nil, nil)
         
@@ -851,27 +822,30 @@ public enum BusyMode {
 // =========================================================================
 // MARK: - Functions
 
-public class DatabaseFunction : Hashable {
+typealias DatabaseFunctionImpl = (COpaquePointer, Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
+
+/// TODO
+public struct DatabaseFunctionIdentifier : Hashable {
     let name: String
     let argumentCount: Int32
-    let pure: Bool
-    let function: (context: COpaquePointer, argc: Int32, argv: UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
-    var eTextRep: Int32 {
-        return pure ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8
-    }
-    
-    init(name: String, argumentCount: Int, pure: Bool, function: (context: COpaquePointer, argc: Int32, argv: UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue) {
-        self.name = name
-        self.argumentCount = Int32(argumentCount)
-        self.pure = pure
-        self.function = function
-    }
     
     public var hashValue: Int {
         return name.hashValue ^ argumentCount.hashValue
     }
 }
 
-public func ==(lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
+// SQLite compares functions on their name and argumentCount.
+public func ==(lhs: DatabaseFunctionIdentifier, rhs: DatabaseFunctionIdentifier) -> Bool {
     return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
+}
+
+class DatabaseFunction {
+    let pure: Bool
+    let function: DatabaseFunctionImpl
+    var eTextRep: Int32 { return pure ? SQLITE_DETERMINISTIC : 0 }
+    
+    init(pure: Bool, function: DatabaseFunctionImpl) {
+        self.pure = pure
+        self.function = function
+    }
 }

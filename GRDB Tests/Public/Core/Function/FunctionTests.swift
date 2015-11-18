@@ -30,7 +30,7 @@ class FunctionTests: GRDBTestCase {
     func testAddFunctionReturningNull() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f") { nil }
+                db.addFunction("f", argumentCount: 0) { databaseValues in nil }
                 XCTAssertTrue(Row.fetchOne(db, "SELECT f()")!.value(atIndex: 0) == nil)
             }
         }
@@ -39,7 +39,7 @@ class FunctionTests: GRDBTestCase {
     func testAddFunctionReturningInt64() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f") { Int64(1) }
+                db.addFunction("f", argumentCount: 0) { databaseValues in Int64(1) }
                 XCTAssertEqual(Int64.fetchOne(db, "SELECT f()")!, Int64(1))
             }
         }
@@ -48,7 +48,7 @@ class FunctionTests: GRDBTestCase {
     func testAddFunctionReturningDouble() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f") { 1e100 }
+                db.addFunction("f", argumentCount: 0) { databaseValues in 1e100 }
                 XCTAssertEqual(Double.fetchOne(db, "SELECT f()")!, 1e100)
             }
         }
@@ -57,7 +57,7 @@ class FunctionTests: GRDBTestCase {
     func testAddFunctionReturningString() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f") { "foo" }
+                db.addFunction("f", argumentCount: 0) { databaseValues in "foo" }
                 XCTAssertEqual(String.fetchOne(db, "SELECT f()")!, "foo")
             }
         }
@@ -67,7 +67,7 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let data = "foo".dataUsingEncoding(NSUTF8StringEncoding)
-                db.addFunction("f") { data }
+                db.addFunction("f", argumentCount: 0) { databaseValues in data }
                 XCTAssertEqual(NSData.fetchOne(db, "SELECT f()")!, "foo".dataUsingEncoding(NSUTF8StringEncoding))
             }
         }
@@ -76,44 +76,34 @@ class FunctionTests: GRDBTestCase {
     func testAddFunctionReturningCustomFunctionResult() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f") { CustomFunctionResult() }
+                db.addFunction("f", argumentCount: 0) { databaseValues in CustomFunctionResult() }
                 XCTAssertTrue(CustomFunctionResult.fetchOne(db, "SELECT f()") != nil)
             }
         }
     }
     
-    func testAddFunctionOfOptionalInt() {
+    func testFunctionWithoutArgument() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f") { (i: Int?) in
-                    if let i = i {
-                        return i + 1
-                    } else {
-                        return "not an int"
-                    }
+                db.addFunction("f", argumentCount: 0) { databaseValues in
+                    return "foo"
                 }
-                XCTAssertEqual(Int.fetchOne(db, "SELECT f(1)")!, 2)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT f(1.1)")!, 2)
-                XCTAssertEqual(String.fetchOne(db, "SELECT f(NULL)")!, "not an int")
-                XCTAssertEqual(String.fetchOne(db, "SELECT f('foo')")!, "not an int")
+                XCTAssertEqual(String.fetchOne(db, "SELECT f()")!, "foo")
             }
         }
     }
     
-    func testAddFunctionOfInt() {
+    func testFunctionOfOneArgument() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f") { (i: Int) in
-                    return i + 1
+                db.addFunction("f", argumentCount: 1) { databaseValues in
+                    guard let int = databaseValues.first!.value() as Int? else {
+                        return nil
+                    }
+                    return int + 1
                 }
-                XCTAssertEqual(Int.fetchOne(db, "SELECT f(1)")!, 2)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT f(1.1)")!, 2)
-                
-                // Crash: SQLite error 1 with statement `SELECT f(NULL)`: Could not convert NULL to Int while evaluating function f()
-                // Row.fetchOne(db, "SELECT f(NULL)")
-                
-                // Crash: SQLite error 1 with statement `SELECT f('foo')`: Could not convert "foo" to Int while evaluating function f().
-                // Row.fetchOne(db, "SELECT f('foo')")
+                XCTAssertEqual(Int.fetchOne(db, "SELECT f(2)")!, 3)
+                XCTAssertTrue(Int.fetchOne(db, "SELECT f(NULL)") == nil)
             }
         }
     }
@@ -140,6 +130,18 @@ class FunctionTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT f()")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT f(1)")!, 1)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT f(1, 1)")!, 2)
+            }
+        }
+    }
+    
+    func testFunctionsAreClosures() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                let x = 123
+                db.addFunction("f", argumentCount: 0) { databaseValues in
+                    return x
+                }
+                XCTAssertEqual(Int.fetchOne(db, "SELECT f()")!, 123)
             }
         }
     }
