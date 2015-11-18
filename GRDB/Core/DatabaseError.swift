@@ -2,7 +2,7 @@
 public struct DatabaseError : ErrorType {
     
     /// The SQLite error code (see https://www.sqlite.org/c3ref/c_abort.html).
-    public let code: Int
+    public let code: Int32
     
     /// The SQLite error message.
     public let message: String?
@@ -10,19 +10,19 @@ public struct DatabaseError : ErrorType {
     /// The SQL query that yielded the error (if relevant).
     public let sql: String?
     
+    public init(code: Int32 = SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
+        self.code = code
+        self.message = message
+        self.sql = sql
+        self.arguments = arguments
+    }
+    
     
     // MARK: Not public
     
     /// The query arguments that yielded the error (if relevant).
     /// Not public because the StatementArguments class has no public method.
     let arguments: StatementArguments?
-    
-    init(code: Int32, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
-        self.code = Int(code)
-        self.message = message
-        self.sql = sql
-        self.arguments = arguments
-    }
 }
 
 extension DatabaseError: CustomStringConvertible {
