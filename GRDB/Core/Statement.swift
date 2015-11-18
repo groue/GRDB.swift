@@ -1,8 +1,6 @@
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = COpaquePointer
 
-private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
-
 /// A statement represents a SQL query.
 ///
 /// It is the base class of UpdateStatement that executes *update statements*,
@@ -137,8 +135,8 @@ public class Statement {
             code = sqlite3_bind_int64(sqliteStatement, Int32(index), int64)
         case .Double(let double):
             code = sqlite3_bind_double(sqliteStatement, Int32(index), double)
-        case .String(let text):
-            code = sqlite3_bind_text(sqliteStatement, Int32(index), text, -1, SQLITE_TRANSIENT)
+        case .String(let string):
+            code = sqlite3_bind_text(sqliteStatement, Int32(index), string, -1, SQLITE_TRANSIENT)
         case .Blob(let data):
             code = sqlite3_bind_blob(sqliteStatement, Int32(index), data.bytes, Int32(data.length), SQLITE_TRANSIENT)
         }

@@ -327,6 +327,76 @@ public final class Database {
     
     
     // =========================================================================
+    // MARK: - Functions
+    
+    private var functions = [DatabaseFunction]()
+    private func registerFunction(function: DatabaseFunction) {
+        functions.append(function)
+        let flags = function.pure ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
+        let functionPointer = unsafeBitCast(function, UnsafeMutablePointer<Void>.self)
+        let code = sqlite3_create_function_v2(
+            sqliteConnection,
+            function.name,
+            Int32(function.argumentCount),
+            flags,
+            functionPointer,
+            { (context, argc, argv) in
+                let arguments = (0..<Int(argc)).map { index in
+                    DatabaseValue(sqliteValue: argv[index])
+                }
+                let function = unsafeBitCast(sqlite3_user_data(context), DatabaseFunction.self)
+                let result: DatabaseValueConvertible?
+                do {
+                    result = try function.function(arguments)
+                } catch {
+                    sqlite3_result_error(context, "\(error)", -1)
+                    return
+                }
+                let dbv = result?.databaseValue ?? .Null
+                switch dbv.storage {
+                case .Null:
+                    sqlite3_result_null(context)
+                case .Int64(let int64):
+                    sqlite3_result_int64(context, int64)
+                case .Double(let double):
+                    sqlite3_result_double(context, double)
+                case .String(let string):
+                    sqlite3_result_text(context, string, -1, SQLITE_TRANSIENT)
+                case .Blob(let data):
+                    sqlite3_result_blob(context, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
+                }
+            }, nil, nil, nil)
+        
+        guard code == SQLITE_OK else {
+            fatalError(DatabaseError(code: code, message: self.lastErrorMessage, sql: nil, arguments: nil).description)
+        }
+    }
+    
+    public func registerVariadicFunction(name: String, pure: Bool = true, function: [DatabaseValue] throws -> DatabaseValueConvertible?) {
+        registerFunction(DatabaseFunction(name: name, argumentCount: -1, pure: pure, function: function))
+    }
+    
+    public func registerFunction(name: String, pure: Bool = true, function: Void throws -> DatabaseValueConvertible?) {
+        registerFunction(DatabaseFunction(name: name, argumentCount: 0, pure: pure) { dbvs in
+            return try function()
+            })
+    }
+    
+    public func registerFunction<T1: DatabaseValueConvertible>(name: String, pure: Bool = true, function: T1? throws -> DatabaseValueConvertible?) {
+        registerFunction(DatabaseFunction(name: name, argumentCount: 1, pure: pure) { dbvs in
+            return try function(dbvs.first!.value() as T1?)
+            })
+    }
+    
+    public func registerFunction<T1: DatabaseValueConvertible, T2: DatabaseValueConvertible>(name: String, pure: Bool = true, function: (T1?, T2?) throws -> DatabaseValueConvertible?) {
+        registerFunction(DatabaseFunction(name: name, argumentCount: 2, pure: pure) { dbvs in
+            return try function(dbvs.first!.value() as T1?, dbvs.first!.value() as T2?)
+            })
+    }
+
+    
+    
+    // =========================================================================
     // MARK: - Database Informations
     
     /// The last error message
@@ -730,4 +800,22 @@ public enum BusyMode {
     /// A custom callback that is called when a database is locked.
     /// See https://www.sqlite.org/c3ref/busy_handler.html
     case Callback(BusyCallback)
+}
+
+
+// =========================================================================
+// MARK: - Functions
+
+class DatabaseFunction {
+    let name: String
+    let argumentCount: Int
+    let pure: Bool
+    let function: [DatabaseValue] throws -> DatabaseValueConvertible?
+    
+    init(name: String, argumentCount: Int, pure: Bool, function: [DatabaseValue] throws -> DatabaseValueConvertible?) {
+        self.name = name
+        self.argumentCount = argumentCount
+        self.pure = pure
+        self.function = function
+    }
 }

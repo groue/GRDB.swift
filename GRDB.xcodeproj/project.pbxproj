@@ -12,6 +12,8 @@
 		5614DEF01BA9DA15003163B3 /* SQLiteStatementConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5614DEEF1BA9DA15003163B3 /* SQLiteStatementConvertible.swift */; };
 		5614DEF11BA9DA15003163B3 /* SQLiteStatementConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5614DEEF1BA9DA15003163B3 /* SQLiteStatementConvertible.swift */; };
 		5614DEF81BAA1B43003163B3 /* DatabaseValueConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A2381B1B9C74A90082EB20 /* DatabaseValueConversionTests.swift */; };
+		564A50AF1BFCD18100B3A3A2 /* CustomFunctionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A50AE1BFCD18100B3A3A2 /* CustomFunctionTests.swift */; };
+		564A50B01BFCD18200B3A3A2 /* CustomFunctionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A50AE1BFCD18100B3A3A2 /* CustomFunctionTests.swift */; };
 		565B0FEF1BBC7D980098DE03 /* RowConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565B0FEE1BBC7D980098DE03 /* RowConvertibleTests.swift */; };
 		565B0FF01BBC7D980098DE03 /* RowConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565B0FEE1BBC7D980098DE03 /* RowConvertibleTests.swift */; };
 		565B0FF81BBC7FE90098DE03 /* RowConvertible+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565B0FF71BBC7FE90098DE03 /* RowConvertible+Foundation.swift */; };
@@ -298,6 +300,7 @@
 		5607EFD21BB8254800605DE3 /* TransactionObserverTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransactionObserverTests.swift; sourceTree = "<group>"; };
 		5614DEEF1BA9DA15003163B3 /* SQLiteStatementConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteStatementConvertible.swift; sourceTree = "<group>"; };
 		5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBTestCase.swift; sourceTree = "<group>"; };
+		564A50AE1BFCD18100B3A3A2 /* CustomFunctionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomFunctionTests.swift; sourceTree = "<group>"; };
 		565B0FEE1BBC7D980098DE03 /* RowConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertibleTests.swift; sourceTree = "<group>"; };
 		565B0FF71BBC7FE90098DE03 /* RowConvertible+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RowConvertible+Foundation.swift"; sourceTree = "<group>"; };
 		565B0FFA1BBC80720098DE03 /* RowConvertible+FoundationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RowConvertible+FoundationTests.swift"; sourceTree = "<group>"; };
@@ -798,6 +801,7 @@
 			children = (
 				56FC78641BBAEB8C00CA1285 /* MappingTests.swift */,
 				56FC78651BBAEB8C00CA1285 /* ManagedDataControllerTests.swift */,
+				564A50AE1BFCD18100B3A3A2 /* CustomFunctionTests.swift */,
 			);
 			path = Experimental;
 			sourceTree = "<group>";
@@ -1217,6 +1221,7 @@
 				56CA21BB1BB3FCF7009A04C5 /* NSDataTests.swift in Sources */,
 				56A238B71B9CA2590082EB20 /* DatabaseTimestampTests.swift in Sources */,
 				565D5D751BBC70AE00DC9BD4 /* StatementArguments+FoundationTests.swift in Sources */,
+				564A50B01BFCD18200B3A3A2 /* CustomFunctionTests.swift in Sources */,
 				56F0B9921B6001C600A2F135 /* NSDateTests.swift in Sources */,
 				56A238381B9C74A90082EB20 /* DatabaseTests.swift in Sources */,
 				56F0B9901B6001C600A2F135 /* NSDateComponentsTests.swift in Sources */,
@@ -1282,6 +1287,7 @@
 				56A238B61B9CA2590082EB20 /* DatabaseTimestampTests.swift in Sources */,
 				56DAC70F1BB504400010FE01 /* GRDBPerformanceTests.swift in Sources */,
 				565D5D741BBC70AE00DC9BD4 /* StatementArguments+FoundationTests.swift in Sources */,
+				564A50AF1BFCD18100B3A3A2 /* CustomFunctionTests.swift in Sources */,
 				56F0B9911B6001C600A2F135 /* NSDateTests.swift in Sources */,
 				56A238371B9C74A90082EB20 /* DatabaseTests.swift in Sources */,
 				56F0B98F1B6001C600A2F135 /* NSDateComponentsTests.swift in Sources */,

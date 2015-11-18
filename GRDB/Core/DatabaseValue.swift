@@ -1,5 +1,8 @@
 import Foundation
 
+let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
+typealias SQLiteValue = COpaquePointer
+
 // MARK: - DatabaseValue
 
 /// DatabaseValue is the intermediate type between SQLite and your values.
@@ -147,12 +150,36 @@ public struct DatabaseValue : Equatable {
                 fatalError("Unexpected SQLite column type")
             }
         }
+        
+        init(sqliteValue: SQLiteValue) {
+            switch sqlite3_value_type(sqliteValue) {
+            case SQLITE_NULL:
+                self = .Null
+            case SQLITE_INTEGER:
+                self = .Int64(sqlite3_value_int64(sqliteValue))
+            case SQLITE_FLOAT:
+                self = .Double(sqlite3_value_double(sqliteValue))
+            case SQLITE_TEXT:
+                let cString = UnsafePointer<Int8>(sqlite3_value_text(sqliteValue))
+                self = .String(Swift.String.fromCString(cString)!)
+            case SQLITE_BLOB:
+                let bytes = sqlite3_value_blob(sqliteValue)
+                let length = sqlite3_value_bytes(sqliteValue)
+                self = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
+            default:
+                fatalError("Unexpected SQLite value type")
+            }
+        }
     }
     
     let storage: Storage
 
     init(sqliteStatement: SQLiteStatement, index: Int) {
         self.storage = Storage(sqliteStatement: sqliteStatement, index: index)
+    }
+    
+    init(sqliteValue: SQLiteValue) {
+        self.storage = Storage(sqliteValue: sqliteValue)
     }
     
     private init(storage: Storage) {
@@ -185,7 +212,10 @@ public func ==(lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
     }
 }
 
+/// Returns true if i and d hold exactly the same value, and if converting one
+/// type into the other does not lose any information.
 private func int64EqualDouble(i: Int64, _ d: Double) -> Bool {
+    // See http://stackoverflow.com/questions/33719132/how-to-test-for-lossless-double-integer-conversion/33784296#33784296
     return (d >= Double(Int64.min))
         && (d < Double(Int64.max))
         && (round(d) == d)
