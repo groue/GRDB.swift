@@ -916,7 +916,7 @@ dbQueue.inTransaction(.Exclusive) { db in ... }
 
 **No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error.
 
-**The rule** is:
+**The rule is:**
 
 - All methods that *write* to the database throw.
 - All other methods crash without notice (but with a detailed error message).
