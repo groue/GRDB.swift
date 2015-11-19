@@ -1092,14 +1092,14 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    let fn = DatabaseFunction("intSum", pure: true) { (databaseValues: [DatabaseValue]) in
+    let fn = DatabaseFunction("sumOf", pure: true) { (databaseValues: [DatabaseValue]) in
         let ints: [Int] = databaseValues.flatMap { $0.value() }
         return ints.reduce(0, combine: +)
     }
     db.addFunction(fn)
     
     // 6
-    Int.fetchOne(db, "SELECT intSum(1, 2, 3)")!
+    Int.fetchOne(db, "SELECT sumOf(1, 2, 3)")!
 }
 ```
 
