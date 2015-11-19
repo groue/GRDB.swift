@@ -56,6 +56,7 @@ Documentation
     - [Error Handling](#error-handling)
     - [Transactions](#transactions)
     - [Concurrency](#concurrency)
+    - [Custom SQL Functions](#custom-sql-functions)
     - [Raw SQLite Pointers](#raw-sqlite-pointers)
     
 - **[Application Tools](#application-tools)**
@@ -1015,6 +1016,74 @@ SQLite concurrency management is fragmented. Documents of interest include:
 By default, GRDB opens database in the **default journal mode**, uses **IMMEDIATE transactions**, and registers **no busy handler** of any kind.
 
 See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTransaction()](GRDB/Core/DatabaseQueue.swift) method for more precise handling of transactions and eventual SQLITE_BUSY errors.
+
+
+## Custom SQL Functions
+
+**SQLite let you define, or redefine, SQL functions.**
+
+You can for example use the Unicode support of Swift strings, and go beyond the ASCII limitations of the built-in SQLite upper() function:
+
+```swift
+dbQueue.inDatabase { db in
+    db.addFunction("unicodeUpper", argumentCount: 1) { databaseValues: [DatabaseValue] in
+        let dbv = databaseValues.first!
+        guard let string = dbv.value() as String? else {
+            return nil
+        }
+        return string.uppercaseString
+    }
+    
+    // ROUÉ
+    String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["Roué"])!
+
+    // ROUé
+    String.fetchOne(db, "SELECT upper(?)", arguments: ["Roué"])!
+}
+```
+
+See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type.
+
+**Functions can take a variable number of arguments:**
+
+```swift
+dbQueue.inDatabase { db in
+    db.addVariadicFunction("intSum") { databaseValues: [DatabaseValue] in
+        let ints: [Int] = databaseValues.flatMap { $0.value() }
+        return ints.reduce(0, combine: +)
+    }
+    
+    // 6
+    Int.fetchOne(db, "SELECT intSum(1, 2, 3)")!
+}
+```
+
+**Functions can throw:**
+
+```swift
+dbQueue.inDatabase { db in
+    db.addFunction("sqrt", argumentCount: 1) { databaseValues: [DatabaseValue] in
+        let dbv = databaseValues.first!
+        guard let double = dbv.value() as Double? else {
+            return nil
+        }
+        guard double > 0 else {
+            throw DatabaseError(message: "Invalid negative value")
+        }
+        return sqrt(double)
+    }
+}
+```
+
+**Added functions can be removed:**
+
+```swift
+dbQueue.inDatabase { db in
+    let fn = db.addFunction(...)
+    ...
+    db.removeFunction(fn)
+}
+```
 
 
 ## Raw SQLite Pointers

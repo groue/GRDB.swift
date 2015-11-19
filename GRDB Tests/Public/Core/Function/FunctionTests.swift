@@ -86,14 +86,14 @@ class FunctionTests: GRDBTestCase {
     func testFunctionOfOneArgument() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f", argumentCount: 1) { databaseValues in
-                    guard let int = databaseValues.first!.value() as Int? else {
-                        return nil
-                    }
-                    return int + 1
+                db.addFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+                    let dbv = databaseValues.first!
+                    guard let string = dbv.value() as String? else { return nil }
+                    return string.uppercaseString
                 }
-                XCTAssertEqual(Int.fetchOne(db, "SELECT f(2)")!, 3)
-                XCTAssertTrue(Int.fetchOne(db, "SELECT f(NULL)") == nil)
+                XCTAssertEqual(String.fetchOne(db, "SELECT upper(?)", arguments: ["Roué"])!, "ROUé")
+                XCTAssertEqual(String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["Roué"])!, "ROUÉ")
+                XCTAssertTrue(String.fetchOne(db, "SELECT unicodeUpper(NULL)") == nil)
             }
         }
     }
@@ -102,9 +102,8 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 db.addFunction("f", argumentCount: 2) { databaseValues in
-                    let ints = databaseValues.flatMap { $0.value() as Int? }
-                    let sum = ints.reduce(0) { $0 + $1 }
-                    return sum
+                    let ints: [Int] = databaseValues.flatMap { $0.value() }
+                    return ints.reduce(0, combine: +)
                 }
                 XCTAssertEqual(Int.fetchOne(db, "SELECT f(1, 2)")!, 3)
             }
