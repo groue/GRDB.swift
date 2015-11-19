@@ -52,12 +52,14 @@ Documentation
         - [NSCoding](#nscoding)
         - [Swift enums](#swift-enums)
         - [Custom Value Types](#custom-value-types)
-    - [Prepared Statements](#prepared-statements)
-    - [Error Handling](#error-handling)
     - [Transactions](#transactions)
-    - [Concurrency](#concurrency)
-    - [Custom SQL Functions](#custom-sql-functions)
-    - [Raw SQLite Pointers](#raw-sqlite-pointers)
+    - [Error Handling](#error-handling)
+    - Advanced topics:
+        - [Prepared Statements](#prepared-statements)
+        - [Concurrency](#concurrency)
+        - [Custom SQL Functions](#custom-sql-functions)
+        - [Raw SQLite Pointers](#raw-sqlite-pointers)
+    
     
 - **[Application Tools](#application-tools)**
     - [Migrations](#migrations): Transform your database as your application evolves.
@@ -864,6 +866,92 @@ DatabaseTimestamp.fetchOne(db, "SELECT ...") // DatabaseTimestamp?
 See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
 
 
+## Transactions
+
+The `DatabaseQueue.inTransaction()` method opens an SQLite transaction:
+
+```swift
+try dbQueue.inTransaction { db in
+    let wine = Wine(color: .Red, name: "Pomerol")
+    try wine.insert(db)
+    return .Commit
+}
+```
+
+A ROLLBACK statement is issued if an error is thrown within the transaction block.
+
+Otherwise, transactions are guaranteed to succeed, *provided there is a single DatabaseQueue connected to the database file*. See [Concurrency](#concurrency) for more information about concurrent database access.
+
+If you want to insert a transaction between other database statements, and group those in a single block of code protected by the the database queue, you can use the Database.inTransaction() function:
+
+```swift
+try dbQueue.inDatabase { db in
+    ...
+    try db.inTransaction {
+        ...
+        return .Commit
+    }
+    ...
+}
+```
+
+SQLite supports [three kinds of transactions](https://www.sqlite.org/lang_transaction.html): DEFERRED, IMMEDIATE, and EXCLUSIVE. GRDB defaults to IMMEDIATE.
+
+The transaction kind can be changed in the database configuration, or for each transaction:
+
+```swift
+var config = Configuration()
+config.defaultTransactionKind = .Deferred
+let dbQueue = try DatabaseQueue(path: "...", configuration: config)
+
+// Opens a DEFERRED transaction:
+dbQueue.inTransaction { db in ... }
+
+// Opens an EXCLUSIVE transaction:
+dbQueue.inTransaction(.Exclusive) { db in ... }
+```
+
+
+## Error Handling
+
+**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error.
+
+**The rule** is:
+
+- All methods that *write* to the database throw.
+- All other methods crash without notice (but with a detailed error message).
+
+```swift
+// fatal error:
+// SQLite error 1 with statement `SELECT foo FROM bar`: no such table: bar
+Row.fetchAll(db, "SELECT foo FROM bar")
+
+do {
+    try db.execute(
+        "INSERT INTO pets (masterId, name) VALUES (?, ?)",
+        arguments: [1, "Bobby"])
+} catch let error as DatabaseError {
+    // SQLite error 19 with statement `INSERT INTO pets (masterId, name)
+    // VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed
+    error.description
+    
+    // The SQLite result code: 19 (SQLITE_CONSTRAINT)
+    error.code
+    
+    // The eventual SQLite message
+    // "FOREIGN KEY constraint failed"
+    error.message
+    
+    // The eventual erroneous SQL query
+    // "INSERT INTO pets (masterId, name) VALUES (?, ?)"
+    error.sql
+}
+```
+
+See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
+
+
+
 ## Prepared Statements
 
 **Prepared Statements** let you prepare an SQL query and execute it later, several times if you need, with different arguments.
@@ -928,76 +1016,6 @@ Person.fetchOne(statement, arguments: ...) // Person?
 ```
 
 See [Row Queries](#row-queries), [Value Queries](#value-queries), [RowConvertible](#rowconvertible-protocol), and [Records](#fetching-records) for more information.
-
-
-## Error Handling
-
-**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error.
-
-**The rule** is:
-
-- All methods that *write* to the database throw.
-- All other methods crash without notice (but with a detailed error message).
-
-```swift
-// fatal error:
-// SQLite error 1 with statement `SELECT foo FROM bar`: no such table: bar
-Row.fetchAll(db, "SELECT foo FROM bar")
-
-do {
-    try db.execute(
-        "INSERT INTO pets (masterId, name) VALUES (?, ?)",
-        arguments: [1, "Bobby"])
-} catch let error as DatabaseError {
-    // SQLite error 19 with statement `INSERT INTO pets (masterId, name)
-    // VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed
-    error.description
-    
-    // The SQLite result code: 19 (SQLITE_CONSTRAINT)
-    error.code
-    
-    // The eventual SQLite message
-    // "FOREIGN KEY constraint failed"
-    error.message
-    
-    // The eventual erroneous SQL query
-    // "INSERT INTO pets (masterId, name) VALUES (?, ?)"
-    error.sql
-}
-```
-
-See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
-
-
-
-## Transactions
-
-The `DatabaseQueue.inTransaction()` method opens an SQLite transaction:
-
-```swift
-try dbQueue.inTransaction { db in
-    let wine = Wine(color: .Red, name: "Pomerol")
-    try wine.insert(db)
-    return .Commit
-}
-```
-
-A ROLLBACK statement is issued if an error is thrown within the transaction block.
-
-Otherwise, transactions are guaranteed to succeed, *provided there is a single DatabaseQueue connected to the database file*. See [Concurrency](#concurrency) for more information about concurrent database access.
-
-If you want to insert a transaction between other database statements, and group those in a single block of code protected by the the database queue, you can use the Database.inTransaction() function:
-
-```swift
-try dbQueue.inDatabase { db in
-    ...
-    try db.inTransaction {
-        ...
-        return .Commit
-    }
-    ...
-}
-```
 
 
 ## Concurrency
