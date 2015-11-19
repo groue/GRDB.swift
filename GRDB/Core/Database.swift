@@ -18,7 +18,7 @@ public final class Database {
     // =========================================================================
     // MARK: - Select Statements
     
-    /// Returns a select statement that can be reused.
+    /// Returns a prepared statement that can be reused.
     ///
     ///     let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
     ///     let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
@@ -34,7 +34,7 @@ public final class Database {
     // =========================================================================
     // MARK: - Update Statements
     
-    /// Returns an update statement that can be reused.
+    /// Returns an prepared statement that can be reused.
     ///
     ///     let statement = try db.updateStatement("INSERT INTO persons (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
@@ -64,7 +64,7 @@ public final class Database {
         return try statement.execute(arguments: arguments)
     }
     
-    /// Executes multiple SQL statements (separated by a semi-colon).
+    /// Executes multiple SQL statements, separated by semi-colons.
     ///
     ///     try db.executeMultiStatement(
     ///         "INSERT INTO persons (name) VALUES ('Harry');" +
@@ -329,7 +329,7 @@ public final class Database {
     // =========================================================================
     // MARK: - Functions
     
-    /// Remove a function.
+    /// Remove an SQL function.
     ///
     /// - parameter identifier: A function identifier returned by addFunction()
     ///   or addVariadicFunction().
@@ -346,7 +346,7 @@ public final class Database {
         }
     }
     
-    /// Add or redefine a function with a variable number of arguments.
+    /// Add or redefine an SQL function with a variable number of arguments.
     ///
     ///     db.addVariadicFunction("f") { databaseValues in
     ///         return databaseValues.count
@@ -374,7 +374,7 @@ public final class Database {
         return identifier
     }
     
-    /// Add or redefine a function with a fixed number of arguments.
+    /// Add or redefine an SQL function with a fixed number of arguments.
     ///
     ///     db.addFunction("succ", argumentCount: 1) { databaseValues in
     ///         let dbv = databaseValues.first!
