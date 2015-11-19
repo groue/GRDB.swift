@@ -1020,7 +1020,7 @@ See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTra
 
 ## Custom SQL Functions
 
-**SQLite let you define, or redefine, SQL functions.**
+**SQLite let you define SQL functions.**
 
 You can for example use the Unicode support of Swift strings, and go beyond the ASCII limitations of the built-in SQLite upper() function:
 
