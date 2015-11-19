@@ -1082,8 +1082,8 @@ dbQueue.inDatabase { db in
     }
     db.addFunction(host)
     
-    // "www.google.com"
-    String.fetchOne(db, "SELECT host('http://www.google.com')")!
+    // "github.com"
+    String.fetchOne(db, "SELECT host('https://github.com')")!
 }
 ```
 
