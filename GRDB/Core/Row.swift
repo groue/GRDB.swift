@@ -77,7 +77,7 @@ public final class Row: CollectionType {
             .value()
     }
     
-    /// Returns the value of type `Value` at given index.
+    /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
@@ -102,7 +102,7 @@ public final class Row: CollectionType {
             .value()
     }
     
-    /// Returns the value of type `Value` at given index.
+    /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
@@ -141,7 +141,7 @@ public final class Row: CollectionType {
         }
     }
     
-    /// Returns the value of type `Value` at given index.
+    /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
@@ -166,7 +166,7 @@ public final class Row: CollectionType {
             .value()
     }
     
-    /// Returns the value of type `Value` at given index.
+    /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
@@ -228,7 +228,7 @@ public final class Row: CollectionType {
         return impl.databaseValue(atIndex: index).value()
     }
     
-    /// Returns the value of type `Value` at given column.
+    /// Returns the value at given column, converted to the requested type.
     ///
     /// Column name is case-insensitive. If the row does not contain the column,
     /// a fatal error is raised.
@@ -254,7 +254,7 @@ public final class Row: CollectionType {
         return value(atIndex: index)
     }
     
-    /// Returns the value of type `Value` at given column.
+    /// Returns the value at given column, converted to the requested type.
     ///
     /// Column name is case-insensitive. If the row does not contain the column,
     /// a fatal error is raised.
@@ -285,7 +285,7 @@ public final class Row: CollectionType {
         return value(atIndex: index)
     }
     
-    /// Returns the value of type `Value` at given column.
+    /// Returns the value at given column, converted to the requested type.
     ///
     /// Column name is case-insensitive. If the row does not contain the column,
     /// a fatal error is raised.
@@ -311,7 +311,7 @@ public final class Row: CollectionType {
         return value(atIndex: index)
     }
     
-    /// Returns the value of type `Value` at given column.
+    /// Returns the value at given column, converted to the requested type.
     ///
     /// Column name is case-insensitive. If the row does not contain the column,
     /// a fatal error is raised.
@@ -452,7 +452,7 @@ public final class Row: CollectionType {
     
     // MARK: - Fetching From SelectStatement
     
-    /// Returns a sequence of rows.
+    /// Returns a sequence of rows fetched from a prepared statement.
     ///
     ///     for row in Row.fetch(db, "SELECT id, name FROM persons") {
     ///         let id = row.int64(atIndex: 0)
@@ -489,7 +489,7 @@ public final class Row: CollectionType {
         return statement.fetch(arguments: arguments) { row }
     }
     
-    /// Fetches an array of rows.
+    /// Returns an array of rows fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT ...")
     ///     let rows = Row.fetchAll(statement)
@@ -504,7 +504,7 @@ public final class Row: CollectionType {
         return Array(sequence)
     }
     
-    /// Fetches a single row.
+    /// Returns a single row fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT ...")
     ///     let row = Row.fetchOne(statement)
@@ -523,7 +523,7 @@ public final class Row: CollectionType {
     
     // MARK: - Fetching From Database
     
-    /// Returns a sequence of rows.
+    /// Returns a sequence of rows fetched from an SQL query.
     ///
     ///     for row in Row.fetch(db, "SELECT id, name FROM persons") {
     ///         let id = row.int64(atIndex: 0)
@@ -558,7 +558,7 @@ public final class Row: CollectionType {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Fetches an array of rows.
+    /// Returns an array of rows fetched from an SQL query.
     ///
     ///     let rows = Row.fetchAll(db, "SELECT ...")
     ///
@@ -570,7 +570,7 @@ public final class Row: CollectionType {
         return fetchAll(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Fetches a single row.
+    /// Returns a single row fetched from an SQL query.
     ///
     ///     let row = Row.fetchOne(db, "SELECT ...")
     ///

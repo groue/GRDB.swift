@@ -34,7 +34,7 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     
     // MARK: - Fetching From SelectStatement
     
-    /// Fetches a sequence of non null values.
+    /// Returns a sequence of non null values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetch(statement) // DatabaseSequence<String>
@@ -69,7 +69,7 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
         }
     }
     
-    /// Fetches an array of non null values.
+    /// Returns an array of non null values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetchAll(statement)  // [String]
@@ -84,7 +84,7 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     
     // MARK: - Fetching From Database
     
-    /// Fetches a sequence of non null values.
+    /// Returns a sequence of non null values fetched from an SQL query.
     ///
     ///     let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String>
     ///
@@ -108,7 +108,7 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Fetches an array of non null values.
+    /// Returns an array of non null values fetched from an SQL query.
     ///
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///

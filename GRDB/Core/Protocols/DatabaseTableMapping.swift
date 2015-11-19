@@ -16,7 +16,7 @@ extension DatabaseTableMapping {
     
     // MARK: - Single-Column Primary Key
     
-    /// Fetches a sequence of values, given their primary keys.
+    /// Returns a sequence of values, given their primary keys.
     ///
     ///     let persons = Person.fetch(db, keys: [1, 2, 3]) // DatabaseSequence<Person>
     ///
@@ -32,7 +32,7 @@ extension DatabaseTableMapping {
         return fetch(statement)
     }
     
-    /// Fetches an array of values, given their primary keys.
+    /// Returns an array of values, given their primary keys.
     ///
     ///     let persons = Person.fetchAll(db, keys: [1, 2, 3]) // [Person]
     ///
@@ -48,7 +48,7 @@ extension DatabaseTableMapping {
         return fetchAll(statement)
     }
     
-    /// Fetches a single value given its primary key.
+    /// Returns a single value given its primary key.
     ///
     ///     let person = Person.fetchOne(db, key: 123) // Person?
     ///
@@ -107,7 +107,7 @@ extension DatabaseTableMapping {
     
     // MARK: - Other Keys
     
-    /// Fetches a sequence of values, given an array of key dictionaries.
+    /// Returns a sequence of values, given an array of key dictionaries.
     ///
     ///     let persons = Person.fetch(db, keys: [["name": "Arthur"], ["name": "Barbara"]]) // DatabaseSequence<Person>
     ///
@@ -123,7 +123,7 @@ extension DatabaseTableMapping {
         return self.fetch(statement)
     }
     
-    /// Fetches an array of values, given an array of key dictionaries.
+    /// Returns an array of values, given an array of key dictionaries.
     ///
     ///     let persons = Person.fetchAll(db, keys: [["name": "Arthur"], ["name": "Barbara"]]) // [Person]
     ///
@@ -139,7 +139,7 @@ extension DatabaseTableMapping {
         return self.fetchAll(statement)
     }
     
-    /// Fetches a single value given a key dictionary.
+    /// Returns a single value given a key dictionary.
     ///
     ///     let person = Person.fetchOne(db, key: ["name": Arthur"]) // Person?
     ///

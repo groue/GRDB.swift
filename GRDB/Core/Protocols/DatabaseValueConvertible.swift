@@ -47,7 +47,7 @@ public extension DatabaseValueConvertible {
     
     // MARK: - Fetching From SelectStatement
     
-    /// Fetches a sequence of non null values.
+    /// Returns a sequence of non null values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetch(statement) // DatabaseSequence<String>
@@ -82,7 +82,7 @@ public extension DatabaseValueConvertible {
         }
     }
     
-    /// Fetches an array of non null values.
+    /// Returns an array of non null values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetchAll(statement)  // [String]
@@ -94,7 +94,7 @@ public extension DatabaseValueConvertible {
         return Array(fetch(statement, arguments: arguments))
     }
     
-    /// Fetches a single value.
+    /// Returns a single value fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let name = String.fetchOne(statement)   // String?
@@ -116,7 +116,7 @@ public extension DatabaseValueConvertible {
     
     // MARK: - Fetching From Database
     
-    /// Fetches a sequence of non null values.
+    /// Returns a sequence of non null values fetched from an SQL query.
     ///
     ///     let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String>
     ///
@@ -140,7 +140,7 @@ public extension DatabaseValueConvertible {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Fetches an array of non null values.
+    /// Returns an array of non null values fetched from an SQL query.
     ///
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///
@@ -152,7 +152,7 @@ public extension DatabaseValueConvertible {
         return fetchAll(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Fetches a single value.
+    /// Returns a single value fetched from an SQL query.
     ///
     ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     ///
@@ -183,7 +183,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: - Fetching From SelectStatement
     
-    /// Fetches a sequence of optional values.
+    /// Returns a sequence of optional values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = Optional<String>.fetch(statement) // DatabaseSequence<String?>
@@ -210,7 +210,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
         }
     }
     
-    /// Fetches an array of optional values.
+    /// Returns an array of optional values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = Optional<String>.fetchAll(statement)  // [String?]
@@ -225,7 +225,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: - Fetching From Database
     
-    /// Fetches a sequence of optional values.
+    /// Returns a sequence of optional values fetched from an SQL query.
     ///
     ///     let names = Optional<String>.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String?>
     ///
@@ -249,7 +249,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Fetches an array of optional values.
+    /// Returns an array of optional values fetched from an SQL query.
     ///
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String?]
     ///

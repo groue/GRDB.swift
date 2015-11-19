@@ -71,7 +71,7 @@ public struct DatabaseValue : Equatable {
         }
     }
     
-    /// Returns an optional value of type `Value`.
+    /// Returns the value, converted to the requested type.
     ///
     /// The result is nil if the SQLite value is NULL, or if the SQLite value
     /// can not be converted to `Value`.
@@ -90,7 +90,7 @@ public struct DatabaseValue : Equatable {
         return Value.fromDatabaseValue(self)
     }
     
-    /// Returns a value of type `Value`.
+    /// Returns the value, converted to the requested type.
     ///
     /// This method crashes if the SQLite value is NULL, or if the SQLite value
     /// can not be converted to `Value`.

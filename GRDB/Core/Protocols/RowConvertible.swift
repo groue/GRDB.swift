@@ -51,7 +51,7 @@ extension RowConvertible {
     
     // MARK: - Fetching From SelectStatement
     
-    /// Fetches a sequence.
+    /// Returns a sequence of values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT * FROM persons")
     ///     let persons = Person.fetch(statement) // DatabaseSequence<Person>
@@ -81,7 +81,7 @@ extension RowConvertible {
         }
     }
     
-    /// Fetches an array.
+    /// Returns an array of values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT * FROM persons")
     ///     let persons = Person.fetchAll(statement) // [Person]
@@ -93,7 +93,7 @@ extension RowConvertible {
         return Array(fetch(statement, arguments: arguments))
     }
     
-    /// Fetches a single value.
+    /// Returns a single value fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT * FROM persons")
     ///     let persons = Person.fetchOne(statement) // Person?
@@ -112,7 +112,7 @@ extension RowConvertible {
     
     // MARK: - Fetching From Database
     
-    /// Fetches a sequence.
+    /// Returns a sequence of values fetched from an SQL query.
     ///
     ///     let persons = Person.fetch(db, "SELECT * FROM persons") // DatabaseSequence<Person>
     ///
@@ -136,7 +136,7 @@ extension RowConvertible {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Fetches an array.
+    /// Returns an array of values fetched from an SQL query.
     ///
     ///     let persons = Person.fetchAll(db, "SELECT * FROM persons") // [Person]
     ///
@@ -148,7 +148,7 @@ extension RowConvertible {
         return fetchAll(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Fetches a single value.
+    /// Returns a single value fetched from an SQL query.
     ///
     ///     let person = Person.fetchOne(db, "SELECT * FROM persons") // Person?
     ///
