@@ -4,73 +4,183 @@ import GRDB
 typealias DatabaseFunction = (context: COpaquePointer, argc: Int32, argv: UnsafeMutablePointer<COpaquePointer>) -> Void
 private let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
 
-struct CustomFunctionResult : DatabaseValueConvertible {
+struct CustomValueType : DatabaseValueConvertible {
     var databaseValue: DatabaseValue {
-        return DatabaseValue(string: "CustomFunctionResult")
+        return DatabaseValue(string: "CustomValueType")
     }
-    static func fromDatabaseValue(databaseValue: DatabaseValue) -> CustomFunctionResult? {
-        guard let string = String.fromDatabaseValue(databaseValue) where string == "CustomFunctionResult" else {
+    static func fromDatabaseValue(databaseValue: DatabaseValue) -> CustomValueType? {
+        guard let string = String.fromDatabaseValue(databaseValue) where string == "CustomValueType" else {
             return nil
         }
-        return CustomFunctionResult()
+        return CustomValueType()
     }
 }
 
 class FunctionTests: GRDBTestCase {
-    func testAddFunctionReturningNull() {
+    
+    // MARK: - Return values
+    
+    func testFunctionReturningNull() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f", argumentCount: 0) { databaseValues in nil }
+                db.addFunction("f", argumentCount: 0) { databaseValues in
+                    return nil
+                }
                 XCTAssertTrue(Row.fetchOne(db, "SELECT f()")!.value(atIndex: 0) == nil)
             }
         }
     }
     
-    func testAddFunctionReturningInt64() {
+    func testFunctionReturningInt64() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f", argumentCount: 0) { databaseValues in Int64(1) }
+                db.addFunction("f", argumentCount: 0) { databaseValues in
+                    return Int64(1)
+                }
                 XCTAssertEqual(Int64.fetchOne(db, "SELECT f()")!, Int64(1))
             }
         }
     }
     
-    func testAddFunctionReturningDouble() {
+    func testFunctionReturningDouble() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f", argumentCount: 0) { databaseValues in 1e100 }
+                db.addFunction("f", argumentCount: 0) { databaseValues in
+                    return 1e100
+                }
                 XCTAssertEqual(Double.fetchOne(db, "SELECT f()")!, 1e100)
             }
         }
     }
     
-    func testAddFunctionReturningString() {
+    func testFunctionReturningString() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f", argumentCount: 0) { databaseValues in "foo" }
+                db.addFunction("f", argumentCount: 0) { databaseValues in
+                    return "foo"
+                }
                 XCTAssertEqual(String.fetchOne(db, "SELECT f()")!, "foo")
             }
         }
     }
     
-    func testAddFunctionReturningData() {
+    func testFunctionReturningData() {
         assertNoError {
             dbQueue.inDatabase { db in
                 let data = "foo".dataUsingEncoding(NSUTF8StringEncoding)
-                db.addFunction("f", argumentCount: 0) { databaseValues in data }
+                db.addFunction("f", argumentCount: 0) { databaseValues in
+                    return data
+                }
                 XCTAssertEqual(NSData.fetchOne(db, "SELECT f()")!, "foo".dataUsingEncoding(NSUTF8StringEncoding))
             }
         }
     }
     
-    func testAddFunctionReturningCustomFunctionResult() {
+    func testFunctionReturningCustomValueType() {
         assertNoError {
             dbQueue.inDatabase { db in
-                db.addFunction("f", argumentCount: 0) { databaseValues in CustomFunctionResult() }
-                XCTAssertTrue(CustomFunctionResult.fetchOne(db, "SELECT f()") != nil)
+                db.addFunction("f", argumentCount: 0) { databaseValues in
+                    return CustomValueType()
+                }
+                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT f()") != nil)
             }
         }
     }
+    
+    // MARK: - Argument values
+    
+    func testFunctionArgumentNil() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                db.addFunction("isNil", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+                    return databaseValues[0].value() == nil
+                }
+                XCTAssertTrue(Bool.fetchOne(db, "SELECT isNil(NULL)")!)
+                XCTAssertFalse(Bool.fetchOne(db, "SELECT isNil(1)")!)
+                XCTAssertFalse(Bool.fetchOne(db, "SELECT isNil(1.1)")!)
+                XCTAssertFalse(Bool.fetchOne(db, "SELECT isNil('foo')")!)
+                XCTAssertFalse(Bool.fetchOne(db, "SELECT isNil(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])!)
+            }
+        }
+    }
+    
+    func testFunctionArgumentInt64() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                db.addFunction("asInt64", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+                    return databaseValues[0].value() as Int64?
+                }
+                XCTAssertTrue(Int64.fetchOne(db, "SELECT asInt64(NULL)") == nil)
+                XCTAssertEqual(Int64.fetchOne(db, "SELECT asInt64(1)")!, 1)
+                XCTAssertEqual(Int64.fetchOne(db, "SELECT asInt64(1.1)")!, 1)
+                XCTAssertTrue(Int64.fetchOne(db, "SELECT asInt64('foo')") == nil)
+                XCTAssertTrue(Int64.fetchOne(db, "SELECT asInt64(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)]) == nil)
+            }
+        }
+    }
+    
+    func testFunctionArgumentDouble() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                db.addFunction("asDouble", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+                    return databaseValues[0].value() as Double?
+                }
+                XCTAssertTrue(Double.fetchOne(db, "SELECT asDouble(NULL)") == nil)
+                XCTAssertEqual(Double.fetchOne(db, "SELECT asDouble(1)")!, 1.0)
+                XCTAssertEqual(Double.fetchOne(db, "SELECT asDouble(1.1)")!, 1.1)
+                XCTAssertTrue(Double.fetchOne(db, "SELECT asDouble('foo')") == nil)
+                XCTAssertTrue(Double.fetchOne(db, "SELECT asDouble(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)]) == nil)
+            }
+        }
+    }
+    
+    func testFunctionArgumentString() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                db.addFunction("asString", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+                    return databaseValues[0].value() as String?
+                }
+                XCTAssertTrue(String.fetchOne(db, "SELECT asString(NULL)") == nil)
+                XCTAssertTrue(String.fetchOne(db, "SELECT asString(1)") == nil)
+                XCTAssertTrue(String.fetchOne(db, "SELECT asString(1.1)") == nil)
+                XCTAssertEqual(String.fetchOne(db, "SELECT asString('foo')")!, "foo")
+                XCTAssertTrue(String.fetchOne(db, "SELECT asString(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)]) == nil)
+            }
+        }
+    }
+    
+    func testFunctionArgumentBlob() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                db.addFunction("asData", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+                    return databaseValues[0].value() as NSData?
+                }
+                XCTAssertTrue(NSData.fetchOne(db, "SELECT asData(NULL)") == nil)
+                XCTAssertTrue(NSData.fetchOne(db, "SELECT asData(1)") == nil)
+                XCTAssertTrue(NSData.fetchOne(db, "SELECT asData(1.1)") == nil)
+                XCTAssertTrue(NSData.fetchOne(db, "SELECT asData('foo')") == nil)
+                XCTAssertEqual(NSData.fetchOne(db, "SELECT asData(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])!, "foo".dataUsingEncoding(NSUTF8StringEncoding))
+            }
+        }
+    }
+    
+    func testFunctionArgumentCustomValueType() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                db.addFunction("asCustomValueType", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+                    return databaseValues[0].value() as CustomValueType?
+                }
+                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType(NULL)") == nil)
+                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType(1)") == nil)
+                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType(1.1)") == nil)
+                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType('foo')") == nil)
+                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType('CustomValueType')") != nil)
+                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)]) == nil)
+            }
+        }
+    }
+    
+    // MARK: - Argument count
     
     func testFunctionWithoutArgument() {
         assertNoError {
@@ -125,18 +235,8 @@ class FunctionTests: GRDBTestCase {
         }
     }
     
-    func testFunctionsAreClosures() {
-        assertNoError {
-            dbQueue.inDatabase { db in
-                let x = 123
-                db.addFunction("f", argumentCount: 0) { databaseValues in
-                    return x
-                }
-                XCTAssertEqual(Int.fetchOne(db, "SELECT f()")!, 123)
-            }
-        }
-    }
-
+    // MARK: - Errors
+    
     func testFunctionThrowingDatabaseErrorWithMessage() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -156,6 +256,24 @@ class FunctionTests: GRDBTestCase {
     }
     
     func testFunctionThrowingDatabaseErrorWithCode() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                db.addFunction("f", argumentCount: 1) { databaseValues in
+                    throw DatabaseError(code: 123)
+                }
+                do {
+                    try db.execute("CREATE TABLE items (value INT)")
+                    try db.execute("INSERT INTO items VALUES (f(1))")
+                    XCTFail("Expected DatabaseError")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 123)
+                    XCTAssertEqual(error.message, "unknown error")
+                }
+            }
+        }
+    }
+    
+    func testFunctionThrowingDatabaseErrorWithMessageAndCode() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 db.addFunction("f", argumentCount: 1) { databaseValues in
@@ -189,6 +307,20 @@ class FunctionTests: GRDBTestCase {
                     XCTAssertTrue(error.message!.containsString("123"))
                     XCTAssertTrue(error.message!.containsString("custom error message"))
                 }
+            }
+        }
+    }
+    
+    // MARK: - Misc
+    
+    func testFunctionsAreClosures() {
+        assertNoError {
+            dbQueue.inDatabase { db in
+                let x = 123
+                db.addFunction("f", argumentCount: 0) { databaseValues in
+                    return x
+                }
+                XCTAssertEqual(Int.fetchOne(db, "SELECT f()")!, 123)
             }
         }
     }
