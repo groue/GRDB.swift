@@ -1,11 +1,13 @@
 Release Notes
 =============
 
-## Next Release
+## 0.31.0
+
+Released November 19, 2015
 
 **New**
 
-- `Database.addFunction()` and `Database.removeFunction()` let you define custom SQL functions.
+- `DatabaseFunction` lets you define custom SQL functions.
 
 
 ## 0.30.0
