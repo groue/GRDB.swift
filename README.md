@@ -1044,7 +1044,7 @@ You can for example use the Unicode support of Swift strings, and go beyond the 
 
 ```swift
 dbQueue.inDatabase { db in
-    db.addFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+    let fn = DatabaseFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
         // databaseValues is guaranteed to have `argumentCount` elements:
         let dbv = databaseValues[0]
         guard let string: String = dbv.value() else {
@@ -1052,6 +1052,7 @@ dbQueue.inDatabase { db in
         }
         return string.uppercaseString
     }
+    db.addFunction(fn)
     
     // ROUÉ
     String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["Roué"])!
@@ -1067,10 +1068,11 @@ See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the
 
 ```swift
 dbQueue.inDatabase { db in
-    db.addVariadicFunction("intSum") { (databaseValues: [DatabaseValue]) in
+    let fn = DatabaseFunction("intSum") { (databaseValues: [DatabaseValue]) in
         let ints: [Int] = databaseValues.flatMap { $0.value() }
         return ints.reduce(0, combine: +)
     }
+    db.addFunction(fn)
     
     // 6
     Int.fetchOne(db, "SELECT intSum(1, 2, 3)")!
@@ -1081,7 +1083,7 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    db.addFunction("sqrt", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+    let fn = DatabaseFunction("sqrt", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
         let dbv = databaseValues[0]
         guard let double: Double = dbv.value() else {
             return nil
@@ -1098,7 +1100,8 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    let fn = db.addFunction(...)
+    let fn = DatabaseFunction(...)
+    db.addFunction(fn)
     ...
     db.removeFunction(fn)
 }

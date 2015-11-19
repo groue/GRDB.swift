@@ -329,96 +329,35 @@ public final class Database {
     // =========================================================================
     // MARK: - Functions
     
+    private var functions = Set<DatabaseFunction>()
+    
     /// Remove an SQL function.
     ///
-    /// - parameter identifier: A function identifier returned by addFunction()
-    ///   or addVariadicFunction().
-    public func removeFunction(identifier: DatabaseFunctionIdentifier) {
-        functions.removeValueForKey(identifier)
+    /// - parameter function: A function.
+    public func removeFunction(function: DatabaseFunction) {
+        functions.remove(function)
         let code = sqlite3_create_function_v2(
             sqliteConnection,
-            identifier.name,
-            identifier.argumentCount,
-            SQLITE_UTF8,
+            function.name,
+            function.argumentCount,
+            SQLITE_UTF8 | function.eTextRep,
             nil, nil, nil, nil, nil)
         guard code == SQLITE_OK else {
             fatalError(DatabaseError(code: code, message: self.lastErrorMessage, sql: nil, arguments: nil).description)
         }
     }
     
-    /// Add or redefine an SQL function with a variable number of arguments.
+    /// Add or redefine an SQL function.
     ///
-    ///     db.addVariadicFunction("f") { databaseValues in
-    ///         return databaseValues.count
-    ///     }
-    ///     Int.fetchOne(db, "SELECT f()")!   // 0
-    ///     Int.fetchOne(db, "SELECT f(1)")!  // 1
-    ///     Int.fetchOne(db, "SELECT f(1,1)"! // 2
-    ///
-    /// - parameter name: The function name.
-    /// - parameter pure: Whether the function is "pure", which means that its
-    ///   results only depends on its inputs. When a function is pure, SQLite
-    ///   has the opportunity to perform additional optimizations. Default value
-    ///   is false.
-    /// - parameter function: A function that takes an array of DatabaseValue
-    ///   arguments, and returns an optional DatabaseValueConvertible such as
-    ///   Int, String, NSDate, etc.
-    /// - returns: A function identifier that can be used with removeFunction().
-    public func addVariadicFunction(name: String, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) -> DatabaseFunctionIdentifier {
-        let identifier = DatabaseFunctionIdentifier(name: name, argumentCount: -1)
-        let dbFunction = DatabaseFunction(pure: pure) { (context, argc, argv) in
-            let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv[index]) }
-            return try function(arguments)?.databaseValue ?? .Null
-        }
-        addFunction(dbFunction, forIdentifier: identifier)
-        return identifier
-    }
-    
-    /// Add or redefine an SQL function with a fixed number of arguments.
-    ///
-    ///     db.addFunction("succ", argumentCount: 1) { databaseValues in
-    ///         let dbv = databaseValues.first!
-    ///         guard let int = dbv.value() as Int? else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
-    ///
-    /// - parameter name: The function name.
-    /// - parameter argumentCount: The number of arguments of the function.
-    /// - parameter pure: Whether the function is "pure", which means that its
-    ///   results only depends on its inputs. When a function is pure, SQLite
-    ///   has the opportunity to perform additional optimizations. Default value
-    ///   is false.
-    /// - parameter function: A function that takes an array of DatabaseValue
-    ///   arguments, and returns an optional DatabaseValueConvertible such as
-    ///   Int, String, NSDate, etc. The array is guaranteed to have exactly
-    ///   argumentCount elements.
-    /// - returns: A function identifier that can be used with removeFunction().
-    public func addFunction(name: String, argumentCount: Int, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) -> DatabaseFunctionIdentifier {
-        guard argumentCount >= 0 else {
-            fatalError("Invalid negative argument count. Use addVariadicFunction() for arguments with variable arguments count.")
-        }
-        let identifier = DatabaseFunctionIdentifier(name: name, argumentCount: Int32(argumentCount))
-        let dbFunction = DatabaseFunction(pure: pure) { (context, argc, argv) in
-            let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv[index]) }
-            return try function(arguments)?.databaseValue ?? .Null
-        }
-        addFunction(dbFunction, forIdentifier: identifier)
-        return identifier
-    }
-
-    private var functions = [DatabaseFunctionIdentifier: DatabaseFunction]()
-    
-    private func addFunction(function: DatabaseFunction, forIdentifier identifier: DatabaseFunctionIdentifier) {
-        functions[identifier] = function
-        
+    /// - parameter function: A function.
+    public func addFunction(function: DatabaseFunction) {
+        functions.remove(function)
+        functions.insert(function)
         let functionPointer = unsafeBitCast(function, UnsafeMutablePointer<Void>.self)
         let code = sqlite3_create_function_v2(
             sqliteConnection,
-            identifier.name,
-            identifier.argumentCount,
+            function.name,
+            function.argumentCount,
             SQLITE_UTF8 | function.eTextRep,
             functionPointer,
             { (context, argc, argv) in
@@ -865,28 +804,53 @@ public enum BusyMode {
 
 typealias DatabaseFunctionImpl = (COpaquePointer, Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
 
-/// TODO
-public struct DatabaseFunctionIdentifier : Hashable {
+public class DatabaseFunction : Hashable {
     let name: String
     let argumentCount: Int32
-    
-    public var hashValue: Int {
-        return name.hashValue ^ argumentCount.hashValue
-    }
-}
-
-// SQLite compares functions on their name and argumentCount.
-public func ==(lhs: DatabaseFunctionIdentifier, rhs: DatabaseFunctionIdentifier) -> Bool {
-    return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
-}
-
-class DatabaseFunction {
     let pure: Bool
     let function: DatabaseFunctionImpl
     var eTextRep: Int32 { return pure ? SQLITE_DETERMINISTIC : 0 }
     
-    init(pure: Bool, function: DatabaseFunctionImpl) {
+    /// The hash value.
+    public var hashValue: Int {
+        return name.hashValue ^ argumentCount.hashValue
+    }
+    
+    /// Returns an SQL function.
+    ///
+    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
+    ///         let dbv = databaseValues.first!
+    ///         guard let int = dbv.value() as Int? else {
+    ///             return nil
+    ///         }
+    ///         return int + 1
+    ///     }
+    ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
+    ///
+    /// - parameter name: The function name.
+    /// - parameter argumentCount: The number of arguments of the function. If
+    ///   omitted, or nil, the function accepts any number of arguments.
+    /// - parameter pure: Whether the function is "pure", which means that its
+    ///   results only depends on its inputs. When a function is pure, SQLite
+    ///   has the opportunity to perform additional optimizations. Default value
+    ///   is false.
+    /// - parameter function: A function that takes an array of DatabaseValue
+    ///   arguments, and returns an optional DatabaseValueConvertible such as
+    ///   Int, String, NSDate, etc. The array is guaranteed to have exactly
+    ///   *argumentCount* elements, provided *argumentCount* is not nil.
+    public init(_ name: String, argumentCount: Int32? = nil, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) {
+        self.name = name
+        self.argumentCount = argumentCount ?? -1
         self.pure = pure
-        self.function = function
+        self.function = { (context, argc, argv) in
+            let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv[index]) }
+            return try function(arguments)?.databaseValue ?? .Null
+        }
     }
 }
+
+/// Two functions are equal if they share the same name and argumentCount.
+public func ==(lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
+    return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
+}
+
