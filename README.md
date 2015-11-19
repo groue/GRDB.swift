@@ -1064,7 +1064,7 @@ dbQueue.inDatabase { db in
 
 See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type.
 
-The result of a *pure* function only depends on its arguments, unlike the built-in `random()` SQL function, for example. SQLite has the opportunity to perform additional optimizations when functions are pure.
+The result of a *pure* function only depends on its arguments (unlike the built-in `random()` SQL function, for example). SQLite has the opportunity to perform additional optimizations when functions are pure.
 
 
 **Functions can take and return all valid values types:**
