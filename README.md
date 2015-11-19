@@ -1027,8 +1027,9 @@ You can for example use the Unicode support of Swift strings, and go beyond the 
 ```swift
 dbQueue.inDatabase { db in
     db.addFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-        let dbv = databaseValues.first!
-        guard let string = dbv.value() as String? else {
+        // databaseValues is guaranteed to have `argumentCount` elements:
+        let dbv = databaseValues[0]
+        guard let string: String = dbv.value() else {
             return nil
         }
         return string.uppercaseString
@@ -1063,11 +1064,11 @@ dbQueue.inDatabase { db in
 ```swift
 dbQueue.inDatabase { db in
     db.addFunction("sqrt", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-        let dbv = databaseValues.first!
-        guard let double = dbv.value() as Double? else {
+        let dbv = databaseValues[0]
+        guard let double: Double = dbv.value() else {
             return nil
         }
-        guard double > 0 else {
+        guard double >= 0.0 else {
             throw DatabaseError(message: "Invalid negative value")
         }
         return sqrt(double)

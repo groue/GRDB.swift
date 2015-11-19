@@ -87,8 +87,10 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 db.addFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-                    let dbv = databaseValues.first!
-                    guard let string = dbv.value() as String? else { return nil }
+                    let dbv = databaseValues[0]
+                    guard let string: String = dbv.value() else {
+                        return nil
+                    }
                     return string.uppercaseString
                 }
                 XCTAssertEqual(String.fetchOne(db, "SELECT upper(?)", arguments: ["Roué"])!, "ROUé")
