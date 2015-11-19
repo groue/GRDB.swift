@@ -1067,6 +1067,27 @@ See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the
 The result of a *pure* function only depends on its arguments, unlike the built-in `random()` SQL function, for example. SQLite has the opportunity to perform additional optimizations when functions are pure.
 
 
+**Functions can take and return all valid values types:**
+
+See [Values](#values) for more information on supported arguments and return types (Bool, Int, String, NSDate, Swift enums, etc.).
+
+```swift
+dbQueue.inDatabase { db in
+    let host = DatabaseFunction("host", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
+        let dbv = databaseValues[0]
+        guard let url: NSURL = dbv.value() else {
+            return nil
+        }
+        return url.host
+    }
+    db.addFunction(host)
+    
+    // "www.google.com"
+    String.fetchOne(db, "SELECT host('http://www.google.com')")!
+}
+```
+
+
 **Functions can take a variable number of arguments:**
 
 ```swift
