@@ -1117,6 +1117,8 @@ Before jumping in the low-level wagon, here is a reminder of SQLite APIs support
     - [sqlite3_last_insert_rowid](https://www.sqlite.org/c3ref/last_insert_rowid.html)
 - Changes count (as the result of Database.execute()).
     - [sqlite3_changes](https://www.sqlite.org/c3ref/changes.html)
+- Custom SQL functions
+    - [sqlite3_create_function_v2](https://www.sqlite.org/c3ref/create_function.html)
 - Busy mode (see [Concurrency](#concurrency)).
     - [sqlite3_busy_handler](https://www.sqlite.org/c3ref/busy_handler.html)
     - [sqlite3_busy_timeout](https://www.sqlite.org/c3ref/busy_timeout.html)
