@@ -1026,7 +1026,7 @@ You can for example use the Unicode support of Swift strings, and go beyond the 
 
 ```swift
 dbQueue.inDatabase { db in
-    db.addFunction("unicodeUpper", argumentCount: 1) { databaseValues: [DatabaseValue] in
+    db.addFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
         let dbv = databaseValues.first!
         guard let string = dbv.value() as String? else {
             return nil
@@ -1048,7 +1048,7 @@ See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the
 
 ```swift
 dbQueue.inDatabase { db in
-    db.addVariadicFunction("intSum") { databaseValues: [DatabaseValue] in
+    db.addVariadicFunction("intSum") { (databaseValues: [DatabaseValue]) in
         let ints: [Int] = databaseValues.flatMap { $0.value() }
         return ints.reduce(0, combine: +)
     }
@@ -1062,7 +1062,7 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    db.addFunction("sqrt", argumentCount: 1) { databaseValues: [DatabaseValue] in
+    db.addFunction("sqrt", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
         let dbv = databaseValues.first!
         guard let double = dbv.value() as Double? else {
             return nil
