@@ -73,7 +73,8 @@ public final class DatabaseQueue {
         }
     }
     
-    /// Executes a block in the database queue, and returns its result.
+    /// Synchronously executes a block in the database queue, and returns
+    /// its result.
     ///
     ///     let rows = dbQueue.inDatabase { db in
     ///         db.fetch(...)
@@ -83,7 +84,7 @@ public final class DatabaseQueue {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func inDatabase<R>(block: (db: Database) throws -> R) rethrows -> R {
+    public func inDatabase<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try inQueue {
             try block(db: self.database)
         }
@@ -92,8 +93,8 @@ public final class DatabaseQueue {
     /// Synchronously executes a block in the database queue, wrapped inside a
     /// transaction.
     ///
-    /// If the block throws an error, the transaction is rollbacked and the error is
-    /// rethrown.
+    /// If the block throws an error, the transaction is rollbacked and the
+    /// error is rethrown.
     ///
     ///     try dbQueue.inTransaction { db in
     ///         db.execute(...)
@@ -168,7 +169,7 @@ public final class DatabaseQueue {
         database.databaseQueueID = databaseQueueID
     }
     
-    private func inQueue<R>(block: () throws -> R) rethrows -> R {
+    private func inQueue<T>(block: () throws -> T) rethrows -> T {
         // IMPLEMENTATION NOTE
         //
         // DatabaseQueue.inDatabase() and DatabaseQueue.inTransaction() are not
@@ -204,9 +205,9 @@ public final class DatabaseQueue {
     
     // A function declared as rethrows that synchronously executes a throwing
     // block in a dispatch_queue.
-    static func dispatchSync<R>(queue: dispatch_queue_t, block: () throws -> R) rethrows -> R {
-        func dispatchSyncImpl(queue: dispatch_queue_t, block: () throws -> R, block2: (ErrorType) throws -> Void) rethrows -> R {
-            var result: R? = nil
+    static func dispatchSync<T>(queue: dispatch_queue_t, block: () throws -> T) rethrows -> T {
+        func dispatchSyncImpl(queue: dispatch_queue_t, block: () throws -> T, block2: (ErrorType) throws -> Void) rethrows -> T {
+            var result: T? = nil
             var blockError: ErrorType? = nil
             dispatch_sync(queue) {
                 do {
