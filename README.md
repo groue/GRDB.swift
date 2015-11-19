@@ -1113,10 +1113,15 @@ dbQueue.inDatabase { db in
             return nil
         }
         guard double >= 0.0 else {
-            throw DatabaseError(message: "Invalid negative value")
+            throw DatabaseError(message: "Invalid negative value in function sqrt()")
         }
         return sqrt(double)
     }
+    db.addFunction(fn)
+    
+    // fatal error: SQLite error 1 with statement `SELECT sqrt(-1)`:
+    // Invalid negative value in function sqrt()
+    Double.fetchOne(db, "SELECT sqrt(-1)")
 }
 ```
 
