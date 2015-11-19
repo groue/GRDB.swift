@@ -329,7 +329,10 @@ public final class Database {
     // =========================================================================
     // MARK: - Functions
     
-    /// TODO
+    /// Remove a function.
+    ///
+    /// - parameter identifier: A function identifier returned by addFunction()
+    ///   or addVariadicFunction().
     public func removeFunction(identifier: DatabaseFunctionIdentifier) {
         functions.removeValueForKey(identifier)
         let code = sqlite3_create_function_v2(
@@ -343,7 +346,24 @@ public final class Database {
         }
     }
     
-    /// TODO
+    /// Add or redefine a function with a variable number of arguments.
+    ///
+    ///     db.addVariadicFunction("f") { databaseValues in
+    ///         return databaseValues.count
+    ///     }
+    ///     Int.fetchOne(db, "SELECT f()")!   // 0
+    ///     Int.fetchOne(db, "SELECT f(1)")!  // 1
+    ///     Int.fetchOne(db, "SELECT f(1,1)"! // 2
+    ///
+    /// - parameter name: The function name.
+    /// - parameter pure: Whether the function is "pure", which means that its
+    ///   results only depends on its inputs. When a function is pure, SQLite
+    ///   has the opportunity to perform additional optimizations. Default value
+    ///   is false.
+    /// - parameter function: A function that takes an array of DatabaseValue
+    ///   arguments, and returns an optional DatabaseValueConvertible such as
+    ///   Int, String, NSDate, etc.
+    /// - returns: A function identifier that can be used with removeFunction().
     public func addVariadicFunction(name: String, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) -> DatabaseFunctionIdentifier {
         let identifier = DatabaseFunctionIdentifier(name: name, argumentCount: -1)
         let dbFunction = DatabaseFunction(pure: pure) { (context, argc, argv) in
@@ -354,7 +374,28 @@ public final class Database {
         return identifier
     }
     
-    /// TODO
+    /// Add or redefine a function with a fixed number of arguments.
+    ///
+    ///     db.addFunction("succ", argumentCount: 1) { databaseValues in
+    ///         let dbv = databaseValues.first!
+    ///         guard let int = dbv.value() as Int? else {
+    ///             return nil
+    ///         }
+    ///         return int + 1
+    ///     }
+    ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
+    ///
+    /// - parameter name: The function name.
+    /// - parameter argumentCount: The number of arguments of the function.
+    /// - parameter pure: Whether the function is "pure", which means that its
+    ///   results only depends on its inputs. When a function is pure, SQLite
+    ///   has the opportunity to perform additional optimizations. Default value
+    ///   is false.
+    /// - parameter function: A function that takes an array of DatabaseValue
+    ///   arguments, and returns an optional DatabaseValueConvertible such as
+    ///   Int, String, NSDate, etc. The array is guaranteed to have exactly
+    ///   argumentCount elements.
+    /// - returns: A function identifier that can be used with removeFunction().
     public func addFunction(name: String, argumentCount: Int, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) -> DatabaseFunctionIdentifier {
         guard argumentCount >= 0 else {
             fatalError("Invalid negative argument count. Use addVariadicFunction() for arguments with variable arguments count.")

@@ -17,16 +17,6 @@ struct CustomFunctionResult : DatabaseValueConvertible {
 }
 
 class FunctionTests: GRDBTestCase {
-//    // Crash: SQLite error 1 with statement `SELECT f(1)`: wrong number of arguments to function f()
-//    func testAddFunctionArity0WithBadNumberOfArguments() {
-//        assertNoError {
-//            dbQueue.inDatabase { db in
-//                db.addFunction("f") { nil }
-//                Row.fetchOne(db, "SELECT f(1)")
-//            }
-//        }
-//    }
-    
     func testAddFunctionReturningNull() {
         assertNoError {
             dbQueue.inDatabase { db in
@@ -142,6 +132,62 @@ class FunctionTests: GRDBTestCase {
                     return x
                 }
                 XCTAssertEqual(Int.fetchOne(db, "SELECT f()")!, 123)
+            }
+        }
+    }
+
+    func testFunctionThrowingDatabaseErrorWithMessage() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                db.addFunction("f", argumentCount: 1) { databaseValues in
+                    throw DatabaseError(message: "custom error message")
+                }
+                do {
+                    try db.execute("CREATE TABLE items (value INT)")
+                    try db.execute("INSERT INTO items VALUES (f(1))")
+                    XCTFail("Expected DatabaseError")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, SQLITE_ERROR)
+                    XCTAssertEqual(error.message, "custom error message")
+                }
+            }
+        }
+    }
+    
+    func testFunctionThrowingDatabaseErrorWithCode() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                db.addFunction("f", argumentCount: 1) { databaseValues in
+                    throw DatabaseError(code: 123, message: "custom error message")
+                }
+                do {
+                    try db.execute("CREATE TABLE items (value INT)")
+                    try db.execute("INSERT INTO items VALUES (f(1))")
+                    XCTFail("Expected DatabaseError")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 123)
+                    XCTAssertEqual(error.message, "custom error message")
+                }
+            }
+        }
+    }
+    
+    func testFunctionThrowingCustomError() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                db.addFunction("f", argumentCount: 1) { databaseValues in
+                    throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSLocalizedDescriptionKey: "custom error message"])
+                }
+                do {
+                    try db.execute("CREATE TABLE items (value INT)")
+                    try db.execute("INSERT INTO items VALUES (f(1))")
+                    XCTFail("Expected DatabaseError")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 1)
+                    XCTAssertTrue(error.message!.containsString("CustomErrorDomain"))
+                    XCTAssertTrue(error.message!.containsString("123"))
+                    XCTAssertTrue(error.message!.containsString("custom error message"))
+                }
             }
         }
     }
