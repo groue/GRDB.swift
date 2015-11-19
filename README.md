@@ -1040,11 +1040,11 @@ See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTra
 
 **SQLite let you define SQL functions.**
 
-You can for example use the Unicode support of Swift strings, and go beyond the ASCII limitations of the built-in SQLite upper() function:
+You can for example use the Unicode support of Swift strings, and go beyond the ASCII limitations of the built-in SQLite `upper()` function:
 
 ```swift
 dbQueue.inDatabase { db in
-    let fn = DatabaseFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+    let fn = DatabaseFunction("unicodeUpper", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
         // databaseValues is guaranteed to have `argumentCount` elements:
         let dbv = databaseValues[0]
         guard let string: String = dbv.value() else {
@@ -1054,21 +1054,24 @@ dbQueue.inDatabase { db in
     }
     db.addFunction(fn)
     
-    // ROUÉ
-    String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["Roué"])!
+    // "É"
+    String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["é"])!
 
-    // ROUé
-    String.fetchOne(db, "SELECT upper(?)", arguments: ["Roué"])!
+    // "é"
+    String.fetchOne(db, "SELECT upper(?)", arguments: ["é"])!
 }
 ```
 
 See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type.
 
+The result of a *pure* function only depends on its arguments, unlike the built-in `random()` SQL function, for example. SQLite has the opportunity to perform additional optimizations when functions are pure.
+
+
 **Functions can take a variable number of arguments:**
 
 ```swift
 dbQueue.inDatabase { db in
-    let fn = DatabaseFunction("intSum") { (databaseValues: [DatabaseValue]) in
+    let fn = DatabaseFunction("intSum", pure: true) { (databaseValues: [DatabaseValue]) in
         let ints: [Int] = databaseValues.flatMap { $0.value() }
         return ints.reduce(0, combine: +)
     }
@@ -1083,7 +1086,7 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    let fn = DatabaseFunction("sqrt", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
+    let fn = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
         let dbv = databaseValues[0]
         guard let double: Double = dbv.value() else {
             return nil
