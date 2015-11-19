@@ -1103,6 +1103,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
+
 **Functions can throw:**
 
 ```swift
@@ -1124,6 +1125,9 @@ dbQueue.inDatabase { db in
     Double.fetchOne(db, "SELECT sqrt(-1)")
 }
 ```
+
+See [Error Handling](#error-handling) for more information on database errors.
+
 
 **Added functions can be removed:**
 
