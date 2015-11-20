@@ -1633,7 +1633,7 @@ Person overrides `storedDatabaseDictionary` to return the dictionary of values t
     }
 ```
 
-Person overrides `updateFromRow()` to update its properties from the columns found in a database row. See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported property types:
+Person overrides `updateFromRow()` to update its properties from the columns found in a database row. See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported value types:
     
 ```swift
     /// Update the record from a database row
