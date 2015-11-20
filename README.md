@@ -1594,29 +1594,46 @@ class Person {
 }
 ```
 
-For example:
+For example, given the following table:
+
+```sql
+CREATE TABLE persons (
+    id INTEGER PRIMARY KEY,
+    url TEXT,
+    name TEXT,
+    email TEXT UNIQUE COLLATE NOCASE
+)
+```
+
+The Person class freely defines its properties. Here we have chosen optional types that directly map database columns, but it's just a example. You are free to use non-optional types or compound types like CLLocationCoordinate2D.
 
 ```swift
-// CREATE TABLE persons (
-//     id INTEGER PRIMARY KEY,
-//     url TEXT,
-//     name TEXT,
-//     email TEXT UNIQUE COLLATE NOCASE
-// )
 class Person : Record {
     var id: Int64?  // Int64 is the preferred type for auto-incremented IDs.
     var url: NSURL?
     var name: String?
     var email: String?
+```
+
+Person overrides `databaseTableName()` to return the name of the table that should be used when fetching persons:
     
+```swift
     override class func databaseTableName() -> String? {
         return "persons"
     }
-    
+```
+
+Person overrides `storedDatabaseDictionary` to return the dictionary of values that should be stored in the database when a person is saved. `DatabaseValueConvertible` is the protocol adopted by all supported values  (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
+
+```swift
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "url": url, "name": name, "email": email]
     }
+```
+
+Person overrides `updateFromRow()` to update its properties from the columns found in a database row. See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported property types:
     
+```swift
     override func updateFromRow(row: Row) {
         if let dbv = row["id"]    { id = dbv.value() }
         if let dbv = row["url"]   { url = dbv.value() }
@@ -1626,8 +1643,6 @@ class Person : Record {
     }
 }
 ```
-
-The `updateFromRow` method updates properties from the columns found in the row. See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported property types.
 
 > :point_up: **Note**: The `updateFromRow` method MUST NOT assume the presence of particular columns. The Record class itself reserves the right to call `updateFromRow` with arbitrary columns. The following implementation is thus discouraged:
 >
