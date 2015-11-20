@@ -1618,6 +1618,7 @@ class Person : Record {
 Person overrides `databaseTableName()` to return the name of the table that should be used when fetching persons:
     
 ```swift
+    /// The table name
     override class func databaseTableName() -> String? {
         return "persons"
     }
@@ -1626,6 +1627,7 @@ Person overrides `databaseTableName()` to return the name of the table that shou
 Person overrides `storedDatabaseDictionary` to return the dictionary of values that should be stored in the database when a person is saved. `DatabaseValueConvertible` is the protocol adopted by all supported values  (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
 
 ```swift
+    /// The values stored in the database
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "url": url, "name": name, "email": email]
     }
@@ -1634,6 +1636,7 @@ Person overrides `storedDatabaseDictionary` to return the dictionary of values t
 Person overrides `updateFromRow()` to update its properties from the columns found in a database row. See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type of the `dbv` variable, and [Values](#values) about the supported property types:
     
 ```swift
+    /// Update the record from a database row
     override func updateFromRow(row: Row) {
         if let dbv = row["id"]    { id = dbv.value() }
         if let dbv = row["url"]   { url = dbv.value() }
