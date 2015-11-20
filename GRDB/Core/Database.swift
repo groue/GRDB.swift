@@ -84,7 +84,7 @@ public final class Database {
         
         let code = sqlite3_exec(self.sqliteConnection, sql, nil, nil, nil)
         guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: self.lastErrorMessage, sql: sql, arguments: nil)
+            throw DatabaseError(code: code, message: lastErrorMessage, sql: sql, arguments: nil)
         }
         
         let changedRowsAfter = sqlite3_total_changes(self.sqliteConnection)
@@ -331,23 +331,17 @@ public final class Database {
     
     private var functions = Set<DatabaseFunction>()
     
-    /// Remove an SQL function.
-    ///
-    /// - parameter function: A function.
-    public func removeFunction(function: DatabaseFunction) {
-        functions.remove(function)
-        let code = sqlite3_create_function_v2(
-            sqliteConnection,
-            function.name,
-            function.argumentCount,
-            SQLITE_UTF8 | function.eTextRep,
-            nil, nil, nil, nil, nil)
-        guard code == SQLITE_OK else {
-            fatalError(DatabaseError(code: code, message: self.lastErrorMessage, sql: nil, arguments: nil).description)
-        }
-    }
-    
     /// Add or redefine an SQL function.
+    ///
+    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
+    ///         let dbv = databaseValues.first!
+    ///         guard let int = dbv.value() as Int? else {
+    ///             return nil
+    ///         }
+    ///         return int + 1
+    ///     }
+    ///     db.addFunction(fn)
+    ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
     ///
     /// - parameter function: A function.
     public func addFunction(function: DatabaseFunction) {
@@ -387,8 +381,63 @@ public final class Database {
             }, nil, nil, nil)
         
         guard code == SQLITE_OK else {
-            fatalError(DatabaseError(code: code, message: self.lastErrorMessage, sql: nil, arguments: nil).description)
+            fatalError(DatabaseError(code: code, message: lastErrorMessage, sql: nil, arguments: nil).description)
         }
+    }
+    
+    /// Remove an SQL function.
+    ///
+    /// - parameter function: A function.
+    public func removeFunction(function: DatabaseFunction) {
+        functions.remove(function)
+        let code = sqlite3_create_function_v2(
+            sqliteConnection,
+            function.name,
+            function.argumentCount,
+            SQLITE_UTF8 | function.eTextRep,
+            nil, nil, nil, nil, nil)
+        guard code == SQLITE_OK else {
+            fatalError(DatabaseError(code: code, message: lastErrorMessage, sql: nil, arguments: nil).description)
+        }
+    }
+    
+    
+    // =========================================================================
+    // MARK: - Collations
+    
+    private var collations = Set<DatabaseCollation>()
+    
+    /// TODO
+    public func addCollation(collation: DatabaseCollation) {
+        collations.remove(collation)
+        collations.insert(collation)
+        let collationPointer = unsafeBitCast(collation, UnsafeMutablePointer<Void>.self)
+        let code = sqlite3_create_collation_v2(
+            sqliteConnection,
+            collation.name,
+            SQLITE_UTF8,
+            collationPointer,
+            { (collationPointer, length1, buffer1, length2, buffer2) -> Int32 in
+                let collation = unsafeBitCast(collationPointer, DatabaseCollation.self)
+                let string1 = String.fromCString(UnsafePointer<Int8>(buffer1))!
+                let string2 = String.fromCString(UnsafePointer<Int8>(buffer2))!
+                return Int32(collation.function(string1, string2).rawValue)
+            }, nil)
+        guard code == SQLITE_OK else {
+            fatalError(DatabaseError(code: code, message: lastErrorMessage, sql: nil, arguments: nil).description)
+        }
+    }
+    
+    /// Remove a collation.
+    ///
+    /// - parameter collation: A collation.
+    public func removeCollation(collation: DatabaseCollation) {
+        collations.remove(collation)
+        sqlite3_create_collation_v2(
+            sqliteConnection,
+            collation.name,
+            SQLITE_UTF8,
+            nil, nil, nil)
     }
     
     
@@ -802,13 +851,12 @@ public enum BusyMode {
 // =========================================================================
 // MARK: - Functions
 
-typealias DatabaseFunctionImpl = (COpaquePointer, Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
-
+/// TODO
 public class DatabaseFunction : Hashable {
     let name: String
     let argumentCount: Int32
     let pure: Bool
-    let function: DatabaseFunctionImpl
+    let function: (COpaquePointer, Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
     var eTextRep: Int32 { return pure ? SQLITE_DETERMINISTIC : 0 }
     
     /// The hash value.
@@ -825,6 +873,7 @@ public class DatabaseFunction : Hashable {
     ///         }
     ///         return int + 1
     ///     }
+    ///     db.addFunction(fn)
     ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
     ///
     /// - parameter name: The function name.
@@ -854,3 +903,39 @@ public func ==(lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
     return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
 }
 
+
+// =========================================================================
+// MARK: - Collations
+
+/// TODO
+public class DatabaseCollation : Hashable {
+    let name: String
+    let function: (String, String) -> NSComparisonResult
+    
+    /// The hash value.
+    public var hashValue: Int {
+        // We can't compute a hash since the equality is based on the opaque
+        // sqlite3_strnicmp SQLite function.
+        return 0
+    }
+    
+    /// Returns a collation.
+    ///
+    ///     let collation = DatabaseCollation("succ") { (string1, string2) in
+    ///         return (string1 as NSString).localizedCaseInsensitiveCompare(string2)
+    ///     }
+    ///     db.addCollation(collation)
+    ///
+    /// - parameter name: The function name.
+    /// - parameter function: A function that compares two strings.
+    public init(_ name: String, function: (String, String) -> NSComparisonResult) {
+        self.name = name
+        self.function = function
+    }
+}
+
+/// Two collations are equal if they share the same name (case insensitive)
+public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
+    // See https://www.sqlite.org/c3ref/create_collation.html
+    return sqlite3_stricmp(lhs.name, lhs.name) == 0
+}
