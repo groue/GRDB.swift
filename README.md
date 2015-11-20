@@ -1605,7 +1605,7 @@ CREATE TABLE persons (
 )
 ```
 
-The Person class freely defines its properties. Here we have chosen optional types that directly map database columns, but it's just a example. You are free to use non-optional types or compound types like CLLocationCoordinate2D.
+The Person class freely defines its properties. Here we have chosen optional types that directly map database columns, but you are free to use non-optional types or compound types like CLLocationCoordinate2D.
 
 ```swift
 class Person : Record {
