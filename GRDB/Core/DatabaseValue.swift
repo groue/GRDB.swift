@@ -100,6 +100,22 @@ public struct DatabaseValue : Hashable {
         }
     }
     
+    /// Returns Int64, Double, String, NSData or nil.
+    public func value() -> DatabaseValueConvertible? {
+        switch storage {
+        case .Null:
+            return nil
+        case .Int64(let int64):
+            return int64
+        case .Double(let double):
+            return double
+        case .String(let string):
+            return string
+        case .Blob(let data):
+            return data
+        }
+    }
+    
     /// Returns the value, converted to the requested type.
     ///
     /// The result is nil if the SQLite value is NULL, or if the SQLite value

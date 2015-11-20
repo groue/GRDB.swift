@@ -56,6 +56,20 @@ public final class Row: CollectionType {
         return impl.indexForColumn(named: columnName) != nil
     }
     
+    /// Returns Int64, Double, String, NSData or nil, depending on the value
+    /// stored at the given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    ///
+    /// - parameter index: A column index.
+    /// - returns: An Int64, Double, String, NSData or nil.
+    public func value(atIndex index: Int) -> DatabaseValueConvertible? {
+        return impl
+            .databaseValue(atIndex: index)
+            .value()
+    }
+    
     /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
@@ -184,6 +198,28 @@ public final class Row: CollectionType {
             // Detached row
             return impl.databaseValue(atIndex: index).value()
         }
+    }
+    
+    /// Returns Int64, Double, String, NSData or nil, depending on the value
+    /// stored at the given column.
+    ///
+    /// Column name is case-insensitive. If the row does not contain the column,
+    /// a fatal error is raised.
+    ///
+    /// - parameter columnName: A column name.
+    /// - returns: An Int64, Double, String, NSData or nil.
+    public func value(named columnName: String) -> DatabaseValueConvertible? {
+        // IMPLEMENTATION NOTE
+        // This method has a single know use case: checking if the value is nil,
+        // as in:
+        //
+        //     if row.value(named: "foo") != nil { ... }
+        //
+        // Without this method, the code above would not compile.
+        guard let index = impl.indexForColumn(named: columnName) else {
+            fatalError("No such column: \(String(reflecting: columnName))")
+        }
+        return impl.databaseValue(atIndex: index).value()
     }
     
     /// Returns the value at given column, converted to the requested type.
