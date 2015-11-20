@@ -1629,7 +1629,11 @@ Person overrides `storedDatabaseDictionary` to return the dictionary of values t
 ```swift
     /// The values stored in the database
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "url": url, "name": name, "email": email]
+        return [
+            "id": id,
+            "url": url,
+            "name": name,
+            "email": email]
     }
 ```
 
