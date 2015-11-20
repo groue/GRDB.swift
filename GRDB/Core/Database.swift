@@ -407,7 +407,15 @@ public final class Database {
     
     private var collations = Set<DatabaseCollation>()
     
-    /// TODO
+    /// Add or redefine a collation.
+    ///
+    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
+    ///         return (string1 as NSString).localizedStandardCompare(string2)
+    ///     }
+    ///     db.addCollation(collation)
+    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///
+    /// - parameter collation: A collation.
     public func addCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         collations.insert(collation)
@@ -851,7 +859,7 @@ public enum BusyMode {
 // =========================================================================
 // MARK: - Functions
 
-/// TODO
+/// An SQL function.
 public class DatabaseFunction : Hashable {
     let name: String
     let argumentCount: Int32
@@ -907,7 +915,7 @@ public func ==(lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
 // =========================================================================
 // MARK: - Collations
 
-/// TODO
+/// A Collation.
 public class DatabaseCollation : Hashable {
     let name: String
     let function: (String, String) -> NSComparisonResult
@@ -921,10 +929,11 @@ public class DatabaseCollation : Hashable {
     
     /// Returns a collation.
     ///
-    ///     let collation = DatabaseCollation("succ") { (string1, string2) in
-    ///         return (string1 as NSString).localizedCaseInsensitiveCompare(string2)
+    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
+    ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     db.addCollation(collation)
+    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///
     /// - parameter name: The function name.
     /// - parameter function: A function that compares two strings.
