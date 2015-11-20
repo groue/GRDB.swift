@@ -58,6 +58,7 @@ Documentation
         - [Prepared Statements](#prepared-statements)
         - [Concurrency](#concurrency)
         - [Custom SQL Functions](#custom-sql-functions)
+        - [Custom Collations](#custom-collations)
         - [Raw SQLite Pointers](#raw-sqlite-pointers)
     
     
@@ -1085,26 +1086,7 @@ See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the
 
 The result of a *pure* function only depends on its arguments (unlike the built-in `random()` SQL function, for example). SQLite has the opportunity to perform additional optimizations when functions are pure.
 
-
-**Functions can take and return all valid values types:**
-
 See [Values](#values) for more information on supported arguments and return types (Bool, Int, String, NSDate, Swift enums, etc.).
-
-```swift
-dbQueue.inDatabase { db in
-    let host = DatabaseFunction("host", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
-        let dbv = databaseValues[0]
-        guard let url: NSURL = dbv.value() else {
-            return nil
-        }
-        return url.host
-    }
-    db.addFunction(host)
-    
-    // "github.com"
-    String.fetchOne(db, "SELECT host('https://github.com')")!
-}
-```
 
 
 **Functions can take a variable number of arguments:**
@@ -1158,6 +1140,27 @@ dbQueue.inDatabase { db in
     db.removeFunction(fn)
 }
 ```
+
+
+## Custom Collations
+
+**When SQLite compares two strings, it uses a collating function** to determine which string is greater or if the two strings are equal.
+
+SQLite lets you define your own collating functions:
+
+```swift
+dbQueue.inDatabase { db in
+    let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
+        return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
+    }
+    db.addCollation(collation)
+    
+    // Use the newly defined `localized_case_insensitive` collation:
+    try db.execute("CREATE TABLE persons (lastName TEXT COLLATE LOCALIZED_CASE_INSENSITIVE)")
+}
+```
+
+See https://www.sqlite.org/datatype3.html#collation for more information.
 
 
 ## Raw SQLite Pointers
