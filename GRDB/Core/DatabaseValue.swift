@@ -10,6 +10,7 @@ typealias SQLiteValue = COpaquePointer
 /// See https://www.sqlite.org/datatype3.html
 public struct DatabaseValue : Hashable {
     
+    /// An SQLite storage (NULL, INTEGER, REAL, TEST, BLOB).
     public enum Storage {
         /// The NULL storage class.
         case Null
@@ -69,8 +70,8 @@ public struct DatabaseValue : Hashable {
     
     /// Returns a DatabaseValue storing NSData.
     ///
-    /// SQLite cant' store zero-length blobs: if data has zero-lengy, the result
-    /// is NULL.
+    /// SQLite cant' store zero-length blobs: if data has zero length, the
+    /// result is NULL.
     public init(data: NSData) {
         if data.length == 0 {
             // SQLite cant' store zero-length blobs.
