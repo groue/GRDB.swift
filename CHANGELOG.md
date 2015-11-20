@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `DatabaseValue` adopts Hashable.
+- `DatabaseValue.isNull` is true if a database value is NULL.
+- `DatabaseValue.storage` exposes the underlying SQLite storage (NULL, INTEGER, REAL, TEXT, BLOB).
+
+
 ## 0.31.0
 
 Released November 19, 2015

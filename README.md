@@ -414,6 +414,25 @@ if let databaseValue = row["date"] {
     let dateString: String = databaseValue.value() // "2015-09-11 18:14:15.123"
     let date: NSDate = databaseValue.value()       // NSDate
     self.date = databaseValue.value() // Depends on the type of the property.
+    
+    // Check for NULL:
+    if databaseValue.isNull {
+        print("NULL")
+    }
+    
+    // The five SQLite storage classes:
+    switch databaseValue.storage {
+    case .Null:
+        print("NULL")
+    case .Int64(let int64):
+        print("Int64: \(int64)")
+    case .Double(let double):
+        print("Double: \(double)")
+    case .String(let string):
+        print("String: \(string)")
+    case .Blob(let data):
+        print("NSData: \(data)")
+    }
 }
 ```
 

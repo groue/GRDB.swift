@@ -8,7 +8,44 @@ typealias SQLiteValue = COpaquePointer
 /// DatabaseValue is the intermediate type between SQLite and your values.
 ///
 /// See https://www.sqlite.org/datatype3.html
-public struct DatabaseValue : Equatable {
+public struct DatabaseValue : Hashable {
+    
+    public enum Storage {
+        /// The NULL storage class.
+        case Null
+        
+        /// The INTEGER storage class, wrapping an Int64.
+        case Int64(Swift.Int64)
+        
+        /// The REAL storage class, wrapping a Double.
+        case Double(Swift.Double)
+        
+        /// The TEXT storage class, wrapping a String.
+        case String(Swift.String)
+        
+        /// The BLOB storage class, wrapping NSData.
+        case Blob(NSData)
+    }
+    
+    /// The SQLite storage
+    public let storage: Storage
+    
+    /// The hash value
+    public var hashValue: Int {
+        switch storage {
+        case .Null:
+            return 0
+        case .Int64(let int64):
+            return int64.hashValue
+        case .Double(let double):
+            return double.hashValue
+        case .String(let string):
+            return string.hashValue
+        case .Blob(let data):
+            return data.hashValue
+        }
+    }
+    
     
     // MARK: - Creating DatabaseValue
     
@@ -16,21 +53,24 @@ public struct DatabaseValue : Equatable {
     public static let Null = DatabaseValue(storage: .Null)
     
     /// Returns a DatabaseValue storing an Integer.
-    public init(int64: Int64) {
+    public init(int64: Swift.Int64) {
         self.storage = .Int64(int64)
     }
     
     /// Returns a DatabaseValue storing an Double.
-    public init(double: Double) {
+    public init(double: Swift.Double) {
         self.storage = .Double(double)
     }
     
     /// Returns a DatabaseValue storing a String.
-    public init(string: String) {
+    public init(string: Swift.String) {
         self.storage = .String(string)
     }
     
     /// Returns a DatabaseValue storing NSData.
+    ///
+    /// SQLite cant' store zero-length blobs: if data has zero-lengy, the result
+    /// is NULL.
     public init(data: NSData) {
         if data.length == 0 {
             // SQLite cant' store zero-length blobs.
@@ -42,32 +82,20 @@ public struct DatabaseValue : Equatable {
     
     /// Copy initializer
     public init(_ databaseValue: DatabaseValue) {
-        self.storage = databaseValue.storage
+        // This initializer is used by DatabaseValue.init?(object: AnyObject)
+        self = databaseValue
     }
     
     
-    // MARK: - Extracting Swift Value
+    // MARK: - Extracting Value
     
-    /// Returns Int64, Double, String, NSData or nil.
-    public func value() -> DatabaseValueConvertible? {
-        // IMPLEMENTATION NOTE
-        // This method has a single know use case: checking if the value is nil,
-        // as in:
-        //
-        //     if dbv.value() != nil { ... }
-        //
-        // Without this method, the code above would not compile.
+    /// Returns true if databaseValue is NULL.
+    public var isNull: Bool {
         switch storage {
         case .Null:
-            return nil
-        case .Int64(let int64):
-            return int64
-        case .Double(let double):
-            return double
-        case .String(let string):
-            return string
-        case .Blob(let data):
-            return data
+            return true
+        default:
+            return false
         }
     }
     
@@ -115,75 +143,51 @@ public struct DatabaseValue : Equatable {
     
     // MARK: - Not Public
     
-    enum Storage {
-        /// The NULL storage class.
-        case Null
-        
-        /// The INTEGER storage class, wrapping an Int64.
-        case Int64(Swift.Int64)
-        
-        /// The REAL storage class, wrapping a Double.
-        case Double(Swift.Double)
-        
-        /// The TEXT storage class, wrapping a String.
-        case String(Swift.String)
-        
-        /// The BLOB storage class, wrapping NSData.
-        case Blob(NSData)
-        
-        init(sqliteStatement: SQLiteStatement, index: Int) {
-            switch sqlite3_column_type(sqliteStatement, Int32(index)) {
-            case SQLITE_NULL:
-                self = .Null
-            case SQLITE_INTEGER:
-                self = .Int64(sqlite3_column_int64(sqliteStatement, Int32(index)))
-            case SQLITE_FLOAT:
-                self = .Double(sqlite3_column_double(sqliteStatement, Int32(index)))
-            case SQLITE_TEXT:
-                let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
-                self = .String(Swift.String.fromCString(cString)!)
-            case SQLITE_BLOB:
-                let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
-                let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-                self = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
-            default:
-                fatalError("Unexpected SQLite column type")
-            }
-        }
-        
-        init(sqliteValue: SQLiteValue) {
-            switch sqlite3_value_type(sqliteValue) {
-            case SQLITE_NULL:
-                self = .Null
-            case SQLITE_INTEGER:
-                self = .Int64(sqlite3_value_int64(sqliteValue))
-            case SQLITE_FLOAT:
-                self = .Double(sqlite3_value_double(sqliteValue))
-            case SQLITE_TEXT:
-                let cString = UnsafePointer<Int8>(sqlite3_value_text(sqliteValue))
-                self = .String(Swift.String.fromCString(cString)!)
-            case SQLITE_BLOB:
-                let bytes = sqlite3_value_blob(sqliteValue)
-                let length = sqlite3_value_bytes(sqliteValue)
-                self = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
-            default:
-                fatalError("Unexpected SQLite value type")
-            }
-        }
+    init(storage: Storage) {
+        // This initializer is not public because Storage is not a safe type:
+        // one can create a Storage of zero-length NSData, which is invalid
+        // because SQLite can't store zero-length blobs.
+        self.storage = storage
     }
     
-    let storage: Storage
-
     init(sqliteStatement: SQLiteStatement, index: Int) {
-        self.storage = Storage(sqliteStatement: sqliteStatement, index: index)
+        switch sqlite3_column_type(sqliteStatement, Int32(index)) {
+        case SQLITE_NULL:
+            self.storage = .Null
+        case SQLITE_INTEGER:
+            self.storage = .Int64(sqlite3_column_int64(sqliteStatement, Int32(index)))
+        case SQLITE_FLOAT:
+            self.storage = .Double(sqlite3_column_double(sqliteStatement, Int32(index)))
+        case SQLITE_TEXT:
+            let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
+            self.storage = .String(Swift.String.fromCString(cString)!)
+        case SQLITE_BLOB:
+            let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
+            let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
+            self.storage = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
+        default:
+            fatalError("Unexpected SQLite column type")
+        }
     }
     
     init(sqliteValue: SQLiteValue) {
-        self.storage = Storage(sqliteValue: sqliteValue)
-    }
-    
-    private init(storage: Storage) {
-        self.storage = storage
+        switch sqlite3_value_type(sqliteValue) {
+        case SQLITE_NULL:
+            self.storage = .Null
+        case SQLITE_INTEGER:
+            self.storage = .Int64(sqlite3_value_int64(sqliteValue))
+        case SQLITE_FLOAT:
+            self.storage = .Double(sqlite3_value_double(sqliteValue))
+        case SQLITE_TEXT:
+            let cString = UnsafePointer<Int8>(sqlite3_value_text(sqliteValue))
+            self.storage = .String(Swift.String.fromCString(cString)!)
+        case SQLITE_BLOB:
+            let bytes = sqlite3_value_blob(sqliteValue)
+            let length = sqlite3_value_bytes(sqliteValue)
+            self.storage = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
+        default:
+            fatalError("Unexpected SQLite value type")
+        }
     }
 }
 
@@ -251,8 +255,8 @@ extension DatabaseValue : CustomStringConvertible {
         switch storage {
         case .Null:
             return "NULL"
-        case .Int64(let integer):
-            return String(integer)
+        case .Int64(let int64):
+            return String(int64)
         case .Double(let double):
             return String(double)
         case .String(let string):

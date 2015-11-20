@@ -24,7 +24,7 @@ class FunctionTests: GRDBTestCase {
                     return nil
                 }
                 db.addFunction(fn)
-                XCTAssertTrue(Row.fetchOne(db, "SELECT f()")!.value(atIndex: 0) == nil)
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT f()")!.isNull)
             }
         }
     }
@@ -95,7 +95,7 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             dbQueue.inDatabase { db in
                 let fn = DatabaseFunction("isNil", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-                    return databaseValues[0].value() == nil
+                    return databaseValues[0].isNull
                 }
                 db.addFunction(fn)
                 XCTAssertTrue(Bool.fetchOne(db, "SELECT isNil(NULL)")!)
