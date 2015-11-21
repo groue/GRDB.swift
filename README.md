@@ -15,7 +15,7 @@ But Why?
 
 Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccgus/fmdb), and the very popular [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)?
 
-GRDB owns a lot to FMDB. You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
+GRDB owes a lot to FMDB. You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
 
 GRDB also makes sure that it is easy to feed your application with database data, with [support](#values) for types like NSDate, NSURL or Swift enums. The built-in [Record](#records) class takes care of turning plain database rows in standard Swift objects with good old properties, without bringing in all the complexities of Core Data.
 
