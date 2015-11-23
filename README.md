@@ -1160,7 +1160,7 @@ dbQueue.inDatabase { db in
     try db.execute("CREATE TABLE persons (lastName TEXT COLLATE LOCALIZED_CASE_INSENSITIVE)")
     
     // Persons are sorted as expected:
-    Person.fetchAll("SELECT * FROM persons ORDER BY lastName")
+    Person.fetchAll(db, "SELECT * FROM persons ORDER BY lastName")
 }
 ```
 
