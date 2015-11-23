@@ -5,6 +5,7 @@ Release Notes
 
 **New**
 
+- `DatabaseCollation` let you inject custom string comparison functions into SQLite.
 - `DatabaseValue` adopts Hashable.
 - `DatabaseValue.isNull` is true if a database value is NULL.
 - `DatabaseValue.storage` exposes the underlying SQLite storage (NULL, INTEGER, REAL, TEXT, BLOB).

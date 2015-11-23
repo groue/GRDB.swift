@@ -1146,21 +1146,25 @@ dbQueue.inDatabase { db in
 
 **When SQLite compares two strings, it uses a collating function** to determine which string is greater or if the two strings are equal.
 
-SQLite lets you define your own collating functions:
+SQLite lets you define your own collating functions. This is how you can bring support for unicode or localization when comparing strings:
 
 ```swift
 dbQueue.inDatabase { db in
+    // Define the localized_case_insensitive collation:
     let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
         return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
     }
     db.addCollation(collation)
     
-    // Use the newly defined `localized_case_insensitive` collation:
+    // Put it to some use:
     try db.execute("CREATE TABLE persons (lastName TEXT COLLATE LOCALIZED_CASE_INSENSITIVE)")
+    
+    // Persons are sorted as expected:
+    Person.fetchAll("SELECT * FROM persons ORDER BY lastName")
 }
 ```
 
-See https://www.sqlite.org/datatype3.html#collation for more information.
+Check https://www.sqlite.org/datatype3.html#collation for more information.
 
 
 ## Raw SQLite Pointers
