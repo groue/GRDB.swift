@@ -250,7 +250,7 @@ let insertedRowID = try db.execute(
 
 GRDB lets you fetch **rows**, **values**, and **custom models**.
 
-Rows are the dictionary-like values stored in the SQLite database tables. See [Row Queries](#row-queries).
+**Rows** are the dictionary-like values stored in the SQLite database tables. See [Row Queries](#row-queries).
 
 ```swift
 dbQueue.inDatabase { db in
@@ -262,7 +262,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Values are the Bool, Int, String, NSDate, Swift enums, etc that feed your application. See [Value Queries](#value-queries).
+**Values** are the Bool, Int, String, NSDate, Swift enums, etc that feed your application. See [Value Queries](#value-queries).
 
 ```swift
 dbQueue.inDatabase { db in
@@ -272,7 +272,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-Custom models are your application objects that can initialize themselves from rows. See the [RowConvertible protocol](#rowconvertible-protocol) and [Records](#records)
+**Custom models** are your application objects that can initialize themselves from rows. See the [RowConvertible protocol](#rowconvertible-protocol) and [Records](#records).
 
 ```swift
 dbQueue.inDatabase { db in
