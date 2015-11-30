@@ -248,37 +248,46 @@ let insertedRowID = try db.execute(
 
 ## Fetch Queries
 
-You can fetch **rows**, **values**, and **custom models**:
+GRDB lets you fetch **rows**, **values**, and **custom models**.
+
+Rows are the dictionary-like values stored in the SQLite database tables. See [Row Queries](#row-queries).
 
 ```swift
 dbQueue.inDatabase { db in
-    // Plain rows from the database:
-    Row.fetch(db, "SELECT ...", ...)       // DatabaseSequence<Row>
-    Row.fetchAll(db, "SELECT ...", ...)    // [Row]
-    Row.fetchOne(db, "SELECT ...", ...)    // Row?
-    
-    // Values, such as String, Int, etc:
-    String.fetch(db, "SELECT ...", ...)    // DatabaseSequence<String>
-    String.fetchAll(db, "SELECT ...", ...) // [String]
-    String.fetchOne(db, "SELECT ...", ...) // String?
-    
-    // Custom models
-    Person.fetch(db, "SELECT ...", ...)    // DatabaseSequence<Person>
-    Person.fetchAll(db, "SELECT ...", ...) // [Person]
-    Person.fetchOne(db, "SELECT ...", ...) // Person?
-    
-    // Custom models, given their database keys:
-    Person.fetch(db, keys: ...)            // DatabaseSequence<Person>
-    Person.fetchAll(db, keys: ...)         // [Person]
-    Person.fetchOne(db, key: ...)          // Person?
+    for row in Row.fetch(db, "SELECT * FROM wines") {
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
+    }
 }
 ```
 
-Most methods take a custom SQL query as an argument. If SQL is not your cup of tea, then maybe you are looking for a query builder. [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift/blob/master/Documentation/Index.md#selecting-rows) is a pretty popular one.
+Values are the Bool, Int, String, NSDate, Swift enums, etc that feed your application. See [Value Queries](#value-queries).
 
-- [Row Queries](#row-queries)
-- [Value Queries](#value-queries)
-- Custom models: [RowConvertible](#rowconvertible-protocol) and [Records](#records)
+```swift
+dbQueue.inDatabase { db in
+    let redWineCount = Int.fetchOne(db,
+        "SELECT COUNT(*) FROM wines WHERE color = ?",
+        arguments: [Color.Red])!
+}
+```
+
+Custom models are your application objects that can initialize themselves from rows. See the [RowConvertible protocol](#rowconvertible-protocol) and [Records](#records)
+
+```swift
+dbQueue.inDatabase { db in
+    let wines = Wine.fetchAll(db, "SELECT * FROM wines ORDER BY name")
+    let favoriteWine = Wine.fetchOne(db, key: user.favoriteWineId)
+}
+```
+
+Rows, values, and custom models can all be fetched in three fashions. Pick one, depending on the number of values you expect, and the way you use them:
+
+- The `fetch()` method returns a memory-efficient sequence that goes in the database as it is iterated.
+- The `fetchAll()` method returns an array which is less memory-efficient, but can be used from any thread.
+- The `fetchOne()` method returns a single optional value.
+
+Most of those methods take a custom SQL query as an argument. If SQL is not your cup of tea, then maybe you are looking for a query builder. [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift/blob/master/Documentation/Index.md#selecting-rows) is a pretty popular one.
 
 
 ### Row Queries
