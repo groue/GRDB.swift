@@ -287,7 +287,7 @@ Rows, values, and custom models can all be fetched in three fashions. Pick one, 
 - The `fetchAll()` method returns an array which is less memory-efficient, but can be used from any thread.
 - The `fetchOne()` method returns a single optional value.
 
-Most of those methods take a custom SQL query as an argument. If SQL is not your cup of tea, then maybe you are looking for a query builder. [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift/blob/master/Documentation/Index.md#selecting-rows) is a pretty popular one.
+Most of those methods take an SQL query as an argument. If SQL is not your cup of tea, then maybe you are looking for a query builder. [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift/blob/master/Documentation/Index.md#selecting-rows) is a pretty popular one.
 
 
 ### Row Queries
