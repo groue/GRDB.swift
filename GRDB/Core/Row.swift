@@ -439,8 +439,8 @@ public final class Row: CollectionType {
     /// Returns the (ColumnName, DatabaseValue) pair at given index.
     public subscript(index: RowIndex) -> (String, DatabaseValue) {
         return (
-            self.impl.columnName(atIndex: index.index),
-            self.impl.databaseValue(atIndex: index.index))
+            impl.columnName(atIndex: index.index),
+            impl.databaseValue(atIndex: index.index))
     }
     
     

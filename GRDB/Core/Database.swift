@@ -80,14 +80,14 @@ public final class Database {
     public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
         assertValidQueue()
         
-        let changedRowsBefore = sqlite3_total_changes(self.sqliteConnection)
+        let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
         
-        let code = sqlite3_exec(self.sqliteConnection, sql, nil, nil, nil)
+        let code = sqlite3_exec(sqliteConnection, sql, nil, nil, nil)
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: lastErrorMessage, sql: sql, arguments: nil)
         }
         
-        let changedRowsAfter = sqlite3_total_changes(self.sqliteConnection)
+        let changedRowsAfter = sqlite3_total_changes(sqliteConnection)
         return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: nil)
     }
     
@@ -312,7 +312,7 @@ public final class Database {
             
         case .Callback(let callback):
             let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-            self.busyCallback = callback
+            busyCallback = callback
             
             sqlite3_busy_handler(
                 sqliteConnection,

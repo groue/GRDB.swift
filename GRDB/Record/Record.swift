@@ -160,8 +160,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.init(row: Row(dictionary: self.storedDatabaseDictionary))
-        copy.referenceRow = self.referenceRow
+        let copy = self.dynamicType.init(row: Row(dictionary: storedDatabaseDictionary))
+        copy.referenceRow = referenceRow
         return copy
     }
     
@@ -218,7 +218,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     // A change generator that is used by both databaseEdited and
     // databaseChanges properties.
     private func generateDatabaseChanges() -> AnyGenerator<(column: String, old: DatabaseValue?, new: DatabaseValue)> {
-        let oldRow = self.referenceRow
+        let oldRow = referenceRow
         var newValueGenerator = storedDatabaseDictionary.generate()
         return anyGenerator {
             // Loop until we find a change, or exhaust columns:

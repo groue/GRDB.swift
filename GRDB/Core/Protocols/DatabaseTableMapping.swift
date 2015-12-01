@@ -59,7 +59,7 @@ extension DatabaseTableMapping {
         guard let key = key else {
             return nil
         }
-        return self.fetchOne(self.fetchByPrimaryKeyStatement(db, keys: [key])!)
+        return fetchOne(fetchByPrimaryKeyStatement(db, keys: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE id IN (?,?,?)"
@@ -67,7 +67,7 @@ extension DatabaseTableMapping {
     // Returns nil if keys is empty.
     private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> SelectStatement? {
         // Fail early if databaseTable is nil
-        guard let databaseTableName = self.databaseTableName() else {
+        guard let databaseTableName = databaseTableName() else {
             fatalError("Nil returned from \(self).databaseTableName()")
         }
         
@@ -117,10 +117,10 @@ extension DatabaseTableMapping {
     /// - parameter keys: An array of key dictionaries.
     /// - returns: A sequence.
     public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
-        guard let statement = self.fetchByKeyStatement(db, keys: keys) else {
+        guard let statement = fetchByKeyStatement(db, keys: keys) else {
             return DatabaseSequence()
         }
-        return self.fetch(statement)
+        return fetch(statement)
     }
     
     /// Returns an array of values, given an array of key dictionaries.
@@ -133,10 +133,10 @@ extension DatabaseTableMapping {
     /// - parameter keys: An array of key dictionaries.
     /// - returns: An array.
     public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
-        guard let statement = self.fetchByKeyStatement(db, keys: keys) else {
+        guard let statement = fetchByKeyStatement(db, keys: keys) else {
             return []
         }
-        return self.fetchAll(statement)
+        return fetchAll(statement)
     }
     
     /// Returns a single value given a key dictionary.
@@ -147,7 +147,7 @@ extension DatabaseTableMapping {
     /// - parameter key: A dictionary of values.
     /// - returns: An optional value.
     public static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
-        return self.fetchOne(self.fetchByKeyStatement(db, keys: [key])!)
+        return fetchOne(fetchByKeyStatement(db, keys: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE (a = ? AND b = ?) OR (a = ? AND b = ?) ...
@@ -155,7 +155,7 @@ extension DatabaseTableMapping {
     // Returns nil if keys is empty.
     private static func fetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> SelectStatement? {
         // Fail early if databaseTable is nil
-        guard let databaseTableName = self.databaseTableName() else {
+        guard let databaseTableName = databaseTableName() else {
             fatalError("Nil returned from \(self).databaseTableName()")
         }
         

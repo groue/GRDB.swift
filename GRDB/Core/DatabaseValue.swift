@@ -55,17 +55,17 @@ public struct DatabaseValue : Hashable {
     
     /// Returns a DatabaseValue storing an Integer.
     public init(int64: Swift.Int64) {
-        self.storage = .Int64(int64)
+        storage = .Int64(int64)
     }
     
     /// Returns a DatabaseValue storing an Double.
     public init(double: Swift.Double) {
-        self.storage = .Double(double)
+        storage = .Double(double)
     }
     
     /// Returns a DatabaseValue storing a String.
     public init(string: Swift.String) {
-        self.storage = .String(string)
+        storage = .String(string)
     }
     
     /// Returns a DatabaseValue storing NSData.
@@ -75,9 +75,9 @@ public struct DatabaseValue : Hashable {
     public init(data: NSData) {
         if data.length == 0 {
             // SQLite cant' store zero-length blobs.
-            self.storage = .Null
+            storage = .Null
         } else {
-            self.storage = .Blob(data)
+            storage = .Blob(data)
         }
     }
     
@@ -170,18 +170,18 @@ public struct DatabaseValue : Hashable {
     init(sqliteStatement: SQLiteStatement, index: Int) {
         switch sqlite3_column_type(sqliteStatement, Int32(index)) {
         case SQLITE_NULL:
-            self.storage = .Null
+            storage = .Null
         case SQLITE_INTEGER:
-            self.storage = .Int64(sqlite3_column_int64(sqliteStatement, Int32(index)))
+            storage = .Int64(sqlite3_column_int64(sqliteStatement, Int32(index)))
         case SQLITE_FLOAT:
-            self.storage = .Double(sqlite3_column_double(sqliteStatement, Int32(index)))
+            storage = .Double(sqlite3_column_double(sqliteStatement, Int32(index)))
         case SQLITE_TEXT:
             let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
-            self.storage = .String(Swift.String.fromCString(cString)!)
+            storage = .String(Swift.String.fromCString(cString)!)
         case SQLITE_BLOB:
             let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
             let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-            self.storage = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
+            storage = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
         default:
             fatalError("Unexpected SQLite column type")
         }
@@ -190,18 +190,18 @@ public struct DatabaseValue : Hashable {
     init(sqliteValue: SQLiteValue) {
         switch sqlite3_value_type(sqliteValue) {
         case SQLITE_NULL:
-            self.storage = .Null
+            storage = .Null
         case SQLITE_INTEGER:
-            self.storage = .Int64(sqlite3_value_int64(sqliteValue))
+            storage = .Int64(sqlite3_value_int64(sqliteValue))
         case SQLITE_FLOAT:
-            self.storage = .Double(sqlite3_value_double(sqliteValue))
+            storage = .Double(sqlite3_value_double(sqliteValue))
         case SQLITE_TEXT:
             let cString = UnsafePointer<Int8>(sqlite3_value_text(sqliteValue))
-            self.storage = .String(Swift.String.fromCString(cString)!)
+            storage = .String(Swift.String.fromCString(cString)!)
         case SQLITE_BLOB:
             let bytes = sqlite3_value_blob(sqliteValue)
             let length = sqlite3_value_bytes(sqliteValue)
-            self.storage = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
+            storage = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
         default:
             fatalError("Unexpected SQLite value type")
         }
