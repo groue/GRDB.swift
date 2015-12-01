@@ -56,15 +56,7 @@ class FMDBPerformanceTests: XCTestCase {
     }
     
     func testRecordPerformance() {
-        // Here we test that we can load "records".
-        //
-        // Two constraints:
-        //
-        // 1. Records MUST be initialized from a row, or a row-like object like
-        //    a dictionary: rows MUST be introspectable by column name, so that
-        //    the record can pick the columns it wants.
-        //
-        // 2. Fetched records MUST be flagged as having no change.
+        // Here we test the loading of an array of Records.
         
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
         let dbQueue = FMDatabaseQueue(path: databasePath)
@@ -74,10 +66,8 @@ class FMDBPerformanceTests: XCTestCase {
             dbQueue.inDatabase { db in
                 if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
                     while rs.next() {
-                        // FMDB already provides a row-like object:
                         let dictionary = rs.resultDictionary()
                         let record = PerformanceRecord(dictionary: dictionary)
-                        record.databaseEdited = false   // Needs to be explicit: GRDB does it implicitly.
                         records.append(record)
                     }
                 }
@@ -86,6 +76,28 @@ class FMDBPerformanceTests: XCTestCase {
             XCTAssertEqual(records[4].i3, 0)
             XCTAssertEqual(records[5].i2, 2)
             XCTAssertEqual(records[5].i3, 1)
+        }
+    }
+    
+    func testKeyValueCodingPerformance() {
+        // Here we test the loading of an array of KVC-based objects.
+        
+        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
+        let dbQueue = FMDatabaseQueue(path: databasePath)
+        
+        self.measureBlock {
+            var records = [PerformanceObjCRecord]()
+            dbQueue.inDatabase { db in
+                if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
+                    while rs.next() {
+                        records.append(PerformanceObjCRecord(dictionary: rs.resultDictionary()))
+                    }
+                }
+            }
+            XCTAssertEqual(records[4].i2!.intValue, 1)
+            XCTAssertEqual(records[4].i3!.intValue, 0)
+            XCTAssertEqual(records[5].i2!.intValue, 2)
+            XCTAssertEqual(records[5].i3!.intValue, 1)
         }
     }
 }

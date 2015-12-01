@@ -67,15 +67,7 @@ class GRDBPerformanceTests: XCTestCase {
     }
     
     func testRecordPerformance() {
-        // Here we test that we can load "records".
-        //
-        // Two constraints:
-        //
-        // 1. Records MUST be initialized from a row, or a row-like object like
-        //    a dictionary: rows MUST be introspectable by column name, so that
-        //    the record can pick the columns it wants.
-        //
-        // 2. Fetched records MUST be flagged as having no change.
+        // Here we test the loading of an array of Records.
         
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -88,6 +80,25 @@ class GRDBPerformanceTests: XCTestCase {
             XCTAssertEqual(records[4].i3, 0)
             XCTAssertEqual(records[5].i2, 2)
             XCTAssertEqual(records[5].i3, 1)
+        }
+    }
+    
+    func testKeyValueCodingPerformance() {
+        // Here we test the loading of an array of KVC-based objects.
+        
+        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("FetchPerformanceTests", ofType: "sqlite")!
+        let dbQueue = try! DatabaseQueue(path: databasePath)
+        
+        self.measureBlock {
+            let records = dbQueue.inDatabase { db in
+                Row.fetch(db, "SELECT * FROM items").map { row in
+                    PerformanceObjCRecord(dictionary: row.toNSDictionary())
+                }
+            }
+            XCTAssertEqual(records[4].i2!.intValue, 1)
+            XCTAssertEqual(records[4].i3!.intValue, 0)
+            XCTAssertEqual(records[5].i2!.intValue, 2)
+            XCTAssertEqual(records[5].i3!.intValue, 1)
         }
     }
 }
