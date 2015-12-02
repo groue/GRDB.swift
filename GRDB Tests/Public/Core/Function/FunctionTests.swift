@@ -261,7 +261,7 @@ class FunctionTests: GRDBTestCase {
                     try db.execute("INSERT INTO items VALUES (f(1))")
                     XCTFail("Expected DatabaseError")
                 } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, SQLITE_ERROR)
+                    XCTAssertEqual(error.code, 1)
                     XCTAssertEqual(error.message, "custom error message")
                 }
             }

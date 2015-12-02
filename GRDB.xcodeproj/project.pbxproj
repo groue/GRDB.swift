@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5606AF911C0ED37000D20487 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
 		5607EFD31BB8254800605DE3 /* TransactionObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5607EFD21BB8254800605DE3 /* TransactionObserverTests.swift */; };
 		5607EFD41BB827FD00605DE3 /* TransactionObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5607EFD21BB8254800605DE3 /* TransactionObserverTests.swift */; };
 		560C97C71BFD0B8400BF8471 /* FunctionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560C97C61BFD0B8400BF8471 /* FunctionTests.swift */; };
@@ -165,12 +166,10 @@
 		56B7F43A1BEB42D500E39BBF /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B7F4391BEB42D500E39BBF /* Migration.swift */; };
 		56B7F43B1BEB42D500E39BBF /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B7F4391BEB42D500E39BBF /* Migration.swift */; };
 		56BB862F1BA98AA9001F9168 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB862E1BA98AA9001F9168 /* libsqlite3.tbd */; };
-		56BB86311BA98AB0001F9168 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
 		56CA0D411BF5D8E20019C023 /* DatabaseValue+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA0D401BF5D8E20019C023 /* DatabaseValue+Foundation.swift */; };
 		56CA0D421BF5D8E20019C023 /* DatabaseValue+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA0D401BF5D8E20019C023 /* DatabaseValue+Foundation.swift */; };
 		56CA21BA1BB3FCF7009A04C5 /* NSDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */; };
 		56CA21BB1BB3FCF7009A04C5 /* NSDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */; };
-		56CA22261BB41654009A04C5 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56CA220F1BB414FE009A04C5 /* SQLite.framework */; };
 		56CA22291BB41663009A04C5 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56CA220B1BB414FE009A04C5 /* SQLite.framework */; };
 		56E5891F1BBA5D5400CC0140 /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E5891E1BBA5D5400CC0140 /* NSURL.swift */; };
 		56E589201BBA5D5400CC0140 /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E5891E1BBA5D5400CC0140 /* NSURL.swift */; };
@@ -457,8 +456,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56CA22261BB41654009A04C5 /* SQLite.framework in Frameworks */,
-				56BB86311BA98AB0001F9168 /* libsqlite3.tbd in Frameworks */,
+				5606AF911C0ED37000D20487 /* libsqlite3.tbd in Frameworks */,
 				56E5D7FE1B4D422E00430942 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
