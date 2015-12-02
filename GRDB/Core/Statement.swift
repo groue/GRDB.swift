@@ -94,9 +94,7 @@ public class Statement {
         if let argumentsKind = arguments?.kind {
             switch argumentsKind {
             case .Default:
-                if argumentCount > 0 {
-                    fatalError("Invalid StatementArguments.Default arguments in `\(sql)`.")
-                }
+                fatalError("Invalid StatementArguments.Default arguments in `\(sql)`.")
             case .Array(count: let count):
                 if count != argumentCount {
                     fatalError("SQLite statement arguments mismatch: got \(count) argument(s) instead of \(argumentCount) in `\(sql)`.")
