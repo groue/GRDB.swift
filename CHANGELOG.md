@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.32.1
+
+Released December 2, 2015
+
+**Fixed**
+
+- `DatabaseCollation` did incorrectly process strings provided by sqlite.
+
+
 ## 0.32.0
 
 Released November 23, 2015
