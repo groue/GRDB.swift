@@ -1584,7 +1584,7 @@ class Person {
     init()
     init(row: Row)
     convenience init(dictionary: [String: DatabaseValueConvertible?])
-    convenience init(dictionary: NSDictionary)
+    convenience init?(dictionary: NSDictionary)
     func copy() -> Self
     
     // Change Tracking
@@ -1810,7 +1810,7 @@ class Record {
     
     // Convenience initializers:
     convenience init(dictionary: [String: DatabaseValueConvertible?])
-    convenience init(dictionary: NSDictionary)
+    convenience init?(dictionary: NSDictionary)
 }
 ```
 
