@@ -427,8 +427,11 @@ public final class Database {
             collationPointer,
             { (collationPointer, length1, buffer1, length2, buffer2) -> Int32 in
                 let collation = unsafeBitCast(collationPointer, DatabaseCollation.self)
-                let string1 = String.fromCString(UnsafePointer<Int8>(buffer1))!
-                let string2 = String.fromCString(UnsafePointer<Int8>(buffer2))!
+                // Buffers are not C strings: they do not end with \0.
+                let data1 = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(buffer1), length: Int(length1), freeWhenDone: false)
+                let data2 = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(buffer2), length: Int(length2), freeWhenDone: false)
+                let string1 = String(data: data1, encoding: NSUTF8StringEncoding)!
+                let string2 = String(data: data2, encoding: NSUTF8StringEncoding)!
                 return Int32(collation.function(string1, string2).rawValue)
             }, nil)
         guard code == SQLITE_OK else {
