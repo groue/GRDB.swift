@@ -1859,7 +1859,7 @@ if let existingPerson = Person.fetchOne(db, key: id) {
 }
 
 // Apply JSON payload (assuming json keys are column names)
-let row = Row(dictionary: json)
+let row = Row(dictionary: json)!
 person.updateFromRow(row)
              
 // Saves the person if it has changes that have not been saved:
