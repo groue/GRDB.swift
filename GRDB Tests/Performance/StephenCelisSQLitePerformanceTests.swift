@@ -1,6 +1,5 @@
 import XCTest
 import SQLite
-import GRDB
 
 class StephenCelisSQLitePerformanceTests: XCTestCase {
 
