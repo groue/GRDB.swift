@@ -389,7 +389,7 @@
 		56BB86201BA988F2001F9168 /* FMDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDB.h; sourceTree = "<group>"; };
 		56BB86211BA988F2001F9168 /* FMResultSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMResultSet.h; sourceTree = "<group>"; };
 		56BB86221BA988F2001F9168 /* FMResultSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMResultSet.m; sourceTree = "<group>"; };
-		56BB862D1BA98933001F9168 /* GRDBTests-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging.h"; sourceTree = "<group>"; };
+		56BB862D1BA98933001F9168 /* GRDBPerformanceTests-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDBPerformanceTests-Bridging.h"; sourceTree = "<group>"; };
 		56BB862E1BA98AA9001F9168 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.0.sdk/usr/lib/libsqlite3.tbd; sourceTree = DEVELOPER_DIR; };
 		56BB86301BA98AB0001F9168 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		56CA0D401BF5D8E20019C023 /* DatabaseValue+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DatabaseValue+Foundation.swift"; sourceTree = "<group>"; };
@@ -882,7 +882,7 @@
 			isa = PBXGroup;
 			children = (
 				DC37740419C8CBB3004FCF85 /* Info.plist */,
-				56BB862D1BA98933001F9168 /* GRDBTests-Bridging.h */,
+				56BB862D1BA98933001F9168 /* GRDBPerformanceTests-Bridging.h */,
 			);
 			name = "Supporting Files";
 			path = "../GRDB Tests";
@@ -1441,7 +1441,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBTests-Bridging.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBPerformanceTests-Bridging.h";
 			};
 			name = Debug;
 		};
@@ -1458,7 +1458,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBTests-Bridging.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBPerformanceTests-Bridging.h";
 			};
 			name = Release;
 		};
@@ -1555,7 +1555,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = GRDBTests;
 				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBTests-Bridging.h";
 			};
 			name = Debug;
 		};
@@ -1572,7 +1571,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = GRDBTests;
 				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBTests-Bridging.h";
 			};
 			name = Release;
 		};
