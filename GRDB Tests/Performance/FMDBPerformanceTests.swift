@@ -1,5 +1,4 @@
 import XCTest
-import GRDB
 
 class FMDBPerformanceTests: XCTestCase {
     
