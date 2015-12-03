@@ -93,7 +93,3 @@ xcuserdata
 *.hmap
 *.ipa
 
-
-##
-GRDB Tests/Carthage/Carthage
-GRDB Tests/Carthage/Cartfile.resolved

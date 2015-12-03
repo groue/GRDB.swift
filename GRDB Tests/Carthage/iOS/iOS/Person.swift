@@ -14,7 +14,7 @@ class Person : Record {
     var firstName: String?
     var lastName: String?
     var fullName: String {
-        return " ".join([firstName, lastName].filter { $0 != nil }.map { $0! })
+        return [firstName, lastName].flatMap { $0 }.joinWithSeparator(" ")
     }
     
     init(firstName: String? = nil, lastName: String? = nil) {
@@ -25,17 +25,15 @@ class Person : Record {
     
     // MARK: - Record
     
-    override class var databaseTable: Table? {
-        return Table(named: "persons", primaryKey: .RowID("id"))
+    override class func databaseTableName() -> String? {
+        return "persons"
     }
     
-    override func setDatabaseValue(dbv: DatabaseValue, forColumn column: String) {
-        switch column {
-        case "id": id = dbv.value()
-        case "firstName": firstName = dbv.value()
-        case "lastName": lastName = dbv.value()
-        default: super.setDatabaseValue(dbv, forColumn: column)
-        }
+    override func updateFromRow(row: Row) {
+        if let dbv = row["id"] { id = dbv.value() }
+        if let dbv = row["firstName"] { firstName = dbv.value() }
+        if let dbv = row["lastName"] { lastName = dbv.value() }
+        super.updateFromRow(row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
