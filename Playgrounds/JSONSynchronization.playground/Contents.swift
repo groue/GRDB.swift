@@ -81,12 +81,12 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
             try person.delete(db)
         case .Right(let jsonPerson):
             // JSON person without matching database person:
-            let row = Row(dictionary: jsonPerson)
+            let row = Row(dictionary: jsonPerson)!
             let person = Person(row: row)
             try person.insert(db)
         case .Common(let person, let jsonPerson):
             // Matching database and JSON persons:
-            let row = Row(dictionary: jsonPerson)
+            let row = Row(dictionary: jsonPerson)!
             person.updateFromRow(row)
             if person.databaseEdited {
                 try person.update(db)
