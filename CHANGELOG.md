@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.32.2
+
+Released December 3, 2015
+
+**Fixed**
+
+- Errors thrown by update statements expose the correct statement arguments.
+
+
 ## 0.32.1
 
 Released December 2, 2015
