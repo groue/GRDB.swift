@@ -28,7 +28,8 @@ public final class UpdateStatement : Statement {
             // TransactionObserverType.transactionWillCommit().
             // Let database handle this case, before throwing a error.
             try database.updateStatementDidFail()
-            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, arguments: arguments)
+            let errorArguments = self.arguments // self.arguments, not the arguments parameter.
+            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, arguments: errorArguments)
         }
         
         let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
