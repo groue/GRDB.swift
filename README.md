@@ -9,6 +9,8 @@ It ships with a low-level database API, plus application-level tools.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
+**Swift Package Manager**: Use the [Swift2.2 branch](https://github.com/groue/GRDB.swift/tree/Swift2.2).
+
 
 But Why?
 --------
