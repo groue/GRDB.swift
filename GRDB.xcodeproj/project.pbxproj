@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		31AEFE3F1C185E63003DB703 /* FetchedRecordsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31AEFE3E1C185E63003DB703 /* FetchedRecordsController.swift */; };
+		31AEFE421C185E63003DB703 /* FetchedRecordsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31AEFE3E1C185E63003DB703 /* FetchedRecordsController.swift */; };
 		5606AF911C0ED37000D20487 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
 		5607EFD31BB8254800605DE3 /* TransactionObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5607EFD21BB8254800605DE3 /* TransactionObserverTests.swift */; };
 		5607EFD41BB827FD00605DE3 /* TransactionObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5607EFD21BB8254800605DE3 /* TransactionObserverTests.swift */; };
@@ -299,6 +301,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		31AEFE3E1C185E63003DB703 /* FetchedRecordsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsController.swift; sourceTree = "<group>"; };
 		5607EFD21BB8254800605DE3 /* TransactionObserverTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransactionObserverTests.swift; sourceTree = "<group>"; };
 		560C97C61BFD0B8400BF8471 /* FunctionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FunctionTests.swift; sourceTree = "<group>"; };
 		560C981A1C0E22D300BF8471 /* GRDBOSXPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -714,6 +717,7 @@
 			children = (
 				56A238A01B9C753B0082EB20 /* DatabaseStorable.swift */,
 				56A238A11B9C753B0082EB20 /* Record.swift */,
+				31AEFE3E1C185E63003DB703 /* FetchedRecordsController.swift */,
 			);
 			path = Record;
 			sourceTree = "<group>";
@@ -1231,6 +1235,7 @@
 				56A2389C1B9C752B0082EB20 /* DatabaseValueConvertible.swift in Sources */,
 				56A238801B9C75030082EB20 /* DatabaseChanges.swift in Sources */,
 				565D5D691BBC604000DC9BD4 /* Row+Foundation.swift in Sources */,
+				31AEFE421C185E63003DB703 /* FetchedRecordsController.swift in Sources */,
 				56A238AE1B9C90090082EB20 /* NSNull.swift in Sources */,
 				56A2389A1B9C752B0082EB20 /* DatabaseTableMapping.swift in Sources */,
 				56A238881B9C75030082EB20 /* Row.swift in Sources */,
@@ -1388,6 +1393,7 @@
 				56A238B31B9C919D0082EB20 /* NSNumber.swift in Sources */,
 				56A238B01B9C90BB0082EB20 /* NSString.swift in Sources */,
 				565D5D681BBC604000DC9BD4 /* Row+Foundation.swift in Sources */,
+				31AEFE3F1C185E63003DB703 /* FetchedRecordsController.swift in Sources */,
 				56A238931B9C750B0082EB20 /* DatabaseMigrator.swift in Sources */,
 				56A2387D1B9C75030082EB20 /* Database.swift in Sources */,
 				56A238831B9C75030082EB20 /* DatabaseQueue.swift in Sources */,

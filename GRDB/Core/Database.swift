@@ -207,6 +207,15 @@ public final class Database {
         case Regular
     }
     
+    
+    
+    /// The transaction observers
+    private var transactionObservers = [TransactionObserverType]()
+    
+    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+        transactionObservers.append(transactionObserver)
+    }
+    
     /// Updated in SQLite callbacks (see setupTransactionHooks())
     /// Consumed in updateStatementDidFail() and updateStatementDidExecute().
     private var statementCompletion: StatementCompletion = .Regular
@@ -219,7 +228,7 @@ public final class Database {
         case .TransactionErrorRollback(let error):
             // The transaction has been rollbacked from
             // TransactionObserverType.transactionWillCommit().
-            configuration.transactionObserver!.databaseDidRollback(self)
+            propagateDatabaseDidRollback()
             throw error
         default:
             break
@@ -232,22 +241,41 @@ public final class Database {
         
         switch statementCompletion {
         case .TransactionCommit:
-            configuration.transactionObserver!.databaseDidCommit(self)
+            propagateDatabaseDidCommit()
         case .TransactionRollback:
-            configuration.transactionObserver!.databaseDidRollback(self)
+            propagateDatabaseDidRollback()
         default:
             break
         }
     }
     
-    private func setupTransactionHooks() {
-        // No need to setup any hook when there is no transactionObserver:
-        guard configuration.transactionObserver != nil else {
-            return
+    private func propagateDatabaseWillCommit() throws {
+        for observer: TransactionObserverType in transactionObservers {
+            try observer.databaseWillCommit()
         }
+    }
+    
+    private func propagateDatabaseDidChangeWithEvent(event: DatabaseEvent) {
+        for observer: TransactionObserverType in transactionObservers {
+            observer.databaseDidChangeWithEvent(event)
+        }
+    }
+    
+    private func propagateDatabaseDidCommit() {
+        for observer: TransactionObserverType in transactionObservers {
+            observer.databaseDidCommit(self)
+        }
+    }
+    
+    private func propagateDatabaseDidRollback() {
+        for observer: TransactionObserverType in transactionObservers {
+            observer.databaseDidRollback(self)
+        }
+    }
+    
+    private func setupTransactionHooks() {
         
         let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-        
         
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
             let db = unsafeBitCast(dbPointer, Database.self)
@@ -258,15 +286,14 @@ public final class Database {
                 databaseName: String.fromCString(databaseName)!,
                 tableName: String.fromCString(tableName)!,
                 rowID: rowID)
-            db.configuration.transactionObserver!.databaseDidChangeWithEvent(event)
+            db.propagateDatabaseDidChangeWithEvent(event)
             }, dbPointer)
         
         
         sqlite3_commit_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
-            
             do {
-                try db.configuration.transactionObserver!.databaseWillCommit()
+                try db.propagateDatabaseWillCommit()
                 // Next step: updateStatementDidExecute()
                 db.statementCompletion = .TransactionCommit
                 return 0

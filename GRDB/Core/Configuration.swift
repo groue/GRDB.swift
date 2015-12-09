@@ -25,11 +25,6 @@ public struct Configuration {
     /// Default is `.Immediate`.
     public var defaultTransactionKind: TransactionKind
     
-    /// The optional transaction observer
-    ///
-    /// Default is nil.
-    public var transactionObserver: TransactionObserverType?
-    
     
     // =========================================================================
     // MARK: - Concurrency
@@ -75,7 +70,6 @@ public struct Configuration {
         self.readonly = false
         
         self.defaultTransactionKind = .Immediate
-        self.transactionObserver = nil
         
         self.busyMode = .ImmediateError
         self.threadingMode = .Default

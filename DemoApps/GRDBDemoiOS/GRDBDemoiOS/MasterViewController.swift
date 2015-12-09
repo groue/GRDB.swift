@@ -1,7 +1,9 @@
 import UIKit
+import GRDB
 
-class MasterViewController: UITableViewController {
+class MasterViewController: UITableViewController, FetchedRecordsControllerDelegate {
     var detailViewController: DetailViewController? = nil
+    var fetchedRecordsController: FetchedRecordsController<Person>!
     var persons = [Person]()
 
     override func viewDidLoad() {
@@ -11,21 +13,16 @@ class MasterViewController: UITableViewController {
             let controllers = split.viewControllers
             self.detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
         }
+        
+        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(firstName), LOWER(lastName)", databaseQueue: dbQueue)
+        fetchedRecordsController.delegate = self
+        fetchedRecordsController.performFetch()
+        tableView.reloadData()
     }
 
     override func viewWillAppear(animated: Bool) {
-        // Reload persons, and the tableView
-        reloadPersons()
-        tableView.reloadData()
-        
         self.clearsSelectionOnViewWillAppear = self.splitViewController!.collapsed
         super.viewWillAppear(animated)
-    }
-    
-    func reloadPersons() {
-        persons = dbQueue.inDatabase { db in
-            Person.fetchAll(db, "SELECT * FROM persons ORDER BY LOWER(firstName), LOWER(lastName)")
-        }
     }
     
     
@@ -33,8 +30,9 @@ class MasterViewController: UITableViewController {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "showPerson" {
+            let person = fetchedRecordsController.recordAtIndexPath(self.tableView.indexPathForSelectedRow!)
             let detailViewController = (segue.destinationViewController as! UINavigationController).topViewController as! DetailViewController
-            detailViewController.person = persons[self.tableView.indexPathForSelectedRow!.row]
+            detailViewController.person = person
             detailViewController.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem()
             detailViewController.navigationItem.leftItemsSupplementBackButton = true
         }
@@ -58,39 +56,47 @@ class MasterViewController: UITableViewController {
         try! dbQueue.inDatabase { db in
             try person.save(db)
         }
-        
-        // Reload persons, and insert a cell.
-        reloadPersons()
-        let index = persons.indexOf { $0.id == person.id }!
-        tableView.insertRowsAtIndexPaths([NSIndexPath(forRow: index, inSection: 0)], withRowAnimation: .Automatic)
     }
     
     
     // MARK: - Table View
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return persons.count
+        if let persons = fetchedRecordsController.fetchedRecords {
+            return persons.count
+        }
+        return 0
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
 
-        let person = persons[indexPath.row]
+        let person = fetchedRecordsController.recordAtIndexPath(indexPath)!
         cell.textLabel!.text = person.fullName
         return cell
     }
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
-        let person = persons[indexPath.row]
+        let person = fetchedRecordsController.recordAtIndexPath(indexPath)!
         try! dbQueue.inTransaction { db in
             try person.delete(db)
             return .Commit
         }
-        persons.removeAtIndex(indexPath.row)
-        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
     }
-
-
+    
+    // MARK: - FetchedRecordsControllerDelegate
+    
+    func controllerWillChangeContent<Person>(controller: FetchedRecordsController<Person>) {
+        
+    }
+    
+    func controller<Person>(controller: FetchedRecordsController<Person>, didChangeRecord record: Person, atIndexPath indexPath: NSIndexPath?, forChangeType type: FetchedRecordsChangeType, newIndexPath: NSIndexPath?) {
+        
+    }
+    
+    func controllerDidChangeContent<Person>(controller: FetchedRecordsController<Person>) {
+        tableView.reloadData()
+    }
 }
 
