@@ -16,7 +16,6 @@ public struct Configuration {
     
     /// The default kind of transaction.
     public var defaultTransactionKind: TransactionKind = .Immediate
-    public var transactionObserver: TransactionObserverType?
     
     
     // MARK: - Concurrency

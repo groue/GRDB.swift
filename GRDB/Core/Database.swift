@@ -34,6 +34,9 @@ public final class Database {
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
     private var statementCompletion: StatementCompletion = .Regular
     
+    /// The transaction observers
+    private var transactionObservers = [TransactionObserverType]()
+    
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
     
@@ -68,7 +71,7 @@ public final class Database {
     deinit {
         sqlite3_close(sqliteConnection)
     }
-
+    
     func preconditionValidQueue() {
         precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
     }
@@ -815,6 +818,10 @@ extension Database {
         }
     }
     
+    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+        transactionObservers.append(transactionObserver)
+    }
+    
     private func beginTransaction(kind: TransactionKind? = nil) throws {
         switch kind ?? configuration.defaultTransactionKind {
         case .Deferred:
@@ -842,7 +849,7 @@ extension Database {
         case .TransactionErrorRollback(let error):
             // The transaction has been rollbacked from
             // TransactionObserverType.transactionWillCommit().
-            configuration.transactionObserver!.databaseDidRollback(self)
+            propagateDatabaseDidRollback()
             throw error
         default:
             break
@@ -855,22 +862,40 @@ extension Database {
         
         switch statementCompletion {
         case .TransactionCommit:
-            configuration.transactionObserver!.databaseDidCommit(self)
+            propagateDatabaseDidCommit()
         case .TransactionRollback:
-            configuration.transactionObserver!.databaseDidRollback(self)
+            propagateDatabaseDidRollback()
         default:
             break
         }
     }
     
-    private func setupTransactionHooks() {
-        // No need to setup any hook when there is no transactionObserver:
-        guard configuration.transactionObserver != nil else {
-            return
+    private func propagateDatabaseWillCommit() throws {
+        for observer: TransactionObserverType in transactionObservers {
+            try observer.databaseWillCommit()
         }
-        
+    }
+    
+    private func propagateDatabaseDidChangeWithEvent(event: DatabaseEvent) {
+        for observer: TransactionObserverType in transactionObservers {
+            observer.databaseDidChangeWithEvent(event)
+        }
+    }
+    
+    private func propagateDatabaseDidCommit() {
+        for observer: TransactionObserverType in transactionObservers {
+            observer.databaseDidCommit(self)
+        }
+    }
+    
+    private func propagateDatabaseDidRollback() {
+        for observer: TransactionObserverType in transactionObservers {
+            observer.databaseDidRollback(self)
+        }
+    }
+    
+    private func setupTransactionHooks() {
         let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-        
         
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
             let db = unsafeBitCast(dbPointer, Database.self)
@@ -881,15 +906,14 @@ extension Database {
                 databaseName: String.fromCString(databaseName)!,
                 tableName: String.fromCString(tableName)!,
                 rowID: rowID)
-            db.configuration.transactionObserver!.databaseDidChangeWithEvent(event)
+            db.propagateDatabaseDidChangeWithEvent(event)
             }, dbPointer)
         
         
         sqlite3_commit_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
-            
             do {
-                try db.configuration.transactionObserver!.databaseWillCommit()
+                try db.propagateDatabaseWillCommit()
                 // Next step: updateStatementDidExecute()
                 db.statementCompletion = .TransactionCommit
                 return 0
