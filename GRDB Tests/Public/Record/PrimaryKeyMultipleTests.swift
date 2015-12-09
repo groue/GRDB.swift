@@ -140,9 +140,9 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -176,9 +176,9 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -310,9 +310,9 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -346,9 +346,9 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }

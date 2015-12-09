@@ -9,7 +9,7 @@
 /// - updateFromRow
 /// - databaseTable
 /// - storedDatabaseDictionary
-public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
+public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable {
     
     // MARK: - Initializers
     
@@ -148,6 +148,11 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     public func updateFromRow(row: Row) {
     }
     
+    /// TODO
+    final public func didInsertWithRowID(rowID: Int64, forColumn name: String) {
+        updateFromRow(Row(dictionary: [name: rowID]))
+    }
+    
     
     // MARK: - Copy
     
@@ -242,7 +247,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
 
     // MARK: - CRUD
     
-    /// Executes an INSERT statement to insert the record.
+    /// Executes an INSERT statement.
     ///
     /// On success, this method sets the *databaseEdited* flag to false.
     ///
@@ -256,16 +261,12 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func insert(db: Database) throws {
-        let dataMapper = DataMapper(db, self)
-        let changes = try dataMapper.insertStatement().execute()
-        if case .Managed(let rowIDColumnName) = dataMapper.primaryKey {
-            // Update RowID
-            updateFromRow(Row(dictionary: [rowIDColumnName: changes.insertedRowID]))
-        }
+        var storable: DatabasePersistable = self
+        try storable.insert(db)
         databaseEdited = false
     }
     
-    /// Executes an UPDATE statement to update the record.
+    /// Executes an UPDATE statement.
     ///
     /// On success, this method sets the *databaseEdited* flag to false.
     ///
@@ -274,13 +275,10 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     ///
     /// - parameter db: A Database.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
-    ///   RecordError.RecordNotFound is thrown if the primary key does not match
+    ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
     public func update(db: Database) throws {
-        let changes = try DataMapper(db, self).updateStatement().execute()
-        if changes.changedRowCount == 0 {
-            throw RecordError.RecordNotFound(self)
-        }
+        try (self as DatabasePersistable).update(db)
         databaseEdited = false
     }
     
@@ -310,12 +308,16 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
         
         do {
             try update(db)
-        } catch RecordError.RecordNotFound {
+        } catch PersistenceError.NotFound {
+            // TODO: check that the not persisted objet is self
+            //
+            // Why? Subclasses could override update() and update another object
+            // which may be the one throwing this error.
             try insert(db)
         }
     }
     
-    /// Executes a DELETE statement to delete the record.
+    /// Executes a DELETE statement.
     ///
     /// On success, this method sets the *databaseEdited* flag to true.
     ///
@@ -323,37 +325,28 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabaseStorable {
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     public func delete(db: Database) throws -> Bool {
-        let changes = try DataMapper(db, self).deleteStatement().execute()
-        // Future calls to update() will throw RecordNotFound. Make the user
+        let deleted = try (self as DatabasePersistable).delete(db)
+        // Future calls to update() will throw NotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
         // databaseEdited flag:
         databaseEdited = true
-        return changes.changedRowCount > 0
+        return deleted
     }
     
-    /// Executes a SELECT statetement to reload the record.
+    /// Executes a SELECT statetement.
     ///
     /// On success, this method sets the *databaseEdited* flag to false.
     ///
     /// - parameter db: A Database.
-    /// - throws: RecordError.RecordNotFound is thrown if the primary key does
+    /// - throws: PersistenceError.NotFound is thrown if the primary key does
     ///   not match any row in the database and record could not be reloaded.
     public func reload(db: Database) throws {
         let statement = DataMapper(db, self).reloadStatement()
         guard let row = Row.fetchOne(statement) else {
-            throw RecordError.RecordNotFound(self)
+            throw PersistenceError.NotFound(self)
         }
         updateFromRow(row)
         awakeFromFetch(row)
-    }
-    
-    /// Returns true if and only if the primary key matches a row in
-    /// the database.
-    ///
-    /// - parameter db: A Database.
-    /// - returns: Whether the primary key matches a row in the database.
-    final public func exists(db: Database) -> Bool {
-        return (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
     }
 }
 
@@ -373,25 +366,5 @@ extension Record : CustomStringConvertible {
                 }
                 }.joinWithSeparator("")
             + ">"
-    }
-}
-
-
-// MARK: - RecordError
-
-/// A Record-specific error
-public enum RecordError: ErrorType {
-    
-    /// No matching row could be found in the database.
-    case RecordNotFound(Record)
-}
-
-extension RecordError : CustomStringConvertible {
-    /// A textual representation of `self`.
-    public var description: String {
-        switch self {
-        case .RecordNotFound(let record):
-            return "Record not found: \(record)"
-        }
     }
 }

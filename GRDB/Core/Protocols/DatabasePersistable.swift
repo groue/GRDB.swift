@@ -1,22 +1,139 @@
-// MARK: - DatabaseStorable
+// MARK: - PersistenceError
 
-protocol DatabaseStorable : DatabaseTableMapping {
+/// An error thrown by a type that adopts DatabasePersistable.
+public enum PersistenceError: ErrorType {
+    
+    /// Thrown by DatabasePersistable.update() when no matching row could be
+    /// found in the database.
+    case NotFound(DatabasePersistable)
+}
+
+extension PersistenceError : CustomStringConvertible {
+    /// A textual representation of `self`.
+    public var description: String {
+        switch self {
+        case .NotFound(let persistable):
+            return "Not found: \(persistable)"
+        }
+    }
+}
+
+// MARK: - DatabasePersistable
+
+/// Types that adopt DatabasePersistable can be inserted, updated, and deleted.
+public protocol DatabasePersistable : DatabaseTableMapping {
+    
+    /// Returns the values that should be stored in the database.
+    ///
+    /// Keys of the returned dictionary must match the column names of the
+    /// target database table (see DatabaseTableMapping.databaseTableName()).
+    ///
+    /// In particular, primary key columns, if any, must be included.
+    ///
+    ///     struct Person : DatabasePersistable {
+    ///         var id: Int64?
+    ///         var name: String?
+    ///
+    ///         var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    ///             return ["id": id, "name": name]
+    ///         }
+    ///     }
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
+    
+    /// If the underlying database table has an INTEGER PRIMARY KEY, this method
+    /// is called after a successful insertion. Adopting type may implement this
+    /// method and update their primary key accordingly.
+    ///
+    /// This method is optional: the default implementation does nothing.
+    ///
+    ///     struct Person : DatabasePersistable {
+    ///         var id: Int64?
+    ///         var name: String?
+    ///
+    ///         mutating func didInsertWithRowID(rowID: Int64, forColumn name: String) {
+    ///             self.id = rowID
+    ///         }
+    ///     }
+    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String)
+}
+
+public extension DatabasePersistable {
+    
+    /// The default implementation does nothing.
+    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String) {
+    }
+    
+    // MARK: - CRUD
+    
+    /// Executes an INSERT statement.
+    ///
+    /// On success, this method sets the *databaseEdited* flag to false.
+    ///
+    /// This method is guaranteed to have inserted a row in the database if it
+    /// returns without error.
+    ///
+    /// When the table has an INTEGER PRIMARY KEY, the
+    /// didInsertWithRowID(:forColumn:) method is called upon successful
+    /// insertion.
+    ///
+    /// - parameter db: A Database.
+    /// - throws: A DatabaseError whenever a SQLite error occurs.
+    mutating func insert(db: Database) throws {
+        let dataMapper = DataMapper(db, self)
+        let changes = try dataMapper.insertStatement().execute()
+        if case .Managed(let rowIDColumnName) = dataMapper.primaryKey {
+            didInsertWithRowID(changes.insertedRowID!, forColumn: rowIDColumnName)
+        }
+    }
+    
+    /// Executes an UPDATE statement.
+    ///
+    /// This method is guaranteed to have updated a row in the database if it
+    /// returns without error.
+    ///
+    /// - parameter db: A Database.
+    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
+    func update(db: Database) throws {
+        let changes = try DataMapper(db, self).updateStatement().execute()
+        if changes.changedRowCount == 0 {
+            throw PersistenceError.NotFound(self)
+        }
+    }
+    
+    /// Executes a DELETE statement.
+    ///
+    /// - parameter db: A Database.
+    /// - returns: Whether a database row was deleted.
+    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+    func delete(db: Database) throws -> Bool {
+        return try DataMapper(db, self).deleteStatement().execute().changedRowCount > 0
+    }
+    
+    /// Returns true if and only if the primary key matches a row in
+    /// the database.
+    ///
+    /// - parameter db: A Database.
+    /// - returns: Whether the primary key matches a row in the database.
+    func exists(db: Database) -> Bool {
+        return (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
+    }
 }
 
 
 // MARK: - DataMapper
 
-/// DataMapper takes care of DatabaseStorable CRUD
+/// DataMapper takes care of DatabasePersistable CRUD
 final class DataMapper {
     
     /// The database
     let db: Database
     
-    /// The storable
-    let storable: DatabaseStorable
+    /// The persistable
+    let persistable: DatabasePersistable
     
-    /// DataMapper keeps a copy the storable's storedDatabaseDictionary, so
+    /// DataMapper keeps a copy the persistable's storedDatabaseDictionary, so
     /// that this dictionary is built once whatever the database operation.
     /// It is guaranteed to have at least one (key, value) pair.
     let storedDatabaseDictionary: [String: DatabaseValueConvertible?]
@@ -30,7 +147,7 @@ final class DataMapper {
     /// An excerpt from storedDatabaseDictionary whose keys are primary key
     /// columns.
     ///
-    /// It is nil when storable has no primary key.
+    /// It is nil when persistable has no primary key.
     lazy var primaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
         let columns = self.primaryKey.columns
         guard columns.count > 0 else {
@@ -86,25 +203,25 @@ final class DataMapper {
     
     // MARK: - Initializer
     
-    init(_ db: Database, _ storable: DatabaseStorable) {
+    init(_ db: Database, _ persistable: DatabasePersistable) {
         // Fail early if databaseTable is nil
-        guard let databaseTableName = storable.dynamicType.databaseTableName() else {
-            fatalError("Nil returned from \(storable.dynamicType).databaseTableName()")
+        guard let databaseTableName = persistable.dynamicType.databaseTableName() else {
+            fatalError("Nil returned from \(persistable.dynamicType).databaseTableName()")
         }
 
         // Fail early if database table does not exist.
         guard let primaryKey = db.primaryKeyForTable(named: databaseTableName) else {
-            fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) does not exist. See \(storable.dynamicType).databaseTableName()")
+            fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) does not exist. See \(persistable.dynamicType).databaseTableName()")
         }
 
         // Fail early if storedDatabaseDictionary is empty
-        let storedDatabaseDictionary = storable.storedDatabaseDictionary
+        let storedDatabaseDictionary = persistable.storedDatabaseDictionary
         guard storedDatabaseDictionary.count > 0 else {
-            fatalError("Invalid empty dictionary returned from \(storable.dynamicType).storedDatabaseDictionary")
+            fatalError("Invalid empty dictionary returned from \(persistable.dynamicType).storedDatabaseDictionary")
         }
         
         self.db = db
-        self.storable = storable
+        self.persistable = persistable
         self.storedDatabaseDictionary = storedDatabaseDictionary
         self.databaseTableName = databaseTableName
         self.primaryKey = primaryKey
@@ -122,7 +239,7 @@ final class DataMapper {
     func updateStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("Invalid primary key in \(storable)")
+            fatalError("Invalid primary key in \(persistable)")
         }
         
         // Don't update primary key columns
@@ -153,7 +270,7 @@ final class DataMapper {
     func deleteStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("Invalid primary key in \(storable)")
+            fatalError("Invalid primary key in \(persistable)")
         }
         
         // Delete
@@ -165,7 +282,7 @@ final class DataMapper {
     func reloadStatement() -> SelectStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("Invalid primary key in \(storable)")
+            fatalError("Invalid primary key in \(persistable)")
         }
         
         // Fetch
@@ -179,7 +296,7 @@ final class DataMapper {
     func existsStatement() -> SelectStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("Invalid primary key in \(storable)")
+            fatalError("Invalid primary key in \(persistable)")
         }
         
         // Fetch

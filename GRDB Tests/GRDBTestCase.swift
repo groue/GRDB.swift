@@ -33,12 +33,8 @@ class GRDBTestCase: XCTestCase {
     func assertNoError(@noescape test: (Void) throws -> Void) {
         do {
             try test()
-        } catch let error as DatabaseError {
-            XCTFail(error.description)
-        } catch let error as RecordError {
-            XCTFail(error.description)
         } catch {
-            XCTFail("error: \(error)")
+            XCTFail("unexpected error: \(error)")
         }
     }
 }

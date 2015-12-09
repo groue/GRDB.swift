@@ -131,9 +131,9 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 record.email = "me@domain.com"
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -168,9 +168,9 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -307,9 +307,9 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 record.email = "me@domain.com"
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -344,9 +344,9 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }

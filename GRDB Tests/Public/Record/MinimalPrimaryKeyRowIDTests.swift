@@ -124,9 +124,9 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 record.id = 123456
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -159,9 +159,9 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -299,9 +299,9 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 record.id = 123456
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -334,9 +334,9 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
