@@ -67,8 +67,6 @@ public extension DatabasePersistable {
     
     /// Executes an INSERT statement.
     ///
-    /// On success, this method sets the *databaseEdited* flag to false.
-    ///
     /// This method is guaranteed to have inserted a row in the database if it
     /// returns without error.
     ///
