@@ -1584,7 +1584,7 @@ struct Person : DatabasePersistable {
 
 > :point_up: **Note**: Those special methods are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
 >
-> :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization.
+> :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
 
 
 ## Record
