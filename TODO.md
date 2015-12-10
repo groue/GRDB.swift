@@ -4,7 +4,7 @@
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
-- [ ] Try to avoid the mandatory mutation of DatabasePersistable.insert()
+- [ ] Write tests for classes that adopt DatabasePersistable and MutableDatabasePersistable. Check that a class that adopts DatabasePersistable can set its rowID. If not, fix it, or fix the documentation in README that reads "Classes should prefer adopting DatabasePersistable..."
 
 Not sure:
 
