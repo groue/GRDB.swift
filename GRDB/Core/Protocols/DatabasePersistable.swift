@@ -55,13 +55,6 @@ public protocol DatabasePersistable : DatabaseTableMapping {
     ///         }
     ///     }
     mutating func didInsertWithRowID(rowID: Int64, forColumn name: String)
-}
-
-public extension DatabasePersistable {
-    
-    /// The default implementation does nothing.
-    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String) {
-    }
     
     // MARK: - CRUD
     
@@ -74,9 +67,121 @@ public extension DatabasePersistable {
     /// didInsertWithRowID(:forColumn:) method is called upon successful
     /// insertion.
     ///
+    /// This method has a default implementation, so your adopting types don't
+    /// have to implement it. Yet your types can provide their own
+    /// implementation of insert(). In their implementation, it is recommended
+    /// that they invoke the performInsert() method.
+    ///
     /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
+    mutating func insert(db: Database) throws
+    
+    /// Executes an UPDATE statement.
+    ///
+    /// This method is guaranteed to have updated a row in the database if it
+    /// returns without error.
+    ///
+    /// This method has a default implementation, so your adopting types don't
+    /// have to implement it. Yet your types can provide their own
+    /// implementation of update(). In their implementation, it is recommended
+    /// that they invoke the performUpdate() method.
+    ///
+    /// - parameter db: A Database.
+    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   match any row in the database.
+    func update(db: Database) throws
+    
+    /// Saves `self` in the database.
+    ///
+    /// If the receiver has a non-nil primary key and a matching row in the
+    /// database, this method performs an update.
+    ///
+    /// Otherwise, performs an insert.
+    ///
+    /// This method is guaranteed to have inserted or updated a row in the
+    /// database if it returns without error.
+    ///
+    /// This method has a default implementation, so your adopting types don't
+    /// have to implement it. Yet your types can provide their own
+    /// implementation of save(). In their implementation, it is recommended
+    /// that they invoke the performSave() method.
+    ///
+    /// - parameter db: A Database.
+    /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
+    ///   thrown by update().
+    mutating func save(db: Database) throws
+    
+    /// Executes a DELETE statement.
+    ///
+    /// This method has a default implementation, so your adopting types don't
+    /// have to implement it. Yet your types can provide their own
+    /// implementation of delete(). In their implementation, it is recommended
+    /// that they invoke the performDelete() method.
+    ///
+    /// - parameter db: A Database.
+    /// - returns: Whether a database row was deleted.
+    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+    func delete(db: Database) throws -> Bool
+    
+    /// Returns true if and only if the primary key matches a row in
+    /// the database.
+    ///
+    /// This method has a default implementation, so your adopting types don't
+    /// have to implement it. Yet your types can provide their own
+    /// implementation of exists(). In their implementation, it is recommended
+    /// that they invoke the performExists() method.
+    ///
+    /// - parameter db: A Database.
+    /// - returns: Whether the primary key matches a row in the database.
+    func exists(db: Database) -> Bool
+}
+
+public extension DatabasePersistable {
+    
+    /// The default implementation does nothing.
+    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String) {
+    }
+    
+    
+    // MARK: - CRUD
+    
+    /// The default implementation for insert(). It invokes performInsert().
     mutating func insert(db: Database) throws {
+        try performInsert(db)
+    }
+    
+    /// The default implementation for update(). It invokes performUpdate().
+    func update(db: Database) throws {
+        try performUpdate(db)
+    }
+    
+    /// The default implementation for save(). It invokes performSave().
+    mutating func save(db: Database) throws {
+        try performSave(db)
+    }
+    
+    /// The default implementation for delete(). It invokes performDelete().
+    func delete(db: Database) throws -> Bool {
+        return try performDelete(db)
+    }
+    
+    /// The default implementation for exists(). It invokes performExists().
+    func exists(db: Database) -> Bool {
+        return performExists(db)
+    }
+    
+    
+    // MARK: - CRUD Internals
+    
+    /// Don't invoke this method directly: it is an internal method for types
+    /// that adopt DatabasePersistable.
+    ///
+    /// performInsert() provides the default implementation for insert(). Types
+    /// that adopt DatabasePersistable can invoke performInsert() in their
+    /// implementation of insert(). They should not provide their own
+    /// implementation of performInsert().
+    mutating func performInsert(db: Database) throws {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         if case .Managed(let rowIDColumnName) = dataMapper.primaryKey {
@@ -84,39 +189,69 @@ public extension DatabasePersistable {
         }
     }
     
-    /// Executes an UPDATE statement.
+    /// Don't invoke this method directly: it is an internal method for types
+    /// that adopt DatabasePersistable.
     ///
-    /// This method is guaranteed to have updated a row in the database if it
-    /// returns without error.
-    ///
-    /// - parameter db: A Database.
-    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
-    ///   PersistenceError.NotFound is thrown if the primary key does not
-    ///   match any row in the database.
-    func update(db: Database) throws {
+    /// performUpdate() provides the default implementation for update(). Types
+    /// that adopt DatabasePersistable can invoke performUpdate() in their
+    /// implementation of update(). They should not provide their own
+    /// implementation of performUpdate().
+    func performUpdate(db: Database) throws {
         let changes = try DataMapper(db, self).updateStatement().execute()
         if changes.changedRowCount == 0 {
             throw PersistenceError.NotFound(self)
         }
     }
     
-    /// Executes a DELETE statement.
+    /// Don't invoke this method directly: it is an internal method for types
+    /// that adopt DatabasePersistable.
     ///
-    /// - parameter db: A Database.
-    /// - returns: Whether a database row was deleted.
-    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
-    func delete(db: Database) throws -> Bool {
+    /// performSave() provides the default implementation for save(). Types
+    /// that adopt DatabasePersistable can invoke performSave() in their
+    /// implementation of save(). They should not provide their own
+    /// implementation of performSave().
+    mutating func performSave(db: Database) throws {
+        // Make sure we call self.insert and self.update so that classes that
+        // override insert or save have opportunity to perform their custom job.
+        
+        if DataMapper(db, self).resolvingPrimaryKeyDictionary == nil {
+            try insert(db)
+            return
+        }
+        
+        do {
+            try update(db)
+        } catch PersistenceError.NotFound {
+            // TODO: check that the not persisted objet is self
+            //
+            // Why? Adopting types could override update() and update another
+            // object which may be the one throwing this error.
+            try insert(db)
+        }
+    }
+    
+    /// Don't invoke this method directly: it is an internal method for types
+    /// that adopt DatabasePersistable.
+    ///
+    /// performDelete() provides the default implementation for deelte(). Types
+    /// that adopt DatabasePersistable can invoke performDelete() in their
+    /// implementation of delete(). They should not provide their own
+    /// implementation of performDelete().
+    func performDelete(db: Database) throws -> Bool {
         return try DataMapper(db, self).deleteStatement().execute().changedRowCount > 0
     }
     
-    /// Returns true if and only if the primary key matches a row in
-    /// the database.
+    /// Don't invoke this method directly: it is an internal method for types
+    /// that adopt DatabasePersistable.
     ///
-    /// - parameter db: A Database.
-    /// - returns: Whether the primary key matches a row in the database.
-    func exists(db: Database) -> Bool {
+    /// performExists() provides the default implementation for exists(). Types
+    /// that adopt DatabasePersistable can invoke performExists() in their
+    /// implementation of exists(). They should not provide their own
+    /// implementation of performExists().
+    func performExists(db: Database) -> Bool {
         return (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
     }
+    
 }
 
 

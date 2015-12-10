@@ -261,8 +261,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func insert(db: Database) throws {
-        var storable: DatabasePersistable = self
-        try storable.insert(db)
+        var persistable = self as DatabasePersistable
+        try persistable.performInsert(db)
         databaseEdited = false
     }
     
@@ -278,7 +278,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
     public func update(db: Database) throws {
-        try (self as DatabasePersistable).update(db)
+        try performUpdate(db)
         databaseEdited = false
     }
     
@@ -298,23 +298,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
     ///   thrown by update().
     final public func save(db: Database) throws {
-        // Make sure we call self.insert and self.update so that classes that
-        // override insert or save have opportunity to perform their custom job.
-        
-        if DataMapper(db, self).resolvingPrimaryKeyDictionary == nil {
-            try insert(db)
-            return
-        }
-        
-        do {
-            try update(db)
-        } catch PersistenceError.NotFound {
-            // TODO: check that the not persisted objet is self
-            //
-            // Why? Subclasses could override update() and update another object
-            // which may be the one throwing this error.
-            try insert(db)
-        }
+        var persistable = self as DatabasePersistable
+        try persistable.performSave(db)
     }
     
     /// Executes a DELETE statement.
@@ -325,7 +310,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     public func delete(db: Database) throws -> Bool {
-        let deleted = try (self as DatabasePersistable).delete(db)
+        let deleted = try performDelete(db)
         // Future calls to update() will throw NotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
         // databaseEdited flag:
