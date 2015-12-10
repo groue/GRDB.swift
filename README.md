@@ -68,7 +68,8 @@ Documentation
     - [Migrations](#migrations): Transform your database as your application evolves.
     - [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
     - [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
-    - [Records](#records): CRUD operations and changes tracking.
+    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
+    - [Records](#records): the full toolkit, plus changes tracking.
 
 - **[Sample Code](#sample-code)**
 
@@ -500,10 +501,10 @@ For example:
 
 ```swift
 dbQueue.inDatabase { db in
-    // The number of persons with an email ending in @domain.com:
+    // The number of persons with an email ending in @example.com:
     let count = Int.fetchOne(db,
         "SELECT COUNT(*) FROM persons WHERE email LIKE ?",
-        arguments: ["%@domain.com"])!
+        arguments: ["%@example.com"])!
     
     // The emails of people who own at least two pets:
     let emails = String.fetch(db,
@@ -1230,7 +1231,8 @@ On top of the SQLite API described above, GRDB provides a toolkit for applicatio
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
 - [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
-- [Records](#records): CRUD operations and changes tracking.
+- [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
+- [Records](#records): the full toolkit, plus changes tracking.
 
 
 ## Migrations
@@ -1488,6 +1490,126 @@ PointOfInterest(dictionary: [
 See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
 
+### Fetching by Key
+
+**Adopt the `DatabaseTableMapping` protocol** on top of `RowConvertible`:
+
+```swift
+public protocol DatabaseTableMapping {
+    /// The name of the database table.
+    static func databaseTableName() -> String?
+}
+```
+
+You are then granted with fetching methods based on database keys:
+
+```swift
+Person.fetch(db, keys: ...)     // DatabaseSequence<Person>
+Person.fetchAll(db, keys: ...)  // [Person]
+Person.fetchOne(db, key: ...)   // Person?
+```
+
+Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
+
+- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
+- The sequence returned by `fetch` will return a different set of results if the database has been modified between two sequence iterations.
+
+The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
+
+
+**When the database table has a single column primary key**, you can fetch given key values:
+
+```swift
+// SELECT * FROM persons WHERE id = 1
+Person.fetchOne(db, key: 1)
+
+// SELECT * FROM persons WHERE id IN (1,2,3)
+Person.fetch(db, keys: [1,2,3])
+
+// SELECT * FROM countries WHERE isoCode = 'FR'
+Country.fetchOne(db, key: "FR")
+
+// SELECT * FROM countries WHERE isoCode IN ('FR', 'ES', 'US')
+Country.fetchAll(db, keys: ["FR", "ES", "US"])
+```
+
+**For multi-column primary keys and secondary keys**, use a key dictionary:
+
+```swift
+// SELECT * FROM persons WHERE email = 'me@example.com'
+Person.fetchOne(db, key: ["email": "me@example.com"])
+
+// SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
+Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
+```
+
+
+## DatabasePersistable Protocol
+
+**The `DatabasePersistable` protocol grants adopting types with CRUD methods.**
+
+It has only two mandatory methods:
+
+```swift
+public protocol DatabasePersistable : DatabaseTableMapping {
+    /// The name of the database table (from DatabaseTableMapping)
+    static func databaseTableName() -> String?
+    
+    /// Returns the values that should be stored in the database.
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
+}
+```
+
+The `storedDatabaseDictionary` dictionary keys are column names, and its values can be any `DatabaseValueConvertible` value  (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
+
+```swift
+struct Person {
+    let id: Int64?
+    let name: String?
+    
+    static func databaseTableName() -> String? {
+        return "persons"
+    }
+
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "name": name]
+    }
+}
+```
+
+Once `storedDatabaseDictionary` implemented, adopting types are granted with the full CRUD toolkit:
+
+```swift
+try dbQueue.inDatabase { db in
+    var person = Person(...)
+    try person.insert(db)   // INSERT
+    try person.update(db)   // UPDATE
+    try person.save(db)     // Inserts or updates
+    try person.delete(db)   // DELETE
+    person.exists(db)       // Returns a Bool
+}
+```
+
+Your type may store its rowID after a successful insertion:
+
+```
+struct Person {
+    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
+        self.id = rowID
+    }
+}
+
+var person = Person(id: nil, name: "Arthur")
+person.id   // nil
+try person.save(db)
+person.id   // some value
+```
+
+
+TODO: document how to "override" the default CRUD methods.
+
+
 ## Records
 
 - [Overview](#record-overview)
@@ -1644,7 +1766,9 @@ Person overrides `databaseTableName()` to return the name of the table that shou
     }
 ```
 
-Person overrides `storedDatabaseDictionary` to return the dictionary of values that should be stored in the database when a person is saved. `DatabaseValueConvertible` is the protocol adopted by all supported values  (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
+Person overrides `storedDatabaseDictionary` to return the dictionary of values that should be stored in the database when a person is saved.
+
+Person overrides `storedDatabaseDictionary` and returns a dictionary whose keys are column names, and values any `DatabaseValueConvertible` value  (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
 
 ```swift
     /// The values stored in the database
@@ -1721,10 +1845,10 @@ For example:
 
 ```swift
 dbQueue.inDatabase { db in
-    // All persons with an email ending in @domain.com:
+    // All persons with an email ending in @example.com:
     Person.fetch(db,
         "SELECT * FROM persons WHERE email LIKE ?",
-        arguments: ["%@domain.com"])
+        arguments: ["%@example.com"])
     
     // All persons who have a single citizenship:
     Person.fetch(db,
@@ -1746,8 +1870,8 @@ dbQueue.inDatabase { db in
     // SELECT * FROM countries WHERE isoCode IN ('FR', 'ES', 'US')
     Country.fetchAll(db, keys: ["FR", "ES", "US"])
     
-    // SELECT * FROM persons WHERE email = 'me@domain.com'
-    Person.fetchOne(db, key: ["email": "me@domain.com"])
+    // SELECT * FROM persons WHERE email = 'me@example.com'
+    Person.fetchOne(db, key: ["email": "me@example.com"])
     
     // SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
     Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])

@@ -40,9 +40,9 @@ public protocol DatabasePersistable : DatabaseTableMapping {
     ///     }
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
     
-    /// If the underlying database table has an INTEGER PRIMARY KEY, this method
-    /// is called after a successful insertion. Adopting type may implement this
-    /// method and update their primary key accordingly.
+    /// Don't call this method directly: it is called upon successful insertion,
+    /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
+    /// column name.
     ///
     /// This method is optional: the default implementation does nothing.
     ///
@@ -50,11 +50,11 @@ public protocol DatabasePersistable : DatabaseTableMapping {
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         mutating func didInsertWithRowID(rowID: Int64, forColumn name: String) {
+    ///         mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
     ///             self.id = rowID
     ///         }
     ///     }
-    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String)
+    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?)
     
     // MARK: - CRUD
     
@@ -63,9 +63,9 @@ public protocol DatabasePersistable : DatabaseTableMapping {
     /// This method is guaranteed to have inserted a row in the database if it
     /// returns without error.
     ///
-    /// When the table has an INTEGER PRIMARY KEY, the
-    /// didInsertWithRowID(:forColumn:) method is called upon successful
-    /// insertion.
+    /// Upon successful insertion, the didInsertWithRowID(:forColumn:) method
+    /// is called with the inserted RowID and the eventual INTEGER PRIMARY KEY
+    /// column name.
     ///
     /// This method has a default implementation, so your adopting types don't
     /// have to implement it. Yet your types can provide their own
@@ -141,7 +141,7 @@ public protocol DatabasePersistable : DatabaseTableMapping {
 public extension DatabasePersistable {
     
     /// The default implementation does nothing.
-    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String) {
+    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
     }
     
     
@@ -197,8 +197,12 @@ public extension DatabasePersistable {
     mutating func performInsert(db: Database) throws {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
-        if case .Managed(let rowIDColumnName) = dataMapper.primaryKey {
-            didInsertWithRowID(changes.insertedRowID!, forColumn: rowIDColumnName)
+        if let rowID = changes.insertedRowID {
+            if case .Managed(let columnName) = dataMapper.primaryKey {
+                didInsertWithRowID(rowID, forColumn: columnName)
+            } else {
+                didInsertWithRowID(rowID, forColumn: nil)
+            }
         }
     }
     

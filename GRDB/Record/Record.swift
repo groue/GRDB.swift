@@ -148,9 +148,16 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     public func updateFromRow(row: Row) {
     }
     
-    /// TODO
-    final public func didInsertWithRowID(rowID: Int64, forColumn name: String) {
-        updateFromRow(Row(dictionary: [name: rowID]))
+    /// Don't call this method directly: it is called upon successful insertion,
+    /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
+    /// column name.
+    ///
+    /// The default implementation calls updateFromRow() if the table has an
+    /// INTEGER PRIMARY KEY.
+    public func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
+        if let name = name {
+            updateFromRow(Row(dictionary: [name: rowID]))
+        }
     }
     
     

@@ -8,11 +8,12 @@
 ///     Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
 ///
 /// DatabaseTableMapping is adopted by Record.
-public protocol DatabaseTableMapping : RowConvertible {
+public protocol DatabaseTableMapping {
+    /// The name of the database table.
     static func databaseTableName() -> String?
 }
 
-extension DatabaseTableMapping {
+extension RowConvertible where Self: DatabaseTableMapping {
     
     // MARK: - Single-Column Primary Key
     
