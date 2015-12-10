@@ -1542,6 +1542,24 @@ dbQueue.inDatabase { db in
 }
 ```
 
+`DatabasePersistable` and `MutableDatabasePersistable` are identical, except for the three methods that are involved in insertion:
+
+```swift
+protocol MutableDatabasePersistable {
+    // Insertion can mutate:
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    mutating func insert(db: Database) throws
+    mutating func save(db: Database) throws
+}
+
+protocol DatabasePersistable : MutableDatabasePersistable {
+    // Insertion can not mutate:
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    func insert(db: Database) throws
+    func save(db: Database) throws
+}
+```
+
 
 ### Customizing the CRUD methods
 
