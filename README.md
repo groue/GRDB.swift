@@ -1620,6 +1620,10 @@ Your type may store its rowID after a successful insertion:
 
 ```swift
 struct Person {
+    /// Optional method that is called upon successful insertion.
+    ///
+    /// - parameter rowID: The inserted rowID.
+    /// - parameter name: The name of the eventual INTEGER PRIMARY KEY column.
     mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
         self.id = rowID
     }

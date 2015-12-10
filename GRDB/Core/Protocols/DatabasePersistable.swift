@@ -54,6 +54,9 @@ public protocol DatabasePersistable : DatabaseTableMapping {
     ///             self.id = rowID
     ///         }
     ///     }
+    ///
+    /// - parameter rowID: The inserted rowID.
+    /// - parameter name: The name of the eventual INTEGER PRIMARY KEY column.
     mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?)
     
     // MARK: - CRUD
