@@ -1594,7 +1594,7 @@ public protocol DatabasePersistable : DatabaseTableMapping {
 The `storedDatabaseDictionary` dictionary keys are column names, and its values can be any `DatabaseValueConvertible` value  (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
 
 ```swift
-struct Person {
+struct Person : DatabasePersistable {
     let id: Int64?
     let name: String?
     
@@ -1621,7 +1621,7 @@ func exists(db: Database) -> Bool           // Whether a matching row exists
 Your type may store its rowID after a successful insertion:
 
 ```swift
-struct Person {
+extension Person {
     /// Optional method that is called upon successful insertion.
     ///
     /// - parameter rowID: The inserted rowID.
