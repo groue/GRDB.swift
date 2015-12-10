@@ -1550,7 +1550,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-`DatabasePersistable` and `MutableDatabasePersistable` are identical, except for the three methods that are involved in insertion.
+`DatabasePersistable` and `MutableDatabasePersistable` are identical, except for the three methods that are involved in insertion:
 
 ```swift
 protocol MutableDatabasePersistable {
