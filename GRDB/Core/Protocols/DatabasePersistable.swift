@@ -59,6 +59,7 @@ public protocol DatabasePersistable : DatabaseTableMapping {
     /// - parameter name: The name of the eventual INTEGER PRIMARY KEY column.
     mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?)
     
+    
     // MARK: - CRUD
     
     /// Executes an INSERT statement.
