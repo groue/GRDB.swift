@@ -68,12 +68,12 @@ Documentation
     
 - **[Migrations](#migrations)**: Transform your database as your application evolves.
 
-- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
-
 - **Database protocols, and Record**
     - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
     - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
     - [Record](#record): The class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking.
+
+- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
 
 - **[Sample Code](#sample-code)**
 
@@ -1233,11 +1233,11 @@ Application Tools
 On top of the SQLite API described above, GRDB provides a toolkit for applications. While none of those are mandatory, all of them help dealing with the database:
 
 - **[Migrations](#migrations)**: Transform your database as your application evolves.
-- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
 - **Database protocols, and Record**
     - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
     - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
-- **[Record](#record)**: The class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking.
+    - **[Record](#record)**: The class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking.
+- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
 
 
 ## Migrations
@@ -1318,126 +1318,6 @@ migrator.registerMigrationWithoutForeignKeyChecks("AddNotNullCheckOnName") { db 
 ```
 
 While your migration code runs with disabled foreign key checks, those are re-enabled and checked at the end of the migration, regardless of eventual errors.
-
-
-## Database Changes Observation
-
-The TransactionObserverType protocol lets you **observe database changes**:
-
-```swift
-public protocol TransactionObserverType : class {
-    // Notifies a database change:
-    // - event.kind (insert, update, or delete)
-    // - event.tableName
-    // - event.rowID
-    func databaseDidChangeWithEvent(event: DatabaseEvent)
-    
-    // An opportunity to rollback pending changes by throwing an error.
-    func databaseWillCommit() throws
-    
-    // Database changes have been committed.
-    func databaseDidCommit(db: Database)
-    
-    // Database changes have been rollbacked.
-    func databaseDidRollback(db: Database)
-}
-```
-
-**There is one transaction observer per database:**
-
-```swift
-var config = Configuration()
-config.transactionObserver = MyObserver()
-let dbQueue = try DatabaseQueue(path: databasePath, configuration: config)
-```
-
-Protocol callbacks are all invoked on the database queue.
-
-**All database changes are notified** to databaseDidChangeWithEvent, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
-
-Those changes are not actually applied until databaseDidCommit is called. On the other side, databaseDidRollback confirms their invalidation:
-
-```swift
-try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...") // didChange
-    return .Commit               // willCommit, didCommit
-}
-
-try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...") // didChange
-    return .Rollback             // didRollback
-}
-```
-
-Database statements that are executed outside of an explicit transaction do not drop off the radar:
-
-```swift
-try dbQueue.inDatabase { db in
-    try db.execute("INSERT ...") // didChange, willCommit, didCommit
-    try db.execute("UPDATE ...") // didChange, willCommit, didCommit
-}
-```
-
-**Eventual errors** thrown from databaseWillCommit are exposed to the application code:
-
-```swift
-do {
-    try dbQueue.inTransaction { db in
-        ...
-        return .Commit           // willCommit (throws), didRollback
-    }
-} catch {
-    // The error thrown by the transaction observer.
-}
-```
-
-> :point_up: **Note**: The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
-
-
-### Sample Transaction Observer: TableChangeObserver
-
-Let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
-
-```swift
-/// The notification posted when database tables have changed:
-let DatabaseTablesDidChangeNotification = "DatabaseTablesDidChangeNotification"
-let ChangedTableNamesKey = "ChangedTableNames"
-
-/// TableChangeObserver posts a DatabaseTablesDidChangeNotification on the main
-/// thread after database tables have changed.
-class TableChangeObserver : NSObject, TransactionObserverType {
-    private var changedTableNames: Set<String> = []
-    
-    func databaseDidChangeWithEvent(event: DatabaseEvent) {
-        // Remember the name of the changed table:
-        changedTableNames.insert(event.tableName)
-    }
-    
-    func databaseWillCommit() throws {
-        // Let go
-    }
-    
-    func databaseDidCommit(db: Database) {
-        // Extract the names of changed tables, and reset until next
-        // database event:
-        let changedTableNames = self.changedTableNames
-        self.changedTableNames = []
-        
-        // Notify
-        dispatch_async(dispatch_get_main_queue()) {
-            NSNotificationCenter.defaultCenter().postNotificationName(
-                DatabaseTablesDidChangeNotification,
-                object: self,
-                userInfo: [ChangedTableNamesKey: changedTableNames])
-        }
-    }
-    
-    func databaseDidRollback(db: Database) {
-        // Reset until next database event:
-        self.changedTableNames = []
-    }
-}
-```
 
 
 ## RowConvertible Protocol
@@ -2243,6 +2123,126 @@ CREATE TABLE persons (
 ```swift
 let person = Person(name: "Arthur")
 person.insert(db)   // Replace any existing person named "Arthur"
+```
+
+
+## Database Changes Observation
+
+The `TransactionObserverType` protocol lets you **observe database changes**:
+
+```swift
+public protocol TransactionObserverType : class {
+    // Notifies a database change:
+    // - event.kind (insert, update, or delete)
+    // - event.tableName
+    // - event.rowID
+    func databaseDidChangeWithEvent(event: DatabaseEvent)
+    
+    // An opportunity to rollback pending changes by throwing an error.
+    func databaseWillCommit() throws
+    
+    // Database changes have been committed.
+    func databaseDidCommit(db: Database)
+    
+    // Database changes have been rollbacked.
+    func databaseDidRollback(db: Database)
+}
+```
+
+**There is one transaction observer per database:**
+
+```swift
+var config = Configuration()
+config.transactionObserver = MyObserver()
+let dbQueue = try DatabaseQueue(path: databasePath, configuration: config)
+```
+
+Protocol callbacks are all invoked on the database queue.
+
+**All database changes are notified** to databaseDidChangeWithEvent, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+
+Those changes are not actually applied until databaseDidCommit is called. On the other side, databaseDidRollback confirms their invalidation:
+
+```swift
+try dbQueue.inTransaction { db in
+    try db.execute("INSERT ...") // didChange
+    return .Commit               // willCommit, didCommit
+}
+
+try dbQueue.inTransaction { db in
+    try db.execute("INSERT ...") // didChange
+    return .Rollback             // didRollback
+}
+```
+
+Database statements that are executed outside of an explicit transaction do not drop off the radar:
+
+```swift
+try dbQueue.inDatabase { db in
+    try db.execute("INSERT ...") // didChange, willCommit, didCommit
+    try db.execute("UPDATE ...") // didChange, willCommit, didCommit
+}
+```
+
+**Eventual errors** thrown from databaseWillCommit are exposed to the application code:
+
+```swift
+do {
+    try dbQueue.inTransaction { db in
+        ...
+        return .Commit           // willCommit (throws), didRollback
+    }
+} catch {
+    // The error thrown by the transaction observer.
+}
+```
+
+> :point_up: **Note**: The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
+
+
+### Sample Transaction Observer: TableChangeObserver
+
+Let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+
+```swift
+/// The notification posted when database tables have changed:
+let DatabaseTablesDidChangeNotification = "DatabaseTablesDidChangeNotification"
+let ChangedTableNamesKey = "ChangedTableNames"
+
+/// TableChangeObserver posts a DatabaseTablesDidChangeNotification on the main
+/// thread after database tables have changed.
+class TableChangeObserver : NSObject, TransactionObserverType {
+    private var changedTableNames: Set<String> = []
+    
+    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+        // Remember the name of the changed table:
+        changedTableNames.insert(event.tableName)
+    }
+    
+    func databaseWillCommit() throws {
+        // Let go
+    }
+    
+    func databaseDidCommit(db: Database) {
+        // Extract the names of changed tables, and reset until next
+        // database event:
+        let changedTableNames = self.changedTableNames
+        self.changedTableNames = []
+        
+        // Notify
+        dispatch_async(dispatch_get_main_queue()) {
+            NSNotificationCenter.defaultCenter().postNotificationName(
+                DatabaseTablesDidChangeNotification,
+                object: self,
+                userInfo: [ChangedTableNamesKey: changedTableNames])
+        }
+    }
+    
+    func databaseDidRollback(db: Database) {
+        // Reset until next database event:
+        self.changedTableNames = []
+    }
+}
 ```
 
 
