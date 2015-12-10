@@ -1593,7 +1593,7 @@ try dbQueue.inDatabase { db in
 
 Your type may store its rowID after a successful insertion:
 
-```
+```swift
 struct Person {
     mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
         self.id = rowID
