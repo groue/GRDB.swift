@@ -154,6 +154,9 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// The default implementation calls updateFromRow() if the table has an
     /// INTEGER PRIMARY KEY.
+    ///
+    /// - parameter rowID: The inserted rowID.
+    /// - parameter name: The name of the eventual INTEGER PRIMARY KEY column.
     public func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
         if let name = name {
             updateFromRow(Row(dictionary: [name: rowID]))

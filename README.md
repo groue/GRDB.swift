@@ -1642,7 +1642,7 @@ Your custom DatabasePersistable type may want to perform extra work when the CRU
 
 For example, it may want to have its UUID automatically set before inserting. Or it may want to validate its values before saving.
 
-Do do that, implement your own version of the insert(), update() etc. method, and call the internal performInsert(), performUpdate() etc. methods in your implementation:
+The protocol exposes *special methods* for this exact purpose: `performInsert`, `performUpdate`, `performSave`, `performDelete`, and `performExists`.
 
 ```swift
 struct Person : DatabasePersistable {
@@ -1657,9 +1657,9 @@ struct Person : DatabasePersistable {
 }
 ```
 
-> :point_up: **Note**: The `performXXX` methods should not be used outside of your custom implementation.
+> :point_up: **Note**: Those special methods are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
 >
-> :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method, because its default implementation forwards the job to `update` or `insert`. These are the methods that may need custom implementation.
+> :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization.
 
 
 ## Records
