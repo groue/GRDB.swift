@@ -1667,7 +1667,7 @@ struct Person : DatabasePersistable {
 > :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization.
 
 
-## Records
+## Record
 
 - [Overview](#record-overview)
 - [Subclassing Record](#subclassing-record)
