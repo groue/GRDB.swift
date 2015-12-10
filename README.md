@@ -501,7 +501,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-For example:
+There are many supported value types (Bool, Int, String, NSDate, Swift enums, etc.). See [Values](#values) for more information:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -510,8 +510,11 @@ dbQueue.inDatabase { db in
         "SELECT COUNT(*) FROM persons WHERE email LIKE ?",
         arguments: ["%@example.com"])!
     
+    // All URLs:
+    let urls = NSURL.fetchAll(db, "SELECT url FROM links")
+    
     // The emails of people who own at least two pets:
-    let emails = String.fetch(db,
+    let emails = Optional<String>.fetchAll(db,
         "SELECT persons.email " +
         "FROM persons " +
         "JOIN pets ON pets.masterId = persons.id " +
@@ -533,7 +536,7 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The
 
 GRDB ships with built-in support for the following value types:
 
-- **Swift**: Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
+- **Swift Standard Library**: Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
 - **Foundation**: [NSCoding](#nscoding), [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
     
@@ -564,14 +567,16 @@ They can be [directly fetched](#value-queries) from the database:
 let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
 ```
 
-Use them as [Record](#record) properties:
+Use them in the `storedDatabaseDictionary` property of [DatabasePersistable protocol](#databasepersistable-protocol) and [Record subclasses](#record):
 
 ```swift
 class Link : Record {
     var url: NSURL?
     var verified: Bool
     
-    ...
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["url": url, "verified": verified]
+    }
 }
 ```
 
@@ -1471,7 +1476,7 @@ public protocol DatabasePersistable : DatabaseTableMapping {
 }
 ```
 
-The `storedDatabaseDictionary` dictionary keys are column names, and its values can be any `DatabaseValueConvertible` value  (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
+The `storedDatabaseDictionary` dictionary keys are column names, and its values can be any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
 
 ```swift
 struct Person : DatabasePersistable {
@@ -1704,7 +1709,7 @@ Person overrides `databaseTableName()` to return the name of the table that shou
 
 Person overrides `storedDatabaseDictionary` to return the dictionary of values that should be stored in the database when a person is saved.
 
-Person overrides `storedDatabaseDictionary` and returns a dictionary whose keys are column names, and values any `DatabaseValueConvertible` value  (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
+Person overrides `storedDatabaseDictionary` and returns a dictionary whose keys are column names, and values any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
 
 ```swift
     /// The values stored in the database
