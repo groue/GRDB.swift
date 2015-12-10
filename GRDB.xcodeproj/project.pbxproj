@@ -35,6 +35,8 @@
 		56437C851C180EDB007D6DB3 /* DatabasePersistable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56437C831C180EDB007D6DB3 /* DatabasePersistable.swift */; };
 		564A50C71BFF4B7F00B3A3A2 /* CollationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */; };
 		564A50C81BFF4B7F00B3A3A2 /* CollationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */; };
+		5658420E1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5658420D1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift */; };
+		5658420F1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5658420D1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift */; };
 		565B0FEF1BBC7D980098DE03 /* RowConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565B0FEE1BBC7D980098DE03 /* RowConvertibleTests.swift */; };
 		565B0FF01BBC7D980098DE03 /* RowConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565B0FEE1BBC7D980098DE03 /* RowConvertibleTests.swift */; };
 		565B0FF81BBC7FE90098DE03 /* RowConvertible+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565B0FF71BBC7FE90098DE03 /* RowConvertible+Foundation.swift */; };
@@ -309,6 +311,7 @@
 		5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBTestCase.swift; sourceTree = "<group>"; };
 		56437C831C180EDB007D6DB3 /* DatabasePersistable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabasePersistable.swift; sourceTree = "<group>"; };
 		564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollationTests.swift; sourceTree = "<group>"; };
+		5658420D1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutableDatabasePersistableTests.swift; sourceTree = "<group>"; };
 		565B0FEE1BBC7D980098DE03 /* RowConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertibleTests.swift; sourceTree = "<group>"; };
 		565B0FF71BBC7FE90098DE03 /* RowConvertible+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RowConvertible+Foundation.swift"; sourceTree = "<group>"; };
 		565B0FFA1BBC80720098DE03 /* RowConvertible+FoundationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RowConvertible+FoundationTests.swift"; sourceTree = "<group>"; };
@@ -487,6 +490,7 @@
 			isa = PBXGroup;
 			children = (
 				560B3FAB1C19E01000C58EC7 /* DatabasePersistableTests.swift */,
+				5658420D1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift */,
 			);
 			path = DatabasePersistable;
 			sourceTree = "<group>";
@@ -1283,6 +1287,7 @@
 				56A2385E1B9C74A90082EB20 /* RecordCopyTests.swift in Sources */,
 				56FC78691BBAEB8C00CA1285 /* ManagedDataControllerTests.swift in Sources */,
 				56A238421B9C74A90082EB20 /* DatabaseValueConversionTests.swift in Sources */,
+				5658420F1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift in Sources */,
 				56FC78671BBAEB8C00CA1285 /* MappingTests.swift in Sources */,
 				56A238441B9C74A90082EB20 /* RawRepresentableTests.swift in Sources */,
 				5607EFD41BB827FD00605DE3 /* TransactionObserverTests.swift in Sources */,
@@ -1342,6 +1347,7 @@
 				56EB0AB21BCD787300A3DC55 /* NSDataMemoryTests.swift in Sources */,
 				565B0FFB1BBC80720098DE03 /* RowConvertible+FoundationTests.swift in Sources */,
 				56FC78681BBAEB8C00CA1285 /* ManagedDataControllerTests.swift in Sources */,
+				5658420E1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift in Sources */,
 				56FC78661BBAEB8C00CA1285 /* MappingTests.swift in Sources */,
 				56A238691B9C74A90082EB20 /* RecordSubClassTests.swift in Sources */,
 				5607EFD31BB8254800605DE3 /* TransactionObserverTests.swift in Sources */,

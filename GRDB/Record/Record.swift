@@ -271,8 +271,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func insert(db: Database) throws {
-        var persistable = self as DatabasePersistable
-        try persistable.performInsert(db)
+        try performInsert(db)
         databaseEdited = false
     }
     
@@ -309,8 +308,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
     ///   thrown by update().
     final public func save(db: Database) throws {
-        var persistable = self as DatabasePersistable
-        try persistable.performSave(db)
+        try performSave(db)
     }
     
     /// Executes a DELETE statement.
