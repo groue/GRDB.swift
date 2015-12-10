@@ -1496,8 +1496,33 @@ See also the [Record](#records) class, which builds on top of RowConvertible and
 
 ```swift
 public protocol DatabaseTableMapping {
-    /// The name of the database table.
+    /// The name of the database table
     static func databaseTableName() -> String
+}
+```
+
+For example:
+
+```swift
+// CREATE TABLE persons (
+//   id INTEGER PRIMARY KEY,
+//   name TEXT,
+//   email TEXT UNIQUE COLLATE NOCASE
+// )
+struct Person : RowConvertible, DatabaseTableMapping {
+    var id: Int64?
+    var name: String?
+    var email: String?
+    
+    static func databaseTableName() -> String {
+        return "persons"
+    }
+    
+    init(row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        email = row.value(named: "email")
+    }
 }
 ```
 

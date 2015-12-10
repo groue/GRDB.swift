@@ -9,7 +9,7 @@
 ///
 /// DatabaseTableMapping is adopted by Record.
 public protocol DatabaseTableMapping {
-    /// The name of the database table.
+    /// The name of the database table
     static func databaseTableName() -> String
 }
 
