@@ -1479,16 +1479,20 @@ public protocol DatabasePersistable : DatabaseTableMapping {
 The `storedDatabaseDictionary` dictionary keys are column names, and its values can be any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
 
 ```swift
-struct Person : DatabasePersistable {
-    let id: Int64?
-    let name: String?
+// CREATE TABLE countries (
+//   isoCode TEXT NOT NULL PRIMARY KEY,
+//   name TEXT NOT NULL
+// )
+struct Country : DatabasePersistable {
+    let isoCode: String
+    let name: String
     
     static func databaseTableName() -> String {
-        return "persons"
+        return "countries"
     }
 
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name]
+        return ["isoCode": isoCode, "name": name]
     }
 }
 ```
@@ -1503,14 +1507,28 @@ func delete(db: Database) throws -> Bool    // DELETE
 func exists(db: Database) -> Bool           // Whether a matching row exists
 ```
 
-Your type may store its rowID after a successful insertion:
+
+### Inserted Row IDs
+
+Your structs that represent a table with an INTEGER PRIMARY KEY will prefer adopting `MutableDatabasePersistable` instead of `DatabasePersistable`: they'll get the opportunity to store the inserted rowID upon successful insertion:
 
 ```swift
-extension Person {
-    /// Optional method that is called upon successful insertion.
-    ///
-    /// - parameter rowID: The inserted rowID.
-    /// - parameter name: The name of the eventual INTEGER PRIMARY KEY column.
+// CREATE TABLE persons (
+//     id INTEGER PRIMARY KEY,
+//     name TEXT
+// )
+struct Person : MutableDatabasePersistable {
+    let id: Int64?
+    let name: String?
+    
+    static func databaseTableName() -> String {
+        return "persons"
+    }
+    
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "name": name]
+    }
+    
     mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
         self.id = rowID
     }

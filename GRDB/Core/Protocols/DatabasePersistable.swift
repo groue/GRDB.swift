@@ -302,14 +302,8 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
     ///
     /// This method is optional: the default implementation does nothing.
     ///
-    ///     struct Person : DatabasePersistable {
-    ///         var id: Int64?
-    ///         var name: String?
-    ///
-    ///         mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
-    ///             self.id = rowID
-    ///         }
-    ///     }
+    /// If you need a mutating variant of this method, adopt the
+    /// MutableDatabasePersistable protocol instead.
     ///
     /// - parameter rowID: The inserted rowID.
     /// - parameter name: The name of the eventual INTEGER PRIMARY KEY column.
@@ -319,6 +313,10 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
     ///
     /// This method is guaranteed to have inserted a row in the database if it
     /// returns without error.
+    ///
+    /// Upon successful insertion, the didInsertWithRowID(:forColumn:) method
+    /// is called with the inserted RowID and the eventual INTEGER PRIMARY KEY
+    /// column name.
     ///
     /// This method has a default implementation, so your adopting types don't
     /// have to implement it. Yet your types can provide their own
