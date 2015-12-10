@@ -1550,7 +1550,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-`DatabasePersistable` and `MutableDatabasePersistable` are identical, except for the three methods that are involved in insertion:
+`DatabasePersistable` and `MutableDatabasePersistable` are identical, except for the three methods that are involved in insertion.
 
 ```swift
 protocol MutableDatabasePersistable {
@@ -1568,6 +1568,7 @@ protocol DatabasePersistable : MutableDatabasePersistable {
 }
 ```
 
+> :point_up: **Note**: Classes should prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate themselves in `didInsertWithRowID(:forColumn:)`. They'll avoid strange compiler errors when they insert an instance stored in a a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
 
 ### Customizing the CRUD methods
 
