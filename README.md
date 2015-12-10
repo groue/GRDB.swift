@@ -1459,7 +1459,7 @@ Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
 
 **The `DatabasePersistable` protocol grants adopting types with CRUD methods.**
 
-It has only two mandatory methods:
+It has two mandatory methods:
 
 ```swift
 public protocol DatabasePersistable : DatabaseTableMapping {
@@ -1511,10 +1511,12 @@ extension Person {
     }
 }
 
-var person = Person(id: nil, name: "Arthur")
-person.id   // nil
-try person.save(db)
-person.id   // some value
+dbQueue.inDatabase { db in
+    var person = Person(id: nil, name: "Arthur")
+    person.id   // nil
+    try person.save(db)
+    person.id   // some value
+}
 ```
 
 
