@@ -1608,17 +1608,14 @@ struct Person {
 }
 ```
 
-Once `storedDatabaseDictionary` is implemented, adopting types are granted with the full CRUD toolkit:
+Adopting types are granted with the CRUD toolkit:
 
 ```swift
-try dbQueue.inDatabase { db in
-    var person = Person(...)
-    try person.insert(db)   // INSERT
-    try person.update(db)   // UPDATE
-    try person.save(db)     // Inserts or updates
-    try person.delete(db)   // DELETE
-    person.exists(db)       // Returns a Bool
-}
+func insert(db: Database) throws            // INSERT
+func update(db: Database) throws            // UPDATE
+func save(db: Database) throws              // inserts or updates
+func delete(db: Database) throws -> Bool    // DELETE
+func exists(db: Database) -> Bool           // Whether a matching row exists
 ```
 
 Your type may store its rowID after a successful insertion:
