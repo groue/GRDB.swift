@@ -1,8 +1,8 @@
-/// Types that adopt DatabaseTableMapping can be initialized from rows that come
-/// from a particular table.
+/// Types that adopt DatabaseTableMapping declare a particular relationship with
+/// a database table.
 ///
-/// The protocol comes with built-in methods that allow to fetch instances
-/// identified by their primary key, or any other key:
+/// Types that adopt both DatabaseTableMapping and RowConvertible are granted
+/// with built-in methods that allow to fetch instances identified by key:
 ///
 ///     Person.fetchOne(db, key: 123)  // Person?
 ///     Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
@@ -10,7 +10,7 @@
 /// DatabaseTableMapping is adopted by Record.
 public protocol DatabaseTableMapping {
     /// The name of the database table.
-    static func databaseTableName() -> String?
+    static func databaseTableName() -> String
 }
 
 extension RowConvertible where Self: DatabaseTableMapping {
@@ -67,10 +67,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     //
     // Returns nil if keys is empty.
     private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> SelectStatement? {
-        // Fail early if databaseTable is nil
-        guard let databaseTableName = databaseTableName() else {
-            fatalError("Nil returned from \(self).databaseTableName()")
-        }
+        let databaseTableName = self.databaseTableName()
         
         // Fail early if database table does not exist.
         guard let primaryKey = db.primaryKeyForTable(named: databaseTableName) else {
@@ -155,11 +152,6 @@ extension RowConvertible where Self: DatabaseTableMapping {
     //
     // Returns nil if keys is empty.
     private static func fetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> SelectStatement? {
-        // Fail early if databaseTable is nil
-        guard let databaseTableName = databaseTableName() else {
-            fatalError("Nil returned from \(self).databaseTableName()")
-        }
-        
         // Avoid performing useless SELECT
         guard keys.count > 0 else {
             return nil
@@ -176,6 +168,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
             whereClauses.append("(" + dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" }.joinWithSeparator(" AND ") + ")")
         }
         
+        let databaseTableName = self.databaseTableName()
         let whereClause = whereClauses.joinWithSeparator(" OR ")
         let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereClause)"
         let statement = db.selectStatement(sql)

@@ -6,7 +6,7 @@ import GRDB
 class MinimalRowID: Record {
     var id: Int64!
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "minimalRowIDs"
     }
     

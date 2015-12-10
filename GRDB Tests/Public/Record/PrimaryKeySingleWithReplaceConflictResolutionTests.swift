@@ -5,7 +5,7 @@ class Email : Record {
     var email: String!
     var label: String?
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "emails"
     }
     

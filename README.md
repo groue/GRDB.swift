@@ -1497,7 +1497,7 @@ See also the [Record](#records) class, which builds on top of RowConvertible and
 ```swift
 public protocol DatabaseTableMapping {
     /// The name of the database table.
-    static func databaseTableName() -> String?
+    static func databaseTableName() -> String
 }
 ```
 
@@ -1554,7 +1554,7 @@ It has only two mandatory methods:
 ```swift
 public protocol DatabasePersistable : DatabaseTableMapping {
     /// The name of the database table (from DatabaseTableMapping)
-    static func databaseTableName() -> String?
+    static func databaseTableName() -> String
     
     /// Returns the values that should be stored in the database.
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
@@ -1568,7 +1568,7 @@ struct Person {
     let id: Int64?
     let name: String?
     
-    static func databaseTableName() -> String? {
+    static func databaseTableName() -> String {
         return "persons"
     }
 
@@ -1578,7 +1578,7 @@ struct Person {
 }
 ```
 
-Once `storedDatabaseDictionary` implemented, adopting types are granted with the full CRUD toolkit:
+Once `storedDatabaseDictionary` is implemented, adopting types are granted with the full CRUD toolkit:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -1607,7 +1607,30 @@ person.id   // some value
 ```
 
 
-TODO: document how to "override" the default CRUD methods.
+### Customizing the CRUD methods
+
+Your custom DatabasePersistable type may want to perform extra work when the CRUD methods are invoked.
+
+For example, it may want to have its UUID automatically set before inserting. Or it may want to validate its values before saving.
+
+Do do that, implement your own version of the insert(), update() etc. method, and call the internal performInsert(), performUpdate() etc. methods in your implementation:
+
+```swift
+struct Person : DatabasePersistable {
+    var uuid: String?
+    
+    mutating func insert(db: Database) throws {
+        if uuid == nil {
+            uuid = NSUUID().UUIDString
+        }
+        try performInsert(db)
+    }
+}
+```
+
+> :point_up: **Note**: The `performXXX` methods should not be used outside of your custom implementation.
+>
+> :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method, because its default implementation forwards the job to `update` or `insert`. These are the methods that may need custom implementation.
 
 
 ## Records
@@ -1690,7 +1713,7 @@ Yet, it does a few things well:
 ```swift
 class Record {
     /// The table name
-    class func databaseTableName() -> String?
+    class func databaseTableName() -> String
     
     /// The values stored in the database
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?]
@@ -1761,7 +1784,7 @@ Person overrides `databaseTableName()` to return the name of the table that shou
     
 ```swift
     /// The table name
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "persons"
     }
 ```
@@ -2024,7 +2047,7 @@ class Person : Record {
     id: Int64?
     
     /// The table definition.
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "persons"
     }
     

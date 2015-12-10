@@ -398,6 +398,7 @@
 		56CA221B1BB41533009A04C5 /* StephenCelisSQLitePerformanceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StephenCelisSQLitePerformanceTests.swift; sourceTree = "<group>"; };
 		56CA22211BB41565009A04C5 /* PerformanceRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PerformanceRecord.swift; sourceTree = "<group>"; };
 		56CB92EC1BA453E500DFD5FC /* CrashTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CrashTests.swift; sourceTree = "<group>"; };
+		56DBEC341C19A0020093A2EE /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		56E5891E1BBA5D5400CC0140 /* NSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSURL.swift; sourceTree = "<group>"; };
 		56E5D7CA1B4D3FED00430942 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -853,6 +854,7 @@
 		DC3773E919C8CBB3004FCF85 = {
 			isa = PBXGroup;
 			children = (
+				56DBEC341C19A0020093A2EE /* CHANGELOG.md */,
 				DC37744719C8F50B004FCF85 /* README.md */,
 				56E1524B1B43FD5B00EE27AA /* TODO.md */,
 				DC37742D19C8CC90004FCF85 /* GRDB */,

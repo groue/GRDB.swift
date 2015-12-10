@@ -25,7 +25,7 @@ class Placemark : Record {
         super.init()
     }
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "placemarks"
     }
     

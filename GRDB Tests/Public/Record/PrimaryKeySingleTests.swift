@@ -6,7 +6,7 @@ class Pet: Record {
     var UUID: String!
     var name: String!
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "pets"
     }
     

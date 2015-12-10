@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- The `DatabasePersistable` protocol grants any adopting type the CRUD methods that used to be reserved to Record subclasses.
+
+**Breaking Changes**
+
+- `RecordError` has been renamed `PersistenceError`
+- `Record.databaseTableName()` now returns a non-optional String.
+
+
 ## 0.32.2
 
 Released December 3, 2015

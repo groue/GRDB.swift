@@ -6,7 +6,7 @@ import GRDB
 class MinimalSingle: Record {
     var UUID: String!
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "minimalSingles"
     }
     

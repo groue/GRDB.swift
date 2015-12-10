@@ -7,7 +7,7 @@ class Citizenship: Record {
     var countryName: String!
     var native: Bool!
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "citizenships"
     }
     

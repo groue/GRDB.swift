@@ -73,20 +73,20 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     /// Returns the name of a database table.
     ///
-    /// The insert, update, save, delete, exists and reload methods require it:
-    /// they raise a fatal error if databaseTableName is nil.
+    /// This table name is required by the insert, update, save, delete, exists
+    /// and reload methods.
     ///
     ///     class Person : Record {
-    ///         override class func databaseTableName() -> String? {
+    ///         override class func databaseTableName() -> String {
     ///             return "persons"
     ///         }
     ///     }
     ///
-    /// The implementation of the base class Record returns nil.
+    /// The implementation of the base class Record raises a fatal error.
     ///
     /// - returns: The name of a database table.
-    public class func databaseTableName() -> String? {
-        return nil
+    public class func databaseTableName() -> String {
+        fatalError("Subclass must override.")
     }
     
     /// Returns the values that should be stored in the database.

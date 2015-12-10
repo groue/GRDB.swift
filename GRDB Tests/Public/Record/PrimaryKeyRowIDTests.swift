@@ -8,7 +8,7 @@ class Person: Record {
     var age: Int?
     var creationDate: NSDate!
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "persons"
     }
     

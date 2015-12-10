@@ -227,6 +227,8 @@ public extension DatabasePersistable {
     /// that adopt DatabasePersistable can invoke performSave() in their
     /// implementation of save(). They should not provide their own
     /// implementation of performSave().
+    ///
+    /// This default implementation forwards the job to `update` or `insert`.
     mutating func performSave(db: Database) throws {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
@@ -354,10 +356,7 @@ final class DataMapper {
     // MARK: - Initializer
     
     init(_ db: Database, _ persistable: DatabasePersistable) {
-        // Fail early if databaseTable is nil
-        guard let databaseTableName = persistable.dynamicType.databaseTableName() else {
-            fatalError("Nil returned from \(persistable.dynamicType).databaseTableName()")
-        }
+        let databaseTableName = persistable.dynamicType.databaseTableName()
 
         // Fail early if database table does not exist.
         guard let primaryKey = db.primaryKeyForTable(named: databaseTableName) else {
