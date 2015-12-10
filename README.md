@@ -21,6 +21,8 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **Your SQL skills are rewarded here.** You won't lose a single feature or convenience by crafting custom SQL queries, on the contrary. Without losing type safety and all niceties you expect from a real Swift library.
 
+**GRDB provides protocols** that grant database powers to your custom types, and reduce the database noise in your application code.
+
 **GRDB is fast**. As fast, when not faster, than FMDB and SQLite.swift.
 
 
@@ -28,7 +30,7 @@ Features
 --------
 
 - **A low-level [SQLite API](#sqlite-api)** that leverages the Swift 2 standard library.
-- **A [Record](#records) class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
+- **A [Record](#record) class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
 - **[Swift type freedom](#values)**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **[Database migrations](#migrations)**
 - **[Database changes observation hooks](#database-changes-observation)**
@@ -64,12 +66,14 @@ Documentation
         - [Raw SQLite Pointers](#raw-sqlite-pointers)
     
     
-- **[Application Tools](#application-tools)**
-    - [Migrations](#migrations): Transform your database as your application evolves.
-    - [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
-    - [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
+- **[Migrations](#migrations)**: Transform your database as your application evolves.
+
+- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
+
+- **Database protocols, and Record**
+    - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
     - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
-    - [Records](#records): the full toolkit, plus changes tracking.
+    - [Record](#record): The class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking.
 
 - **[Sample Code](#sample-code)**
 
@@ -275,7 +279,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-**Custom models** are your application objects that can initialize themselves from rows (see the [RowConvertible protocol](#rowconvertible-protocol) and the [Record class](#records)):
+**Custom models** are your application objects that can initialize themselves from rows (see the [RowConvertible protocol](#rowconvertible-protocol) and the [Record class](#record)):
 
 ```swift
 dbQueue.inDatabase { db in
@@ -560,7 +564,7 @@ They can be [directly fetched](#value-queries) from the database:
 let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
 ```
 
-Use them as [Record](#records) properties:
+Use them as [Record](#record) properties:
 
 ```swift
 class Link : Record {
@@ -1228,11 +1232,12 @@ Application Tools
 
 On top of the SQLite API described above, GRDB provides a toolkit for applications. While none of those are mandatory, all of them help dealing with the database:
 
-- [Migrations](#migrations): Transform your database as your application evolves.
-- [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
-- [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
-- [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
-- [Records](#records): the full toolkit, plus changes tracking.
+- **[Migrations](#migrations)**: Transform your database as your application evolves.
+- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
+- **Database protocols, and Record**
+    - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
+    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
+- **[Record](#record)**: The class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking.
 
 
 ## Migrations
@@ -1487,7 +1492,7 @@ PointOfInterest(dictionary: [
     "title": "Rome"])
 ```
 
-See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
+See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
 
 ### Fetching by Key
