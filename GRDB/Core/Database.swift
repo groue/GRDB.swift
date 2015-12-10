@@ -453,6 +453,31 @@ public final class Database {
     // =========================================================================
     // MARK: - Database Informations
     
+    /// Clears the database schema cache.
+    ///
+    /// You may need to clear the cache if you modify the database schema
+    /// outside of a migration (see DatabaseMigrator).
+    public func clearSchemaCache() {
+        assertValidQueue()
+        columnInfosCache = [:]
+    }
+    
+    /// When false, the schema cache is disabled.
+    private var schemaCacheIsEnabled: Bool
+    
+    func withDisabledSchemaCache(@noescape block:() throws -> ()) rethrows {
+        assertValidQueue()
+        
+        var schemaCacheWasEnabled = schemaCacheIsEnabled
+        defer {
+            schemaCacheIsEnabled = schemaCacheWasEnabled
+        }
+        
+        schemaCacheIsEnabled = false
+        clearSchemaCache()
+        try block()
+    }
+
     /// The last error message
     var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
     
@@ -574,13 +599,15 @@ public final class Database {
     // Cache for columnInfosForTable(named:)
     private var columnInfosCache: [String: [ColumnInfo]] = [:]
     private func columnInfosForTable(named tableName: String) -> [ColumnInfo] {
-        if let columnInfos = columnInfosCache[tableName] {
+        if let columnInfos = columnInfosCache[tableName] where schemaCacheIsEnabled {
             return columnInfos
         } else {
             // This pragma is case-insensitive: PRAGMA table_info("PERSONS") and
             // PRAGMA table_info("persons") yield the same results.
             let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
-            columnInfosCache[tableName] = columnInfos
+            if schemaCacheIsEnabled {
+                columnInfosCache[tableName] = columnInfos
+            }
             return columnInfos
         }
     }
@@ -610,6 +637,7 @@ public final class Database {
     
     init(path: String, configuration: Configuration) throws {
         self.configuration = configuration
+        self.schemaCacheIsEnabled = true
         
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection = SQLiteConnection()

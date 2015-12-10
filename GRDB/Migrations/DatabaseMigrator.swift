@@ -85,8 +85,10 @@ public struct DatabaseMigrator {
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(dbQueue: DatabaseQueue) throws {
         try dbQueue.inDatabase { db in
-            try self.setupMigrations(db)
-            try self.runMigrations(db)
+            try db.withDisabledSchemaCache {
+                try self.setupMigrations(db)
+                try self.runMigrations(db)
+            }
         }
     }
     

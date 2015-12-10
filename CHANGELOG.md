@@ -6,6 +6,7 @@ Release Notes
 **New**
 
 - The `DatabasePersistable` protocol grants any adopting type the CRUD methods that used to be reserved to Record subclasses.
+- `Database.clearSchemaCache()`
 
 **Breaking Changes**
 
