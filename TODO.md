@@ -4,7 +4,7 @@
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
-- [ ] public class func databaseTableName() -> String? should return a String. Record should fatalError in its implementation.
+- [ ] Add methods to Database that enable/disable/reset the table info cache. Migrations should run with cache disabled.
 
 Not sure:
 
