@@ -1236,7 +1236,7 @@ On top of the SQLite API described above, GRDB provides a toolkit for applicatio
 - **Database protocols, and Record**
     - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
     - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
-    - **[Record](#record)**: The class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking.
+    - [Record](#record): The class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking.
 - **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
 
 
