@@ -1563,7 +1563,7 @@ protocol DatabasePersistable : MutableDatabasePersistable {
 
 ### Customizing the CRUD methods
 
-Your custom DatabasePersistable type may want to perform extra work when the CRUD methods are invoked.
+Your custom type may want to perform extra work when the CRUD methods are invoked.
 
 For example, it may want to have its UUID automatically set before inserting. Or it may want to validate its values before saving.
 
