@@ -92,7 +92,8 @@ public protocol DatabasePersistable : DatabaseTableMapping {
     ///   match any row in the database.
     func update(db: Database) throws
     
-    /// Saves `self` in the database.
+    /// Executes an INSERT or an UPDATE statement so that `self` is saved in
+    /// the database.
     ///
     /// If the receiver has a non-nil primary key and a matching row in the
     /// database, this method performs an update.
@@ -146,27 +147,39 @@ public extension DatabasePersistable {
     
     // MARK: - CRUD
     
-    /// The default implementation for insert(). It invokes performInsert().
+    /// Executes an INSERT statement.
+    ///
+    /// The default implementation for insert() invokes performInsert().
     mutating func insert(db: Database) throws {
         try performInsert(db)
     }
     
-    /// The default implementation for update(). It invokes performUpdate().
+    /// Executes an UPDATE statement.
+    ///
+    /// The default implementation for update() invokes performUpdate().
     func update(db: Database) throws {
         try performUpdate(db)
     }
     
-    /// The default implementation for save(). It invokes performSave().
+    /// Executes an INSERT or an UPDATE statement so that `self` is saved in
+    /// the database.
+    ///
+    /// The default implementation for save() invokes performSave().
     mutating func save(db: Database) throws {
         try performSave(db)
     }
     
-    /// The default implementation for delete(). It invokes performDelete().
+    /// Executes a DELETE statement.
+    ///
+    /// The default implementation for delete() invokes performDelete().
     func delete(db: Database) throws -> Bool {
         return try performDelete(db)
     }
     
-    /// The default implementation for exists(). It invokes performExists().
+    /// Returns true if and only if the primary key matches a row in
+    /// the database.
+    ///
+    /// The default implementation for exists() invokes performExists().
     func exists(db: Database) -> Bool {
         return performExists(db)
     }

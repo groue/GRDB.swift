@@ -282,7 +282,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         databaseEdited = false
     }
     
-    /// Saves the record in the database.
+    /// Executes an INSERT or an UPDATE statement so that `self` is saved in
+    /// the database.
     ///
     /// If the record has a non-nil primary key and a matching row in the
     /// database, this method performs an update.
