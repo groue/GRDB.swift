@@ -1525,7 +1525,7 @@ That's one more protocol that one could expect, and `MutableDatabasePersistable`
 
 Yet, here is the rule:
 
-- If your type is a struct that maps a table with an INTEGER PRIMARY KEY, choose `MutableDatabasePersistable` so that you can store the inserted id on successful insertion.
+- If your type is a struct that mutates on insertion, choose `MutableDatabasePersistable`. For example, if your table has an INTEGER PRIMARY KEY, you want to store the inserted id on successful insertion.
 - Otherwise, stick with `DatabasePersistable`.
 
 For example, the Country struct below has no INTEGER PRIMARY KEY, and is not mutated on insertion. On the other side, the Person struct is interested in its rowID, and mutates itself on insertion:
