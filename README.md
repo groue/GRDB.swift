@@ -30,7 +30,7 @@ Features
 --------
 
 - **A low-level [SQLite API](#sqlite-api)** that leverages the Swift 2 standard library.
-- **A [Record](#record) class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic persistence operations.
+- **A [Record](#record) class** that wraps result sets, eats your custom SQL queries for breakfast, provides persistence operations, and changes tracking.
 - **[Swift type freedom](#values)**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **[Database migrations](#migrations)**
 - **[Database changes observation hooks](#database-changes-observation)**
