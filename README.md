@@ -30,7 +30,7 @@ Features
 --------
 
 - **A low-level [SQLite API](#sqlite-api)** that leverages the Swift 2 standard library.
-- **A [Record](#record) class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
+- **A [Record](#record) class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic persistence operations.
 - **[Swift type freedom](#values)**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **[Database migrations](#migrations)**
 - **[Database changes observation hooks](#database-changes-observation)**
@@ -70,8 +70,8 @@ Documentation
 
 - **Database protocols, and Record**
     - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
-    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
-    - [Record](#record): The class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking.
+    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with persistence methods.
+    - [Record](#record): The class that wraps a table row or the result of any query, provides persistence methods, and changes tracking.
 
 - **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
 
@@ -1244,8 +1244,8 @@ On top of the SQLite API described above, GRDB provides a toolkit for applicatio
 - **[Migrations](#migrations)**: Transform your database as your application evolves.
 - **Database protocols, and Record**
     - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
-    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with CRUD methods.
-    - [Record](#record): The class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking.
+    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with persistence methods.
+    - [Record](#record): The class that wraps a table row or the result of any query, provides persistence methods, and changes tracking.
 - **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
 
 
@@ -1381,7 +1381,7 @@ PointOfInterest(dictionary: [
     "title": "Rome"])
 ```
 
-See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
+See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like persistence methods, and changes tracking.
 
 
 ### Fetching by Key
@@ -1663,7 +1663,7 @@ struct Person : MutableDatabasePersistable {
 
 ### Record Overview
 
-**Record** is a class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking. It is designed to be subclassed.
+**Record** is a class that wraps a table row or the result of any query, provides persistence methods, and changes tracking. It is designed to be subclassed.
 
 ```swift
 // Define Record subclass
@@ -1701,7 +1701,7 @@ Yet, it does a few things well:
     (person.name, person.citizenshipsCount)
     ```
 
-- **It provides the classic CRUD operations.** All primary keys are supported (auto-incremented INTEGER PRIMARY KEY, single column, multiple columns).
+- **It provides the classic CRUD persistence methods.** All primary keys are supported (auto-incremented INTEGER PRIMARY KEY, single column, multiple columns).
     
     ```swift
     let person = Person(...)
@@ -1757,7 +1757,7 @@ class Person {
     var databaseEdited: Bool
     var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)]
     
-    // CRUD
+    // Persistence
     func insert(db: Database) throws
     func update(db: Database) throws
     func save(db: Database) throws           // inserts or updates
