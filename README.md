@@ -1643,6 +1643,26 @@ struct Person : MutableDatabasePersistable {
         try performInsert(db)
     }
 }
+
+struct Link : DatabasePersistable {
+    var url: NSURL
+    
+    func insert(db: Database) throws {
+        try validate()
+        try performInsert(db)
+    }
+    
+    func update(db: Database) throws {
+        try validate()
+        try performUpdate(db)
+    }
+    
+    func validate() throws {
+        if url.host == nil {
+            throw ValidationError("url must be absolute.")
+        }
+    }
+}
 ```
 
 > :point_up: **Note**: Those special methods are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
