@@ -408,13 +408,21 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 - **Invalid conversions return nil.**
 
     ```swift
-    row.value(named: "foo") as String  // "bar"
-    row.value(named: "foo") as NSDate? // nil: can't convert "bar" to NSDate
+    let row = Row.fetchOne(db, "SELECT 'foo'")!
+    row.value(atIndex: 0) as String  // "foo"
+    row.value(atIndex: 0) as NSDate? // nil
+    row.value(atIndex: 0) as NSDate  // fatal error: Could not convert "foo" to NSDate.
     ```
 
 - **GRDB crashes when you try to convert NULL to a non-optional value.**
     
-    This behavior is notably different from SQLite C API, or from ccgus/fmdb, that both turn NULL to 0 when extracting an integer, for example.
+    This behavior is notably different from SQLite C API, or from ccgus/fmdb, that both turn NULL to 0 when extracting an integer, for example:
+    
+    ```swift
+    let row = Row.fetchOne(db, "SELECT NULL")!
+    row.value(atIndex: 0) as Int? // nil
+    row.value(atIndex: 0) as Int  // fatal error: Could not convert NULL to Int.
+    ```
     
 - **The convenience conversions of SQLite, such as Blob to String or String to Integer are not guaranteed to apply.** You must not rely on them.
 
