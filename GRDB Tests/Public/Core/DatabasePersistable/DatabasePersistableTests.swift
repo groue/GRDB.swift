@@ -13,6 +13,28 @@ struct PersistablePerson : DatabasePersistable {
     }
 }
 
+class PersistablePersonClass : DatabasePersistable {
+    var id: Int64?
+    var name: String?
+    
+    init(id: Int64?, name: String?) {
+        self.id = id
+        self.name = name
+    }
+    
+    static func databaseTableName() -> String {
+        return "persons"
+    }
+    
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "name": name]
+    }
+    
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
+    }
+}
+
 struct PersistableCountry : DatabasePersistable {
     var isoCode: String
     var name: String
@@ -115,6 +137,110 @@ class DatabasePersistableTests: GRDBTestCase {
                 let rows = Row.fetchAll(db, "SELECT * FROM persons")
                 XCTAssertEqual(rows.count, 1)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+            }
+        }
+    }
+    
+    func testInsertPersistablePersonClass() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = PersistablePersonClass(id: nil, name: "Arthur")
+                try person.insert(db)
+                
+                let rows = Row.fetchAll(db, "SELECT * FROM persons")
+                XCTAssertEqual(rows.count, 1)
+                XCTAssertEqual(rows[0].value(named: "id") as Int64, person.id!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+            }
+        }
+    }
+    
+    func testUpdatePersistablePersonClass() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person1 = PersistablePersonClass(id: nil, name: "Arthur")
+                try person1.insert(db)
+                let person2 = PersistablePersonClass(id: nil, name: "Barbara")
+                try person2.insert(db)
+                
+                person1.name = "Craig"
+                try person1.update(db)
+                
+                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
+                XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+            }
+        }
+    }
+    
+    func testSavePersistablePersonClass() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person1 = PersistablePersonClass(id: nil, name: "Arthur")
+                try person1.save(db)
+                
+                var rows = Row.fetchAll(db, "SELECT * FROM persons")
+                XCTAssertEqual(rows.count, 1)
+                XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+                
+                let person2 = PersistablePersonClass(id: nil, name: "Barbara")
+                try person2.save(db)
+                
+                person1.name = "Craig"
+                try person1.save(db)
+                
+                rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
+                XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+                
+                try person1.delete(db)
+                try person1.save(db)
+                
+                rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
+                XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+            }
+        }
+    }
+    
+    func testDeletePersistablePersonClass() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person1 = PersistablePersonClass(id: nil, name: "Arthur")
+                try person1.insert(db)
+                let person2 = PersistablePersonClass(id: nil, name: "Barbara")
+                try person2.insert(db)
+                
+                try person1.delete(db)
+                
+                let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                XCTAssertEqual(rows.count, 1)
+                XCTAssertEqual(rows[0].value(named: "id") as Int64, person2.id!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Barbara")
+            }
+        }
+    }
+    
+    func testExistsPersistablePersonClass() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let person = PersistablePersonClass(id: nil, name: "Arthur")
+                try person.insert(db)
+                XCTAssertTrue(person.exists(db))
+                
+                try person.delete(db)
+                
+                XCTAssertFalse(person.exists(db))
             }
         }
     }
