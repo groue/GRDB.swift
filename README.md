@@ -19,9 +19,9 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **GRDB owes a lot to FMDB.** You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
 
-**Your SQL skills are rewarded here.** You won't lose a single feature or convenience by crafting custom SQL queries, on the contrary. Without losing type safety and all niceties you expect from a real Swift library.
+**Your SQL skills are rewarded here.** Complex queries are never treated differently from the simple ones. You won't lose a single feature or convenience by crafting custom SQL queries, on the contrary. And you are granted with type safety and all the niceties you expect from a real Swift library.
 
-**GRDB provides protocols** that grant database powers to your custom types, and reduce the database noise in your application code.
+**GRDB provides protocols and a Record class** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
 **GRDB is fast**. As fast, when not faster, than FMDB and SQLite.swift.
 
