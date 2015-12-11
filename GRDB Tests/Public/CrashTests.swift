@@ -11,19 +11,19 @@ import GRDB
 class RecordWithoutDatabaseTableName: Record { }
 
 class RecordWithInexistingDatabaseTable: Record {
-    override static func databaseTableName() -> String? {
+    override static func databaseTableName() -> String {
         return "foo"
     }
 }
 
 class RecordWithEmptyStoredDatabaseDictionary : Record {
-    override static func databaseTableName() -> String? {
+    override static func databaseTableName() -> String {
         return "records"
     }
 }
 
 class RecordWithNilPrimaryKey : Record {
-    override static func databaseTableName() -> String? {
+    override static func databaseTableName() -> String {
         return "records"
     }
     
@@ -33,7 +33,7 @@ class RecordWithNilPrimaryKey : Record {
 }
 
 class RecordForTableWithoutPrimaryKey : Record {
-    override static func databaseTableName() -> String? {
+    override static func databaseTableName() -> String {
         return "records"
     }
     
@@ -43,7 +43,7 @@ class RecordForTableWithoutPrimaryKey : Record {
 }
 
 class RecordForTableWithMultipleColumnsPrimaryKey : Record {
-    override static func databaseTableName() -> String? {
+    override static func databaseTableName() -> String {
         return "records"
     }
     
@@ -53,7 +53,7 @@ class RecordForTableWithMultipleColumnsPrimaryKey : Record {
 }
 
 class RecordWithRowIDPrimaryKeyNotExposedInStoredDatabaseDictionary : Record {
-    override static func databaseTableName() -> String? {
+    override static func databaseTableName() -> String {
         return "records"
     }
     

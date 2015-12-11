@@ -5,7 +5,7 @@ class EventRecorder : Record {
     var id: Int64?
     var awakeFromFetchCount = 0
     
-    override static func databaseTableName() -> String? {
+    override static func databaseTableName() -> String {
         return "eventRecorders"
     }
     

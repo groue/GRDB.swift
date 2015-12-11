@@ -110,6 +110,9 @@ public struct DatabaseMigrator {
         let appliedMigrationIdentifiers = String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
         try migrations
             .filter { !appliedMigrationIdentifiers.contains($0.identifier) }
-            .forEach { try $0.run(db) }
+            .forEach {
+                try $0.run(db)
+                db.clearSchemaCache()
+            }
     }
 }

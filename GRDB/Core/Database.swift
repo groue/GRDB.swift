@@ -480,6 +480,15 @@ public final class Database {
     // =========================================================================
     // MARK: - Database Informations
     
+    /// Clears the database schema cache.
+    ///
+    /// You may need to clear the cache if you modify the database schema
+    /// outside of a migration (see DatabaseMigrator).
+    public func clearSchemaCache() {
+        assertValidQueue()
+        columnInfosCache = [:]
+    }
+
     /// The last error message
     var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
     

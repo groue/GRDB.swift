@@ -8,7 +8,7 @@ class Person: Record {
     var age: Int?
     var creationDate: NSDate!
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "persons"
     }
     
@@ -193,9 +193,9 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let record = Person(id: 123456, name: "Arthur")
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -229,9 +229,9 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -369,9 +369,9 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let record = Person(id: 123456, name: "Arthur")
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -405,9 +405,9 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }

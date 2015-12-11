@@ -5,7 +5,7 @@ GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the 
 
 It ships with a low-level database API, plus application-level tools.
 
-**December 3, 2015: GRDB.swift 0.32.2 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**December 11, 2015: GRDB.swift 0.33.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -19,7 +19,9 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **GRDB owes a lot to FMDB.** You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
 
-**Your SQL skills are rewarded here.** You won't lose a single feature or convenience by crafting custom SQL queries, on the contrary. Without losing type safety and all niceties you expect from a real Swift library.
+**Your SQL skills are rewarded here.** Complex queries are never treated differently from the simple ones. You won't lose a single feature or convenience by crafting custom SQL queries, on the contrary. And you are granted with type safety and all the niceties you expect from a real Swift library.
+
+**GRDB provides protocols and a Record class** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
 **GRDB is fast**. As fast, when not faster, than FMDB and SQLite.swift.
 
@@ -28,7 +30,7 @@ Features
 --------
 
 - **A low-level [SQLite API](#sqlite-api)** that leverages the Swift 2 standard library.
-- **A [Record](#records) class** that wraps result sets, eats your custom SQL queries for breakfast, and provides basic CRUD operations.
+- **A [Record](#record) class** that wraps result sets, eats your custom SQL queries for breakfast, provides persistence operations, and changes tracking.
 - **[Swift type freedom](#values)**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **[Database migrations](#migrations)**
 - **[Database changes observation hooks](#database-changes-observation)**
@@ -37,7 +39,7 @@ Features
 Documentation
 =============
 
-- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.32.2/index.html)** (on cocoadocs.org)
+- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.33.0/index.html)** (on cocoadocs.org)
 
 - **[Installation](#installation)**
 
@@ -51,7 +53,6 @@ Documentation
     - [Values](#values)
         - [NSData](#nsdata-and-memory-savings)
         - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
-        - [NSCoding](#nscoding)
         - [Swift enums](#swift-enums)
         - [Custom Value Types](#custom-value-types)
     - [Transactions](#transactions)
@@ -64,11 +65,14 @@ Documentation
         - [Raw SQLite Pointers](#raw-sqlite-pointers)
     
     
-- **[Application Tools](#application-tools)**
-    - [Migrations](#migrations): Transform your database as your application evolves.
-    - [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
-    - [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
-    - [Records](#records): CRUD operations and changes tracking.
+- **[Migrations](#migrations)**: Transform your database as your application evolves.
+
+- **Database protocols, and Record**
+    - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
+    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with persistence methods.
+    - [Record](#record): The class that wraps a table row or the result of any query, provides persistence methods, and changes tracking.
+
+- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
 
 - **[Sample Code](#sample-code)**
 
@@ -91,7 +95,7 @@ To use GRDB.swift with Cocoapods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '0.32.2'
+pod 'GRDB.swift', '0.33.0'
 ```
 
 
@@ -102,7 +106,7 @@ pod 'GRDB.swift', '0.32.2'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" == 0.32.2
+github "groue/GRDB.swift" == 0.33.0
 ```
 
 
@@ -179,7 +183,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.32.2/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.33.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 
 Once connected, the `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
@@ -274,7 +278,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-**Custom models** are your application objects that can initialize themselves from rows (see the [RowConvertible protocol](#rowconvertible-protocol) and the [Record class](#records)):
+**Custom models** are your application objects that can initialize themselves from rows (see the [RowConvertible protocol](#rowconvertible-protocol) and the [Record class](#record)):
 
 ```swift
 dbQueue.inDatabase { db in
@@ -422,6 +426,7 @@ You may prefer thinking of rows as dictionaries of `DatabaseValue`, an intermedi
 ```swift
 // Test if the column `date` is present:
 if let databaseValue = row["date"] {
+    
     // Pick the type you need:
     let dateString: String = databaseValue.value() // "2015-09-11 18:14:15.123"
     let date: NSDate = databaseValue.value()       // NSDate
@@ -446,6 +451,9 @@ if let databaseValue = row["date"] {
         print("NSData: \(data)")
     }
 }
+
+// Nil if the column is not present:
+let date: NSDate = row["date"]?.value()
 ```
 
 Iterate all the tuples (columnName, databaseValue) in a row, from left to right:
@@ -496,17 +504,20 @@ dbQueue.inDatabase { db in
 }
 ```
 
-For example:
+There are many supported value types (Bool, Int, String, NSDate, Swift enums, etc.). See [Values](#values) for more information:
 
 ```swift
 dbQueue.inDatabase { db in
-    // The number of persons with an email ending in @domain.com:
+    // The number of persons with an email ending in @example.com:
     let count = Int.fetchOne(db,
         "SELECT COUNT(*) FROM persons WHERE email LIKE ?",
-        arguments: ["%@domain.com"])!
+        arguments: ["%@example.com"])!
+    
+    // All URLs:
+    let urls = NSURL.fetchAll(db, "SELECT url FROM links")
     
     // The emails of people who own at least two pets:
-    let emails = String.fetch(db,
+    let emails = Optional<String>.fetchAll(db,
         "SELECT persons.email " +
         "FROM persons " +
         "JOIN pets ON pets.masterId = persons.id " +
@@ -528,9 +539,9 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The
 
 GRDB ships with built-in support for the following value types:
 
-- **Swift**: Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
+- **Swift Standard Library**: Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
-- **Foundation**: [NSCoding](#nscoding), [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
+- **Foundation**: [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
     
 - **CoreGraphics**: CGFloat.
 
@@ -559,14 +570,16 @@ They can be [directly fetched](#value-queries) from the database:
 let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
 ```
 
-Use them as [Record](#records) properties:
+Use them in the `storedDatabaseDictionary` property of [DatabasePersistable protocol](#databasepersistable-protocol) and [Record subclasses](#record):
 
 ```swift
 class Link : Record {
     var url: NSURL?
     var verified: Bool
     
-    ...
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["url": url, "verified": verified]
+    }
 }
 ```
 
@@ -729,37 +742,6 @@ dbComponents.dateComponents // NSDateComponents
 DatabaseDateComponents.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseDateComponents>
 DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents]
 DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
-```
-
-See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
-
-
-### NSCoding
-
-NSCoding is indirectly supported, through the **DatabaseCoder** helper type.
-
-DatabaseCoder reads and writes objects that adopt NSCoding into Blob columns.
-
-For example, store NSArray into the database:
-
-```swift
-let ints = [1, 2, 3]
-try db.execute(
-    "INSERT INTO ... (ints, ...) VALUES (?, ...)",
-    arguments: [DatabaseCoder(ints), ...])
-```
-
-Extract NSArray from the database:
-
-```swift
-let row = Row.fetchOne(db, "SELECT ints ...")!
-let coder = row.value(named: "ints") as DatabaseCoder // DatabaseCoder
-let array = coder.object as! NSArray                   // NSArray
-let ints = array.map { $0 as! Int }                    // [Int]
-
-DatabaseCoder.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseCoder>
-DatabaseCoder.fetchAll(db, "SELECT ...") // [DatabaseCoder]
-DatabaseCoder.fetchOne(db, "SELECT ...") // DatabaseCoder?
 ```
 
 See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
@@ -1069,7 +1051,7 @@ See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTra
 
 ## Custom SQL Functions
 
-**SQLite let you define SQL functions.**
+**SQLite lets you define SQL functions.**
 
 You can for example use the Unicode support of Swift strings, and go beyond the ASCII limitations of the built-in SQLite `upper()` function:
 
@@ -1227,10 +1209,12 @@ Application Tools
 
 On top of the SQLite API described above, GRDB provides a toolkit for applications. While none of those are mandatory, all of them help dealing with the database:
 
-- [Migrations](#migrations): Transform your database as your application evolves.
-- [Database Changes Observation](#database-changes-observation): A robust way to perform post-commit and post-rollback actions.
-- [RowConvertible Protocol](#rowconvertible-protocol): Turn database rows into handy types, without sacrificing performance.
-- [Records](#records): CRUD operations and changes tracking.
+- **[Migrations](#migrations)**: Transform your database as your application evolves.
+- **Database protocols, and Record**
+    - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
+    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with persistence methods.
+    - [Record](#record): The class that wraps a table row or the result of any query, provides persistence methods, and changes tracking.
+- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
 
 
 ## Migrations
@@ -1313,126 +1297,6 @@ migrator.registerMigrationWithoutForeignKeyChecks("AddNotNullCheckOnName") { db 
 While your migration code runs with disabled foreign key checks, those are re-enabled and checked at the end of the migration, regardless of eventual errors.
 
 
-## Database Changes Observation
-
-The TransactionObserverType protocol lets you **observe database changes**:
-
-```swift
-public protocol TransactionObserverType : class {
-    // Notifies a database change:
-    // - event.kind (insert, update, or delete)
-    // - event.tableName
-    // - event.rowID
-    func databaseDidChangeWithEvent(event: DatabaseEvent)
-    
-    // An opportunity to rollback pending changes by throwing an error.
-    func databaseWillCommit() throws
-    
-    // Database changes have been committed.
-    func databaseDidCommit(db: Database)
-    
-    // Database changes have been rollbacked.
-    func databaseDidRollback(db: Database)
-}
-```
-
-**There is one transaction observer per database:**
-
-```swift
-var config = Configuration()
-config.transactionObserver = MyObserver()
-let dbQueue = try DatabaseQueue(path: databasePath, configuration: config)
-```
-
-Protocol callbacks are all invoked on the database queue.
-
-**All database changes are notified** to databaseDidChangeWithEvent, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
-
-Those changes are not actually applied until databaseDidCommit is called. On the other side, databaseDidRollback confirms their invalidation:
-
-```swift
-try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...") // didChange
-    return .Commit               // willCommit, didCommit
-}
-
-try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...") // didChange
-    return .Rollback             // didRollback
-}
-```
-
-Database statements that are executed outside of an explicit transaction do not drop off the radar:
-
-```swift
-try dbQueue.inDatabase { db in
-    try db.execute("INSERT ...") // didChange, willCommit, didCommit
-    try db.execute("UPDATE ...") // didChange, willCommit, didCommit
-}
-```
-
-**Eventual errors** thrown from databaseWillCommit are exposed to the application code:
-
-```swift
-do {
-    try dbQueue.inTransaction { db in
-        ...
-        return .Commit           // willCommit (throws), didRollback
-    }
-} catch {
-    // The error thrown by the transaction observer.
-}
-```
-
-> :point_up: **Note**: The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
-
-
-### Sample Transaction Observer: TableChangeObserver
-
-Let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
-
-```swift
-/// The notification posted when database tables have changed:
-let DatabaseTablesDidChangeNotification = "DatabaseTablesDidChangeNotification"
-let ChangedTableNamesKey = "ChangedTableNames"
-
-/// TableChangeObserver posts a DatabaseTablesDidChangeNotification on the main
-/// thread after database tables have changed.
-class TableChangeObserver : NSObject, TransactionObserverType {
-    private var changedTableNames: Set<String> = []
-    
-    func databaseDidChangeWithEvent(event: DatabaseEvent) {
-        // Remember the name of the changed table:
-        changedTableNames.insert(event.tableName)
-    }
-    
-    func databaseWillCommit() throws {
-        // Let go
-    }
-    
-    func databaseDidCommit(db: Database) {
-        // Extract the names of changed tables, and reset until next
-        // database event:
-        let changedTableNames = self.changedTableNames
-        self.changedTableNames = []
-        
-        // Notify
-        dispatch_async(dispatch_get_main_queue()) {
-            NSNotificationCenter.defaultCenter().postNotificationName(
-                DatabaseTablesDidChangeNotification,
-                object: self,
-                userInfo: [ChangedTableNamesKey: changedTableNames])
-        }
-    }
-    
-    func databaseDidRollback(db: Database) {
-        // Reset until next database event:
-        self.changedTableNames = []
-    }
-}
-```
-
-
 ## RowConvertible Protocol
 
 **The `RowConvertible` protocol grants fetching methods to any type** that can be initialized from a database row:
@@ -1485,10 +1349,298 @@ PointOfInterest(dictionary: [
     "title": "Rome"])
 ```
 
-See also the [Record](#records) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
+See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like persistence methods, and changes tracking.
 
 
-## Records
+### Fetching by Key
+
+**Adopt the `DatabaseTableMapping` protocol** on top of `RowConvertible`:
+
+```swift
+public protocol DatabaseTableMapping {
+    /// The name of the database table
+    static func databaseTableName() -> String
+}
+```
+
+For example:
+
+```swift
+// CREATE TABLE persons (
+//   id INTEGER PRIMARY KEY,
+//   name TEXT,
+//   email TEXT UNIQUE COLLATE NOCASE
+// )
+struct Person : RowConvertible, DatabaseTableMapping {
+    var id: Int64?
+    var name: String?
+    var email: String?
+    
+    static func databaseTableName() -> String {
+        return "persons"
+    }
+    
+    init(row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        email = row.value(named: "email")
+    }
+}
+```
+
+You are then granted with fetching methods based on database keys:
+
+```swift
+Person.fetch(db, keys: ...)     // DatabaseSequence<Person>
+Person.fetchAll(db, keys: ...)  // [Person]
+Person.fetchOne(db, key: ...)   // Person?
+```
+
+Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
+
+- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
+- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
+- The sequence returned by `fetch` will return a different set of results if the database has been modified between two sequence iterations.
+
+The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
+
+
+**When the database table has a single column primary key**, you can fetch given key values:
+
+```swift
+// SELECT * FROM persons WHERE id = 1
+Person.fetchOne(db, key: 1)
+
+// SELECT * FROM persons WHERE id IN (1,2,3)
+Person.fetch(db, keys: [1,2,3])
+
+// SELECT * FROM countries WHERE isoCode = 'FR'
+Country.fetchOne(db, key: "FR")
+
+// SELECT * FROM countries WHERE isoCode IN ('FR', 'ES', 'US')
+Country.fetchAll(db, keys: ["FR", "ES", "US"])
+```
+
+**For multi-column primary keys and secondary keys**, use a key dictionary:
+
+```swift
+// SELECT * FROM persons WHERE email = 'me@example.com'
+Person.fetchOne(db, key: ["email": "me@example.com"])
+
+// SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
+Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
+```
+
+
+### Optional Columns
+
+**Your RowConvertible type can accept rows that do not always contain the same columns.**
+
+This allows you to load only a subset of a table columns, or to load extra columns joined from other tables. For example:
+
+```swift
+struct Person : RowConvertible {
+    let id: Int64?
+    let name: String
+    let bookCount: Int? // Only set when person is fetched from fetchAllWithBookCount()
+    
+    init(row: Row) {
+        // mandatory columns:
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        
+        // bookCount may not always be present:
+        bookCount = row["bookCount"]?.value()
+    }
+    
+    // The returned persons have a value in their bookCount property:
+    static func fetchAllWithBookCount(db: Database) -> [Person] {
+        return fetchAll(db,
+            "SELECT persons.*, COUNT(books.id) AS bookCount " +
+            "FROM persons " +
+            "LEFT JOIN books ON books.ownerId = persons.id " +
+            "GROUP BY persons.id")
+    }
+}
+```
+
+See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `row["bookCount"]?.value()` expression.
+
+
+## DatabasePersistable Protocol
+
+**GRDB provides two protocols that let adopting types store themselves in the database:**
+
+```swift
+public protocol MutableDatabasePersistable : DatabaseTableMapping {
+    /// The name of the database table (from DatabaseTableMapping)
+    static func databaseTableName() -> String
+    
+    /// Returns the values that should be stored in the database.
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
+    
+    /// Optional method that lets your adopting type store its rowID upon
+    /// successful insertion:
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+}
+
+public protocol DatabasePersistable : MutableDatabasePersistable {
+    /// Non-mutating version of the optional didInsertWithRowID(:forColumn:)
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+}
+```
+
+That's one more protocol that one could expect, and `MutableDatabasePersistable` may sound intimidating.
+
+Yet, here is the rule:
+
+- If your type is a struct that mutates on insertion, choose `MutableDatabasePersistable`. For example, if your table has an INTEGER PRIMARY KEY, you want to store the inserted id on successful insertion.
+- Otherwise, stick with `DatabasePersistable`.
+
+For example, the Country struct below has no INTEGER PRIMARY KEY, and is not mutated on insertion. On the other side, the Person struct is interested in its rowID, and mutates itself on insertion:
+
+```swift
+// CREATE TABLE countries (
+//   isoCode TEXT NOT NULL PRIMARY KEY,
+//   name TEXT NOT NULL
+// )
+struct Country : DatabasePersistable {
+    let isoCode: String
+    let name: String
+    
+    static func databaseTableName() -> String {
+        return "countries"
+    }
+
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["isoCode": isoCode, "name": name]
+    }
+}
+
+// Declare the country as `let`, since its insertion does not mutate it:
+let country = Country(isoCode: "FR", name: "France")
+try country.insert(db)
+
+// CREATE TABLE persons (
+//     id INTEGER PRIMARY KEY,
+//     name TEXT
+// )
+struct Person : MutableDatabasePersistable {
+    let id: Int64?
+    let name: String?
+    
+    static func databaseTableName() -> String {
+        return "persons"
+    }
+    
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "name": name]
+    }
+    
+    // Update self.id upon successful insertion:
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
+    }
+}
+
+// Declare the person as `var`, since its insertion mutates it:
+var person = Person(id: nil, name: "Arthur")
+person.id   // nil
+try person.insert(db)
+person.id   // some value
+```
+
+The `storedDatabaseDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
+
+> :point_up: **Note**: Classes should always prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate on insertion. This will prevent strange compiler errors when they insert an instance stored in a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
+
+
+### Persistence Methods
+
+Types that adopt DatabasePersistable or MutableDatabasePersistable are given default implementations for methods that insert, update, and delete:
+
+```swift
+try object.insert(db)  // INSERT
+try object.update(db)  // UPDATE
+try object.save(db)    // Inserts or updates
+try object.delete(db)  // DELETE
+object.exists(db)      // Bool
+```
+
+- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
+
+- `update` can also throw a PersistenceError of type NotFound, should the update fail because there is no matching row in the database.
+    
+    When saving an object that may or may not already exist in the database, prefer the `save` method: it performs the UPDATE or INSERT statement that makes sure your values are saved in the database.
+
+- `delete` returns whether a database row was deleted or not.
+
+The differences between `DatabasePersistable` and `MutableDatabasePersistable` only lie in insertion-related methods:
+
+```swift
+protocol MutableDatabasePersistable {
+    // Insertion can mutate:
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    mutating func insert(db: Database) throws
+    mutating func save(db: Database) throws
+}
+
+protocol DatabasePersistable : MutableDatabasePersistable {
+    // Insertion can not mutate:
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    func insert(db: Database) throws
+    func save(db: Database) throws
+}
+```
+
+
+### Customizing the Persistence Methods
+
+Your custom type may want to perform extra work when the persistence methods are invoked.
+
+For example, it may want to have its UUID automatically set before inserting. Or it may want to validate its values before saving.
+
+The protocol exposes *special methods* for this exact purpose: `performInsert`, `performUpdate`, `performSave`, `performDelete`, and `performExists`.
+
+```swift
+struct Person : MutableDatabasePersistable {
+    var uuid: String?
+    
+    mutating func insert(db: Database) throws {
+        if uuid == nil {
+            uuid = NSUUID().UUIDString
+        }
+        try performInsert(db)
+    }
+}
+
+struct Link : DatabasePersistable {
+    var url: NSURL
+    
+    func insert(db: Database) throws {
+        try validate()
+        try performInsert(db)
+    }
+    
+    func update(db: Database) throws {
+        try validate()
+        try performUpdate(db)
+    }
+    
+    func validate() throws {
+        if url.host == nil {
+            throw ValidationError("url must be absolute.")
+        }
+    }
+}
+```
+
+> :point_up: **Note**: The special methods `performInsert`, `performUpdate`, etc. are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
+>
+> :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
+
+
+## Record
 
 - [Overview](#record-overview)
 - [Subclassing Record](#subclassing-record)
@@ -1501,7 +1653,7 @@ See also the [Record](#records) class, which builds on top of RowConvertible and
 
 ### Record Overview
 
-**Record** is a class that wraps a table row or the result of any query, provides CRUD operations, and changes tracking. It is designed to be subclassed.
+**Record** is a class that wraps a table row or the result of any query, provides persistence methods, and changes tracking. It is designed to be subclassed.
 
 ```swift
 // Define Record subclass
@@ -1518,6 +1670,8 @@ try dbQueue.inDatabase { db in
     }
 }
 ```
+
+It builds on top of the [RowConvertible](#rowconvertible-protocol) and [DatabasePersistable](#databasepersistable-protocol) protocols.
 
 **Record is not a smart class.** It is no replacement for Core Data’s NSManagedObject, [Realm](https://realm.io)’s Object, or for an Active Record pattern. It does not provide any uniquing, automatic refresh, or synthesized properties. It has no knowledge of external references and table relationships, and will not generate JOIN queries for you.
 
@@ -1537,7 +1691,7 @@ Yet, it does a few things well:
     (person.name, person.citizenshipsCount)
     ```
 
-- **It provides the classic CRUD operations.** All primary keys are supported (auto-incremented INTEGER PRIMARY KEY, single column, multiple columns).
+- **It provides the classic CRUD persistence methods.** All primary keys are supported (auto-incremented INTEGER PRIMARY KEY, single column, multiple columns).
     
     ```swift
     let person = Person(...)
@@ -1568,7 +1722,7 @@ Yet, it does a few things well:
 ```swift
 class Record {
     /// The table name
-    class func databaseTableName() -> String?
+    class func databaseTableName() -> String
     
     /// The values stored in the database
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?]
@@ -1593,7 +1747,7 @@ class Person {
     var databaseEdited: Bool
     var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)]
     
-    // CRUD
+    // Persistence
     func insert(db: Database) throws
     func update(db: Database) throws
     func save(db: Database) throws           // inserts or updates
@@ -1639,12 +1793,14 @@ Person overrides `databaseTableName()` to return the name of the table that shou
     
 ```swift
     /// The table name
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "persons"
     }
 ```
 
-Person overrides `storedDatabaseDictionary` to return the dictionary of values that should be stored in the database when a person is saved. `DatabaseValueConvertible` is the protocol adopted by all supported values  (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
+Person overrides `storedDatabaseDictionary` to return the dictionary of values that should be stored in the database when a person is saved.
+
+Person overrides `storedDatabaseDictionary` and returns a dictionary whose keys are column names, and values any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
 
 ```swift
     /// The values stored in the database
@@ -1721,10 +1877,10 @@ For example:
 
 ```swift
 dbQueue.inDatabase { db in
-    // All persons with an email ending in @domain.com:
+    // All persons with an email ending in @example.com:
     Person.fetch(db,
         "SELECT * FROM persons WHERE email LIKE ?",
-        arguments: ["%@domain.com"])
+        arguments: ["%@example.com"])
     
     // All persons who have a single citizenship:
     Person.fetch(db,
@@ -1746,8 +1902,8 @@ dbQueue.inDatabase { db in
     // SELECT * FROM countries WHERE isoCode IN ('FR', 'ES', 'US')
     Country.fetchAll(db, keys: ["FR", "ES", "US"])
     
-    // SELECT * FROM persons WHERE email = 'me@domain.com'
-    Person.fetchOne(db, key: ["email": "me@domain.com"])
+    // SELECT * FROM persons WHERE email = 'me@example.com'
+    Person.fetchOne(db, key: ["email": "me@example.com"])
     
     // SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
     Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
@@ -1793,7 +1949,7 @@ try dbQueue.inDatabase { db in
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
 
-- `update` and `reload` methods can also throw a RecordError of type RecordNotFound,  should the update or reload fail because the record does not exist in the database.
+- `update` and `reload` methods can also throw a PersistenceError of type NotFound, should the update or reload fail because the record does not exist in the database.
     
     When saving a record that may or may not already exist in the database, prefer the `save` method: it performs the UPDATE or INSERT statement that makes sure your values are saved in the database.
 
@@ -1900,7 +2056,7 @@ class Person : Record {
     id: Int64?
     
     /// The table definition.
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "persons"
     }
     
@@ -2065,6 +2221,126 @@ CREATE TABLE persons (
 ```swift
 let person = Person(name: "Arthur")
 person.insert(db)   // Replace any existing person named "Arthur"
+```
+
+
+## Database Changes Observation
+
+The `TransactionObserverType` protocol lets you **observe database changes**:
+
+```swift
+public protocol TransactionObserverType : class {
+    // Notifies a database change:
+    // - event.kind (insert, update, or delete)
+    // - event.tableName
+    // - event.rowID
+    func databaseDidChangeWithEvent(event: DatabaseEvent)
+    
+    // An opportunity to rollback pending changes by throwing an error.
+    func databaseWillCommit() throws
+    
+    // Database changes have been committed.
+    func databaseDidCommit(db: Database)
+    
+    // Database changes have been rollbacked.
+    func databaseDidRollback(db: Database)
+}
+```
+
+**There is one transaction observer per database:**
+
+```swift
+var config = Configuration()
+config.transactionObserver = MyObserver()
+let dbQueue = try DatabaseQueue(path: databasePath, configuration: config)
+```
+
+Protocol callbacks are all invoked on the database queue.
+
+**All database changes are notified** to databaseDidChangeWithEvent, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+
+Those changes are not actually applied until databaseDidCommit is called. On the other side, databaseDidRollback confirms their invalidation:
+
+```swift
+try dbQueue.inTransaction { db in
+    try db.execute("INSERT ...") // didChange
+    return .Commit               // willCommit, didCommit
+}
+
+try dbQueue.inTransaction { db in
+    try db.execute("INSERT ...") // didChange
+    return .Rollback             // didRollback
+}
+```
+
+Database statements that are executed outside of an explicit transaction do not drop off the radar:
+
+```swift
+try dbQueue.inDatabase { db in
+    try db.execute("INSERT ...") // didChange, willCommit, didCommit
+    try db.execute("UPDATE ...") // didChange, willCommit, didCommit
+}
+```
+
+**Eventual errors** thrown from databaseWillCommit are exposed to the application code:
+
+```swift
+do {
+    try dbQueue.inTransaction { db in
+        ...
+        return .Commit           // willCommit (throws), didRollback
+    }
+} catch {
+    // The error thrown by the transaction observer.
+}
+```
+
+> :point_up: **Note**: The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
+
+
+### Sample Transaction Observer: TableChangeObserver
+
+Let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+
+```swift
+/// The notification posted when database tables have changed:
+let DatabaseTablesDidChangeNotification = "DatabaseTablesDidChangeNotification"
+let ChangedTableNamesKey = "ChangedTableNames"
+
+/// TableChangeObserver posts a DatabaseTablesDidChangeNotification on the main
+/// thread after database tables have changed.
+class TableChangeObserver : NSObject, TransactionObserverType {
+    private var changedTableNames: Set<String> = []
+    
+    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+        // Remember the name of the changed table:
+        changedTableNames.insert(event.tableName)
+    }
+    
+    func databaseWillCommit() throws {
+        // Let go
+    }
+    
+    func databaseDidCommit(db: Database) {
+        // Extract the names of changed tables, and reset until next
+        // database event:
+        let changedTableNames = self.changedTableNames
+        self.changedTableNames = []
+        
+        // Notify
+        dispatch_async(dispatch_get_main_queue()) {
+            NSNotificationCenter.defaultCenter().postNotificationName(
+                DatabaseTablesDidChangeNotification,
+                object: self,
+                userInfo: [ChangedTableNamesKey: changedTableNames])
+        }
+    }
+    
+    func databaseDidRollback(db: Database) {
+        // Reset until next database event:
+        self.changedTableNames = []
+    }
+}
 ```
 
 

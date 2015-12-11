@@ -14,7 +14,7 @@ class Person : Record {
     
     // MARK: - Record
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "persons"
     }
     

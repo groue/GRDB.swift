@@ -114,7 +114,7 @@ class MappedRecord : Record {
     
     // Record overrides
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "persons"
     }
     

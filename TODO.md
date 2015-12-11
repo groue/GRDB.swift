@@ -1,10 +1,9 @@
 - [ ] #2: this commit may be how stephencelis fixed it: https://github.com/stephencelis/SQLite.swift/commit/8f64e357c3a6668c5f011c91ba33be3e8d4b88d0
 - [ ] Study SQLCipher
-- [ ] Study custom collations
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
-
+- [ ] Now that DatabasePersistable is out, Record has this didInsertWithRowID(:forColumn:) which calls updateFromRow. When we document "The updateFromRow method MUST NOT assume the presence of particular columns. The Record class itself reserves the right to call updateFromRow with arbitrary columns", we are actually talking about didInsertWithRowID, which is now exposed. Users may be confused.
 
 Not sure:
 

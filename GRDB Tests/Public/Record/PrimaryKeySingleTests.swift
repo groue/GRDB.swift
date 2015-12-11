@@ -6,7 +6,7 @@ class Pet: Record {
     var UUID: String!
     var name: String!
     
-    override class func databaseTableName() -> String? {
+    override class func databaseTableName() -> String {
         return "pets"
     }
     
@@ -133,9 +133,9 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -169,9 +169,9 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.update(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -303,9 +303,9 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }
@@ -339,9 +339,9 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.reload(db)
-                    XCTFail("Expected RecordError.RecordNotFound")
-                } catch RecordError.RecordNotFound {
-                    // Expected RecordError.RecordNotFound
+                    XCTFail("Expected PersistenceError.NotFound")
+                } catch PersistenceError.NotFound {
+                    // Expected PersistenceError.NotFound
                 }
             }
         }

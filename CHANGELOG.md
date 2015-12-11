@@ -1,6 +1,21 @@
 Release Notes
 =============
 
+## 0.33.0
+
+Released December 11, 2015
+
+**New**
+
+- The `DatabasePersistable` and `MutableDatabasePersistable` protocols grant any adopting type the persistence methods that used to be reserved to subclasses of `Record` ([#12](https://github.com/groue/GRDB.swift/issues/12))
+- `Database.clearSchemaCache()`
+
+**Breaking Changes**
+
+- `RecordError` has been renamed `PersistenceError`
+- `Record.databaseTableName()` now returns a non-optional String.
+
+
 ## 0.32.2
 
 Released December 3, 2015
