@@ -1517,7 +1517,7 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
 }
 
 public protocol DatabasePersistable : MutableDatabasePersistable {
-    /// Non-mutating version of didInsertWithRowID(:forColumn:)
+    /// Non-mutating version of the optional didInsertWithRowID(:forColumn:)
     func didInsertWithRowID(rowID: Int64, forColumn column: String?)
 }
 ```
