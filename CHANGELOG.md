@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- The `DatabasePersistable` and `MutableDatabasePersistable` protocols grant any adopting type the CRUD methods that used to be reserved to Record subclasses.
+- The `DatabasePersistable` and `MutableDatabasePersistable` protocols grant any adopting type the persistence methods that used to be reserved to subclasses of `Record`.
 - `Database.clearSchemaCache()`
 
 **Breaking Changes**
