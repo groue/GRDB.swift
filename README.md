@@ -1680,6 +1680,8 @@ try dbQueue.inDatabase { db in
 }
 ```
 
+It builds on top of the [RowConvertible](#rowconvertible-protocol) and [DatabasePersistable](#databasepersistable-protocol) protocols.
+
 **Record is not a smart class.** It is no replacement for Core Data’s NSManagedObject, [Realm](https://realm.io)’s Object, or for an Active Record pattern. It does not provide any uniquing, automatic refresh, or synthesized properties. It has no knowledge of external references and table relationships, and will not generate JOIN queries for you.
 
 Yet, it does a few things well:
