@@ -1477,6 +1477,7 @@ struct Person : RowConvertible {
     let bookCount: Int? // Only set when person is fetched from fetchAllWithBookCount()
     
     init(row: Row) {
+        // mandatory columns:
         id = row.value(named: "id")
         name = row.value(named: "name")
         
