@@ -108,6 +108,9 @@ class MutableDatabasePersistableTests: GRDBTestCase {
         }
     }
     
+    
+    // MARK: - MutablePersistablePerson
+    
     func testInsertMutablePersistablePerson() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -212,6 +215,9 @@ class MutableDatabasePersistableTests: GRDBTestCase {
         }
     }
     
+    
+    // MARK: - MutablePersistableCountry
+    
     func testInsertMutablePersistableCountry() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -315,6 +321,9 @@ class MutableDatabasePersistableTests: GRDBTestCase {
             }
         }
     }
+    
+    
+    // MARK: - MutablePersistableCustomizedCountry
     
     func testInsertMutablePersistableCustomizedCountry() {
         assertNoError {
