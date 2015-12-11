@@ -1410,7 +1410,7 @@ struct Person : RowConvertible {
 }
 ```
 
-See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `row["bookCount"]` expression.
+See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `row["bookCount"]?.value()` expression.
 
 See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
