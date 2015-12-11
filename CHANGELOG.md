@@ -7,7 +7,7 @@ Released December 11, 2015
 
 **New**
 
-- The `DatabasePersistable` and `MutableDatabasePersistable` protocols grant any adopting type the persistence methods that used to be reserved to subclasses of `Record`.
+- The `DatabasePersistable` and `MutableDatabasePersistable` protocols grant any adopting type the persistence methods that used to be reserved to subclasses of `Record` ([#12](https://github.com/groue/GRDB.swift/issues/12))
 - `Database.clearSchemaCache()`
 
 **Breaking Changes**
