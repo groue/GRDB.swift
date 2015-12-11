@@ -23,11 +23,28 @@ struct MutablePersistableCountry : MutableDatabasePersistable {
     var isoCode: String
     var name: String
     
-    init(isoCode: String, name: String) {
-        self.rowID = nil
-        self.isoCode = isoCode
-        self.name = name
+    static func databaseTableName() -> String {
+        return "countries"
     }
+    
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["isoCode": isoCode, "name": name]
+    }
+    
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.rowID = rowID
+    }
+}
+
+struct MutablePersistableCustomizedCountry : MutableDatabasePersistable {
+    var rowID: Int64?
+    var isoCode: String
+    var name: String
+    let willInsert: Void -> Void
+    let willUpdate: Void -> Void
+    let willSave: Void -> Void
+    let willDelete: Void -> Void
+    let willExists: Void -> Void
     
     static func databaseTableName() -> String {
         return "countries"
@@ -39,6 +56,31 @@ struct MutablePersistableCountry : MutableDatabasePersistable {
     
     mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         self.rowID = rowID
+    }
+    
+    mutating func insert(db: Database) throws {
+        willInsert()
+        try performInsert(db)
+    }
+    
+    func update(db: Database) throws {
+        willUpdate()
+        try performUpdate(db)
+    }
+    
+    mutating func save(db: Database) throws {
+        willSave()
+        try performSave(db)
+    }
+    
+    func delete(db: Database) throws {
+        willDelete()
+        try performDelete(db)
+    }
+    
+    func exists(db: Database) -> Bool {
+        willExists()
+        return performExists(db)
     }
 }
 
@@ -173,7 +215,7 @@ class MutableDatabasePersistableTests: GRDBTestCase {
     func testInsertMutablePersistableCountry() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                var country = MutablePersistableCountry(isoCode: "FR", name: "France")
+                var country = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
                 try country.insert(db)
                 
                 let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries")
@@ -187,9 +229,9 @@ class MutableDatabasePersistableTests: GRDBTestCase {
     func testUpdateMutablePersistableCountry() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                var country1 = MutablePersistableCountry(isoCode: "FR", name: "France")
+                var country1 = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
                 try country1.insert(db)
-                var country2 = MutablePersistableCountry(isoCode: "US", name: "United States")
+                var country2 = MutablePersistableCountry(rowID: nil, isoCode: "US", name: "United States")
                 try country2.insert(db)
                 
                 country1.name = "France Métropolitaine"
@@ -208,7 +250,7 @@ class MutableDatabasePersistableTests: GRDBTestCase {
     func testSaveMutablePersistableCountry() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                var country1 = MutablePersistableCountry(isoCode: "FR", name: "France")
+                var country1 = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
                 try country1.save(db)
                 
                 var rows = Row.fetchAll(db, "SELECT rowID, * FROM countries")
@@ -216,7 +258,7 @@ class MutableDatabasePersistableTests: GRDBTestCase {
                 XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "France")
                 
-                var country2 = MutablePersistableCountry(isoCode: "US", name: "United States")
+                var country2 = MutablePersistableCountry(rowID: nil, isoCode: "US", name: "United States")
                 try country2.save(db)
                 
                 country1.name = "France Métropolitaine"
@@ -245,9 +287,9 @@ class MutableDatabasePersistableTests: GRDBTestCase {
     func testDeleteMutablePersistableCountry() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                var country1 = MutablePersistableCountry(isoCode: "FR", name: "France")
+                var country1 = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
                 try country1.insert(db)
-                var country2 = MutablePersistableCountry(isoCode: "US", name: "United States")
+                var country2 = MutablePersistableCountry(rowID: nil, isoCode: "US", name: "United States")
                 try country2.insert(db)
                 
                 try country1.delete(db)
@@ -263,13 +305,253 @@ class MutableDatabasePersistableTests: GRDBTestCase {
     func testExistsMutablePersistableCountry() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                var country = MutablePersistableCountry(isoCode: "FR", name: "France")
+                var country = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
                 try country.insert(db)
                 XCTAssertTrue(country.exists(db))
                 
                 try country.delete(db)
                 
                 XCTAssertFalse(country.exists(db))
+            }
+        }
+    }
+    
+    func testInsertMutablePersistableCustomizedCountry() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                var insertCount: Int = 0
+                var updateCount: Int = 0
+                var saveCount: Int = 0
+                var deleteCount: Int = 0
+                var existsCount: Int = 0
+                var country = MutablePersistableCustomizedCountry(
+                    rowID: nil,
+                    isoCode: "FR",
+                    name: "France",
+                    willInsert: { insertCount += 1 },
+                    willUpdate: { updateCount += 1 },
+                    willSave: { saveCount += 1 },
+                    willDelete: { deleteCount += 1 },
+                    willExists: { existsCount += 1 })
+                try country.insert(db)
+                
+                XCTAssertEqual(insertCount, 1)
+                XCTAssertEqual(updateCount, 0)
+                XCTAssertEqual(saveCount, 0)
+                XCTAssertEqual(deleteCount, 0)
+                XCTAssertEqual(existsCount, 0)
+                
+                let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries")
+                XCTAssertEqual(rows.count, 1)
+                XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country.rowID!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "France")
+            }
+        }
+    }
+    
+    func testUpdateMutablePersistableCustomizedCountry() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                var insertCount: Int = 0
+                var updateCount: Int = 0
+                var saveCount: Int = 0
+                var deleteCount: Int = 0
+                var existsCount: Int = 0
+                var country1 = MutablePersistableCustomizedCountry(
+                    rowID: nil,
+                    isoCode: "FR",
+                    name: "France",
+                    willInsert: { insertCount += 1 },
+                    willUpdate: { updateCount += 1 },
+                    willSave: { saveCount += 1 },
+                    willDelete: { deleteCount += 1 },
+                    willExists: { existsCount += 1 })
+                try country1.insert(db)
+                var country2 = MutablePersistableCustomizedCountry(
+                    rowID: nil,
+                    isoCode: "US",
+                    name: "United States",
+                    willInsert: { },
+                    willUpdate: { },
+                    willSave: { },
+                    willDelete: { },
+                    willExists: { })
+                try country2.insert(db)
+                
+                country1.name = "France Métropolitaine"
+                try country1.update(db)
+                
+                XCTAssertEqual(insertCount, 1)
+                XCTAssertEqual(updateCount, 1)
+                XCTAssertEqual(saveCount, 0)
+                XCTAssertEqual(deleteCount, 0)
+                XCTAssertEqual(existsCount, 0)
+                
+                let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
+                XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country2.rowID!)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
+            }
+        }
+    }
+    
+    func testSaveMutablePersistableCustomizedCountry() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                var insertCount: Int = 0
+                var updateCount: Int = 0
+                var saveCount: Int = 0
+                var deleteCount: Int = 0
+                var existsCount: Int = 0
+                var country1 = MutablePersistableCustomizedCountry(
+                    rowID: nil,
+                    isoCode: "FR",
+                    name: "France",
+                    willInsert: { insertCount += 1 },
+                    willUpdate: { updateCount += 1 },
+                    willSave: { saveCount += 1 },
+                    willDelete: { deleteCount += 1 },
+                    willExists: { existsCount += 1 })
+                try country1.save(db)
+                
+                XCTAssertEqual(insertCount, 1)
+                XCTAssertEqual(updateCount, 1)
+                XCTAssertEqual(saveCount, 1)
+                XCTAssertEqual(deleteCount, 0)
+                XCTAssertEqual(existsCount, 0)
+                
+                var rows = Row.fetchAll(db, "SELECT rowID, * FROM countries")
+                XCTAssertEqual(rows.count, 1)
+                XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "France")
+                
+                var country2 = MutablePersistableCustomizedCountry(
+                    rowID: nil,
+                    isoCode: "US",
+                    name: "United States",
+                    willInsert: { },
+                    willUpdate: { },
+                    willSave: { },
+                    willDelete: { },
+                    willExists: { })
+                try country2.save(db)
+                
+                country1.name = "France Métropolitaine"
+                try country1.save(db)
+                
+                XCTAssertEqual(insertCount, 1)
+                XCTAssertEqual(updateCount, 2)
+                XCTAssertEqual(saveCount, 2)
+                XCTAssertEqual(deleteCount, 0)
+                XCTAssertEqual(existsCount, 0)
+                
+                rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
+                XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country2.rowID!)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
+                
+                try country1.delete(db)
+                try country1.save(db)
+                
+                XCTAssertEqual(insertCount, 2)
+                XCTAssertEqual(updateCount, 3)
+                XCTAssertEqual(saveCount, 3)
+                XCTAssertEqual(deleteCount, 1)
+                XCTAssertEqual(existsCount, 0)
+                
+                rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country2.rowID!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "United States")
+                XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country1.rowID!)
+                XCTAssertEqual(rows[1].value(named: "name") as String, "France Métropolitaine")
+            }
+        }
+    }
+    
+    func testDeleteMutablePersistableCustomizedCountry() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                var insertCount: Int = 0
+                var updateCount: Int = 0
+                var saveCount: Int = 0
+                var deleteCount: Int = 0
+                var existsCount: Int = 0
+                var country1 = MutablePersistableCustomizedCountry(
+                    rowID: nil,
+                    isoCode: "FR",
+                    name: "France",
+                    willInsert: { insertCount += 1 },
+                    willUpdate: { updateCount += 1 },
+                    willSave: { saveCount += 1 },
+                    willDelete: { deleteCount += 1 },
+                    willExists: { existsCount += 1 })
+                try country1.insert(db)
+                var country2 = MutablePersistableCustomizedCountry(
+                    rowID: nil,
+                    isoCode: "US",
+                    name: "United States",
+                    willInsert: { },
+                    willUpdate: { },
+                    willSave: { },
+                    willDelete: { },
+                    willExists: { })
+                try country2.insert(db)
+                
+                try country1.delete(db)
+                
+                XCTAssertEqual(insertCount, 1)
+                XCTAssertEqual(updateCount, 0)
+                XCTAssertEqual(saveCount, 0)
+                XCTAssertEqual(deleteCount, 1)
+                XCTAssertEqual(existsCount, 0)
+                
+                let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
+                XCTAssertEqual(rows.count, 1)
+                XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country2.rowID!)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "United States")
+            }
+        }
+    }
+    
+    func testExistsMutablePersistableCustomizedCountry() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                var insertCount: Int = 0
+                var updateCount: Int = 0
+                var saveCount: Int = 0
+                var deleteCount: Int = 0
+                var existsCount: Int = 0
+                var country = MutablePersistableCustomizedCountry(
+                    rowID: nil,
+                    isoCode: "FR",
+                    name: "France",
+                    willInsert: { insertCount += 1 },
+                    willUpdate: { updateCount += 1 },
+                    willSave: { saveCount += 1 },
+                    willDelete: { deleteCount += 1 },
+                    willExists: { existsCount += 1 })
+                try country.insert(db)
+                
+                XCTAssertTrue(country.exists(db))
+                XCTAssertEqual(insertCount, 1)
+                XCTAssertEqual(updateCount, 0)
+                XCTAssertEqual(saveCount, 0)
+                XCTAssertEqual(deleteCount, 0)
+                XCTAssertEqual(existsCount, 1)
+                
+                try country.delete(db)
+                
+                XCTAssertFalse(country.exists(db))
+                XCTAssertEqual(insertCount, 1)
+                XCTAssertEqual(updateCount, 0)
+                XCTAssertEqual(saveCount, 0)
+                XCTAssertEqual(deleteCount, 1)
+                XCTAssertEqual(existsCount, 2)
             }
         }
     }

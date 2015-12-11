@@ -435,8 +435,8 @@ class DatabasePersistableTests: GRDBTestCase {
                     willDelete: { deleteCount += 1 },
                     willExists: { existsCount += 1 })
                 try country.insert(db)
-                XCTAssertTrue(country.exists(db))
                 
+                XCTAssertTrue(country.exists(db))
                 XCTAssertEqual(insertCount, 1)
                 XCTAssertEqual(updateCount, 0)
                 XCTAssertEqual(saveCount, 0)
