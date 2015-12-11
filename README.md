@@ -53,7 +53,6 @@ Documentation
     - [Values](#values)
         - [NSData](#nsdata-and-memory-savings)
         - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
-        - [NSCoding](#nscoding)
         - [Swift enums](#swift-enums)
         - [Custom Value Types](#custom-value-types)
     - [Transactions](#transactions)
@@ -542,7 +541,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Swift Standard Library**: Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
-- **Foundation**: [NSCoding](#nscoding), [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
+- **Foundation**: [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
     
 - **CoreGraphics**: CGFloat.
 
@@ -743,37 +742,6 @@ dbComponents.dateComponents // NSDateComponents
 DatabaseDateComponents.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseDateComponents>
 DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents]
 DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
-```
-
-See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
-
-
-### NSCoding
-
-NSCoding is indirectly supported, through the **DatabaseCoder** helper type.
-
-DatabaseCoder reads and writes objects that adopt NSCoding into Blob columns.
-
-For example, store NSArray into the database:
-
-```swift
-let ints = [1, 2, 3]
-try db.execute(
-    "INSERT INTO ... (ints, ...) VALUES (?, ...)",
-    arguments: [DatabaseCoder(ints), ...])
-```
-
-Extract NSArray from the database:
-
-```swift
-let row = Row.fetchOne(db, "SELECT ints ...")!
-let coder = row.value(named: "ints") as DatabaseCoder // DatabaseCoder
-let array = coder.object as! NSArray                   // NSArray
-let ints = array.map { $0 as! Int }                    // [Int]
-
-DatabaseCoder.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseCoder>
-DatabaseCoder.fetchAll(db, "SELECT ...") // [DatabaseCoder]
-DatabaseCoder.fetchOne(db, "SELECT ...") // DatabaseCoder?
 ```
 
 See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
