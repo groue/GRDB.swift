@@ -85,10 +85,8 @@ public struct DatabaseMigrator {
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(dbQueue: DatabaseQueue) throws {
         try dbQueue.inDatabase { db in
-            try db.withDisabledSchemaCache {
-                try self.setupMigrations(db)
-                try self.runMigrations(db)
-            }
+            try self.setupMigrations(db)
+            try self.runMigrations(db)
         }
     }
     
@@ -112,6 +110,9 @@ public struct DatabaseMigrator {
         let appliedMigrationIdentifiers = String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
         try migrations
             .filter { !appliedMigrationIdentifiers.contains($0.identifier) }
-            .forEach { try $0.run(db) }
+            .forEach {
+                try $0.run(db)
+                db.clearSchemaCache()
+            }
     }
 }

@@ -461,22 +461,6 @@ public final class Database {
         assertValidQueue()
         columnInfosCache = [:]
     }
-    
-    /// When false, the schema cache is disabled.
-    private var schemaCacheIsEnabled: Bool
-    
-    func withDisabledSchemaCache(@noescape block:() throws -> ()) rethrows {
-        assertValidQueue()
-        
-        var schemaCacheWasEnabled = schemaCacheIsEnabled
-        defer {
-            schemaCacheIsEnabled = schemaCacheWasEnabled
-        }
-        
-        schemaCacheIsEnabled = false
-        clearSchemaCache()
-        try block()
-    }
 
     /// The last error message
     var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
@@ -599,15 +583,13 @@ public final class Database {
     // Cache for columnInfosForTable(named:)
     private var columnInfosCache: [String: [ColumnInfo]] = [:]
     private func columnInfosForTable(named tableName: String) -> [ColumnInfo] {
-        if let columnInfos = columnInfosCache[tableName] where schemaCacheIsEnabled {
+        if let columnInfos = columnInfosCache[tableName] {
             return columnInfos
         } else {
             // This pragma is case-insensitive: PRAGMA table_info("PERSONS") and
             // PRAGMA table_info("persons") yield the same results.
             let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
-            if schemaCacheIsEnabled {
-                columnInfosCache[tableName] = columnInfos
-            }
+            columnInfosCache[tableName] = columnInfos
             return columnInfos
         }
     }
@@ -637,7 +619,6 @@ public final class Database {
     
     init(path: String, configuration: Configuration) throws {
         self.configuration = configuration
-        self.schemaCacheIsEnabled = true
         
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection = SQLiteConnection()
