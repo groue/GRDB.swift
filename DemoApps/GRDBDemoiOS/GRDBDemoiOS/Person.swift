@@ -38,3 +38,14 @@ class Person : Record {
         super.init(row: row)
     }
 }
+
+extension Person : Hashable {
+    
+    var hashValue: Int {
+        return self.id.hashValue
+    }
+}
+
+func ==(lhs: Person, rhs: Person) -> Bool {
+    return lhs.id == rhs.id
+}

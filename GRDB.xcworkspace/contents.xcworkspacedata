@@ -5,6 +5,9 @@
       location = "group:Playgrounds"
       name = "Playgrounds">
       <FileRef
+         location = "group:ArrayMutations.playground">
+      </FileRef>
+      <FileRef
          location = "group:JSONSynchronization.playground">
       </FileRef>
       <FileRef

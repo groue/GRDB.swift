@@ -8,7 +8,7 @@
 
 import UIKit
 
-public class FetchedRecordsController<T: DatabaseTableMapping> {
+public class FetchedRecordsController<T: protocol<DatabaseTableMapping, Hashable>> {
     
     // MARK: - Initialization
     public required init(sql: String, databaseQueue: DatabaseQueue) {
@@ -70,57 +70,163 @@ public class FetchedRecordsController<T: DatabaseTableMapping> {
             T.fetchAll(db, self.sql)
         }
     }
+    
+    func calculateUpdatesFrom(fromRecords: [T], toRecords: [T]) -> [FetchedRecordsUpdate<T>] {
+        
+        var updates = [FetchedRecordsUpdate<T>]()
+        var currentRecords = fromRecords
+        let finalIndexPathForItem: [T:NSIndexPath]!
+        var currentIndexPathForItem: [T:NSIndexPath]!
+        
+        func indexPaths(items: [T]) -> [T:NSIndexPath] {
+            var indexPathForItem = [T:NSIndexPath]()
+            for (index, item) in items.enumerate() {
+                let indexPath = NSIndexPath(forItem: index, inSection: 0)
+                indexPathForItem[item] = indexPath
+            }
+            return indexPathForItem
+        }
+        
+        func apply(update: FetchedRecordsUpdate<T>) {
+            currentRecords.applyUpdate(update)
+            currentIndexPathForItem = indexPaths(currentRecords)
+        }
+        
+        finalIndexPathForItem = indexPaths(toRecords)
+        currentIndexPathForItem = indexPaths(currentRecords)
+        
+        // 2 - INSERTS
+        for item: T in toRecords {
+            if let _ = currentIndexPathForItem[item] {
+                // item was there
+            } else {
+                // Insert
+                guard let newIndexPath = finalIndexPathForItem[item] else {
+                    print("WTF?!")
+                    break
+                }
+                
+                let update = FetchedRecordsUpdate.Insert(item: item, at: newIndexPath)
+                updates.append(update)
+                apply(update)
+            }
+        }
+        
+        // 3 - DELETES, MOVES & RELOAD
+        for item: T in currentRecords {
+            guard let oldIndexPath = currentIndexPathForItem[item] else {
+                print("WTF?!")
+                break
+            }
+            if let newIndexPath = finalIndexPathForItem[item] {
+                
+                if oldIndexPath == newIndexPath {
+                    // item updates ?
+                    // let update = FetchedRecordsUpdate.Reload(item: item, at: newIndexPath)
+                    // updates.append(update)
+                    // apply(update)
+                } else {
+                    // item moved
+                    let update = FetchedRecordsUpdate.Move(item: item, from: oldIndexPath, to: newIndexPath)
+                    updates.append(update)
+                    apply(update)
+                }
+                
+            } else {
+                // item deleted
+                let update = FetchedRecordsUpdate.Delete(item: item, from: oldIndexPath)
+                updates.append(update)
+                apply(update)
+            }
+        }
+        
+        return updates
+    }
 }
 
 
 extension FetchedRecordsController : TransactionObserverType {
-    
     public func databaseDidChangeWithEvent(event: DatabaseEvent) { }
-    
     public func databaseWillCommit() throws { }
-
+    public func databaseDidRollback(db: Database) { }
     public func databaseDidCommit(db: Database) {
-
         let newRecords = T.fetchAll(db, self.sql)
-        print("newRecords => \(newRecords)")
-        
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             let oldRecords = self.fetchedRecords
-            print("oldRecords => \(oldRecords)")
-            // horrible diff computation
             
+            // horrible diff computation
             dispatch_async(dispatch_get_main_queue()) {
-                self.delegate?.controllerWillChangeContent(self)
+                self.delegate?.controllerWillUpdate(self)
                 
                 // after controllerWillChangeContent
                 self.fetchedRecords = newRecords
                 
                 // notify horrible diff computation
+                for update in self.calculateUpdatesFrom(oldRecords!, toRecords: newRecords) {
+                    self.delegate?.controllerUpdate(self, update: update)
+                }
                 
                 // done
-                self.delegate?.controllerDidChangeContent(self)
+                self.delegate?.controllerDidFinishUpdates(self)
             }
         }
     }
-    
-    public func databaseDidRollback(db: Database) { }
 }
+
 
 public protocol FetchedRecordsControllerDelegate : class {
-    func controllerWillChangeContent<T: DatabaseTableMapping>(controller: FetchedRecordsController<T>)
-    func controller<T: DatabaseTableMapping>(controller: FetchedRecordsController<T>, didChangeRecord record: T, atIndexPath indexPath: NSIndexPath?, forChangeType type: FetchedRecordsChangeType, newIndexPath: NSIndexPath?)
-    func controllerDidChangeContent<T: DatabaseTableMapping>(controller: FetchedRecordsController<T>)
+    func controllerWillUpdate<T>(controller: FetchedRecordsController<T>)
+    func controllerUpdate<T>(controller: FetchedRecordsController<T>, update: FetchedRecordsUpdate<T>)
+    func controllerDidFinishUpdates<T>(controller: FetchedRecordsController<T>)
 }
+
 
 public extension FetchedRecordsControllerDelegate {
-    func controllerWillChangeContent<T: DatabaseTableMapping>(controller: FetchedRecordsController<T>) {}
-    func controller<T: DatabaseTableMapping>(controller: FetchedRecordsController<T>, didChangeRecord record: T, atIndexPath indexPath: NSIndexPath?, forChangeType type: FetchedRecordsChangeType, newIndexPath: NSIndexPath?) {}
-    func controllerDidChangeContent<T: DatabaseTableMapping>(controller: FetchedRecordsController<T>) {}
+    func controllerWillUpdate<T>(controller: FetchedRecordsController<T>) {}
+    func controllerUpdate<T>(controller: FetchedRecordsController<T>, update: FetchedRecordsUpdate<T>) {}
+    func controllerDidFinishUpdates<T>(controller: FetchedRecordsController<T>) {}
 }
 
-public enum FetchedRecordsChangeType : UInt {
-    case Insert
-    case Delete
-    case Move
-    case Update
+
+public enum FetchedRecordsUpdate<T> {
+    case Insert(item:T, at: NSIndexPath)
+    case Delete(item:T, from: NSIndexPath)
+    case Move(item:T, from: NSIndexPath, to: NSIndexPath)
+    case Reload(item:T, at: NSIndexPath)
+    
+    var description: String {
+        switch self {
+        case .Insert(let item, let at):
+            return "\(item) inserted at \(at)"
+            
+        case .Delete(let item, let from):
+            return "\(item) deleted from \(from)"
+            
+        case .Move(let item, let from, let to):
+            return "\(item) moved from \(from) to \(to)"
+            
+        case .Reload(let item, let at):
+            return "\(item) updated at \(at)"
+        }
+    }
 }
+
+extension Array {
+    mutating func applyUpdate(update: FetchedRecordsUpdate<Array.Generator.Element>) {
+        switch update {
+        case .Insert(let item, let at):
+            self.insert(item, atIndex: at.item)
+            
+        case .Delete(_, let from):
+            self.removeAtIndex(from.item)
+            
+        case .Move(let item, let from, let to):
+            self.removeAtIndex(from.item)
+            self.insert(item, atIndex: to.item)
+            
+        case .Reload(_, _): break
+        }
+        print(update.description)
+    }
+}
+

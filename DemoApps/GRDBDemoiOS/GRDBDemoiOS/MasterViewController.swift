@@ -87,16 +87,28 @@ class MasterViewController: UITableViewController, FetchedRecordsControllerDeleg
     
     // MARK: - FetchedRecordsControllerDelegate
     
-    func controllerWillChangeContent<Person>(controller: FetchedRecordsController<Person>) {
-        
+    func controllerWillUpdate<T>(controller: FetchedRecordsController<T>) {
+        tableView.beginUpdates()
     }
     
-    func controller<Person>(controller: FetchedRecordsController<Person>, didChangeRecord record: Person, atIndexPath indexPath: NSIndexPath?, forChangeType type: FetchedRecordsChangeType, newIndexPath: NSIndexPath?) {
-        
+    func controllerUpdate<T>(controller: FetchedRecordsController<T>, update: FetchedRecordsUpdate<T>) {
+        switch update {
+        case .Insert(_, let at):
+            tableView.insertRowsAtIndexPaths([at], withRowAnimation: .Automatic)
+            
+        case .Delete(_, let from):
+            tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Automatic)
+            
+        case .Move(_, let from, let to):
+            tableView.moveRowAtIndexPath(from, toIndexPath: to)
+            
+        case .Reload(_, let at):
+            tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Automatic)
+        }
     }
     
-    func controllerDidChangeContent<Person>(controller: FetchedRecordsController<Person>) {
-        tableView.reloadData()
+    func controllerDidFinishUpdates<T>(controller: FetchedRecordsController<T>) {
+        tableView.endUpdates()
     }
 }
 
