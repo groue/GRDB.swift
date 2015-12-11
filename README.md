@@ -423,8 +423,8 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row.value(atIndex: 0) as Int? // nil
     row.value(atIndex: 0) as Int  // fatal error: Could not convert NULL to Int.
     ```
-    
-- **The convenience conversions of SQLite, such as Blob to String or String to Integer are not guaranteed to apply.** You must not rely on them.
+
+- **The convenience conversions of SQLite, such as Blob to String, String to Int, or huge Double values to Int, are not guaranteed to apply.** You must not rely on them.
 
 
 #### Rows as Dictionaries
