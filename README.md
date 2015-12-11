@@ -1595,7 +1595,7 @@ For example, it may want to have its UUID automatically set before inserting. Or
 The protocol exposes *special methods* for this exact purpose: `performInsert`, `performUpdate`, `performSave`, `performDelete`, and `performExists`.
 
 ```swift
-struct Person : DatabasePersistable {
+struct Person : MutableDatabasePersistable {
     var uuid: String?
     
     mutating func insert(db: Database) throws {
