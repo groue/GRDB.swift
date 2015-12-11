@@ -452,6 +452,9 @@ if let databaseValue = row["date"] {
         print("NSData: \(data)")
     }
 }
+
+// Nil if the column is not present:
+let date: NSDate = row["date"]?.value()
 ```
 
 Iterate all the tuples (columnName, databaseValue) in a row, from left to right:
@@ -1377,6 +1380,37 @@ PointOfInterest(dictionary: [
     "longitude": 12.5113300,
     "title": "Rome"])
 ```
+
+Your RowConvertible type can accept rows that do not always contain the same columns:
+
+For example:
+
+```swift
+struct Person : RowConvertible {
+    let id: Int64?
+    let name: String
+    let bookCount: Int? // Only set when person is fetched from fetchAllWithBookCount()
+    
+    init(row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        
+        // bookCount may not always be present:
+        bookCount = row["bookCount"]?.value()
+    }
+    
+    // The returned persons have a value in their bookCount property:
+    static func fetchAllWithBookCount(db: Database) -> [Person] {
+        return fetchAll(db,
+            "SELECT persons.*, COUNT(books.id) AS bookCount " +
+            "FROM persons " +
+            "LEFT JOIN books ON books.ownerId = persons.id " +
+            "GROUP BY persons.id")
+    }
+}
+```
+
+See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `row["bookCount"]` expression.
 
 See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
