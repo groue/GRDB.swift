@@ -1500,7 +1500,7 @@ See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the
 
 ## DatabasePersistable Protocol
 
-**GRDB provides two protocols that let adopting types storing themselves in the database.**:
+**GRDB provides two protocols that let adopting types store themselves in the database.**:
 
 ```swift
 public protocol MutableDatabasePersistable : DatabaseTableMapping {
