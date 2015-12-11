@@ -1381,37 +1381,6 @@ PointOfInterest(dictionary: [
     "title": "Rome"])
 ```
 
-Your RowConvertible type can accept rows that do not always contain the same columns:
-
-For example:
-
-```swift
-struct Person : RowConvertible {
-    let id: Int64?
-    let name: String
-    let bookCount: Int? // Only set when person is fetched from fetchAllWithBookCount()
-    
-    init(row: Row) {
-        id = row.value(named: "id")
-        name = row.value(named: "name")
-        
-        // bookCount may not always be present:
-        bookCount = row["bookCount"]?.value()
-    }
-    
-    // The returned persons have a value in their bookCount property:
-    static func fetchAllWithBookCount(db: Database) -> [Person] {
-        return fetchAll(db,
-            "SELECT persons.*, COUNT(books.id) AS bookCount " +
-            "FROM persons " +
-            "LEFT JOIN books ON books.ownerId = persons.id " +
-            "GROUP BY persons.id")
-    }
-}
-```
-
-See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `row["bookCount"]?.value()` expression.
-
 See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like CRUD operations, and changes tracking.
 
 
@@ -1493,6 +1462,40 @@ Person.fetchOne(db, key: ["email": "me@example.com"])
 // SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
 Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
 ```
+
+
+### Optional Columns
+
+**Your RowConvertible type can accept rows that do not always contain the same columns.**
+
+This allows you to load only a subset of a table columns, or to load extra columns joined from other tables. For example:
+
+```swift
+struct Person : RowConvertible {
+    let id: Int64?
+    let name: String
+    let bookCount: Int? // Only set when person is fetched from fetchAllWithBookCount()
+    
+    init(row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        
+        // bookCount may not always be present:
+        bookCount = row["bookCount"]?.value()
+    }
+    
+    // The returned persons have a value in their bookCount property:
+    static func fetchAllWithBookCount(db: Database) -> [Person] {
+        return fetchAll(db,
+            "SELECT persons.*, COUNT(books.id) AS bookCount " +
+            "FROM persons " +
+            "LEFT JOIN books ON books.ownerId = persons.id " +
+            "GROUP BY persons.id")
+    }
+}
+```
+
+See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `row["bookCount"]?.value()` expression.
 
 
 ## DatabasePersistable Protocol
