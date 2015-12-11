@@ -1480,7 +1480,7 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
     
     /// Optional method that lets your adopting type store its rowID upon
-    /// successful insertion:
+    /// successful insertion. Don't call it directly: it is called for you.
     mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
 }
 
