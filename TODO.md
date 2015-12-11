@@ -3,7 +3,6 @@
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
-- [ ] Write tests for classes that adopt DatabasePersistable and MutableDatabasePersistable. Check that a class that adopts DatabasePersistable can set its rowID. If not, fix it, or fix the documentation in README that reads "Classes should prefer adopting DatabasePersistable..."
 - [ ] Now that DatabasePersistable is out, Record has this didInsertWithRowID(:forColumn:) which calls updateFromRow. When we document "The updateFromRow method MUST NOT assume the presence of particular columns. The Record class itself reserves the right to call updateFromRow with arbitrary columns", we are actually talking about didInsertWithRowID, which is now exposed. Users may be confused.
 
 Not sure:
