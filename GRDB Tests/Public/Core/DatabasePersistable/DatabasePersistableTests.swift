@@ -68,6 +68,19 @@ class DatabasePersistableTests: GRDBTestCase {
         }
     }
     
+    func testInsertPersistablePersonAsMutableDatabasePersistable() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                var person: MutableDatabasePersistable = PersistablePerson(name: "Arthur")
+                try person.insert(db)
+                
+                let rows = Row.fetchAll(db, "SELECT * FROM persons")
+                XCTAssertEqual(rows.count, 1)
+                XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
+            }
+        }
+    }
+    
     func testInsertPersistableCountry() {
         assertNoError {
             try dbQueue.inDatabase { db in

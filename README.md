@@ -1463,21 +1463,35 @@ Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
 
 ## DatabasePersistable Protocol
 
-**The `DatabasePersistable` protocol grants adopting types with CRUD methods.**
-
-It has two mandatory methods:
+**GRDB provides two protocols that let adopting types storing themselves in the database.**:
 
 ```swift
-public protocol DatabasePersistable : DatabaseTableMapping {
+public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// The name of the database table (from DatabaseTableMapping)
     static func databaseTableName() -> String
     
     /// Returns the values that should be stored in the database.
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
+    
+    /// Optional method that lets your adopting type store its rowID upon
+    /// successful insertion:
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+}
+
+public protocol DatabasePersistable : MutableDatabasePersistable {
+    /// Non-mutating version of didInsertWithRowID(:forColumn:)
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
 }
 ```
 
-The `storedDatabaseDictionary` dictionary keys are column names, and its values can be any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
+That's one more protocol that one could expect, and `MutableDatabasePersistable` may sound intimidating.
+
+Yet, here is the rule:
+
+- If your type is a struct that maps a table with an INTEGER PRIMARY KEY, choose `MutableDatabasePersistable` so that you can store the inserted id on successful insertion.
+- Otherwise, stick with `DatabasePersistable`.
+
+For example, the Country struct below has no INTEGER PRIMARY KEY, and is not mutated on insertion. On the other side, the Person struct is interested in its rowID, and mutates itself on insertion:
 
 ```swift
 // CREATE TABLE countries (
@@ -1496,32 +1510,11 @@ struct Country : DatabasePersistable {
         return ["isoCode": isoCode, "name": name]
     }
 }
-```
 
-Adopting types are granted with the CRUD toolkit:
+// Declare the country as `let`, since its insertion does not mutate it:
+let country = Country(isoCode: "FR", name: "France")
+try country.insert(db)
 
-```swift
-func insert(db: Database) throws            // INSERT
-func update(db: Database) throws            // UPDATE
-func save(db: Database) throws              // inserts or updates
-func delete(db: Database) throws -> Bool    // DELETE
-func exists(db: Database) -> Bool           // Whether a matching row exists
-```
-
-- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
-
-- `update` can also throw a PersistenceError of type NotFound, should the update fail because there is no matching row in the database.
-    
-    When saving an object that may or may not already exist in the database, prefer the `save` method: it performs the UPDATE or INSERT statement that makes sure your values are saved in the database.
-
-- `delete` returns whether a database row was deleted or not.
-
-
-### Inserted Row IDs
-
-Your structs that represent a table with an INTEGER PRIMARY KEY will prefer adopting `MutableDatabasePersistable` instead of `DatabasePersistable`: they'll get the opportunity to store the inserted rowID upon successful insertion:
-
-```swift
 // CREATE TABLE persons (
 //     id INTEGER PRIMARY KEY,
 //     name TEXT
@@ -1538,20 +1531,43 @@ struct Person : MutableDatabasePersistable {
         return ["id": id, "name": name]
     }
     
-    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
+    // Update self.id upon successful insertion:
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         self.id = rowID
     }
 }
 
-dbQueue.inDatabase { db in
-    var person = Person(id: nil, name: "Arthur")
-    person.id   // nil
-    try person.save(db)
-    person.id   // some value
-}
+// Declare the person as `var`, since its insertion mutates it:
+var person = Person(id: nil, name: "Arthur")
+person.id   // nil
+try person.insert(db)
+person.id   // some value
 ```
 
-`DatabasePersistable` and `MutableDatabasePersistable` are identical, except for the three methods that are involved in insertion:
+> :point_up: **Note**: Classes should always prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate themselves in `didInsertWithRowID(:forColumn:)`. They'll avoid strange compiler errors when they insert an instance stored in a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
+
+
+### Persistence Methods
+
+Types that adopt DatabasePersistable or MutableDatabasePersistable are given default implementations for methods that insert, update, and delete:
+
+```swift
+try object.insert(db)  // INSERT
+try object.update(db)  // UPDATE
+try object.save(db)    // Inserts or updates
+try object.delete(db)  // DELETE
+object.exists(db)      // Bool
+```
+
+- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
+
+- `update` can also throw a PersistenceError of type NotFound, should the update fail because there is no matching row in the database.
+    
+    When saving an object that may or may not already exist in the database, prefer the `save` method: it performs the UPDATE or INSERT statement that makes sure your values are saved in the database.
+
+- `delete` returns whether a database row was deleted or not.
+
+The differences between `DatabasePersistable` and `MutableDatabasePersistable` only lie in insertion-related methods:
 
 ```swift
 protocol MutableDatabasePersistable {
@@ -1569,11 +1585,10 @@ protocol DatabasePersistable : MutableDatabasePersistable {
 }
 ```
 
-> :point_up: **Note**: Classes should prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate themselves in `didInsertWithRowID(:forColumn:)`. They'll avoid strange compiler errors when they insert an instance stored in a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
 
-### Customizing the CRUD methods
+### Customizing the Persistence Methods
 
-Your custom type may want to perform extra work when the CRUD methods are invoked.
+Your custom type may want to perform extra work when the persistence methods are invoked.
 
 For example, it may want to have its UUID automatically set before inserting. Or it may want to validate its values before saving.
 

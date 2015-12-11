@@ -58,14 +58,14 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
+    ///         mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
     ///             self.id = rowID
     ///         }
     ///     }
     ///
     /// - parameter rowID: The inserted rowID.
-    /// - parameter name: The name of the eventual INTEGER PRIMARY KEY column.
-    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?)
+    /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
     
     
     // MARK: - CRUD
@@ -153,7 +153,7 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
 public extension MutableDatabasePersistable {
     
     /// The default implementation does nothing.
-    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
     }
     
     
@@ -306,8 +306,8 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
     /// MutableDatabasePersistable protocol instead.
     ///
     /// - parameter rowID: The inserted rowID.
-    /// - parameter name: The name of the eventual INTEGER PRIMARY KEY column.
-    func didInsertWithRowID(rowID: Int64, forColumn name: String?)
+    /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
     
     /// Executes an INSERT statement.
     ///
@@ -352,7 +352,7 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
 public extension DatabasePersistable {
     
     /// The default implementation does nothing.
-    func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
 
     }
     

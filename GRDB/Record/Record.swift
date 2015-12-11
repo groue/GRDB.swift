@@ -156,10 +156,10 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// INTEGER PRIMARY KEY.
     ///
     /// - parameter rowID: The inserted rowID.
-    /// - parameter name: The name of the eventual INTEGER PRIMARY KEY column.
-    public func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
-        if let name = name {
-            updateFromRow(Row(dictionary: [name: rowID]))
+    /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
+    public func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        if let column = column {
+            updateFromRow(Row(dictionary: [column: rowID]))
         }
     }
     

@@ -13,7 +13,7 @@ struct MutablePersistablePerson : MutableDatabasePersistable {
         return ["id": id, "name": name]
     }
     
-    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         self.id = rowID
     }
 }
@@ -37,7 +37,7 @@ struct MutablePersistableCountry : MutableDatabasePersistable {
         return ["isoCode": isoCode, "name": name]
     }
     
-    mutating func didInsertWithRowID(rowID: Int64, forColumn name: String?) {
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         self.rowID = rowID
     }
 }
