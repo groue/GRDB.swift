@@ -1584,7 +1584,7 @@ person.id   // some value
 
 The `storedDatabaseDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
 
-> :point_up: **Note**: Classes should always prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate themselves in `didInsertWithRowID(:forColumn:)`. They'll avoid strange compiler errors when they insert an instance stored in a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
+> :point_up: **Note**: Classes should always prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate on insertion. This will prevent strange compiler errors when they insert an instance stored in a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
 
 
 ### Persistence Methods
