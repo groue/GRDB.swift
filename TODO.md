@@ -5,6 +5,12 @@
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
 - [ ] Now that DatabasePersistable is out, Record has this didInsertWithRowID(:forColumn:) which calls updateFromRow. When we document "The updateFromRow method MUST NOT assume the presence of particular columns. The Record class itself reserves the right to call updateFromRow with arbitrary columns", we are actually talking about didInsertWithRowID, which is now exposed. Users may be confused.
 - [ ] What happens when RowConvertible.awakeFromFetch and DatabasePersistable.didInsertWithRowID(_:forColumn:) assign to self? Do we need to split RowConvertible into MutableRowConvertible + RowConvertible?
+- [ ] Check Swift API Guideline https://swift.org/documentation/api-design-guidelines.html
+    - [ ] databaseTableName, etc.
+    - [ ] databaseEdited -> hasDatabaseChanges, hasNotPersistedChanges ? Check if doc makes it clear that the changes are based on last fetch. The method name should make it clear too.
+    - [ ] Read conversion methods conventions (fromRow, fromDatabaseValue)
+- [ ] Row.value("named") should returns nil if column is not there.
+- [ ] Conversion should crash when type mismatch (String.fetch("SELECT 1"))
 
 Not sure:
 
