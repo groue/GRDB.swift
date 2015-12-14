@@ -21,7 +21,7 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **Your SQL skills are rewarded here.** Complex queries are never treated differently from the simple ones. You won't lose a single feature or convenience by crafting custom SQL queries, on the contrary. And you are granted with type safety and all the niceties you expect from a real Swift library.
 
-**GRDB provides protocols and a Record class** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
+**GRDB provides [protocols and a Record class](#database-protocols-and-record)** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
 **GRDB is fast**. As fast, when not faster, than FMDB and SQLite.swift.
 
@@ -67,7 +67,7 @@ Documentation
     
 - **[Migrations](#migrations)**: Transform your database as your application evolves.
 
-- **Database protocols, and Record**
+- **[Database Protocols, and Record](#database-protocols-and-record)**
     - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
     - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with persistence methods.
     - [Record](#record): The class that wraps a table row or the result of any query, provides persistence methods, and changes tracking.
@@ -1218,7 +1218,7 @@ Application Tools
 On top of the SQLite API described above, GRDB provides a toolkit for applications. While none of those are mandatory, all of them help dealing with the database:
 
 - **[Migrations](#migrations)**: Transform your database as your application evolves.
-- **Database protocols, and Record**
+- **[Database Protocols, and Record](#database-protocols-and-record)**
     - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
     - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with persistence methods.
     - [Record](#record): The class that wraps a table row or the result of any query, provides persistence methods, and changes tracking.
@@ -1305,7 +1305,39 @@ migrator.registerMigrationWithoutForeignKeyChecks("AddNotNullCheckOnName") { db 
 While your migration code runs with disabled foreign key checks, those are re-enabled and checked at the end of the migration, regardless of eventual errors.
 
 
-## RowConvertible Protocol
+## Database Protocols, and Record
+
+**GRDB provides protocols and a Record class** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
+
+The [Record](#record) class grants its subclasses with fetching methods, persistence methods, and changes tracking:
+
+```swift
+class Person : Record { ... }
+
+try dbQueue.inDatabase { db in
+    // Store
+    let person = Person(name: "Arthur")
+    try person.save(db)
+    
+    // Fetch
+    let person = Person.fetch(db, key: personId)
+    for person in Person.fetch(db, "SELECT * FROM persons") {
+        print(person.name)
+    }
+    
+    // Changes tracking
+    person.name = "Barbara"
+    person.databaseChanges.keys // ["name"]
+    if person.databaseEdited {
+        try person.save(db)
+    }
+}
+```
+
+Whenever your application types can't inherit from Record, they can still adopt [RowConvertible](#rowconvertible-protocol), which grants fetching methods), and [DatabasePersistable](#databasepersistable-protocol), which grants persistence methods.
+
+
+### RowConvertible Protocol
 
 **The `RowConvertible` protocol grants fetching methods to any type** that can be built from a database row:
 
@@ -1354,7 +1386,7 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. Th
 See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like persistence methods, and changes tracking.
 
 
-### Fetching by Key
+#### Fetching by Key
 
 **Adopt the `DatabaseTableMapping` protocol** on top of `RowConvertible`:
 
@@ -1435,7 +1467,7 @@ Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
 ```
 
 
-### Optional Columns
+#### Optional Columns
 
 **Your RowConvertible type can accept rows that do not always contain the same columns.**
 
@@ -1468,7 +1500,7 @@ struct Person : RowConvertible {
 See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `row["bookCount"]?.value()` expression.
 
 
-## DatabasePersistable Protocol
+### DatabasePersistable Protocol
 
 **GRDB provides two protocols that let adopting types store themselves in the database:**
 
@@ -1556,7 +1588,7 @@ The `storedDatabaseDictionary` property returns a dictionary whose keys are colu
 > :point_up: **Note**: Classes should always prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate on insertion. This will prevent strange compiler errors when they insert an instance stored in a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
 
 
-### Persistence Methods
+#### Persistence Methods
 
 Types that adopt DatabasePersistable or MutableDatabasePersistable are given default implementations for methods that insert, update, and delete:
 
@@ -1595,7 +1627,7 @@ protocol DatabasePersistable : MutableDatabasePersistable {
 ```
 
 
-### Customizing the Persistence Methods
+#### Customizing the Persistence Methods
 
 Your custom type may want to perform extra work when the persistence methods are invoked.
 
@@ -1641,7 +1673,7 @@ struct Link : DatabasePersistable {
 > :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
 
 
-## Record
+### Record
 
 - [Overview](#record-overview)
 - [Subclassing Record](#subclassing-record)
@@ -1652,7 +1684,7 @@ struct Link : DatabasePersistable {
 - [Advice](#advice)
 
 
-### Record Overview
+#### Record Overview
 
 **Record** is a class that wraps a table row or the result of any query, provides persistence methods, and changes tracking. It is designed to be subclassed.
 
@@ -1716,7 +1748,7 @@ Yet, it does a few things well:
     ```
 
 
-### Subclassing Record
+#### Subclassing Record
 
 **Record subclasses override the three core methods that define their relationship with the database:**
 
@@ -1843,7 +1875,7 @@ Person overrides `updateFromRow()` to update its properties from the columns fou
 > :point_up: **Note**: For performance reasons, the same row argument to `updateFromRow` is reused for all records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 
-### Fetching Records
+#### Fetching Records
 
 You can fetch **sequences**, **arrays**, or **single** records with raw SQL queries, or by key:
 
@@ -1912,7 +1944,7 @@ dbQueue.inDatabase { db in
 The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
 
 
-### Insert, Update and Delete
+#### Insert, Update and Delete
 
 Records can store themselves in the database through the `storedDatabaseDictionary` core property:
 
@@ -1955,7 +1987,7 @@ try dbQueue.inDatabase { db in
 - `delete` returns whether a database row was deleted or not.
 
 
-### Record Initializers
+#### Record Initializers
 
 **Record has two initializers:**
 
@@ -1992,7 +2024,7 @@ class Person : Record {
 ```
 
 
-### Changes Tracking
+#### Changes Tracking
 
 The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
 
@@ -2025,7 +2057,7 @@ Note that `databaseEdited` is based on value comparison: **setting a property to
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check this [sample code](https://gist.github.com/groue/dcdd3784461747874f41).
 
 
-### Advice
+#### Advice
 
 - [Autoincrement](#autoincrement)
 - [Ad Hoc Subclasses](#ad-hoc-subclasses)
@@ -2034,7 +2066,7 @@ For an efficient algorithm which synchronizes the content of a database table wi
 - [INSERT OR REPLACE](#insert-or-replace)
 
 
-#### Autoincrement
+##### Autoincrement
 
 **For "autoincremented" ids**, declare your id column as INTEGER PRIMARY KEY:
 
@@ -2074,7 +2106,7 @@ person.id   // some value
 ```
 
 
-#### Ad Hoc Subclasses
+##### Ad Hoc Subclasses
 
 Don't hesitate deriving subclasses from your base records when you have a need for a specific query.
 
@@ -2124,7 +2156,7 @@ Other application objects that expect a Person will gently accept the private su
 ```
 
 
-#### Validation
+##### Validation
 
 Record does not provide any built-in validation.
 
@@ -2158,7 +2190,7 @@ try! Person(name: nil).save(db)
 ```
 
 
-#### Default Values
+##### Default Values
 
 **Avoid default values in table declarations.** Record doesn't know about them, and those default values won't be present in a record after it has been inserted.
     
@@ -2200,7 +2232,7 @@ class Person : Record {
 ```
 
 
-#### INSERT OR REPLACE
+##### INSERT OR REPLACE
 
 **Record does not provide any API which executes a INSERT OR REPLACE query.** Instead, consider adding an ON CONFLICT clause to your table definition, and let the simple insert() method perform the eventual replacement:
 
