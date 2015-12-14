@@ -96,10 +96,7 @@ extension RowConvertible {
     /// - returns: An optional value.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> Self? {
         var generator = fetch(statement, arguments: arguments).generate()
-        guard let first = generator.next() else {
-            return nil
-        }
-        return first
+        return generator.next()
     }
     
     
