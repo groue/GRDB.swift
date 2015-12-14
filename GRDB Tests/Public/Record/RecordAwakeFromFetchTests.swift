@@ -57,8 +57,6 @@ class RecordEventsTests: GRDBTestCase {
                     let record = EventRecorder()
                     try record.insert(db)
                     XCTAssertEqual(record.awakeFromFetchCount, 0)
-                    try record.reload(db)
-                    XCTAssertEqual(record.awakeFromFetchCount, 1)
                 }
             }
         }

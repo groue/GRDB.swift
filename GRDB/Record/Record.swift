@@ -33,7 +33,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     }
     
     /// Don't call this method directly. It is called after a Record has been
-    /// fetched or reloaded.
+    /// fetched.
     ///
     /// *Important*: subclasses must invoke super's implementation.
     ///
@@ -60,8 +60,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     /// Returns the name of a database table.
     ///
-    /// This table name is required by the insert, update, save, delete, exists
-    /// and reload methods.
+    /// This table name is required by the insert, update, save, delete,
+    /// and exists methods.
     ///
     ///     class Person : Record {
     ///         override class func databaseTableName() -> String {
@@ -174,7 +174,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// been saved.
     ///
     /// This flag is purely informative, and does not prevent insert(),
-    /// update(), save() and reload() from performing their database queries.
+    /// update(), and save() from performing their database queries.
     ///
     /// A record is *edited* if its *storedDatabaseDictionary* has been changed
     /// since last database synchronization (fetch, update, insert). Comparison
@@ -312,22 +312,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         // databaseEdited flag:
         databaseEdited = true
         return deleted
-    }
-    
-    /// Executes a SELECT statetement.
-    ///
-    /// On success, this method sets the *databaseEdited* flag to false.
-    ///
-    /// - parameter db: A Database.
-    /// - throws: PersistenceError.NotFound is thrown if the primary key does
-    ///   not match any row in the database and record could not be reloaded.
-    public func reload(db: Database) throws {
-        let statement = DataMapper(db, self).reloadStatement()
-        guard let row = Row.fetchOne(statement) else {
-            throw PersistenceError.NotFound(self)
-        }
-        updateFromRow(row)
-        awakeFromFetch(row)
     }
 }
 

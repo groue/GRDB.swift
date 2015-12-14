@@ -135,22 +135,6 @@ class RecordUpdateFromRowTests: GRDBTestCase {
         }
     }
     
-    func testUpdateFromRowForReload() {
-        let parisLatitude = 48.8534100
-        let parisLongitude = 2.3488000
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO placemarks (name, latitude, longitude) VALUES (?,?,?)", arguments: ["Paris", parisLatitude, parisLongitude])
-                let paris = Placemark.fetchOne(db, "SELECT * FROM placemarks")!
-                paris.coordinate = nil
-                try paris.reload(db)
-                XCTAssertEqual(paris.name!, "Paris")
-                XCTAssertEqual(paris.coordinate!.latitude, parisLatitude)
-                XCTAssertEqual(paris.coordinate!.longitude, parisLongitude)
-            }
-        }
-    }
-    
     func testCopy() {
         let parisLatitude = 48.8534100
         let parisLongitude = 2.3488000

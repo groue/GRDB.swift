@@ -1,6 +1,12 @@
 Release Notes
 =============
 
+## 0.35.0
+
+**Breaking Changes**
+
+- `Record.reload` has been removed.
+
 ## 0.34.0
 
 Released December 14, 2015

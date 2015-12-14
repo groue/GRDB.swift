@@ -13,7 +13,6 @@
 - [ ] Row.value("named") should returns nil if column is not there.
 - [ ] Conversion should crash when type mismatch (String.fetch("SELECT 1"))
 - [ ] Record:
-    - [ ] Remove reloading
     - [ ] Remove init(row)
     - [ ] Expose fromRow (fatalError("subclass must implement") in Record)
     - [ ] Expose didInsertWithRowID(_:forColumn:)

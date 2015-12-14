@@ -130,23 +130,48 @@ class RecordEditedTests: GRDBTestCase {
         // record that is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur")
-                try person.insert(db)
-                
-                XCTAssertTrue(person.name != nil)
-                person.name = "Bobby"           // non-nil vs. non-nil
-                XCTAssertTrue(person.databaseEdited)
-                try person.reload(db)
-                
-                XCTAssertTrue(person.name != nil)
-                person.name = nil               // non-nil vs. nil
-                XCTAssertTrue(person.databaseEdited)
-                try person.reload(db)
-                
-                XCTAssertTrue(person.age == nil)
-                person.age = 41                 // nil vs. non-nil
-                XCTAssertTrue(person.databaseEdited)
-                try person.reload(db)
+                do {
+                    let person = Person(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.name != nil)
+                    person.name = "Bobby"           // non-nil vs. non-nil
+                    XCTAssertTrue(person.databaseEdited)
+                }
+                do {
+                    let person = Person(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.name != nil)
+                    person.name = nil               // non-nil vs. nil
+                    XCTAssertTrue(person.databaseEdited)
+                }
+                do {
+                    let person = Person(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.age == nil)
+                    person.age = 41                 // nil vs. non-nil
+                    XCTAssertTrue(person.databaseEdited)
+                }
+            }
+        }
+    }
+    
+    func testRecordIsNotEditedAfterSameValueChange() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                do {
+                    let person = Person(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.name != nil)
+                    person.name = "Arthur"           // non-nil vs. non-nil
+                    XCTAssertFalse(person.databaseEdited)
+                }
+                do {
+                    let person = Person(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.age == nil)
+                    person.age = nil                 // nil vs. nil
+                    XCTAssertFalse(person.databaseEdited)
+                }
             }
         }
     }
@@ -174,22 +199,6 @@ class RecordEditedTests: GRDBTestCase {
                 person.name = "Bobby"
                 XCTAssertTrue(person.databaseEdited)
                 try person.save(db)
-                XCTAssertFalse(person.databaseEdited)
-            }
-        }
-    }
-    
-    func testRecordIsNotEditedAfterReload() {
-        // After reload, a record is not edited.
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                
-                person.name = "Bobby"
-                XCTAssertTrue(person.databaseEdited)
-                
-                try person.reload(db)
                 XCTAssertFalse(person.databaseEdited)
             }
         }
@@ -402,32 +411,6 @@ class RecordEditedTests: GRDBTestCase {
                     }
                 }
                 try person.save(db)
-                XCTAssertEqual(person.databaseChanges.count, 0)
-            }
-        }
-    }
-    
-    func testChangesAfterReload() {
-        // After reload, a record is not edited.
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let person = Person(name: "Arthur", age: 41)
-                try person.insert(db)
-                
-                person.name = "Bobby"
-                let changes = person.databaseChanges
-                XCTAssertEqual(changes.count, 1)
-                for (column, (old: old, new: new)) in changes {
-                    switch column {
-                    case "name":
-                        XCTAssertEqual(old, "Arthur".databaseValue)
-                        XCTAssertEqual(new, "Bobby".databaseValue)
-                    default:
-                        XCTFail("Unexpected column: \(column)")
-                    }
-                }
-                
-                try person.reload(db)
                 XCTAssertEqual(person.databaseChanges.count, 0)
             }
         }
