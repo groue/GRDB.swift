@@ -1,7 +1,7 @@
 Release Notes
 =============
 
-## Next Release
+## 0.34.0
 
 **New**
 
