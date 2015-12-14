@@ -1311,8 +1311,8 @@ While your migration code runs with disabled foreign key checks, those are re-en
 
 ```swift
 public protocol RowConvertible {
-    /// Create an instance initialized with `row`.
-    init(row: Row)
+    /// Returns a value initialized from `row`.
+    static func fromRow(row: Row) -> Self
     
     /// Optional method which gives adopting types an opportunity to complete
     /// their initialization. Do not call it directly.
@@ -1327,11 +1327,12 @@ struct PointOfInterest : RowConvertible {
     var coordinate: CLLocationCoordinate2D
     var title: String?
     
-    init(row: Row) {
-        coordinate = CLLocationCoordinate2DMake(
-            row.value(named: "latitude"),
-            row.value(named: "longitude"))
-        title = row.value(named: "title")
+    static func fromRow(row: Row) -> PointOfInterest {
+        return PointOfInterest(
+            coordinate: CLLocationCoordinate2DMake(
+                row.value(named: "latitude"),
+                row.value(named: "longitude")),
+            title: row.value(named: "title"))
     }
 }
 
@@ -1346,16 +1347,7 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. Th
 - The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
 - The sequence returned by `fetch` will return a different set of results if the database has been modified between two sequence iterations.
 
-> :point_up: **Note**: For performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
-
-You also get a dictionary initializer for free:
-
-```swift
-PointOfInterest(dictionary: [
-    "latitude": 41.8919300,
-    "longitude": 12.5113300,
-    "title": "Rome"])
-```
+> :point_up: **Note**: For performance reasons, the same row argument to `fromRow(:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `result.row = row.copy()`.
 
 See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like persistence methods, and changes tracking.
 
@@ -1388,10 +1380,11 @@ struct Person : RowConvertible, DatabaseTableMapping {
         return "persons"
     }
     
-    init(row: Row) {
-        id = row.value(named: "id")
-        name = row.value(named: "name")
-        email = row.value(named: "email")
+    static func fromRow(row: Row) -> Person {
+        return Person(
+            id: row.value(named: "id"),
+            name: row.value(named: "name"),
+            email: row.value(named: "email"))
     }
 }
 ```
@@ -1452,13 +1445,11 @@ struct Person : RowConvertible {
     let name: String
     let bookCount: Int? // Only set when person is fetched from fetchAllWithBookCount()
     
-    init(row: Row) {
-        // mandatory columns:
-        id = row.value(named: "id")
-        name = row.value(named: "name")
-        
-        // bookCount may not always be present:
-        bookCount = row["bookCount"]?.value()
+    static func fromRow(row: Row) -> Person {
+        return Person(
+            id: row.value(named: "id"),           // mandatory column
+            name: row.value(named: "name"),       // mandatory column
+            bookCount: row["bookCount"]?.value()) // optional column
     }
     
     // The returned persons have a value in their bookCount property:
@@ -1746,9 +1737,7 @@ class Record {
 class Person {
     // Initializers
     init()
-    init(row: Row)
-    convenience init(dictionary: [String: DatabaseValueConvertible?])
-    convenience init?(dictionary: NSDictionary)
+    required init(row: Row)
     func copy() -> Self
     
     // Change Tracking
@@ -1966,21 +1955,16 @@ try dbQueue.inDatabase { db in
 
 ### Record Initializers
 
-**Record has four initializers:**
+**Record has two initializers:**
 
 ```swift
 class Record {
-    // Designated initializers:
     init()
     required init(row: Row)
-    
-    // Convenience initializers:
-    convenience init(dictionary: [String: DatabaseValueConvertible?])
-    convenience init?(dictionary: NSDictionary)
 }
 ```
 
-**Whenever you add your own custom initializer**, Swift requires you to call one of the designated initializers of your Record superclass, and to provide an implementation of the required `init(row:)`:
+**Whenever you add your own custom initializer**, Swift requires you to call one of the initializers of your Record superclass, and to provide an implementation of the required `init(row:)`:
 
 ```swift
 class Person : Record {
