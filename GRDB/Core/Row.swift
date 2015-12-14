@@ -507,10 +507,10 @@ public final class Row: CollectionType {
     /// - parameter arguments: Statement arguments.
     /// - returns: An optional row.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> Row? {
-        let rows = statement.fetch(arguments: arguments) {
+        let sequence = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
         }
-        var generator = rows.generate()
+        var generator = sequence.generate()
         return generator.next()
     }
     
