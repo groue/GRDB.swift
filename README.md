@@ -1334,7 +1334,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-Whenever your application types can't inherit from Record, they can still adopt [RowConvertible](#rowconvertible-protocol), which grants fetching methods), and [DatabasePersistable](#databasepersistable-protocol), which grants persistence methods.
+Whenever your application types can't inherit from Record, they can still adopt [RowConvertible](#rowconvertible-protocol), which grants fetching methods, and [DatabasePersistable](#databasepersistable-protocol), which grants persistence methods.
 
 
 ### RowConvertible Protocol
