@@ -1307,7 +1307,7 @@ While your migration code runs with disabled foreign key checks, those are re-en
 
 ## RowConvertible Protocol
 
-**The `RowConvertible` protocol grants fetching methods to any type** that can be initialized from a database row:
+**The `RowConvertible` protocol grants fetching methods to any type** that can be built from a database row:
 
 ```swift
 public protocol RowConvertible {
@@ -1340,6 +1340,8 @@ PointOfInterest.fetch(db, "SELECT ...")    // DatabaseSequence<PointOfInterest>
 PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
 PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
 ```
+
+See [Column Values](#column-values) for more information about the `value()` method.
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
 
