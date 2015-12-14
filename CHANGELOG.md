@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Release
 
+**New**
+
+- `DatabaseValueConvertible` now inherits from `RowConvertible`.
+
 **Breaking Changes**
 
 - `RowConvertible` no longer requires an `init(row:Row)` initializer, but a `static func fromRow(_:Row) -> Self` factory method.
