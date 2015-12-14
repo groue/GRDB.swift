@@ -12,4 +12,9 @@ extension NSNull: DatabaseValueConvertible {
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         return nil
     }
+    
+    public static func fromRow(row: Row) -> Self {
+        // TOOD: test
+        fatalError("Could not convert \(row.databaseValues.first!) to NSNull.")
+    }
 }

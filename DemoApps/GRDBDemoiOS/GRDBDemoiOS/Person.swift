@@ -16,6 +16,10 @@ class Person : Record {
     
     // MARK: - Record
     
+    required init(row: Row) {
+        super.init(row: row)
+    }
+    
     override class func databaseTableName() -> String {
         return "persons"
     }
@@ -32,9 +36,5 @@ class Person : Record {
             "id": id,
             "firstName": firstName,
             "lastName": lastName]
-    }
-
-    required init(row: Row) {
-        super.init(row: row)
     }
 }

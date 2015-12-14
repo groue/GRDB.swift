@@ -93,17 +93,6 @@ class RecordWithImmutablePropertyAndCustomInitializer : Record {
     }
 }
 
-class RecordForDictionaryInitializerTest : Record {
-    var firstName: String?
-    var lastName: String?
-    
-    override func updateFromRow(row: Row) {
-        firstName = row.value(named: "firstName")
-        lastName = row.value(named: "lastName")
-        super.updateFromRow(row)
-    }
-}
-
 class RecordInitializersTests : GRDBTestCase {
     
     func testFetchedRecordAreInitializedFromRow() {
@@ -122,11 +111,5 @@ class RecordInitializersTests : GRDBTestCase {
                 XCTAssertTrue(pedigree.initializedFromRow)  // very important
             }
         }
-    }
-    
-    func testDictionaryInitializer() {
-        let record = RecordForDictionaryInitializerTest(dictionary: ["firstName": "Arthur", "lastName": "Martin"])
-        XCTAssertEqual(record.firstName!, "Arthur")
-        XCTAssertEqual(record.lastName!, "Martin")
     }
 }

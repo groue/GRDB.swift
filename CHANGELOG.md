@@ -1,6 +1,14 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking Changes**
+
+- `RowConvertible` no longer requires an `init(row:Row)` initializer, but a `static func fromRow(_:Row) -> Self` factory method.
+- `RowConvertible` dictionary initializers have been removed.
+
+
 ## 0.33.0
 
 Released December 11, 2015

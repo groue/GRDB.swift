@@ -17,10 +17,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// The returned record is *edited*.
     public init() {
-        // IMPLEMENTATION NOTE
-        //
-        // This initializer is defined so that a subclass can be defined
-        // without any custom initializer.
     }
     
     /// Initializes a Record from a row.
@@ -33,23 +29,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// - parameter row: A Row
     required public init(row: Row) {
-        // IMPLEMENTATION NOTE
-        //
-        // Swift requires a required initializer so that we can fetch Records
-        // in SelectStatement.fetch<Record: GRDB.Record>(type: Record.Type, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Record>
-        //
-        // This required initializer *can not* be the simple init(), because it
-        // would prevent subclasses to provide handy initializers made of
-        // optional arguments like init(firstName: String? = nil, lastName: String? = nil).
-        // See rdar://22554816 for more information.
-        //
-        // OK so the only initializer that we can require in init(row:Row).
-        //
-        // IMPLEMENTATION NOTE
-        //
-        // This initializer returns an edited record because the row may not
-        // come from the database.
-        
         updateFromRow(row)
     }
     
@@ -66,6 +45,14 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         // Row may be a metal row which will turn invalid as soon as the SQLite
         // statement is iterated. We need to store an immutable and safe copy.
         referenceRow = row.copy()
+    }
+    
+    /// Returns a new Record initialized from a row.
+    ///
+    /// This method is required by the RowConvertible protocol. It returns a
+    /// record initialized from the row. See init(row:Row).
+    public final class func fromRow(row: Row) -> Self {
+        return self.init(row: row)
     }
     
     
@@ -175,7 +162,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.init(row: Row(dictionary: storedDatabaseDictionary))
+        let copy = self.dynamicType.fromRow(Row(dictionary: storedDatabaseDictionary))
         copy.referenceRow = referenceRow
         return copy
     }

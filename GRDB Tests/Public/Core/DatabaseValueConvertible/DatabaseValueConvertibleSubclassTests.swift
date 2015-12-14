@@ -10,6 +10,13 @@ class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
         return self.init()
     }
     
+    // TODO: this implementation is mandatory to avoid a Swift compiler error.
+    // Either avoid it, or document it.
+    class func fromRow(row: Row) -> Self {
+        // TODO: nice fatal error in case of error
+        return fromDatabaseValue(row.databaseValues.first!)!
+    }
+    
     required init() {
     }
     
@@ -36,6 +43,8 @@ class DatabaseValueConvertibleSubclassTests: GRDBTestCase {
                 XCTAssertEqual(string, "Parent")
                 let parent = FetchableParent.fetchOne(db, "SELECT * FROM parents")!
                 XCTAssertEqual(parent.description, "Parent")
+                let parents = FetchableParent.fetchAll(db, "SELECT * FROM parents")
+                XCTAssertEqual(parents.first!.description, "Parent")
             }
         }
     }
@@ -49,6 +58,8 @@ class DatabaseValueConvertibleSubclassTests: GRDBTestCase {
                 XCTAssertEqual(string, "Child")
                 let child = FetchableChild.fetchOne(db, "SELECT * FROM children")!
                 XCTAssertEqual(child.description, "Child")
+                let children = FetchableChild.fetchAll(db, "SELECT * FROM children")
+                XCTAssertEqual(children.first!.description, "Child")
             }
         }
     }

@@ -4,7 +4,7 @@
 ///     let person = Person(row: row)
 ///
 /// The protocol comes with built-in methods that allow to fetch sequences,
-/// arrays, or single instances:
+/// arrays, or single values:
 ///
 ///     Person.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<Person>
 ///     Person.fetchAll(db, "SELECT ...", arguments:...) // [Person]
@@ -18,15 +18,16 @@
 /// RowConvertible is adopted by Record.
 public protocol RowConvertible {
     
-    /// Create an instance initialized with `row`.
+    /// Returns a value initialized from `row`.
     ///
     /// For performance reasons, the row argument may be reused between several
     /// instance initializations during the iteration of a fetch query. So if
     /// you want to keep the row for later use, make sure to store a copy:
-    /// `self.row = row.copy()`.
+    /// `result.row = row.copy()`.
     ///
     /// - parameter row: A Row.
-    init(row: Row)
+    /// - returns: A value.
+    static func fromRow(row: Row) -> Self
     
     /// Do not call this method directly.
     ///
@@ -36,14 +37,6 @@ public protocol RowConvertible {
 }
 
 extension RowConvertible {
-    
-    /// Dictionary initializer.
-    ///
-    /// - parameter dictionary: A Dictionary.
-    public init(dictionary: [String: DatabaseValueConvertible?]) {
-        let row = Row(dictionary: dictionary)
-        self.init(row: row)
-    }
     
     /// Default implementation, which does nothing.
     public func awakeFromFetch(row: Row) { }
@@ -75,7 +68,7 @@ extension RowConvertible {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(metalStatement: statement)
         return statement.fetch(arguments: arguments) {
-            var value = Self.init(row: row)
+            var value = fromRow(row)
             value.awakeFromFetch(row)
             return value
         }

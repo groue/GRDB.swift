@@ -3,7 +3,7 @@
 /// database values.
 public protocol SQLiteStatementConvertible {
     
-    /// Returns an instance initialized from a raw SQLite statement pointer.
+    /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// As an example, here is the how Int64 adopts SQLiteStatementConvertible:
     ///
@@ -23,7 +23,7 @@ public protocol SQLiteStatementConvertible {
 }
 
 
-// MARK: - Fetching non null SQLiteStatementConvertible
+// MARK: - Fetching SQLiteStatementConvertible
 
 /// Types that adopt both DatabaseValueConvertible and
 /// SQLiteStatementConvertible can be efficiently initialized from
@@ -34,7 +34,7 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     
     // MARK: - Fetching From SelectStatement
     
-    /// Returns a sequence of non null values fetched from a prepared statement.
+    /// Returns a sequence of values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetch(statement) // DatabaseSequence<String>
@@ -53,7 +53,7 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Statement arguments.
-    /// - returns: A sequence of non null values.
+    /// - returns: A sequence of values.
     public static func fetch(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
         return statement.fetch(arguments: arguments) {
             let sqliteStatement = statement.sqliteStatement
@@ -69,22 +69,42 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
         }
     }
     
-    /// Returns an array of non null values fetched from a prepared statement.
+    /// Returns an array of values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetchAll(statement)  // [String]
     ///
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Statement arguments.
-    /// - returns: An array of non null values.
+    /// - returns: An array of values.
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> [Self] {
         return Array(fetch(statement, arguments: arguments))
     }
     
+    /// Returns a single value fetched from a prepared statement.
+    ///
+    ///     let statement = db.selectStatement("SELECT name FROM ...")
+    ///     let name = String.fetchOne(statement)   // String?
+    ///
+    /// - parameter statement: The statement to run.
+    /// - parameter arguments: Statement arguments.
+    /// - returns: An optional value.
+    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> Self? {
+        var generator = statement.fetch(arguments: arguments, yield: { }).generate()
+        guard generator.next() != nil else {
+            return nil
+        }
+        let sqliteStatement = statement.sqliteStatement
+        if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
+            return nil
+        } else {
+            return Self.init(sqliteStatement: sqliteStatement, index: 0)
+        }
+    }
     
     // MARK: - Fetching From Database
     
-    /// Returns a sequence of non null values fetched from an SQL query.
+    /// Returns a sequence of values fetched from an SQL query.
     ///
     ///     let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String>
     ///
@@ -103,20 +123,32 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Statement arguments.
-    /// - returns: A sequence of non null values.
+    /// - returns: A sequence of values.
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
         return fetch(db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Returns an array of non null values fetched from an SQL query.
+    /// Returns an array of values fetched from an SQL query.
     ///
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Statement arguments.
-    /// - returns: An array of non null values.
+    /// - returns: An array of values.
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Self] {
         return fetchAll(db.selectStatement(sql), arguments: arguments)
+    }
+    
+    /// Returns a single value fetched from an SQL query.
+    ///
+    ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
+    ///
+    /// - parameter db: A Database.
+    /// - parameter sql: An SQL query.
+    /// - parameter arguments: Statement arguments.
+    /// - returns: An optional value.
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> Self? {
+        return fetchOne(db.selectStatement(sql), arguments: arguments)
     }
 }

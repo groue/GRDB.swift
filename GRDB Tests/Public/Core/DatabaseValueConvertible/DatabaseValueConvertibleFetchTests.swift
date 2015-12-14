@@ -71,7 +71,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchFromDatabaes() {
+    func testFetchFromDatabase() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
@@ -155,7 +155,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchFromDatabaes() {
+    func testOptionalFetchFromDatabase() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")

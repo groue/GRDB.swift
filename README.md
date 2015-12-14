@@ -813,7 +813,7 @@ public protocol DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
-    /// Returns an instance initialized from databaseValue, if possible.
+    /// Returns a value initialized from databaseValue, if possible.
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
 }
 ```
@@ -852,7 +852,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
         return DatabaseValue(double: date.timeIntervalSince1970)
     }
     
-    /// Returns an instance initialized from *databaseValue*, if possible.
+    /// Returns a value initialized from *databaseValue*, if possible.
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseTimestamp? {
         // Double itself adopts DatabaseValueConvertible:
         guard let timeInterval = Double.fromDatabaseValue(databaseValue) else {
