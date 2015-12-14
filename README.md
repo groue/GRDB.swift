@@ -1328,7 +1328,7 @@ try dbQueue.inDatabase { db in
     // Changes tracking
     person.name = "Barbara"
     person.databaseChanges.keys // ["name"]
-    if person.databaseEdited {
+    if person.databaseEdited {  // Avoid useless UPDATE statements
         try person.save(db)
     }
 }
