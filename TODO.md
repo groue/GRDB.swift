@@ -7,10 +7,16 @@
 - [ ] What happens when RowConvertible.awakeFromFetch and DatabasePersistable.didInsertWithRowID(_:forColumn:) assign to self? Do we need to split RowConvertible into MutableRowConvertible + RowConvertible?
 - [ ] Check Swift API Guideline https://swift.org/documentation/api-design-guidelines.html
     - [ ] databaseTableName, etc.
+    - [ ] didInsertWithRowID(_:forColumn:)
     - [ ] databaseEdited -> hasDatabaseChanges, hasNotPersistedChanges ? Check if doc makes it clear that the changes are based on last fetch. The method name should make it clear too.
     - [ ] Read conversion methods conventions (fromRow, fromDatabaseValue)
 - [ ] Row.value("named") should returns nil if column is not there.
 - [ ] Conversion should crash when type mismatch (String.fetch("SELECT 1"))
+- [ ] Record:
+    - [ ] Remove reloading
+    - [ ] Remove init(row)
+    - [ ] Expose fromRow (fatalError("subclass must implement") in Record)
+    - [ ] Expose didInsertWithRowID(_:forColumn:)
 
 Not sure:
 
