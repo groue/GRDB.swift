@@ -20,7 +20,7 @@ extension NSString: DatabaseValueConvertible {
     }
     
     public static func fromRow(row: Row) -> Self {
-        // TOOD: test
+        // TODO: test
         guard let string = fromDatabaseValue(row.databaseValues.first!) else {
             fatalError("Could not convert \(row.databaseValues.first!) to NSString.")
         }

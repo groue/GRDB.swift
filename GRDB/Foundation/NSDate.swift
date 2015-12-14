@@ -70,7 +70,7 @@ extension NSDate : DatabaseValueConvertible {
     }
     
     public static func fromRow(row: Row) -> Self {
-        // TOOD: test
+        // TODO: test
         guard let date = fromDatabaseValue(row.databaseValues.first!) else {
             fatalError("Could not convert \(row.databaseValues.first!) to NSDate.")
         }
