@@ -55,8 +55,8 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// - parameter arguments: Statement arguments.
     /// - returns: A sequence of values.
     public static func fetch(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
+        let sqliteStatement = statement.sqliteStatement
         return statement.fetch(arguments: arguments) {
-            let sqliteStatement = statement.sqliteStatement
             if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
                 if let arguments = statement.arguments {
                     fatalError("Could not convert NULL to \(Self.self) while iterating `\(statement.sql)` with arguments \(arguments).")
