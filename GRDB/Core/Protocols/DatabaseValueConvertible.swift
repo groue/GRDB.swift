@@ -37,7 +37,7 @@ public extension DatabaseValueConvertible {
 }
 
 
-// MARK: - Fetching non null DatabaseValueConvertible
+// MARK: - Fetching DatabaseValueConvertible
 
 /// DatabaseValueConvertible comes with built-in methods that allow to fetch
 /// sequences, arrays, or single values:
@@ -58,6 +58,9 @@ public extension DatabaseValueConvertible {
     
     /// Returns a single value fetched from a prepared statement.
     ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let name = String.fetchOne(statement)   // String?
     ///
@@ -65,20 +68,23 @@ public extension DatabaseValueConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: An optional value.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> Self? {
-        let optionals = statement.fetch(arguments: arguments) {
-            Self.fromDatabaseValue(DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0))
+        let sequence: DatabaseSequence<Self?> = statement.fetch(arguments: arguments) {
+            fromDatabaseValue(DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0))
         }
-        var generator = optionals.generate()
-        guard let value = generator.next() else {
-            return nil
+        var generator = sequence.generate()
+        if let value = generator.next() {   // Unwrap Self? from Self??
+            return value
         }
-        return value
+        return nil
     }
     
     
     // MARK: - Fetching From Database
     
     /// Returns a single value fetched from an SQL query.
+    ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
     ///
     ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     ///
