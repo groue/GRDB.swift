@@ -18,7 +18,6 @@
     - [X] Remove reloading
     - [X] Expose didInsertWithRowID(_:forColumn:)
     - [X] Make Person subclass that eats an extra column easier to write (in PersonWithOverrides)
-    - [ ] Rename RecordUpdateFromRowTests
     - [ ] Update documentation
 
 Not sure:
