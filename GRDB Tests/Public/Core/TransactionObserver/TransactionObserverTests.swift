@@ -47,7 +47,7 @@ class Artist : Record {
     var id: Int64?
     var name: String?
     
-    required init(id: Int64? = nil, name: String?) {
+    init(id: Int64? = nil, name: String?) {
         self.id = id
         self.name = name
         super.init()
@@ -67,14 +67,14 @@ class Artist : Record {
         return "artists"
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name]
+    required init(row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        super.init(row: row)
     }
     
-    override class func fromRow(row: Row) -> Self {
-        return self.init(
-            id: row.value(named: "id"),
-            name: row.value(named: "name"))
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "name": name]
     }
     
     override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
@@ -87,7 +87,7 @@ class Artwork : Record {
     var artistId: Int64?
     var title: String?
     
-    required init(id: Int64? = nil, title: String?, artistId: Int64? = nil) {
+    init(id: Int64? = nil, title: String?, artistId: Int64? = nil) {
         self.id = id
         self.title = title
         self.artistId = artistId
@@ -109,15 +109,15 @@ class Artwork : Record {
         return "artworks"
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "artistId": artistId, "title": title]
+    required init(row: Row) {
+        id = row.value(named: "id")
+        title = row.value(named: "title")
+        artistId = row.value(named: "artistId")
+        super.init(row: row)
     }
     
-    override class func fromRow(row: Row) -> Self {
-        return self.init(
-            id: row.value(named: "id"),
-            title: row.value(named: "title"),
-            artistId: row.value(named: "artistId"))
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "artistId": artistId, "title": title]
     }
     
     override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {

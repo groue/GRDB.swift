@@ -8,7 +8,7 @@ class Person : Record {
     var age: Int?
     var creationDate: NSDate!
     
-    required init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
         self.id = id
         self.name = name
         self.age = age
@@ -32,6 +32,14 @@ class Person : Record {
         return "persons"
     }
     
+    required init(row: Row) {
+        id = row.value(named: "id")
+        age = row.value(named: "age")
+        name = row.value(named: "name")
+        creationDate = row.value(named: "creationDate")
+        super.init(row: row)
+    }
+    
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [
             "id": id,
@@ -39,14 +47,6 @@ class Person : Record {
             "age": age,
             "creationDate": creationDate,
         ]
-    }
-    
-    override class func fromRow(row: Row) -> Self {
-        return self.init(
-            id: row.value(named: "id"),
-            name: row.value(named: "name"),
-            age: row.value(named: "age"),
-            creationDate: row.value(named: "creationDate"))
     }
     
     override func insert(db: Database) throws {

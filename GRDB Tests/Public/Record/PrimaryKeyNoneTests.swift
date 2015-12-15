@@ -5,7 +5,7 @@ import GRDB
 class Item : Record {
     var name: String?
     
-    required init(name: String? = nil) {
+    init(name: String? = nil) {
         self.name = name
         super.init()
     }
@@ -23,12 +23,13 @@ class Item : Record {
         return "items"
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["name": name]
+    required init(row: Row) {
+        name = row.value(named: "name")
+        super.init(row: row)
     }
     
-    override class func fromRow(row: Row) -> Self {
-        return self.init(name: row.value(named: "name"))
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["name": name]
     }
 }
 

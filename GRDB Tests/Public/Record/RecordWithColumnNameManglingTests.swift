@@ -7,9 +7,10 @@ class BadlyMangledStuff : Record {
     var id: Int64?
     var name: String?
     
-    required init(id: Int64? = nil, name: String? = nil) {
+    init(id: Int64? = nil, name: String? = nil) {
         self.id = id
         self.name = name
+        super.init()
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -22,18 +23,18 @@ class BadlyMangledStuff : Record {
         return "stuffs"
     }
     
+    required init(row: Row) {
+        // Here user may peek fancy column names that match his SQL queries.
+        // However this is not the way to do it (see testBadlyMangledStuff()).
+        id = row.value(named: "mangled_id")
+        name = row.value(named: "mangled_name")
+        super.init(row: row)
+    }
+    
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         // User won't peek fancy column names because he will notice that the
         // generated INSERT query needs actual column names.
         return ["id": id, "name": name]
-    }
-    
-    override class func fromRow(row: Row) -> Self {
-        // Here user may peek fancy column names that match his SQL queries.
-        // However this is not the way to do it (see testBadlyMangledStuff()).
-        return self.init(
-            id: row.value(named: "mangled_id"),
-            name: row.value(named: "mangled_name"))
     }
     
     override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {

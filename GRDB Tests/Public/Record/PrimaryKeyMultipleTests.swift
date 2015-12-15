@@ -7,7 +7,7 @@ class Citizenship : Record {
     var countryName: String!
     var native: Bool!
     
-    required init(personName: String? = nil, countryName: String? = nil, native: Bool? = nil) {
+    init(personName: String? = nil, countryName: String? = nil, native: Bool? = nil) {
         self.personName = personName
         self.countryName = countryName
         self.native = native
@@ -30,18 +30,18 @@ class Citizenship : Record {
         return "citizenships"
     }
     
+    required init(row: Row) {
+        personName = row.value(named: "personName")
+        countryName = row.value(named: "countryName")
+        native = row.value(named: "native")
+        super.init(row: row)
+    }
+    
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return [
             "personName": personName,
             "countryName": countryName,
             "native": native]
-    }
-    
-    override class func fromRow(row: Row) -> Self {
-        return self.init(
-            personName: row.value(named: "personName"),
-            countryName: row.value(named: "countryName"),
-            native: row.value(named: "native"))
     }
 }
 

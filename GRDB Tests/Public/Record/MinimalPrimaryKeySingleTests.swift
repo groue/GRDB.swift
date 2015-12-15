@@ -6,8 +6,9 @@ import GRDB
 class MinimalSingle: Record {
     var UUID: String?
     
-    required init(UUID: String? = nil) {
+    init(UUID: String? = nil) {
         self.UUID = UUID
+        super.init()
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -21,12 +22,13 @@ class MinimalSingle: Record {
         return "minimalSingles"
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["UUID": UUID]
+    required init(row: Row) {
+        UUID = row.value(named: "UUID")
+        super.init(row: row)
     }
     
-    override class func fromRow(row: Row) -> Self {
-        return self.init(UUID: row.value(named: "UUID"))
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["UUID": UUID]
     }
 }
 

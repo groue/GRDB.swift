@@ -10,16 +10,15 @@ class PersonWithOverrides : Person {
     var extra: Int!
     var lastSavingMethod: SavingMethod?
     
+    override init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+        super.init(id: id, name: name, age: age, creationDate: creationDate)
+    }
+    
     // Record
     
-    override class func fromRow(row: Row) -> Self {
-        let person = self.init(
-            id: row.value(named: "id"),
-            name: row.value(named: "name"),
-            age: row.value(named: "age"),
-            creationDate: row.value(named: "creationDate"))
-        person.extra = row.value(named: "extra")
-        return person
+    required init(row: Row) {
+        extra = row.value(named: "extra")
+        super.init(row: row)
     }
     
     override func insert(db: Database) throws {

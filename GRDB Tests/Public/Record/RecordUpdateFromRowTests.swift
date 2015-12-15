@@ -12,7 +12,7 @@ class Placemark : Record {
     var name: String?
     var coordinate: CLLocationCoordinate2D?
     
-    required init(id: Int64? = nil, name: String?, coordinate: CLLocationCoordinate2D?) {
+    init(id: Int64? = nil, name: String?, coordinate: CLLocationCoordinate2D?) {
         self.id = id
         self.name = name
         self.coordinate = coordinate
@@ -43,19 +43,17 @@ class Placemark : Record {
             "longitude": coordinate?.longitude]
     }
     
-    override class func fromRow(row: Row) -> Self {
-        // Only update self.coordinate if the row contains both lat and long values
-        let coordinate: CLLocationCoordinate2D?
+    required init(row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        
         if let latitude: CLLocationDegrees = row.value(named: "latitude"), let longitude: CLLocationDegrees = row.value(named: "longitude") {
             coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         } else {
             coordinate = nil
         }
         
-        return self.init(
-            id: row.value(named: "id"),
-            name: row.value(named: "name"),
-            coordinate: coordinate)
+        super.init(row: row)
     }
     
     override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
@@ -79,7 +77,7 @@ class RecordUpdateFromRowTests: GRDBTestCase {
         let parisLatitude = 48.8534100
         let parisLongitude = 2.3488000
         let row = Row(dictionary: ["name": "Paris", "latitude": parisLatitude, "longitude": parisLongitude])
-        let paris = Placemark.fromRow(row)
+        let paris = Placemark(row: row)
         XCTAssertEqual(paris.name!, "Paris")
         XCTAssertEqual(paris.coordinate!.latitude, parisLatitude)
         XCTAssertEqual(paris.coordinate!.longitude, parisLongitude)

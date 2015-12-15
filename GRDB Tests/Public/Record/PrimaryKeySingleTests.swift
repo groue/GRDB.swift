@@ -6,7 +6,7 @@ class Pet : Record {
     var UUID: String?
     var name: String
     
-    required init(UUID: String? = nil, name: String) {
+    init(UUID: String? = nil, name: String) {
         self.UUID = UUID
         self.name = name
         super.init()
@@ -26,14 +26,14 @@ class Pet : Record {
         return "pets"
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["UUID": UUID, "name": name]
+    required init(row: Row) {
+        UUID = row.value(named: "UUID")
+        name = row.value(named: "name")
+        super.init(row: row)
     }
     
-    override class func fromRow(row: Row) -> Self {
-        return self.init(
-            UUID: row.value(named: "UUID"),
-            name: row.value(named: "name"))
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["UUID": UUID, "name": name]
     }
 }
 

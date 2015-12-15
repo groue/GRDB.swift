@@ -19,6 +19,18 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     public init() {
     }
     
+    /// Initializes a Record from a row.
+    ///
+    /// The returned record is *edited*.
+    ///
+    /// The input row may not come straight from the database. When you want to
+    /// complete your initialization after being fetched, override
+    /// awakeFromFetch().
+    ///
+    /// - parameter row: A Row
+    required public init(row: Row) {
+    }
+    
     /// Don't call this method directly. It is called after a Record has been
     /// fetched.
     ///
@@ -36,9 +48,10 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     /// Returns a new Record initialized from a row.
     ///
-    /// The implementation of the base class Record raises a fatal error.
-    public class func fromRow(row: Row) -> Self {
-        fatalError("Subclass must override.")
+    /// This method is required by the RowConvertible protocol. It returns a
+    /// record initialized from the row. See init(row:Row).
+    public final class func fromRow(row: Row) -> Self {
+        return self.init(row: row)
     }
     
     

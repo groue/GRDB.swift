@@ -6,7 +6,7 @@ import GRDB
 class MinimalRowID : Record {
     var id: Int64!
     
-    required init(id: Int64? = nil) {
+    init(id: Int64? = nil) {
         self.id = id
         super.init()
     }
@@ -22,12 +22,13 @@ class MinimalRowID : Record {
         return "minimalRowIDs"
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id]
+    required init(row: Row) {
+        id = row.value(named: "id")
+        super.init(row: row)
     }
     
-    override class func fromRow(row: Row) -> Self {
-        return self.init(id: row.value(named: "id"))
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id]
     }
     
     override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {

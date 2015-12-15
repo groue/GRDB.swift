@@ -5,7 +5,7 @@ class Email : Record {
     var email: String!
     var label: String?
     
-    required init(email: String? = nil, label: String? = nil) {
+    init(email: String? = nil, label: String? = nil) {
         self.email = email
         self.label = label
         super.init()
@@ -25,14 +25,14 @@ class Email : Record {
         return "emails"
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["email": email, "label": label]
+    required init(row: Row) {
+        email = row.value(named: "email")
+        label = row.value(named: "label")
+        super.init(row: row)
     }
     
-    override class func fromRow(row: Row) -> Self {
-        return self.init(
-            email: row.value(named: "email"),
-            label: row.value(named: "label"))
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["email": email, "label": label]
     }
 }
 
