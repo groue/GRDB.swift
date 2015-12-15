@@ -3,12 +3,14 @@ Release Notes
 
 ## 0.35.0
 
+The Record class has been refactored so that it gets closer from its RowConvertible and DatabasePersistable adopted protocols.
+
 **Breaking Changes**
 
-- `Row.value(named:)` returns nil if no such column exists in the row.
 - `Record.reload()` has been removed.
 - `Record.updateFromRow()` has been removed. Override `init(row:)` instead.
 - `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their inserted rowID.
+- `Row.value(named:)` returns nil if no such column exists in the row.
 
 
 ## 0.34.0
