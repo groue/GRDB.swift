@@ -8,7 +8,7 @@
 
 import UIKit
 
-public class FetchedRecordsController<T: protocol<DatabaseTableMapping, Hashable>> {
+public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableMapping, Hashable>> {
     
     // MARK: - Initialization
     public required init(sql: String, databaseQueue: DatabaseQueue) {
