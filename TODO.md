@@ -10,12 +10,18 @@
     - [ ] didInsertWithRowID(_:forColumn:)
     - [ ] databaseEdited -> hasDatabaseChanges, hasNotPersistedChanges ? Check if doc makes it clear that the changes are based on last fetch. The method name should make it clear too.
     - [ ] Read conversion methods conventions (fromRow, fromDatabaseValue)
-- [ ] Row.value("named") should returns nil if column is not there.
+- [ ] Row.value(named:) should returns nil if column is not there.
+    - [X] Row.value(named:) returns nil if column is not there.
+    - [ ] Update documentation
 - [ ] Conversion should crash when type mismatch (String.fetch("SELECT 1"))
 - [ ] Record:
+    - [ ] Remove reloading
     - [ ] Remove init(row)
     - [ ] Expose fromRow (fatalError("subclass must implement") in Record)
     - [ ] Expose didInsertWithRowID(_:forColumn:)
+    - [ ] Make Person subclass that eats an extra column easier to write (in PersonWithOverrides)
+    - [ ] Rename RecordUpdateFromRowTests
+    - [ ] Update documentation
 
 Not sure:
 

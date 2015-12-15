@@ -5,6 +5,7 @@ Release Notes
 
 **Breaking Changes**
 
+- `Row.value(named:)` returns nil if no such column exists in the row.
 - `Record.reload` has been removed.
 
 ## 0.34.0

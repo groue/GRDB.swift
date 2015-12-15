@@ -224,11 +224,10 @@ public final class Row: CollectionType {
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name is case-insensitive. If the row does not contain the column,
-    /// a fatal error is raised.
+    /// Column name is case-insensitive.
     ///
-    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
-    /// value can not be converted to `Value`.
+    /// The result is nil if the row does not contain the column, or if the
+    /// fetched SQLite value is NULL, or if the SQLite value can not be converted to `Value`.
     ///
     /// Successful conversions include:
     ///
@@ -243,18 +242,17 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            return nil
         }
         return value(atIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name is case-insensitive. If the row does not contain the column,
-    /// a fatal error is raised.
+    /// Column name is case-insensitive.
     ///
-    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
-    /// value can not be converted to `Value`.
+    /// The result is nil if the row does not contain the column, or if the
+    /// fetched SQLite value is NULL, or if the SQLite value can not be converted to `Value`.
     ///
     /// Successful conversions include:
     ///
@@ -274,7 +272,7 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            return nil
         }
         return value(atIndex: index)
     }
