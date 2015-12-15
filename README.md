@@ -395,6 +395,17 @@ row.value(...) as Int!
 > row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 > ```
 
+When you ask for a missing column, you will get nil, or a fatal error:
+
+```swift
+let row = Row.fetchOne(db, "SELECT 'foo' AS foo")!
+row.value(named: "missing") as String? // nil
+row.value(named: "missing") as String  // fatal error: No such column: "missing"
+row.value(atIndex: 1)                  // fatal error: Row index out of range
+```
+
+You can explicitly check for a column presence with the `hasColumn` method.
+
 Generally speaking, you can extract the type you need, *provided it can be converted from the underlying SQLite value*:
 
 - **Successful conversions include:**
