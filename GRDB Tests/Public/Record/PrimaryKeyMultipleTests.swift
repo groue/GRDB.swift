@@ -2,10 +2,29 @@ import XCTest
 import GRDB
 
 // Citizenship has a multiple-column primary key.
-class Citizenship: Record {
+class Citizenship : Record {
     var personName: String!
     var countryName: String!
     var native: Bool!
+    
+    required init(personName: String? = nil, countryName: String? = nil, native: Bool? = nil) {
+        self.personName = personName
+        self.countryName = countryName
+        self.native = native
+        super.init()
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE citizenships (" +
+                "personName TEXT NOT NULL, " +
+                "countryName TEXT NOT NULL, " +
+                "native BOOLEAN NOT NULL, " +
+                "PRIMARY KEY (personName, countryName)" +
+            ")")
+    }
+    
+    // Record
     
     override class func databaseTableName() -> String {
         return "citizenships"
@@ -18,32 +37,11 @@ class Citizenship: Record {
             "native": native]
     }
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["personName"] { personName = dbv.value() }
-        if let dbv = row["countryName"] { countryName = dbv.value() }
-        if let dbv = row["native"] { native = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-    
-    init (personName: String? = nil, countryName: String? = nil, native: Bool? = nil) {
-        self.personName = personName
-        self.countryName = countryName
-        self.native = native
-        super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
-    }
-    
-    static func setupInDatabase(db: Database) throws {
-        try db.execute(
-            "CREATE TABLE citizenships (" +
-                "personName TEXT NOT NULL, " +
-                "countryName TEXT NOT NULL, " +
-                "native BOOLEAN NOT NULL, " +
-                "PRIMARY KEY (personName, countryName)" +
-            ")")
+    override class func fromRow(row: Row) -> Self {
+        return self.init(
+            personName: row.value(named: "personName"),
+            countryName: row.value(named: "countryName"),
+            native: row.value(named: "native"))
     }
 }
 

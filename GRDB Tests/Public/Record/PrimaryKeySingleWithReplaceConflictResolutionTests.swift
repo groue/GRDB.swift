@@ -5,18 +5,10 @@ class Email : Record {
     var email: String!
     var label: String?
     
-    override class func databaseTableName() -> String {
-        return "emails"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["email": email, "label": label]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["email"] { email = dbv.value() }
-        if let dbv = row["label"] { label = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    required init(email: String? = nil, label: String? = nil) {
+        self.email = email
+        self.label = label
+        super.init()
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -25,6 +17,22 @@ class Email : Record {
                 "email TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE, " +
                 "label TEXT " +
             ")")
+    }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "emails"
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["email": email, "label": label]
+    }
+    
+    override class func fromRow(row: Row) -> Self {
+        return self.init(
+            email: row.value(named: "email"),
+            label: row.value(named: "label"))
     }
 }
 

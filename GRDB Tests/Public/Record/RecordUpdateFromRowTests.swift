@@ -1,9 +1,10 @@
 import XCTest
 import GRDB
 
+typealias CLLocationDegrees = Double
 struct CLLocationCoordinate2D {
-    let latitude: Double
-    let longitude: Double
+    let latitude: CLLocationDegrees
+    let longitude: CLLocationDegrees
 }
 
 class Placemark : Record {
@@ -11,19 +12,24 @@ class Placemark : Record {
     var name: String?
     var coordinate: CLLocationCoordinate2D?
     
-    override init() {
-        super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
-    }
-    
-    init(name: String?, coordinate: CLLocationCoordinate2D?) {
+    required init(id: Int64? = nil, name: String?, coordinate: CLLocationCoordinate2D?) {
+        self.id = id
         self.name = name
         self.coordinate = coordinate
         super.init()
     }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE placemarks (" +
+                "id INTEGER PRIMARY KEY, " +
+                "name TEXT, " +
+                "latitude REAL, " +
+                "longitude REAL" +
+            ")")
+    }
+    
+    // Record
     
     override class func databaseTableName() -> String {
         return "placemarks"
@@ -37,39 +43,23 @@ class Placemark : Record {
             "longitude": coordinate?.longitude]
     }
     
-    override func updateFromRow(row: Row) {
-        // Let's keep things simple, and only update self.coordinate if the
-        // row contains both lat and long columns.
-        //
-        // We test column presence by extracting DatabaseValues, which may
-        // contain coordinates, or NULL:
-        if let latitude = row["latitude"], let longitude = row["longitude"] {
-            // Both columns are present.
-            switch (latitude.value() as Double?, longitude.value() as Double?) {
-            case (let latitude?, let longitude?):
-                // Both latitude and longitude are not nil.
-                coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-            default:
-                coordinate = nil
-            }
+    override class func fromRow(row: Row) -> Self {
+        // Only update self.coordinate if the row contains both lat and long values
+        let coordinate: CLLocationCoordinate2D?
+        if let latitude: CLLocationDegrees = row.value(named: "latitude"), let longitude: CLLocationDegrees = row.value(named: "longitude") {
+            coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        } else {
+            coordinate = nil
         }
         
-        // Other columns
-        if let dbv = row["id"] { id = dbv.value() }
-        if let dbv = row["name"] { name = dbv.value() }
-        
-        // Subclasses are required to call super.
-        super.updateFromRow(row)
+        return self.init(
+            id: row.value(named: "id"),
+            name: row.value(named: "name"),
+            coordinate: coordinate)
     }
     
-    static func setupInDatabase(db: Database) throws {
-        try db.execute(
-            "CREATE TABLE placemarks (" +
-                "id INTEGER PRIMARY KEY, " +
-                "name TEXT, " +
-                "latitude REAL, " +
-                "longitude REAL" +
-            ")")
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
     }
 }
 
@@ -89,36 +79,10 @@ class RecordUpdateFromRowTests: GRDBTestCase {
         let parisLatitude = 48.8534100
         let parisLongitude = 2.3488000
         let row = Row(dictionary: ["name": "Paris", "latitude": parisLatitude, "longitude": parisLongitude])
-        let paris = Placemark(row: row)
+        let paris = Placemark.fromRow(row)
         XCTAssertEqual(paris.name!, "Paris")
         XCTAssertEqual(paris.coordinate!.latitude, parisLatitude)
         XCTAssertEqual(paris.coordinate!.longitude, parisLongitude)
-    }
-    
-    func testUpdateFromRow() {
-        let parisLatitude = 48.8534100
-        let parisLongitude = 2.3488000
-        let paris = Placemark()
-        
-        // Update name and coordinate
-        paris.updateFromRow(Row(dictionary: ["name": "Paris", "latitude": parisLatitude, "longitude": parisLongitude]))
-        XCTAssertEqual(paris.name!, "Paris")
-        XCTAssertEqual(paris.coordinate!.latitude, parisLatitude)
-        XCTAssertEqual(paris.coordinate!.longitude, parisLongitude)
-
-        // Missing coordinate prevents coordinate update
-        paris.updateFromRow(Row(dictionary: ["longitude": 0]))
-        XCTAssertEqual(paris.coordinate!.latitude, parisLatitude)
-        XCTAssertEqual(paris.coordinate!.longitude, parisLongitude)
-        
-        // Missing coordinate prevents coordinate update
-        paris.updateFromRow(Row(dictionary: ["latitude": 0]))
-        XCTAssertEqual(paris.coordinate!.latitude, parisLatitude)
-        XCTAssertEqual(paris.coordinate!.longitude, parisLongitude)
-        
-        // One nil coordinate resets coordinate.
-        paris.updateFromRow(Row(dictionary: ["latitude": nil, "longitude": 0]))
-        XCTAssertTrue(paris.coordinate == nil)
     }
     
     func testUpdateFromRowForFetchedRecords() {

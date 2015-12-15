@@ -2,11 +2,31 @@ import XCTest
 import GRDB
 
 // Person has a RowID primary key, and a overriden insert() method.
-class Person: Record {
+class Person : Record {
     var id: Int64!
     var name: String!
     var age: Int?
     var creationDate: NSDate!
+    
+    required init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+        self.id = id
+        self.name = name
+        self.age = age
+        self.creationDate = creationDate
+        super.init()
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE persons (" +
+                "id INTEGER PRIMARY KEY, " +
+                "creationDate TEXT NOT NULL, " +
+                "name TEXT NOT NULL, " +
+                "age INT" +
+            ")")
+    }
+    
+    // Record
     
     override class func databaseTableName() -> String {
         return "persons"
@@ -21,24 +41,12 @@ class Person: Record {
         ]
     }
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        if let dbv = row["name"] { name = dbv.value() }
-        if let dbv = row["age"] { age = dbv.value() }
-        if let dbv = row["creationDate"] { creationDate = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-    
-    init (id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
-        self.id = id
-        self.name = name
-        self.age = age
-        self.creationDate = creationDate
-        super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
+    override class func fromRow(row: Row) -> Self {
+        return self.init(
+            id: row.value(named: "id"),
+            name: row.value(named: "name"),
+            age: row.value(named: "age"),
+            creationDate: row.value(named: "creationDate"))
     }
     
     override func insert(db: Database) throws {
@@ -50,14 +58,8 @@ class Person: Record {
         try super.insert(db)
     }
     
-    static func setupInDatabase(db: Database) throws {
-        try db.execute(
-            "CREATE TABLE persons (" +
-                "id INTEGER PRIMARY KEY, " +
-                "creationDate TEXT NOT NULL, " +
-                "name TEXT NOT NULL, " +
-                "age INT" +
-            ")")
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
     }
 }
 

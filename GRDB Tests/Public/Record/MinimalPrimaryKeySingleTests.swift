@@ -4,7 +4,18 @@ import GRDB
 // MinimalSingle is the most tiny class with a Single row primary key which
 // supports read and write operations of Record.
 class MinimalSingle: Record {
-    var UUID: String!
+    var UUID: String?
+    
+    required init(UUID: String? = nil) {
+        self.UUID = UUID
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
+    }
+    
+    // Record
     
     override class func databaseTableName() -> String {
         return "minimalSingles"
@@ -14,14 +25,8 @@ class MinimalSingle: Record {
         return ["UUID": UUID]
     }
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["UUID"] { UUID = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-    
-    static func setupInDatabase(db: Database) throws {
-        try db.execute(
-            "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
+    override class func fromRow(row: Row) -> Self {
+        return self.init(UUID: row.value(named: "UUID"))
     }
 }
 
@@ -308,7 +313,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 do {
                     let fetchedRecords = Array(MinimalSingle.fetch(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]]))
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set([record1.UUID, record2.UUID]))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                 }
                 
                 do {
@@ -338,7 +343,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 do {
                     let fetchedRecords = MinimalSingle.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set([record1.UUID, record2.UUID]))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                 }
                 
                 do {
@@ -386,7 +391,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                     let UUIDs = [record1.UUID!, record2.UUID!]
                     let fetchedRecords = Array(MinimalSingle.fetch(db, keys: UUIDs))
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
             }
         }
@@ -412,7 +417,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                     let UUIDs = [record1.UUID!, record2.UUID!]
                     let fetchedRecords = MinimalSingle.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
             }
         }

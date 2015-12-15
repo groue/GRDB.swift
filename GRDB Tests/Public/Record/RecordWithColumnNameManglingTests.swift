@@ -7,6 +7,17 @@ class BadlyMangledStuff : Record {
     var id: Int64?
     var name: String?
     
+    required init(id: Int64? = nil, name: String? = nil) {
+        self.id = id
+        self.name = name
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
+    }
+    
+    // Record
+    
     override static func databaseTableName() -> String {
         return "stuffs"
     }
@@ -17,16 +28,16 @@ class BadlyMangledStuff : Record {
         return ["id": id, "name": name]
     }
     
-    override func updateFromRow(row: Row) {
+    override class func fromRow(row: Row) -> Self {
         // Here user may peek fancy column names that match his SQL queries.
         // However this is not the way to do it (see testBadlyMangledStuff()).
-        if let dbv = row["mangled_id"] { id = dbv.value() }
-        if let dbv = row["mangled_name"] { name = dbv.value() }
-        super.updateFromRow(row)
+        return self.init(
+            id: row.value(named: "mangled_id"),
+            name: row.value(named: "mangled_name"))
     }
     
-    static func setupInDatabase(db: Database) throws {
-        try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
     }
 }
 

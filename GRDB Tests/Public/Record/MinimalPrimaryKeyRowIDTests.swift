@@ -3,8 +3,20 @@ import GRDB
 
 // MinimalRowID is the most tiny class with a RowID primary key which supports
 // read and write operations of Record.
-class MinimalRowID: Record {
+class MinimalRowID : Record {
     var id: Int64!
+    
+    required init(id: Int64? = nil) {
+        self.id = id
+        super.init()
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE minimalRowIDs (id INTEGER PRIMARY KEY)")
+    }
+    
+    // Record
     
     override class func databaseTableName() -> String {
         return "minimalRowIDs"
@@ -14,18 +26,16 @@ class MinimalRowID: Record {
         return ["id": id]
     }
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    override class func fromRow(row: Row) -> Self {
+        return self.init(id: row.value(named: "id"))
     }
     
-    static func setupInDatabase(db: Database) throws {
-        try db.execute(
-            "CREATE TABLE minimalRowIDs (id INTEGER PRIMARY KEY)")
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
     }
 }
 
-class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
+class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     override func setUp() {
         super.setUp()

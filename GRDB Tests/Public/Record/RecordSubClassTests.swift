@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class PersonWithOverrides: Person {
+class PersonWithOverrides : Person {
     enum SavingMethod {
         case Insert
         case Update
@@ -10,9 +10,16 @@ class PersonWithOverrides: Person {
     var extra: Int!
     var lastSavingMethod: SavingMethod?
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["extra"] { extra = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    // Record
+    
+    override class func fromRow(row: Row) -> Self {
+        let person = self.init(
+            id: row.value(named: "id"),
+            name: row.value(named: "name"),
+            age: row.value(named: "age"),
+            creationDate: row.value(named: "creationDate"))
+        person.extra = row.value(named: "extra")
+        return person
     }
     
     override func insert(db: Database) throws {

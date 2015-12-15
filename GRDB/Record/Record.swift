@@ -19,19 +19,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     public init() {
     }
     
-    /// Initializes a Record from a row.
-    ///
-    /// The returned record is *edited*.
-    ///
-    /// The input row may not come straight from the database. When you want to
-    /// complete your initialization after being fetched, override
-    /// awakeFromFetch().
-    ///
-    /// - parameter row: A Row
-    required public init(row: Row) {
-        updateFromRow(row)
-    }
-    
     /// Don't call this method directly. It is called after a Record has been
     /// fetched.
     ///
@@ -49,10 +36,9 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     /// Returns a new Record initialized from a row.
     ///
-    /// This method is required by the RowConvertible protocol. It returns a
-    /// record initialized from the row. See init(row:Row).
-    public final class func fromRow(row: Row) -> Self {
-        return self.init(row: row)
+    /// The implementation of the base class Record raises a fatal error.
+    public class func fromRow(row: Row) -> Self {
+        fatalError("Subclass must override.")
     }
     
     
@@ -97,57 +83,15 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         return [:]
     }
     
-    /// Updates self from a row.
-    ///
-    /// *Important*: subclasses must invoke super's implementation.
-    ///
-    /// Subclasses should update their internal state from the given row:
-    ///
-    ///     class Person : Record {
-    ///         var id: Int64?
-    ///         var name: String?
-    ///
-    ///         override func updateFromRow(row: Row) {
-    ///             if let dbv = row["id"] { id = dbv.value() }
-    ///             if let dbv = row["name"] { name = dbv.value() }
-    ///             super.updateFromRow(row) // Subclasses are required to call super.
-    ///         }
-    ///     }
-    ///
-    /// For performance reasons, the row argument may be reused between several
-    /// record initializations during the iteration of a fetch query. So if you
-    /// want to keep the row for later use, make sure to store a copy:
-    /// `self.row = row.copy()`.
-    ///
-    /// Note that your subclass *could* support mangled column names, and be
-    /// able to load from custom SQL queries like the following:
-    ///
-    ///     SELECT id AS person_id, name AS person_name FROM persons;
-    ///
-    /// Yet we *discourage* doing so, because such record loses the ability to
-    /// track changes (see databaseEdited, databaseChanges).
-    ///
-    /// Finally, consider that the input row may not come straight from the
-    /// database. When you want to complete your initialization after being
-    /// fetched, override awakeFromFetch().
-    ///
-    /// - parameter row: A Row.
-    public func updateFromRow(row: Row) {
-    }
-    
     /// Don't call this method directly: it is called upon successful insertion,
     /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
     /// column name.
     ///
-    /// The default implementation calls updateFromRow() if the table has an
-    /// INTEGER PRIMARY KEY.
+    /// The default implementation does nothing.
     ///
     /// - parameter rowID: The inserted rowID.
     /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
     public func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-        if let column = column {
-            updateFromRow(Row(dictionary: [column: rowID]))
-        }
     }
     
     

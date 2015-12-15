@@ -2,34 +2,14 @@ import XCTest
 import GRDB
 
 // Pet has a non-RowID primary key.
-class Pet: Record {
-    var UUID: String!
-    var name: String!
+class Pet : Record {
+    var UUID: String?
+    var name: String
     
-    override class func databaseTableName() -> String {
-        return "pets"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "UUID": UUID,
-            "name": name]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["UUID"] { UUID = dbv.value() }
-        if let dbv = row["name"] { name = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-    
-    init (UUID: String? = nil, name: String? = nil) {
+    required init(UUID: String? = nil, name: String) {
         self.UUID = UUID
         self.name = name
         super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -38,6 +18,22 @@ class Pet: Record {
                 "UUID TEXT NOT NULL PRIMARY KEY, " +
                 "name TEXT NOT NULL" +
             ")")
+    }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "pets"
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["UUID": UUID, "name": name]
+    }
+    
+    override class func fromRow(row: Row) -> Self {
+        return self.init(
+            UUID: row.value(named: "UUID"),
+            name: row.value(named: "name"))
     }
 }
 
@@ -313,7 +309,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 do {
                     let fetchedRecords = Array(Pet.fetch(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]]))
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set([record1.UUID, record2.UUID]))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                 }
                 
                 do {
@@ -341,7 +337,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                 do {
                     let fetchedRecords = Pet.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set([record1.UUID, record2.UUID]))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                 }
                 
                 do {
@@ -387,7 +383,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                     let UUIDs = [record1.UUID!, record2.UUID!]
                     let fetchedRecords = Array(Pet.fetch(db, keys: UUIDs))
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
             }
         }
@@ -411,7 +407,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
                     let UUIDs = [record1.UUID!, record2.UUID!]
                     let fetchedRecords = Pet.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
             }
         }

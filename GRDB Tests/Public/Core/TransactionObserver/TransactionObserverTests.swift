@@ -47,27 +47,10 @@ class Artist : Record {
     var id: Int64?
     var name: String?
     
-    init(name: String?) {
+    required init(id: Int64? = nil, name: String?) {
+        self.id = id
         self.name = name
         super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
-    }
-    
-    static override func databaseTableName() -> String {
-        return "artists"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        if let dbv = row["name"] { name = dbv.value() }
-        super.updateFromRow(row)
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -77,6 +60,26 @@ class Artist : Record {
                 "name TEXT" +
             ")")
     }
+    
+    // Record
+    
+    static override func databaseTableName() -> String {
+        return "artists"
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "name": name]
+    }
+    
+    override class func fromRow(row: Row) -> Self {
+        return self.init(
+            id: row.value(named: "id"),
+            name: row.value(named: "name"))
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
+    }
 }
 
 class Artwork : Record {
@@ -84,29 +87,11 @@ class Artwork : Record {
     var artistId: Int64?
     var title: String?
     
-    init(title: String?, artistId: Int64? = nil) {
+    required init(id: Int64? = nil, title: String?, artistId: Int64? = nil) {
+        self.id = id
         self.title = title
         self.artistId = artistId
         super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
-    }
-    
-    static override func databaseTableName() -> String {
-        return "artworks"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "artistId": artistId, "title": title]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        if let dbv = row["artistId"] { artistId = dbv.value() }
-        if let dbv = row["title"] { title = dbv.value() }
-        super.updateFromRow(row)
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -116,6 +101,27 @@ class Artwork : Record {
                 "artistId INTEGER NOT NULL REFERENCES artists(id) ON DELETE CASCADE ON UPDATE CASCADE, " +
                 "title TEXT" +
             ")")
+    }
+    
+    // Record
+    
+    static override func databaseTableName() -> String {
+        return "artworks"
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "artistId": artistId, "title": title]
+    }
+    
+    override class func fromRow(row: Row) -> Self {
+        return self.init(
+            id: row.value(named: "id"),
+            title: row.value(named: "title"),
+            artistId: row.value(named: "artistId"))
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
     }
 }
 

@@ -15,10 +15,10 @@
     - [ ] Update documentation
 - [ ] Conversion should crash when type mismatch (String.fetch("SELECT 1"))
 - [ ] Record:
-    - [ ] Remove reloading
-    - [ ] Remove init(row)
-    - [ ] Expose fromRow (fatalError("subclass must implement") in Record)
-    - [ ] Expose didInsertWithRowID(_:forColumn:)
+    - [X] Remove reloading
+    - [X] Remove init(row)
+    - [X] Expose fromRow (fatalError("subclass must implement") in Record)
+    - [X] Expose didInsertWithRowID(_:forColumn:)
     - [ ] Make Person subclass that eats an extra column easier to write (in PersonWithOverrides)
     - [ ] Rename RecordUpdateFromRowTests
     - [ ] Update documentation
