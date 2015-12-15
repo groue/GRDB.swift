@@ -2,38 +2,16 @@ import XCTest
 import GRDB
 
 // Citizenship has a multiple-column primary key.
-class Citizenship: Record {
+class Citizenship : Record {
     var personName: String!
     var countryName: String!
     var native: Bool!
     
-    override class func databaseTableName() -> String {
-        return "citizenships"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "personName": personName,
-            "countryName": countryName,
-            "native": native]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["personName"] { personName = dbv.value() }
-        if let dbv = row["countryName"] { countryName = dbv.value() }
-        if let dbv = row["native"] { native = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-    
-    init (personName: String? = nil, countryName: String? = nil, native: Bool? = nil) {
+    init(personName: String? = nil, countryName: String? = nil, native: Bool? = nil) {
         self.personName = personName
         self.countryName = countryName
         self.native = native
         super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -44,6 +22,26 @@ class Citizenship: Record {
                 "native BOOLEAN NOT NULL, " +
                 "PRIMARY KEY (personName, countryName)" +
             ")")
+    }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "citizenships"
+    }
+    
+    required init(row: Row) {
+        personName = row.value(named: "personName")
+        countryName = row.value(named: "countryName")
+        native = row.value(named: "native")
+        super.init(row: row)
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return [
+            "personName": personName,
+            "countryName": countryName,
+            "native": native]
     }
 }
 
@@ -299,62 +297,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 XCTAssertFalse(deleted)
             }
         }
-    }
-    
-    
-    // MARK: - Reload
-    
-    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
-            }
-        }
-    }
-    
-    func testReloadWithNotNilPrimaryKeyThatMatchesARowFetchesThatRow() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                record.native = false
-                try record.reload(db)
-                
-                let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.storedDatabaseDictionary {
-                    if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
-                }
-            }
-        }
-    }
-    
-    func testReloadAfterDeleteThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-                try record.insert(db)
-                try record.delete(db)
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
-            }
-        }
-    }
-    
-    
+    }    
     
     
     // MARK: - Fetch With Key

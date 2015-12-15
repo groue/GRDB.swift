@@ -23,4 +23,12 @@ extension NSData : DatabaseValueConvertible {
             return nil
         }
     }
+    
+    public static func fromRow(row: Row) -> Self {
+        // TODO: test
+        guard let data = fromDatabaseValue(row.databaseValues.first!) else {
+            fatalError("Could not convert \(row.databaseValues.first!) to NSData.")
+        }
+        return data
+    }
 }

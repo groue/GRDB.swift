@@ -29,7 +29,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
         return DatabaseValue(double: date.timeIntervalSince1970)
     }
     
-    /// Returns an instance initialized from *databaseValue*, if possible.
+    /// Returns a value initialized from *databaseValue*, if possible.
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseTimestamp? {
         // Double itself adopts DatabaseValueConvertible. So let's avoid
         // handling the raw DatabaseValue, and use built-in Double conversion:

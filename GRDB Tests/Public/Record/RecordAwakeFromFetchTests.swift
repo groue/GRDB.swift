@@ -5,26 +5,37 @@ class EventRecorder : Record {
     var id: Int64?
     var awakeFromFetchCount = 0
     
+    init(id: Int64? = nil) {
+        self.id = id
+        super.init()
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute("CREATE TABLE eventRecorders (id INTEGER PRIMARY KEY)")
+    }
+    
+    // Record
+    
     override static func databaseTableName() -> String {
         return "eventRecorders"
     }
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    required init(row: Row) {
+        id = row.value(named: "id")
+        super.init(row: row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id]
     }
     
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
+    }
+    
     override func awakeFromFetch(row: Row) {
         super.awakeFromFetch(row)
         awakeFromFetchCount += 1
-    }
-    
-    static func setupInDatabase(db: Database) throws {
-        try db.execute("CREATE TABLE eventRecorders (id INTEGER PRIMARY KEY)")
     }
 }
 
@@ -57,8 +68,6 @@ class RecordEventsTests: GRDBTestCase {
                     let record = EventRecorder()
                     try record.insert(db)
                     XCTAssertEqual(record.awakeFromFetchCount, 0)
-                    try record.reload(db)
-                    XCTAssertEqual(record.awakeFromFetchCount, 1)
                 }
             }
         }

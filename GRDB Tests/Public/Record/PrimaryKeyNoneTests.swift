@@ -2,29 +2,12 @@ import XCTest
 import GRDB
 
 // Item has no primary key.
-class Item: Record {
+class Item : Record {
     var name: String?
     
-    override class func databaseTableName() -> String {
-        return "items"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["name": name]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["name"] { name = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-    
-    init (name: String? = nil) {
+    init(name: String? = nil) {
         self.name = name
         super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -32,6 +15,21 @@ class Item: Record {
             "CREATE TABLE items (" +
                 "name NOT NULL" +
             ")")
+    }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "items"
+    }
+    
+    required init(row: Row) {
+        name = row.value(named: "name")
+        super.init(row: row)
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["name": name]
     }
 }
 

@@ -2,14 +2,42 @@ import XCTest
 import GRDB
 
 // Person has a RowID primary key, and a overriden insert() method.
-class Person: Record {
+class Person : Record {
     var id: Int64!
     var name: String!
     var age: Int?
     var creationDate: NSDate!
     
+    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+        self.id = id
+        self.name = name
+        self.age = age
+        self.creationDate = creationDate
+        super.init()
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE persons (" +
+                "id INTEGER PRIMARY KEY, " +
+                "creationDate TEXT NOT NULL, " +
+                "name TEXT NOT NULL, " +
+                "age INT" +
+            ")")
+    }
+    
+    // Record
+    
     override class func databaseTableName() -> String {
         return "persons"
+    }
+    
+    required init(row: Row) {
+        id = row.value(named: "id")
+        age = row.value(named: "age")
+        name = row.value(named: "name")
+        creationDate = row.value(named: "creationDate")
+        super.init(row: row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -21,26 +49,6 @@ class Person: Record {
         ]
     }
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        if let dbv = row["name"] { name = dbv.value() }
-        if let dbv = row["age"] { age = dbv.value() }
-        if let dbv = row["creationDate"] { creationDate = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
-    }
-    
-    init (id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
-        self.id = id
-        self.name = name
-        self.age = age
-        self.creationDate = creationDate
-        super.init()
-    }
-    
-    required init(row: Row) {
-        super.init(row: row)
-    }
-    
     override func insert(db: Database) throws {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
@@ -50,14 +58,8 @@ class Person: Record {
         try super.insert(db)
     }
     
-    static func setupInDatabase(db: Database) throws {
-        try db.execute(
-            "CREATE TABLE persons (" +
-                "id INTEGER PRIMARY KEY, " +
-                "creationDate TEXT NOT NULL, " +
-                "name TEXT NOT NULL, " +
-                "age INT" +
-            ")")
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
     }
 }
 
@@ -356,59 +358,6 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 XCTAssertTrue(deleted)
                 deleted = try record.delete(db)
                 XCTAssertFalse(deleted)
-            }
-        }
-    }
-    
-    
-    // MARK: - Reload
-    
-    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = Person(id: 123456, name: "Arthur")
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
-            }
-        }
-    }
-    
-    func testReloadWithNotNilPrimaryKeyThatMatchesARowFetchesThatRow() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = Person(name: "Arthur", age: 41)
-                try record.insert(db)
-                record.age = record.age! + 1
-                try record.reload(db)
-                
-                let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
-                    if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
-                }
-            }
-        }
-    }
-    
-    func testReloadAfterDeleteThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = Person(name: "Arthur")
-                try record.insert(db)
-                try record.delete(db)
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
             }
         }
     }

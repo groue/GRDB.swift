@@ -6,9 +6,11 @@ struct SimpleRowConvertible : RowConvertible {
     var lastName: String
     var fetched: Bool = false
     
-    init(row: Row) {
-        firstName = row.value(named: "firstName")
-        lastName = row.value(named: "lastName")
+    static func fromRow(row: Row) -> SimpleRowConvertible {
+        return SimpleRowConvertible(
+            firstName: row.value(named: "firstName"),
+            lastName: row.value(named: "lastName"),
+            fetched: false)
     }
     
     mutating func awakeFromFetch(row: Row) {
@@ -30,14 +32,7 @@ class RowConvertibleTests: GRDBTestCase {
     
     func testRowInitializer() {
         let row = Row(dictionary: ["firstName": "Arthur", "lastName": "Martin"])
-        let s = SimpleRowConvertible(row: row)
-        XCTAssertEqual(s.firstName, "Arthur")
-        XCTAssertEqual(s.lastName, "Martin")
-        XCTAssertFalse(s.fetched)
-    }
-    
-    func testDictionaryInitializer() {
-        let s = SimpleRowConvertible(dictionary: ["firstName": "Arthur", "lastName": "Martin"])
+        let s = SimpleRowConvertible.fromRow(row)
         XCTAssertEqual(s.firstName, "Arthur")
         XCTAssertEqual(s.lastName, "Martin")
         XCTAssertFalse(s.fetched)

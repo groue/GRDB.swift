@@ -4,24 +4,31 @@ import GRDB
 // MinimalSingle is the most tiny class with a Single row primary key which
 // supports read and write operations of Record.
 class MinimalSingle: Record {
-    var UUID: String!
+    var UUID: String?
     
-    override class func databaseTableName() -> String {
-        return "minimalSingles"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["UUID": UUID]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["UUID"] { UUID = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    init(UUID: String? = nil) {
+        self.UUID = UUID
+        super.init()
     }
     
     static func setupInDatabase(db: Database) throws {
         try db.execute(
             "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
+    }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "minimalSingles"
+    }
+    
+    required init(row: Row) {
+        UUID = row.value(named: "UUID")
+        super.init(row: row)
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["UUID": UUID]
     }
 }
 
@@ -288,61 +295,6 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
     }
     
     
-    // MARK: - Reload
-    
-    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = MinimalSingle()
-                record.UUID = "theUUID"
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
-            }
-        }
-    }
-    
-    func testReloadWithNotNilPrimaryKeyThatMatchesARowFetchesThatRow() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = MinimalSingle()
-                record.UUID = "theUUID"
-                try record.insert(db)
-                try record.reload(db)
-                
-                let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
-                for (key, value) in record.storedDatabaseDictionary {
-                    if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
-                }
-            }
-        }
-    }
-    
-    func testReloadAfterDeleteThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = MinimalSingle()
-                record.UUID = "theUUID"
-                try record.insert(db)
-                try record.delete(db)
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
-            }
-        }
-    }
-    
-    
     // MARK: - Fetch With Key
     
     func testFetchWithKeys() {
@@ -363,7 +315,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 do {
                     let fetchedRecords = Array(MinimalSingle.fetch(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]]))
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set([record1.UUID, record2.UUID]))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                 }
                 
                 do {
@@ -393,7 +345,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 do {
                     let fetchedRecords = MinimalSingle.fetchAll(db, keys: [["UUID": record1.UUID], ["UUID": record2.UUID]])
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set([record1.UUID, record2.UUID]))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set([record1.UUID!, record2.UUID!]))
                 }
                 
                 do {
@@ -441,7 +393,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                     let UUIDs = [record1.UUID!, record2.UUID!]
                     let fetchedRecords = Array(MinimalSingle.fetch(db, keys: UUIDs))
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
             }
         }
@@ -467,7 +419,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                     let UUIDs = [record1.UUID!, record2.UUID!]
                     let fetchedRecords = MinimalSingle.fetchAll(db, keys: UUIDs)
                     XCTAssertEqual(fetchedRecords.count, 2)
-                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID }), Set(UUIDs))
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 }
             }
         }

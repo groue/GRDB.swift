@@ -2,13 +2,6 @@
 
 /// Record is a class that wraps a table row, or the result of any query. It is
 /// designed to be subclassed.
-///
-/// Subclasses opt in Record features by overriding all or part of the core
-/// methods that define their relationship with the database:
-///
-/// - updateFromRow
-/// - databaseTable
-/// - storedDatabaseDictionary
 public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable {
     
     // MARK: - Initializers
@@ -17,10 +10,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// The returned record is *edited*.
     public init() {
-        // IMPLEMENTATION NOTE
-        //
-        // This initializer is defined so that a subclass can be defined
-        // without any custom initializer.
     }
     
     /// Initializes a Record from a row.
@@ -33,28 +22,10 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// - parameter row: A Row
     required public init(row: Row) {
-        // IMPLEMENTATION NOTE
-        //
-        // Swift requires a required initializer so that we can fetch Records
-        // in SelectStatement.fetch<Record: GRDB.Record>(type: Record.Type, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Record>
-        //
-        // This required initializer *can not* be the simple init(), because it
-        // would prevent subclasses to provide handy initializers made of
-        // optional arguments like init(firstName: String? = nil, lastName: String? = nil).
-        // See rdar://22554816 for more information.
-        //
-        // OK so the only initializer that we can require in init(row:Row).
-        //
-        // IMPLEMENTATION NOTE
-        //
-        // This initializer returns an edited record because the row may not
-        // come from the database.
-        
-        updateFromRow(row)
     }
     
     /// Don't call this method directly. It is called after a Record has been
-    /// fetched or reloaded.
+    /// fetched.
     ///
     /// *Important*: subclasses must invoke super's implementation.
     ///
@@ -68,13 +39,21 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         referenceRow = row.copy()
     }
     
+    /// Returns a new Record initialized from a row.
+    ///
+    /// This method is required by the RowConvertible protocol. It returns a
+    /// record initialized from the row. See init(row:Row).
+    public final class func fromRow(row: Row) -> Self {
+        return self.init(row: row)
+    }
+    
     
     // MARK: - Core methods
     
     /// Returns the name of a database table.
     ///
-    /// This table name is required by the insert, update, save, delete, exists
-    /// and reload methods.
+    /// This table name is required by the insert, update, save, delete,
+    /// and exists methods.
     ///
     ///     class Person : Record {
     ///         override class func databaseTableName() -> String {
@@ -110,57 +89,15 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         return [:]
     }
     
-    /// Updates self from a row.
-    ///
-    /// *Important*: subclasses must invoke super's implementation.
-    ///
-    /// Subclasses should update their internal state from the given row:
-    ///
-    ///     class Person : Record {
-    ///         var id: Int64?
-    ///         var name: String?
-    ///
-    ///         override func updateFromRow(row: Row) {
-    ///             if let dbv = row["id"] { id = dbv.value() }
-    ///             if let dbv = row["name"] { name = dbv.value() }
-    ///             super.updateFromRow(row) // Subclasses are required to call super.
-    ///         }
-    ///     }
-    ///
-    /// For performance reasons, the row argument may be reused between several
-    /// record initializations during the iteration of a fetch query. So if you
-    /// want to keep the row for later use, make sure to store a copy:
-    /// `self.row = row.copy()`.
-    ///
-    /// Note that your subclass *could* support mangled column names, and be
-    /// able to load from custom SQL queries like the following:
-    ///
-    ///     SELECT id AS person_id, name AS person_name FROM persons;
-    ///
-    /// Yet we *discourage* doing so, because such record loses the ability to
-    /// track changes (see databaseEdited, databaseChanges).
-    ///
-    /// Finally, consider that the input row may not come straight from the
-    /// database. When you want to complete your initialization after being
-    /// fetched, override awakeFromFetch().
-    ///
-    /// - parameter row: A Row.
-    public func updateFromRow(row: Row) {
-    }
-    
     /// Don't call this method directly: it is called upon successful insertion,
     /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
     /// column name.
     ///
-    /// The default implementation calls updateFromRow() if the table has an
-    /// INTEGER PRIMARY KEY.
+    /// The default implementation does nothing.
     ///
     /// - parameter rowID: The inserted rowID.
     /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
     public func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-        if let column = column {
-            updateFromRow(Row(dictionary: [column: rowID]))
-        }
     }
     
     
@@ -175,7 +112,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.init(row: Row(dictionary: storedDatabaseDictionary))
+        let copy = self.dynamicType.fromRow(Row(dictionary: storedDatabaseDictionary))
         copy.referenceRow = referenceRow
         return copy
     }
@@ -187,7 +124,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// been saved.
     ///
     /// This flag is purely informative, and does not prevent insert(),
-    /// update(), save() and reload() from performing their database queries.
+    /// update(), and save() from performing their database queries.
     ///
     /// A record is *edited* if its *storedDatabaseDictionary* has been changed
     /// since last database synchronization (fetch, update, insert). Comparison
@@ -325,22 +262,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         // databaseEdited flag:
         databaseEdited = true
         return deleted
-    }
-    
-    /// Executes a SELECT statetement.
-    ///
-    /// On success, this method sets the *databaseEdited* flag to false.
-    ///
-    /// - parameter db: A Database.
-    /// - throws: PersistenceError.NotFound is thrown if the primary key does
-    ///   not match any row in the database and record could not be reloaded.
-    public func reload(db: Database) throws {
-        let statement = DataMapper(db, self).reloadStatement()
-        guard let row = Row.fetchOne(statement) else {
-            throw PersistenceError.NotFound(self)
-        }
-        updateFromRow(row)
-        awakeFromFetch(row)
     }
 }
 

@@ -598,12 +598,14 @@ public final class Database {
         let notNull: Bool
         let defaultDatabaseValue: DatabaseValue
         let primaryKeyIndex: Int
-        init(row: Row) {
-            name = row.value(named: "name")
-            type = row.value(named: "type")
-            notNull = row.value(named: "notnull")
-            defaultDatabaseValue = row["dflt_value"]!
-            primaryKeyIndex = row.value(named: "pk")
+        
+        static func fromRow(row: Row) -> ColumnInfo {
+            return ColumnInfo(
+                name:row.value(named: "name"),
+                type:row.value(named: "type"),
+                notNull:row.value(named: "notnull"),
+                defaultDatabaseValue:row["dflt_value"]!,
+                primaryKeyIndex:row.value(named: "pk"))
         }
     }
     

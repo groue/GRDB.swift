@@ -1,7 +1,18 @@
 import XCTest
 import GRDB
 
-class PersonWithOverrides: Person {
+class MinimalPersonWithOverrides : Person {
+    var extra: Int!
+    
+    // Record
+    
+    required init(row: Row) {
+        extra = row.value(named: "extra")
+        super.init(row: row)
+    }
+}
+
+class PersonWithOverrides : Person {
     enum SavingMethod {
         case Insert
         case Update
@@ -10,9 +21,15 @@ class PersonWithOverrides: Person {
     var extra: Int!
     var lastSavingMethod: SavingMethod?
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["extra"] { extra = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    override init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+        super.init(id: id, name: name, age: age, creationDate: creationDate)
+    }
+    
+    // Record
+    
+    required init(row: Row) {
+        extra = row.value(named: "extra")
+        super.init(row: row)
     }
     
     override func insert(db: Database) throws {
@@ -95,12 +112,23 @@ class RecordSubClassTests: GRDBTestCase {
                 let record = Person(name: "Arthur", age: 41)
                 try record.insert(db)
                 
-                let fetchedRecord = PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
-                XCTAssertTrue(fetchedRecord.id == record.id)
-                XCTAssertTrue(fetchedRecord.name == record.name)
-                XCTAssertTrue(fetchedRecord.age == record.age)
-                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-                XCTAssertTrue(fetchedRecord.extra == 123)
+                do {
+                    let fetchedRecord = PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                    XCTAssertTrue(fetchedRecord.id == record.id)
+                    XCTAssertTrue(fetchedRecord.name == record.name)
+                    XCTAssertTrue(fetchedRecord.age == record.age)
+                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                    XCTAssertTrue(fetchedRecord.extra == 123)
+                }
+                
+                do {
+                    let fetchedRecord = MinimalPersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                    XCTAssertTrue(fetchedRecord.id == record.id)
+                    XCTAssertTrue(fetchedRecord.name == record.name)
+                    XCTAssertTrue(fetchedRecord.age == record.age)
+                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                    XCTAssertTrue(fetchedRecord.extra == 123)
+                }
             }
         }
     }

@@ -8,7 +8,7 @@ extension CGFloat : DatabaseValueConvertible {
         return DatabaseValue(double: Double(self))
     }
     
-    /// Returns an instance initialized from *databaseValue*, if possible.
+    /// Returns a value initialized from *databaseValue*, if possible.
     ///
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional CGFloat.

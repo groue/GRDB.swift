@@ -28,7 +28,7 @@ extension DatabaseIntRepresentable {
         return DatabaseValue(int64: Int64(rawValue))
     }
     
-    /// Returns an instance initialized from *databaseValue*, if possible.
+    /// Returns a value initialized from *databaseValue*, if possible.
     ///
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional Self.
@@ -71,7 +71,7 @@ extension DatabaseInt32Representable {
         return DatabaseValue(int64: Int64(rawValue))
     }
     
-    /// Returns an instance initialized from *databaseValue*, if possible.
+    /// Returns a value initialized from *databaseValue*, if possible.
     ///
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional Self.
@@ -114,7 +114,7 @@ extension DatabaseInt64Representable {
         return DatabaseValue(int64: rawValue)
     }
     
-    /// Returns an instance initialized from *databaseValue*, if possible.
+    /// Returns a value initialized from *databaseValue*, if possible.
     ///
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional Self.
@@ -157,7 +157,7 @@ extension DatabaseStringRepresentable {
         return DatabaseValue(string: rawValue)
     }
     
-    /// Returns an instance initialized from *databaseValue*, if possible.
+    /// Returns a value initialized from *databaseValue*, if possible.
     ///
     /// - parameter databaseValue: A DatabaseValue.
     /// - returns: An optional Self.

@@ -1,7 +1,7 @@
 /// Bool adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /// Returns an instance initialized from a raw SQLite statement pointer.
+    /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameter sqliteStatement: A pointer to a SQLite statement.
     /// - parameter index: The column index.
@@ -89,7 +89,7 @@ extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// Int adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /// Returns an instance initialized from a raw SQLite statement pointer.
+    /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameter sqliteStatement: A pointer to a SQLite statement.
     /// - parameter index: The column index.
@@ -121,7 +121,7 @@ extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// Int32 adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /// Returns an instance initialized from a raw SQLite statement pointer.
+    /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameter sqliteStatement: A pointer to a SQLite statement.
     /// - parameter index: The column index.
@@ -153,7 +153,7 @@ extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// Int64 adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /// Returns an instance initialized from a raw SQLite statement pointer.
+    /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameter sqliteStatement: A pointer to a SQLite statement.
     /// - parameter index: The column index.
@@ -185,7 +185,7 @@ extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// Double adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /// Returns an instance initialized from a raw SQLite statement pointer.
+    /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameter sqliteStatement: A pointer to a SQLite statement.
     /// - parameter index: The column index.
@@ -217,7 +217,7 @@ extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
 /// String adopts DatabaseValueConvertible and SQLiteStatementConvertible.
 extension String: DatabaseValueConvertible, SQLiteStatementConvertible {
     
-    /// Returns an instance initialized from a raw SQLite statement pointer.
+    /// Returns a value initialized from a raw SQLite statement pointer.
     ///
     /// - parameter sqliteStatement: A pointer to a SQLite statement.
     /// - parameter index: The column index.

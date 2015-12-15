@@ -65,6 +65,9 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An Int64, Double, String, NSData or nil.
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
+        guard index >= 0 && index < count else {
+            fatalError("Row index out of range")
+        }
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -90,6 +93,9 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
+        guard index >= 0 && index < count else {
+            fatalError("Row index out of range")
+        }
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -120,6 +126,9 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
+        guard index >= 0 && index < count else {
+            fatalError("Row index out of range")
+        }
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -154,6 +163,9 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
+        guard index >= 0 && index < count else {
+            fatalError("Row index out of range")
+        }
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -184,6 +196,9 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: A *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
+        guard index >= 0 && index < count else {
+            fatalError("Row index out of range")
+        }
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -203,8 +218,8 @@ public final class Row: CollectionType {
     /// Returns Int64, Double, String, NSData or nil, depending on the value
     /// stored at the given column.
     ///
-    /// Column name is case-insensitive. If the row does not contain the column,
-    /// a fatal error is raised.
+    /// Column name is case-insensitive. The result is nil if the row does not
+    /// contain the column.
     ///
     /// - parameter columnName: A column name.
     /// - returns: An Int64, Double, String, NSData or nil.
@@ -217,18 +232,16 @@ public final class Row: CollectionType {
         //
         // Without this method, the code above would not compile.
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            return nil
         }
         return impl.databaseValue(atIndex: index).value()
     }
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name is case-insensitive. If the row does not contain the column,
-    /// a fatal error is raised.
-    ///
-    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
-    /// value can not be converted to `Value`.
+    /// Column name is case-insensitive. The result is nil if the row does not
+    /// contain the column, or if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
     ///
     /// Successful conversions include:
     ///
@@ -243,18 +256,16 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            return nil
         }
         return value(atIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
     ///
-    /// Column name is case-insensitive. If the row does not contain the column,
-    /// a fatal error is raised.
-    ///
-    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
-    /// value can not be converted to `Value`.
+    /// Column name is case-insensitive. The result is nil if the row does not
+    /// contain the column, or if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to `Value`.
     ///
     /// Successful conversions include:
     ///
@@ -274,7 +285,7 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            return nil
         }
         return value(atIndex: index)
     }
@@ -507,10 +518,10 @@ public final class Row: CollectionType {
     /// - parameter arguments: Statement arguments.
     /// - returns: An optional row.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> Row? {
-        let rows = statement.fetch(arguments: arguments) {
+        let sequence = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
         }
-        var generator = rows.generate()
+        var generator = sequence.generate()
         return generator.next()
     }
     

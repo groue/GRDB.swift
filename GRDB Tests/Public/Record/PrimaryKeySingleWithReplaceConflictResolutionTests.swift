@@ -5,18 +5,10 @@ class Email : Record {
     var email: String!
     var label: String?
     
-    override class func databaseTableName() -> String {
-        return "emails"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["email": email, "label": label]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["email"] { email = dbv.value() }
-        if let dbv = row["label"] { label = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    init(email: String? = nil, label: String? = nil) {
+        self.email = email
+        self.label = label
+        super.init()
     }
     
     static func setupInDatabase(db: Database) throws {
@@ -25,6 +17,22 @@ class Email : Record {
                 "email TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE, " +
                 "label TEXT " +
             ")")
+    }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "emails"
+    }
+    
+    required init(row: Row) {
+        email = row.value(named: "email")
+        label = row.value(named: "label")
+        super.init(row: row)
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["email": email, "label": label]
     }
 }
 
@@ -293,61 +301,6 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 XCTAssertTrue(deleted)
                 deleted = try record.delete(db)
                 XCTAssertFalse(deleted)
-            }
-        }
-    }
-    
-    
-    // MARK: - Reload
-    
-    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = Email()
-                record.email = "me@domain.com"
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
-            }
-        }
-    }
-    
-    func testReloadWithNotNilPrimaryKeyThatMatchesARowFetchesThatRow() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = Email()
-                record.email = "me@domain.com"
-                try record.insert(db)
-                try record.reload(db)
-                
-                let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
-                for (key, value) in record.storedDatabaseDictionary {
-                    if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
-                }
-            }
-        }
-    }
-    
-    func testReloadAfterDeleteThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = Email()
-                record.email = "me@domain.com"
-                try record.insert(db)
-                try record.delete(db)
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
             }
         }
     }

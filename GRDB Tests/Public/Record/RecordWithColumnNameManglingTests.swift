@@ -7,8 +7,28 @@ class BadlyMangledStuff : Record {
     var id: Int64?
     var name: String?
     
+    init(id: Int64? = nil, name: String? = nil) {
+        self.id = id
+        self.name = name
+        super.init()
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
+    }
+    
+    // Record
+    
     override static func databaseTableName() -> String {
         return "stuffs"
+    }
+    
+    required init(row: Row) {
+        // Here user may peek fancy column names that match his SQL queries.
+        // However this is not the way to do it (see testBadlyMangledStuff()).
+        id = row.value(named: "mangled_id")
+        name = row.value(named: "mangled_name")
+        super.init(row: row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -17,16 +37,8 @@ class BadlyMangledStuff : Record {
         return ["id": id, "name": name]
     }
     
-    override func updateFromRow(row: Row) {
-        // Here user may peek fancy column names that match his SQL queries.
-        // However this is not the way to do it (see testBadlyMangledStuff()).
-        if let dbv = row["mangled_id"] { id = dbv.value() }
-        if let dbv = row["mangled_name"] { name = dbv.value() }
-        super.updateFromRow(row)
-    }
-    
-    static func setupInDatabase(db: Database) throws {
-        try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
     }
 }
 

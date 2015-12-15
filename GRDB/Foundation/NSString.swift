@@ -18,4 +18,12 @@ extension NSString: DatabaseValueConvertible {
         }
         return self.init(string: string)
     }
+    
+    public static func fromRow(row: Row) -> Self {
+        // TODO: test
+        guard let string = fromDatabaseValue(row.databaseValues.first!) else {
+            fatalError("Could not convert \(row.databaseValues.first!) to NSString.")
+        }
+        return string
+    }
 }

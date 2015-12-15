@@ -3,29 +3,40 @@ import GRDB
 
 // MinimalRowID is the most tiny class with a RowID primary key which supports
 // read and write operations of Record.
-class MinimalRowID: Record {
+class MinimalRowID : Record {
     var id: Int64!
     
-    override class func databaseTableName() -> String {
-        return "minimalRowIDs"
-    }
-    
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id]
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    init(id: Int64? = nil) {
+        self.id = id
+        super.init()
     }
     
     static func setupInDatabase(db: Database) throws {
         try db.execute(
             "CREATE TABLE minimalRowIDs (id INTEGER PRIMARY KEY)")
     }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "minimalRowIDs"
+    }
+    
+    required init(row: Row) {
+        id = row.value(named: "id")
+        super.init(row: row)
+    }
+    
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id]
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
+    }
 }
 
-class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
+class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     override func setUp() {
         super.setUp()
@@ -285,59 +296,6 @@ class MinimalPrimaryKeyRowIDTests: GRDBTestCase {
                 XCTAssertTrue(deleted)
                 deleted = try record.delete(db)
                 XCTAssertFalse(deleted)
-            }
-        }
-    }
-    
-    
-    // MARK: - Reload
-    
-    func testReloadWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = MinimalRowID()
-                record.id = 123456
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
-            }
-        }
-    }
-    
-    func testReloadWithNotNilPrimaryKeyThatMatchesARowFetchesThatRow() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = MinimalRowID()
-                try record.insert(db)
-                try record.reload(db)
-                
-                let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
-                    if let dbv = row[key] {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
-                    } else {
-                        XCTFail("Missing column \(key) in fetched row")
-                    }
-                }
-            }
-        }
-    }
-    
-    func testReloadAfterDeleteThrowsRecordNotFound() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let record = MinimalRowID()
-                try record.insert(db)
-                try record.delete(db)
-                do {
-                    try record.reload(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
-                }
             }
         }
     }
