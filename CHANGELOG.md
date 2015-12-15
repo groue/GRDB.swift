@@ -6,8 +6,10 @@ Release Notes
 **Breaking Changes**
 
 - `Row.value(named:)` returns nil if no such column exists in the row.
-- `Record.reload` has been removed.
+- `Record.reload()` has been removed.
+- `Record.updateFromRow()` has been removed. Override `init(row:)` instead.
 - `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their inserted rowID.
+
 
 ## 0.34.0
 

@@ -1,6 +1,17 @@
 import XCTest
 import GRDB
 
+class MinimalPersonWithOverrides : Person {
+    var extra: Int!
+    
+    // Record
+    
+    required init(row: Row) {
+        extra = row.value(named: "extra")
+        super.init(row: row)
+    }
+}
+
 class PersonWithOverrides : Person {
     enum SavingMethod {
         case Insert
@@ -101,12 +112,23 @@ class RecordSubClassTests: GRDBTestCase {
                 let record = Person(name: "Arthur", age: 41)
                 try record.insert(db)
                 
-                let fetchedRecord = PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
-                XCTAssertTrue(fetchedRecord.id == record.id)
-                XCTAssertTrue(fetchedRecord.name == record.name)
-                XCTAssertTrue(fetchedRecord.age == record.age)
-                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-                XCTAssertTrue(fetchedRecord.extra == 123)
+                do {
+                    let fetchedRecord = PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                    XCTAssertTrue(fetchedRecord.id == record.id)
+                    XCTAssertTrue(fetchedRecord.name == record.name)
+                    XCTAssertTrue(fetchedRecord.age == record.age)
+                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                    XCTAssertTrue(fetchedRecord.extra == 123)
+                }
+                
+                do {
+                    let fetchedRecord = MinimalPersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                    XCTAssertTrue(fetchedRecord.id == record.id)
+                    XCTAssertTrue(fetchedRecord.name == record.name)
+                    XCTAssertTrue(fetchedRecord.age == record.age)
+                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                    XCTAssertTrue(fetchedRecord.extra == 123)
+                }
             }
         }
     }

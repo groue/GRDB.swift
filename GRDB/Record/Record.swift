@@ -2,13 +2,6 @@
 
 /// Record is a class that wraps a table row, or the result of any query. It is
 /// designed to be subclassed.
-///
-/// Subclasses opt in Record features by overriding all or part of the core
-/// methods that define their relationship with the database:
-///
-/// - updateFromRow
-/// - databaseTable
-/// - storedDatabaseDictionary
 public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable {
     
     // MARK: - Initializers
