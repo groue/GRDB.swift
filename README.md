@@ -1384,7 +1384,7 @@ PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
 PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
 ```
 
-See [Column Values](#column-values) for more information about the `value()` method.
+See [Column Values](#column-values) for more information about the `row.value()` method.
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
 
@@ -1861,6 +1861,8 @@ Country overrides `init(row:)` so that it can be fetched:
     }
 }
 ```
+
+See [Column Values](#column-values) for more information about the `row.value()` method.
 
 > :point_up: **Note**: For performance reasons, the same row argument to `init(row:)` is reused for all records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
