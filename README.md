@@ -1766,11 +1766,11 @@ class Record {
     /// The table name
     class func databaseTableName() -> String
     
-    /// The values stored in the database
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?]
-    
     /// Initialize a record from a database row
     required init(row: Row)
+    
+    /// The values stored in the database
+    var storedDatabaseDictionary: [String: DatabaseValueConvertible?]
     
     /// Optionally update record ID after a successful insertion
     func didInsertWithRowID(rowID: Int64, forColumn column: String?)
@@ -1853,7 +1853,7 @@ Country overrides `storedDatabaseDictionary` and returns a dictionary whose keys
 Country overrides `init(row:)` so that it can be fetched:
 
 ```swift
-    /// Initializes a Country from a row
+    /// Initialize a Country from a row
     required init(row: Row) {
         isoCode = row.value(named: "isoCode")
         name = row.value(named: "name")
@@ -1893,21 +1893,25 @@ struct Person : MutableDatabasePersistable {
     
     // Record overrides
     
-    static func databaseTableName() -> String {
+    /// The table name
+    override class func databaseTableName() -> String {
         return "persons"
     }
     
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    /// The values stored in the database
+    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
+    /// Initialize a Person from a row
     required init(row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
         super.init(row: row)
     }
     
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    /// Update person ID after a successful insertion
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         self.id = rowID
     }
 }
