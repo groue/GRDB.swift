@@ -10,10 +10,10 @@
     - [ ] didInsertWithRowID(_:forColumn:)
     - [ ] databaseEdited -> hasDatabaseChanges, hasNotPersistedChanges ? Check if doc makes it clear that the changes are based on last fetch. The method name should make it clear too.
     - [ ] Read conversion methods conventions (fromRow, fromDatabaseValue)
-- [ ] Row.value(named:) should return nil if column is not there.
+- [X] Row.value(named:) should return nil if column is not there.
     - [X] Row.value(named:) returns nil if column is not there.
     - [X] Update Row documentation
-    - [ ] Update "Optional Columns" chapter of RowConvertible documentation
+    - [X] Update "Optional Columns" chapter of RowConvertible documentation
 - [ ] Conversion should crash when type mismatch (Optional<String>.fetchOne(db, "SELECT 1"))
 - [ ] Record:
     - [X] Remove reloading

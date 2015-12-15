@@ -1492,9 +1492,9 @@ struct Person : RowConvertible {
     
     static func fromRow(row: Row) -> Person {
         return Person(
-            id: row.value(named: "id"),           // mandatory column
-            name: row.value(named: "name"),       // mandatory column
-            bookCount: row["bookCount"]?.value()) // optional column
+            id: row.value(named: "id"),
+            name: row.value(named: "name"),
+            bookCount: row.value(named: "bookCount")) // nil if column is missing
     }
     
     // The returned persons have a value in their bookCount property:
@@ -1508,7 +1508,7 @@ struct Person : RowConvertible {
 }
 ```
 
-See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `row["bookCount"]?.value()` expression.
+See [Column Values](#column-values) for more information about the `row.value()` method.
 
 
 ### DatabasePersistable Protocol
