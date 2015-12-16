@@ -48,3 +48,4 @@ Reading list:
 - Full text search (https://www.sqlite.org/fts3.html. Related: https://blogs.gnome.org/jnelson/)
 - https://www.sqlite.org/undoredo.html
 - http://www.sqlite.org/intern-v-extern-blob.html
+- List of documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
