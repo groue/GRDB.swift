@@ -17,6 +17,7 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 - `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)`
 - `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
 - `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their inserted rowID.
+- `Record.databaseChanges` now returns `[String: DatabaseValue?]`, the dictionary of old values for changed column names.
 - `Row.value(named:)` returns nil if no such column exists in the row.
 - `DatabaseValue` initializers from Int64, Double, String and NSData now have an unlabelled argument.
 - `DatabaseMigrator.registerMigrationWithoutForeignKeyChecks(_:_:)` has been renamed `DatabaseMigrator.registerMigration(_:withDisabledForeignKeyChecks:migrate:)`.

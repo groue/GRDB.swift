@@ -251,20 +251,16 @@ class RecordEditedTests: GRDBTestCase {
         let person = Person(name: "Arthur", age: 41)
         let changes = person.databaseChanges
         XCTAssertEqual(changes.count, 4)
-        for (column, (old: old, new: new)) in changes {
+        for (column, old) in changes {
             switch column {
             case "id":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, DatabaseValue.Null)
             case "name":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, "Arthur".databaseValue)
             case "age":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, 41.databaseValue)
             case "creationDate":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, DatabaseValue.Null)
             default:
                 XCTFail("Unexpected column: \(column)")
             }
@@ -275,20 +271,16 @@ class RecordEditedTests: GRDBTestCase {
         let person = Person(Row(dictionary:["name": "Arthur", "age": 41]))
         let changes = person.databaseChanges
         XCTAssertEqual(changes.count, 4)
-        for (column, (old: old, new: new)) in changes {
+        for (column, old) in changes {
             switch column {
             case "id":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, DatabaseValue.Null)
             case "name":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, "Arthur".databaseValue)
             case "age":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, 41.databaseValue)
             case "creationDate":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, DatabaseValue.Null)
             default:
                 XCTFail("Unexpected column: \(column)")
             }
@@ -321,17 +313,14 @@ class RecordEditedTests: GRDBTestCase {
                 let person =  Person.fetchOne(db, "SELECT name FROM persons")!
                 let changes = person.databaseChanges
                 XCTAssertEqual(changes.count, 3)
-                for (column, (old: old, new: new)) in changes {
+                for (column, old) in changes {
                     switch column {
                     case "id":
                         XCTAssertTrue(old == nil)
-                        XCTAssertEqual(new, DatabaseValue.Null)
                     case "age":
                         XCTAssertTrue(old == nil)
-                        XCTAssertEqual(new, DatabaseValue.Null)
                     case "creationDate":
                         XCTAssertTrue(old == nil)
-                        XCTAssertEqual(new, DatabaseValue.Null)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }
@@ -365,17 +354,14 @@ class RecordEditedTests: GRDBTestCase {
                 person.creationDate = nil       // non-nil -> nil
                 let changes = person.databaseChanges
                 XCTAssertEqual(changes.count, 3)
-                for (column, (old: old, new: new)) in changes {
+                for (column, old) in changes {
                     switch column {
                     case "name":
                         XCTAssertEqual(old, "Arthur".databaseValue)
-                        XCTAssertEqual(new, "Bobby".databaseValue)
                     case "age":
                         XCTAssertEqual(old, DatabaseValue.Null)
-                        XCTAssertEqual(new, 41.databaseValue)
                     case "creationDate":
                         XCTAssertTrue((old?.value() as NSDate?) != nil)
-                        XCTAssertEqual(new, DatabaseValue.Null)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }
@@ -408,11 +394,10 @@ class RecordEditedTests: GRDBTestCase {
                 person.name = "Bobby"
                 let changes = person.databaseChanges
                 XCTAssertEqual(changes.count, 1)
-                for (column, (old: old, new: new)) in changes {
+                for (column, old) in changes {
                     switch column {
                     case "name":
                         XCTAssertEqual(old, "Arthur".databaseValue)
-                        XCTAssertEqual(new, "Bobby".databaseValue)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }
@@ -432,11 +417,10 @@ class RecordEditedTests: GRDBTestCase {
                 person.id = person.id + 1
                 let changes = person.databaseChanges
                 XCTAssertEqual(changes.count, 1)
-                for (column, (old: old, new: new)) in changes {
+                for (column, old) in changes {
                     switch column {
                     case "id":
                         XCTAssertEqual(old, (person.id - 1).databaseValue)
-                        XCTAssertEqual(new, person.id.databaseValue)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }

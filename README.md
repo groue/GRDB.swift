@@ -1786,7 +1786,7 @@ class Person {
     
     // Change Tracking
     var databaseEdited: Bool
-    var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)]
+    var databaseChanges: [String: DatabaseValue?]
     
     // Persistence
     func insert(db: Database) throws

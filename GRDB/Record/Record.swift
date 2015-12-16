@@ -150,26 +150,24 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     /// A dictionary of changes that have not been saved.
     ///
-    /// Its keys are column names.
+    /// Its keys are column names, and values the old values that have been
+    /// changed since last fetching or saving of the record.
     ///
-    /// Its values are `(old: DatabaseValue?, new: DatabaseValue)` pairs, where
-    /// *old* is the reference DatabaseValue, and *new* the current one.
-    ///
-    /// The old DatabaseValue is nil, which means unknown, unless the record has
-    /// been fetched, updated or inserted.
+    /// Unless the record has actually been fetched or saved, the old values
+    /// are nil.
     ///
     /// See `databaseEdited` for more information.
-    public var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)] {
-        var changes: [String: (old: DatabaseValue?, new: DatabaseValue)] = [:]
-        for (column: column, old: old, new: new) in generateDatabaseChanges() {
-            changes[column] = (old: old, new: new)
+    public var databaseChanges: [String: DatabaseValue?] {
+        var changes: [String: DatabaseValue?] = [:]
+        for (column: column, old: old) in generateDatabaseChanges() {
+            changes[column] = old
         }
         return changes
     }
     
     // A change generator that is used by both databaseEdited and
     // databaseChanges properties.
-    private func generateDatabaseChanges() -> AnyGenerator<(column: String, old: DatabaseValue?, new: DatabaseValue)> {
+    private func generateDatabaseChanges() -> AnyGenerator<(column: String, old: DatabaseValue?)> {
         let oldRow = referenceRow
         var newValueGenerator = storedDatabaseDictionary.generate()
         return anyGenerator {
@@ -177,10 +175,10 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
             while let (column, newValue) = newValueGenerator.next() {
                 let new = newValue?.databaseValue ?? .Null
                 guard let old = oldRow?[column] else {
-                    return (column: column, old: nil, new: new)
+                    return (column: column, old: nil)
                 }
                 if new != old {
-                    return (column: column, old: old, new: new)
+                    return (column: column, old: old)
                 }
             }
             return nil
