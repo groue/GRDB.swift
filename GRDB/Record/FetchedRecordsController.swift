@@ -100,10 +100,8 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
             if let _ = currentIndexPathForItem[item] {
                 // item was there
             } else {
-                // Insert
                 guard let newIndexPath = finalIndexPathForItem[item] else {
-                    print("WTF?!")
-                    break
+                    fatalError()
                 }
                 
                 let update = FetchedRecordsUpdate.Insert(item: item, at: newIndexPath)
@@ -114,37 +112,35 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
         
         // 3 - DELETES, MOVES & RELOAD
         for oldItem: T in currentRecords {
+            
             guard let oldIndexPath = currentIndexPathForItem[oldItem] else {
-                print("WTF?!")
-                break
+                fatalError()
             }
 
             if let index = finalIndexPathForItem.indexForKey(oldItem) {
-                
                 let (newItem, newIndexPath) = finalIndexPathForItem[index]
-                
                 if oldIndexPath == newIndexPath {
-                    
-                    var changes: [String: (old: DatabaseValue?, new: DatabaseValue)]?
-                    
                     if let oldRecord = oldItem as? Record, let newRecord = oldItem as? Record {
                         let recordCopy = newRecord.copy()
                         recordCopy.referenceRow = oldRecord.referenceRow
-                        changes = recordCopy.databaseChanges
+                        let changes = recordCopy.persistentChangedValues
+                        if changes.count > 0 {
+                            let update = FetchedRecordsUpdate.Update(item: newItem, at: newIndexPath, changes: changes)
+                            updates.append(update)
+                            apply(update)
+                        }
+                    } else {
+                        // Not a record
+                        let update = FetchedRecordsUpdate.Update(item: newItem, at: newIndexPath, changes: nil)
+                        updates.append(update)
+                        apply(update)
                     }
-                    
-                    // Not a record
-                    let update = FetchedRecordsUpdate.Update(item: newItem, at: newIndexPath, changes: changes)
-                    updates.append(update)
-                    apply(update)
-                    
                 } else {
                     // item moved
                     let update = FetchedRecordsUpdate.Move(item: newItem, from: oldIndexPath, to: newIndexPath)
                     updates.append(update)
                     apply(update)
                 }
-                
             } else {
                 // item deleted
                 let update = FetchedRecordsUpdate.Delete(item: oldItem, at: oldIndexPath)
@@ -205,7 +201,7 @@ public enum FetchedRecordsUpdate<T> {
     case Insert(item:T, at: NSIndexPath)
     case Delete(item:T, at: NSIndexPath)
     case Move(item:T, from: NSIndexPath, to: NSIndexPath)
-    case Update(item:T, at: NSIndexPath, changes: [String: (old: DatabaseValue?, new: DatabaseValue)]?)
+    case Update(item:T, at: NSIndexPath, changes: [String: DatabaseValue?]?)
     
     var description: String {
         switch self {
