@@ -30,18 +30,29 @@ class Person : Record {
     var id: Int64?
     var name: String?
     
+    func updateFromJSON(json: NSDictionary) {
+        id = (json["id"] as? NSNumber)?.longLongValue
+        name = json["name"] as? String
+    }
+    
+    // Record overrides
+    
     override class func databaseTableName() -> String {
         return "persons"
     }
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        if let dbv = row["name"] { name = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    required init(row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        super.init(row: row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        id = rowID
     }
 }
 
@@ -86,8 +97,7 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
             try person.insert(db)
         case .Common(let person, let jsonPerson):
             // Matching database and JSON persons:
-            let row = Row(dictionary: jsonPerson)!
-            person.updateFromRow(row)
+            person.updateFromJSON(jsonPerson)
             if person.databaseEdited {
                 try person.update(db)
             }

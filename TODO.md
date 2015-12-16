@@ -20,7 +20,7 @@
     - [X] Make Person subclass that eats an extra column easier to write (in PersonWithOverrides)
     - [X] Update Record documentation
     - [X] Update Record playground
-    - [ ] Update JSONSynchronisation playground
+    - [X] Update JSONSynchronisation playground
     - [ ] Update https://gist.github.com/groue/dcdd3784461747874f41
 
 Not sure:

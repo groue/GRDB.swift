@@ -50,10 +50,11 @@ class Person : Record {
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "id": id,
-            "firstName": firstName,
-            "lastName": lastName]
+        return ["id": id, "firstName": firstName, "lastName": lastName]
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        id = rowID
     }
 }
 
