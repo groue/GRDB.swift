@@ -1,7 +1,7 @@
 Release Notes
 =============
 
-## 0.35.0
+## Next Release
 
 The Record class has been refactored so that it gets closer from its RowConvertible and DatabasePersistable adopted protocols.
 
