@@ -510,7 +510,7 @@ final class DataMapper {
         let databaseTableName = persistable.dynamicType.databaseTableName()
 
         // Fail early if database table does not exist.
-        guard let primaryKey = db.primaryKeyForTable(named: databaseTableName) else {
+        guard let primaryKey = db.primaryKey(databaseTableName) else {
             fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) does not exist. See \(persistable.dynamicType).databaseTableName()")
         }
 
