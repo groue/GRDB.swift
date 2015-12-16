@@ -14,7 +14,6 @@
     - [X] Row.value(named:) returns nil if column is not there.
     - [X] Update Row documentation
     - [X] Update "Optional Columns" chapter of RowConvertible documentation
-- [ ] Conversion should crash when type mismatch (Optional<String>.fetchOne(db, "SELECT 1"))
 - [ ] Record:
     - [X] Remove reloading
     - [X] Expose didInsertWithRowID(_:forColumn:)
@@ -28,6 +27,7 @@ Not sure:
 
 - [ ] Since Records' primary key are infered, no operation is possible on the primary key unless we have a Database instance. It's impossible to define the record.primaryKey property, or to provide a copy() function that does not clone the primary key: they miss the database that is the only object aware of the primary key. Should we change our mind, and have Record explicitly expose their primary key again?
 - [ ] Have Record adopt Hashable and Equatable, based on primary key. Problem: we can't do it know because we don't know the primary key until we have a database connection.
+- [ ] Conversion should crash when type mismatch (Optional<String>.fetchOne(db, "SELECT 1"))
 
 
 Require changes in the Swift language:
