@@ -2089,8 +2089,10 @@ Perform a single request:
 
 ```swift
     var persons: [PersonWithBookCount]!
+    
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
+        
         persons = dbQueue.inDatabase { db in
             PersonWithBookCount.fetchAll(db,
                 "SELECT persons.*, COUNT(books.id) AS bookCount " +
@@ -2098,6 +2100,7 @@ Perform a single request:
                 "LEFT JOIN books ON books.ownerId = persons.id " +
                 "GROUP BY persons.id")
         }
+        
         tableView.reloadData()
     }
 ```
