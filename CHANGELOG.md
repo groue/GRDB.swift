@@ -3,7 +3,7 @@ Release Notes
 
 ## Next Release
 
-The Record class has been refactored so that it gets closer from the RowConvertible and DatabasePersistable protocols, and makes it easier to write subclasses with non-optional properties.
+The Record class has been refactored so that it gets closer from the RowConvertible and DatabasePersistable protocols. It also makes it easier to write subclasses with non-optional properties.
 
 Methods names that did not match [Swift 3 API Design Guidelines](https://swift.org/documentation/api-design-guidelines.html) have been refactored.
 
