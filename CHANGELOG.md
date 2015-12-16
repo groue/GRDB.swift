@@ -9,7 +9,7 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 
 **New**
 
-- `Float` adopts DatabaseValueConvertible, and can be stored and fetched from the database wihout Double conversion.
+- `Float` adopts DatabaseValueConvertible, and can be stored and fetched from the database without Double conversion.
 
 **Breaking Changes**
 
