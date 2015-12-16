@@ -353,7 +353,6 @@ public extension DatabasePersistable {
     
     /// The default implementation does nothing.
     func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-
     }
     
     // MARK: - Immutable CRUD

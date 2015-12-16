@@ -21,7 +21,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// awakeFromFetch().
     ///
     /// - parameter row: A Row
-    required public init(row: Row) {
+    required public init(_ row: Row) {
     }
     
     /// Don't call this method directly. It is called after a Record has been
@@ -44,7 +44,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// This method is required by the RowConvertible protocol. It returns a
     /// record initialized from the row. See init(row:Row).
     public final class func fromRow(row: Row) -> Self {
-        return self.init(row: row)
+        return self.init(row)
     }
     
     

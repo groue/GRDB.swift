@@ -41,10 +41,10 @@ class Person : Record {
         return "persons"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
-        super.init(row: row)
+        super.init(row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -93,7 +93,7 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
         case .Right(let jsonPerson):
             // JSON person without matching database person:
             let row = Row(dictionary: jsonPerson)!
-            let person = Person(row: row)
+            let person = Person(row)
             try person.insert(db)
         case .Common(let person, let jsonPerson):
             // Matching database and JSON persons:

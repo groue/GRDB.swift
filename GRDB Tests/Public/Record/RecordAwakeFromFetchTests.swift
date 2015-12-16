@@ -20,9 +20,9 @@ class EventRecorder : Record {
         return "eventRecorders"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
-        super.init(row: row)
+        super.init(row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -57,7 +57,7 @@ class RecordEventsTests: GRDBTestCase {
     }
     
     func testAwakeFromFetchIsNotTriggeredByInitFromRow() {
-        let record = EventRecorder(row: Row())
+        let record = EventRecorder(Row())
         XCTAssertEqual(record.awakeFromFetchCount, 0)
     }
     

@@ -25,10 +25,10 @@ class Email : Record {
         return "emails"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         email = row.value(named: "email")
         label = row.value(named: "label")
-        super.init(row: row)
+        super.init(row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

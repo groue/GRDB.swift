@@ -32,12 +32,12 @@ class Person : Record {
         return "persons"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
         age = row.value(named: "age")
         name = row.value(named: "name")
         creationDate = row.value(named: "creationDate")
-        super.init(row: row)
+        super.init(row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

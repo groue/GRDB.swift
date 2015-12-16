@@ -23,12 +23,12 @@ class BadlyMangledStuff : Record {
         return "stuffs"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         // Here user may peek fancy column names that match his SQL queries.
         // However this is not the way to do it (see testBadlyMangledStuff()).
         id = row.value(named: "mangled_id")
         name = row.value(named: "mangled_name")
-        super.init(row: row)
+        super.init(row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

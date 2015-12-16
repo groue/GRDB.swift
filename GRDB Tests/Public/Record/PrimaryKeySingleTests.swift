@@ -26,10 +26,10 @@ class Pet : Record {
         return "pets"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         UUID = row.value(named: "UUID")
         name = row.value(named: "name")
-        super.init(row: row)
+        super.init(row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

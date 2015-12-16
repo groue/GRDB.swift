@@ -5,10 +5,13 @@ Release Notes
 
 The Record class has been refactored so that it gets closer from the RowConvertible and DatabasePersistable protocols, and makes it easier to write subclasses with non-optional properties.
 
+Methods names that did not match [Swift 3 API Design Guidelines](https://swift.org/documentation/api-design-guidelines.html) have been refactored.
+
 **Breaking Changes**
 
 - `Record.reload()` has been removed.
-- `Record.updateFromRow()` has been removed. Override `init(row:)` instead.
+- `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)`
+- `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
 - `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their inserted rowID.
 - `Row.value(named:)` returns nil if no such column exists in the row.
 

@@ -11,9 +11,9 @@ class IntegerPropertyOnRealAffinityColumn : Record {
     
     // Record
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         value = row.value(named: "value")
-        super.init(row: row)
+        super.init(row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -45,7 +45,7 @@ class RecordEditedTests: GRDBTestCase {
         // Create a Record from a row. The row may not come from the database.
         // So it is edited.
         let row = Row(dictionary: ["name": "Arthur", "age": 41])
-        let person = Person(row: row)
+        let person = Person(row)
         XCTAssertTrue(person.databaseEdited)
     }
     
@@ -272,7 +272,7 @@ class RecordEditedTests: GRDBTestCase {
     }
     
     func testChangesAfterInitFromRow() {
-        let person = Person(row: Row(dictionary:["name": "Arthur", "age": 41]))
+        let person = Person(Row(dictionary:["name": "Arthur", "age": 41]))
         let changes = person.databaseChanges
         XCTAssertEqual(changes.count, 4)
         for (column, (old: old, new: new)) in changes {

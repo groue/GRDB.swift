@@ -30,11 +30,11 @@ class Citizenship : Record {
         return "citizenships"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         personName = row.value(named: "personName")
         countryName = row.value(named: "countryName")
         native = row.value(named: "native")
-        super.init(row: row)
+        super.init(row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {

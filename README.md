@@ -1767,7 +1767,7 @@ class Record {
     class func databaseTableName() -> String
     
     /// Initialize a record from a database row
-    required init(row: Row)
+    required init(_ row: Row)
     
     /// The values stored in the database
     var storedDatabaseDictionary: [String: DatabaseValueConvertible?]
@@ -1854,10 +1854,10 @@ Country overrides `init(row:)` so that it can be fetched:
 
 ```swift
     /// Initialize a Country from a row
-    required init(row: Row) {
+    required init(_ row: Row) {
         isoCode = row.value(named: "isoCode")
         name = row.value(named: "name")
-        super.init(row: row)
+        super.init(row)
     }
 }
 ```
@@ -1906,10 +1906,10 @@ struct Person : MutableDatabasePersistable {
     }
     
     /// Initialize a Person from a row
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
-        super.init(row: row)
+        super.init(row)
     }
     
     /// Update person ID after a successful insertion
@@ -2077,9 +2077,9 @@ class PersonsViewController: UITableViewController {
     private class PersonWithBookCount : Person {
         var bookCount: Int?
     
-        required init(row: Row) {
+        required init(_ row: Row) {
             bookCount = row.value(named: "bookCount")
-            super.init(row: row)
+            super.init(row)
         }
         
         class func fetchAllWithBookCount(db: Database) -> [PersonWithBookCount] {
