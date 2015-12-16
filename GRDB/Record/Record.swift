@@ -31,8 +31,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// - parameter row: A Row.
     public func awakeFromFetch(row: Row) {
-        // Take care of the databaseEdited flag. If the row does not contain
-        // all needed columns, the record turns edited.
+        // Take care of the hasPersistentChangedValues flag. If the row does not
+        /// contain ll needed columns, the record turns edited.
         //
         // Row may be a metal row which will turn invalid as soon as the SQLite
         // statement is iterated. We need to store an immutable and safe copy.
@@ -107,7 +107,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// persistedDictionary.
     ///
     /// Note that the eventual primary key is copied, as well as the
-    /// databaseEdited flag.
+    /// hasPersistentChangedValues flag.
     ///
     /// - returns: A copy of self.
     @warn_unused_result
@@ -135,7 +135,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// you may set it to true or false when you know better. Setting it to
     /// false does not prevent it from turning true on subsequent modifications
     /// of the record.
-    public var databaseEdited: Bool {
+    public var hasPersistentChangedValues: Bool {
         get {
             return generateDatabaseChanges().next() != nil
         }
@@ -156,7 +156,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// Unless the record has actually been fetched or saved, the old values
     /// are nil.
     ///
-    /// See `databaseEdited` for more information.
+    /// See `hasPersistentChangedValues` for more information.
     public var databaseChanges: [String: DatabaseValue?] {
         var changes: [String: DatabaseValue?] = [:]
         for (column: column, old: old) in generateDatabaseChanges() {
@@ -165,7 +165,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         return changes
     }
     
-    // A change generator that is used by both databaseEdited and
+    // A change generator that is used by both hasPersistentChangedValues and
     // databaseChanges properties.
     private func generateDatabaseChanges() -> AnyGenerator<(column: String, old: DatabaseValue?)> {
         let oldRow = referenceRow
@@ -186,7 +186,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     }
     
     
-    /// Reference row for the *databaseEdited* property.
+    /// Reference row for the *hasPersistentChangedValues* property.
     var referenceRow: Row?
     
 
@@ -194,7 +194,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     /// Executes an INSERT statement.
     ///
-    /// On success, this method sets the *databaseEdited* flag to false.
+    /// On success, this method sets the *hasPersistentChangedValues* flag
+    /// to false.
     ///
     /// This method is guaranteed to have inserted a row in the database if it
     /// returns without error.
@@ -207,12 +208,13 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func insert(db: Database) throws {
         try performInsert(db)
-        databaseEdited = false
+        hasPersistentChangedValues = false
     }
     
     /// Executes an UPDATE statement.
     ///
-    /// On success, this method sets the *databaseEdited* flag to false.
+    /// On success, this method sets the *hasPersistentChangedValues* flag
+    /// to false.
     ///
     /// This method is guaranteed to have updated a row in the database if it
     /// returns without error.
@@ -223,7 +225,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///   any row in the database and record could not be updated.
     public func update(db: Database) throws {
         try performUpdate(db)
-        databaseEdited = false
+        hasPersistentChangedValues = false
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -234,7 +236,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// Otherwise, performs an insert.
     ///
-    /// On success, this method sets the *databaseEdited* flag to false.
+    /// On success, this method sets the *hasPersistentChangedValues* flag
+    /// to false.
     ///
     /// This method is guaranteed to have inserted or updated a row in the
     /// database if it returns without error.
@@ -248,7 +251,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     /// Executes a DELETE statement.
     ///
-    /// On success, this method sets the *databaseEdited* flag to true.
+    /// On success, this method sets the *hasPersistentChangedValues* flag
+    /// to true.
     ///
     /// - parameter db: A Database.
     /// - returns: Whether a database row was deleted.
@@ -257,8 +261,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         let deleted = try performDelete(db)
         // Future calls to update() will throw NotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
-        // databaseEdited flag:
-        databaseEdited = true
+        // hasPersistentChangedValues flag:
+        hasPersistentChangedValues = true
         return deleted
     }
 }

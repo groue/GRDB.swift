@@ -54,17 +54,17 @@ public struct DatabaseValue : Hashable {
     public static let Null = DatabaseValue(storage: .Null)
     
     /// Returns a DatabaseValue storing an Int64.
-    public init(_ int64: Swift.Int64) {
+    init(_ int64: Swift.Int64) {
         storage = .Int64(int64)
     }
     
     /// Returns a DatabaseValue storing a Double.
-    public init(_ double: Swift.Double) {
+    init(_ double: Swift.Double) {
         storage = .Double(double)
     }
     
     /// Returns a DatabaseValue storing a String.
-    public init(_ string: Swift.String) {
+    init(_ string: Swift.String) {
         storage = .String(string)
     }
     
@@ -72,7 +72,7 @@ public struct DatabaseValue : Hashable {
     ///
     /// SQLite cant' store zero-length blobs: if data has zero length, the
     /// result is NULL.
-    public init(_ data: NSData) {
+    init(_ data: NSData) {
         if data.length == 0 {
             // SQLite cant' store zero-length blobs.
             storage = .Null
@@ -82,7 +82,7 @@ public struct DatabaseValue : Hashable {
     }
     
     /// Copy initializer
-    public init(_ databaseValue: DatabaseValue) {
+    init(_ databaseValue: DatabaseValue) {
         // This initializer is used by DatabaseValue.init?(object: AnyObject)
         self = databaseValue
     }

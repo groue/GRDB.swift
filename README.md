@@ -831,7 +831,7 @@ public protocol DatabaseValueConvertible {
 
 All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat. Those built-in types actually adopt it.
 
-The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and NSData.
+The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or the fact that Int, String, etc. adopt the protocol: `1.databaseValue`, `"foo".databaseValue`.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
 
@@ -860,7 +860,8 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
-        return DatabaseValue(date.timeIntervalSince1970)
+        // Double itself adopts DatabaseValueConvertible:
+        return date.timeIntervalSince1970.databaseValue
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
@@ -1339,7 +1340,7 @@ try dbQueue.inDatabase { db in
     // Changes tracking
     person.name = "Barbara"
     person.databaseChanges.keys // ["name"]
-    if person.databaseEdited {  // Avoid useless UPDATE statements
+    if person.hasPersistentChangedValues {  // Avoid useless UPDATE statements
         try person.save(db)
     }
 }
@@ -1751,7 +1752,7 @@ Yet, it does a few things well:
     person.name = "Barbara"
     person.age = 41
     person.databaseChanges.keys // ["age"]
-    if person.databaseEdited {
+    if person.hasPersistentChangedValues {
         try person.save(db)
     }
     ```
@@ -1785,7 +1786,7 @@ class Person {
     func copy() -> Self
     
     // Change Tracking
-    var databaseEdited: Bool
+    var hasPersistentChangedValues: Bool
     var databaseChanges: [String: DatabaseValue?]
     
     // Persistence
@@ -2040,16 +2041,16 @@ try dbQueue.inDatabase { db in
 
 The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
 
-Avoid it with the `databaseEdited` property, which returns whether the record has changes that have not been saved:
+Avoid it with the `hasPersistentChangedValues` property, which returns whether the record has changes that have not been saved:
 
 ```swift
 // Saves the person if it has changes that have not been saved:
-if person.databaseEdited {
+if person.hasPersistentChangedValues {
     try person.save(db)
 }
 ```
 
-Note that `databaseEdited` is based on value comparison: **setting a property to the same value does not set the edited flag**.
+Note that `hasPersistentChangedValues` is based on value comparison: **setting a property to the same value does not set the edited flag**.
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check this [sample code](https://gist.github.com/groue/dcdd3784461747874f41).
 

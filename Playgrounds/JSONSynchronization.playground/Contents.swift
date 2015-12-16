@@ -98,7 +98,7 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
         case .Common(let person, let jsonPerson):
             // Matching database and JSON persons:
             person.updateFromJSON(jsonPerson)
-            if person.databaseEdited {
+            if person.hasPersistentChangedValues {
                 try person.update(db)
             }
         }

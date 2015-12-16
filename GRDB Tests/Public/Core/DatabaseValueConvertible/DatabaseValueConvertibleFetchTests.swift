@@ -8,7 +8,7 @@ struct WrappedInt: DatabaseValueConvertible {
         self.int = int
     }
     var databaseValue: DatabaseValue {
-        return DatabaseValue(Int64(int))
+        return int.databaseValue
     }
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> WrappedInt? {
         guard let int = Int.fromDatabaseValue(databaseValue) else {

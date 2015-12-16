@@ -3,7 +3,7 @@ Release Notes
 
 ## Next Release
 
-The Record class has been refactored so that it gets closer from the RowConvertible and DatabasePersistable protocols. It also makes it easier to write subclasses with non-optional properties.
+The Record class has been refactored so that it gets closer from the RowConvertible and DatabasePersistable protocols. It also makes it easier to write subclasses that have non-optional properties.
 
 Methods names that did not match [Swift 3 API Design Guidelines](https://swift.org/documentation/api-design-guidelines.html) have been refactored.
 
@@ -13,14 +13,29 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 
 **Breaking Changes**
 
+`DatabasePersistable`:
+
 - `DatabasePersistable.storedDatabaseDictionary` has been renamed `persistedDictionary`.
+
+`Record`:
+
 - `Record.reload()` has been removed.
-- `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)`
+- `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)` (unlabelled row argument).
 - `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
-- `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their inserted rowID.
+- `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their row ids.
+- `Record.databaseEdited` has been renamed `hasPersistentChangedValues`.
 - `Record.databaseChanges` now returns `[String: DatabaseValue?]`, the dictionary of old values for changed column names.
+
+`Row`:
+
 - `Row.value(named:)` returns nil if no such column exists in the row.
-- `DatabaseValue` initializers from Int64, Double, String and NSData now have an unlabelled argument.
+
+`DatabaseValue`:
+
+- `DatabaseValue` has no public initializers. To create one, use `DatabaseValue.Null`, or the fact that Int, String, etc. adopt the protocol: `1.databaseValue`, `"foo".databaseValue`.
+
+`DatabaseMigrator`:
+
 - `DatabaseMigrator.registerMigrationWithoutForeignKeyChecks(_:_:)` has been renamed `DatabaseMigrator.registerMigration(_:withDisabledForeignKeyChecks:migrate:)`.
 
 

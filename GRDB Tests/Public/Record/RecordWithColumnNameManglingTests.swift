@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // BadlyMangledStuff.updateFromRow() accepts a row with mangled column names.
-// Its databaseEdited flag is wrong.
+// Its hasPersistentChangedValues flag is wrong.
 class BadlyMangledStuff : Record {
     var id: Int64?
     var name: String?
@@ -63,7 +63,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
                     try record.save(db)
                     
                     // Nothing special here
-                    XCTAssertFalse(record.databaseEdited)
+                    XCTAssertFalse(record.hasPersistentChangedValues)
                 }
                 do {
                     let record = BadlyMangledStuff.fetchOne(db, "SELECT id AS mangled_id, name AS mangled_name FROM stuffs")!
@@ -73,7 +73,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
                     
                     // But here lies the problem with BadlyMangledStuff.
                     // It should not be edited:
-                    XCTAssertTrue(record.databaseEdited)
+                    XCTAssertTrue(record.hasPersistentChangedValues)
                 }
             }
         }
