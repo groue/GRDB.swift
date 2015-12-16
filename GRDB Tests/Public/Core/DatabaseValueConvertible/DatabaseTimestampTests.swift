@@ -26,7 +26,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
-        return DatabaseValue(double: date.timeIntervalSince1970)
+        return DatabaseValue(date.timeIntervalSince1970)
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.

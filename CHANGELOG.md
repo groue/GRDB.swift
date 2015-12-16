@@ -7,6 +7,10 @@ The Record class has been refactored so that it gets closer from the RowConverti
 
 Methods names that did not match [Swift 3 API Design Guidelines](https://swift.org/documentation/api-design-guidelines.html) have been refactored.
 
+**New**
+
+- `Float` adopts DatabaseValueConvertible, and can be stored and fetched from the database wihout Double conversion.
+
 **Breaking Changes**
 
 - `Record.reload()` has been removed.
@@ -14,6 +18,7 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 - `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
 - `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their inserted rowID.
 - `Row.value(named:)` returns nil if no such column exists in the row.
+- `DatabaseValue` initializers from Int64, Double, String and NSData now have an unlabelled argument.
 
 
 ## 0.34.0

@@ -558,7 +558,7 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The
 
 GRDB ships with built-in support for the following value types:
 
-- **Swift Standard Library**: Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
+- **Swift Standard Library**: Bool, Float, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
 - **Foundation**: [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
     
@@ -860,7 +860,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
-        return DatabaseValue(double: date.timeIntervalSince1970)
+        return DatabaseValue(date.timeIntervalSince1970)
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.

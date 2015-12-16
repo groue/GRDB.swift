@@ -4,7 +4,7 @@ import Foundation
 extension NSData : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(data: self)
+        return DatabaseValue(self)
     }
     
     /// Returns an NSData initialized from *databaseValue*, if it contains

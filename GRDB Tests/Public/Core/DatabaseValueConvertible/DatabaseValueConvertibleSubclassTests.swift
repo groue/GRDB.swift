@@ -3,7 +3,7 @@ import GRDB
 
 class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
     var databaseValue: DatabaseValue {
-        return DatabaseValue(string: "Parent")
+        return DatabaseValue("Parent")
     }
     
     class func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
@@ -26,7 +26,7 @@ class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
 class FetchableChild : FetchableParent {
     /// Returns a value that can be stored in the database.
     override var databaseValue: DatabaseValue {
-        return DatabaseValue(string: "Child")
+        return DatabaseValue("Child")
     }
     
     override var description: String { return "Child" }

@@ -16,7 +16,7 @@ struct FastWrappedInt: DatabaseValueConvertible, SQLiteStatementConvertible {
     }
     
     var databaseValue: DatabaseValue {
-        return DatabaseValue(int64: Int64(int))
+        return DatabaseValue(Int64(int))
     }
     
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> FastWrappedInt? {
@@ -30,7 +30,7 @@ struct FastWrappedInt: DatabaseValueConvertible, SQLiteStatementConvertible {
 class SQLiteStatementConvertibleFetchTests: GRDBTestCase {
     
     func testSlowConversion() {
-        let databaseValue = DatabaseValue(int64: 0)
+        let databaseValue = DatabaseValue(Int64(0))
         let slow = FastWrappedInt.fromDatabaseValue(databaseValue)!
         XCTAssertEqual(slow.int, 0)
         XCTAssertEqual(slow.fast, false)

@@ -11,7 +11,7 @@ extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(int64: self ? 1 : 0)
+        return DatabaseValue(Int64(self ? 1 : 0))
     }
     
     /// Returns a Bool initialized from *databaseValue*, if possible.
@@ -99,7 +99,7 @@ extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(int64: Int64(self))
+        return DatabaseValue(Int64(self))
     }
     
     /// Returns an Int initialized from *databaseValue*, if possible.
@@ -131,7 +131,7 @@ extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(int64: Int64(self))
+        return DatabaseValue(Int64(self))
     }
     
     /// Returns an Int32 initialized from *databaseValue*, if possible.
@@ -163,7 +163,7 @@ extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(int64: self)
+        return DatabaseValue(self)
     }
     
     /// Returns an Int64 initialized from *databaseValue*, if possible.
@@ -195,7 +195,7 @@ extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(double: self)
+        return DatabaseValue(self)
     }
     
     /// Returns a Double initialized from *databaseValue*, if possible.
@@ -208,6 +208,38 @@ extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
             return Double(int64)
         case .Double(let double):
             return double
+        default:
+            return nil
+        }
+    }
+}
+
+/// Float adopts DatabaseValueConvertible and SQLiteStatementConvertible.
+extension Float: DatabaseValueConvertible, SQLiteStatementConvertible {
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameter sqliteStatement: A pointer to a SQLite statement.
+    /// - parameter index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        self = Float(sqlite3_column_double(sqliteStatement, index))
+    }
+    
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return DatabaseValue(Double(self))
+    }
+    
+    /// Returns a Float initialized from *databaseValue*, if possible.
+    ///
+    /// - parameter databaseValue: A DatabaseValue.
+    /// - returns: An optional Double.
+    public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Float? {
+        switch databaseValue.storage {
+        case .Int64(let int64):
+            return Float(int64)
+        case .Double(let double):
+            return Float(double)
         default:
             return nil
         }
@@ -228,7 +260,7 @@ extension String: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(string: self)
+        return DatabaseValue(self)
     }
     
     /// Returns a String initialized from *databaseValue*, if possible.

@@ -20,53 +20,53 @@ class DatabaseValueTests: GRDBTestCase {
         let barData = "bar".dataUsingEncoding(NSUTF8StringEncoding)!
         
         XCTAssertEqual(DatabaseValue.Null, DatabaseValue.Null)
-        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(int64: 1))
-        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(double: 1.0))
-        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(string: "foo"))
-        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(data: fooData))
+        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(Int64(1)))
+        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(1.0))
+        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue("foo"))
+        XCTAssertNotEqual(DatabaseValue.Null, DatabaseValue(fooData))
         
-        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue.Null)
-        XCTAssertEqual(DatabaseValue(int64: 1), DatabaseValue(int64: 1))
-        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(int64: 2))
-        XCTAssertEqual(DatabaseValue(int64: 1), DatabaseValue(double: 1.0))
-        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(double: 1.1))
-        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(double: 2.0))
-        XCTAssertEqual(DatabaseValue(int64: 1 << 53), DatabaseValue(double: Double(1 << 53)))                 // Any integer up to 2^53 has an exact representation as a IEEE-754 double...
-        XCTAssertNotEqual(DatabaseValue(int64: 1 << 53 + 1), DatabaseValue(double: Double(1 << 53 + 1)))      // ... 2^53 + 1 does not....
-        XCTAssertEqual(DatabaseValue(int64: 1 << 54), DatabaseValue(double: Double(1 << 54)))                 // ... but 2^54 does.
-        XCTAssertNotEqual(DatabaseValue(int64: Int64.max), DatabaseValue(double: Double(Int64.max)))          // ... and Int64.max does not.
-        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(string: "foo"))
-        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(string: "1"))
-        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(string: "1.0"))
-        XCTAssertNotEqual(DatabaseValue(int64: 1), DatabaseValue(data: fooData))
+        XCTAssertNotEqual(DatabaseValue(Int64(1)), DatabaseValue.Null)
+        XCTAssertEqual(DatabaseValue(Int64(1)), DatabaseValue(Int64(1)))
+        XCTAssertNotEqual(DatabaseValue(Int64(1)), DatabaseValue(Int64(2)))
+        XCTAssertEqual(DatabaseValue(Int64(1)), DatabaseValue(1.0))
+        XCTAssertNotEqual(DatabaseValue(Int64(1)), DatabaseValue(1.1))
+        XCTAssertNotEqual(DatabaseValue(Int64(1)), DatabaseValue(2.0))
+        XCTAssertEqual(DatabaseValue(1 << 53), DatabaseValue(Double(1 << 53)))                 // Any integer up to 2^53 has an exact representation as a IEEE-754 double...
+        XCTAssertNotEqual(DatabaseValue(1 << 53 + 1), DatabaseValue(Double(1 << 53 + 1)))      // ... 2^53 + 1 does not....
+        XCTAssertEqual(DatabaseValue(1 << 54), DatabaseValue(Double(1 << 54)))                 // ... but 2^54 does.
+        XCTAssertNotEqual(DatabaseValue(Int64.max), DatabaseValue(Double(Int64.max)))          // ... and Int64.max does not.
+        XCTAssertNotEqual(DatabaseValue(Int64(1)), DatabaseValue("foo"))
+        XCTAssertNotEqual(DatabaseValue(Int64(1)), DatabaseValue("1"))
+        XCTAssertNotEqual(DatabaseValue(Int64(1)), DatabaseValue("1.0"))
+        XCTAssertNotEqual(DatabaseValue(Int64(1)), DatabaseValue(fooData))
         
-        XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue.Null)
-        XCTAssertEqual(DatabaseValue(double: 1.0), DatabaseValue(int64: 1))
-        XCTAssertNotEqual(DatabaseValue(double: 1.1), DatabaseValue(int64: 1))
-        XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(int64: 2))
-        XCTAssertEqual(DatabaseValue(double: 1.0), DatabaseValue(double: 1.0))
-        XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(double: 2.0))
-        XCTAssertEqual(DatabaseValue(double: Double(1 << 53)), DatabaseValue(int64: 1 << 53))                 // Any integer up to 2^53 has an exact representation as a IEEE-754 double...
-        XCTAssertNotEqual(DatabaseValue(double: Double(1 << 53 + 1)), DatabaseValue(int64: 1 << 53 + 1))      // ... 2^53 + 1 does not....
-        XCTAssertEqual(DatabaseValue(double: Double(1 << 54)), DatabaseValue(int64: 1 << 54))                 // ... but 2^54 does.
-        XCTAssertNotEqual(DatabaseValue(double: Double(Int64.max)), DatabaseValue(int64: Int64.max))          // ... and Int64.max does not.
-        XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(string: "foo"))
-        XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(string: "1"))
-        XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(string: "1.0"))
-        XCTAssertNotEqual(DatabaseValue(double: 1.0), DatabaseValue(data: fooData))
+        XCTAssertNotEqual(DatabaseValue(1.0), DatabaseValue.Null)
+        XCTAssertEqual(DatabaseValue(1.0), DatabaseValue(Int64(1)))
+        XCTAssertNotEqual(DatabaseValue(1.1), DatabaseValue(Int64(1)))
+        XCTAssertNotEqual(DatabaseValue(1.0), DatabaseValue(Int64(2)))
+        XCTAssertEqual(DatabaseValue(1.0), DatabaseValue(1.0))
+        XCTAssertNotEqual(DatabaseValue(1.0), DatabaseValue(2.0))
+        XCTAssertEqual(DatabaseValue(Double(1 << 53)), DatabaseValue(1 << 53))                 // Any integer up to 2^53 has an exact representation as a IEEE-754 double...
+        XCTAssertNotEqual(DatabaseValue(Double(1 << 53 + 1)), DatabaseValue(1 << 53 + 1))      // ... 2^53 + 1 does not....
+        XCTAssertEqual(DatabaseValue(Double(1 << 54)), DatabaseValue(1 << 54))                 // ... but 2^54 does.
+        XCTAssertNotEqual(DatabaseValue(Double(Int64.max)), DatabaseValue(Int64.max))          // ... and Int64.max does not.
+        XCTAssertNotEqual(DatabaseValue(1.0), DatabaseValue("foo"))
+        XCTAssertNotEqual(DatabaseValue(1.0), DatabaseValue("1"))
+        XCTAssertNotEqual(DatabaseValue(1.0), DatabaseValue("1.0"))
+        XCTAssertNotEqual(DatabaseValue(1.0), DatabaseValue(fooData))
         
-        XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue.Null)
-        XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue(int64: 1))
-        XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue(double: 1.0))
-        XCTAssertEqual(DatabaseValue(string: "foo"), DatabaseValue(string: "foo"))
-        XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue(string: "bar"))
-        XCTAssertNotEqual(DatabaseValue(string: "foo"), DatabaseValue(data: fooData))
+        XCTAssertNotEqual(DatabaseValue("foo"), DatabaseValue.Null)
+        XCTAssertNotEqual(DatabaseValue("foo"), DatabaseValue(Int64(1)))
+        XCTAssertNotEqual(DatabaseValue("foo"), DatabaseValue(1.0))
+        XCTAssertEqual(DatabaseValue("foo"), DatabaseValue("foo"))
+        XCTAssertNotEqual(DatabaseValue("foo"), DatabaseValue("bar"))
+        XCTAssertNotEqual(DatabaseValue("foo"), DatabaseValue(fooData))
         
-        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue.Null)
-        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue(int64: 1))
-        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue(double: 1.0))
-        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue(string: "foo"))
-        XCTAssertEqual(DatabaseValue(data: fooData), DatabaseValue(data: fooData))
-        XCTAssertNotEqual(DatabaseValue(data: fooData), DatabaseValue(data: barData))
+        XCTAssertNotEqual(DatabaseValue(fooData), DatabaseValue.Null)
+        XCTAssertNotEqual(DatabaseValue(fooData), DatabaseValue(Int64(1)))
+        XCTAssertNotEqual(DatabaseValue(fooData), DatabaseValue(1.0))
+        XCTAssertNotEqual(DatabaseValue(fooData), DatabaseValue("foo"))
+        XCTAssertEqual(DatabaseValue(fooData), DatabaseValue(fooData))
+        XCTAssertNotEqual(DatabaseValue(fooData), DatabaseValue(barData))
     }
 }
