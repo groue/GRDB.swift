@@ -102,8 +102,18 @@ class MasterViewController: UITableViewController, FetchedRecordsControllerDeleg
         case .Move(_, let from, let to):
             tableView.moveRowAtIndexPath(from, toIndexPath: to)
             
-        case .Reload(_, let at):
-            tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Automatic)
+        case .Update(_, let at, let changes):
+            if let changes = changes {
+                let columns = ["firstName", "lastName"]
+                for (key, _) in changes {
+                    if columns.contains(key) {
+                        tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Automatic)
+                        break
+                    }
+                }
+            } else {
+                tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Automatic)
+            }
         }
     }
     

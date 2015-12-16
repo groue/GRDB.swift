@@ -71,10 +71,10 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
         }
     }
     
-    func calculateUpdatesFrom(fromRecords: [T], toRecords: [T]) -> [FetchedRecordsUpdate<T>] {
+    func diff(fromRows rows: [T], toRows: [T]) -> [FetchedRecordsUpdate<T>] {
         
         var updates = [FetchedRecordsUpdate<T>]()
-        var currentRecords = fromRecords
+        var currentRecords = rows
         let finalIndexPathForItem: [T:NSIndexPath]!
         var currentIndexPathForItem: [T:NSIndexPath]!
         
@@ -92,11 +92,11 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
             currentIndexPathForItem = indexPaths(currentRecords)
         }
         
-        finalIndexPathForItem = indexPaths(toRecords)
+        finalIndexPathForItem = indexPaths(toRows)
         currentIndexPathForItem = indexPaths(currentRecords)
         
         // 2 - INSERTS
-        for item: T in toRecords {
+        for item: T in toRows {
             if let _ = currentIndexPathForItem[item] {
                 // item was there
             } else {
@@ -113,28 +113,41 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
         }
         
         // 3 - DELETES, MOVES & RELOAD
-        for item: T in currentRecords {
-            guard let oldIndexPath = currentIndexPathForItem[item] else {
+        for oldItem: T in currentRecords {
+            guard let oldIndexPath = currentIndexPathForItem[oldItem] else {
                 print("WTF?!")
                 break
             }
-            if let newIndexPath = finalIndexPathForItem[item] {
+
+            if let index = finalIndexPathForItem.indexForKey(oldItem) {
+                
+                let (newItem, newIndexPath) = finalIndexPathForItem[index]
                 
                 if oldIndexPath == newIndexPath {
-                    // item updates ?
-                    // let update = FetchedRecordsUpdate.Reload(item: item, at: newIndexPath)
-                    // updates.append(update)
-                    // apply(update)
+                    
+                    var changes: [String: (old: DatabaseValue?, new: DatabaseValue)]?
+                    
+                    if let oldRecord = oldItem as? Record, let newRecord = oldItem as? Record {
+                        let recordCopy = newRecord.copy()
+                        recordCopy.referenceRow = oldRecord.referenceRow
+                        changes = recordCopy.databaseChanges
+                    }
+                    
+                    // Not a record
+                    let update = FetchedRecordsUpdate.Update(item: newItem, at: newIndexPath, changes: changes)
+                    updates.append(update)
+                    apply(update)
+                    
                 } else {
                     // item moved
-                    let update = FetchedRecordsUpdate.Move(item: item, from: oldIndexPath, to: newIndexPath)
+                    let update = FetchedRecordsUpdate.Move(item: newItem, from: oldIndexPath, to: newIndexPath)
                     updates.append(update)
                     apply(update)
                 }
                 
             } else {
                 // item deleted
-                let update = FetchedRecordsUpdate.Delete(item: item, from: oldIndexPath)
+                let update = FetchedRecordsUpdate.Delete(item: oldItem, at: oldIndexPath)
                 updates.append(update)
                 apply(update)
             }
@@ -162,7 +175,7 @@ extension FetchedRecordsController : TransactionObserverType {
                 self.fetchedRecords = newRecords
                 
                 // notify horrible diff computation
-                for update in self.calculateUpdatesFrom(oldRecords!, toRecords: newRecords) {
+                for update in self.diff(fromRows: oldRecords!, toRows: newRecords) {
                     self.delegate?.controllerUpdate(self, update: update)
                 }
                 
@@ -190,23 +203,23 @@ public extension FetchedRecordsControllerDelegate {
 
 public enum FetchedRecordsUpdate<T> {
     case Insert(item:T, at: NSIndexPath)
-    case Delete(item:T, from: NSIndexPath)
+    case Delete(item:T, at: NSIndexPath)
     case Move(item:T, from: NSIndexPath, to: NSIndexPath)
-    case Reload(item:T, at: NSIndexPath)
+    case Update(item:T, at: NSIndexPath, changes: [String: (old: DatabaseValue?, new: DatabaseValue)]?)
     
     var description: String {
         switch self {
         case .Insert(let item, let at):
-            return "\(item) inserted at \(at)"
+            return "Inserted \(item) at indexpath \(at)"
             
-        case .Delete(let item, let from):
-            return "\(item) deleted from \(from)"
+        case .Delete(let item, let at):
+            return "Deleted \(item) from indexpath \(at)"
             
         case .Move(let item, let from, let to):
-            return "\(item) moved from \(from) to \(to)"
+            return "Moved \(item) from indexpath \(from) to indexpath \(to)"
             
-        case .Reload(let item, let at):
-            return "\(item) updated at \(at)"
+        case .Update(let item, let at, let changes):
+            return "Updated \(changes) of \(item) at indexpath \(at)"
         }
     }
 }
@@ -224,7 +237,7 @@ extension Array {
             self.removeAtIndex(from.item)
             self.insert(item, atIndex: to.item)
             
-        case .Reload(_, _): break
+        case .Update(_, _, _): break
         }
         print(update.description)
     }
