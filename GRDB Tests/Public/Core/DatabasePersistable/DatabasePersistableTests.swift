@@ -8,7 +8,7 @@ struct PersistablePerson : DatabasePersistable {
         return "persons"
     }
     
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["name": name]
     }
 }
@@ -26,7 +26,7 @@ class PersistablePersonClass : DatabasePersistable {
         return "persons"
     }
     
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
@@ -43,7 +43,7 @@ struct PersistableCountry : DatabasePersistable {
         return "countries"
     }
     
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
     }
 }
@@ -61,7 +61,7 @@ struct PersistableCustomizedCountry : DatabasePersistable {
         return "countries"
     }
     
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
     }
     

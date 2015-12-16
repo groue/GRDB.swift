@@ -11,12 +11,12 @@ class IntegerPropertyOnRealAffinityColumn : Record {
     
     // Record
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         value = row.value(named: "value")
-        super.init(row: row)
+        super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["value": value]
     }
 }
@@ -27,7 +27,7 @@ class RecordEditedTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPerson", Person.setupInDatabase)
+        migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }
@@ -38,27 +38,27 @@ class RecordEditedTests: GRDBTestCase {
         // Create a Record. No fetch has happen, so we don't know if it is
         // identical to its eventual row in the database. So it is edited.
         let person = Person(name: "Arthur", age: 41)
-        XCTAssertTrue(person.databaseEdited)
+        XCTAssertTrue(person.hasPersistentChangedValues)
     }
     
     func testRecordIsEditedAfterInitFromRow() {
         // Create a Record from a row. The row may not come from the database.
         // So it is edited.
         let row = Row(dictionary: ["name": "Arthur", "age": 41])
-        let person = Person(row: row)
-        XCTAssertTrue(person.databaseEdited)
+        let person = Person(row)
+        XCTAssertTrue(person.hasPersistentChangedValues)
     }
     
     func testRecordIsNotEditedAfterFullFetch() {
         // Fetch a record from a row that contains all the columns in
-        // storedDatabaseDictionary: An update statement, which only saves the
-        // columns in storedDatabaseDictionary would perform no change. So the
+        // persistentDictionary: An update statement, which only saves the
+        // columns in persistentDictionary would perform no change. So the
         // record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT * FROM persons")!
-                XCTAssertFalse(person.databaseEdited)
+                XCTAssertFalse(person.hasPersistentChangedValues)
             }
         }
     }
@@ -80,7 +80,7 @@ class RecordEditedTests: GRDBTestCase {
                 
                 // Compare to an Int
                 let record = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
-                let row2 = Row(dictionary: record.storedDatabaseDictionary)
+                let row2 = Row(dictionary: record.persistentDictionary)
                 switch row2["value"]!.storage {
                 case .Int64(let int64):
                     XCTAssertEqual(int64, 1)
@@ -88,35 +88,35 @@ class RecordEditedTests: GRDBTestCase {
                     XCTFail("Unexpected DatabaseValue")
                 }
                 
-                XCTAssertFalse(record.databaseEdited)
+                XCTAssertFalse(record.hasPersistentChangedValues)
             }
         }
     }
     
     func testRecordIsNotEditedAfterWiderThanFullFetch() {
         // Fetch a record from a row that contains all the columns in
-        // storedDatabaseDictionary, plus extra ones: An update statement,
-        // which only saves the columns in storedDatabaseDictionary would
+        // persistentDictionary, plus extra ones: An update statement,
+        // which only saves the columns in persistentDictionary would
         // perform no change. So the record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
-                XCTAssertFalse(person.databaseEdited)
+                XCTAssertFalse(person.hasPersistentChangedValues)
             }
         }
     }
     
     func testRecordIsEditedAfterPartialFetch() {
         // Fetch a record from a row that does not contain all the columns in
-        // storedDatabaseDictionary: An update statement saves the columns in
-        // storedDatabaseDictionary, so it may perform unpredictable change.
+        // persistentDictionary: An update statement saves the columns in
+        // persistentDictionary, so it may perform unpredictable change.
         // So the record is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person =  Person.fetchOne(db, "SELECT name FROM persons")!
-                XCTAssertTrue(person.databaseEdited)
+                XCTAssertTrue(person.hasPersistentChangedValues)
             }
         }
     }
@@ -127,13 +127,13 @@ class RecordEditedTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
-                XCTAssertFalse(person.databaseEdited)
+                XCTAssertFalse(person.hasPersistentChangedValues)
             }
         }
     }
     
     func testRecordIsEditedAfterValueChange() {
-        // Any change in a value exposed in storedDatabaseDictionary yields a
+        // Any change in a value exposed in persistentDictionary yields a
         // record that is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -142,21 +142,21 @@ class RecordEditedTests: GRDBTestCase {
                     try person.insert(db)
                     XCTAssertTrue(person.name != nil)
                     person.name = "Bobby"           // non-nil vs. non-nil
-                    XCTAssertTrue(person.databaseEdited)
+                    XCTAssertTrue(person.hasPersistentChangedValues)
                 }
                 do {
                     let person = Person(name: "Arthur")
                     try person.insert(db)
                     XCTAssertTrue(person.name != nil)
                     person.name = nil               // non-nil vs. nil
-                    XCTAssertTrue(person.databaseEdited)
+                    XCTAssertTrue(person.hasPersistentChangedValues)
                 }
                 do {
                     let person = Person(name: "Arthur")
                     try person.insert(db)
                     XCTAssertTrue(person.age == nil)
                     person.age = 41                 // nil vs. non-nil
-                    XCTAssertTrue(person.databaseEdited)
+                    XCTAssertTrue(person.hasPersistentChangedValues)
                 }
             }
         }
@@ -170,14 +170,14 @@ class RecordEditedTests: GRDBTestCase {
                     try person.insert(db)
                     XCTAssertTrue(person.name != nil)
                     person.name = "Arthur"           // non-nil vs. non-nil
-                    XCTAssertFalse(person.databaseEdited)
+                    XCTAssertFalse(person.hasPersistentChangedValues)
                 }
                 do {
                     let person = Person(name: "Arthur")
                     try person.insert(db)
                     XCTAssertTrue(person.age == nil)
                     person.age = nil                 // nil vs. nil
-                    XCTAssertFalse(person.databaseEdited)
+                    XCTAssertFalse(person.hasPersistentChangedValues)
                 }
             }
         }
@@ -191,7 +191,7 @@ class RecordEditedTests: GRDBTestCase {
                 try person.insert(db)
                 person.name = "Bobby"
                 try person.update(db)
-                XCTAssertFalse(person.databaseEdited)
+                XCTAssertFalse(person.hasPersistentChangedValues)
             }
         }
     }
@@ -202,11 +202,11 @@ class RecordEditedTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.save(db)
-                XCTAssertFalse(person.databaseEdited)
+                XCTAssertFalse(person.hasPersistentChangedValues)
                 person.name = "Bobby"
-                XCTAssertTrue(person.databaseEdited)
+                XCTAssertTrue(person.hasPersistentChangedValues)
                 try person.save(db)
-                XCTAssertFalse(person.databaseEdited)
+                XCTAssertFalse(person.hasPersistentChangedValues)
             }
         }
     }
@@ -218,7 +218,7 @@ class RecordEditedTests: GRDBTestCase {
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
                 person.id = person.id + 1
-                XCTAssertTrue(person.databaseEdited)
+                XCTAssertTrue(person.hasPersistentChangedValues)
             }
         }
     }
@@ -229,42 +229,38 @@ class RecordEditedTests: GRDBTestCase {
                 let person = Person(name: "Arthur", age: 41)
                 
                 try person.insert(db)
-                XCTAssertFalse(person.databaseEdited)
-                XCTAssertFalse(person.copy().databaseEdited)
+                XCTAssertFalse(person.hasPersistentChangedValues)
+                XCTAssertFalse(person.copy().hasPersistentChangedValues)
                 
                 person.name = "Barbara"
-                XCTAssertTrue(person.databaseEdited)
-                XCTAssertTrue(person.copy().databaseEdited)
+                XCTAssertTrue(person.hasPersistentChangedValues)
+                XCTAssertTrue(person.copy().hasPersistentChangedValues)
                 
-                person.databaseEdited = false
-                XCTAssertFalse(person.databaseEdited)
-                XCTAssertFalse(person.copy().databaseEdited)
+                person.hasPersistentChangedValues = false
+                XCTAssertFalse(person.hasPersistentChangedValues)
+                XCTAssertFalse(person.copy().hasPersistentChangedValues)
                 
-                person.databaseEdited = true
-                XCTAssertTrue(person.databaseEdited)
-                XCTAssertTrue(person.copy().databaseEdited)
+                person.hasPersistentChangedValues = true
+                XCTAssertTrue(person.hasPersistentChangedValues)
+                XCTAssertTrue(person.copy().hasPersistentChangedValues)
             }
         }
     }
 
     func testChangesAfterInit() {
         let person = Person(name: "Arthur", age: 41)
-        let changes = person.databaseChanges
+        let changes = person.persistentChangedValues
         XCTAssertEqual(changes.count, 4)
-        for (column, (old: old, new: new)) in changes {
+        for (column, old) in changes {
             switch column {
             case "id":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, DatabaseValue.Null)
             case "name":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, "Arthur".databaseValue)
             case "age":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, 41.databaseValue)
             case "creationDate":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, DatabaseValue.Null)
             default:
                 XCTFail("Unexpected column: \(column)")
             }
@@ -272,23 +268,19 @@ class RecordEditedTests: GRDBTestCase {
     }
     
     func testChangesAfterInitFromRow() {
-        let person = Person(row: Row(dictionary:["name": "Arthur", "age": 41]))
-        let changes = person.databaseChanges
+        let person = Person(Row(dictionary:["name": "Arthur", "age": 41]))
+        let changes = person.persistentChangedValues
         XCTAssertEqual(changes.count, 4)
-        for (column, (old: old, new: new)) in changes {
+        for (column, old) in changes {
             switch column {
             case "id":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, DatabaseValue.Null)
             case "name":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, "Arthur".databaseValue)
             case "age":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, 41.databaseValue)
             case "creationDate":
                 XCTAssertTrue(old == nil)
-                XCTAssertEqual(new, DatabaseValue.Null)
             default:
                 XCTFail("Unexpected column: \(column)")
             }
@@ -297,14 +289,14 @@ class RecordEditedTests: GRDBTestCase {
     
     func testChangesAfterFullFetch() {
         // Fetch a record from a row that contains all the columns in
-        // storedDatabaseDictionary: An update statement, which only saves the
-        // columns in storedDatabaseDictionary would perform no change. So the
+        // persistentDictionary: An update statement, which only saves the
+        // columns in persistentDictionary would perform no change. So the
         // record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT * FROM persons")!
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 0)
             }
         }
@@ -312,26 +304,23 @@ class RecordEditedTests: GRDBTestCase {
 
     func testChangesAfterPartialFetch() {
         // Fetch a record from a row that does not contain all the columns in
-        // storedDatabaseDictionary: An update statement saves the columns in
-        // storedDatabaseDictionary, so it may perform unpredictable change.
+        // persistentDictionary: An update statement saves the columns in
+        // persistentDictionary, so it may perform unpredictable change.
         // So the record is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person =  Person.fetchOne(db, "SELECT name FROM persons")!
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 3)
-                for (column, (old: old, new: new)) in changes {
+                for (column, old) in changes {
                     switch column {
                     case "id":
                         XCTAssertTrue(old == nil)
-                        XCTAssertEqual(new, DatabaseValue.Null)
                     case "age":
                         XCTAssertTrue(old == nil)
-                        XCTAssertEqual(new, DatabaseValue.Null)
                     case "creationDate":
                         XCTAssertTrue(old == nil)
-                        XCTAssertEqual(new, DatabaseValue.Null)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }
@@ -346,14 +335,14 @@ class RecordEditedTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 0)
             }
         }
     }
     
     func testChangesAfterValueChange() {
-        // Any change in a value exposed in storedDatabaseDictionary yields a
+        // Any change in a value exposed in persistentDictionary yields a
         // record that is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -363,19 +352,16 @@ class RecordEditedTests: GRDBTestCase {
                 person.name = "Bobby"           // non-nil -> non-nil
                 person.age = 41                 // nil -> non-nil
                 person.creationDate = nil       // non-nil -> nil
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 3)
-                for (column, (old: old, new: new)) in changes {
+                for (column, old) in changes {
                     switch column {
                     case "name":
                         XCTAssertEqual(old, "Arthur".databaseValue)
-                        XCTAssertEqual(new, "Bobby".databaseValue)
                     case "age":
                         XCTAssertEqual(old, DatabaseValue.Null)
-                        XCTAssertEqual(new, 41.databaseValue)
                     case "creationDate":
                         XCTAssertTrue((old?.value() as NSDate?) != nil)
-                        XCTAssertEqual(new, DatabaseValue.Null)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }
@@ -392,7 +378,7 @@ class RecordEditedTests: GRDBTestCase {
                 try person.insert(db)
                 person.name = "Bobby"
                 try person.update(db)
-                XCTAssertEqual(person.databaseChanges.count, 0)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
             }
         }
     }
@@ -403,22 +389,21 @@ class RecordEditedTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.save(db)
-                XCTAssertEqual(person.databaseChanges.count, 0)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
                 
                 person.name = "Bobby"
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 1)
-                for (column, (old: old, new: new)) in changes {
+                for (column, old) in changes {
                     switch column {
                     case "name":
                         XCTAssertEqual(old, "Arthur".databaseValue)
-                        XCTAssertEqual(new, "Bobby".databaseValue)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }
                 }
                 try person.save(db)
-                XCTAssertEqual(person.databaseChanges.count, 0)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
             }
         }
     }
@@ -430,13 +415,12 @@ class RecordEditedTests: GRDBTestCase {
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
                 person.id = person.id + 1
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 1)
-                for (column, (old: old, new: new)) in changes {
+                for (column, old) in changes {
                     switch column {
                     case "id":
                         XCTAssertEqual(old, (person.id - 1).databaseValue)
-                        XCTAssertEqual(new, person.id.databaseValue)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }
@@ -451,20 +435,20 @@ class RecordEditedTests: GRDBTestCase {
                 let person = Person(name: "Arthur", age: 41)
                 
                 try person.insert(db)
-                XCTAssertEqual(person.databaseChanges.count, 0)
-                XCTAssertEqual(person.copy().databaseChanges.count, 0)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
+                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
                 
                 person.name = "Barbara"
-                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-                XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
+                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
                 
-                person.databaseEdited = false
-                XCTAssertEqual(person.databaseChanges.count, 0)
-                XCTAssertEqual(person.copy().databaseChanges.count, 0)
+                person.hasPersistentChangedValues = false
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
+                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
                 
-                person.databaseEdited = true
-                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-                XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
+                person.hasPersistentChangedValues = true
+                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
             }
         }
     }

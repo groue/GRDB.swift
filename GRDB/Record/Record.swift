@@ -21,7 +21,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// awakeFromFetch().
     ///
     /// - parameter row: A Row
-    required public init(row: Row) {
+    required public init(_ row: Row) {
     }
     
     /// Don't call this method directly. It is called after a Record has been
@@ -31,8 +31,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// - parameter row: A Row.
     public func awakeFromFetch(row: Row) {
-        // Take care of the databaseEdited flag. If the row does not contain
-        // all needed columns, the record turns edited.
+        // Take care of the hasPersistentChangedValues flag. If the row does not
+        /// contain ll needed columns, the record turns edited.
         //
         // Row may be a metal row which will turn invalid as soon as the SQLite
         // statement is iterated. We need to store an immutable and safe copy.
@@ -44,7 +44,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// This method is required by the RowConvertible protocol. It returns a
     /// record initialized from the row. See init(row:Row).
     public final class func fromRow(row: Row) -> Self {
-        return self.init(row: row)
+        return self.init(row)
     }
     
     
@@ -79,13 +79,13 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    ///         override var persistentDictionary: [String: DatabaseValueConvertible?] {
     ///             return ["id": id, "name": name]
     ///         }
     ///     }
     ///
     /// The implementation of the base class Record returns an empty dictionary.
-    public var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    public var persistentDictionary: [String: DatabaseValueConvertible?] {
         return [:]
     }
     
@@ -104,21 +104,21 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     // MARK: - Copy
     
     /// Returns a copy of `self`, initialized from the values of
-    /// storedDatabaseDictionary.
+    /// persistentDictionary.
     ///
     /// Note that the eventual primary key is copied, as well as the
-    /// databaseEdited flag.
+    /// hasPersistentChangedValues flag.
     ///
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.fromRow(Row(dictionary: storedDatabaseDictionary))
+        let copy = self.dynamicType.fromRow(Row(dictionary: persistentDictionary))
         copy.referenceRow = referenceRow
         return copy
     }
     
     
-    // MARK: - Changes
+    // MARK: - Changes Tracking
     
     /// A boolean that indicates whether the record has changes that have not
     /// been saved.
@@ -126,7 +126,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// This flag is purely informative, and does not prevent insert(),
     /// update(), and save() from performing their database queries.
     ///
-    /// A record is *edited* if its *storedDatabaseDictionary* has been changed
+    /// A record is *edited* if its *persistentDictionary* has been changed
     /// since last database synchronization (fetch, update, insert). Comparison
     /// is performed on *values*: setting a property to the same value does not
     /// trigger the edited flag.
@@ -135,52 +135,50 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// you may set it to true or false when you know better. Setting it to
     /// false does not prevent it from turning true on subsequent modifications
     /// of the record.
-    public var databaseEdited: Bool {
+    public var hasPersistentChangedValues: Bool {
         get {
-            return generateDatabaseChanges().next() != nil
+            return generatePersistentChangedValues().next() != nil
         }
         set {
             if newValue {
                 referenceRow = nil
             } else {
-                referenceRow = Row(dictionary: storedDatabaseDictionary)
+                referenceRow = Row(dictionary: persistentDictionary)
             }
         }
     }
     
     /// A dictionary of changes that have not been saved.
     ///
-    /// Its keys are column names.
+    /// Its keys are column names, and values the old values that have been
+    /// changed since last fetching or saving of the record.
     ///
-    /// Its values are `(old: DatabaseValue?, new: DatabaseValue)` pairs, where
-    /// *old* is the reference DatabaseValue, and *new* the current one.
+    /// Unless the record has actually been fetched or saved, the old values
+    /// are nil.
     ///
-    /// The old DatabaseValue is nil, which means unknown, unless the record has
-    /// been fetched, updated or inserted.
-    ///
-    /// See `databaseEdited` for more information.
-    public var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)] {
-        var changes: [String: (old: DatabaseValue?, new: DatabaseValue)] = [:]
-        for (column: column, old: old, new: new) in generateDatabaseChanges() {
-            changes[column] = (old: old, new: new)
+    /// See `hasPersistentChangedValues` for more information.
+    public var persistentChangedValues: [String: DatabaseValue?] {
+        var changes: [String: DatabaseValue?] = [:]
+        for (column: column, old: old) in generatePersistentChangedValues() {
+            changes[column] = old
         }
         return changes
     }
     
-    // A change generator that is used by both databaseEdited and
-    // databaseChanges properties.
-    private func generateDatabaseChanges() -> AnyGenerator<(column: String, old: DatabaseValue?, new: DatabaseValue)> {
+    // A change generator that is used by both hasPersistentChangedValues and
+    // persistentChangedValues properties.
+    private func generatePersistentChangedValues() -> AnyGenerator<(column: String, old: DatabaseValue?)> {
         let oldRow = referenceRow
-        var newValueGenerator = storedDatabaseDictionary.generate()
+        var newValueGenerator = persistentDictionary.generate()
         return anyGenerator {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueGenerator.next() {
                 let new = newValue?.databaseValue ?? .Null
                 guard let old = oldRow?[column] else {
-                    return (column: column, old: nil, new: new)
+                    return (column: column, old: nil)
                 }
                 if new != old {
-                    return (column: column, old: old, new: new)
+                    return (column: column, old: old)
                 }
             }
             return nil
@@ -188,7 +186,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     }
     
     
-    /// Reference row for the *databaseEdited* property.
+    /// Reference row for the *hasPersistentChangedValues* property.
     var referenceRow: Row?
     
 
@@ -196,7 +194,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     /// Executes an INSERT statement.
     ///
-    /// On success, this method sets the *databaseEdited* flag to false.
+    /// On success, this method sets the *hasPersistentChangedValues* flag
+    /// to false.
     ///
     /// This method is guaranteed to have inserted a row in the database if it
     /// returns without error.
@@ -209,12 +208,13 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func insert(db: Database) throws {
         try performInsert(db)
-        databaseEdited = false
+        hasPersistentChangedValues = false
     }
     
     /// Executes an UPDATE statement.
     ///
-    /// On success, this method sets the *databaseEdited* flag to false.
+    /// On success, this method sets the *hasPersistentChangedValues* flag
+    /// to false.
     ///
     /// This method is guaranteed to have updated a row in the database if it
     /// returns without error.
@@ -225,7 +225,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///   any row in the database and record could not be updated.
     public func update(db: Database) throws {
         try performUpdate(db)
-        databaseEdited = false
+        hasPersistentChangedValues = false
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -236,7 +236,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// Otherwise, performs an insert.
     ///
-    /// On success, this method sets the *databaseEdited* flag to false.
+    /// On success, this method sets the *hasPersistentChangedValues* flag
+    /// to false.
     ///
     /// This method is guaranteed to have inserted or updated a row in the
     /// database if it returns without error.
@@ -250,7 +251,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     /// Executes a DELETE statement.
     ///
-    /// On success, this method sets the *databaseEdited* flag to true.
+    /// On success, this method sets the *hasPersistentChangedValues* flag
+    /// to true.
     ///
     /// - parameter db: A Database.
     /// - returns: Whether a database row was deleted.
@@ -259,8 +261,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         let deleted = try performDelete(db)
         // Future calls to update() will throw NotFound. Make the user
         // a favor and make sure this error is thrown even if she checks the
-        // databaseEdited flag:
-        databaseEdited = true
+        // hasPersistentChangedValues flag:
+        hasPersistentChangedValues = true
         return deleted
     }
 }
@@ -273,7 +275,7 @@ extension Record : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         return "<\(self.dynamicType)"
-            + storedDatabaseDictionary.map { (key, value) in
+            + persistentDictionary.map { (key, value) in
                 if let value = value {
                     return " \(key):\(String(reflecting: value))"
                 } else {

@@ -1,16 +1,42 @@
 Release Notes
 =============
 
-## 0.35.0
+## Next Release
 
-The Record class has been refactored so that it gets closer from its RowConvertible and DatabasePersistable adopted protocols.
+The Record class has been refactored so that it gets closer from the RowConvertible and DatabasePersistable protocols. It also makes it easier to write subclasses that have non-optional properties.
+
+Methods names that did not match [Swift 3 API Design Guidelines](https://swift.org/documentation/api-design-guidelines.html) have been refactored.
+
+**New**
+
+- `Float` adopts DatabaseValueConvertible, and can be stored and fetched from the database without Double conversion ([documentation](https://github.com/groue/GRDB.swift#values)).
 
 **Breaking Changes**
 
-- `Record.reload()` has been removed.
-- `Record.updateFromRow()` has been removed. Override `init(row:)` instead.
-- `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their inserted rowID.
-- `Row.value(named:)` returns nil if no such column exists in the row.
+DatabasePersistable:
+
+- `DatabasePersistable.storedDatabaseDictionary` has been renamed `persistentDictionary` ([documentation](https://github.com/groue/GRDB.swift#databasepersistable-protocol)).
+
+Row:
+
+- `Row.value(named:)` returns nil if no such column exists in the row. It used to crash with a fatal error ([documentation](https://github.com/groue/GRDB.swift#column-values)).
+
+DatabaseValue:
+
+- `DatabaseValue` has no public initializers. To create one, use `DatabaseValue.Null`, or the fact that Int, String, etc. adopt the protocol: `1.databaseValue`, `"foo".databaseValue` ([documentation](https://github.com/groue/GRDB.swift#custom-value-types)).
+
+Record ([documentation](https://github.com/groue/GRDB.swift#record)):
+
+- `Record.reload()` has been removed. You have to provide your own implementation, should you need reloading.
+- `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)` (unlabelled row argument).
+- `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
+- `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their row ids.
+- `Record.databaseEdited` has been renamed `hasPersistentChangedValues`.
+- `Record.databaseChanges` has been renamed `persistentChangedValues` and now returns `[String: DatabaseValue?]`, the dictionary of old values for changed columns.
+
+DatabaseMigrator:
+
+- `DatabaseMigrator.registerMigrationWithoutForeignKeyChecks(_:_:)` has been renamed `DatabaseMigrator.registerMigration(_:withDisabledForeignKeyChecks:migrate:)`  ([documentation](https://github.com/groue/GRDB.swift#advanced-database-schema-changes)).
 
 
 ## 0.34.0

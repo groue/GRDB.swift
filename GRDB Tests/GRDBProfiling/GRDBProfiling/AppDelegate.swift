@@ -103,22 +103,18 @@ class PerformanceRecord : Record {
     
     // Record
     
-    required init(row: Row) {
-        super.init(row: row)
-    }
-    
-    override func updateFromRow(row: Row) {
-        if let dbv = row["i0"] { i0 = dbv.value() }
-        if let dbv = row["i1"] { i1 = dbv.value() }
-        if let dbv = row["i2"] { i2 = dbv.value() }
-        if let dbv = row["i3"] { i3 = dbv.value() }
-        if let dbv = row["i4"] { i4 = dbv.value() }
-        if let dbv = row["i5"] { i5 = dbv.value() }
-        if let dbv = row["i6"] { i6 = dbv.value() }
-        if let dbv = row["i7"] { i7 = dbv.value() }
-        if let dbv = row["i8"] { i8 = dbv.value() }
-        if let dbv = row["i9"] { i9 = dbv.value() }
-        super.updateFromRow(row)
+    required init(_ row: Row) {
+        i0 = row.value(named: "i0")
+        i1 = row.value(named: "i1")
+        i2 = row.value(named: "i2")
+        i3 = row.value(named: "i3")
+        i4 = row.value(named: "i4")
+        i5 = row.value(named: "i5")
+        i6 = row.value(named: "i6")
+        i7 = row.value(named: "i7")
+        i8 = row.value(named: "i8")
+        i9 = row.value(named: "i9")
+        super.init(row)
     }
 }
 

@@ -32,15 +32,15 @@ class Person : Record {
         return "persons"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
         age = row.value(named: "age")
         name = row.value(named: "name")
         creationDate = row.value(named: "creationDate")
-        super.init(row: row)
+        super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return [
             "id": id,
             "name": name,
@@ -69,7 +69,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPerson", Person.setupInDatabase)
+        migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }
@@ -87,7 +87,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 XCTAssertTrue(record.id != nil)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -107,7 +107,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 XCTAssertTrue(record.id != nil)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -128,7 +128,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.insert(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -175,7 +175,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.insert(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -212,7 +212,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.update(db)
 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -251,7 +251,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 XCTAssertTrue(record.id != nil)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -269,7 +269,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -291,7 +291,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.save(db)   // Actual update
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -311,7 +311,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {

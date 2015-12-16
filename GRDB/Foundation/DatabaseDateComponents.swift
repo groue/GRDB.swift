@@ -95,7 +95,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             timeString = nil
         }
         
-        return DatabaseValue(string: [dateString, timeString].flatMap { $0 }.joinWithSeparator(" "))
+        return DatabaseValue([dateString, timeString].flatMap { $0 }.joinWithSeparator(" "))
     }
     
     /// Returns a DatabaseDateComponents if *databaseValue* contains a

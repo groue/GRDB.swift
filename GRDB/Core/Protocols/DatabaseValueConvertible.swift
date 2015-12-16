@@ -27,7 +27,7 @@ public protocol DatabaseValueConvertible : RowConvertible {
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
 }
 
-/// DatabaseValueConvertible adopts RowConvertible
+/// DatabaseValueConvertible inherits from RowConvertible.
 public extension DatabaseValueConvertible {
     
     /// Returns the value initialized from the leftmost column of the row.

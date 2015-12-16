@@ -5,7 +5,7 @@ class NSDataTests: GRDBTestCase {
     
     func testDatabaseValueCanNotStoreEmptyData() {
         // SQLite can't store zero-length blob.
-        let databaseValue = DatabaseValue(data: NSData())
+        let databaseValue = NSData().databaseValue
         XCTAssertEqual(databaseValue, DatabaseValue.Null)
     }
 }

@@ -13,7 +13,7 @@
 //    init() {
 //        direction = .Save
 //    }
-//    init(row: Row) {
+//    init(_ row: Row) {
 //        direction = .Fetch(row)
 //    }
 //    subscript(name: String) -> Binding {
@@ -123,14 +123,14 @@
 //        super.updateFromRow(row) // Subclasses are required to call super.
 //    }
 //    
-//    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+//    override var persistentDictionary: [String: DatabaseValueConvertible?] {
 //        let mapping = Mapping()
 //        map(mapping)
 //        return mapping.dictionary
 //    }
 //    
-//    required init(row: Row) {
-//        super.init(row: row)
+//    required init(_ row: Row) {
+//        super.init(row)
 //    }
 //}
 //

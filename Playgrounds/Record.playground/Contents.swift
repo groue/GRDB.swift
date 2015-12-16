@@ -42,18 +42,19 @@ class Person : Record {
         return "persons"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
-        super.init(row: row)
+        super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
-        return [
-            "id": id,
-            "firstName": firstName,
-            "lastName": lastName]
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return ["id": id, "firstName": firstName, "lastName": lastName]
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        id = rowID
     }
 }
 

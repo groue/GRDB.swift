@@ -67,13 +67,13 @@ class Artist : Record {
         return "artists"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
-        super.init(row: row)
+        super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
@@ -109,14 +109,14 @@ class Artwork : Record {
         return "artworks"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
         title = row.value(named: "title")
         artistId = row.value(named: "artistId")
-        super.init(row: row)
+        super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "artistId": artistId, "title": title]
     }
     

@@ -1,7 +1,7 @@
 /// Types that adopt RowConvertible can be initialized from a database Row.
 ///
 ///     let row = Row.fetchOne(db, "SELECT ...")!
-///     let person = Person(row: row)
+///     let person = Person(row)
 ///
 /// The protocol comes with built-in methods that allow to fetch sequences,
 /// arrays, or single values:

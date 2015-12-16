@@ -6,9 +6,9 @@ class MinimalPersonWithOverrides : Person {
     
     // Record
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         extra = row.value(named: "extra")
-        super.init(row: row)
+        super.init(row)
     }
 }
 
@@ -27,9 +27,9 @@ class PersonWithOverrides : Person {
     
     // Record
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         extra = row.value(named: "extra")
-        super.init(row: row)
+        super.init(row)
     }
     
     override func insert(db: Database) throws {
@@ -49,7 +49,7 @@ class RecordSubClassTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPerson", Person.setupInDatabase)
+        migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

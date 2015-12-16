@@ -22,12 +22,12 @@ class MinimalRowID : Record {
         return "minimalRowIDs"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
-        super.init(row: row)
+        super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id]
     }
     
@@ -42,7 +42,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createMinimalRowID", MinimalRowID.setupInDatabase)
+        migrator.registerMigration("createMinimalRowID", migrate: MinimalRowID.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }
@@ -60,7 +60,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 XCTAssertTrue(record.id != nil)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -79,7 +79,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 try record.insert(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -114,7 +114,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 try record.insert(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -151,7 +151,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 try record.update(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -190,7 +190,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 XCTAssertTrue(record.id != nil)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -209,7 +209,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -228,7 +228,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -248,7 +248,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {

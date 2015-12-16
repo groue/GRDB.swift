@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // BadlyMangledStuff.updateFromRow() accepts a row with mangled column names.
-// Its databaseEdited flag is wrong.
+// Its hasPersistentChangedValues flag is wrong.
 class BadlyMangledStuff : Record {
     var id: Int64?
     var name: String?
@@ -23,15 +23,15 @@ class BadlyMangledStuff : Record {
         return "stuffs"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         // Here user may peek fancy column names that match his SQL queries.
         // However this is not the way to do it (see testBadlyMangledStuff()).
         id = row.value(named: "mangled_id")
         name = row.value(named: "mangled_name")
-        super.init(row: row)
+        super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         // User won't peek fancy column names because he will notice that the
         // generated INSERT query needs actual column names.
         return ["id": id, "name": name]
@@ -48,7 +48,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createBadlyMangledStuff", BadlyMangledStuff.setupInDatabase)
+        migrator.registerMigration("createBadlyMangledStuff", migrate: BadlyMangledStuff.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }
@@ -63,7 +63,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
                     try record.save(db)
                     
                     // Nothing special here
-                    XCTAssertFalse(record.databaseEdited)
+                    XCTAssertFalse(record.hasPersistentChangedValues)
                 }
                 do {
                     let record = BadlyMangledStuff.fetchOne(db, "SELECT id AS mangled_id, name AS mangled_name FROM stuffs")!
@@ -73,7 +73,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
                     
                     // But here lies the problem with BadlyMangledStuff.
                     // It should not be edited:
-                    XCTAssertTrue(record.databaseEdited)
+                    XCTAssertTrue(record.hasPersistentChangedValues)
                 }
             }
         }

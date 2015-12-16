@@ -25,13 +25,13 @@ class Email : Record {
         return "emails"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         email = row.value(named: "email")
         label = row.value(named: "label")
-        super.init(row: row)
+        super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["email": email, "label": label]
     }
 }
@@ -42,7 +42,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createEmail", Email.setupInDatabase)
+        migrator.registerMigration("createEmail", migrate: Email.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }
@@ -75,7 +75,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.insert(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -97,7 +97,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.insert(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -118,7 +118,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.insert(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -156,7 +156,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.update(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -210,7 +210,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -230,7 +230,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -251,7 +251,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistentDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {

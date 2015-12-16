@@ -1,11 +1,11 @@
 /// An internal struct that defines a migration.
 struct Migration {
     let identifier: String
-    let disableForeignKeys: Bool
-    let block: (db: Database) throws -> Void
+    let disabledForeignKeyChecks: Bool
+    let migrate: (db: Database) throws -> Void
     
     func run(db: Database) throws {
-        if disableForeignKeys && Bool.fetchOne(db, "PRAGMA foreign_keys")! {
+        if disabledForeignKeyChecks && Bool.fetchOne(db, "PRAGMA foreign_keys")! {
             try runWithDisabledForeignKeys(db)
         } else {
             try runWithoutDisabledForeignKeys(db)
@@ -14,7 +14,7 @@ struct Migration {
     
     private func runWithoutDisabledForeignKeys(db: Database) throws {
         try db.inTransaction(.Immediate) {
-            try self.block(db: db)
+            try self.migrate(db: db)
             try self.insertAppliedIdentifier(db)
             return .Commit
         }
@@ -35,7 +35,7 @@ struct Migration {
         
         // > 2. Start a transaction.
         try db.inTransaction(.Immediate) {
-            try self.block(db: db)
+            try self.migrate(db: db)
             try self.insertAppliedIdentifier(db)
             
             // > 10. If foreign key constraints were originally enabled then run PRAGMA

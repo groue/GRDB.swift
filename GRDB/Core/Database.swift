@@ -507,7 +507,7 @@ public final class Database {
     /// not exist.
     ///
     /// This method is not thread-safe.
-    func primaryKeyForTable(named tableName: String) -> PrimaryKey? {
+    func primaryKey(tableName: String) -> PrimaryKey? {
         // https://www.sqlite.org/pragma.html
         //
         // > PRAGMA database.table_info(table-name);
@@ -532,7 +532,7 @@ public final class Database {
         // 1   | firstName | TEXT    | 0       | NULL       | 0  |
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
         
-        let columnInfos = columnInfosForTable(named: tableName)
+        let columnInfos = self.columnInfos(tableName)
         guard columnInfos.count > 0 else {
             // Table does not exist
             return nil
@@ -609,9 +609,9 @@ public final class Database {
         }
     }
     
-    // Cache for columnInfosForTable(named:)
+    // Cache for columnInfos()
     private var columnInfosCache: [String: [ColumnInfo]] = [:]
-    private func columnInfosForTable(named tableName: String) -> [ColumnInfo] {
+    private func columnInfos(tableName: String) -> [ColumnInfo] {
         if let columnInfos = columnInfosCache[tableName] {
             return columnInfos
         } else {

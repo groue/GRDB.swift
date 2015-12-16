@@ -14,20 +14,22 @@ class Person : Record {
         super.init()
     }
     
+    
     // MARK: - Record
     
     override class func databaseTableName() -> String {
         return "persons"
     }
     
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
-        super.init(row: row)
+        super.init(row)
+        
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return [
             "id": id,
             "firstName": firstName,
@@ -35,7 +37,7 @@ class Person : Record {
     }
     
     override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-        self.id = rowID
+        id = rowID
     }
 }
 

@@ -470,9 +470,6 @@ if let databaseValue = row["date"] {
         print("NSData: \(data)")
     }
 }
-
-// Nil if the column is not present:
-let date: NSDate = row["date"]?.value()
 ```
 
 Iterate all the tuples (columnName, databaseValue) in a row, from left to right:
@@ -558,7 +555,7 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The
 
 GRDB ships with built-in support for the following value types:
 
-- **Swift Standard Library**: Bool, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
+- **Swift Standard Library**: Bool, Float, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
 - **Foundation**: [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
     
@@ -589,14 +586,14 @@ They can be [directly fetched](#value-queries) from the database:
 let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
 ```
 
-Use them in the `storedDatabaseDictionary` property of [DatabasePersistable protocol](#databasepersistable-protocol) and [Record subclasses](#record):
+Use them in the `persistentDictionary` property of [DatabasePersistable protocol](#databasepersistable-protocol) and [Record subclasses](#record):
 
 ```swift
 class Link : Record {
     var url: NSURL?
     var verified: Bool
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["url": url, "verified": verified]
     }
 }
@@ -831,7 +828,7 @@ public protocol DatabaseValueConvertible {
 
 All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat. Those built-in types actually adopt it.
 
-The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and NSData.
+The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or the fact that Int, String, etc. adopt the protocol: `1.databaseValue`, `"foo".databaseValue`.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
 
@@ -860,7 +857,8 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
-        return DatabaseValue(double: date.timeIntervalSince1970)
+        // Double itself adopts DatabaseValueConvertible:
+        return date.timeIntervalSince1970.databaseValue
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
@@ -1300,11 +1298,11 @@ NSBundle.mainBundle()
 
 SQLite does not support many schema changes, and won't let you drop a table column with "ALTER TABLE ... DROP COLUMN ...", for example.
 
-Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by a specific  method of DatabaseMigrator:
+Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks:
 
 ```swift
 // Add a NOT NULL constraint on persons.name:
-migrator.registerMigrationWithoutForeignKeyChecks("AddNotNullCheckOnName") { db in
+migrator.registerMigration("AddNotNullCheckOnName", withDisabledForeignKeyChecks: true) { db in
     try db.executeMultiStatement(
         "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
         "INSERT INTO new_persons SELECT * FROM persons;" +
@@ -1338,8 +1336,8 @@ try dbQueue.inDatabase { db in
     
     // Changes tracking
     person.name = "Barbara"
-    person.databaseChanges.keys // ["name"]
-    if person.databaseEdited {  // Avoid useless UPDATE statements
+    person.persistentChangedValues.keys // ["name"]
+    if person.hasPersistentChangedValues {  // Avoid useless UPDATE statements
         try person.save(db)
     }
 }
@@ -1520,8 +1518,8 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// The name of the database table (from DatabaseTableMapping)
     static func databaseTableName() -> String
     
-    /// Returns the values that should be stored in the database.
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] { get }
+    /// Returns the values that should be persisted in the database.
+    var persistentDictionary: [String: DatabaseValueConvertible?] { get }
     
     /// Optional method that lets your adopting type store its rowID upon
     /// successful insertion. Don't call it directly: it is called for you.
@@ -1556,7 +1554,7 @@ struct Country : DatabasePersistable {
         return "countries"
     }
 
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
     }
 }
@@ -1577,13 +1575,13 @@ struct Person : MutableDatabasePersistable {
         return "persons"
     }
     
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
-    // Update self.id upon successful insertion:
+    // Update person ID upon successful insertion:
     mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-        self.id = rowID
+        id = rowID
     }
 }
 
@@ -1594,7 +1592,7 @@ try person.insert(db)
 person.id   // some value
 ```
 
-The `storedDatabaseDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
+The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
 
 > :point_up: **Note**: Classes should always prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate on insertion. This will prevent strange compiler errors when they insert an instance stored in a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
 
@@ -1750,8 +1748,8 @@ Yet, it does a few things well:
     person = Person.fetch...
     person.name = "Barbara"
     person.age = 41
-    person.databaseChanges.keys // ["age"]
-    if person.databaseEdited {
+    person.persistentChangedValues.keys // ["age"]
+    if person.hasPersistentChangedValues {
         try person.save(db)
     }
     ```
@@ -1767,10 +1765,10 @@ class Record {
     class func databaseTableName() -> String
     
     /// Initialize a record from a database row
-    required init(row: Row)
+    required init(_ row: Row)
     
-    /// The values stored in the database
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?]
+    /// The values persisted in the database
+    var persistentDictionary: [String: DatabaseValueConvertible?]
     
     /// Optionally update record ID after a successful insertion
     func didInsertWithRowID(rowID: Int64, forColumn column: String?)
@@ -1785,8 +1783,8 @@ class Person {
     func copy() -> Self
     
     // Change Tracking
-    var databaseEdited: Bool
-    var databaseChanges: [String: (old: DatabaseValue?, new: DatabaseValue)]
+    var hasPersistentChangedValues: Bool
+    var persistentChangedValues: [String: DatabaseValue?]
     
     // Persistence
     func insert(db: Database) throws
@@ -1841,11 +1839,11 @@ Country overrides `databaseTableName()` to return the name of the table that sho
     }
 ```
 
-Country overrides `storedDatabaseDictionary` and returns a dictionary whose keys are column names, and values any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
+Country overrides `persistentDictionary` and returns a dictionary whose keys are column names, and values any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
 
 ```swift
-    /// The values stored in the database
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    /// The values persisted in the database
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
     }
 ```
@@ -1854,10 +1852,10 @@ Country overrides `init(row:)` so that it can be fetched:
 
 ```swift
     /// Initialize a Country from a row
-    required init(row: Row) {
+    required init(_ row: Row) {
         isoCode = row.value(named: "isoCode")
         name = row.value(named: "name")
-        super.init(row: row)
+        super.init(row)
     }
 }
 ```
@@ -1883,7 +1881,7 @@ When the database table has an INTEGER PRIMARY KEY, make sure to override the `d
 //     id INTEGER PRIMARY KEY,
 //     name TEXT
 // )
-struct Person : MutableDatabasePersistable {
+class Person : Record {
     let id: Int64?
     let name: String?
     
@@ -1900,21 +1898,21 @@ struct Person : MutableDatabasePersistable {
         return "persons"
     }
     
-    /// The values stored in the database
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    /// The values persisted in the database
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
     /// Initialize a Person from a row
-    required init(row: Row) {
+    required init(_ row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
-        super.init(row: row)
+        super.init(row)
     }
     
     /// Update person ID after a successful insertion
     func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-        self.id = rowID
+        id = rowID
     }
 }
 
@@ -1996,12 +1994,12 @@ The order of sequences and arrays returned by the key-based methods is undefined
 
 #### Record Persistence Methods
 
-Records can store themselves in the database through the `storedDatabaseDictionary` core property:
+Records can store themselves in the database through the `persistentDictionary` core property:
 
 ```swift
 class Person : Record {
     /// The values stored in the database
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "url": url, "name": name, "email": email]
     }
 }
@@ -2040,16 +2038,16 @@ try dbQueue.inDatabase { db in
 
 The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
 
-Avoid it with the `databaseEdited` property, which returns whether the record has changes that have not been saved:
+Avoid it with the `hasPersistentChangedValues` property, which returns whether the record has changes that have not been saved:
 
 ```swift
 // Saves the person if it has changes that have not been saved:
-if person.databaseEdited {
+if person.hasPersistentChangedValues {
     try person.save(db)
 }
 ```
 
-Note that `databaseEdited` is based on value comparison: **setting a property to the same value does not set the edited flag**.
+Note that `hasPersistentChangedValues` is based on value comparison: **setting a property to the same value does not set the edited flag**.
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check this [sample code](https://gist.github.com/groue/dcdd3784461747874f41).
 
@@ -2077,17 +2075,9 @@ class PersonsViewController: UITableViewController {
     private class PersonWithBookCount : Person {
         var bookCount: Int?
     
-        required init(row: Row) {
+        required init(_ row: Row) {
             bookCount = row.value(named: "bookCount")
-            super.init(row: row)
-        }
-        
-        class func fetchAllWithBookCount(db: Database) -> [PersonWithBookCount] {
-            return fetchAll(db,
-                "SELECT persons.*, COUNT(books.id) AS bookCount " +
-                "FROM persons " +
-                "LEFT JOIN books ON books.ownerId = persons.id " +
-                "GROUP BY persons.id")
+            super.init(row)
         }
     }
 ```
@@ -2096,11 +2086,18 @@ Perform a single request:
 
 ```swift
     var persons: [PersonWithBookCount]!
+    
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
+        
         persons = dbQueue.inDatabase { db in
-            PersonWithBookCount.fetchAllWithBookCount(db)
+            PersonWithBookCount.fetchAll(db,
+                "SELECT persons.*, COUNT(books.id) AS bookCount " +
+                "FROM persons " +
+                "LEFT JOIN books ON books.ownerId = persons.id " +
+                "GROUP BY persons.id")
         }
+        
         tableView.reloadData()
     }
 ```
@@ -2111,7 +2108,7 @@ Other application objects that expect a Person will gently accept the private su
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "showPerson" {
             let personVC: PersonViewController = segue...
-            personVC.person = persons[self.tableView.indexPathForSelectedRow!.row]
+            personVC.person = persons[tableView.indexPathForSelectedRow!.row]
         }
     }
 }
@@ -2180,7 +2177,7 @@ CREATE TABLE persons (
 class Person : Record {
     var creationDate: NSDate?
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["creationDate": creationDate, ...]
     }
     
@@ -2326,7 +2323,7 @@ class TableChangeObserver : NSObject, TransactionObserverType {
     
     func databaseDidRollback(db: Database) {
         // Reset until next database event:
-        self.changedTableNames = []
+        changedTableNames = []
     }
 }
 ```

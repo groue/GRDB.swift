@@ -30,18 +30,29 @@ class Person : Record {
     var id: Int64?
     var name: String?
     
+    func updateFromJSON(json: NSDictionary) {
+        id = (json["id"] as? NSNumber)?.longLongValue
+        name = json["name"] as? String
+    }
+    
+    // Record overrides
+    
     override class func databaseTableName() -> String {
         return "persons"
     }
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        if let dbv = row["name"] { name = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    required init(_ row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        id = rowID
     }
 }
 
@@ -82,13 +93,12 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
         case .Right(let jsonPerson):
             // JSON person without matching database person:
             let row = Row(dictionary: jsonPerson)!
-            let person = Person(row: row)
+            let person = Person(row)
             try person.insert(db)
         case .Common(let person, let jsonPerson):
             // Matching database and JSON persons:
-            let row = Row(dictionary: jsonPerson)!
-            person.updateFromRow(row)
-            if person.databaseEdited {
+            person.updateFromJSON(jsonPerson)
+            if person.hasPersistentChangedValues {
                 try person.update(db)
             }
         }

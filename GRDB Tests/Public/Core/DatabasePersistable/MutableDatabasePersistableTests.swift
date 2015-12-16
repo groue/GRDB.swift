@@ -9,7 +9,7 @@ struct MutablePersistablePerson : MutableDatabasePersistable {
         return "persons"
     }
     
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
@@ -27,7 +27,7 @@ struct MutablePersistableCountry : MutableDatabasePersistable {
         return "countries"
     }
     
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
     }
     
@@ -50,7 +50,7 @@ struct MutablePersistableCustomizedCountry : MutableDatabasePersistable {
         return "countries"
     }
     
-    var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
     }
     

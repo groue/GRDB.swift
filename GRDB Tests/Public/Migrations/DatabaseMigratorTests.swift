@@ -83,14 +83,14 @@ class DatabaseMigratorTests : GRDBTestCase {
             let personId = try db.execute("INSERT INTO persons (name) VALUES ('Arthur')").insertedRowID
             try db.execute("INSERT INTO pets (masterId, name) VALUES (?, 'Bobby')", arguments:[personId])
         }
-        migrator.registerMigrationWithoutForeignKeyChecks("removePersonTmpColumn") { db in
+        migrator.registerMigration("removePersonTmpColumn", withDisabledForeignKeyChecks: true) { db in
             // Test the technique described at https://www.sqlite.org/lang_altertable.html#otheralter
             try db.execute("CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT)")
             try db.execute("INSERT INTO new_persons SELECT id, name FROM persons")
             try db.execute("DROP TABLE persons")
             try db.execute("ALTER TABLE new_persons RENAME TO persons")
         }
-        migrator.registerMigrationWithoutForeignKeyChecks("foreignKeyError") { db in
+        migrator.registerMigration("foreignKeyError", withDisabledForeignKeyChecks: true) { db in
             // Make sure foreign keys are checked at the end.
             try db.execute("INSERT INTO persons (name) VALUES ('Barbara')")
             do {

@@ -3,7 +3,7 @@ import GRDB
 
 struct CustomValueType : DatabaseValueConvertible {
     var databaseValue: DatabaseValue {
-        return DatabaseValue(string: "CustomValueType")
+        return "CustomValueType".databaseValue
     }
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> CustomValueType? {
         guard let string = String.fromDatabaseValue(databaseValue) where string == "CustomValueType" else {
