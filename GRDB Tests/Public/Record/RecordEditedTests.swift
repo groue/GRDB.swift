@@ -249,7 +249,7 @@ class RecordEditedTests: GRDBTestCase {
 
     func testChangesAfterInit() {
         let person = Person(name: "Arthur", age: 41)
-        let changes = person.databaseChanges
+        let changes = person.persistentChangedValues
         XCTAssertEqual(changes.count, 4)
         for (column, old) in changes {
             switch column {
@@ -269,7 +269,7 @@ class RecordEditedTests: GRDBTestCase {
     
     func testChangesAfterInitFromRow() {
         let person = Person(Row(dictionary:["name": "Arthur", "age": 41]))
-        let changes = person.databaseChanges
+        let changes = person.persistentChangedValues
         XCTAssertEqual(changes.count, 4)
         for (column, old) in changes {
             switch column {
@@ -296,7 +296,7 @@ class RecordEditedTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT * FROM persons")!
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 0)
             }
         }
@@ -311,7 +311,7 @@ class RecordEditedTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person =  Person.fetchOne(db, "SELECT name FROM persons")!
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 3)
                 for (column, old) in changes {
                     switch column {
@@ -335,7 +335,7 @@ class RecordEditedTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 0)
             }
         }
@@ -352,7 +352,7 @@ class RecordEditedTests: GRDBTestCase {
                 person.name = "Bobby"           // non-nil -> non-nil
                 person.age = 41                 // nil -> non-nil
                 person.creationDate = nil       // non-nil -> nil
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 3)
                 for (column, old) in changes {
                     switch column {
@@ -378,7 +378,7 @@ class RecordEditedTests: GRDBTestCase {
                 try person.insert(db)
                 person.name = "Bobby"
                 try person.update(db)
-                XCTAssertEqual(person.databaseChanges.count, 0)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
             }
         }
     }
@@ -389,10 +389,10 @@ class RecordEditedTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.save(db)
-                XCTAssertEqual(person.databaseChanges.count, 0)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
                 
                 person.name = "Bobby"
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 1)
                 for (column, old) in changes {
                     switch column {
@@ -403,7 +403,7 @@ class RecordEditedTests: GRDBTestCase {
                     }
                 }
                 try person.save(db)
-                XCTAssertEqual(person.databaseChanges.count, 0)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
             }
         }
     }
@@ -415,7 +415,7 @@ class RecordEditedTests: GRDBTestCase {
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
                 person.id = person.id + 1
-                let changes = person.databaseChanges
+                let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 1)
                 for (column, old) in changes {
                     switch column {
@@ -435,20 +435,20 @@ class RecordEditedTests: GRDBTestCase {
                 let person = Person(name: "Arthur", age: 41)
                 
                 try person.insert(db)
-                XCTAssertEqual(person.databaseChanges.count, 0)
-                XCTAssertEqual(person.copy().databaseChanges.count, 0)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
+                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
                 
                 person.name = "Barbara"
-                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-                XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
+                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
                 
                 person.hasPersistentChangedValues = false
-                XCTAssertEqual(person.databaseChanges.count, 0)
-                XCTAssertEqual(person.copy().databaseChanges.count, 0)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
+                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
                 
                 person.hasPersistentChangedValues = true
-                XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-                XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
+                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
             }
         }
     }

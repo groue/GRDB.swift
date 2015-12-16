@@ -1339,7 +1339,7 @@ try dbQueue.inDatabase { db in
     
     // Changes tracking
     person.name = "Barbara"
-    person.databaseChanges.keys // ["name"]
+    person.persistentChangedValues.keys // ["name"]
     if person.hasPersistentChangedValues {  // Avoid useless UPDATE statements
         try person.save(db)
     }
@@ -1751,7 +1751,7 @@ Yet, it does a few things well:
     person = Person.fetch...
     person.name = "Barbara"
     person.age = 41
-    person.databaseChanges.keys // ["age"]
+    person.persistentChangedValues.keys // ["age"]
     if person.hasPersistentChangedValues {
         try person.save(db)
     }
@@ -1787,7 +1787,7 @@ class Person {
     
     // Change Tracking
     var hasPersistentChangedValues: Bool
-    var databaseChanges: [String: DatabaseValue?]
+    var persistentChangedValues: [String: DatabaseValue?]
     
     // Persistence
     func insert(db: Database) throws

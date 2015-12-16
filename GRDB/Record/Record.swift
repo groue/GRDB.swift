@@ -118,7 +118,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     }
     
     
-    // MARK: - Changes
+    // MARK: - Changes Tracking
     
     /// A boolean that indicates whether the record has changes that have not
     /// been saved.
@@ -157,7 +157,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// are nil.
     ///
     /// See `hasPersistentChangedValues` for more information.
-    public var databaseChanges: [String: DatabaseValue?] {
+    public var persistentChangedValues: [String: DatabaseValue?] {
         var changes: [String: DatabaseValue?] = [:]
         for (column: column, old: old) in generateDatabaseChanges() {
             changes[column] = old
@@ -166,7 +166,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     }
     
     // A change generator that is used by both hasPersistentChangedValues and
-    // databaseChanges properties.
+    // persistentChangedValues properties.
     private func generateDatabaseChanges() -> AnyGenerator<(column: String, old: DatabaseValue?)> {
         let oldRow = referenceRow
         var newValueGenerator = persistedDictionary.generate()

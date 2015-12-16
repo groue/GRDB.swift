@@ -24,7 +24,7 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 - `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
 - `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their row ids.
 - `Record.databaseEdited` has been renamed `hasPersistentChangedValues`.
-- `Record.databaseChanges` now returns `[String: DatabaseValue?]`, the dictionary of old values for changed column names.
+- `Record.databaseChanges` has been renamed `persistentChangedValues` and now returns `[String: DatabaseValue?]`, the dictionary of old values for changed columns.
 
 `Row`:
 
