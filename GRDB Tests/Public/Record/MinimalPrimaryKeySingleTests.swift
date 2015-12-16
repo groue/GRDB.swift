@@ -38,7 +38,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createMinimalSingle", MinimalSingle.setupInDatabase)
+        migrator.registerMigration("createMinimalSingle", migrate: MinimalSingle.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

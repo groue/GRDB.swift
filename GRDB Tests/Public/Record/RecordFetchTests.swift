@@ -7,7 +7,7 @@ class RecordFetchTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPerson", Person.setupInDatabase)
+        migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

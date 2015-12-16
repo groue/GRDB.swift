@@ -43,7 +43,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPet", Pet.setupInDatabase)
+        migrator.registerMigration("createPet", migrate: Pet.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

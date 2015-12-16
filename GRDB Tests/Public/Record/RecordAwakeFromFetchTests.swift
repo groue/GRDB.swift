@@ -45,7 +45,7 @@ class RecordEventsTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createEventRecorder", EventRecorder.setupInDatabase)
+        migrator.registerMigration("createEventRecorder", migrate: EventRecorder.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

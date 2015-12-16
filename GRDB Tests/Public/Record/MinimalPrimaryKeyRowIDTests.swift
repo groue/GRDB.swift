@@ -42,7 +42,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createMinimalRowID", MinimalRowID.setupInDatabase)
+        migrator.registerMigration("createMinimalRowID", migrate: MinimalRowID.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

@@ -39,7 +39,7 @@ class PrimaryKeyNoneTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createItem", Item.setupInDatabase)
+        migrator.registerMigration("createItem", migrate: Item.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

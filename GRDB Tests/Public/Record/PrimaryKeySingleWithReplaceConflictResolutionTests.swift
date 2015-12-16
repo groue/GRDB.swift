@@ -42,7 +42,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createEmail", Email.setupInDatabase)
+        migrator.registerMigration("createEmail", migrate: Email.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

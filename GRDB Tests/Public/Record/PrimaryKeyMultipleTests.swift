@@ -52,7 +52,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createCitizenship", Citizenship.setupInDatabase)
+        migrator.registerMigration("createCitizenship", migrate: Citizenship.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

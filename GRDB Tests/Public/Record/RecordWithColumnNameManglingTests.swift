@@ -48,7 +48,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
         super.setUp()
         
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createBadlyMangledStuff", BadlyMangledStuff.setupInDatabase)
+        migrator.registerMigration("createBadlyMangledStuff", migrate: BadlyMangledStuff.setupInDatabase)
         assertNoError {
             try migrator.migrate(dbQueue)
         }

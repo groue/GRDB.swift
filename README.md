@@ -1300,11 +1300,11 @@ NSBundle.mainBundle()
 
 SQLite does not support many schema changes, and won't let you drop a table column with "ALTER TABLE ... DROP COLUMN ...", for example.
 
-Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by a specific  method of DatabaseMigrator:
+Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks:
 
 ```swift
 // Add a NOT NULL constraint on persons.name:
-migrator.registerMigrationWithoutForeignKeyChecks("AddNotNullCheckOnName") { db in
+migrator.registerMigration("AddNotNullCheckOnName", withDisabledForeignKeyChecks: true) { db in
     try db.executeMultiStatement(
         "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
         "INSERT INTO new_persons SELECT * FROM persons;" +
