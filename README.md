@@ -470,9 +470,6 @@ if let databaseValue = row["date"] {
         print("NSData: \(data)")
     }
 }
-
-// Nil if the column is not present:
-let date: NSDate = row["date"]?.value()
 ```
 
 Iterate all the tuples (columnName, databaseValue) in a row, from left to right:
