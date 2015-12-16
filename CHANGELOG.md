@@ -3,7 +3,7 @@ Release Notes
 
 ## Next Release
 
-The Record class has been refactored so that it gets closer from its RowConvertible and DatabasePersistable adopted protocols.
+The Record class has been refactored so that it gets closer from the RowConvertible and DatabasePersistable protocols, and makes it easier to write subclasses with non-optional properties.
 
 **Breaking Changes**
 
