@@ -1884,7 +1884,7 @@ When the database table has an INTEGER PRIMARY KEY, make sure to override the `d
 //     id INTEGER PRIMARY KEY,
 //     name TEXT
 // )
-struct Person : MutableDatabasePersistable {
+class Person : Record {
     let id: Int64?
     let name: String?
     
