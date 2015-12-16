@@ -42,11 +42,11 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         var persistedDictionary: [String: DatabaseValueConvertible?] {
+    ///         var persistentDictionary: [String: DatabaseValueConvertible?] {
     ///             return ["id": id, "name": name]
     ///         }
     ///     }
-    var persistedDictionary: [String: DatabaseValueConvertible?] { get }
+    var persistentDictionary: [String: DatabaseValueConvertible?] { get }
     
     /// Don't call this method directly: it is called upon successful insertion,
     /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
@@ -436,10 +436,10 @@ final class DataMapper {
     /// The persistable
     let persistable: MutableDatabasePersistable
     
-    /// DataMapper keeps a copy the persistable's persistedDictionary, so
+    /// DataMapper keeps a copy the persistable's persistentDictionary, so
     /// that this dictionary is built once whatever the database operation.
     /// It is guaranteed to have at least one (key, value) pair.
-    let persistedDictionary: [String: DatabaseValueConvertible?]
+    let persistentDictionary: [String: DatabaseValueConvertible?]
     
     /// The table name
     let databaseTableName: String
@@ -447,7 +447,7 @@ final class DataMapper {
     /// The table primary key
     let primaryKey: PrimaryKey
     
-    /// An excerpt from persistedDictionary whose keys are primary key columns.
+    /// An excerpt from persistentDictionary whose keys are primary key columns.
     ///
     /// It is nil when persistable has no primary key.
     lazy var primaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
@@ -455,15 +455,15 @@ final class DataMapper {
         guard columns.count > 0 else {
             return nil
         }
-        let persistedDictionary = self.persistedDictionary
+        let persistentDictionary = self.persistentDictionary
         var dictionary: [String: DatabaseValueConvertible?] = [:]
         for column in columns {
-            dictionary[column] = persistedDictionary[column]
+            dictionary[column] = persistentDictionary[column]
         }
         return dictionary
         }()
     
-    /// An excerpt from persistedDictionary whose keys are primary key
+    /// An excerpt from persistentDictionary whose keys are primary key
     /// columns. It is able to resolve a row in the database.
     ///
     /// It is nil when the primaryKeyDictionary is nil or unable to identify a
@@ -513,15 +513,15 @@ final class DataMapper {
             fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) does not exist. See \(persistable.dynamicType).databaseTableName()")
         }
 
-        // Fail early if persistedDictionary is empty
-        let persistedDictionary = persistable.persistedDictionary
-        guard persistedDictionary.count > 0 else {
-            fatalError("Invalid empty dictionary returned from \(persistable.dynamicType).persistedDictionary")
+        // Fail early if persistentDictionary is empty
+        let persistentDictionary = persistable.persistentDictionary
+        guard persistentDictionary.count > 0 else {
+            fatalError("Invalid empty dictionary returned from \(persistable.dynamicType).persistentDictionary")
         }
         
         self.db = db
         self.persistable = persistable
-        self.persistedDictionary = persistedDictionary
+        self.persistentDictionary = persistentDictionary
         self.databaseTableName = databaseTableName
         self.primaryKey = primaryKey
     }
@@ -530,8 +530,8 @@ final class DataMapper {
     // MARK: - Statement builders
     
     func insertStatement() -> UpdateStatement {
-        let insertStatement = db.updateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(persistedDictionary.keys)))
-        insertStatement.arguments = StatementArguments(persistedDictionary.values)
+        let insertStatement = db.updateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(persistentDictionary.keys)))
+        insertStatement.arguments = StatementArguments(persistentDictionary.values)
         return insertStatement
     }
     
@@ -542,7 +542,7 @@ final class DataMapper {
         }
         
         // Don't update primary key columns
-        var updatedDictionary = persistedDictionary
+        var updatedDictionary = persistentDictionary
         for column in primaryKeyDictionary.keys {
             updatedDictionary.removeValueForKey(column)
         }
@@ -557,7 +557,7 @@ final class DataMapper {
             //
             // The goal is to be able to write tests with minimal tables,
             // including tables made of a single primary key column.
-            updatedDictionary = persistedDictionary
+            updatedDictionary = persistentDictionary
         }
         
         // Update

@@ -28,7 +28,7 @@ class Item : Record {
         super.init(row)
     }
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["name": name]
     }
 }

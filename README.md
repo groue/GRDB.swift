@@ -589,14 +589,14 @@ They can be [directly fetched](#value-queries) from the database:
 let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
 ```
 
-Use them in the `persistedDictionary` property of [DatabasePersistable protocol](#databasepersistable-protocol) and [Record subclasses](#record):
+Use them in the `persistentDictionary` property of [DatabasePersistable protocol](#databasepersistable-protocol) and [Record subclasses](#record):
 
 ```swift
 class Link : Record {
     var url: NSURL?
     var verified: Bool
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["url": url, "verified": verified]
     }
 }
@@ -1522,7 +1522,7 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     static func databaseTableName() -> String
     
     /// Returns the values that should be persisted in the database.
-    var persistedDictionary: [String: DatabaseValueConvertible?] { get }
+    var persistentDictionary: [String: DatabaseValueConvertible?] { get }
     
     /// Optional method that lets your adopting type store its rowID upon
     /// successful insertion. Don't call it directly: it is called for you.
@@ -1557,7 +1557,7 @@ struct Country : DatabasePersistable {
         return "countries"
     }
 
-    var persistedDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
     }
 }
@@ -1578,7 +1578,7 @@ struct Person : MutableDatabasePersistable {
         return "persons"
     }
     
-    var persistedDictionary: [String: DatabaseValueConvertible?] {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
@@ -1595,7 +1595,7 @@ try person.insert(db)
 person.id   // some value
 ```
 
-The `persistedDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
+The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
 
 > :point_up: **Note**: Classes should always prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate on insertion. This will prevent strange compiler errors when they insert an instance stored in a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
 
@@ -1771,7 +1771,7 @@ class Record {
     required init(_ row: Row)
     
     /// The values persisted in the database
-    var persistedDictionary: [String: DatabaseValueConvertible?]
+    var persistentDictionary: [String: DatabaseValueConvertible?]
     
     /// Optionally update record ID after a successful insertion
     func didInsertWithRowID(rowID: Int64, forColumn column: String?)
@@ -1842,11 +1842,11 @@ Country overrides `databaseTableName()` to return the name of the table that sho
     }
 ```
 
-Country overrides `persistedDictionary` and returns a dictionary whose keys are column names, and values any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
+Country overrides `persistentDictionary` and returns a dictionary whose keys are column names, and values any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
 
 ```swift
     /// The values persisted in the database
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["isoCode": isoCode, "name": name]
     }
 ```
@@ -1902,7 +1902,7 @@ struct Person : MutableDatabasePersistable {
     }
     
     /// The values persisted in the database
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
@@ -1997,12 +1997,12 @@ The order of sequences and arrays returned by the key-based methods is undefined
 
 #### Record Persistence Methods
 
-Records can store themselves in the database through the `persistedDictionary` core property:
+Records can store themselves in the database through the `persistentDictionary` core property:
 
 ```swift
 class Person : Record {
     /// The values stored in the database
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "url": url, "name": name, "email": email]
     }
 }
@@ -2181,7 +2181,7 @@ CREATE TABLE persons (
 class Person : Record {
     var creationDate: NSDate?
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["creationDate": creationDate, ...]
     }
     

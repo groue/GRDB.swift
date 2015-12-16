@@ -226,7 +226,7 @@
 //    // Answer: this is an artificial column that makes our tests run despite
 //    // the fact that Record.update() does nothing when there is nothing to
 //    // update.
-//    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+//    override var persistentDictionary: [String: DatabaseValueConvertible?] {
 //        return ["id": id, "data": nil]
 //    }
 //    

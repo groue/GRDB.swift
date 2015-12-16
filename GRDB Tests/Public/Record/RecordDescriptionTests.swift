@@ -1,13 +1,13 @@
 import XCTest
 import GRDB
 
-class RecordWithoutPersistedDictionary : Record {
+class RecordWithoutPersistentDictionary : Record {
 }
 
 class SingleColumnRecord : Record {
     var name: String?
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["name": name]
     }
 }
@@ -16,16 +16,16 @@ class DoubleColumnRecord : Record {
     var name: String?
     var age: Int?
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["name": name, "age": age]
     }
 }
 
 class RecordDescriptionTests: GRDBTestCase {
 
-    func testRecordWithoutPersistedDictionaryDescription() {
-        let record = RecordWithoutPersistedDictionary()
-        XCTAssertEqual(record.description, "<RecordWithoutPersistedDictionary>")
+    func testRecordWithoutPersistentDictionaryDescription() {
+        let record = RecordWithoutPersistentDictionary()
+        XCTAssertEqual(record.description, "<RecordWithoutPersistentDictionary>")
     }
     
     func testSimpleRecordDescription() {

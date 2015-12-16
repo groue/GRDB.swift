@@ -79,13 +79,13 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    ///         override var persistentDictionary: [String: DatabaseValueConvertible?] {
     ///             return ["id": id, "name": name]
     ///         }
     ///     }
     ///
     /// The implementation of the base class Record returns an empty dictionary.
-    public var persistedDictionary: [String: DatabaseValueConvertible?] {
+    public var persistentDictionary: [String: DatabaseValueConvertible?] {
         return [:]
     }
     
@@ -104,7 +104,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     // MARK: - Copy
     
     /// Returns a copy of `self`, initialized from the values of
-    /// persistedDictionary.
+    /// persistentDictionary.
     ///
     /// Note that the eventual primary key is copied, as well as the
     /// hasPersistentChangedValues flag.
@@ -112,7 +112,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.fromRow(Row(dictionary: persistedDictionary))
+        let copy = self.dynamicType.fromRow(Row(dictionary: persistentDictionary))
         copy.referenceRow = referenceRow
         return copy
     }
@@ -126,7 +126,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// This flag is purely informative, and does not prevent insert(),
     /// update(), and save() from performing their database queries.
     ///
-    /// A record is *edited* if its *persistedDictionary* has been changed
+    /// A record is *edited* if its *persistentDictionary* has been changed
     /// since last database synchronization (fetch, update, insert). Comparison
     /// is performed on *values*: setting a property to the same value does not
     /// trigger the edited flag.
@@ -137,13 +137,13 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// of the record.
     public var hasPersistentChangedValues: Bool {
         get {
-            return generateDatabaseChanges().next() != nil
+            return generatePersistentChangedValues().next() != nil
         }
         set {
             if newValue {
                 referenceRow = nil
             } else {
-                referenceRow = Row(dictionary: persistedDictionary)
+                referenceRow = Row(dictionary: persistentDictionary)
             }
         }
     }
@@ -159,7 +159,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// See `hasPersistentChangedValues` for more information.
     public var persistentChangedValues: [String: DatabaseValue?] {
         var changes: [String: DatabaseValue?] = [:]
-        for (column: column, old: old) in generateDatabaseChanges() {
+        for (column: column, old: old) in generatePersistentChangedValues() {
             changes[column] = old
         }
         return changes
@@ -167,9 +167,9 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     
     // A change generator that is used by both hasPersistentChangedValues and
     // persistentChangedValues properties.
-    private func generateDatabaseChanges() -> AnyGenerator<(column: String, old: DatabaseValue?)> {
+    private func generatePersistentChangedValues() -> AnyGenerator<(column: String, old: DatabaseValue?)> {
         let oldRow = referenceRow
-        var newValueGenerator = persistedDictionary.generate()
+        var newValueGenerator = persistentDictionary.generate()
         return anyGenerator {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueGenerator.next() {
@@ -275,7 +275,7 @@ extension Record : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         return "<\(self.dynamicType)"
-            + persistedDictionary.map { (key, value) in
+            + persistentDictionary.map { (key, value) in
                 if let value = value {
                     return " \(key):\(String(reflecting: value))"
                 } else {

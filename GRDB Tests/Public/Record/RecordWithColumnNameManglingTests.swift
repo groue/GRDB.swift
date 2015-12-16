@@ -31,7 +31,7 @@ class BadlyMangledStuff : Record {
         super.init(row)
     }
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         // User won't peek fancy column names because he will notice that the
         // generated INSERT query needs actual column names.
         return ["id": id, "name": name]

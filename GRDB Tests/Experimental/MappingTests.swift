@@ -123,7 +123,7 @@
 //        super.updateFromRow(row) // Subclasses are required to call super.
 //    }
 //    
-//    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+//    override var persistentDictionary: [String: DatabaseValueConvertible?] {
 //        let mapping = Mapping()
 //        map(mapping)
 //        return mapping.dictionary

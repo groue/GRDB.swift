@@ -15,7 +15,7 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 
 `DatabasePersistable`:
 
-- `DatabasePersistable.storedDatabaseDictionary` has been renamed `persistedDictionary`.
+- `DatabasePersistable.storedDatabaseDictionary` has been renamed `persistentDictionary`.
 
 `Record`:
 

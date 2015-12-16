@@ -16,7 +16,7 @@ class IntegerPropertyOnRealAffinityColumn : Record {
         super.init(row)
     }
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["value": value]
     }
 }
@@ -51,8 +51,8 @@ class RecordEditedTests: GRDBTestCase {
     
     func testRecordIsNotEditedAfterFullFetch() {
         // Fetch a record from a row that contains all the columns in
-        // persistedDictionary: An update statement, which only saves the
-        // columns in persistedDictionary would perform no change. So the
+        // persistentDictionary: An update statement, which only saves the
+        // columns in persistentDictionary would perform no change. So the
         // record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -80,7 +80,7 @@ class RecordEditedTests: GRDBTestCase {
                 
                 // Compare to an Int
                 let record = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
-                let row2 = Row(dictionary: record.persistedDictionary)
+                let row2 = Row(dictionary: record.persistentDictionary)
                 switch row2["value"]!.storage {
                 case .Int64(let int64):
                     XCTAssertEqual(int64, 1)
@@ -95,8 +95,8 @@ class RecordEditedTests: GRDBTestCase {
     
     func testRecordIsNotEditedAfterWiderThanFullFetch() {
         // Fetch a record from a row that contains all the columns in
-        // persistedDictionary, plus extra ones: An update statement,
-        // which only saves the columns in persistedDictionary would
+        // persistentDictionary, plus extra ones: An update statement,
+        // which only saves the columns in persistentDictionary would
         // perform no change. So the record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -109,8 +109,8 @@ class RecordEditedTests: GRDBTestCase {
     
     func testRecordIsEditedAfterPartialFetch() {
         // Fetch a record from a row that does not contain all the columns in
-        // persistedDictionary: An update statement saves the columns in
-        // persistedDictionary, so it may perform unpredictable change.
+        // persistentDictionary: An update statement saves the columns in
+        // persistentDictionary, so it may perform unpredictable change.
         // So the record is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -133,7 +133,7 @@ class RecordEditedTests: GRDBTestCase {
     }
     
     func testRecordIsEditedAfterValueChange() {
-        // Any change in a value exposed in persistedDictionary yields a
+        // Any change in a value exposed in persistentDictionary yields a
         // record that is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -289,8 +289,8 @@ class RecordEditedTests: GRDBTestCase {
     
     func testChangesAfterFullFetch() {
         // Fetch a record from a row that contains all the columns in
-        // persistedDictionary: An update statement, which only saves the
-        // columns in persistedDictionary would perform no change. So the
+        // persistentDictionary: An update statement, which only saves the
+        // columns in persistentDictionary would perform no change. So the
         // record is not edited.
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -304,8 +304,8 @@ class RecordEditedTests: GRDBTestCase {
 
     func testChangesAfterPartialFetch() {
         // Fetch a record from a row that does not contain all the columns in
-        // persistedDictionary: An update statement saves the columns in
-        // persistedDictionary, so it may perform unpredictable change.
+        // persistentDictionary: An update statement saves the columns in
+        // persistentDictionary, so it may perform unpredictable change.
         // So the record is edited.
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -342,7 +342,7 @@ class RecordEditedTests: GRDBTestCase {
     }
     
     func testChangesAfterValueChange() {
-        // Any change in a value exposed in persistedDictionary yields a
+        // Any change in a value exposed in persistentDictionary yields a
         // record that is edited.
         assertNoError {
             try dbQueue.inDatabase { db in

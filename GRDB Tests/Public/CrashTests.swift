@@ -16,7 +16,7 @@ class RecordWithInexistingDatabaseTable: Record {
     }
 }
 
-class RecordWithEmptyPersistedDictionary : Record {
+class RecordWithEmptyPersistentDictionary : Record {
     override static func databaseTableName() -> String {
         return "records"
     }
@@ -27,7 +27,7 @@ class RecordWithNilPrimaryKey : Record {
         return "records"
     }
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": nil]
     }
 }
@@ -37,7 +37,7 @@ class RecordForTableWithoutPrimaryKey : Record {
         return "records"
     }
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["name": "foo"]
     }
 }
@@ -47,17 +47,17 @@ class RecordForTableWithMultipleColumnsPrimaryKey : Record {
         return "records"
     }
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["name": "foo"]
     }
 }
 
-class RecordWithRowIDPrimaryKeyNotExposedInPersistedDictionary : Record {
+class RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary : Record {
     override static func databaseTableName() -> String {
         return "records"
     }
     
-    override var persistedDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["name": "foo"]
     }
 }
@@ -321,58 +321,58 @@ class CrashTests: GRDBTestCase {
 
     
     // =========================================================================
-    // MARK: - RecordWithEmptyPersistedDictionary
+    // MARK: - RecordWithEmptyPersistentDictionary
     
-    func testRecordWithEmptyPersistedDictionaryCanNotBeInserted() {
+    func testRecordWithEmptyPersistentDictionaryCanNotBeInserted() {
         assertCrash("Invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
-                try RecordWithEmptyPersistedDictionary().insert(db)
+                try RecordWithEmptyPersistentDictionary().insert(db)
             }
         }
     }
     
-    func testRecordWithEmptyPersistedDictionaryCanNotBeUpdated() {
+    func testRecordWithEmptyPersistentDictionaryCanNotBeUpdated() {
         assertCrash("Invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
-                try RecordWithEmptyPersistedDictionary().update(db)
+                try RecordWithEmptyPersistentDictionary().update(db)
             }
         }
     }
 
-    func testRecordWithEmptyPersistedDictionaryCanNotBeSaved() {
+    func testRecordWithEmptyPersistentDictionaryCanNotBeSaved() {
         assertCrash("Invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
-                try RecordWithEmptyPersistedDictionary().save(db)
+                try RecordWithEmptyPersistentDictionary().save(db)
             }
         }
     }
 
-    func testRecordWithEmptyPersistedDictionaryCanNotBeDeleted() {
+    func testRecordWithEmptyPersistentDictionaryCanNotBeDeleted() {
         assertCrash("Invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
-                try RecordWithEmptyPersistedDictionary().delete(db)
+                try RecordWithEmptyPersistentDictionary().delete(db)
             }
         }
     }
     
-    func testRecordWithEmptyPersistedDictionaryCanNotBeReloaded() {
+    func testRecordWithEmptyPersistentDictionaryCanNotBeReloaded() {
         assertCrash("Invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
-                try RecordWithEmptyPersistedDictionary().reload(db)
+                try RecordWithEmptyPersistentDictionary().reload(db)
             }
         }
     }
     
-    func testRecordWithEmptyPersistedDictionaryCanNotBeTestedForExistence() {
+    func testRecordWithEmptyPersistentDictionaryCanNotBeTestedForExistence() {
         assertCrash("Invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
-                RecordWithEmptyPersistedDictionary().exists(db)
+                RecordWithEmptyPersistentDictionary().exists(db)
             }
         }
     }
@@ -481,13 +481,13 @@ class CrashTests: GRDBTestCase {
     
     
     // =========================================================================
-    // MARK: - RecordWithRowIDPrimaryKeyNotExposedInPersistedDictionary
+    // MARK: - RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary
     
-    func testRecordWithRowIDPrimaryKeyNotExposedInPersistedDictionaryCanNotBeInserted() {
-        assertCrash("RecordWithRowIDPrimaryKeyNotExposedInPersistedDictionary.persistedDictionary must return the value for the primary key \"id\"") {
+    func testRecordWithRowIDPrimaryKeyNotExposedInPersistentDictionaryCanNotBeInserted() {
+        assertCrash("RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary.persistentDictionary must return the value for the primary key \"id\"") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY, name TEXT)")
-                try RecordWithRowIDPrimaryKeyNotExposedInPersistedDictionary().insert(db)
+                try RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary().insert(db)
             }
         }
     }
