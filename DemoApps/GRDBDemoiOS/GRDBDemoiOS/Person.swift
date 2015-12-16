@@ -16,19 +16,15 @@ class Person : Record {
     
     // MARK: - Record
     
-    required init(row: Row) {
-        super.init(row: row)
-    }
-    
     override class func databaseTableName() -> String {
         return "persons"
     }
     
-    override func updateFromRow(row: Row) {
-        if let dbv = row["id"] { id = dbv.value() }
-        if let dbv = row["firstName"] { firstName = dbv.value() }
-        if let dbv = row["lastName"] { lastName = dbv.value() }
-        super.updateFromRow(row) // Subclasses are required to call super.
+    required init(row: Row) {
+        id = row.value(named: "id")
+        firstName = row.value(named: "firstName")
+        lastName = row.value(named: "lastName")
+        super.init(row: row)
     }
     
     override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
@@ -36,6 +32,10 @@ class Person : Record {
             "id": id,
             "firstName": firstName,
             "lastName": lastName]
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
     }
 }
 
