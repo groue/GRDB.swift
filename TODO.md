@@ -14,14 +14,14 @@
     - [X] Row.value(named:) returns nil if column is not there.
     - [X] Update Row documentation
     - [X] Update "Optional Columns" chapter of RowConvertible documentation
-- [ ] Record:
+- [X] Record:
     - [X] Remove reloading
     - [X] Expose didInsertWithRowID(_:forColumn:)
     - [X] Make Person subclass that eats an extra column easier to write (in PersonWithOverrides)
     - [X] Update Record documentation
     - [X] Update Record playground
     - [X] Update JSONSynchronisation playground
-    - [ ] Update https://gist.github.com/groue/dcdd3784461747874f41
+    - [X] Update https://gist.github.com/groue/dcdd3784461747874f41
 
 Not sure:
 
