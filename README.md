@@ -1582,9 +1582,9 @@ struct Person : MutableDatabasePersistable {
         return ["id": id, "name": name]
     }
     
-    // Update self.id upon successful insertion:
+    // Update person ID upon successful insertion:
     mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-        self.id = rowID
+        id = rowID
     }
 }
 
@@ -1915,7 +1915,7 @@ struct Person : MutableDatabasePersistable {
     
     /// Update person ID after a successful insertion
     func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-        self.id = rowID
+        id = rowID
     }
 }
 
@@ -2112,7 +2112,7 @@ Other application objects that expect a Person will gently accept the private su
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "showPerson" {
             let personVC: PersonViewController = segue...
-            personVC.person = persons[self.tableView.indexPathForSelectedRow!.row]
+            personVC.person = persons[tableView.indexPathForSelectedRow!.row]
         }
     }
 }
@@ -2327,7 +2327,7 @@ class TableChangeObserver : NSObject, TransactionObserverType {
     
     func databaseDidRollback(db: Database) {
         // Reset until next database event:
-        self.changedTableNames = []
+        changedTableNames = []
     }
 }
 ```
