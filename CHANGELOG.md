@@ -13,11 +13,19 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 
 **Breaking Changes**
 
-`DatabasePersistable`:
+DatabasePersistable:
 
 - `DatabasePersistable.storedDatabaseDictionary` has been renamed `persistentDictionary`.
 
-`Record`:
+Row:
+
+- `Row.value(named:)` returns nil if no such column exists in the row.
+
+DatabaseValue:
+
+- `DatabaseValue` has no public initializers. To create one, use `DatabaseValue.Null`, or the fact that Int, String, etc. adopt the protocol: `1.databaseValue`, `"foo".databaseValue`.
+
+Record:
 
 - `Record.reload()` has been removed.
 - `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)` (unlabelled row argument).
@@ -26,15 +34,7 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 - `Record.databaseEdited` has been renamed `hasPersistentChangedValues`.
 - `Record.databaseChanges` has been renamed `persistentChangedValues` and now returns `[String: DatabaseValue?]`, the dictionary of old values for changed columns.
 
-`Row`:
-
-- `Row.value(named:)` returns nil if no such column exists in the row.
-
-`DatabaseValue`:
-
-- `DatabaseValue` has no public initializers. To create one, use `DatabaseValue.Null`, or the fact that Int, String, etc. adopt the protocol: `1.databaseValue`, `"foo".databaseValue`.
-
-`DatabaseMigrator`:
+DatabaseMigrator:
 
 - `DatabaseMigrator.registerMigrationWithoutForeignKeyChecks(_:_:)` has been renamed `DatabaseMigrator.registerMigration(_:withDisabledForeignKeyChecks:migrate:)`.
 
