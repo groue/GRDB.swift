@@ -2082,14 +2082,6 @@ class PersonsViewController: UITableViewController {
             bookCount = row.value(named: "bookCount")
             super.init(row)
         }
-        
-        class func fetchAllWithBookCount(db: Database) -> [PersonWithBookCount] {
-            return fetchAll(db,
-                "SELECT persons.*, COUNT(books.id) AS bookCount " +
-                "FROM persons " +
-                "LEFT JOIN books ON books.ownerId = persons.id " +
-                "GROUP BY persons.id")
-        }
     }
 ```
 
@@ -2100,7 +2092,11 @@ Perform a single request:
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         persons = dbQueue.inDatabase { db in
-            PersonWithBookCount.fetchAllWithBookCount(db)
+            PersonWithBookCount.fetchAll(db,
+                "SELECT persons.*, COUNT(books.id) AS bookCount " +
+                "FROM persons " +
+                "LEFT JOIN books ON books.ownerId = persons.id " +
+                "GROUP BY persons.id")
         }
         tableView.reloadData()
     }
