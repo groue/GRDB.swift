@@ -79,13 +79,13 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    ///         override var persistedDictionary: [String: DatabaseValueConvertible?] {
     ///             return ["id": id, "name": name]
     ///         }
     ///     }
     ///
     /// The implementation of the base class Record returns an empty dictionary.
-    public var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    public var persistedDictionary: [String: DatabaseValueConvertible?] {
         return [:]
     }
     
@@ -104,7 +104,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     // MARK: - Copy
     
     /// Returns a copy of `self`, initialized from the values of
-    /// storedDatabaseDictionary.
+    /// persistedDictionary.
     ///
     /// Note that the eventual primary key is copied, as well as the
     /// databaseEdited flag.
@@ -112,7 +112,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.fromRow(Row(dictionary: storedDatabaseDictionary))
+        let copy = self.dynamicType.fromRow(Row(dictionary: persistedDictionary))
         copy.referenceRow = referenceRow
         return copy
     }
@@ -126,7 +126,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// This flag is purely informative, and does not prevent insert(),
     /// update(), and save() from performing their database queries.
     ///
-    /// A record is *edited* if its *storedDatabaseDictionary* has been changed
+    /// A record is *edited* if its *persistedDictionary* has been changed
     /// since last database synchronization (fetch, update, insert). Comparison
     /// is performed on *values*: setting a property to the same value does not
     /// trigger the edited flag.
@@ -143,7 +143,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
             if newValue {
                 referenceRow = nil
             } else {
-                referenceRow = Row(dictionary: storedDatabaseDictionary)
+                referenceRow = Row(dictionary: persistedDictionary)
             }
         }
     }
@@ -169,7 +169,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     // databaseChanges properties.
     private func generateDatabaseChanges() -> AnyGenerator<(column: String, old: DatabaseValue?)> {
         let oldRow = referenceRow
-        var newValueGenerator = storedDatabaseDictionary.generate()
+        var newValueGenerator = persistedDictionary.generate()
         return anyGenerator {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueGenerator.next() {
@@ -271,7 +271,7 @@ extension Record : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         return "<\(self.dynamicType)"
-            + storedDatabaseDictionary.map { (key, value) in
+            + persistedDictionary.map { (key, value) in
                 if let value = value {
                     return " \(key):\(String(reflecting: value))"
                 } else {

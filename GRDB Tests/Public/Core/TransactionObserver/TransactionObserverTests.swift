@@ -73,7 +73,7 @@ class Artist : Record {
         super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistedDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
@@ -116,7 +116,7 @@ class Artwork : Record {
         super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistedDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "artistId": artistId, "title": title]
     }
     

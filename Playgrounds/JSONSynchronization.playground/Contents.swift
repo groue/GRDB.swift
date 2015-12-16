@@ -47,7 +47,7 @@ class Person : Record {
         super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistedDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     

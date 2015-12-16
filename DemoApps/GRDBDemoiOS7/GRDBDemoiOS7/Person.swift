@@ -27,7 +27,7 @@ class Person : Record {
         
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistedDictionary: [String: DatabaseValueConvertible?] {
         return [
             "id": id,
             "firstName": firstName,

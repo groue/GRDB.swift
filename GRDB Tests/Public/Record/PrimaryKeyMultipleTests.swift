@@ -37,7 +37,7 @@ class Citizenship : Record {
         super.init(row)
     }
     
-    override var storedDatabaseDictionary: [String: DatabaseValueConvertible?] {
+    override var persistedDictionary: [String: DatabaseValueConvertible?] {
         return [
             "personName": personName,
             "countryName": countryName,
@@ -83,7 +83,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.insert(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistedDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -118,7 +118,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.insert(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistedDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -155,7 +155,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.update(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistedDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -207,7 +207,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistedDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -228,7 +228,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.save(db)   // Actual update
                 
                 let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistedDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
@@ -248,7 +248,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
                 try record.save(db)
                 
                 let row = Row.fetchOne(db, "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
-                for (key, value) in record.storedDatabaseDictionary {
+                for (key, value) in record.persistedDictionary {
                     if let dbv = row[key] {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {

@@ -13,6 +13,7 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 
 **Breaking Changes**
 
+- `DatabasePersistable.storedDatabaseDictionary` has been renamed `persistedDictionary`.
 - `Record.reload()` has been removed.
 - `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)`
 - `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
