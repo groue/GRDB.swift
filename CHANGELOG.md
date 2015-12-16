@@ -19,7 +19,7 @@ DatabasePersistable:
 
 Row:
 
-- `Row.value(named:)` returns nil if no such column exists in the row.
+- `Row.value(named:)` returns nil if no such column exists in the row. It used to crash with a fatal error.
 
 DatabaseValue:
 
@@ -27,7 +27,7 @@ DatabaseValue:
 
 Record:
 
-- `Record.reload()` has been removed.
+- `Record.reload()` has been removed. You have to provide your own implementation, should you need reloading.
 - `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)` (unlabelled row argument).
 - `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
 - `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their row ids.
