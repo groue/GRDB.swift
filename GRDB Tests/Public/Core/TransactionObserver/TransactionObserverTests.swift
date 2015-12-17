@@ -131,21 +131,17 @@ class TransactionObserverTests: GRDBTestCase {
     override func setUp() {
         super.setUp()
         
+        observer = TransactionObserver()
+        
         assertNoError {
             try dbQueue.inDatabase { db in
+                db.addTransactionObserver(self.observer)
                 try Artist.setupInDatabase(db)
                 try Artwork.setupInDatabase(db)
             }
         }
-        
+
         self.observer.resetCounts()
-    }
-    
-    override var dbConfiguration: Configuration {
-        observer = TransactionObserver()
-        var c = super.dbConfiguration
-        c.transactionObserver = observer
-        return c
     }
     
     func match(event event: DatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
