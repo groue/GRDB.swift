@@ -360,17 +360,16 @@ public final class Row: CollectionType {
     ///
     /// - parameter index: A column index.
     /// - returns: An optional NSData.
-    public func dataNoCopy(atIndex index:Int) -> NSData? {
+    public func dataNoCopy(atIndex index: Int) -> NSData? {
+        precondition(index >= 0 && index < count, "Row index out of range")
         return impl.dataNoCopy(atIndex: index)
     }
     
     /// Returns the optional `NSData` at given column.
     ///
-    /// Column name is case-insensitive. If the row does not contain the column,
-    /// a fatal error is raised.
-    ///
-    /// The result is nil if the fetched SQLite value is NULL, or if the SQLite
-    /// value is not a blob.
+    /// Column name is case-insensitive. The result is nil if the row does not
+    /// contain the column, or if the fetched SQLite value is NULL, or if the
+    /// SQLite value can not be converted to NSData.
     ///
     /// Otherwise, the returned data does not owns its bytes: it must not be
     /// used longer than the row's lifetime.
@@ -379,7 +378,7 @@ public final class Row: CollectionType {
     /// - returns: An optional NSData.
     public func dataNoCopy(named columnName: String) -> NSData? {
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            return nil
         }
         return dataNoCopy(atIndex: index)
     }
