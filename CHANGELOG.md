@@ -19,7 +19,7 @@ DatabasePersistable:
 
 Row:
 
-- `Row.value(named:)` returns nil if no such column exists in the row. It used to crash with a fatal error ([documentation](https://github.com/groue/GRDB.swift#column-values)).
+- `Row.value(named:)` and `Row.dataNoCopy(named:)` returns nil if no such column exists in the row. It used to crash with a fatal error ([documentation](https://github.com/groue/GRDB.swift#column-values)).
 
 DatabaseValue:
 
