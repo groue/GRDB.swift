@@ -409,9 +409,7 @@ public final class Row: CollectionType {
     // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
     
     /// The number of columns in the row.
-    public var count: Int {
-        return impl.count
-    }
+    public lazy var count: Int = { self.impl.count }()
     
     /// The names of columns in the row.
     ///
