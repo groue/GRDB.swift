@@ -93,16 +93,16 @@ class MasterViewController: UITableViewController, FetchedRecordsControllerDeleg
     
     func controllerUpdate<T>(controller: FetchedRecordsController<T>, update: FetchedRecordsUpdate<T>) {
         switch update {
-        case .Insert(_, let at):
+        case .Inserted(_, let at):
             tableView.insertRowsAtIndexPaths([at], withRowAnimation: .Automatic)
             
-        case .Delete(_, let from):
+        case .Deleted(_, let from):
             tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Automatic)
             
-        case .Move(_, let from, let to):
+        case .Moved(_, let from, let to):
             tableView.moveRowAtIndexPath(from, toIndexPath: to)
             
-        case .Update(_, let at, let changes):
+        case .Updated(_, let at, let changes):
             if let changes = changes {
                 let columns = ["firstName", "lastName"]
                 for (key, _) in changes {

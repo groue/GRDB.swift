@@ -6,8 +6,6 @@
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
 
-import UIKit
-
 public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableMapping, Hashable>> {
     
     // MARK: - Initialization
@@ -50,7 +48,7 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
     
     /// Returns the fetched object at a given indexPath.
     public func recordAtIndexPath(indexPath: NSIndexPath) -> T? {
-        if let record = fetchedRecords?[indexPath.row] {
+        if let record = fetchedRecords?[indexPath.indexAtPosition(1)] {
             return record
         } else {
             return nil
@@ -81,7 +79,7 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
         func indexPaths(items: [T]) -> [T:NSIndexPath] {
             var indexPathForItem = [T:NSIndexPath]()
             for (index, item) in items.enumerate() {
-                let indexPath = NSIndexPath(forItem: index, inSection: 0)
+                let indexPath = NSIndexPath(indexes: [0,index], length: 2)
                 indexPathForItem[item] = indexPath
             }
             return indexPathForItem
@@ -104,7 +102,7 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
                     fatalError()
                 }
                 
-                let update = FetchedRecordsUpdate.Insert(item: item, at: newIndexPath)
+                let update = FetchedRecordsUpdate.Inserted(item: item, at: newIndexPath)
                 updates.append(update)
                 apply(update)
             }
@@ -125,25 +123,25 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
                         recordCopy.referenceRow = oldRecord.referenceRow
                         let changes = recordCopy.persistentChangedValues
                         if changes.count > 0 {
-                            let update = FetchedRecordsUpdate.Update(item: newItem, at: newIndexPath, changes: changes)
+                            let update = FetchedRecordsUpdate.Updated(item: oldItem, at: newIndexPath, changes: changes)
                             updates.append(update)
                             apply(update)
                         }
                     } else {
                         // Not a record
-                        let update = FetchedRecordsUpdate.Update(item: newItem, at: newIndexPath, changes: nil)
+                        let update = FetchedRecordsUpdate.Updated(item: oldItem, at: newIndexPath, changes: nil)
                         updates.append(update)
                         apply(update)
                     }
                 } else {
                     // item moved
-                    let update = FetchedRecordsUpdate.Move(item: newItem, from: oldIndexPath, to: newIndexPath)
+                    let update = FetchedRecordsUpdate.Moved(item: newItem, from: oldIndexPath, to: newIndexPath)
                     updates.append(update)
                     apply(update)
                 }
             } else {
                 // item deleted
-                let update = FetchedRecordsUpdate.Delete(item: oldItem, at: oldIndexPath)
+                let update = FetchedRecordsUpdate.Deleted(item: oldItem, at: oldIndexPath)
                 updates.append(update)
                 apply(update)
             }
@@ -198,23 +196,23 @@ public extension FetchedRecordsControllerDelegate {
 
 
 public enum FetchedRecordsUpdate<T> {
-    case Insert(item:T, at: NSIndexPath)
-    case Delete(item:T, at: NSIndexPath)
-    case Move(item:T, from: NSIndexPath, to: NSIndexPath)
-    case Update(item:T, at: NSIndexPath, changes: [String: DatabaseValue?]?)
+    case Inserted(item:T, at: NSIndexPath)
+    case Deleted(item:T, at: NSIndexPath)
+    case Moved(item:T, from: NSIndexPath, to: NSIndexPath)
+    case Updated(item:T, at: NSIndexPath, changes: [String: DatabaseValue?]?)
     
     var description: String {
         switch self {
-        case .Insert(let item, let at):
+        case .Inserted(let item, let at):
             return "Inserted \(item) at indexpath \(at)"
             
-        case .Delete(let item, let at):
+        case .Deleted(let item, let at):
             return "Deleted \(item) from indexpath \(at)"
             
-        case .Move(let item, let from, let to):
+        case .Moved(let item, let from, let to):
             return "Moved \(item) from indexpath \(from) to indexpath \(to)"
             
-        case .Update(let item, let at, let changes):
+        case .Updated(let item, let at, let changes):
             return "Updated \(changes) of \(item) at indexpath \(at)"
         }
     }
@@ -223,17 +221,17 @@ public enum FetchedRecordsUpdate<T> {
 extension Array {
     mutating func applyUpdate(update: FetchedRecordsUpdate<Array.Generator.Element>) {
         switch update {
-        case .Insert(let item, let at):
-            self.insert(item, atIndex: at.item)
+        case .Inserted(let item, let at):
+            self.insert(item, atIndex: at.indexAtPosition(1))
             
-        case .Delete(_, let from):
-            self.removeAtIndex(from.item)
+        case .Deleted(_, let from):
+            self.removeAtIndex(from.indexAtPosition(1))
             
-        case .Move(let item, let from, let to):
-            self.removeAtIndex(from.item)
-            self.insert(item, atIndex: to.item)
+        case .Moved(let item, let from, let to):
+            self.removeAtIndex(from.indexAtPosition(1))
+            self.insert(item, atIndex: to.indexAtPosition(1))
             
-        case .Update(_, _, _): break
+        case .Updated(_, _, _): break
         }
         print(update.description)
     }
