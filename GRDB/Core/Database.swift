@@ -78,7 +78,7 @@ public final class Database {
     /// - returns: A DatabaseChanges. Note that insertedRowID will always be nil.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
-        assertValidQueue()
+        preconditionValidQueue()
         
         let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
         
@@ -117,7 +117,7 @@ public final class Database {
     ///   either .Commit or .Rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(kind: TransactionKind? = nil, block: () throws -> TransactionCompletion) throws {
-        assertValidQueue()
+        preconditionValidQueue()
         
         var completion: TransactionCompletion = .Rollback
         var blockError: ErrorType? = nil
@@ -458,7 +458,7 @@ public final class Database {
     /// You may need to clear the cache if you modify the database schema
     /// outside of a migration (see DatabaseMigrator).
     public func clearSchemaCache() {
-        assertValidQueue()
+        preconditionValidQueue()
         columnInfosCache = [:]
     }
 
@@ -614,7 +614,7 @@ public final class Database {
     // =========================================================================
     // MARK: - Initialization
     
-    /// The queue from which the database can be used. See assertValidQueue().
+    /// The queue from which the database can be used. See preconditionValidQueue().
     /// Design note: this is not very clean. A delegation pattern may be a
     /// better fit.
     var databaseQueueID: DatabaseQueueID = nil
@@ -649,10 +649,8 @@ public final class Database {
     // =========================================================================
     // MARK: - Misc
     
-    func assertValidQueue() {
-        guard databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey) else {
-            fatalError("Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, use fetchAll() instead: it returns an Array that can be iterated on any thread.")
-        }
+    func preconditionValidQueue() {
+        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, use fetchAll() instead: it returns an Array that can be iterated on any thread.")
     }
     
     func setupForeignKeys() throws {

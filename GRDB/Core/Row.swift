@@ -65,9 +65,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An Int64, Double, String, NSData or nil.
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
-        guard index >= 0 && index < count else {
-            fatalError("Row index out of range")
-        }
+        precondition(index >= 0 && index < count, "Row index out of range")
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -93,9 +91,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
-        guard index >= 0 && index < count else {
-            fatalError("Row index out of range")
-        }
+        precondition(index >= 0 && index < count, "Row index out of range")
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -126,9 +122,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
-        guard index >= 0 && index < count else {
-            fatalError("Row index out of range")
-        }
+        precondition(index >= 0 && index < count, "Row index out of range")
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -163,9 +157,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
-        guard index >= 0 && index < count else {
-            fatalError("Row index out of range")
-        }
+        precondition(index >= 0 && index < count, "Row index out of range")
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -196,9 +188,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: A *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
-        guard index >= 0 && index < count else {
-            fatalError("Row index out of range")
-        }
+        precondition(index >= 0 && index < count, "Row index out of range")
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row

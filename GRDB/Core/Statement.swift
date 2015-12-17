@@ -31,7 +31,7 @@ public class Statement {
     let database: Database
     
     init(database: Database, sql: String) throws {
-        database.assertValidQueue()
+        database.preconditionValidQueue()
         
         // See https://www.sqlite.org/c3ref/prepare.html
         
@@ -149,9 +149,7 @@ public class Statement {
     final func setArgument(value: DatabaseValueConvertible?, forKey key: String) {
         let argumentName = ":\(key)"
         let index = Int(sqlite3_bind_parameter_index(sqliteStatement, argumentName))
-        guard index > 0 else {
-            fatalError("Argument not found in SQLite statement: `\(argumentName)`")
-        }
+        precondition(index > 0, "Argument not found in SQLite statement: `\(argumentName)`")
         setArgument(value, atIndex: index)
     }
     
