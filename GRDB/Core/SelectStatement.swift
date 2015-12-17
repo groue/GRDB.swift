@@ -34,7 +34,7 @@ public final class SelectStatement : Statement {
     
     /// The column index, case insensitive.
     func indexForColumn(named name: String) -> Int? {
-        return lowercaseColumnIndexes[name.lowercaseString]
+        return lowercaseColumnIndexes[name] ?? lowercaseColumnIndexes[name.lowercaseString]
     }
     
     /// Support for indexForColumn(named:)
@@ -57,18 +57,18 @@ public struct DatabaseSequence<T>: SequenceType {
     
     private init(statement: SelectStatement, yield: () -> T) {
         generateImpl = {
-            let assertValidQueue = statement.database.assertValidQueue
+            let preconditionValidQueue = statement.database.preconditionValidQueue
             let sqliteStatement = statement.sqliteStatement
             
             // Check that sequence is built on a valid queue.
-            assertValidQueue()
+            preconditionValidQueue()
             
             // DatabaseSequence can be restarted:
             statement.reset()
             
             return DatabaseGenerator {
                 // Check that generator is used on a valid queue.
-                assertValidQueue()
+                preconditionValidQueue()
                 
                 let code = sqlite3_step(sqliteStatement)
                 switch code {

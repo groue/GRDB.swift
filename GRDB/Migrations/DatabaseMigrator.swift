@@ -92,9 +92,7 @@ public struct DatabaseMigrator {
     private var migrations: [Migration] = []
     
     private mutating func registerMigration(migration: Migration) {
-        guard migrations.map({ $0.identifier }).indexOf(migration.identifier) == nil else {
-            fatalError("Already registered migration: \"\(migration.identifier)\"")
-        }
+        precondition(migrations.map({ $0.identifier }).indexOf(migration.identifier) == nil, "Already registered migration: \"\(migration.identifier)\"")
         migrations.append(migration)
     }
     

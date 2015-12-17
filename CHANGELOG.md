@@ -19,18 +19,18 @@ DatabasePersistable:
 
 Row:
 
-- `Row.value(named:)` returns nil if no such column exists in the row. It used to crash with a fatal error ([documentation](https://github.com/groue/GRDB.swift#column-values)).
+- `Row.value(named:)` and `Row.dataNoCopy(named:)` returns nil if no such column exists in the row. It used to crash with a fatal error ([documentation](https://github.com/groue/GRDB.swift#column-values)).
 
 DatabaseValue:
 
-- `DatabaseValue` has no public initializers. To create one, use `DatabaseValue.Null`, or the fact that Int, String, etc. adopt the protocol: `1.databaseValue`, `"foo".databaseValue` ([documentation](https://github.com/groue/GRDB.swift#custom-value-types)).
+- `DatabaseValue` has no public initializers. To create one, use `DatabaseValue.Null`, or the fact that Int, String, etc. adopt the DatabaseValueConvertible protocol: `1.databaseValue`, `"foo".databaseValue` ([documentation](https://github.com/groue/GRDB.swift#custom-value-types)).
 
 Record ([documentation](https://github.com/groue/GRDB.swift#record)):
 
 - `Record.reload()` has been removed. You have to provide your own implementation, should you need reloading.
 - `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)` (unlabelled row argument).
 - `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
-- `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested with their row ids.
+- `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested in their row ids.
 - `Record.databaseEdited` has been renamed `hasPersistentChangedValues`.
 - `Record.databaseChanges` has been renamed `persistentChangedValues` and now returns `[String: DatabaseValue?]`, the dictionary of old values for changed columns.
 

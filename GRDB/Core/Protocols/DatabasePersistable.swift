@@ -515,9 +515,7 @@ final class DataMapper {
 
         // Fail early if persistentDictionary is empty
         let persistentDictionary = persistable.persistentDictionary
-        guard persistentDictionary.count > 0 else {
-            fatalError("Invalid empty dictionary returned from \(persistable.dynamicType).persistentDictionary")
-        }
+        precondition(persistentDictionary.count > 0, "Invalid empty dictionary returned from \(persistable.dynamicType).persistentDictionary")
         
         self.db = db
         self.persistable = persistable

@@ -76,9 +76,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns
-        guard columns.count == 1 else {
-            fatalError("Primary key of table \(databaseTableName.quotedDatabaseIdentifier) is not made of a single column. See \(self).databaseTableName()")
-        }
+        precondition(columns.count == 1, "Primary key of table \(databaseTableName.quotedDatabaseIdentifier) is not made of a single column. See \(self).databaseTableName()")
         
         let keys = keys.map { $0 as DatabaseValueConvertible? }
         
@@ -160,10 +158,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
         var arguments: [DatabaseValueConvertible?] = []
         var whereClauses: [String] = []
         for dictionary in keys {
-            guard dictionary.count > 0 else {
-                fatalError("Invalid empty key")
-            }
-            
+            precondition(dictionary.count > 0, "Invalid empty key dictionary")
             arguments.appendContentsOf(dictionary.values)
             whereClauses.append("(" + dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" }.joinWithSeparator(" AND ") + ")")
         }
