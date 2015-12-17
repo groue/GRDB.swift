@@ -34,7 +34,7 @@ public final class SelectStatement : Statement {
     
     /// The column index, case insensitive.
     func indexForColumn(named name: String) -> Int? {
-        return lowercaseColumnIndexes[name.lowercaseString]
+        return lowercaseColumnIndexes[name] ?? lowercaseColumnIndexes[name.lowercaseString]
     }
     
     /// Support for indexForColumn(named:)
