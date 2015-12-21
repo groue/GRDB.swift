@@ -53,7 +53,24 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
     }
     
     func controllerUpdate<T>(controller: FetchedRecordsController<T>, update: FetchedRecordsUpdate<T>) {
-        updates.append(update)
+        switch update {
+        case .Inserted(let item, let indexPath):
+            XCTAssert(item is Person)
+            let person: Person = item as! Person
+            updates.append(FetchedRecordsUpdate.Inserted(item: person, at: indexPath))
+        case .Deleted(let item, let indexPath):
+            XCTAssert(item is Person)
+            let person: Person = item as! Person
+            updates.append(FetchedRecordsUpdate.Deleted(item: person, at: indexPath))
+        case .Moved(let item, let fromIndexPath, let toIndexPath):
+            XCTAssert(item is Person)
+            let person: Person = item as! Person
+            updates.append(FetchedRecordsUpdate.Moved(item: person, from: fromIndexPath, to: toIndexPath))
+        case .Updated(let item, let indexPath, let changes):
+            XCTAssert(item is Person)
+            let person: Person = item as! Person
+            updates.append(FetchedRecordsUpdate.Updated(item: person, at: indexPath, changes: changes))
+        }
     }
     
     func controllerDidFinishUpdates<T>(controller: FetchedRecordsController<T>) {
@@ -88,6 +105,9 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
         person.name = "Pascal"
         person.age = 27
         
+        willUpdateExpectation = expectationWithDescription("Did receive controllerWillUpdate:")
+        didFinishUpdatesExpectation = expectationWithDescription("Did receive controllerDidFinishUpdates:")
+
         // Save person
         assertNoError {
             try! dbQueue.inDatabase { db in
@@ -95,8 +115,20 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
             }
         }
         
-        // Update
+        // This is used to wait that our delegate calls has been called
+        waitForExpectationsWithTimeout(2, handler: nil)
+        
+        // We got 1 Update
         XCTAssert(updates.count == 1)
+        let update: FetchedRecordsUpdate<Person> = updates[0]
+        switch update {
+        case .Inserted(let item, let indexPath):
+            let p: Person = item
+            XCTAssert(p.name == person.name)
+            XCTAssert(p.age == person.age)
+            XCTAssert(indexPath == NSIndexPath(indexes: [0,0], length: 2))
+        default: XCTFail("unexpected update: \(update)")
+        }
     }
 }
 
