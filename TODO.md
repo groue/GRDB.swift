@@ -3,23 +3,7 @@
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
-- [X] databaseEdited -> hasDatabaseChanges, hasNotPersistedChanges, hasPersistentChangedValues (NSManagedObject)? Check if doc makes it clear that the changes are based on last fetch. The method name should make it clear too.
-- [X] Check Swift API Guideline https://swift.org/documentation/api-design-guidelines.html
-    - [X] databaseTableName, etc.
-    - [X] didInsertWithRowID(_:forColumn:)
-    - [X] Read conversion methods conventions (fromRow, fromDatabaseValue)
-- [X] Row.value(named:) should return nil if column is not there.
-    - [X] Row.value(named:) returns nil if column is not there.
-    - [X] Update Row documentation
-    - [X] Update "Optional Columns" chapter of RowConvertible documentation
-- [X] Record:
-    - [X] Remove reloading
-    - [X] Expose didInsertWithRowID(_:forColumn:)
-    - [X] Make Person subclass that eats an extra column easier to write (in PersonWithOverrides)
-    - [X] Update Record documentation
-    - [X] Update Record playground
-    - [X] Update JSONSynchronisation playground
-    - [X] Update https://gist.github.com/groue/dcdd3784461747874f41
+- [ ] ccgus/fmdb finalizes statements even after a failure of sqlite3_prepare_v2(). Check if we should do the same.
 
 Not sure:
 
