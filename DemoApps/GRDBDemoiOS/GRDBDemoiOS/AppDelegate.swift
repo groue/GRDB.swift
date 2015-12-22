@@ -31,7 +31,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
         }
         migrator.registerMigration("addPersons") { db in
             try Person(firstName: "Arthur", lastName: "Miller").insert(db)
-            try Person(firstName: "Barbara", lastName: "Streisand").insert(db)
+            try Person(firstName: "Barbra", lastName: "Streisand").insert(db)
             try Person(firstName: "Cinderella").insert(db)
         }
         try! migrator.migrate(dbQueue)

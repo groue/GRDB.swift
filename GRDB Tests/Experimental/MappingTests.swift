@@ -147,7 +147,7 @@
 //                    ")")
 //                
 //                try MappedRecord(firstName: "Arthur", lastName: "Miller").insert(db)
-//                try MappedRecord(firstName: "Barbara", lastName: "Streisand").insert(db)
+//                try MappedRecord(firstName: "Barbra", lastName: "Streisand").insert(db)
 //                try MappedRecord(firstName: "Cinderella").insert(db)
 //                
 //                let records = MappedRecord.fetchAll(db, "SELECT * FROM persons ORDER BY firstName, lastName")

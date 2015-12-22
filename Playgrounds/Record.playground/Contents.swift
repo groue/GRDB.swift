@@ -63,7 +63,7 @@ class Person : Record {
 
 try! dbQueue.inTransaction { db in
     try Person(firstName: "Arthur", lastName: "Miller").insert(db)
-    try Person(firstName: "Barbara", lastName: "Streisand").insert(db)
+    try Person(firstName: "Barbra", lastName: "Streisand").insert(db)
     try Person(firstName: "Cinderella", lastName: nil).insert(db)
     return .Commit
 }
