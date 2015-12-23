@@ -40,10 +40,6 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
         assertNoError {
             try migrator.migrate(dbQueue)
         }
-        
-        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
-        fetchedRecordsController.delegate = self
-        fetchedRecordsController.performFetch()
     }
     
     // MARK: - FetchedRecordsControllerDelegate
@@ -79,7 +75,51 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
 
     // MARK: - Tests
     
+    func testNoFetchedRecordsBeforeFetch() {
+        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
+        fetchedRecordsController.delegate = self
+        XCTAssert(fetchedRecordsController.fetchedRecords == nil)
+    }
+    
+    func testEmptyFetchedRecordsAfterPerformFetch() {
+        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
+        fetchedRecordsController.delegate = self
+        fetchedRecordsController.performFetch()
+        XCTAssert((fetchedRecordsController.fetchedRecords) != nil)
+        XCTAssert(fetchedRecordsController.fetchedRecords!.count == 0)
+    }
+    
+    func testNotEmptyFetchedRecordsAfterPerformFetch() {
+        
+        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
+        fetchedRecordsController.delegate = self
+        fetchedRecordsController.performFetch()
+        
+        // Insert 4 person
+        let pascal = Person(); pascal.name = "Pascal"; pascal.age = 27
+        let gwen = Person(); gwen.name = "Gwendal"; gwen.age = 42
+        let sylvaine = Person(); sylvaine.name = "Sylvaine"; sylvaine.age = 40
+        let fabien = Person(); fabien.name = "Fabien"; fabien.age = 26
+        assertNoError {
+            try! dbQueue.inDatabase { db in
+                try pascal.save(db)
+                try gwen.save(db)
+                try sylvaine.save(db)
+                try fabien.save(db)
+            }
+        }
+        
+        // Actuel tests
+        fetchedRecordsController.performFetch()
+        XCTAssert((fetchedRecordsController.fetchedRecords) != nil)
+        XCTAssert(fetchedRecordsController.fetchedRecords!.count == 4)
+    }
+    
     func testNotificationsOnInsertion() {
+        
+        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
+        fetchedRecordsController.delegate = self
+        fetchedRecordsController.performFetch()
         
         let person = Person()
         person.name = "Pascal"
@@ -100,6 +140,10 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
     }
     
     func testUpdateOnInsertion() {
+        
+        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
+        fetchedRecordsController.delegate = self
+        fetchedRecordsController.performFetch()
         
         let person = Person()
         person.name = "Pascal"
