@@ -139,7 +139,7 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
         waitForExpectationsWithTimeout(2, handler: nil)
     }
     
-    func testUpdateOnInsertion() {
+    func testRecordInsertion() {
         
         fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
         fetchedRecordsController.delegate = self
@@ -174,5 +174,102 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
         default: XCTFail("unexpected update: \(update)")
         }
     }
+    
+    func testRecordDeletion() {
+        
+        // Insert 4 person
+        let pascal = Person(); pascal.name = "Pascal"; pascal.age = 27
+        let gwen = Person(); gwen.name = "Gwendal"; gwen.age = 42
+        let sylvaine = Person(); sylvaine.name = "Sylvaine"; sylvaine.age = 40
+        let fabien = Person(); fabien.name = "Fabien"; fabien.age = 26
+        assertNoError {
+            try! dbQueue.inDatabase { db in
+                try pascal.save(db)
+                try gwen.save(db)
+                try sylvaine.save(db)
+                try fabien.save(db)
+            }
+        }
+        
+        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
+        fetchedRecordsController.delegate = self
+        fetchedRecordsController.performFetch()
+        
+        willUpdateExpectation = expectationWithDescription("Did receive controllerWillUpdate:")
+        didFinishUpdatesExpectation = expectationWithDescription("Did receive controllerDidFinishUpdates:")
+        
+        // Delete pascal
+        assertNoError {
+            try! dbQueue.inDatabase { db in
+                try pascal.delete(db)
+            }
+        }
+        
+        // This is used to wait that our delegate calls has been called
+        waitForExpectationsWithTimeout(2, handler: nil)
+        
+        // We got 1 Update
+        XCTAssert(updates.count == 1)
+        let update: FetchedRecordsUpdate<Person> = updates[0]
+        switch update {
+        case .Deleted(let item, let indexPath):
+            let p: Person = item
+            XCTAssert(p.name == pascal.name)
+            XCTAssert(p.age == pascal.age)
+            XCTAssert(indexPath == NSIndexPath(indexes: [0,2], length: 2))
+        default: XCTFail("unexpected update: \(update)")
+        }
+    }
+
+    func testRecordUpdate() {
+        
+        // Insert 4 person
+        let pascal = Person(); pascal.name = "Pascal"; pascal.age = 27
+        let gwen = Person(); gwen.name = "Gwendal"; gwen.age = 42
+        let sylvaine = Person(); sylvaine.name = "Sylvaine"; sylvaine.age = 40
+        let fabien = Person(); fabien.name = "Fabien"; fabien.age = 26
+        assertNoError {
+            try! dbQueue.inDatabase { db in
+                try pascal.save(db)
+                try gwen.save(db)
+                try sylvaine.save(db)
+                try fabien.save(db)
+            }
+        }
+        
+        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
+        fetchedRecordsController.delegate = self
+        fetchedRecordsController.performFetch()
+        
+        willUpdateExpectation = expectationWithDescription("Did receive controllerWillUpdate:")
+        didFinishUpdatesExpectation = expectationWithDescription("Did receive controllerDidFinishUpdates:")
+        
+        // Update pascal
+        pascal.age = 29
+        assertNoError {
+            try! dbQueue.inDatabase { db in
+                try pascal.save(db)
+            }
+        }
+        
+        // This is used to wait that our delegate calls has been called
+        waitForExpectationsWithTimeout(2, handler: nil)
+        
+        // We got 1 Update
+        XCTAssert(updates.count == 1)
+        let update: FetchedRecordsUpdate<Person> = updates[0]
+        switch update {
+        case .Updated(let item, let indexPath, let changes):
+            let p: Person = item
+            XCTAssert(p.name == pascal.name)
+            XCTAssert(p.age == pascal.age)
+            XCTAssert(indexPath == NSIndexPath(indexes: [0,2], length: 2))
+            XCTAssert(changes != nil)
+            XCTAssert(changes!.count == 1)
+            XCTAssert(changes!["age"] != nil)
+        default: XCTFail("unexpected update: \(update)")
+        }
+    }
+
 }
 
