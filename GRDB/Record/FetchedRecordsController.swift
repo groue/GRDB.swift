@@ -128,18 +128,18 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
             if let index = finalIndexPathForItem.indexForKey(oldItem) {
                 let (newItem, newIndexPath) = finalIndexPathForItem[index]
                 if oldIndexPath == newIndexPath {
-                    if let oldRecord = oldItem as? Record, let newRecord = oldItem as? Record {
+                    if let oldRecord = oldItem as? Record, let newRecord = newItem as? Record {
                         let recordCopy = newRecord.copy()
                         recordCopy.referenceRow = oldRecord.referenceRow
                         let changes = recordCopy.persistentChangedValues
                         if changes.count > 0 {
-                            let update = FetchedRecordsUpdate.Updated(item: oldItem, at: newIndexPath, changes: changes)
+                            let update = FetchedRecordsUpdate.Updated(item: newItem, at: newIndexPath, changes: changes)
                             updates.append(update)
                             apply(update)
                         }
                     } else {
                         // Not a record
-                        let update = FetchedRecordsUpdate.Updated(item: oldItem, at: newIndexPath, changes: nil)
+                        let update = FetchedRecordsUpdate.Updated(item: newItem, at: newIndexPath, changes: nil)
                         updates.append(update)
                         apply(update)
                     }
@@ -243,7 +243,7 @@ extension Array {
             
         case .Updated(_, _, _): break
         }
-        print(update.description)
+        // print(update.description)
     }
 }
 
