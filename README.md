@@ -366,17 +366,12 @@ Make sure to ask for an optional when the value may be NULL:
 let name: String? = row.value(named: "name")
 ```
 
-The `value` function returns the type you ask for:
+The `value` function returns the type you ask for. See [Values](#values) for more information on supported value types:
 
 ```swift
 let bookCount: Int     = row.value(named: "bookCount")
 let bookCount64: Int64 = row.value(named: "bookCount")
 let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
-```
-
-Did I say the type you ask for? See [Values](#values) for more information on supported value types:
-
-```swift
 let dateString: String = row.value(named: "date") // "2015-09-11 18:14:15.123"
 let date: NSDate       = row.value(named: "date") // NSDate
 self.date = row.value(named: "date") // Depends on the type of the property.
