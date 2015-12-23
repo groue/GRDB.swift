@@ -1137,18 +1137,6 @@ dbQueue.inDatabase { db in
 See [Error Handling](#error-handling) for more information on database errors.
 
 
-**Added functions can be removed:**
-
-```swift
-dbQueue.inDatabase { db in
-    let fn = DatabaseFunction(...)
-    db.addFunction(fn)
-    ...
-    db.removeFunction(fn)
-}
-```
-
-
 ## Custom Collations
 
 **When SQLite compares two strings, it uses a collating function** to determine which string is greater or if the two strings are equal.
