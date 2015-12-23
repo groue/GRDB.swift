@@ -25,16 +25,7 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **GRDB is fast**. As fast, when not faster, than FMDB and SQLite.swift.
 
-**Query your database right from the debugger:**
-
-```
-(lldb) expr import GRDB
-(lldb) po dbQueue.inDatabase { db in Row.fetchAll(db, "SELECT * FROM persons") }
-▿ 3 elements
-  ▿ [0] : <Row id:1 firstName:"Arthur" lastName:"Miller">
-  ▿ [1] : <Row id:2 firstName:"Barbra" lastName:"Streisand">
-  ▿ [2] : <Row id:3 firstName:"Cinderella" lastName:NULL>
-```
+**You can query your database [right from the debugger](https://twitter.com/groue/status/679347658557902849).**
 
 
 Features
