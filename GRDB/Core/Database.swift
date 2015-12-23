@@ -819,7 +819,15 @@ extension Database {
     }
     
     public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+        preconditionValidQueue()
         transactionObservers.append(transactionObserver)
+    }
+    
+    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
+        preconditionValidQueue()
+        if let index = transactionObservers.indexOf({ observer in observer === transactionObserver}) {
+            transactionObservers.removeAtIndex(index)
+        }
     }
     
     private func beginTransaction(kind: TransactionKind? = nil) throws {
