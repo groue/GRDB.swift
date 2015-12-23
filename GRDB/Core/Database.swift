@@ -213,7 +213,15 @@ public final class Database {
     private var transactionObservers = [TransactionObserverType]()
     
     public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+        preconditionValidQueue()
         transactionObservers.append(transactionObserver)
+    }
+    
+    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
+        preconditionValidQueue()
+        if let index = transactionObservers.indexOf({ observer in observer === transactionObserver}) {
+            transactionObservers.removeAtIndex(index)
+        }
     }
     
     /// Updated in SQLite callbacks (see setupTransactionHooks())

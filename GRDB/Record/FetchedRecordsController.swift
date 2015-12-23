@@ -14,8 +14,18 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
         self.databaseQueue = databaseQueue
     }
     
+    deinit {
+        
+        // TODO! : What if it is called in dbQueue ?
+        // Remove for observation
+        databaseQueue.inDatabase { db in
+            db.removeTransactionObserver(self)
+        }
+    }
+    
     public func performFetch() {
         
+        // TODO! : This can be called several times
         // Install for observation
         databaseQueue.inDatabase { db in
             db.addTransactionObserver(self)
