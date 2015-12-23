@@ -372,8 +372,8 @@ The `value` function returns the type you ask for. See [Values](#values) for mor
 let bookCount: Int     = row.value(named: "bookCount")
 let bookCount64: Int64 = row.value(named: "bookCount")
 let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
-let dateString: String = row.value(named: "date") // "2015-09-11 18:14:15.123"
-let date: NSDate       = row.value(named: "date") // NSDate
+let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.123"
+let date: NSDate       = row.value(named: "date")       // NSDate
 self.date = row.value(named: "date") // Depends on the type of the property.
 ```
 
