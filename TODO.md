@@ -3,7 +3,6 @@
 - [ ] `IN (?)` sql snippet, with an array argument.
 - [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
-- [ ] ccgus/fmdb finalizes statements even after a failure of sqlite3_prepare_v2(). Check if we should do the same.
 
 Not sure:
 
