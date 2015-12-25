@@ -1,5 +1,5 @@
 - [ ] Row dictionary initializer should be replaced with a initializer from sequences of (string, value) pairs (including dictionaries).
-- [ ] RowConvertible.awakeFromFetch() should get a database argument. Ideally, it should be possible to provide a custom Database type.
+- [ ] Unify Database.execute() and Database.executeMultiStatement()
 
 Not sure:
 
