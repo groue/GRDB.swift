@@ -1,6 +1,11 @@
 Release Notes
 =============
 
+## Next Release
+
+- `DatabaseValueConvertible` no longer inherits from `RowConvertible`.
+
+
 ## 0.35.0
 
 Released December 22, 2015
