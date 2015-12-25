@@ -5,6 +5,7 @@
 - [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
 - [ ] Make sure DatabaseValueConvertible and SQLiteStatementConvertible fetch() and fetchAll() are fast (since they use RowConvertible's fromRow, both miss the opportunity to avoid Row creation, and SQLiteStatementConvertible misses the opportunity to avoid DatabaseValue creation).
 - [ ] Row dictionary initializer should accept any sequence of (string, value) pairs, including dictionaries.
+- [ ] RowConvertible.awaforFromFetch() should get a database argument. Ideally, it should be possible to provide a custom Database type.
 
 Not sure:
 
