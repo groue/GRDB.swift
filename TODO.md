@@ -1,11 +1,5 @@
-- [ ] #2: this commit may be how stephencelis fixed it: https://github.com/stephencelis/SQLite.swift/commit/8f64e357c3a6668c5f011c91ba33be3e8d4b88d0
-- [ ] Study SQLCipher
-- [ ] `IN (?)` sql snippet, with an array argument.
-- [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
-- [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
-- [ ] Make sure DatabaseValueConvertible and SQLiteStatementConvertible fetch() and fetchAll() are fast (since they use RowConvertible's fromRow, both miss the opportunity to avoid Row creation, and SQLiteStatementConvertible misses the opportunity to avoid DatabaseValue creation).
-- [ ] Row dictionary initializer should accept any sequence of (string, value) pairs, including dictionaries.
-- [ ] RowConvertible.awaforFromFetch() should get a database argument. Ideally, it should be possible to provide a custom Database type.
+- [ ] Row dictionary initializer should be replaced with a initializer from sequences of (string, value) pairs (including dictionaries).
+- [ ] RowConvertible.awakeFromFetch() should get a database argument. Ideally, it should be possible to provide a custom Database type.
 
 Not sure:
 
@@ -17,7 +11,7 @@ Not sure:
 Require changes in the Swift language:
 
 - [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into SQLiteStatementConvertible when Swift allows for it.
-- [ ] Specific and optimized Optional<SQLiteStatementConvertible>.fetch... methods when rdar://22852669 is fixed.
+- [ ] Specific and optimized Optional<SQLiteStatementConvertible>.fetch... methods when http://openradar.appspot.com/22852669 is fixed.
 
 
 Requires recompilation of SQLite:
@@ -33,3 +27,4 @@ Reading list:
 - https://www.sqlite.org/undoredo.html
 - http://www.sqlite.org/intern-v-extern-blob.html
 - List of documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
+- https://www.zetetic.net/sqlcipher/
