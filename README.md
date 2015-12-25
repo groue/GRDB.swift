@@ -1342,7 +1342,7 @@ public protocol RowConvertible {
     
     /// Optional method which gives adopting types an opportunity to complete
     /// their initialization. Do not call it directly.
-    mutating func awakeFromFetch(row: Row)
+    mutating func awakeFromFetch(row row: Row, database: Database)
 }
 ```
 
@@ -1784,7 +1784,7 @@ class Person {
     static func fetchOne(...) -> Self?
     
     // Events
-    func awakeFromFetch(row: Row)
+    func awakeFromFetch(row row: Row, database: Database)
     func didInsertWithRowID(rowID: Int64, forColumn column: String?)
     
     // Description (from the CustomStringConvertible protocol)

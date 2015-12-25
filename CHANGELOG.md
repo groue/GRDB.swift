@@ -3,7 +3,13 @@ Release Notes
 
 ## Next Release
 
+**Fixed**
+
 - `DatabaseValueConvertible` no longer inherits from `RowConvertible`.
+
+**Breaking Changes**
+
+- `RowConvertible.awakeFromFetch()` now takes a database argument.
 
 
 ## 0.35.0

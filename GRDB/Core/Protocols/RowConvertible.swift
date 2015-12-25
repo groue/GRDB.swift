@@ -33,13 +33,13 @@ public protocol RowConvertible {
     ///
     /// Types that adopt RowConvertible have an opportunity to complete their
     /// initialization.
-    mutating func awakeFromFetch(row: Row)
+    mutating func awakeFromFetch(row row: Row, database: Database)
 }
 
 extension RowConvertible {
     
     /// Default implementation, which does nothing.
-    public func awakeFromFetch(row: Row) { }
+    public func awakeFromFetch(row row: Row, database: Database) { }
 
     
     // MARK: - Fetching From SelectStatement
@@ -69,7 +69,7 @@ extension RowConvertible {
         let row = Row(metalStatement: statement)
         return statement.fetch(arguments: arguments) {
             var value = fromRow(row)
-            value.awakeFromFetch(row)
+            value.awakeFromFetch(row: row, database: statement.database)
             return value
         }
     }

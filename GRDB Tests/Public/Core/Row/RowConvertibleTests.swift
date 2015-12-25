@@ -13,7 +13,7 @@ struct SimpleRowConvertible : RowConvertible {
             fetched: false)
     }
     
-    mutating func awakeFromFetch(row: Row) {
+    mutating func awakeFromFetch(row row: Row, database: Database) {
         fetched = true
     }
 }
