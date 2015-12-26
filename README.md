@@ -492,10 +492,10 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 
 Rows is a fundamental type in GRDB, used by many other APIs.
 
-From time to time, you'll want to build a custom one from scratch. Use the dictionary initializer:
+From time to time, you'll want to build a custom one from scratch. Use the dictionary and NSDictionary initializers:
 
 ```swift
-Row(dictionary: ["name": "foo", "date": nil])
+Row(["name": "foo", "date": nil])
 ```
 
 See [Values](#values) for more information on supported types.

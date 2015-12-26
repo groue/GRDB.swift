@@ -9,6 +9,7 @@ Release Notes
 
 **Breaking Changes**
 
+- `Row(dictionary:)` has been renamed `Row(_:)`.
 - `RowConvertible.awakeFromFetch()` now takes a database argument.
 
 

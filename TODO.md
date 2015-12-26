@@ -1,4 +1,3 @@
-- [ ] Row dictionary initializer should be replaced with a initializer from sequences of (string, value) pairs (including dictionaries).
 - [ ] Unify Database.execute() and Database.executeMultiStatement()
 
 Not sure:

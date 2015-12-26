@@ -110,7 +110,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.fromRow(Row(dictionary: persistentDictionary))
+        let copy = self.dynamicType.fromRow(Row(persistentDictionary))
         copy.referenceRow = referenceRow
         return copy
     }
@@ -141,7 +141,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
             if newValue {
                 referenceRow = nil
             } else {
-                referenceRow = Row(dictionary: persistentDictionary)
+                referenceRow = Row(persistentDictionary)
             }
         }
     }

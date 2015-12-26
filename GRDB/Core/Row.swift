@@ -24,7 +24,7 @@ public final class Row: CollectionType {
     }
     
     /// Builds a row from an dictionary of values.
-    public init(dictionary: [String: DatabaseValueConvertible?]) {
+    public init(_ dictionary: [String: DatabaseValueConvertible?]) {
         var databaseDictionary = [String: DatabaseValue]()
         for (key, value) in dictionary {
             databaseDictionary[key] = value?.databaseValue ?? .Null

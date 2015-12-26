@@ -31,7 +31,7 @@ class RowConvertibleTests: GRDBTestCase {
     }
     
     func testRowInitializer() {
-        let row = Row(dictionary: ["firstName": "Arthur", "lastName": "Martin"])
+        let row = Row(["firstName": "Arthur", "lastName": "Martin"])
         let s = SimpleRowConvertible.fromRow(row)
         XCTAssertEqual(s.firstName, "Arthur")
         XCTAssertEqual(s.lastName, "Martin")

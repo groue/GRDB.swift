@@ -5,13 +5,13 @@ class RowFoundationTests: GRDBTestCase {
 
     func testRowFromInvalidNSDictionary() {
         let dictionary: NSDictionary = ["a": NSObject()]
-        let row = Row(dictionary: dictionary)
+        let row = Row(dictionary)
         XCTAssertTrue(row == nil)
     }
     
     func testRowFromNSDictionary() {
         let dictionary: NSDictionary = ["a": "foo", "b": 1, "c": NSNull(), "d": NSDate(timeIntervalSince1970: 1443642439)]
-        let row = Row(dictionary: dictionary)!
+        let row = Row(dictionary)!
         
         XCTAssertEqual(row.count, 4)
         XCTAssertEqual(row.value(named: "a") as String, "foo")
@@ -21,7 +21,7 @@ class RowFoundationTests: GRDBTestCase {
     }
     
     func testRowToNSDictionary() {
-        let row = Row(dictionary: ["a": "foo", "b": 1, "c": nil, "d": NSDate(timeIntervalSince1970: 1443642439)])
+        let row = Row(["a": "foo", "b": 1, "c": nil, "d": NSDate(timeIntervalSince1970: 1443642439)])
         let dictionary = row.toNSDictionary()
         XCTAssertEqual(dictionary.count, 4)
         XCTAssertTrue((dictionary["a"] as! NSString).isEqualToString("foo"))

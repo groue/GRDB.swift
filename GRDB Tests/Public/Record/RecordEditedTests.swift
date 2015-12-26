@@ -44,7 +44,7 @@ class RecordEditedTests: GRDBTestCase {
     func testRecordIsEditedAfterInitFromRow() {
         // Create a Record from a row. The row may not come from the database.
         // So it is edited.
-        let row = Row(dictionary: ["name": "Arthur", "age": 41])
+        let row = Row(["name": "Arthur", "age": 41])
         let person = Person(row)
         XCTAssertTrue(person.hasPersistentChangedValues)
     }
@@ -80,7 +80,7 @@ class RecordEditedTests: GRDBTestCase {
                 
                 // Compare to an Int
                 let record = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
-                let row2 = Row(dictionary: record.persistentDictionary)
+                let row2 = Row(record.persistentDictionary)
                 switch row2["value"]!.storage {
                 case .Int64(let int64):
                     XCTAssertEqual(int64, 1)
@@ -268,7 +268,7 @@ class RecordEditedTests: GRDBTestCase {
     }
     
     func testChangesAfterInitFromRow() {
-        let person = Person(Row(dictionary:["name": "Arthur", "age": 41]))
+        let person = Person(Row(["name": "Arthur", "age": 41]))
         let changes = person.persistentChangedValues
         XCTAssertEqual(changes.count, 4)
         for (column, old) in changes {
