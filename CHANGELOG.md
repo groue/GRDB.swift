@@ -9,7 +9,7 @@ Release Notes
 
 **Breaking Changes**
 
-- `Row(dictionary:)` has been renamed `Row(_:)` ((documentation)[https://github.com/groue/GRDB.swift#convenience-rows]).
+- `Row(dictionary:)` has been renamed `Row(_:)` ([documentation](https://github.com/groue/GRDB.swift#convenience-rows)).
 - `RowConvertible.awakeFromFetch()` now takes a database argument ([documentation](https://github.com/groue/GRDB.swift#rowconvertible-protocol)).
 
 
