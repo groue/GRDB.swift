@@ -945,8 +945,8 @@ dbQueue.inTransaction(.Exclusive) { db in ... }
 
 **The rule is:**
 
-- All methods that *write* to the database throw.
-- Methods that build prepared statements throw.
+- Methods that write to the database throw.
+- Methods that build [prepared statements](#prepared-statements) throw.
 - All other methods crash without notice (but with a detailed error message).
 
 ```swift
