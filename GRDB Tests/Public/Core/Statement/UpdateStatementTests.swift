@@ -153,4 +153,14 @@ class UpdateStatementTests : GRDBTestCase {
             }
         }
     }
+    
+    func testUpdateStatementAcceptsSelectQueries() {
+        // This test makes sure we do not introduce any regression for
+        // https://github.com/groue/GRDB.swift/issues/15
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("SELECT 1")
+            }
+        }
+    }
 }

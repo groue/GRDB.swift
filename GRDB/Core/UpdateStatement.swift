@@ -22,8 +22,37 @@ public final class UpdateStatement : Statement {
         validateArguments()
         reset()
         
+        let changes: DatabaseChanges
         let code = sqlite3_step(sqliteStatement)
-        guard code == SQLITE_DONE else {
+        switch code {
+        case SQLITE_DONE:
+            let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
+            let lastInsertedRowID = sqlite3_last_insert_rowid(database.sqliteConnection)
+            let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
+            changes = DatabaseChanges(changedRowCount: changedRowCount, insertedRowID: insertedRowID)
+        case SQLITE_ROW:
+            // A row? The UpdateStatement is not supposed to return any...
+            //
+            // What are our options?
+            //
+            // 1. throw a DatabaseError with code SQLITE_ROW.
+            // 2. raise a fatal error.
+            // 3. log a warning about the ignored row, and return successfully.
+            // 4. silently ignore the row, and return successfully.
+            //
+            // The problem with 1 is that this error is uneasy to understand.
+            // See https://github.com/groue/GRDB.swift/issues/15 where both the
+            // user and I were stupidly stuck in front of `PRAGMA journal_mode=WAL`.
+            //
+            // The problem with 2 is that the user would be forced to load a
+            // value he does not care about (even if he should, but we can't
+            // judge).
+            //
+            // The problem with 3 is that there is no way to avoid this warning.
+            //
+            // So let's just silently ignore the row, and return successfully.
+            changes = DatabaseChanges(changedRowCount: 0, insertedRowID: nil)
+        default:
             // This error may be a consequence of an error thrown by
             // TransactionObserverType.transactionWillCommit().
             // Let database handle this case, before throwing a error.
@@ -32,15 +61,11 @@ public final class UpdateStatement : Statement {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, arguments: errorArguments)
         }
         
-        let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
-        let lastInsertedRowID = sqlite3_last_insert_rowid(database.sqliteConnection)
-        let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
-        
         // Now that changes information has been loaded, we can trigger database
         // transaction delegate callbacks that may eventually perform more
         // changes to the database.
         database.updateStatementDidExecute()
         
-        return DatabaseChanges(changedRowCount: changedRowCount, insertedRowID: insertedRowID)
+        return changes
     }
 }
