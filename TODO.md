@@ -1,5 +1,4 @@
 - [ ] Unify Database.execute() and Database.executeMultiStatement()
-- [ ] Have Database.updateStatement() and Database.selectStatement() throw errors.
 - [ ] Try to remove DefaultArgument.
 
 Not sure:

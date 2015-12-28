@@ -528,7 +528,7 @@ final class DataMapper {
     // MARK: - Statement builders
     
     func insertStatement() -> UpdateStatement {
-        let insertStatement = db.updateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(persistentDictionary.keys)))
+        let insertStatement = try! db.updateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(persistentDictionary.keys)))
         insertStatement.arguments = StatementArguments(persistentDictionary.values)
         return insertStatement
     }
@@ -559,7 +559,7 @@ final class DataMapper {
         }
         
         // Update
-        let updateStatement = db.updateStatement(DataMapper.updateSQL(tableName: databaseTableName, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
+        let updateStatement = try! db.updateStatement(DataMapper.updateSQL(tableName: databaseTableName, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
         updateStatement.arguments = StatementArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
         return updateStatement
     }
@@ -571,21 +571,9 @@ final class DataMapper {
         }
         
         // Delete
-        let deleteStatement = db.updateStatement(DataMapper.deleteSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
+        let deleteStatement = try! db.updateStatement(DataMapper.deleteSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
         deleteStatement.arguments = StatementArguments(primaryKeyDictionary.values)
         return deleteStatement
-    }
-    
-    func reloadStatement() -> SelectStatement {
-        // Fail early if primary key does not resolve to a database row.
-        guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("Invalid primary key in \(persistable)")
-        }
-        
-        // Fetch
-        let reloadStatement = db.selectStatement(DataMapper.reloadSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
-        reloadStatement.arguments = StatementArguments(primaryKeyDictionary.values)
-        return reloadStatement
     }
     
     /// SELECT statement that returns a row if and only if the primary key
@@ -597,7 +585,7 @@ final class DataMapper {
         }
         
         // Fetch
-        let existsStatement = db.selectStatement(DataMapper.existsSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
+        let existsStatement = try! db.selectStatement(DataMapper.existsSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
         existsStatement.arguments = StatementArguments(primaryKeyDictionary.values)
         return existsStatement
     }

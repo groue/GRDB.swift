@@ -140,7 +140,7 @@ public extension DatabaseValueConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: A sequence.
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
-        return fetch(db.selectStatement(sql), arguments: arguments)
+        return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -152,7 +152,7 @@ public extension DatabaseValueConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: An array.
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Self] {
-        return fetchAll(db.selectStatement(sql), arguments: arguments)
+        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -167,7 +167,7 @@ public extension DatabaseValueConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: An optional value.
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> Self? {
-        return fetchOne(db.selectStatement(sql), arguments: arguments)
+        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
 }
 
@@ -252,7 +252,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: A sequence of optional values.
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Wrapped?> {
-        return fetch(db.selectStatement(sql), arguments: arguments)
+        return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns an array of optional values fetched from an SQL query.
@@ -264,6 +264,6 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: An array of optional values.
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Wrapped?] {
-        return fetchAll(db.selectStatement(sql), arguments: arguments)
+        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
 }

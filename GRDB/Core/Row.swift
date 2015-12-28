@@ -547,7 +547,7 @@ public final class Row: CollectionType {
     /// - parameter arguments: Statement arguments.
     /// - returns: A sequence of rows.
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Row> {
-        return fetch(db.selectStatement(sql), arguments: arguments)
+        return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -559,7 +559,7 @@ public final class Row: CollectionType {
     /// - parameter arguments: Statement arguments.
     /// - returns: An array of rows.
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Row] {
-        return fetchAll(db.selectStatement(sql), arguments: arguments)
+        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -571,7 +571,7 @@ public final class Row: CollectionType {
     /// - parameter arguments: Statement arguments.
     /// - returns: An optional row.
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> Row? {
-        return fetchOne(db.selectStatement(sql), arguments: arguments)
+        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
 
     

@@ -123,7 +123,7 @@ extension RowConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: A sequence.
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
-        return fetch(db.selectStatement(sql), arguments: arguments)
+        return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -135,7 +135,7 @@ extension RowConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: An array.
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Self] {
-        return fetchAll(db.selectStatement(sql), arguments: arguments)
+        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -147,6 +147,6 @@ extension RowConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: An optional value.
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> Self? {
-        return fetchOne(db.selectStatement(sql), arguments: arguments)
+        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
 }

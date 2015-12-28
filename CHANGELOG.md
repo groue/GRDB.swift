@@ -6,9 +6,11 @@ Release Notes
 **Fixed**
 
 - `DatabaseValueConvertible` no longer inherits from `RowConvertible`.
+- `Database.execute()` now accepts fetch statements ([#15](https://github.com/groue/GRDB.swift/issues/15)).
 
 **Breaking Changes**
 
+- Methods that return prepared statements can now throw errors.
 - `Row(dictionary:)` has been renamed `Row(_:)` ([documentation](https://github.com/groue/GRDB.swift#convenience-rows)).
 - `RowConvertible.awakeFromFetch()` now takes a database argument ([documentation](https://github.com/groue/GRDB.swift#rowconvertible-protocol)).
 

@@ -45,7 +45,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 let persons: [[DatabaseValueConvertible?]] = [
                     ["Arthur", 41],
                     ["Barbara", nil],
@@ -73,7 +73,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 let persons: [[DatabaseValueConvertible?]] = [
                     ["Arthur", 41],
                     ["Barbara", nil],
@@ -102,7 +102,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons: [[String: DatabaseValueConvertible?]] = [
                     ["name": "Arthur", "age": 41],
                     ["name": "Barbara", "age": nil],
@@ -130,7 +130,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons: [[String: DatabaseValueConvertible?]] = [
                     ["name": "Arthur", "age": 41],
                     ["name": "Barbara", "age": nil],

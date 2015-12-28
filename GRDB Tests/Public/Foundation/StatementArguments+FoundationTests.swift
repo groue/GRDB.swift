@@ -28,7 +28,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 let persons = [ // NSArray, because of the heterogeneous values
                     ["Arthur", 41],
                     ["Barbara", 38],
@@ -56,7 +56,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons = [// NSDictionary, because of the heterogeneous values
                     ["name": "Arthur", "age": 41],
                     ["name": "Barbara", "age": 38],

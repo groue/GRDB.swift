@@ -946,6 +946,7 @@ dbQueue.inTransaction(.Exclusive) { db in ... }
 **The rule is:**
 
 - All methods that *write* to the database throw.
+- Methods that build prepared statements throw.
 - All other methods crash without notice (but with a detailed error message).
 
 ```swift
@@ -988,10 +989,10 @@ There are two kinds of prepared statements: **select statements**, and **update 
 ```swift
 try dbQueue.inTransaction { db in
     let updateSQL = "INSERT INTO persons (name, age) VALUES (:name, :age)"
-    let updateStatement = db.updateStatement(updateSQL)
+    let updateStatement = try db.updateStatement(updateSQL)
     
     let selectSQL = "SELECT * FROM persons WHERE name = ?"
-    let selectStatement = db.selectStatement(selectSQL)
+    let selectStatement = try db.selectStatement(selectSQL)
 }
 ```
 

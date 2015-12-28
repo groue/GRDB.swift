@@ -83,7 +83,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let statement = db.selectStatement("SELECT * FROM structs")
+                let statement = try db.selectStatement("SELECT * FROM structs")
                 let ss = SimpleRowConvertible.fetch(statement)
                 let s = Array(ss).first!
                 XCTAssertEqual(s.firstName, "Arthur")
@@ -97,7 +97,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
-                let statement = db.selectStatement("SELECT * FROM structs")
+                let statement = try db.selectStatement("SELECT * FROM structs")
                 let ss = SimpleRowConvertible.fetchAll(statement)
                 let s = ss.first!
                 XCTAssertEqual(s.firstName, "Arthur")
@@ -110,7 +110,7 @@ class RowConvertibleTests: GRDBTestCase {
     func testFetchOneFromStatement() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT * FROM structs")
+                let statement = try db.selectStatement("SELECT * FROM structs")
                 let missingS = SimpleRowConvertible.fetchOne(statement)
                 XCTAssertTrue(missingS == nil)
                 
