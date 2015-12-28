@@ -1,6 +1,5 @@
 - [ ] Unify Database.execute() and Database.executeMultiStatement()
 - [ ] Try to remove DefaultArgument.
-- [ ] Database.init: move setupTrace so that it logs *all* statements, including initialization statements.
 
 Not sure:
 

@@ -630,10 +630,10 @@ public final class Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
+        setupTrace()    // First, so that all queries, including initialization queries, are traced.
         try setupForeignKeys()
         setupBusyMode()
         setupTransactionHooks()
-        setupTrace()    // Last, after initialization queries have been performed.
     }
     
     // Initializes an in-memory database
