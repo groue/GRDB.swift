@@ -490,9 +490,7 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 
 #### Convenience Rows
 
-Rows is a fundamental type in GRDB, used by many other APIs.
-
-From time to time, you'll want to build a custom one from scratch. Use the dictionary and NSDictionary initializers:
+From time to time, you'll want to build a custom Row from scratch. Use the dictionary and NSDictionary initializers:
 
 ```swift
 Row(["name": "foo", "date": nil])
