@@ -5,7 +5,7 @@ GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the 
 
 It ships with a low-level database API, plus application-level tools.
 
-**December 14, 2015: GRDB.swift 0.34.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**December 28, 2015: GRDB.swift 0.36.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -25,6 +25,8 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **GRDB is fast**. As fast, when not faster, than FMDB and SQLite.swift.
 
+**You can query your database [right from the debugger](https://twitter.com/groue/status/679347658557902849).**
+
 
 Features
 --------
@@ -39,7 +41,7 @@ Features
 Documentation
 =============
 
-- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.34.0/index.html)** (on cocoadocs.org)
+- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.36.0/index.html)** (on cocoadocs.org)
 
 - **[Installation](#installation)**
 
@@ -95,7 +97,7 @@ To use GRDB.swift with Cocoapods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '0.34.0'
+pod 'GRDB.swift', '0.36.0'
 ```
 
 
@@ -106,7 +108,7 @@ pod 'GRDB.swift', '0.34.0'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" == 0.34.0
+github "groue/GRDB.swift" == 0.36.0
 ```
 
 
@@ -183,7 +185,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.34.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.36.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 
 Once connected, the `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
@@ -364,19 +366,14 @@ Make sure to ask for an optional when the value may be NULL:
 let name: String? = row.value(named: "name")
 ```
 
-The `value` function returns the type you ask for:
+The `value` function returns the type you ask for. See [Values](#values) for more information on supported value types:
 
 ```swift
 let bookCount: Int     = row.value(named: "bookCount")
 let bookCount64: Int64 = row.value(named: "bookCount")
 let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
-```
-
-Did I say the type you ask for? See [Values](#values) for more information on supported value types:
-
-```swift
-let dateString: String = row.value(named: "date") // "2015-09-11 18:14:15.123"
-let date: NSDate       = row.value(named: "date") // NSDate
+let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.123"
+let date: NSDate       = row.value(named: "date")       // NSDate
 self.date = row.value(named: "date") // Depends on the type of the property.
 ```
 
@@ -493,12 +490,10 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 
 #### Convenience Rows
 
-Rows is a fundamental type in GRDB, used by many other APIs.
-
-From time to time, you'll want to build a custom one from scratch. Use the dictionary initializer:
+From time to time, you'll want to build a custom Row from scratch. Use the dictionary and NSDictionary initializers:
 
 ```swift
-Row(dictionary: ["name": "foo", "date": nil])
+Row(["name": "foo", "date": nil])
 ```
 
 See [Values](#values) for more information on supported types.
@@ -948,7 +943,8 @@ dbQueue.inTransaction(.Exclusive) { db in ... }
 
 **The rule is:**
 
-- All methods that *write* to the database throw.
+- Methods that write to the database throw.
+- Methods that build [prepared statements](#prepared-statements) throw.
 - All other methods crash without notice (but with a detailed error message).
 
 ```swift
@@ -991,10 +987,10 @@ There are two kinds of prepared statements: **select statements**, and **update 
 ```swift
 try dbQueue.inTransaction { db in
     let updateSQL = "INSERT INTO persons (name, age) VALUES (:name, :age)"
-    let updateStatement = db.updateStatement(updateSQL)
+    let updateStatement = try db.updateStatement(updateSQL)
     
     let selectSQL = "SELECT * FROM persons WHERE name = ?"
-    let selectStatement = db.selectStatement(selectSQL)
+    let selectStatement = try db.selectStatement(selectSQL)
 }
 ```
 
@@ -1138,18 +1134,6 @@ dbQueue.inDatabase { db in
 ```
 
 See [Error Handling](#error-handling) for more information on database errors.
-
-
-**Added functions can be removed:**
-
-```swift
-dbQueue.inDatabase { db in
-    let fn = DatabaseFunction(...)
-    db.addFunction(fn)
-    ...
-    db.removeFunction(fn)
-}
-```
 
 
 ## Custom Collations
@@ -1356,8 +1340,8 @@ public protocol RowConvertible {
     static func fromRow(row: Row) -> Self
     
     /// Optional method which gives adopting types an opportunity to complete
-    /// their initialization. Do not call it directly.
-    mutating func awakeFromFetch(row: Row)
+    /// their initialization after being fetched. Do not call it directly.
+    mutating func awakeFromFetch(row row: Row, database: Database)
 }
 ```
 
@@ -1799,7 +1783,7 @@ class Person {
     static func fetchOne(...) -> Self?
     
     // Events
-    func awakeFromFetch(row: Row)
+    func awakeFromFetch(row row: Row, database: Database)
     func didInsertWithRowID(rowID: Int64, forColumn column: String?)
     
     // Description (from the CustomStringConvertible protocol)

@@ -22,8 +22,8 @@ class RecordFetchTests: GRDBTestCase {
                 return .Commit
             }
             
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT * FROM persons WHERE name = ?")
+            try dbQueue.inDatabase { db in
+                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?")
                 
                 for name in ["Arthur", "Barbara"] {
                     let person = Person.fetchOne(statement, arguments: [name])!
@@ -59,7 +59,7 @@ class RecordFetchTests: GRDBTestCase {
                 try Person(name: "Arthur", age: 41).insert(db)
                 try Person(name: "Barbara", age: 37).insert(db)
 
-                let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
+                let statement = try db.selectStatement("SELECT * FROM persons ORDER BY name")
                 let personSequence = Person.fetch(statement)
                 var names1: [String?] = personSequence.map { $0.name }
                 var names2: [String?] = personSequence.map { $0.name }

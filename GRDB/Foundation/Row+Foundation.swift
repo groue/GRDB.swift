@@ -10,7 +10,7 @@ extension Row {
     /// NSString, NSURL).
     ///
     /// - parameter dictionary: An NSDictionary.
-    public convenience init?(dictionary: NSDictionary) {
+    public convenience init?(_ dictionary: NSDictionary) {
         var initDictionary = [String: DatabaseValueConvertible?]()
         for (key, value) in dictionary {
             guard let columnName = key as? String else {
@@ -21,7 +21,7 @@ extension Row {
             }
             initDictionary[columnName] = databaseValue
         }
-        self.init(dictionary: initDictionary)
+        self.init(initDictionary)
     }
     
     /// Converts a row to an NSDictionary.

@@ -33,8 +33,8 @@ class EventRecorder : Record {
         self.id = rowID
     }
     
-    override func awakeFromFetch(row: Row) {
-        super.awakeFromFetch(row)
+    override func awakeFromFetch(row row: Row, database: Database) {
+        super.awakeFromFetch(row: row, database: database)
         awakeFromFetchCount += 1
     }
 }

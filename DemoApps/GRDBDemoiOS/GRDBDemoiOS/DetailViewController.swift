@@ -13,6 +13,9 @@ class DetailViewController: UIViewController {
         guard isViewLoaded() else {
             return
         }
+        guard person != nil else {
+            return
+        }
         detailDescriptionLabel.text = person.fullName
     }
 

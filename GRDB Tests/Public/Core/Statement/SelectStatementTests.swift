@@ -29,8 +29,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testArrayStatementArguments() {
         assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
+            try dbQueue.inDatabase { db in
+                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
                 let ages = [20, 30, 40, 50]
                 let counts = ages.map { Int.fetchOne(statement, arguments: [$0])! }
                 XCTAssertEqual(counts, [1,2,2,3])
@@ -40,8 +40,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testStatementArgumentsSetterWithArray() {
         assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
+            try dbQueue.inDatabase { db in
+                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
                 let ages = [20, 30, 40, 50]
                 let counts = ages.map { (age: Int) -> Int in
                     statement.arguments = [age]
@@ -54,8 +54,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testDictionaryStatementArguments() {
         assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
+            try dbQueue.inDatabase { db in
+                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: Remove this explicit type declaration required by rdar://22357375
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { Int.fetchOne(statement, arguments: StatementArguments($0))! }
@@ -66,8 +66,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testStatementArgumentsSetterWithDictionary() {
         assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
+            try dbQueue.inDatabase { db in
+                let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: Remove this explicit type declaration required by rdar://22357375
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
                 let counts = ageDicts.map { ageDict -> Int in
@@ -81,8 +81,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testRowSequenceCanBeFetchedTwice() {
         assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
+            try dbQueue.inDatabase { db in
+                let statement = try db.selectStatement("SELECT * FROM persons ORDER BY name")
                 var names1 = Row.fetch(statement).map { $0.value(named: "name") as String }
                 var names2 = Row.fetch(statement).map { $0.value(named: "name") as String }
                 
@@ -98,8 +98,8 @@ class SelectStatementTests : GRDBTestCase {
 
     func testRowSequenceCanBeIteratedTwice() {
         assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT * FROM persons ORDER BY name")
+            try dbQueue.inDatabase { db in
+                let statement = try db.selectStatement("SELECT * FROM persons ORDER BY name")
                 let rows = Row.fetch(statement)
                 var names1 = rows.map { $0.value(named: "name") as String }
                 var names2 = rows.map { $0.value(named: "name") as String }
@@ -116,8 +116,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testValueSequenceCanBeFetchedTwice() {
         assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
+            try dbQueue.inDatabase { db in
+                let statement = try db.selectStatement("SELECT name FROM persons ORDER BY name")
                 var names1 = Array(String.fetch(statement))
                 var names2 = Array(String.fetch(statement))
                 
@@ -133,8 +133,8 @@ class SelectStatementTests : GRDBTestCase {
     
     func testValueSequenceCanBeIteratedTwice() {
         assertNoError {
-            dbQueue.inDatabase { db in
-                let statement = db.selectStatement("SELECT name FROM persons ORDER BY name")
+            try dbQueue.inDatabase { db in
+                let statement = try db.selectStatement("SELECT name FROM persons ORDER BY name")
                 let nameSequence = String.fetch(statement)
                 var names1 = Array(nameSequence)
                 var names2 = Array(nameSequence)

@@ -73,7 +73,7 @@ class SQLiteStatementConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
-                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
                 let sequence = FastWrappedInt.fetch(statement)
                 
                 XCTAssertEqual(Array(sequence).map { $0.int }, [1,2])
@@ -89,7 +89,7 @@ class SQLiteStatementConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
-                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
                 let array = FastWrappedInt.fetchAll(statement)
                 
                 XCTAssertEqual(array.map { $0.int }, [1,2])
@@ -102,7 +102,7 @@ class SQLiteStatementConvertibleFetchTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
-                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
                 
                 let nilBecauseMissingRow = FastWrappedInt.fetchOne(statement)
                 XCTAssertTrue(nilBecauseMissingRow == nil)
@@ -178,7 +178,7 @@ class SQLiteStatementConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
                 let sequence = Optional<FastWrappedInt>.fetch(statement)
                 
                 let ints = Array(sequence)
@@ -198,7 +198,7 @@ class SQLiteStatementConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
                 let array = Optional<FastWrappedInt>.fetchAll(statement)
                 
                 XCTAssertEqual(array.count, 2)

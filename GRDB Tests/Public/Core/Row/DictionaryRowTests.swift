@@ -4,7 +4,7 @@ import GRDB
 class DictionaryRowTests: GRDBTestCase {
     
     func testRowAsSequence() {
-        let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
+        let row = Row(["a": 0, "b": 1, "c": 2])
         
         var columnNames = Set<String>()
         var ints = Set<Int>()
@@ -22,7 +22,7 @@ class DictionaryRowTests: GRDBTestCase {
     
     func testRowValueAtIndex() {
         let dictionary: [String: DatabaseValueConvertible?] = ["a": 0, "b": 1, "c": 2]
-        let row = Row(dictionary: dictionary)
+        let row = Row(dictionary)
         
         let aIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("a")!)
         let bIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("b")!)
@@ -65,7 +65,7 @@ class DictionaryRowTests: GRDBTestCase {
     }
     
     func testRowValueNamed() {
-        let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
+        let row = Row(["a": 0, "b": 1, "c": 2])
         
         // Int extraction, form 1
         XCTAssertEqual(row.value(named: "a") as Int, 0)
@@ -103,22 +103,22 @@ class DictionaryRowTests: GRDBTestCase {
     }
     
     func testRowCount() {
-        let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
+        let row = Row(["a": 0, "b": 1, "c": 2])
         XCTAssertEqual(row.count, 3)
     }
     
     func testRowColumnNames() {
-        let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
+        let row = Row(["a": 0, "b": 1, "c": 2])
         XCTAssertEqual(Array(row.columnNames).sort(), ["a", "b", "c"])
     }
     
     func testRowDatabaseValues() {
-        let row = Row(dictionary: ["a": 0, "b": 1, "c": 2])
+        let row = Row(["a": 0, "b": 1, "c": 2])
         XCTAssertEqual(row.databaseValues.sort { ($0.value() as Int!) < ($1.value() as Int!) }, [0.databaseValue, 1.databaseValue, 2.databaseValue])
     }
     
     func testRowSubscriptIsCaseInsensitive() {
-        let row = Row(dictionary: ["name": "foo"])
+        let row = Row(["name": "foo"])
         XCTAssertEqual(row["name"], "foo".databaseValue)
         XCTAssertEqual(row["NAME"], "foo".databaseValue)
         XCTAssertEqual(row["NaMe"], "foo".databaseValue)
@@ -128,7 +128,7 @@ class DictionaryRowTests: GRDBTestCase {
     }
     
     func testRowHasColumnIsCaseInsensitive() {
-        let row = Row(dictionary: ["nAmE": "foo", "foo": 1])
+        let row = Row(["nAmE": "foo", "foo": 1])
         XCTAssertTrue(row.hasColumn("name"))
         XCTAssertTrue(row.hasColumn("NAME"))
         XCTAssertTrue(row.hasColumn("Name"))

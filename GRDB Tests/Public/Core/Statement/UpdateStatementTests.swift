@@ -45,7 +45,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 let persons: [[DatabaseValueConvertible?]] = [
                     ["Arthur", 41],
                     ["Barbara", nil],
@@ -73,7 +73,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 let persons: [[DatabaseValueConvertible?]] = [
                     ["Arthur", 41],
                     ["Barbara", nil],
@@ -102,7 +102,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons: [[String: DatabaseValueConvertible?]] = [
                     ["name": "Arthur", "age": 41],
                     ["name": "Barbara", "age": nil],
@@ -130,7 +130,7 @@ class UpdateStatementTests : GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 let persons: [[String: DatabaseValueConvertible?]] = [
                     ["name": "Arthur", "age": 41],
                     ["name": "Barbara", "age": nil],
@@ -150,6 +150,16 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(rows[0].value(named: "age") as Int, 41)
                 XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
                 XCTAssertTrue(rows[1]["age"]!.isNull)
+            }
+        }
+    }
+    
+    func testUpdateStatementAcceptsSelectQueries() {
+        // This test makes sure we do not introduce any regression for
+        // https://github.com/groue/GRDB.swift/issues/15
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("SELECT 1")
             }
         }
     }

@@ -87,14 +87,14 @@ extension RowConvertible where Self: DatabaseTableMapping {
         case 1:
             // Use '=' in SQL query
             let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
-            let statement = db.selectStatement(sql)
+            let statement = try! db.selectStatement(sql)
             statement.arguments = StatementArguments(keys)
             return statement
         default:
             // Use 'IN'
             let questionMarks = Array(count: keys.count, repeatedValue: "?").joinWithSeparator(",")
             let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) IN (\(questionMarks))"
-            let statement = db.selectStatement(sql)
+            let statement = try! db.selectStatement(sql)
             statement.arguments = StatementArguments(keys)
             return statement
         }
@@ -166,7 +166,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
         let databaseTableName = self.databaseTableName()
         let whereClause = whereClauses.joinWithSeparator(" OR ")
         let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereClause)"
-        let statement = db.selectStatement(sql)
+        let statement = try! db.selectStatement(sql)
         statement.arguments = StatementArguments(arguments)
         return statement
     }

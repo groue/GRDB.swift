@@ -1,25 +1,6 @@
-- [ ] #2: this commit may be how stephencelis fixed it: https://github.com/stephencelis/SQLite.swift/commit/8f64e357c3a6668c5f011c91ba33be3e8d4b88d0
-- [ ] Study SQLCipher
-- [ ] `IN (?)` sql snippet, with an array argument.
-- [ ] Write sample code around NSFetchedResultsController: fetch and output a list of TableView sections & row differences.
-- [ ] Compare DatabaseCoder with http://mjtsai.com/blog/2015/11/08/the-java-deserialization-bug-and-nssecurecoding/
-- [X] databaseEdited -> hasDatabaseChanges, hasNotPersistedChanges, hasPersistentChangedValues (NSManagedObject)? Check if doc makes it clear that the changes are based on last fetch. The method name should make it clear too.
-- [X] Check Swift API Guideline https://swift.org/documentation/api-design-guidelines.html
-    - [X] databaseTableName, etc.
-    - [X] didInsertWithRowID(_:forColumn:)
-    - [X] Read conversion methods conventions (fromRow, fromDatabaseValue)
-- [X] Row.value(named:) should return nil if column is not there.
-    - [X] Row.value(named:) returns nil if column is not there.
-    - [X] Update Row documentation
-    - [X] Update "Optional Columns" chapter of RowConvertible documentation
-- [X] Record:
-    - [X] Remove reloading
-    - [X] Expose didInsertWithRowID(_:forColumn:)
-    - [X] Make Person subclass that eats an extra column easier to write (in PersonWithOverrides)
-    - [X] Update Record documentation
-    - [X] Update Record playground
-    - [X] Update JSONSynchronisation playground
-    - [X] Update https://gist.github.com/groue/dcdd3784461747874f41
+- [ ] Unify Database.execute() and Database.executeMultiStatement()
+- [ ] Try to remove DefaultArgument.
+- [ ] Move DatabaseErrorFromStatementCreationTests.swift to tests of public APIs, now that prepared statement factory methods can throw errors.
 
 Not sure:
 
@@ -31,7 +12,7 @@ Not sure:
 Require changes in the Swift language:
 
 - [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into SQLiteStatementConvertible when Swift allows for it.
-- [ ] Specific and optimized Optional<SQLiteStatementConvertible>.fetch... methods when rdar://22852669 is fixed.
+- [ ] Specific and optimized Optional<SQLiteStatementConvertible>.fetch... methods when http://openradar.appspot.com/22852669 is fixed.
 
 
 Requires recompilation of SQLite:
@@ -47,3 +28,4 @@ Reading list:
 - https://www.sqlite.org/undoredo.html
 - http://www.sqlite.org/intern-v-extern-blob.html
 - List of documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
+- https://www.zetetic.net/sqlcipher/

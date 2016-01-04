@@ -20,14 +20,15 @@ public final class Database {
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
+    ///     let statement = try db.selectStatement("SELECT * FROM persons WHERE age > ?")
     ///     let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
     ///
     /// - parameter sql: An SQL query.
     /// - returns: A SelectStatement.
-    public func selectStatement(sql: String) -> SelectStatement {
-        return try! SelectStatement(database: self, sql: sql)
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    public func selectStatement(sql: String) throws -> SelectStatement {
+        return try SelectStatement(database: self, sql: sql)
     }
     
     
@@ -44,9 +45,9 @@ public final class Database {
     ///
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func updateStatement(sql: String) -> UpdateStatement {
-        return try! UpdateStatement(database: self, sql: sql)
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    public func updateStatement(sql: String) throws -> UpdateStatement {
+        return try UpdateStatement(database: self, sql: sql)
     }
     
     /// Executes an update statement.
@@ -60,7 +61,7 @@ public final class Database {
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments = StatementArguments.Default) throws -> DatabaseChanges {
-        let statement = updateStatement(sql)
+        let statement = try updateStatement(sql)
         return try statement.execute(arguments: arguments)
     }
     
@@ -665,10 +666,10 @@ public final class Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
+        setupTrace()    // First, so that all queries, including initialization queries, are traced.
         try setupForeignKeys()
         setupBusyMode()
         setupTransactionHooks()
-        setupTrace()    // Last, after initialization queries have been performed.
     }
     
     // Initializes an in-memory database

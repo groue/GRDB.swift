@@ -33,13 +33,13 @@ public protocol RowConvertible {
     ///
     /// Types that adopt RowConvertible have an opportunity to complete their
     /// initialization.
-    mutating func awakeFromFetch(row: Row)
+    mutating func awakeFromFetch(row row: Row, database: Database)
 }
 
 extension RowConvertible {
     
     /// Default implementation, which does nothing.
-    public func awakeFromFetch(row: Row) { }
+    public func awakeFromFetch(row row: Row, database: Database) { }
 
     
     // MARK: - Fetching From SelectStatement
@@ -69,7 +69,7 @@ extension RowConvertible {
         let row = Row(metalStatement: statement)
         return statement.fetch(arguments: arguments) {
             var value = fromRow(row)
-            value.awakeFromFetch(row)
+            value.awakeFromFetch(row: row, database: statement.database)
             return value
         }
     }
@@ -123,7 +123,7 @@ extension RowConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: A sequence.
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
-        return fetch(db.selectStatement(sql), arguments: arguments)
+        return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -135,7 +135,7 @@ extension RowConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: An array.
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Self] {
-        return fetchAll(db.selectStatement(sql), arguments: arguments)
+        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -147,6 +147,6 @@ extension RowConvertible {
     /// - parameter arguments: Statement arguments.
     /// - returns: An optional value.
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> Self? {
-        return fetchOne(db.selectStatement(sql), arguments: arguments)
+        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
 }

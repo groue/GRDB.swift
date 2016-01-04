@@ -18,7 +18,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// The input row may not come straight from the database. When you want to
     /// complete your initialization after being fetched, override
-    /// awakeFromFetch().
+    /// awakeFromFetch(row:database:).
     ///
     /// - parameter row: A Row
     required public init(_ row: Row) {
@@ -28,11 +28,9 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// fetched.
     ///
     /// *Important*: subclasses must invoke super's implementation.
-    ///
-    /// - parameter row: A Row.
-    public func awakeFromFetch(row: Row) {
+    public func awakeFromFetch(row row: Row, database: Database) {
         // Take care of the hasPersistentChangedValues flag. If the row does not
-        /// contain ll needed columns, the record turns edited.
+        /// contain all needed columns, the record turns edited.
         //
         // Row may be a metal row which will turn invalid as soon as the SQLite
         // statement is iterated. We need to store an immutable and safe copy.
@@ -112,7 +110,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.fromRow(Row(dictionary: persistentDictionary))
+        let copy = self.dynamicType.fromRow(Row(persistentDictionary))
         copy.referenceRow = referenceRow
         return copy
     }
@@ -143,7 +141,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
             if newValue {
                 referenceRow = nil
             } else {
-                referenceRow = Row(dictionary: persistentDictionary)
+                referenceRow = Row(persistentDictionary)
             }
         }
     }
