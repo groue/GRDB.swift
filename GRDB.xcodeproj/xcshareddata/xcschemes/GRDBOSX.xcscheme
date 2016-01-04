@@ -54,13 +54,178 @@
             </BuildableReference>
             <SkippedTests>
                <Test
+                  Identifier = "CGFloatTests">
+               </Test>
+               <Test
+                  Identifier = "CollationTests">
+               </Test>
+               <Test
+                  Identifier = "ConcurrencyTests">
+               </Test>
+               <Test
+                  Identifier = "DatabaseCoderTests">
+               </Test>
+               <Test
+                  Identifier = "DatabaseErrorTests">
+               </Test>
+               <Test
+                  Identifier = "DatabaseMigratorTests">
+               </Test>
+               <Test
+                  Identifier = "DatabasePersistableTests">
+               </Test>
+               <Test
+                  Identifier = "DatabaseTests">
+               </Test>
+               <Test
+                  Identifier = "DatabaseTimestampTests">
+               </Test>
+               <Test
+                  Identifier = "DatabaseValueConversionTests">
+               </Test>
+               <Test
+                  Identifier = "DatabaseValueConvertibleFetchTests">
+               </Test>
+               <Test
+                  Identifier = "DatabaseValueConvertibleSubclassTests">
+               </Test>
+               <Test
+                  Identifier = "DatabaseValueTests">
+               </Test>
+               <Test
+                  Identifier = "DetachedRowTests">
+               </Test>
+               <Test
+                  Identifier = "DictionaryRowTests">
+               </Test>
+               <Test
                   Identifier = "FMDBPerformanceTests">
+               </Test>
+               <Test
+                  Identifier = "FetchedRecordsControllerTests/testEmptyFetchedRecordsAfterPerformFetch()">
+               </Test>
+               <Test
+                  Identifier = "FetchedRecordsControllerTests/testNoFetchedRecordsBeforeFetch()">
+               </Test>
+               <Test
+                  Identifier = "FetchedRecordsControllerTests/testNotEmptyFetchedRecordsAfterPerformFetch()">
+               </Test>
+               <Test
+                  Identifier = "FetchedRecordsControllerTests/testNotificationsOnInsertion()">
+               </Test>
+               <Test
+                  Identifier = "FetchedRecordsControllerTests/testRecordDeleted()">
+               </Test>
+               <Test
+                  Identifier = "FetchedRecordsControllerTests/testRecordInserted()">
+               </Test>
+               <Test
+                  Identifier = "FetchedRecordsControllerTests/testRecordUpdated()">
+               </Test>
+               <Test
+                  Identifier = "FunctionTests">
                </Test>
                <Test
                   Identifier = "GRDBPerformanceTests">
                </Test>
                <Test
+                  Identifier = "GRDBTestCase">
+               </Test>
+               <Test
+                  Identifier = "InMemoryDatabaseTests">
+               </Test>
+               <Test
+                  Identifier = "MetalRowTests">
+               </Test>
+               <Test
+                  Identifier = "MinimalPrimaryKeyRowIDTests">
+               </Test>
+               <Test
+                  Identifier = "MinimalPrimaryKeySingleTests">
+               </Test>
+               <Test
+                  Identifier = "MutableDatabasePersistableTests">
+               </Test>
+               <Test
+                  Identifier = "NSDataMemoryTests">
+               </Test>
+               <Test
+                  Identifier = "NSDataTests">
+               </Test>
+               <Test
+                  Identifier = "NSDateComponentsTests">
+               </Test>
+               <Test
+                  Identifier = "NSDateTests">
+               </Test>
+               <Test
+                  Identifier = "PrimaryKeyMultipleTests">
+               </Test>
+               <Test
+                  Identifier = "PrimaryKeyNoneTests">
+               </Test>
+               <Test
+                  Identifier = "PrimaryKeyRowIDTests">
+               </Test>
+               <Test
+                  Identifier = "PrimaryKeySingleTests">
+               </Test>
+               <Test
+                  Identifier = "PrimaryKeySingleWithReplaceConflictResolutionTests">
+               </Test>
+               <Test
+                  Identifier = "RawRepresentableTests">
+               </Test>
+               <Test
+                  Identifier = "RecordCopyTests">
+               </Test>
+               <Test
+                  Identifier = "RecordDescriptionTests">
+               </Test>
+               <Test
+                  Identifier = "RecordEditedTests">
+               </Test>
+               <Test
+                  Identifier = "RecordEventsTests">
+               </Test>
+               <Test
+                  Identifier = "RecordFetchTests">
+               </Test>
+               <Test
+                  Identifier = "RecordInitializersTests">
+               </Test>
+               <Test
+                  Identifier = "RecordSubClassTests">
+               </Test>
+               <Test
+                  Identifier = "RecordWithColumnNameManglingTests">
+               </Test>
+               <Test
+                  Identifier = "RowConvertibleTests">
+               </Test>
+               <Test
+                  Identifier = "RowFoundationTests">
+               </Test>
+               <Test
+                  Identifier = "SQLiteStatementConversionTests">
+               </Test>
+               <Test
+                  Identifier = "SQLiteStatementConvertibleFetchTests">
+               </Test>
+               <Test
+                  Identifier = "SelectStatementTests">
+               </Test>
+               <Test
+                  Identifier = "StatementArgumentsFoundationTests">
+               </Test>
+               <Test
                   Identifier = "StephenCelisSQLitePerformanceTests">
+               </Test>
+               <Test
+                  Identifier = "TransactionObserverTests">
+               </Test>
+               <Test
+                  Identifier = "UpdateStatementTests">
                </Test>
             </SkippedTests>
          </TestableReference>
