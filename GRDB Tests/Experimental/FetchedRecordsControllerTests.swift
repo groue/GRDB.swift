@@ -73,7 +73,8 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
         didFinishUpdatesExpectation?.fulfill()
     }
 
-    // MARK: - Tests
+    
+    // MARK: - Test fetchedRecords
     
     func testNoFetchedRecordsBeforeFetch() {
         fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
@@ -115,6 +116,9 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
         XCTAssert(fetchedRecordsController.fetchedRecords!.count == 4)
     }
     
+    
+    // MARK: - Test delegate callbacks
+    
     func testNotificationsOnInsertion() {
         
         fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
@@ -139,7 +143,10 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
         waitForExpectationsWithTimeout(2, handler: nil)
     }
     
-    func testRecordInsertion() {
+    
+    // MARK: - Test atomic updates
+    
+    func testRecordInserted() {
         
         fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
         fetchedRecordsController.delegate = self
@@ -175,7 +182,7 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
         }
     }
     
-    func testRecordDeletion() {
+    func testRecordDeleted() {
         
         // Insert 4 person
         let pascal = Person(); pascal.name = "Pascal"; pascal.age = 27
@@ -221,7 +228,7 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
         }
     }
 
-    func testRecordUpdate() {
+    func testRecordUpdated() {
         
         // Insert 4 person
         let pascal = Person(); pascal.name = "Pascal"; pascal.age = 27
@@ -269,6 +276,54 @@ class FetchedRecordsControllerTests: GRDBTestCase, FetchedRecordsControllerDeleg
             XCTAssert(changes!["age"] != nil)
         default: XCTFail("unexpected update: \(update)")
         }
+    }
+    
+    func testRecordMoved() {
+        /*
+        // Insert 4 person
+        let pascal = Person(); pascal.name = "Pascal"; pascal.age = 27
+        let gwen = Person(); gwen.name = "Gwendal"; gwen.age = 42
+        let sylvaine = Person(); sylvaine.name = "Sylvaine"; sylvaine.age = 40
+        let fabien = Person(); fabien.name = "Fabien"; fabien.age = 26
+        assertNoError {
+            try! dbQueue.inDatabase { db in
+                try pascal.save(db)
+                try gwen.save(db)
+                try sylvaine.save(db)
+                try fabien.save(db)
+            }
+        }
+        
+        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(name)", databaseQueue: dbQueue)
+        fetchedRecordsController.delegate = self
+        fetchedRecordsController.performFetch()
+        
+        willUpdateExpectation = expectationWithDescription("Did receive controllerWillUpdate:")
+        didFinishUpdatesExpectation = expectationWithDescription("Did receive controllerDidFinishUpdates:")
+        
+        // Update pascal'name to move it
+        pascal.name = "Alfred"
+        assertNoError {
+            try! dbQueue.inDatabase { db in
+                try pascal.save(db)
+            }
+        }
+        
+        // This is used to wait that our delegate calls has been called
+        waitForExpectationsWithTimeout(2, handler: nil)
+        
+        // We got 1 Update
+        XCTAssert(updates.count == 1)
+        let update: FetchedRecordsUpdate<Person> = updates[0]
+        switch update {
+        case .Moved(let item, let from, let to):
+            let p: Person = item
+            XCTAssert(p.name == pascal.name)
+            XCTAssert(from == NSIndexPath(indexes: [0,2], length: 2))
+            XCTAssert(to == NSIndexPath(indexes: [0,0], length: 2))
+        default: XCTFail("unexpected update: \(update)")
+        }
+        */
     }
 
 }

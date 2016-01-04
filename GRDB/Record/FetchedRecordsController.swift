@@ -145,6 +145,8 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
                     }
                 } else {
                     // item moved
+                    print("\(oldIndexPath)")
+                    print("\(newIndexPath)")
                     let update = FetchedRecordsUpdate.Moved(item: newItem, from: oldIndexPath, to: newIndexPath)
                     updates.append(update)
                     apply(update)
@@ -161,7 +163,7 @@ public class FetchedRecordsController<T: protocol<RowConvertible, DatabaseTableM
     }
 }
 
-
+// MARK: - <TransactionObserverType>
 extension FetchedRecordsController : TransactionObserverType {
     public func databaseDidChangeWithEvent(event: DatabaseEvent) { }
     public func databaseWillCommit() throws { }
