@@ -66,6 +66,9 @@
                   Identifier = "DatabaseCoderTests">
                </Test>
                <Test
+                  Identifier = "DatabaseErrorFromStatementCreationTests">
+               </Test>
+               <Test
                   Identifier = "DatabaseErrorTests">
                </Test>
                <Test
