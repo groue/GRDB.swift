@@ -1,6 +1,8 @@
 - [ ] Unify Database.execute() and Database.executeMultiStatement()
 - [ ] Try to remove DefaultArgument.
 - [ ] Move DatabaseErrorFromStatementCreationTests.swift to tests of public APIs, now that prepared statement factory methods can throw errors.
+- [ ] "SELECT * FROM table WHERE id = ?" should not accept an empty dictionary as an argument.
+- [ ] Can we deal with parameter names that are reused several times in the same query?
 
 Not sure:
 
