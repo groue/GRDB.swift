@@ -929,13 +929,7 @@ dbQueue.inTransaction(.Exclusive) { db in ... }
 
 ## Error Handling
 
-**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error.
-
-**The rule is:**
-
-- Methods that write to the database throw.
-- Methods that build [prepared statements](#prepared-statements) throw.
-- All other methods crash without notice (but with a detailed error message).
+**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error:
 
 ```swift
 // fatal error:
@@ -966,6 +960,48 @@ do {
 
 See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
+
+**All fatal errors can be avoided.** For example, let's consider a scenario where your application has to perform a fetch query with untrusted SQL and query arguments.
+
+The following code is dangerous for your application, because it has many opportunities to crash:
+
+```swift
+func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -> [Row] {
+    // Dictionary arguments may contain invalid values
+    guard let arguments = StatementArguments(arguments) else {
+        throw NSError(
+            domain: "MyDomain",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "Invalid arguments"])
+    }
+    
+    // Crashes if sql is invalid, or if arguments don't fit the SQL query
+    // (too few, or too many values):
+    return Row.fetchAll(db, sql, arguments: arguments)
+}
+```
+
+Compare with the safe version:
+
+```swift
+func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -> [Row] {
+    // Dictionary arguments may contain invalid values
+    guard let arguments = StatementArguments(arguments) else {
+        throw NSError(
+            domain: "MyDomain",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "Invalid arguments"])
+    }
+    
+    // SQL may be invalid
+    let statement = try db.selectStatement(sql)
+    
+    // Arguments may not fit the statement (too few, or too many values)
+    try statement.validateArguments(arguments)
+    
+    return Row.fetchAll(statement, arguments: arguments)
+}
+```
 
 
 ## Prepared Statements
