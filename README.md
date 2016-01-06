@@ -979,6 +979,12 @@ func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -
     // (too few, or too many values):
     return Row.fetchAll(db, sql, arguments: arguments)
 }
+
+// fatal error: no such table: foo
+try fetchUserQuery(db, sql: "SELECT * FROM foo", arguments: NSDictionary())
+
+// fatal error: SQLite statement argument names mismatch: got [:name] instead of [:id].
+try fetchUserQuery(db, sql: "SELECT * FROM persons WHERE id = :id", arguments: NSDictionary(dictionary: ["name": "Arthur"]))
 ```
 
 Compare with the safe version:
