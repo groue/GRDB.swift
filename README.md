@@ -1,7 +1,7 @@
 GRDB.swift
 ==========
 
-GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the author of [GRMustache](https://github.com/groue/GRMustache).
+GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2.
 
 It ships with a low-level database API, plus application-level tools.
 
@@ -19,7 +19,7 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **GRDB owes a lot to FMDB.** You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
 
-**Your SQL skills are rewarded here.** Complex queries are never treated differently from the simple ones. You won't lose a single feature or convenience by crafting custom SQL queries, on the contrary. And you are granted with type safety and all the niceties you expect from a real Swift library.
+**Your SQL skills are rewarded here.** GRDB grants equal treatment to all queries, simple or complex.
 
 **GRDB provides [protocols and a Record class](#database-protocols-and-record)** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
@@ -32,7 +32,7 @@ Features
 --------
 
 - **A low-level [SQLite API](#sqlite-api)** that leverages the Swift 2 standard library.
-- **A [Record](#record) class** that wraps result sets, eats your custom SQL queries for breakfast, provides persistence operations, and changes tracking.
+- **[Protocols and a ready-made class](#database-protocols-and-record) class** that eat your SQL queries for breakfast, provide persistence, and changes tracking.
 - **[Swift type freedom](#values)**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **[Database migrations](#migrations)**
 - **[Database changes observation hooks](#database-changes-observation)**
