@@ -5,49 +5,27 @@ public struct Configuration {
     
     // MARK: - Misc options
     
-    /// Default is true.
-    public var foreignKeysEnabled: Bool
-    
-    /// Default is false.
-    public var readonly: Bool
-    
-    /// A logging function. Default is nil.
+    public var foreignKeysEnabled: Bool = true
+    public var readonly: Bool = false
     public var trace: TraceFunction?
     
     
     // MARK: - Transactions
     
-    /// Default is `.Immediate`.
-    public var defaultTransactionKind: TransactionKind
-    
-    /// Default is nil.
+    public var defaultTransactionKind: TransactionKind = .Immediate
     public var transactionObserver: TransactionObserverType?
     
     
     // MARK: - Concurrency
     
-    /// Default is `.ImmediateError`.
-    public var busyMode: BusyMode
-    
-    /// Not public because we don't expose any public API that could have a use for it.
-    var threadingMode: ThreadingMode
+    public var busyMode: BusyMode = .ImmediateError
+    var threadingMode: ThreadingMode = .Default
     
     
     // MARK: - Factory Configuration
     
     /// Returns a factory configuration.
-    public init()
-    {
-        self.foreignKeysEnabled = true
-        self.readonly = false
-        
-        self.defaultTransactionKind = .Immediate
-        self.transactionObserver = nil
-        
-        self.busyMode = .ImmediateError
-        self.threadingMode = .Default
-        
-        self.trace = nil
+    public init() {
     }
     
     
