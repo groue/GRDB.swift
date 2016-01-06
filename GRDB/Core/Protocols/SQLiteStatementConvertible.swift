@@ -90,7 +90,7 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// - parameter arguments: Statement arguments.
     /// - returns: An optional value.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> Self? {
-        var generator = statement.fetch(arguments: arguments, yield: { }).generate()
+        let generator = statement.fetch(arguments: arguments, yield: { }).generate()
         guard generator.next() != nil else {
             return nil
         }

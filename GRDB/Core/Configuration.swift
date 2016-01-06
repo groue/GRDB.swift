@@ -3,72 +3,39 @@ import Foundation
 /// Configuration are arguments to the DatabaseQueue initializers.
 public struct Configuration {
     
-    // =========================================================================
     // MARK: - Misc options
     
-    /// If true, the database has support for foreign keys.
-    ///
     /// Default is true.
     public var foreignKeysEnabled: Bool
     
-    /// If true, the database is opened readonly.
-    ///
     /// Default is false.
     public var readonly: Bool
     
+    /// A logging function. Default is nil.
+    public var trace: TraceFunction?
     
-    // =========================================================================
+    
     // MARK: - Transactions
     
-    /// The transaction kind used by Database.inTransaction().
-    ///
     /// Default is `.Immediate`.
     public var defaultTransactionKind: TransactionKind
     
-    /// The optional transaction observer
-    ///
     /// Default is nil.
     public var transactionObserver: TransactionObserverType?
     
     
-    // =========================================================================
     // MARK: - Concurrency
     
-    /// The busy Mode.
-    ///
     /// Default is `.ImmediateError`.
     public var busyMode: BusyMode
     
-    /// The Threading mode
-    ///
-    /// Not public because we don't expose any public API that could have a use
-    /// for it.
+    /// Not public because we don't expose any public API that could have a use for it.
     var threadingMode: ThreadingMode
     
     
-    // =========================================================================
-    // MARK: - Logging
-    
-    /// A tracing function.
-    ///
-    /// You can use the global GRDB.LogSQL function as a tracing function: it
-    /// logs all SQL statements with NSLog().
-    ///
-    /// The default is nil.
-    public var trace: TraceFunction?
-    
-    
-    // =========================================================================
     // MARK: - Factory Configuration
     
-    /// Returns a factory configuration:
-    ///
-    /// - `foreignKeysEnabled`: true
-    /// - `readonly`: false
-    /// - `defaultTransactionKind`: Immediate
-    /// - `transactionObserver`: nil
-    /// - `busyMode`: Immediate error
-    /// - `trace`: nil
+    /// Returns a factory configuration.
     public init()
     {
         self.foreignKeysEnabled = true
@@ -84,7 +51,6 @@ public struct Configuration {
     }
     
     
-    // =========================================================================
     // MARK: - SQLite flags
     
     var sqliteOpenFlags: Int32 {

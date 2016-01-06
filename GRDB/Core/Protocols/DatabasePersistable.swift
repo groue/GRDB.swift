@@ -450,7 +450,7 @@ final class DataMapper {
     /// An excerpt from persistentDictionary whose keys are primary key columns.
     ///
     /// It is nil when persistable has no primary key.
-    lazy var primaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
+    lazy var primaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
         let columns = self.primaryKey.columns
         guard columns.count > 0 else {
             return nil
@@ -468,7 +468,7 @@ final class DataMapper {
     ///
     /// It is nil when the primaryKeyDictionary is nil or unable to identify a
     /// row in the database.
-    lazy var resolvingPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = { [unowned self] in
+    lazy var resolvingPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
         // IMPLEMENTATION NOTE
         //
         // https://www.sqlite.org/lang_createtable.html

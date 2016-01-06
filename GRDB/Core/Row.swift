@@ -508,8 +508,7 @@ public final class Row: CollectionType {
         let sequence = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
         }
-        var generator = sequence.generate()
-        return generator.next()
+        return sequence.generate().next()
     }
     
     

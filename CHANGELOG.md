@@ -1,6 +1,21 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `Statement.validateArguments(_)` throws an error if the arguments parameter doesn't match the prepared statement:
+    
+    ```swift
+    let statement = try db.selectStatement("SELECT * FROM persons WHERE id = ?")
+    // OK
+    try statement.validateArguments([1])
+    // SQLite statement arguments mismatch: got 2 argument(s) instead of 1.
+    try statement.validateArguments([1, 2])
+    ```
+
+
 ## 0.36.0
 
 Released December 28, 2015

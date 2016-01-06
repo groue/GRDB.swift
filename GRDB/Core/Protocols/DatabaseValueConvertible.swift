@@ -109,8 +109,7 @@ public extension DatabaseValueConvertible {
         let sequence: DatabaseSequence<Self?> = statement.fetch(arguments: arguments) {
             fromDatabaseValue(DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0))
         }
-        var generator = sequence.generate()
-        if let value = generator.next() {   // Unwrap Self? from Self??
+        if let value = sequence.generate().next() {   // Unwrap Self? from Self??
             return value
         }
         return nil

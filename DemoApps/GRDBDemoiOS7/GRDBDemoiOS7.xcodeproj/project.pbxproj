@@ -27,10 +27,7 @@
 		56FCB3721C21210B00305D10 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB34C1C21210B00305D10 /* RowConvertible.swift */; };
 		56FCB3731C21210B00305D10 /* SQLiteStatementConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB34D1C21210B00305D10 /* SQLiteStatementConvertible.swift */; };
 		56FCB3741C21210B00305D10 /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB34E1C21210B00305D10 /* Row.swift */; };
-		56FCB3751C21210B00305D10 /* SelectStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB34F1C21210B00305D10 /* SelectStatement.swift */; };
 		56FCB3761C21210B00305D10 /* Statement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3501C21210B00305D10 /* Statement.swift */; };
-		56FCB3771C21210B00305D10 /* StatementArguments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3511C21210B00305D10 /* StatementArguments.swift */; };
-		56FCB3781C21210B00305D10 /* UpdateStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3521C21210B00305D10 /* UpdateStatement.swift */; };
 		56FCB3791C21210B00305D10 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3541C21210B00305D10 /* CGFloat.swift */; };
 		56FCB37A1C21210B00305D10 /* DatabaseCoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3561C21210B00305D10 /* DatabaseCoder.swift */; };
 		56FCB37B1C21210B00305D10 /* DatabaseDateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3571C21210B00305D10 /* DatabaseDateComponents.swift */; };
@@ -74,10 +71,7 @@
 		56FCB34C1C21210B00305D10 /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
 		56FCB34D1C21210B00305D10 /* SQLiteStatementConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteStatementConvertible.swift; sourceTree = "<group>"; };
 		56FCB34E1C21210B00305D10 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
-		56FCB34F1C21210B00305D10 /* SelectStatement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectStatement.swift; sourceTree = "<group>"; };
 		56FCB3501C21210B00305D10 /* Statement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Statement.swift; sourceTree = "<group>"; };
-		56FCB3511C21210B00305D10 /* StatementArguments.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementArguments.swift; sourceTree = "<group>"; };
-		56FCB3521C21210B00305D10 /* UpdateStatement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateStatement.swift; sourceTree = "<group>"; };
 		56FCB3541C21210B00305D10 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
 		56FCB3561C21210B00305D10 /* DatabaseCoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCoder.swift; sourceTree = "<group>"; };
 		56FCB3571C21210B00305D10 /* DatabaseDateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDateComponents.swift; sourceTree = "<group>"; };
@@ -208,10 +202,7 @@
 				56FCB3471C21210B00305D10 /* DatabaseValue.swift */,
 				56FCB3481C21210B00305D10 /* Protocols */,
 				56FCB34E1C21210B00305D10 /* Row.swift */,
-				56FCB34F1C21210B00305D10 /* SelectStatement.swift */,
 				56FCB3501C21210B00305D10 /* Statement.swift */,
-				56FCB3511C21210B00305D10 /* StatementArguments.swift */,
-				56FCB3521C21210B00305D10 /* UpdateStatement.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -351,8 +342,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				56FCB3821C21210B00305D10 /* NSURL.swift in Sources */,
-				56FCB3781C21210B00305D10 /* UpdateStatement.swift in Sources */,
-				56FCB3771C21210B00305D10 /* StatementArguments.swift in Sources */,
 				56FCB3881C21210B00305D10 /* RawRepresentable.swift in Sources */,
 				56FCB3841C21210B00305D10 /* StatementArguments+Foundation.swift in Sources */,
 				56FCB37A1C21210B00305D10 /* DatabaseCoder.swift in Sources */,
@@ -377,7 +366,6 @@
 				56FCB3861C21210B00305D10 /* Migration.swift in Sources */,
 				56FCB3761C21210B00305D10 /* Statement.swift in Sources */,
 				56FCB36C1C21210B00305D10 /* DatabaseError.swift in Sources */,
-				56FCB3751C21210B00305D10 /* SelectStatement.swift in Sources */,
 				56FCB3811C21210B00305D10 /* NSString.swift in Sources */,
 				56FCB36F1C21210B00305D10 /* DatabasePersistable.swift in Sources */,
 				562FF9951BCE8FA400759400 /* AppDelegate.swift in Sources */,
