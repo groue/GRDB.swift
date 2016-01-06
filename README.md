@@ -961,7 +961,7 @@ do {
 See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
 
-**All fatal errors can be avoided.** For example, let's consider a scenario where your application has to perform a fetch query with untrusted SQL and query arguments.
+**Fatal errors can be avoided.** For example, let's consider a scenario where your application has to perform a fetch query with untrusted SQL and query arguments.
 
 The following code is dangerous for your application, because it has many opportunities to crash:
 
