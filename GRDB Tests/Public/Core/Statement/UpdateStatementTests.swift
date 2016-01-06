@@ -163,4 +163,100 @@ class UpdateStatementTests : GRDBTestCase {
             }
         }
     }
+    
+    func testExecuteMultipleStatement() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)")
+                XCTAssertTrue(db.tableExists("wines"))
+                XCTAssertTrue(db.tableExists("books"))
+            }
+        }
+    }
+    
+    func testExecuteMultipleStatementWithNamedArguments() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                try db.execute(
+                    "INSERT INTO persons (name) VALUES (:name1);" +
+                    "INSERT INTO persons (name) VALUES (:name2);",
+                    arguments: ["name1": "Arthur", "name2": "Barbara"])
+                XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), ["Arthur", "Barbara"])
+                return .Rollback
+            }
+            
+            try dbQueue.inTransaction { db in
+                do {
+                    // Too few arguments
+                    try db.execute(
+                        "INSERT INTO persons (name) VALUES (:name1);" +
+                        "INSERT INTO persons (name) VALUES (:name2);",
+                        arguments: ["name1": "Arthur"])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Global fail
+                    XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), [String]())
+                }
+                return .Rollback
+                
+            }
+        }
+    }
+    
+    func testExecuteMultipleStatementWithReusedNamedArguments() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                try db.execute(
+                    "INSERT INTO persons (name) VALUES (:name);" +
+                    "INSERT INTO persons (name) VALUES (:name);",
+                    arguments: ["name": "Arthur"])
+                XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons"), ["Arthur", "Arthur"])
+                return .Rollback
+            }
+        }
+    }
+    
+    func testExecuteMultipleStatementWithPositionalArguments() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                try db.execute(
+                    "INSERT INTO persons (name) VALUES (?);" +
+                    "INSERT INTO persons (name) VALUES (?);",
+                    arguments: ["Arthur", "Barbara"])
+                XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), ["Arthur", "Barbara"])
+                return .Rollback
+            }
+            
+            try dbQueue.inTransaction { db in
+                do {
+                    // Too few arguments
+                    try db.execute(
+                        "INSERT INTO persons (name) VALUES (?);" +
+                        "INSERT INTO persons (name) VALUES (?);",
+                        arguments: ["Arthur"])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Global fail
+                    XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), [String]())
+                }
+                
+                return .Rollback
+            }
+            
+            try dbQueue.inTransaction { db in
+                do {
+                    // Too many arguments
+                    try db.execute(
+                        "INSERT INTO persons (name) VALUES (?);" +
+                        "INSERT INTO persons (name) VALUES (?);",
+                        arguments: ["Arthur", "Barbara", "Craig"])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Global fail
+                    XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), [String]())
+                }
+                return .Rollback
+            }
+        }
+    }
 }

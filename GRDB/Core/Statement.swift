@@ -47,6 +47,12 @@ public class Statement {
     /// The database
     let database: Database
     
+    init(database: Database, sql: String, sqliteStatement: SQLiteStatement) {
+        self.database = database
+        self.sql = sql
+        self.sqliteStatement = sqliteStatement
+    }
+    
     init(database: Database, sql: String) throws {
         database.preconditionValidQueue()
         
@@ -93,7 +99,7 @@ public class Statement {
     
     // MARK: Arguments
     
-    private lazy var sqliteArgumentCount: Int = {
+    lazy var sqliteArgumentCount: Int = {
         Int(sqlite3_bind_parameter_count(self.sqliteStatement))
     }()
     

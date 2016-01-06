@@ -166,14 +166,6 @@ class CrashTests: GRDBTestCase {
     // =========================================================================
     // MARK: - Statements
     
-    func testExecuteDoesNotSupportMultipleStatement() {
-        assertCrash("Invalid SQL string: multiple statements found.") {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE persons (name TEXT, age INT); CREATE TABLE books (name TEXT, age INT)")
-            }
-        }
-    }
-    
     func testInvalidNamedBinding() {
         assertCrash("Key not found in SQLite statement: `:XXX`") {
             try dbQueue.inDatabase { db in

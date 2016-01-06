@@ -61,8 +61,76 @@ public final class Database {
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments = StatementArguments.Default) throws -> DatabaseChanges {
-        let statement = try updateStatement(sql)
-        return try statement.execute(arguments: arguments)
+        preconditionValidQueue()
+        
+        
+        // Build statements
+        
+        let sqlCodeUnits = sql.nulTerminatedUTF8
+        var code: Int32 = 0
+        var statements: [UpdateStatement] = []
+        sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
+            let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
+            var statementStart = sqlStart
+            while true {
+                var statementEnd: UnsafePointer<Int8> = nil
+                var sqliteStatement: SQLiteStatement = nil
+                code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
+                guard code == SQLITE_OK else {
+                    break
+                }
+                let sql = NSString(bytes: statementStart, length: statementEnd - statementStart, encoding: NSUTF8StringEncoding)! as String
+                statements.append(UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement))
+                if statementEnd - sqlStart + 1 == sqlCodeUnits.count {
+                    break
+                }
+                statementStart = statementEnd
+            }
+        }
+        guard code == SQLITE_OK else {
+            throw DatabaseError(code: code, message: lastErrorMessage, sql: sql)
+        }
+        
+        
+        // Validate arguments for all statements
+        
+        switch arguments.kind {
+        case .Array(let values):
+            var remainingValues = values
+            for statement in statements {
+                let arguments = StatementArguments(remainingValues.prefix(statement.sqliteArgumentCount))
+                try statement.validateArguments(arguments)
+                statement.arguments = arguments
+                if remainingValues.count >= statement.sqliteArgumentCount {
+                    remainingValues = Array(remainingValues.suffixFrom(statement.sqliteArgumentCount))
+                } else {
+                    remainingValues = []
+                }
+            }
+            if !remainingValues.isEmpty {
+                throw DatabaseError(code: SQLITE_ERROR, message: "Statement arguments mismatch: got \(values.count) argument(s) instead of \(values.count - remainingValues.count).", sql: sql, arguments: nil)
+            }
+        case .Dictionary:
+            for statement in statements {
+                try statement.validateArguments(arguments)
+                statement.arguments = arguments
+            }
+        case .Default:
+            break
+        }
+        
+        
+        // Execute statements
+        
+        let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
+        for statement in statements {
+            try statement.execute()
+        }
+        let changedRowsAfter = sqlite3_total_changes(sqliteConnection)
+        
+        let lastInsertedRowID = sqlite3_last_insert_rowid(sqliteConnection)
+        let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
+        return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: insertedRowID)
     }
     
     /// Executes multiple SQL statements, separated by semi-colons.
