@@ -23,7 +23,7 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **GRDB provides [protocols and a Record class](#database-protocols-and-record)** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
-**GRDB is fast**. As fast, when not faster, than FMDB and SQLite.swift.
+**GRDB is fast**. As fast, and usually faster, than FMDB and SQLite.swift.
 
 **You can query your database [right from the debugger](https://twitter.com/groue/status/679347658557902849).**
 
@@ -288,14 +288,6 @@ dbQueue.inDatabase { db in
     let favoriteWine = Wine.fetchOne(db, key: user.favoriteWineId)
 }
 ```
-
-Rows, values, and custom models can all be fetched in three fashions. Pick one, depending on the number of values you expect, and the way you use them:
-
-- The `fetch()` method returns a memory-efficient sequence that goes in the database as it is iterated.
-- The `fetchAll()` method returns an array which is less memory-efficient, but can be used from any thread.
-- The `fetchOne()` method returns a single optional value.
-
-Most of those methods take an SQL query as an argument. If SQL is not your cup of tea, then maybe you are looking for a query builder. [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift/blob/master/Documentation/Index.md#selecting-rows) is a pretty popular one.
 
 
 ### Row Queries
