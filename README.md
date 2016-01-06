@@ -1300,32 +1300,31 @@ While your migration code runs with disabled foreign key checks, those are re-en
 
 **GRDB provides protocols and a Record class** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
-The [Record](#record) class grants its subclasses with fetching methods, persistence methods, and changes tracking:
-
-```swift
-class Person : Record { ... }
-
-try dbQueue.inDatabase { db in
-    // Store
-    let person = Person(name: "Arthur")
-    try person.save(db)
+- The [RowConvertible protocol](#rowconvertible-protocol) grants adopting types with fetching methods:
     
-    // Fetch
-    let person = Person.fetch(db, key: personId)
-    for person in Person.fetch(db, "SELECT * FROM persons") {
-        print(person.name)
-    }
+    ```swift
+    struct Person : RowConvertible { ... }
+    let persons = Person.fetchAll(db, "SELECT * FROM persons")
+    let person = let Person.fetchOne(db, key: 1)
+    ```
     
-    // Changes tracking
+- The [DatabasePersistable protocol](#databasepersistable-protocol) grants adopting types with persistence methods:
+    
+    ```swift
+    struct Person : DatabasePersistable { ... }
+    try Person(name: "Arthur").insert(db)
+    ```
+    
+- The [Record class](#record) grants its subclasses with fetching methods, persistence methods, and changes tracking:
+    
+    ```swift
+    class Person : Record { ... }
+    let person = Person.fetchOne(db, key: 1)!
     person.name = "Barbara"
-    person.persistentChangedValues.keys // ["name"]
-    if person.hasPersistentChangedValues {  // Avoid useless UPDATE statements
-        try person.save(db)
+    if person.hasPersistentChangedValues {
+        try person.update(db)
     }
-}
-```
-
-Whenever your application types can't inherit from Record, they can still adopt [RowConvertible](#rowconvertible-protocol), which grants fetching methods, and [DatabasePersistable](#databasepersistable-protocol), which grants persistence methods.
+    ```
 
 
 ### RowConvertible Protocol
