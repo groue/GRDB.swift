@@ -3,6 +3,11 @@ Release Notes
 
 ## Next Release
 
+**Fixed**
+
+- A named argument such as `:name` can now be used several times in a statement.
+- Validation of statement arguments is much more solid (and tested).
+
 **New**
 
 - `Statement.validateArguments(_)` throws an error if the arguments parameter doesn't match the prepared statement:
