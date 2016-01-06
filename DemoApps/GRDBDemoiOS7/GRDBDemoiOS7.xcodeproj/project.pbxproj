@@ -17,7 +17,6 @@
 		562FF9F21BCE914E00759400 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562FF9F11BCE914E00759400 /* Person.swift */; };
 		56FCB3691C21210B00305D10 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3421C21210B00305D10 /* Configuration.swift */; };
 		56FCB36A1C21210B00305D10 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3431C21210B00305D10 /* Database.swift */; };
-		56FCB36B1C21210B00305D10 /* DatabaseChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3441C21210B00305D10 /* DatabaseChanges.swift */; };
 		56FCB36C1C21210B00305D10 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3451C21210B00305D10 /* DatabaseError.swift */; };
 		56FCB36D1C21210B00305D10 /* DatabaseQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3461C21210B00305D10 /* DatabaseQueue.swift */; };
 		56FCB36E1C21210B00305D10 /* DatabaseValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3471C21210B00305D10 /* DatabaseValue.swift */; };
@@ -61,7 +60,6 @@
 		562FF9F41BCE930C00759400 /* GRDBDemoiOS7-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBDemoiOS7-Bridging-Header.h"; sourceTree = "<group>"; };
 		56FCB3421C21210B00305D10 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		56FCB3431C21210B00305D10 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		56FCB3441C21210B00305D10 /* DatabaseChanges.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseChanges.swift; sourceTree = "<group>"; };
 		56FCB3451C21210B00305D10 /* DatabaseError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseError.swift; sourceTree = "<group>"; };
 		56FCB3461C21210B00305D10 /* DatabaseQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueue.swift; sourceTree = "<group>"; };
 		56FCB3471C21210B00305D10 /* DatabaseValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValue.swift; sourceTree = "<group>"; };
@@ -196,7 +194,6 @@
 			children = (
 				56FCB3421C21210B00305D10 /* Configuration.swift */,
 				56FCB3431C21210B00305D10 /* Database.swift */,
-				56FCB3441C21210B00305D10 /* DatabaseChanges.swift */,
 				56FCB3451C21210B00305D10 /* DatabaseError.swift */,
 				56FCB3461C21210B00305D10 /* DatabaseQueue.swift */,
 				56FCB3471C21210B00305D10 /* DatabaseValue.swift */,
@@ -374,7 +371,6 @@
 				56FCB37B1C21210B00305D10 /* DatabaseDateComponents.swift in Sources */,
 				56FCB3871C21210B00305D10 /* Record.swift in Sources */,
 				56FCB3721C21210B00305D10 /* RowConvertible.swift in Sources */,
-				56FCB36B1C21210B00305D10 /* DatabaseChanges.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

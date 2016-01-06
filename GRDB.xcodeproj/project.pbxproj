@@ -111,8 +111,6 @@
 		56A2387C1B9C75030082EB20 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238701B9C75030082EB20 /* Configuration.swift */; };
 		56A2387D1B9C75030082EB20 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238711B9C75030082EB20 /* Database.swift */; };
 		56A2387E1B9C75030082EB20 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238711B9C75030082EB20 /* Database.swift */; };
-		56A2387F1B9C75030082EB20 /* DatabaseChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238721B9C75030082EB20 /* DatabaseChanges.swift */; };
-		56A238801B9C75030082EB20 /* DatabaseChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238721B9C75030082EB20 /* DatabaseChanges.swift */; };
 		56A238811B9C75030082EB20 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238731B9C75030082EB20 /* DatabaseError.swift */; };
 		56A238821B9C75030082EB20 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238731B9C75030082EB20 /* DatabaseError.swift */; };
 		56A238831B9C75030082EB20 /* DatabaseQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238741B9C75030082EB20 /* DatabaseQueue.swift */; };
@@ -338,7 +336,6 @@
 		56A238331B9C74A90082EB20 /* RecordSubClassTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordSubClassTests.swift; sourceTree = "<group>"; };
 		56A238701B9C75030082EB20 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		56A238711B9C75030082EB20 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		56A238721B9C75030082EB20 /* DatabaseChanges.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseChanges.swift; sourceTree = "<group>"; };
 		56A238731B9C75030082EB20 /* DatabaseError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseError.swift; sourceTree = "<group>"; };
 		56A238741B9C75030082EB20 /* DatabaseQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueue.swift; sourceTree = "<group>"; };
 		56A238751B9C75030082EB20 /* DatabaseValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValue.swift; sourceTree = "<group>"; };
@@ -672,7 +669,6 @@
 				56A238951B9C752B0082EB20 /* Protocols */,
 				56A238701B9C75030082EB20 /* Configuration.swift */,
 				56A238711B9C75030082EB20 /* Database.swift */,
-				56A238721B9C75030082EB20 /* DatabaseChanges.swift */,
 				56A238731B9C75030082EB20 /* DatabaseError.swift */,
 				56A238741B9C75030082EB20 /* DatabaseQueue.swift */,
 				56A238751B9C75030082EB20 /* DatabaseValue.swift */,
@@ -1217,7 +1213,6 @@
 				56A2388C1B9C75030082EB20 /* Statement.swift in Sources */,
 				56B7F43B1BEB42D500E39BBF /* Migration.swift in Sources */,
 				56A2389C1B9C752B0082EB20 /* DatabaseValueConvertible.swift in Sources */,
-				56A238801B9C75030082EB20 /* DatabaseChanges.swift in Sources */,
 				565D5D691BBC604000DC9BD4 /* Row+Foundation.swift in Sources */,
 				56A238AE1B9C90090082EB20 /* NSNull.swift in Sources */,
 				56A2389A1B9C752B0082EB20 /* DatabaseTableMapping.swift in Sources */,
@@ -1369,7 +1364,6 @@
 				56A238021B9C6A650082EB20 /* DatabaseDateComponents.swift in Sources */,
 				56B7F43A1BEB42D500E39BBF /* Migration.swift in Sources */,
 				56A2388B1B9C75030082EB20 /* Statement.swift in Sources */,
-				56A2387F1B9C75030082EB20 /* DatabaseChanges.swift in Sources */,
 				56A238B31B9C919D0082EB20 /* NSNumber.swift in Sources */,
 				56A238B01B9C90BB0082EB20 /* NSString.swift in Sources */,
 				565D5D681BBC604000DC9BD4 /* Row+Foundation.swift in Sources */,
