@@ -171,24 +171,7 @@ let inMemoryDBQueue = DatabaseQueue()
 
 SQLite creates the database file if it does not already exist.
 
-The connection is closed when the database queue gets deallocated.
-
-
-**Configure** databases:
-
-```swift
-var config = Configuration()
-config.trace = { print($0) } // Prints all SQL statements
-
-let dbQueue = try DatabaseQueue(
-    path: "/path/to/database.sqlite",
-    configuration: config)
-```
-
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.37.1/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
-
-
-Once connected, the `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
+The `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
 
 ```swift
 // Execute database statements:
@@ -215,6 +198,21 @@ try dbQueue.inTransaction { db in
 
 See [Transactions](#transactions) for more information about GRDB transaction handling.
 
+**Configure** databases:
+
+```swift
+var config = Configuration()
+config.readonly = true
+config.trace = { print($0) } // Prints all SQL statements
+
+let dbQueue = try DatabaseQueue(
+    path: "/path/to/database.sqlite",
+    configuration: config)
+```
+
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.37.1/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+
+
 
 ## Executing Updates
 
@@ -230,25 +228,27 @@ try dbQueue.inDatabase { db in
             "name TEXT NOT NULL," +
             "age INT" +
         ")")
-        
-    try db.execute(
-        "INSERT INTO persons (name, age) VALUES (?, ?)",
-        arguments: ["Arthur", 36])
-        
+    
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (:name, :age)",
         arguments: ["name": "Barbara", "age": 39])
+    
+    // Join multiple statements with a semicolon:
+    try db.execute(
+        "INSERT INTO persons (name, age) VALUES (?, ?); " +
+        "INSERT INTO persons (name, age) VALUES (?, ?)",
+        arguments: ["Arthur", 36, "Barbara", 39])
 }
 ```
 
-The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments in with arrays or dictionaries, as in the example above (arguments are actually of type StatementArguments, which happens to adopt the ArrayLiteralConvertible and DictionaryLiteralConvertible protocols).
+The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments in with arrays or dictionaries, as in the example above.
 
 See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
 
 **After an INSERT statement**, you extract the inserted Row ID from the result of the `execute` method:
 
 ```swift
-let insertedRowID = try db.execute(
+let personID = try db.execute(
     "INSERT INTO persons (name, age) VALUES (?, ?)",
     arguments: ["Arthur", 36]).insertedRowID
 ```
