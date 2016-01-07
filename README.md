@@ -1261,8 +1261,9 @@ var migrator = DatabaseMigrator()
 
 // v1.0 database
 migrator.registerMigration("createTables") { db in
-    try db.execute("CREATE TABLE persons (...)")
-    try db.execute("CREATE TABLE books (...)")
+    try db.execute(
+        "CREATE TABLE persons (...); " +
+        "CREATE TABLE books (...)")
 }
 
 // v2.0 database
