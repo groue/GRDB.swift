@@ -510,12 +510,12 @@ final class DataMapper {
 
         // Fail early if database table does not exist.
         guard let primaryKey = db.primaryKey(databaseTableName) else {
-            fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) does not exist. See \(persistable.dynamicType).databaseTableName()")
+            fatalError("no such table: \(databaseTableName)")
         }
 
         // Fail early if persistentDictionary is empty
         let persistentDictionary = persistable.persistentDictionary
-        precondition(persistentDictionary.count > 0, "Invalid empty dictionary returned from \(persistable.dynamicType).persistentDictionary")
+        precondition(persistentDictionary.count > 0, "\(persistable.dynamicType).persistentDictionary: invalid empty dictionary")
         
         self.db = db
         self.persistable = persistable
@@ -536,7 +536,7 @@ final class DataMapper {
     func updateStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("Invalid primary key in \(persistable)")
+            fatalError("invalid primary key in \(persistable)")
         }
         
         // Don't update primary key columns
@@ -567,7 +567,7 @@ final class DataMapper {
     func deleteStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("Invalid primary key in \(persistable)")
+            fatalError("invalid primary key in \(persistable)")
         }
         
         // Delete
@@ -581,7 +581,7 @@ final class DataMapper {
     func existsStatement() -> SelectStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("Invalid primary key in \(persistable)")
+            fatalError("invalid primary key in \(persistable)")
         }
         
         // Fetch

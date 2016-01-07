@@ -35,6 +35,10 @@
 		56437C851C180EDB007D6DB3 /* DatabasePersistable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56437C831C180EDB007D6DB3 /* DatabasePersistable.swift */; };
 		564A50C71BFF4B7F00B3A3A2 /* CollationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */; };
 		564A50C81BFF4B7F00B3A3A2 /* CollationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */; };
+		56553C101C3E906C00522B5C /* GRDBTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */; };
+		56553C121C3E906C00522B5C /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
+		56553C131C3E906C00522B5C /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3773F319C8CBB3004FCF85 /* GRDB.framework */; };
+		56553C1A1C3E91BC00522B5C /* CrashTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CB92EC1BA453E500DFD5FC /* CrashTests.swift */; };
 		5658420E1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5658420D1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift */; };
 		5658420F1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5658420D1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift */; };
 		565B0FEF1BBC7D980098DE03 /* RowConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565B0FEE1BBC7D980098DE03 /* RowConvertibleTests.swift */; };
@@ -209,6 +213,13 @@
 			remoteGlobalIDString = DC3773F219C8CBB3004FCF85;
 			remoteInfo = GRDBOSX;
 		};
+		56553BDC1C3E906C00522B5C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DC3773F219C8CBB3004FCF85;
+			remoteInfo = GRDBOSX;
+		};
 		56CA220A1BB414FE009A04C5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
@@ -297,6 +308,7 @@
 		5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBTestCase.swift; sourceTree = "<group>"; };
 		56437C831C180EDB007D6DB3 /* DatabasePersistable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabasePersistable.swift; sourceTree = "<group>"; };
 		564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollationTests.swift; sourceTree = "<group>"; };
+		56553C181C3E906C00522B5C /* GRDBOSXCrashTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXCrashTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5658420D1C1A1C820099FE88 /* MutableDatabasePersistableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutableDatabasePersistableTests.swift; sourceTree = "<group>"; };
 		565B0FEE1BBC7D980098DE03 /* RowConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertibleTests.swift; sourceTree = "<group>"; };
 		565D5D671BBC604000DC9BD4 /* Row+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Row+Foundation.swift"; sourceTree = "<group>"; };
@@ -416,6 +428,15 @@
 				560C98121C0E22D300BF8471 /* SQLite.framework in Frameworks */,
 				560C98131C0E22D300BF8471 /* libsqlite3.tbd in Frameworks */,
 				560C98141C0E22D300BF8471 /* GRDB.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56553C111C3E906C00522B5C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56553C121C3E906C00522B5C /* libsqlite3.tbd in Frameworks */,
+				56553C131C3E906C00522B5C /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -862,6 +883,7 @@
 				56E5D7D31B4D3FEE00430942 /* GRDBTests.xctest */,
 				56E5D7F91B4D422D00430942 /* GRDBTests.xctest */,
 				560C981A1C0E22D300BF8471 /* GRDBOSXPerformanceTests.xctest */,
+				56553C181C3E906C00522B5C /* GRDBOSXCrashTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -945,6 +967,24 @@
 			name = GRDBOSXPerformanceTests;
 			productName = GRDBOSXTests;
 			productReference = 560C981A1C0E22D300BF8471 /* GRDBOSXPerformanceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		56553BDA1C3E906C00522B5C /* GRDBOSXCrashTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56553C151C3E906C00522B5C /* Build configuration list for PBXNativeTarget "GRDBOSXCrashTests" */;
+			buildPhases = (
+				56553BDD1C3E906C00522B5C /* Sources */,
+				56553C111C3E906C00522B5C /* Frameworks */,
+				56553C141C3E906C00522B5C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				56553BDB1C3E906C00522B5C /* PBXTargetDependency */,
+			);
+			name = GRDBOSXCrashTests;
+			productName = GRDBOSXTests;
+			productReference = 56553C181C3E906C00522B5C /* GRDBOSXCrashTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		56E5D7C91B4D3FED00430942 /* GRDBiOS */ = {
@@ -1064,6 +1104,7 @@
 			projectRoot = "";
 			targets = (
 				DC3773F219C8CBB3004FCF85 /* GRDBOSX */,
+				56553BDA1C3E906C00522B5C /* GRDBOSXCrashTests */,
 				56E5D7F81B4D422D00430942 /* GRDBOSXTests */,
 				560C97CF1C0E22D300BF8471 /* GRDBOSXPerformanceTests */,
 				56E5D7C91B4D3FED00430942 /* GRDBiOS */,
@@ -1140,6 +1181,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		56553C141C3E906C00522B5C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		56E5D7C81B4D3FED00430942 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1185,6 +1233,15 @@
 				560C98251C0E23BB00BF8471 /* StephenCelisSQLitePerformanceTests.swift in Sources */,
 				560C98101C0E22D300BF8471 /* GRDBTestCase.swift in Sources */,
 				560C98241C0E23BB00BF8471 /* PerformanceRecord.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56553BDD1C3E906C00522B5C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56553C101C3E906C00522B5C /* GRDBTestCase.swift in Sources */,
+				56553C1A1C3E91BC00522B5C /* CrashTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1389,6 +1446,11 @@
 			target = DC3773F219C8CBB3004FCF85 /* GRDBOSX */;
 			targetProxy = 560C97D31C0E22D300BF8471 /* PBXContainerItemProxy */;
 		};
+		56553BDB1C3E906C00522B5C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DC3773F219C8CBB3004FCF85 /* GRDBOSX */;
+			targetProxy = 56553BDC1C3E906C00522B5C /* PBXContainerItemProxy */;
+		};
 		56CA22281BB4165C009A04C5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "SQLite iOS";
@@ -1437,6 +1499,37 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBPerformanceTests-Bridging.h";
+			};
+			name = Release;
+		};
+		56553C161C3E906C00522B5C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		56553C171C3E906C00522B5C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};
@@ -1681,6 +1774,15 @@
 			buildConfigurations = (
 				560C98181C0E22D300BF8471 /* Debug */,
 				560C98191C0E22D300BF8471 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		56553C151C3E906C00522B5C /* Build configuration list for PBXNativeTarget "GRDBOSXCrashTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56553C161C3E906C00522B5C /* Debug */,
+				56553C171C3E906C00522B5C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

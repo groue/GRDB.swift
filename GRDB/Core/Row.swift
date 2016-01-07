@@ -65,7 +65,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An Int64, Double, String, NSData or nil.
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -91,7 +91,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -122,7 +122,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -157,7 +157,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -188,7 +188,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: A *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -196,7 +196,7 @@ public final class Row: CollectionType {
             // Perform a NULL check, and prevent SQLite from converting NULL to
             // a 0 integer, for example.
             guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
-                fatalError("Could not convert NULL to \(Value.self).")
+                fatalError("could not convert NULL to \(Value.self).")
             }
             return Value(sqliteStatement: sqliteStatement, index: Int32(index))
         } else {
@@ -301,7 +301,7 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            fatalError("no such column: \(columnName)")
         }
         return value(atIndex: index)
     }
@@ -332,7 +332,7 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            fatalError("no such column: \(columnName)")
         }
         return value(atIndex: index)
     }
@@ -351,7 +351,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional NSData.
     public func dataNoCopy(atIndex index: Int) -> NSData? {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         return impl.dataNoCopy(atIndex: index)
     }
     
@@ -752,15 +752,15 @@ public final class Row: CollectionType {
         var count: Int { return 0 }
         
         func databaseValue(atIndex index: Int) -> DatabaseValue {
-            fatalError("Empty row has no column")
+            fatalError("row index out of range")
         }
         
         func dataNoCopy(atIndex index:Int) -> NSData? {
-            fatalError("Empty row has no column")
+            fatalError("row index out of range")
         }
         
         func columnName(atIndex index: Int) -> String {
-            fatalError("Empty row has no column")
+            fatalError("row index out of range")
         }
         
         func indexForColumn(named name: String) -> Int? {

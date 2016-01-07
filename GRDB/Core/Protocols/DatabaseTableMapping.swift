@@ -71,12 +71,12 @@ extension RowConvertible where Self: DatabaseTableMapping {
         
         // Fail early if database table does not exist.
         guard let primaryKey = db.primaryKey(databaseTableName) else {
-            fatalError("Table \(databaseTableName.quotedDatabaseIdentifier) does not exist. See \(self).databaseTableName()")
+            fatalError("no such table: \(databaseTableName)")
         }
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns
-        precondition(columns.count == 1, "Primary key of table \(databaseTableName.quotedDatabaseIdentifier) is not made of a single column. See \(self).databaseTableName()")
+        precondition(columns.count == 1, "expected single column primary key in table: \(databaseTableName)")
         
         let keys = keys.map { $0 as DatabaseValueConvertible? }
         

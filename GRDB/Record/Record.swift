@@ -63,7 +63,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// - returns: The name of a database table.
     public class func databaseTableName() -> String {
-        fatalError("Subclass must override.")
+        fatalError("subclass must override")
     }
     
     /// Returns the values that should be stored in the database.

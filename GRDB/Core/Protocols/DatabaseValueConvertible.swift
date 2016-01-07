@@ -70,15 +70,7 @@ public extension DatabaseValueConvertible {
     public static func fetch(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
         let sqliteStatement = statement.sqliteStatement
         return statement.fetch(arguments: arguments) {
-            let dbv = DatabaseValue(sqliteStatement: sqliteStatement, index: 0)
-            guard let value = Self.fromDatabaseValue(dbv) else {
-                if let arguments = statement.arguments {
-                    fatalError("Could not convert \(dbv) to \(Self.self) while iterating `\(statement.sql)` with arguments \(arguments).")
-                } else {
-                    fatalError("Could not convert \(dbv) to \(Self.self) while iterating `\(statement.sql)`.")
-                }
-            }
-            return value
+            DatabaseValue(sqliteStatement: sqliteStatement, index: 0).value()
         }
     }
     

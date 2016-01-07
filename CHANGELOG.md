@@ -28,7 +28,7 @@ Released January 7, 2016
     let statement = try db.selectStatement("SELECT * FROM persons WHERE id = ?")
     // OK
     try statement.validateArguments([1])
-    // SQLite statement arguments mismatch: got 2 argument(s) instead of 1.
+    // Error: wrong number of statement arguments: 2
     try statement.validateArguments([1, 2])
     ```
 

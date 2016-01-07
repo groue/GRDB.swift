@@ -200,7 +200,7 @@ public class Statement {
         assert(keyValueBindings.count >= sqliteArgumentCount)
         
         if keyValueBindings.count > sqliteArgumentCount {
-            throw DatabaseError(code: SQLITE_ERROR, message: "Statement arguments mismatch: got \(keyValueBindings.count) argument(s) instead of \(sqliteArgumentCount).", sql: sql, arguments: nil)
+            throw DatabaseError(code: SQLITE_ERROR, message: "wrong number of statement arguments: \(keyValueBindings.count)", sql: sql, arguments: nil)
         }
         
         let missingKeys = keyValueBindings.filter { $0.1 == nil }.map { $0.0 }
@@ -213,9 +213,9 @@ public class Statement {
                         .sort { $0.0 < $1.0 }
                         .map { $0.1 }
                 }
-                throw DatabaseError(code: SQLITE_ERROR, message: "Missing statement argument(s): \(caseInsensitiveSort(namedMissingKeys).joinWithSeparator(", "))", sql: sql, arguments: nil)
+                throw DatabaseError(code: SQLITE_ERROR, message: "missing statement argument(s): \(caseInsensitiveSort(namedMissingKeys).joinWithSeparator(", "))", sql: sql, arguments: nil)
             } else {
-                throw DatabaseError(code: SQLITE_ERROR, message: "Statement arguments mismatch: got \(sqliteArgumentCount - missingKeys.count) argument(s) instead of \(sqliteArgumentCount).", sql: sql, arguments: nil)
+                throw DatabaseError(code: SQLITE_ERROR, message: "wrong number of statement arguments: \(sqliteArgumentCount - missingKeys.count)", sql: sql, arguments: nil)
             }
         }
         
