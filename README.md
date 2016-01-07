@@ -414,7 +414,6 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     let row = Row.fetchOne(db, "SELECT 'foo' AS foo")!
     row.value(named: "missing") as String? // nil
     row.value(named: "missing") as String  // fatal error: no such column: missing
-    row.value(atIndex: 1)                  // fatal error: row index out of range
     ```
     
     You can explicitly check for a column presence with the `hasColumn` method.
