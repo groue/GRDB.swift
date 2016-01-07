@@ -974,8 +974,7 @@ func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -
             userInfo: [NSLocalizedDescriptionKey: "Invalid arguments"])
     }
     
-    // Crashes if sql is invalid, or if arguments don't fit the SQL query
-    // (too few, or too many values):
+    // Crashes if sql is invalid, or if arguments don't fit the SQL query:
     return Row.fetchAll(db, sql, arguments: arguments)
 }
 
@@ -1001,9 +1000,10 @@ func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -
     // SQL may be invalid
     let statement = try db.selectStatement(sql)
     
-    // Arguments may not fit the statement (too few, or too many values)
+    // Arguments may not fit the statement
     try statement.validateArguments(arguments)
     
+    // OK now
     return Row.fetchAll(statement, arguments: arguments)
 }
 ```
