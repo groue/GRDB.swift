@@ -381,17 +381,6 @@ row.value(...) as Int!
 > row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 > ```
 
-When you ask for a missing column, you will get nil, or a fatal error:
-
-```swift
-let row = Row.fetchOne(db, "SELECT 'foo' AS foo")!
-row.value(named: "missing") as String? // nil
-row.value(named: "missing") as String  // fatal error: no such column: missing
-row.value(atIndex: 1)                  // fatal error: row index out of range
-```
-
-You can explicitly check for a column presence with the `hasColumn` method.
-
 Generally speaking, you can extract the type you need, *provided it can be converted from the underlying SQLite value*:
 
 - **Successful conversions include:**
@@ -410,16 +399,25 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row.value(atIndex: 0) as NSDate? // nil
     row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
     ```
-
-- **GRDB crashes when you try to convert NULL to a non-optional value.**
     
-    This behavior is notably different from SQLite C API, or from ccgus/fmdb, that both turn NULL to 0 when extracting an integer, for example:
+    *Notably*, NULL won't turn to 0 as in the SQLite C API, or [ccgus/fmdb](https://github.com/ccgus/fmdb):
     
     ```swift
     let row = Row.fetchOne(db, "SELECT NULL")!
     row.value(atIndex: 0) as Int? // nil
     row.value(atIndex: 0) as Int  // fatal error: could not convert NULL to Int.
     ```
+
+- **Missing columns return nil.**
+    
+    ```swift
+    let row = Row.fetchOne(db, "SELECT 'foo' AS foo")!
+    row.value(named: "missing") as String? // nil
+    row.value(named: "missing") as String  // fatal error: no such column: missing
+    row.value(atIndex: 1)                  // fatal error: row index out of range
+    ```
+    
+    You can explicitly check for a column presence with the `hasColumn` method.
 
 - **The convenience conversions of SQLite, such as Blob to String, String to Int, or huge Double values to Int, are not guaranteed to apply.** You must not rely on them.
 
