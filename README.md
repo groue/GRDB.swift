@@ -455,7 +455,7 @@ if let databaseValue = row["date"] {
 }
 ```
 
-Row adopts the CollectionType protocol:
+Row adopts the standard [CollectionType](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html) protocol:
 
 ```swift
 // the number of columns
