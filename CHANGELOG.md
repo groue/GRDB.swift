@@ -10,6 +10,7 @@ Release Notes
 
 **New**
 
+- `Database.execute()` can now execute several statements separated by a semicolon.
 - `Statement.validateArguments(_)` throws an error if the arguments parameter doesn't match the prepared statement:
     
     ```swift
@@ -19,6 +20,10 @@ Release Notes
     // SQLite statement arguments mismatch: got 2 argument(s) instead of 1.
     try statement.validateArguments([1, 2])
     ```
+
+**Breaking Changes**
+
+- `Database.executeMultiStatement(sql)` has been removed. To execute several SQL statements separated by a semicolon, use `Database.execute()` instead.
 
 
 ## 0.36.0
@@ -505,7 +510,7 @@ Released August 18, 2015
 
 - `RowModel.exists(db)` returns whether a row model has a matching row in the database.
 - `Statement.arguments` property gains a public setter.
-- `Database.executeMultiple(sql)` can execute several SQL statements separated by a semi-colon ([#6](http://github.com/groue/GRDB.swift/pull/6) by [peter-ss](https://github.com/peter-ss))
+- `Database.executeMultiStatement(sql)` can execute several SQL statements separated by a semi-colon ([#6](http://github.com/groue/GRDB.swift/pull/6) by [peter-ss](https://github.com/peter-ss))
 
 **Breaking changes**
 

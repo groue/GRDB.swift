@@ -1267,11 +1267,9 @@ migrator.registerMigration("createTables") { db in
 
 // v2.0 database
 migrator.registerMigration("AddAgeToPersons") { db in
-    try db.execute("ALTER TABLE persons ADD COLUMN age INT")
-}
-
-migrator.registerMigration("AddYearToBooks") { db in
-    try db.execute("ALTER TABLE books ADD COLUMN year INT")
+    try db.execute(
+        "ALTER TABLE persons ADD COLUMN age INT; " +
+        "ALTER TABLE books ADD COLUMN year INT")
 }
 
 // (Insert migrations for future versions here)
@@ -1283,32 +1281,6 @@ try migrator.migrate(dbQueue)
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table). When you are tuning your migrations, you may need to execute one several times. All you need then is to feed your application with a database file from a previous state.
 
-You might use Database.executeMultiStatement(): this method takes an SQL string containing multiple statements separated by semi-colons:
-
-```swift
-migrator.registerMigration("createTables") { db in
-    try db.executeMultiStatement(
-        "CREATE TABLE persons (...);" +
-        "CREATE TABLE books (...);" +
-        "...")
-}
-```
-
-You might even store your migrations as bundle resources:
-
-```swift
-// Execute migration01.sql, migration02.sql, etc.
-NSBundle.mainBundle()
-    .pathsForResourcesOfType("sql", inDirectory: "databaseMigrations")
-    .sort()
-    .forEach { path in
-        let migrationName = (path as NSString).lastPathComponent
-        migrator.registerMigration(migrationName) { db in
-            let sql = try String(contentsOfFile: path, encoding: NSUTF8StringEncoding)
-            try db.executeMultiStatement(sql)
-        }
-    }
-```
 
 ### Advanced Database Schema Changes
 
@@ -1319,7 +1291,7 @@ Yet any kind of schema change is still possible. The SQLite documentation explai
 ```swift
 // Add a NOT NULL constraint on persons.name:
 migrator.registerMigration("AddNotNullCheckOnName", withDisabledForeignKeyChecks: true) { db in
-    try db.executeMultiStatement(
+    try db.execute(
         "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
         "INSERT INTO new_persons SELECT * FROM persons;" +
         "DROP TABLE persons;" +

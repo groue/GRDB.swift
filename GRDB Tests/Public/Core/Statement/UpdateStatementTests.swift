@@ -178,10 +178,19 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             try dbQueue.inTransaction { db in
                 try db.execute(
-                    "INSERT INTO persons (name) VALUES (:name1);" +
-                    "INSERT INTO persons (name) VALUES (:name2);",
-                    arguments: ["name1": "Arthur", "name2": "Barbara"])
-                XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), ["Arthur", "Barbara"])
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                    arguments: ["age1": 41, "age2": 32])
+                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                return .Rollback
+            }
+            
+            try dbQueue.inTransaction { db in
+                try db.execute(
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                    arguments: [41, 32])
+                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
                 return .Rollback
             }
             
@@ -189,16 +198,43 @@ class UpdateStatementTests : GRDBTestCase {
                 do {
                     // Too few arguments
                     try db.execute(
-                        "INSERT INTO persons (name) VALUES (:name1);" +
-                        "INSERT INTO persons (name) VALUES (:name2);",
-                        arguments: ["name1": "Arthur"])
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);")
                     XCTFail("Expected Error")
                 } catch {
-                    // Global fail
-                    XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), [String]())
+                    XCTAssertTrue(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age").isEmpty)
                 }
                 return .Rollback
-                
+            }
+            
+            try dbQueue.inTransaction { db in
+                do {
+                    // Too few arguments
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                        arguments: ["age1": 41])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [41])
+                }
+                return .Rollback
+            }
+            
+            try dbQueue.inTransaction { db in
+                do {
+                    // Too many arguments
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                        arguments: [41, 32, 17])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                }
+                return .Rollback
             }
         }
     }
@@ -207,12 +243,25 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             try dbQueue.inTransaction { db in
                 try db.execute(
-                    "INSERT INTO persons (name) VALUES (:name);" +
-                    "INSERT INTO persons (name) VALUES (:name);",
-                    arguments: ["name": "Arthur"])
-                XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons"), ["Arthur", "Arthur"])
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);" +
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);",
+                    arguments: ["age": 41])
+                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
                 return .Rollback
             }
+            
+//            // The test below fails because 41 in consumed by the first statement,
+//            // leaving no argument for the second statement.
+//            //
+//            // TODO? make it work
+//            try dbQueue.inTransaction { db in
+//                try db.execute(
+//                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);" +
+//                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);",
+//                    arguments: [41])
+//                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
+//                return .Rollback
+//            }
         }
     }
     
@@ -220,10 +269,10 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             try dbQueue.inTransaction { db in
                 try db.execute(
-                    "INSERT INTO persons (name) VALUES (?);" +
-                    "INSERT INTO persons (name) VALUES (?);",
-                    arguments: ["Arthur", "Barbara"])
-                XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), ["Arthur", "Barbara"])
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
+                    arguments: [41, 32])
+                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
                 return .Rollback
             }
             
@@ -231,13 +280,27 @@ class UpdateStatementTests : GRDBTestCase {
                 do {
                     // Too few arguments
                     try db.execute(
-                        "INSERT INTO persons (name) VALUES (?);" +
-                        "INSERT INTO persons (name) VALUES (?);",
-                        arguments: ["Arthur"])
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);")
                     XCTFail("Expected Error")
                 } catch {
-                    // Global fail
-                    XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), [String]())
+                    XCTAssertTrue(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age").isEmpty)
+                }
+                
+                return .Rollback
+            }
+            
+            try dbQueue.inTransaction { db in
+                do {
+                    // Too few arguments
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
+                        arguments: [41])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [41])
                 }
                 
                 return .Rollback
@@ -247,13 +310,13 @@ class UpdateStatementTests : GRDBTestCase {
                 do {
                     // Too many arguments
                     try db.execute(
-                        "INSERT INTO persons (name) VALUES (?);" +
-                        "INSERT INTO persons (name) VALUES (?);",
-                        arguments: ["Arthur", "Barbara", "Craig"])
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
+                        arguments: [41, 32, 17])
                     XCTFail("Expected Error")
                 } catch {
-                    // Global fail
-                    XCTAssertEqual(String.fetchAll(db, "SELECT name FROM persons ORDER BY name"), [String]())
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
                 }
                 return .Rollback
             }

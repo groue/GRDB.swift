@@ -58,7 +58,7 @@ public struct DatabaseMigrator {
     ///
     ///     // Add a NOT NULL constraint on persons.name:
     ///     migrator.registerMigration("AddNotNullCheckOnName", withDisabledForeignKeyChecks: true) { db in
-    ///         try db.executeMultiStatement(
+    ///         try db.execute(
     ///             "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
     ///             "INSERT INTO new_persons SELECT * FROM persons;" +
     ///             "DROP TABLE persons;" +

@@ -15,31 +15,8 @@ public class Statement {
     
     /// The query arguments
     public var arguments: StatementArguments? {
-        didSet {
-            reset()
-            clearBindings()
-            let bindings = try! self.bindings(arguments)
-            for (index, databaseValue) in bindings.enumerate() {
-                let bindingIndex = Int32(index + 1)
-                let code: Int32
-                switch databaseValue.storage {
-                case .Null:
-                    code = sqlite3_bind_null(sqliteStatement, bindingIndex)
-                case .Int64(let int64):
-                    code = sqlite3_bind_int64(sqliteStatement, bindingIndex, int64)
-                case .Double(let double):
-                    code = sqlite3_bind_double(sqliteStatement, bindingIndex, double)
-                case .String(let string):
-                    code = sqlite3_bind_text(sqliteStatement, bindingIndex, string, -1, SQLITE_TRANSIENT)
-                case .Blob(let data):
-                    code = sqlite3_bind_blob(sqliteStatement, bindingIndex, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
-                }
-                
-                if code != SQLITE_OK {
-                    fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
-                }
-            }
-        }
+        get { return _arguments }
+        set { try! setArguments(newValue) }
     }
     
     // MARK: Not public
@@ -78,7 +55,7 @@ public class Statement {
         }
         
         guard consumedCharactersCount == sqlCodeUnits.count else {
-            throw DatabaseError(code: SQLITE_ERROR, message: "Invalid SQL string: multiple statements found. To execute multiple statements, use Database.executeMultiStatement() instead.", sql: sql, arguments: nil)
+            throw DatabaseError(code: SQLITE_ERROR, message: "Invalid SQL string: multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
         }
     }
     
@@ -99,6 +76,8 @@ public class Statement {
     
     // MARK: Arguments
     
+    var _arguments: StatementArguments?
+    
     lazy var sqliteArgumentCount: Int = {
         Int(sqlite3_bind_parameter_count(self.sqliteStatement))
     }()
@@ -115,6 +94,36 @@ public class Statement {
             return String(parameterName.characters.dropFirst()) // Drop initial ":"
         }
     }()
+    
+    private func setArguments(arguments: StatementArguments?) throws {
+        // Validate
+        let bindings = try self.bindings(arguments)
+        _arguments = arguments
+        
+        // Apply
+        reset()
+        clearBindings()
+        for (index, databaseValue) in bindings.enumerate() {
+            let bindingIndex = Int32(index + 1)
+            let code: Int32
+            switch databaseValue.storage {
+            case .Null:
+                code = sqlite3_bind_null(sqliteStatement, bindingIndex)
+            case .Int64(let int64):
+                code = sqlite3_bind_int64(sqliteStatement, bindingIndex, int64)
+            case .Double(let double):
+                code = sqlite3_bind_double(sqliteStatement, bindingIndex, double)
+            case .String(let string):
+                code = sqlite3_bind_text(sqliteStatement, bindingIndex, string, -1, SQLITE_TRANSIENT)
+            case .Blob(let data):
+                code = sqlite3_bind_blob(sqliteStatement, bindingIndex, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
+            }
+            
+            if code != SQLITE_OK {
+                throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
+            }
+        }
+    }
     
     /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
     /// statement arguments.
@@ -221,12 +230,11 @@ public class Statement {
         }
     }
 
-    private func prepareWithArguments(arguments: StatementArguments) {
+    private func prepareWithArguments(arguments: StatementArguments) throws {
         if !arguments.kind.isDefault {
-            self.arguments = arguments
+            try setArguments(arguments)
         } else {
-            // try! for consistency with SelectStatement
-            try! validateArguments(self.arguments)
+            try validateArguments(self.arguments)
         }
     }
 }
@@ -260,7 +268,7 @@ public final class SelectStatement : Statement {
     
     /// The DatabaseSequence builder.
     func fetch<T>(arguments arguments: StatementArguments, yield: () -> T) -> DatabaseSequence<T> {
-        prepareWithArguments(arguments)
+        try! prepareWithArguments(arguments)
         return DatabaseSequence(statement: self, yield: yield)
     }
     
@@ -355,11 +363,12 @@ public final class UpdateStatement : Statement {
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func execute(arguments arguments: StatementArguments = StatementArguments.Default) throws -> DatabaseChanges {
-        prepareWithArguments(arguments)
+        try prepareWithArguments(arguments)
         reset()
         
         let changes: DatabaseChanges
         let code = sqlite3_step(sqliteStatement)
+        
         switch code {
         case SQLITE_DONE:
             let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))

@@ -50,9 +50,17 @@ public final class Database {
         return try UpdateStatement(database: self, sql: sql)
     }
     
-    /// Executes an update statement.
+    /// Executes one or several SQL statements, separated by semi-colons.
     ///
-    ///     db.excute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+    ///     try db.execute(
+    ///         "INSERT INTO persons (name) VALUES (:name)",
+    ///         arguments: ["name": "Arthur"])
+    ///
+    ///     try db.execute(
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);",
+    ///         arguments; ['Harry', 'Ron', 'Hermione'])
     ///
     /// This method may throw a DatabaseError.
     ///
@@ -63,101 +71,82 @@ public final class Database {
     public func execute(sql: String, arguments: StatementArguments = StatementArguments.Default) throws -> DatabaseChanges {
         preconditionValidQueue()
         
-        
-        // Build statements
-        
-        let sqlCodeUnits = sql.nulTerminatedUTF8
-        var code: Int32 = 0
-        var statements: [UpdateStatement] = []
-        sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
-            let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
-            var statementStart = sqlStart
-            while true {
-                var statementEnd: UnsafePointer<Int8> = nil
-                var sqliteStatement: SQLiteStatement = nil
-                code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
-                guard code == SQLITE_OK else {
-                    break
+        // The tricky part is to consume arguments as statements are executed.
+        //
+        // Here we return two functions:
+        // - one that returns arguments for a statement
+        // - one that validates the remaining arguments, in the same way as
+        //   Statement.validateArguments()
+        let (consumeArguments, validateRemainingArguments) = { () -> (UpdateStatement -> StatementArguments, () throws -> ()) in
+            switch arguments.kind {
+            case .Array(let values):
+                // Extract as many values as needed, statement after statement:
+                var remainingValues = values
+                let consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
+                    defer {
+                        if remainingValues.count >= statement.sqliteArgumentCount {
+                            remainingValues = Array(remainingValues.suffixFrom(statement.sqliteArgumentCount))
+                        } else {
+                            remainingValues = []
+                        }
+                    }
+                    return StatementArguments(remainingValues.prefix(statement.sqliteArgumentCount))
                 }
-                let sql = NSString(bytes: statementStart, length: statementEnd - statementStart, encoding: NSUTF8StringEncoding)! as String
-                statements.append(UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement))
-                if statementEnd - sqlStart + 1 == sqlCodeUnits.count {
-                    break
+                // It's not OK if there remains unused arguments:
+                let validateRemainingArguments = {
+                    if !remainingValues.isEmpty {
+                        throw DatabaseError(code: SQLITE_ERROR, message: "Statement arguments mismatch: got \(values.count) argument(s) instead of \(values.count - remainingValues.count).", sql: sql, arguments: nil)
+                    }
                 }
-                statementStart = statementEnd
+                return (consumeArguments, validateRemainingArguments)
+            case .Dictionary, .Default:
+                // Reuse the dictionary argument for all statements:
+                let consumeArguments = { (_: UpdateStatement) -> StatementArguments in return arguments }
+                let validateRemainingArguments = { () in }
+                return (consumeArguments, validateRemainingArguments)
             }
-        }
-        guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: lastErrorMessage, sql: sql)
-        }
-        
-        
-        // Validate arguments for all statements
-        
-        switch arguments.kind {
-        case .Array(let values):
-            var remainingValues = values
-            for statement in statements {
-                let arguments = StatementArguments(remainingValues.prefix(statement.sqliteArgumentCount))
-                try statement.validateArguments(arguments)
-                statement.arguments = arguments
-                if remainingValues.count >= statement.sqliteArgumentCount {
-                    remainingValues = Array(remainingValues.suffixFrom(statement.sqliteArgumentCount))
-                } else {
-                    remainingValues = []
-                }
-            }
-            if !remainingValues.isEmpty {
-                throw DatabaseError(code: SQLITE_ERROR, message: "Statement arguments mismatch: got \(values.count) argument(s) instead of \(values.count - remainingValues.count).", sql: sql, arguments: nil)
-            }
-        case .Dictionary:
-            for statement in statements {
-                try statement.validateArguments(arguments)
-                statement.arguments = arguments
-            }
-        case .Default:
-            break
-        }
-        
+        }()
+    
         
         // Execute statements
         
         let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
-        for statement in statements {
-            try statement.execute()
+        let sqlCodeUnits = sql.nulTerminatedUTF8
+        let length = sqlCodeUnits.count
+        var error: ErrorType?
+        sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
+            let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
+            let sqlEnd = sqlStart + length
+            var statementStart = sqlStart
+            while statementStart < sqlEnd - 1 {
+                var statementEnd: UnsafePointer<Int8> = nil
+                var sqliteStatement: SQLiteStatement = nil
+                let code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
+                guard code == SQLITE_OK else {
+                    error = DatabaseError(code: code, message: lastErrorMessage, sql: sql)
+                    break
+                }
+                let sql = NSString(bytes: statementStart, length: statementEnd - statementStart, encoding: NSUTF8StringEncoding)! as String
+                let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement)
+                
+                do {
+                    try statement.execute(arguments: consumeArguments(statement))
+                } catch let statementError {
+                    error = statementError
+                    break
+                }
+                
+                statementStart = statementEnd
+            }
         }
+        if let error = error {
+            throw error
+        }
+        try validateRemainingArguments()
         let changedRowsAfter = sqlite3_total_changes(sqliteConnection)
-        
         let lastInsertedRowID = sqlite3_last_insert_rowid(sqliteConnection)
         let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
         return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: insertedRowID)
-    }
-    
-    /// Executes multiple SQL statements, separated by semi-colons.
-    ///
-    ///     try db.executeMultiStatement(
-    ///         "INSERT INTO persons (name) VALUES ('Harry');" +
-    ///         "INSERT INTO persons (name) VALUES ('Ron');" +
-    ///         "INSERT INTO persons (name) VALUES ('Hermione');")
-    ///
-    /// This method may throw a DatabaseError.
-    ///
-    /// - parameter sql: SQL containing multiple statements separated by
-    ///   semi-colons.
-    /// - returns: A DatabaseChanges. Note that insertedRowID will always be nil.
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
-        preconditionValidQueue()
-        
-        let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
-        
-        let code = sqlite3_exec(sqliteConnection, sql, nil, nil, nil)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: lastErrorMessage, sql: sql, arguments: nil)
-        }
-        
-        let changedRowsAfter = sqlite3_total_changes(sqliteConnection)
-        return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: nil)
     }
     
     
