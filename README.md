@@ -455,15 +455,19 @@ if let databaseValue = row["date"] {
 }
 ```
 
-Row adopts the CollectionType protocol: you can iterate all the tuples (columnName, databaseValue) in a row, from left to right:
+Row adopts the CollectionType protocol:
 
 ```swift
+// the number of columns
+row.count
+
+// All the (columnName, databaseValue) tuples, from left to right:
 for (columnName, databaseValue) in row {
     ...
 }
 ```
 
-Rows are not real dictionaries, though. They may contain duplicate keys:
+Rows are not real dictionaries, though, since they may contain duplicate keys:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
