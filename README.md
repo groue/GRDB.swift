@@ -333,9 +333,7 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 Both `fetch` and `fetchAll` let you iterate the full list of fetched rows. The differences are:
 
 - `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It must be consumed in the database queue (you'll get a fatal error if you do otherwise).
-
-Row sequences also grant the fastest access to the database. This performance advantage comes with extra precautions:
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 > :point_up: **Don't turn a row sequence into an array** with `Array(rowSequence)` or `rowSequence.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
 > 
@@ -531,7 +529,7 @@ dbQueue.inDatabase { db in
 Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The differences are:
 
 - `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It must be consumed in the database queue (you'll get a fatal error if you do otherwise).
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 `fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
@@ -1375,7 +1373,7 @@ See [Column Values](#column-values) for more information about the `row.value()`
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
 
 - `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It must be consumed in the database queue (you'll get a fatal error if you do otherwise).
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 > :point_up: **Note**: For performance reasons, the same row argument to `fromRow(:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `result.row = row.copy()`.
 
@@ -1430,7 +1428,7 @@ Person.fetchOne(db, key: ...)   // Person?
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
 
 - `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It must be consumed in the database queue (you'll get a fatal error if you do otherwise).
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
 
@@ -1935,7 +1933,7 @@ dbQueue.inDatabase { db in
 Both `fetch` and `fetchAll` let you iterate the full list of fetched records. The differences are:
 
 - `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It must be consumed in the database queue (you'll get a fatal error if you do otherwise).
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 For example:
 
