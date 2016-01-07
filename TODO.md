@@ -1,5 +1,4 @@
 - [ ] Try to remove DefaultArgument.
-- [ ] Move DatabaseErrorFromStatementCreationTests.swift to tests of public APIs, now that prepared statement factory methods can throw errors.
 
 Not sure:
 

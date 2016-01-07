@@ -322,4 +322,20 @@ class UpdateStatementTests : GRDBTestCase {
             }
         }
     }
+    
+    func testDatabaseErrorThrownByUpdateStatementContainSQL() {
+        dbQueue.inDatabase { db in
+            do {
+                let _ = try db.updateStatement("UPDATE blah SET id = 12")
+                XCTFail()
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, 1)
+                XCTAssertEqual(error.message!, "no such table: blah")
+                XCTAssertEqual(error.sql!, "UPDATE blah SET id = 12")
+                XCTAssertEqual(error.description, "SQLite error 1 with statement `UPDATE blah SET id = 12`: no such table: blah")
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+    }
 }
