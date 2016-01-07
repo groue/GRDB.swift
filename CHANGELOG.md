@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.37.1
+
+Released January 7, 2016
+
+**Fixed**
+
+- Remove method `fromRow()` from NSData, NSDate, NSNull, NSNumber, NSString and NSURL, which should have been removed in v0.35.0.
+
+
 ## 0.37.0
 
 Released January 7, 2016
