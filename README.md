@@ -400,7 +400,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
     ```
     
-    *Notably*, NULL won't turn to 0 as in the SQLite C API, or [ccgus/fmdb](https://github.com/ccgus/fmdb):
+    Notably, NULL won't turn to anything:
     
     ```swift
     let row = Row.fetchOne(db, "SELECT NULL")!
