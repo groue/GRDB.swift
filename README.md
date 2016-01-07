@@ -455,7 +455,7 @@ if let databaseValue = row["date"] {
 }
 ```
 
-Iterate all the tuples (columnName, databaseValue) in a row, from left to right:
+Row adopts the CollectionType protocol: you can iterate all the tuples (columnName, databaseValue) in a row, from left to right:
 
 ```swift
 for (columnName, databaseValue) in row {
