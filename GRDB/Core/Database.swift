@@ -83,14 +83,15 @@ public final class Database {
                 // Extract as many values as needed, statement after statement:
                 var remainingValues = values
                 let consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
+                    let argumentCount = statement.sqliteArgumentCount
                     defer {
-                        if remainingValues.count >= statement.sqliteArgumentCount {
-                            remainingValues = Array(remainingValues.suffixFrom(statement.sqliteArgumentCount))
+                        if remainingValues.count >= argumentCount {
+                            remainingValues = Array(remainingValues.suffixFrom(argumentCount))
                         } else {
                             remainingValues = []
                         }
                     }
-                    return StatementArguments(remainingValues.prefix(statement.sqliteArgumentCount))
+                    return StatementArguments(remainingValues.prefix(argumentCount))
                 }
                 // It's not OK if there remains unused arguments:
                 let validateRemainingArguments = {
