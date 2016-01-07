@@ -10,13 +10,6 @@ class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
         return self.init()
     }
     
-    // TODO: this implementation is mandatory to avoid a Swift compiler error.
-    // Either avoid it, or document it.
-    class func fromRow(row: Row) -> Self {
-        // TODO: nice fatal error in case of error
-        return fromDatabaseValue(row.databaseValues.first!)!
-    }
-    
     required init() {
     }
     

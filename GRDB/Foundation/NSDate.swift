@@ -68,14 +68,6 @@ extension NSDate : DatabaseValueConvertible {
         
         return nil
     }
-    
-    public static func fromRow(row: Row) -> Self {
-        // TODO: test
-        guard let date = fromDatabaseValue(row.databaseValues.first!) else {
-            fatalError("Could not convert \(row.databaseValues.first!) to NSDate.")
-        }
-        return date
-    }
 }
 
 /// The DatabaseDate date formatter for stored dates.
