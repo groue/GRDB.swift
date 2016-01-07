@@ -160,7 +160,7 @@ try dbQueue.inDatabase { db in
 
 ## Database Queues
 
-You access SQLite databases through **thread-safe database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
+You access SQLite databases through **database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
 
 ```swift
 import GRDB
@@ -169,9 +169,9 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 let inMemoryDBQueue = DatabaseQueue()
 ```
 
-SQLite creates the database file if it does not already exist.
+SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
 
-The `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
+**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed:
 
 ```swift
 // Execute database statements:
@@ -183,22 +183,22 @@ dbQueue.inDatabase { db in
     }
 }
 
-// Extract values from the database:
-let wineCount = dbQueue.inDatabase { db in
-    Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-}
-
 // Wrap database statements in a transaction:
 try dbQueue.inTransaction { db in
     try db.execute("INSERT ...")
     try db.execute("DELETE FROM ...")
     return .Commit
 }
+
+// Extract values from the database:
+let wineCount = dbQueue.inDatabase { db in
+    Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+}
+print(wineCount)
 ```
 
-See [Transactions](#transactions) for more information about GRDB transaction handling.
 
-**Configure** databases:
+You can **configure** databases:
 
 ```swift
 var config = Configuration()
