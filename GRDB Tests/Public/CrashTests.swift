@@ -1,6 +1,7 @@
 // All tests in this file must crash.
 //
-// To run those tests, check the GRDBOSXTests and GRDBiOSTests membership.
+// To run those tests, run the GRDBOSXCrashTests target, and verify that each
+// test crashes with the expected error message.
 
 import XCTest
 import GRDB
