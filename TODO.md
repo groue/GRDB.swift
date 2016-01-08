@@ -1,5 +1,6 @@
-- [ ] Try to remove DefaultArgument.
-- [ ] Prefer SQLITE_MISUSE to SQLITE_ERROR when user provides invalid input, such as statement arguments that do not fit. Or refactor DatabaseError.
+- [ ] Remove DefaultArgument.
+- [ ] Partial updates
+- [ ] Refactor errors
 
 Not sure:
 
