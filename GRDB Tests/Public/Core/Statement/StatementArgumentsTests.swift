@@ -45,7 +45,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 do {
                     // Missing arguments
-                    try statement.validateArguments(nil)
+                    try statement.validateArguments([])
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
                     print(error)
@@ -124,7 +124,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 do {
                     // Missing arguments
-                    try statement.validateArguments(nil)
+                    try statement.validateArguments([])
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
                     print(error)
@@ -211,7 +211,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 
                 do {
                     // Missing arguments
-                    try statement.validateArguments(nil)
+                    try statement.validateArguments([])
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
                     print(error)

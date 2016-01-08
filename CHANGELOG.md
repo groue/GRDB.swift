@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking Changes**
+
+- `Statement.arguments` in now a non-optional `StatementArguments`.
+
+
 ## 0.37.1
 
 Released January 7, 2016

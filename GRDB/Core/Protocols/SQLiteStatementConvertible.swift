@@ -52,9 +52,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// remaining elements are undefined.
     ///
     /// - parameter statement: The statement to run.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence of values.
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let sqliteStatement = statement.sqliteStatement
         return statement.fetch(arguments: arguments) {
             if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
@@ -71,9 +71,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///     let names = String.fetchAll(statement)  // [String]
     ///
     /// - parameter statement: The statement to run.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: An array of values.
-    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> [Self] {
+    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
         return Array(fetch(statement, arguments: arguments))
     }
     
@@ -83,9 +83,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///     let name = String.fetchOne(statement)   // String?
     ///
     /// - parameter statement: The statement to run.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional value.
-    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> Self? {
+    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
         let generator = statement.fetch(arguments: arguments, yield: { }).generate()
         guard generator.next() != nil else {
             return nil
@@ -118,9 +118,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence of values.
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Self> {
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
     
@@ -130,9 +130,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: An array of values.
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Self] {
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
         return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
     
@@ -142,9 +142,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional value.
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> Self? {
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
         return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
 }

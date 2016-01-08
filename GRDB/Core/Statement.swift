@@ -14,9 +14,9 @@ public class Statement {
     public let sql: String
     
     /// The query arguments
-    public var arguments: StatementArguments? {
+    public var arguments: StatementArguments {
         get { return _arguments }
-        set { try! setArguments(newValue) }
+        set { try! setArgumentsWithValidation(newValue) }
     }
     
     // MARK: Not public
@@ -76,7 +76,7 @@ public class Statement {
     
     // MARK: Arguments
     
-    var _arguments: StatementArguments?
+    var _arguments: StatementArguments = []
     
     lazy var sqliteArgumentCount: Int = {
         Int(sqlite3_bind_parameter_count(self.sqliteStatement))
@@ -95,9 +95,9 @@ public class Statement {
         }
     }()
     
-    private func setArguments(arguments: StatementArguments?) throws {
+    private func setArgumentsWithValidation(arguments: StatementArguments) throws {
         // Validate
-        let bindings = try self.bindings(arguments)
+        let bindings = try validatedBindings(arguments)
         _arguments = arguments
         
         // Apply
@@ -127,13 +127,14 @@ public class Statement {
     
     /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
     /// statement arguments.
-    public func validateArguments(arguments: StatementArguments?) throws {
-        try bindings(arguments)
+    public func validateArguments(arguments: StatementArguments) throws {
+        let _ = try validatedBindings(arguments)
     }
     
     // Returns a validated array of as many DatabaseValue as there are
     // parameters in the statement.
-    private func bindings(arguments: StatementArguments?) throws -> [DatabaseValue] {
+    @warn_unused_result
+    private func validatedBindings(arguments: StatementArguments) throws -> [DatabaseValue] {
         // An array of (key, value) pairs.
         //
         // The key is not nil if the statement has a named parameter at given index.
@@ -145,20 +146,8 @@ public class Statement {
         // then we have extra arguments.
         //
         // If one of the values is nil, then we have a missing argument.
-        let keyValueBindings: [(String?, DatabaseValue?)] = try {
-            guard let arguments = arguments else {
-                return sqliteArgumentNames.map { argumentName in
-                    if let argumentName = argumentName {
-                        return (argumentName, nil)
-                    }
-                    return (nil, nil)
-                }
-            }
-            
+        let keyValueBindings: [(String?, DatabaseValue?)] = {
             switch arguments.kind {
-            case .Default:
-                throw DatabaseError(code: SQLITE_ERROR, message: "Invalid StatementArguments.Default arguments.", sql: sql, arguments: nil)
-                
             case .Array(let array):
                 var keyValueBindings: [(String?, DatabaseValue?)] = []
                 var argumentNameGen = sqliteArgumentNames.generate()
@@ -230,9 +219,9 @@ public class Statement {
         }
     }
 
-    private func prepareWithArguments(arguments: StatementArguments) throws {
-        if !arguments.kind.isDefault {
-            try setArguments(arguments)
+    private func prepareWithArguments(arguments: StatementArguments?) throws {
+        if let arguments = arguments {
+            try setArgumentsWithValidation(arguments)
         } else {
             try validateArguments(self.arguments)
         }
@@ -267,7 +256,7 @@ public final class SelectStatement : Statement {
     // MARK: Not public
     
     /// The DatabaseSequence builder.
-    func fetch<T>(arguments arguments: StatementArguments, yield: () -> T) -> DatabaseSequence<T> {
+    func fetch<T>(arguments arguments: StatementArguments?, yield: () -> T) -> DatabaseSequence<T> {
         try! prepareWithArguments(arguments)
         return DatabaseSequence(statement: self, yield: yield)
     }
@@ -362,7 +351,7 @@ public final class UpdateStatement : Statement {
     /// - parameter arguments: Statement arguments.
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func execute(arguments arguments: StatementArguments = StatementArguments.Default) throws -> DatabaseChanges {
+    public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         try prepareWithArguments(arguments)
         reset()
         
@@ -455,9 +444,7 @@ public struct DatabaseChanges {
 ///
 ///     db.execute("INSERT ... (:name, :age)", arguments: ["name": "Arthur", "age": 41])
 ///
-/// GRDB.swift only supports colon-prefixed named arguments, even though SQLite
-/// supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
-/// for more information.
+/// See https://www.sqlite.org/lang_expr.html#varparam for more information.
 public struct StatementArguments {
     
     // MARK: Positional Arguments
@@ -493,53 +480,21 @@ public struct StatementArguments {
         kind = .Dictionary(dictionary)
     }
     
-    
-    // MARK: Default Arguments
-    
-    /// Whenever you need to write a method with optional statement arguments,
-    /// do not use nil as a sentinel. This is because StatementArguments has
-    /// failable initializers, and you do not want such a failed initializer
-    /// have your method behave as if no arguments was given.
-    ///
-    /// Instead, use a non-optional StatementArguments parameter type, and use
-    /// StatementArguments.Default as its default value.
-    ///
-    /// Compare:
-    ///
-    ///     func bad(arguments: StatementArguments? = nil)
-    ///     func good(arguments: StatementArguments = StatementArguments.Default)
-    ///
-    ///     let badDict: NSDictionary = ["foo": NSObject()] // can't be used as arguments
-    ///     let arguments = StatementArguments(badDict)     // nil, actually
-    ///
-    ///     // Bad function swallows nil. Bad, bad function!
-    ///     bad(arguments: arguments)
-    ///
-    ///     // Good function forces the user to handle the invalid input case:
-    ///     good(arguments: arguments)  // won't compile
-    ///     if let arguments = arguments {
-    ///         good(arguments: arguments)
-    ///     } else {
-    ///         // handle wrong dictionary
-    ///     }
-    public static var Default = StatementArguments(kind: .Default)
+    public var isEmpty: Bool {
+        switch kind {
+        case .Array(let array):
+            return array.isEmpty
+        case .Dictionary(let dictionary):
+            return dictionary.isEmpty
+        }
+    }
     
     
     // MARK: Not Public
     
     enum Kind {
-        case Default
         case Array([DatabaseValueConvertible?])
         case Dictionary([String: DatabaseValueConvertible?])
-
-        var isDefault: Bool {
-            switch self {
-            case .Default:
-                return true
-            default:
-                return false
-            }
-        }
     }
     
     let kind: Kind
@@ -575,9 +530,6 @@ extension StatementArguments : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         switch kind {
-        case .Default:
-            return "StatementArguments.Default"
-            
         case .Array(let values):
             return "["
                 + values

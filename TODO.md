@@ -1,4 +1,4 @@
-- [ ] Remove DefaultArgument.
+- [X] Remove DefaultArgument.
 - [ ] Partial updates
 - [ ] Refactor errors
 

@@ -65,11 +65,18 @@ public final class Database {
     /// This method may throw a DatabaseError.
     ///
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func execute(sql: String, arguments: StatementArguments = StatementArguments.Default) throws -> DatabaseChanges {
+    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         preconditionValidQueue()
+        
+        let usedArguments: StatementArguments
+        if let arguments = arguments {
+            usedArguments = arguments
+        } else {
+            usedArguments = []
+        }
         
         // The tricky part is to consume arguments as statements are executed.
         //
@@ -78,7 +85,7 @@ public final class Database {
         // - one that validates the remaining arguments, in the same way as
         //   Statement.validateArguments()
         let (consumeArguments, validateRemainingArguments) = { () -> (UpdateStatement -> StatementArguments, () throws -> ()) in
-            switch arguments.kind {
+            switch usedArguments.kind {
             case .Array(let values):
                 // Extract as many values as needed, statement after statement:
                 var remainingValues = values
@@ -100,9 +107,9 @@ public final class Database {
                     }
                 }
                 return (consumeArguments, validateRemainingArguments)
-            case .Dictionary, .Default:
+            case .Dictionary:
                 // Reuse the dictionary argument for all statements:
-                let consumeArguments = { (_: UpdateStatement) -> StatementArguments in return arguments }
+                let consumeArguments = { (_: UpdateStatement) -> StatementArguments in return usedArguments }
                 let validateRemainingArguments = { () in }
                 return (consumeArguments, validateRemainingArguments)
             }

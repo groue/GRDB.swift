@@ -966,16 +966,9 @@ The following code is dangerous for your application, because it has many opport
 
 ```swift
 func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -> [Row] {
-    // Dictionary arguments may contain invalid values
-    guard let arguments = StatementArguments(arguments) else {
-        throw NSError(
-            domain: "MyDomain",
-            code: 0,
-            userInfo: [NSLocalizedDescriptionKey: "Invalid arguments"])
-    }
-    
-    // Crashes if sql is invalid, or if arguments don't fit the SQL query:
-    return Row.fetchAll(db, sql, arguments: arguments)
+    // Crashes if sql is invalid, if dictionary arguments contains invalid
+    // values, or if arguments don't fit the SQL query:
+    return Row.fetchAll(db, sql, arguments: StatementArguments(arguments))
 }
 
 // fatal error: no such table: foo
