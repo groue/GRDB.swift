@@ -99,10 +99,11 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// that they invoke the performUpdate() method.
     ///
     /// - parameter db: A Database.
+    /// - columns: An array of updated columns. If nil, all columns are updated.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update(db: Database) throws
+    func update(db: Database, columns: [String]?) throws
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
@@ -169,8 +170,8 @@ public extension MutableDatabasePersistable {
     /// Executes an UPDATE statement.
     ///
     /// The default implementation for update() invokes performUpdate().
-    func update(db: Database) throws {
-        try performUpdate(db)
+    func update(db: Database, columns: [String]? = nil) throws {
+        try performUpdate(db, columns: columns)
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -225,8 +226,8 @@ public extension MutableDatabasePersistable {
     /// that adopt MutableDatabasePersistable can invoke performUpdate() in
     /// their implementation of update(). They should not provide their own
     /// implementation of performUpdate().
-    func performUpdate(db: Database) throws {
-        let changes = try DataMapper(db, self).updateStatement().execute()
+    func performUpdate(db: Database, columns: [String]?) throws {
+        let changes = try DataMapper(db, self).updateStatement(columns).execute()
         if changes.changedRowCount == 0 {
             throw PersistenceError.NotFound(self)
         }
@@ -251,7 +252,7 @@ public extension MutableDatabasePersistable {
         }
         
         do {
-            try update(db)
+            try update(db, columns: nil)
         } catch PersistenceError.NotFound {
             // TODO: check that the not persisted objet is self
             //
@@ -413,7 +414,7 @@ public extension DatabasePersistable {
         }
         
         do {
-            try update(db)
+            try update(db, columns: nil)
         } catch PersistenceError.NotFound {
             // TODO: check that the not persisted objet is self
             //
@@ -533,14 +534,30 @@ final class DataMapper {
         return insertStatement
     }
     
-    func updateStatement() -> UpdateStatement {
+    func updateStatement(requestedColumns: [String]?) -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
             fatalError("invalid primary key in \(persistable)")
         }
         
-        // Don't update primary key columns
         var updatedDictionary = persistentDictionary
+        let updatableColums = Array(updatedDictionary.keys)
+        
+        if let requestedColumns = requestedColumns {
+            // Validate requested columns
+            if case let unknownColumns = requestedColumns.filter({ !updatableColums.contains($0) }) where !unknownColumns.isEmpty {
+                fatalError("unknown column(s): \(unknownColumns.joinWithSeparator(", "))")
+            }
+            
+            // Only update requested columns
+            for column in updatableColums {
+                if !requestedColumns.contains(column) {
+                    updatedDictionary.removeValueForKey(column)
+                }
+            }
+        }
+        
+        // Don't update primary key columns
         for column in primaryKeyDictionary.keys {
             updatedDictionary.removeValueForKey(column)
         }
@@ -555,7 +572,7 @@ final class DataMapper {
             //
             // The goal is to be able to write tests with minimal tables,
             // including tables made of a single primary key column.
-            updatedDictionary = persistentDictionary
+            updatedDictionary = primaryKeyDictionary
         }
         
         // Update

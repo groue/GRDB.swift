@@ -6,6 +6,12 @@ Release Notes
 **Breaking Changes**
 
 - `Statement.arguments` in now a non-optional `StatementArguments`.
+- `Record.update()` and `DatabasePersistable.update()` can now execute partial updates:
+    
+    ```swift
+    try person.update(db)                    // Full update
+    try person.update(db, columns: ["age"])  // Only updates the age column
+    ```
 
 
 ## 0.37.1

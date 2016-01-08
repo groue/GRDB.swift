@@ -221,9 +221,14 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
-    public func update(db: Database) throws {
-        try performUpdate(db)
-        hasPersistentChangedValues = false
+    public func update(db: Database, columns: [String]? = nil) throws {
+        try performUpdate(db, columns: columns)
+        
+        // When all columns have been saved, it is safe to reset the
+        // hasPersistentChangedValues flag:
+        if columns == nil {
+            hasPersistentChangedValues = false
+        }
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in

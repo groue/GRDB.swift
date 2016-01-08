@@ -1580,11 +1580,12 @@ The `persistentDictionary` property returns a dictionary whose keys are column n
 Types that adopt DatabasePersistable or MutableDatabasePersistable are given default implementations for methods that insert, update, and delete:
 
 ```swift
-try object.insert(db)  // INSERT
-try object.update(db)  // UPDATE
-try object.save(db)    // Inserts or updates
-try object.delete(db)  // DELETE
-object.exists(db)      // Bool
+try object.insert(db)                 // INSERT
+try object.update(db)                 // UPDATE
+try object.update(db, columns:[...])  // Partial update
+try object.save(db)                   // Inserts or updates
+try object.delete(db)                 // DELETE
+object.exists(db)                     // Bool
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
@@ -1642,9 +1643,9 @@ struct Link : DatabasePersistable {
         try performInsert(db)
     }
     
-    func update(db: Database) throws {
+    func update(db: Database, columns: [String]? = nil) throws {
         try validate()
-        try performUpdate(db)
+        try performUpdate(db, columns: columns)
     }
     
     func validate() throws {
@@ -1712,10 +1713,11 @@ Yet, it does a few things well:
     
     ```swift
     let person = Person(...)
-    try person.insert(db)   // INSERT
-    try person.update(db)   // UPDATE
-    try person.save(db)     // Inserts or updates
-    try person.delete(db)   // DELETE
+    try person.insert(db)                 // INSERT
+    try person.update(db)                 // UPDATE
+    try person.update(db, columns:[...])  // Partial update
+    try person.save(db)                   // Inserts or updates
+    try person.delete(db)                 // DELETE
     ```
     
 - **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
@@ -1765,7 +1767,8 @@ class Person {
     // Persistence
     func insert(db: Database) throws
     func update(db: Database) throws
-    func save(db: Database) throws           // inserts or updates
+    func update(db: Database, columns: [String]? = nil) throws
+    func save(db: Database) throws
     func delete(db: Database) throws -> Bool
     func exists(db: Database) -> Bool
     
@@ -1981,11 +1984,12 @@ class Person : Record {
 
 try dbQueue.inDatabase { db in
     let person = Person(...)
-    try person.insert(db)   // INSERT
-    try person.update(db)   // UPDATE
-    try person.save(db)     // Inserts or updates
-    try person.delete(db)   // DELETE
-    person.exists(db)       // Bool
+    try person.insert(db)                 // INSERT
+    try person.update(db)                 // UPDATE
+    try person.update(db, columns:[...])  // Partial update
+    try person.save(db)                   // Inserts or updates
+    try person.delete(db)                 // DELETE
+    person.exists(db)                     // Bool
 }
 ```
 
@@ -2100,10 +2104,10 @@ You can use some external library such as [GRValidation](https://github.com/grou
 class Person : Record, Validable {
     var name: String?
     
-    override func update(db: Database) throws {
+    override func update(db: Database, columns: [String]? = nil) throws {
         // Validate before update
         try validate()
-        try super.update(db)
+        try super.update(db, columns: columns)
     }
     
     override func insert(db: Database) throws {
