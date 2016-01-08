@@ -1679,7 +1679,7 @@ struct Link : DatabasePersistable {
 
 #### Record Overview
 
-**Record** is a class that wraps a table row or the result of any query, provides persistence methods, and changes tracking. It is designed to be subclassed.
+**Record** is a class that wraps a table row or the result of any query, provides persistence methods, and changes tracking. It builds on top of the [RowConvertible](#rowconvertible-protocol) and [DatabasePersistable](#databasepersistable-protocol) protocols, and is designed to be subclassed.
 
 ```swift
 // Define Record subclass
@@ -1696,8 +1696,6 @@ try dbQueue.inDatabase { db in
     }
 }
 ```
-
-It builds on top of the [RowConvertible](#rowconvertible-protocol) and [DatabasePersistable](#databasepersistable-protocol) protocols.
 
 **Record is not a smart class.** It is no replacement for Core Data’s NSManagedObject, [Realm](https://realm.io)’s Object, or for an Active Record pattern. It does not provide any uniquing, automatic refresh, or synthesized properties. It has no knowledge of external references and table relationships, and will not generate JOIN queries for you.
 
