@@ -1,12 +1,14 @@
 Release Notes
 =============
 
-## Next Release
+## 0.38.0
+
+Released January 8, 2016
 
 **Breaking Changes**
 
-- `Statement.arguments` in now a non-optional `StatementArguments`.
-- `Record.update()` and `DatabasePersistable.update()` can now execute partial updates:
+- `Statement.arguments` is a non-optional `StatementArguments`.
+- `Record.update()` and `DatabasePersistable.update()` can execute partial updates:
     
     ```swift
     try person.update(db)                    // Full update
