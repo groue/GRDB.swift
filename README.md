@@ -981,7 +981,7 @@ func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -
 // fatal error: no such table: foo
 try fetchUserQuery(db, sql: "SELECT * FROM foo", arguments: NSDictionary())
 
-// fatal error: SQLite statement argument names mismatch: got [:name] instead of [:id].
+// fatal error: missing statement argument(s): id.
 try fetchUserQuery(db, sql: "SELECT * FROM persons WHERE id = :id", arguments: NSDictionary(dictionary: ["name": "Arthur"]))
 ```
 
