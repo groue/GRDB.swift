@@ -82,9 +82,9 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///         }
     ///     }
     ///
-    /// The implementation of the base class Record returns an empty dictionary.
+    /// The implementation of the base class Record raises a fatal error.
     public var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return [:]
+        fatalError("subclass must override")
     }
     
     /// Don't call this method directly: it is called upon successful insertion,
