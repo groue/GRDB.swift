@@ -23,7 +23,7 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **GRDB provides [protocols and a Record class](#database-protocols-and-record)** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
-**GRDB is fast**. Even usually faster than FMDB and SQLite.swift (see the [Performance wiki page](https://github.com/groue/GRDB.swift/wiki/Performance)).
+**GRDB is fast**, and usually faster than FMDB and SQLite.swift (see the [Performance wiki page](https://github.com/groue/GRDB.swift/wiki/Performance)).
 
 **You can query your database [right from the debugger](https://twitter.com/groue/status/679347658557902849).**
 
