@@ -2,22 +2,79 @@ import XCTest
 import GRDB
 import SQLite
 
+private let insertedRowCount = 10_000
+
 // Here we insert rows, referencing statement arguments by index.
 class InsertPositionalValuesTests: XCTestCase {
+    
+    func testSQLite() {
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
+        defer {
+            let dbQueue = try! DatabaseQueue(path: databasePath)
+            dbQueue.inDatabase { db in
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
+            }
+            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        }
+        
+        measureBlock {
+            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            
+            var connection: COpaquePointer = nil
+            sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
+            sqlite3_exec(connection, "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)", nil, nil, nil)
+            
+            sqlite3_exec(connection, "BEGIN TRANSACTION", nil, nil, nil)
+            
+            var statement: COpaquePointer = nil
+            sqlite3_prepare_v2(connection, "INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)", -1, &statement, nil)
+            
+            for i in Int64(0)..<Int64(insertedRowCount) {
+                sqlite3_reset(statement)
+                sqlite3_bind_int64(statement, 1, i)
+                sqlite3_bind_int64(statement, 2, i)
+                sqlite3_bind_int64(statement, 3, i)
+                sqlite3_bind_int64(statement, 4, i)
+                sqlite3_bind_int64(statement, 5, i)
+                sqlite3_bind_int64(statement, 6, i)
+                sqlite3_bind_int64(statement, 7, i)
+                sqlite3_bind_int64(statement, 8, i)
+                sqlite3_bind_int64(statement, 9, i)
+                sqlite3_bind_int64(statement, 10, i)
+                sqlite3_step(statement)
+            }
+            
+            sqlite3_finalize(statement)
+            sqlite3_exec(connection, "COMMIT", nil, nil, nil)
+            sqlite3_close(connection)
+        }
+    }
     
     func testFMDB() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
-        let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
-        defer { try! NSFileManager.defaultManager().removeItemAtPath(databasePath) }
-        let dbQueue = FMDatabaseQueue(path: databasePath)
-        dbQueue.inDatabase { db in
-            db.executeStatements("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+        defer {
+            let dbQueue = try! DatabaseQueue(path: databasePath)
+            dbQueue.inDatabase { db in
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
+            }
+            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
         }
-        
         measureBlock {
+            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            
+            let dbQueue = FMDatabaseQueue(path: databasePath)
+            dbQueue.inDatabase { db in
+                db.executeStatements("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+            }
+            
             dbQueue.inTransaction { (db, rollback) -> Void in
-                for i in 0..<10_000 {
+                for i in 0..<insertedRowCount {
                     db.executeUpdate("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)", withArgumentsInArray: [i, i, i, i, i, i, i, i, i, i])
                 }
             }
@@ -27,17 +84,27 @@ class InsertPositionalValuesTests: XCTestCase {
     func testGRDB() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
-        let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
-        defer { try! NSFileManager.defaultManager().removeItemAtPath(databasePath) }
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        try! dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+        defer {
+            let dbQueue = try! DatabaseQueue(path: databasePath)
+            dbQueue.inDatabase { db in
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
+            }
+            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
         }
-        
         measureBlock {
+            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            
+            let dbQueue = try! DatabaseQueue(path: databasePath)
+            try! dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+            }
+            
             try! dbQueue.inTransaction { db in
-                for i in 0..<10_000 {
-                    try db.execute("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)", arguments: [i, i, i, i, i, i, i, i, i, i])
+                let statement = try! db.updateStatement("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                for i in 0..<insertedRowCount {
+                    try statement.execute(arguments: [i, i, i, i, i, i, i, i, i, i])
                 }
                 return .Commit
             }
@@ -47,25 +114,34 @@ class InsertPositionalValuesTests: XCTestCase {
     func testSQLiteSwift() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
-        let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
-        defer { try! NSFileManager.defaultManager().removeItemAtPath(databasePath) }
-        let db = try! Connection(databasePath)
-        try! db.run(itemsTable.create { t in
-            t.column(i0Column)
-            t.column(i1Column)
-            t.column(i2Column)
-            t.column(i3Column)
-            t.column(i4Column)
-            t.column(i5Column)
-            t.column(i6Column)
-            t.column(i7Column)
-            t.column(i8Column)
-            t.column(i9Column)
-            })
-        
+        defer {
+            let dbQueue = try! DatabaseQueue(path: databasePath)
+            dbQueue.inDatabase { db in
+                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
+                XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
+            }
+            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        }
         measureBlock {
+            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            
+            let db = try! Connection(databasePath)
+            try! db.run(itemsTable.create { t in
+                t.column(i0Column)
+                t.column(i1Column)
+                t.column(i2Column)
+                t.column(i3Column)
+                t.column(i4Column)
+                t.column(i5Column)
+                t.column(i6Column)
+                t.column(i7Column)
+                t.column(i8Column)
+                t.column(i9Column)
+                })
+            
             try! db.transaction {
-                for i in 0..<10_000 {
+                for i in 0..<insertedRowCount {
                     let stmt = db.prepare("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
                     try stmt.run(i, i, i, i, i, i, i, i, i, i)
                 }
