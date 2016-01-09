@@ -17,7 +17,7 @@ Released January 8, 2016
 **Breaking Changes**
 
 - `Statement.arguments` is no longer optional.
-- Your Record subclasses and DatabasePersistable types must change their `update` signature as below:
+- Your Record subclasses and DatabasePersistable types that provide custom implementation of `update` must use the signature below:
     
     ```swift
     func update(db: Database, columns: [String]? = nil) throws
