@@ -7,7 +7,7 @@ Released January 8, 2016
 
 **Breaking Changes**
 
-- `Statement.arguments` is a non-optional `StatementArguments`.
+- `Statement.arguments` is no longer optional.
 - `Record.update()` and `DatabasePersistable.update()` can execute partial updates:
     
     ```swift
