@@ -51,7 +51,7 @@ class FetchPositionalValuesTests: XCTestCase {
         }
     }
     
-    func testFetchValueAtIndexPerformance() {
+    func testSQLiteSwift() {
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let db = try! Connection(databasePath)
         
