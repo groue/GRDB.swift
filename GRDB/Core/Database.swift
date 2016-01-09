@@ -519,6 +519,9 @@ public final class Database {
     // =========================================================================
     // MARK: - Database Informations
     
+    /// The database configuration
+    public let configuration: Configuration
+    
     /// Clears the database schema cache.
     ///
     /// You may need to clear the cache if you modify the database schema
@@ -671,13 +674,6 @@ public final class Database {
     
     
     // =========================================================================
-    // MARK: - Configuration
-    
-    /// The database configuration
-    public let configuration: Configuration
-    
-    
-    // =========================================================================
     // MARK: - Initialization
     
     /// The queue from which the database can be used. See preconditionValidQueue().
@@ -696,7 +692,9 @@ public final class Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
-        setupTrace()    // First, so that all queries, including initialization queries, are traced.
+        // Setup trace first, so that all queries, including initialization queries, are traced.
+        setupTrace()
+        
         try setupForeignKeys()
         setupBusyMode()
         setupTransactionHooks()

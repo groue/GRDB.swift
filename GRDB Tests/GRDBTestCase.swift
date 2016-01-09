@@ -18,7 +18,9 @@ class GRDBTestCase: XCTestCase {
         super.setUp()
         
         sqlQueries = []
-        databasePath = "/tmp/GRDB.sqlite"
+        
+        let databaseFileName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
         dbQueue = try! DatabaseQueue(path: databasePath, configuration: dbConfiguration)
     }
