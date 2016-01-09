@@ -7,63 +7,6 @@ private let insertedRowCount = 10_000
 // Here we insert rows, referencing statement arguments by name.
 class InsertNamedValuesTests: XCTestCase {
     
-    func testSQLite() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
-        defer {
-            let dbQueue = try! DatabaseQueue(path: databasePath)
-            dbQueue.inDatabase { db in
-                XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
-                XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
-            }
-            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
-        }
-        
-        measureBlock {
-            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
-            
-            var connection: COpaquePointer = nil
-            sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
-            sqlite3_exec(connection, "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)", nil, nil, nil)
-            
-            sqlite3_exec(connection, "BEGIN TRANSACTION", nil, nil, nil)
-            
-            var statement: COpaquePointer = nil
-            sqlite3_prepare_v2(connection, "INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (:i0, :i1, :i2, :i3, :i4, :i5, :i6, :i7, :i8, :i9)", -1, &statement, nil)
-            
-            let index0 = sqlite3_bind_parameter_index(statement, ":i0")
-            let index1 = sqlite3_bind_parameter_index(statement, ":i1")
-            let index2 = sqlite3_bind_parameter_index(statement, ":i2")
-            let index3 = sqlite3_bind_parameter_index(statement, ":i3")
-            let index4 = sqlite3_bind_parameter_index(statement, ":i4")
-            let index5 = sqlite3_bind_parameter_index(statement, ":i5")
-            let index6 = sqlite3_bind_parameter_index(statement, ":i6")
-            let index7 = sqlite3_bind_parameter_index(statement, ":i7")
-            let index8 = sqlite3_bind_parameter_index(statement, ":i8")
-            let index9 = sqlite3_bind_parameter_index(statement, ":i9")
-            
-            for i in Int64(0)..<Int64(insertedRowCount) {
-                sqlite3_reset(statement)
-                sqlite3_bind_int64(statement, index0, i)
-                sqlite3_bind_int64(statement, index1, i)
-                sqlite3_bind_int64(statement, index2, i)
-                sqlite3_bind_int64(statement, index3, i)
-                sqlite3_bind_int64(statement, index4, i)
-                sqlite3_bind_int64(statement, index5, i)
-                sqlite3_bind_int64(statement, index6, i)
-                sqlite3_bind_int64(statement, index7, i)
-                sqlite3_bind_int64(statement, index8, i)
-                sqlite3_bind_int64(statement, index9, i)
-                sqlite3_step(statement)
-            }
-            
-            sqlite3_finalize(statement)
-            sqlite3_exec(connection, "COMMIT", nil, nil, nil)
-            sqlite3_close(connection)
-        }
-    }
-    
     func testFMDB() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
@@ -86,6 +29,7 @@ class InsertNamedValuesTests: XCTestCase {
             }
             
             dbQueue.inTransaction { (db, rollback) -> Void in
+                db.setShouldCacheStatements(true)
                 for i in 0..<insertedRowCount {
                     db.executeUpdate("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (:i0, :i1, :i2, :i3, :i4, :i5, :i6, :i7, :i8, :i9)", withParameterDictionary: ["i0": i, "i1": i, "i2": i, "i3": i, "i4": i, "i5": i, "i6": i, "i7": i, "i8": i, "i9": i])
                 }
