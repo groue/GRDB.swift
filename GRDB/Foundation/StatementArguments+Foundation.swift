@@ -2,6 +2,8 @@ import Foundation
 
 extension StatementArguments {
     
+    // MARK: Positional Arguments
+    
     /// Initializes arguments from an NSArray.
     ///
     /// The result is nil unless all objects adopt DatabaseValueConvertible
@@ -35,6 +37,9 @@ extension StatementArguments {
         self.init(values)
     }
     
+    
+    // MARK: Named Arguments
+    
     /// Initializes arguments from an NSDictionary.
     ///
     /// The result is nil unless all dictionary keys are strings, and values
@@ -43,10 +48,6 @@ extension StatementArguments {
     ///
     ///     let values: NSDictionary = ["firstName": "Arthur", "lastName": "Miller"]
     ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values)!)
-    ///
-    /// GRDB.swift only supports colon-prefixed named arguments, even though
-    /// SQLite supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
-    /// for more information.
     ///
     /// - parameter dictionary: An NSDictionary
     /// - returns: A StatementArguments.

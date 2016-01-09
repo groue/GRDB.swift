@@ -467,10 +467,6 @@ public struct StatementArguments {
     ///     let values: [String: String?] = ["firstName": nil, "lastName": "Miller"]
     ///     db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
     ///
-    /// GRDB.swift only supports colon-prefixed named arguments, even though
-    /// SQLite supports other syntaxes. See https://www.sqlite.org/lang_expr.html#varparam
-    /// for more information.
-    ///
     /// - parameter dictionary: A dictionary of optional values that adopt the
     ///   DatabaseValueConvertible protocol.
     /// - returns: A StatementArguments.

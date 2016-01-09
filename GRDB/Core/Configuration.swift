@@ -7,11 +7,14 @@ public struct Configuration {
     
     public var foreignKeysEnabled: Bool = true
     public var readonly: Bool = false
+    
+    /// A function that is called on every statement executed by the database.
     public var trace: TraceFunction?
     
     
     // MARK: - Transactions
     
+    /// The default kind of transaction.
     public var defaultTransactionKind: TransactionKind = .Immediate
     public var transactionObserver: TransactionObserverType?
     
@@ -24,9 +27,15 @@ public struct Configuration {
     
     // MARK: - Factory Configuration
     
-    /// Returns a factory configuration.
-    public init() {
-    }
+    /// Returns a factory configuration:
+    ///
+    /// - foreignKeysEnabled: true
+    /// - readonly: false
+    /// - trace: nil
+    /// - defaultTransactionKind: .Immediate
+    /// - transactionObserver: nil
+    /// - busyMode: .ImmediateError
+    public init() { }
     
     
     // MARK: - SQLite flags
