@@ -5,17 +5,19 @@ Release Notes
 
 Released January 8, 2016
 
-**Breaking Changes**
+**New**
 
-- `Statement.arguments` is no longer optional.
 - `Record.update()` and `DatabasePersistable.update()` can execute partial updates:
     
     ```swift
     try person.update(db)                    // Full update
     try person.update(db, columns: ["age"])  // Only updates the age column
     ```
-    
-    Your types must update their `update` signature as below:
+
+**Breaking Changes**
+
+- `Statement.arguments` is no longer optional.
+- Your Record subclasses and DatabasePersistable types must update their `update` signature as below:
     
     ```swift
     func update(db: Database, columns: [String]? = nil) throws
