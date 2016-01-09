@@ -14,6 +14,12 @@ Released January 8, 2016
     try person.update(db)                    // Full update
     try person.update(db, columns: ["age"])  // Only updates the age column
     ```
+    
+    Your types must update their `update` signature as below:
+    
+    ```swift
+    func update(db: Database, columns: [String]? = nil) throws
+    ```
 
 
 ## 0.37.1
