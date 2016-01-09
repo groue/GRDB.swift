@@ -192,10 +192,8 @@ public class Statement {
             throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(keyValueBindings.count)", sql: sql, arguments: nil)
         }
         
-        let missingKeys = keyValueBindings.filter { $0.1 == nil }.map { $0.0 }
-        if !missingKeys.isEmpty {
-            let namedMissingKeys = missingKeys.flatMap { $0 }
-            if namedMissingKeys.count == missingKeys.count {
+        if case let missingKeys = keyValueBindings.filter({ $0.1 == nil }).map({ $0.0 }) where !missingKeys.isEmpty {
+            if case let namedMissingKeys = missingKeys.flatMap({ $0 }) where namedMissingKeys.count == missingKeys.count {
                 func caseInsensitiveSort(strings: [String]) -> [String] {
                     return strings
                         .map { ($0.lowercaseString, $0) }

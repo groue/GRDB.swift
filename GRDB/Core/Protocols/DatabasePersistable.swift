@@ -541,9 +541,10 @@ final class DataMapper {
         }
         
         var updatedDictionary = persistentDictionary
-        let updatableColums = Array(updatedDictionary.keys)
         
         if let requestedColumns = requestedColumns {
+            let updatableColums = Array(updatedDictionary.keys)
+            
             // Validate requested columns
             if case let unknownColumns = requestedColumns.filter({ !updatableColums.contains($0) }) where !unknownColumns.isEmpty {
                 fatalError("unknown column(s): \(unknownColumns.joinWithSeparator(", "))")
