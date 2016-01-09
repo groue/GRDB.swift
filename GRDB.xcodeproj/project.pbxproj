@@ -23,7 +23,7 @@
 		560C98131C0E22D300BF8471 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
 		560C98141C0E22D300BF8471 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3773F319C8CBB3004FCF85 /* GRDB.framework */; };
 		560C98161C0E22D300BF8471 /* PerformanceTests.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */; };
-		560C98231C0E23BB00BF8471 /* GRDBPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86121BA9886D001F9168 /* GRDBPerformanceTests.swift */; };
+		560C98231C0E23BB00BF8471 /* InsertRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86121BA9886D001F9168 /* InsertRecordTests.swift */; };
 		560C98241C0E23BB00BF8471 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA22211BB41565009A04C5 /* PerformanceTests.swift */; };
 		5614DEF01BA9DA15003163B3 /* SQLiteStatementConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5614DEEF1BA9DA15003163B3 /* SQLiteStatementConvertible.swift */; };
 		5614DEF11BA9DA15003163B3 /* SQLiteStatementConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5614DEEF1BA9DA15003163B3 /* SQLiteStatementConvertible.swift */; };
@@ -375,7 +375,7 @@
 		56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDB.xcconfig; sourceTree = "<group>"; };
 		56B8F49B1B4E2F3600C24296 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceTests.sqlite; sourceTree = "<group>"; };
-		56BB86121BA9886D001F9168 /* GRDBPerformanceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBPerformanceTests.swift; sourceTree = "<group>"; };
+		56BB86121BA9886D001F9168 /* InsertRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordTests.swift; sourceTree = "<group>"; };
 		56BB86181BA988F2001F9168 /* FMDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabase.h; sourceTree = "<group>"; };
 		56BB86191BA988F2001F9168 /* FMDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabase.m; sourceTree = "<group>"; };
 		56BB861A1BA988F2001F9168 /* FMDatabaseAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabaseAdditions.h; sourceTree = "<group>"; };
@@ -763,13 +763,13 @@
 				56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */,
 				56BB86171BA988F2001F9168 /* fmdb */,
 				56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */,
-				56BB86121BA9886D001F9168 /* GRDBPerformanceTests.swift */,
-				56CA22211BB41565009A04C5 /* PerformanceTests.swift */,
-				56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */,
 				56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */,
+				56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */,
 				56DE7B2B1C41311900861EB8 /* FetchRecordTests.swift */,
 				56DE7B251C412FDA00861EB8 /* InsertNamedValuesTests.swift */,
 				56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */,
+				56BB86121BA9886D001F9168 /* InsertRecordTests.swift */,
+				56CA22211BB41565009A04C5 /* PerformanceTests.swift */,
 			);
 			path = Performance;
 			sourceTree = "<group>";
@@ -1232,7 +1232,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				560C97DA1C0E22D300BF8471 /* FMDatabase.m in Sources */,
-				560C98231C0E23BB00BF8471 /* GRDBPerformanceTests.swift in Sources */,
+				560C98231C0E23BB00BF8471 /* InsertRecordTests.swift in Sources */,
 				560C97DD1C0E22D300BF8471 /* FMDatabaseAdditions.m in Sources */,
 				56DE7B2C1C41311900861EB8 /* FetchRecordTests.swift in Sources */,
 				560C97E81C0E22D300BF8471 /* FMResultSet.m in Sources */,

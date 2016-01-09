@@ -1,8 +1,8 @@
 import XCTest
 import GRDB
 
-/// GRDB-specifc performance tests
-class GRDBPerformanceTests: XCTestCase {
+// Here we insert records.
+class InsertRecordTests: XCTestCase {
     
     func testInsertRecordPerformance() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
