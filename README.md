@@ -5,7 +5,7 @@ GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2.
 
 It ships with a low-level database API, plus application-level tools.
 
-**January 8, 2016: GRDB.swift 0.38.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**January 10, 2016: GRDB.swift 0.38.1 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -41,7 +41,7 @@ Features
 Documentation
 =============
 
-- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.38.0/index.html)** (on cocoadocs.org)
+- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.38.1/index.html)** (on cocoadocs.org)
 
 - **[Installation](#installation)**
 
@@ -97,7 +97,7 @@ To use GRDB.swift with Cocoapods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '0.38.0'
+pod 'GRDB.swift', '~> 0.38.1'
 ```
 
 
@@ -108,7 +108,7 @@ pod 'GRDB.swift', '0.38.0'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" == 0.38.0
+github "groue/GRDB.swift" ~> 0.38.1
 ```
 
 
@@ -210,7 +210,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.38.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.38.1/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 
 

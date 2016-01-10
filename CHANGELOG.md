@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## 0.38.1
+
+**New**
+
+- Various [performance improvements](https://github.com/groue/GRDB.swift/wiki/Performance)
+
+
 ## 0.38.0
 
 Released January 8, 2016
