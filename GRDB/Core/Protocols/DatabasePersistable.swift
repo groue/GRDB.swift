@@ -530,7 +530,7 @@ final class DataMapper {
     
     func insertStatement() -> UpdateStatement {
         let insertStatement = try! db.cachedUpdateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(persistentDictionary.keys)))
-        insertStatement.arguments = StatementArguments(persistentDictionary.values)
+        insertStatement.unsafeSetArguments(StatementArguments(persistentDictionary.values))
         return insertStatement
     }
     
@@ -576,7 +576,7 @@ final class DataMapper {
         
         // Update
         let updateStatement = try! db.cachedUpdateStatement(DataMapper.updateSQL(tableName: databaseTableName, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
-        updateStatement.arguments = StatementArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
+        updateStatement.unsafeSetArguments(StatementArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values)))
         return updateStatement
     }
     
@@ -588,7 +588,7 @@ final class DataMapper {
         
         // Delete
         let deleteStatement = try! db.cachedUpdateStatement(DataMapper.deleteSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
-        deleteStatement.arguments = StatementArguments(primaryKeyDictionary.values)
+        deleteStatement.unsafeSetArguments(StatementArguments(primaryKeyDictionary.values))
         return deleteStatement
     }
     
@@ -602,22 +602,53 @@ final class DataMapper {
         
         // Fetch
         let existsStatement = try! db.selectStatement(DataMapper.existsSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
-        existsStatement.arguments = StatementArguments(primaryKeyDictionary.values)
+        existsStatement.unsafeSetArguments(StatementArguments(primaryKeyDictionary.values))
         return existsStatement
     }
     
     
     // MARK: - SQL query builders
     
+    private struct InsertQuery: Hashable {
+        let tableName: String
+        let insertedColumns: [String]
+        var hashValue: Int {
+            return tableName.hashValue
+        }
+    }
+    private static var insertSQLCache: [InsertQuery: String] = [:]
     private class func insertSQL(tableName tableName: String, insertedColumns: [String]) -> String {
+        let query = InsertQuery(tableName: tableName, insertedColumns: insertedColumns)
+        if let sql = insertSQLCache[query] {
+            return sql
+        }
+        
         let columnSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
         let valuesSQL = Array(count: insertedColumns.count, repeatedValue: "?").joinWithSeparator(",")
-        return "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
+        let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
+        insertSQLCache[query] = sql
+        return sql
     }
     
+    private struct UpdateQuery: Hashable {
+        let tableName: String
+        let updatedColumns: [String]
+        let conditionColumns: [String]
+        var hashValue: Int {
+            return tableName.hashValue
+        }
+    }
+    private static var updateSQLCache: [UpdateQuery: String] = [:]
     private class func updateSQL(tableName tableName: String, updatedColumns: [String], conditionColumns: [String]) -> String {
+        let query = UpdateQuery(tableName: tableName, updatedColumns: updatedColumns, conditionColumns: conditionColumns)
+        if let sql = updateSQLCache[query] {
+            return sql
+        }
+        
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(",")
-        return "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL(conditionColumns))"
+        let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL(conditionColumns))"
+        updateSQLCache[query] = sql
+        return sql
     }
     
     private class func deleteSQL(tableName tableName: String, conditionColumns: [String]) -> String {
@@ -627,12 +658,19 @@ final class DataMapper {
     private class func existsSQL(tableName tableName: String, conditionColumns: [String]) -> String {
         return "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
     }
-
-    private class func reloadSQL(tableName tableName: String, conditionColumns: [String]) -> String {
-        return "SELECT * FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
-    }
     
     private class func whereSQL(conditionColumns: [String]) -> String {
         return conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
     }
+}
+
+private func == (lhs: DataMapper.InsertQuery, rhs: DataMapper.InsertQuery) -> Bool {
+    if lhs.tableName != rhs.tableName { return false }
+    return lhs.insertedColumns == rhs.insertedColumns
+}
+
+private func == (lhs: DataMapper.UpdateQuery, rhs: DataMapper.UpdateQuery) -> Bool {
+    if lhs.tableName != rhs.tableName { return false }
+    if lhs.updatedColumns != rhs.updatedColumns { return false }
+    return lhs.conditionColumns == rhs.conditionColumns
 }
