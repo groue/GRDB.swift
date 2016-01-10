@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 import SQLite
 
-private let insertedRowCount = 10_000
+private let insertedRowCount = 20_000
 
 // Here we insert rows, referencing statement arguments by index.
 class InsertPositionalValuesTests: XCTestCase {
