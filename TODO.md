@@ -1,5 +1,3 @@
-- [ ] Remove partial updates. They were a bad idea.
-
 Not sure:
 
 - [ ] Refactor errors in a single type?
