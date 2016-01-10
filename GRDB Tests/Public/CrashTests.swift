@@ -167,15 +167,115 @@ class CrashTests: GRDBTestCase {
     // =========================================================================
     // MARK: - Statements
     
-    func testInvalidNamedBinding() {
+    func testInvalidStatementArguments() {
         assertCrash("SQLite error 1 with statement `INSERT INTO persons (name, age) VALUES (:name, :age)`: missing statement argument(s): age") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try! db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur"])
             }
         }
+        
+        assertCrash("SQLite error 21 with statement `INSERT INTO persons (name, age) VALUES ('Arthur', ?);`: wrong number of statement arguments: 0") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);")
+                    XCTFail("Expected Error")
+                } catch {
+                    XCTAssertTrue(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age").isEmpty)
+                }
+                
+                return .Rollback
+            }
+        }
+        
+        assertCrash("SQLite error 21 with statement `INSERT INTO persons (name, age) VALUES ('Arthur', ?);`: wrong number of statement arguments: 0") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
+                        arguments: [41])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [41])
+                }
+                
+                return .Rollback
+            }
+        }
+        
+        assertCrash("SQLite error 21 with statement `INSERT INTO persons (name, age) VALUES ('Arthur', :age1);`: missing statement argument(s): age1") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);")
+                    XCTFail("Expected Error")
+                } catch {
+                    XCTAssertTrue(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age").isEmpty)
+                }
+                return .Rollback
+            }
+        }
+        
+        assertCrash("SQLite error 21 with statement `INSERT INTO persons (name, age) VALUES ('Arthur', :age2);`: missing statement argument(s): age2") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                        arguments: ["age1": 41])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [41])
+                }
+                return .Rollback
+            }
+        }
+        
+        assertCrash("wrong number of statement arguments: 3") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                        arguments: [41, 32, 17])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                }
+                return .Rollback
+            }
+        }
+        
+        assertCrash("wrong number of statement arguments: 3") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
+                        arguments: [41, 32, 17])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                }
+                return .Rollback
+            }
+        }
     }
-
+    
     
     // =========================================================================
     // MARK: - RecordWithoutDatabaseTableName

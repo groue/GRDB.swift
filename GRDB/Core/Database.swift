@@ -123,7 +123,7 @@ public final class Database {
                 // It's not OK if there remains unused arguments:
                 let validateRemainingArguments = {
                     if !remainingValues.isEmpty {
-                        throw DatabaseError(code: SQLITE_MISUSE, message: "Statement arguments mismatch: got \(values.count) argument(s) instead of \(values.count - remainingValues.count).", sql: sql, arguments: nil)
+                        fatalError("wrong number of statement arguments: \(values.count)")
                     }
                 }
                 return (consumeArguments, validateRemainingArguments)

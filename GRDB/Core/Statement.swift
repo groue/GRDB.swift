@@ -381,7 +381,7 @@ public final class UpdateStatement : Statement {
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
-        try prepareWithArguments(arguments)
+        try! prepareWithArguments(arguments)
         reset()
         
         let changes: DatabaseChanges
