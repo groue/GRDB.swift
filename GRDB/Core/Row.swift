@@ -25,12 +25,8 @@ public final class Row: CollectionType {
     
     /// Builds a row from an dictionary of values.
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        var databaseDictionary = [String: DatabaseValue]()
-        for (key, value) in dictionary {
-            databaseDictionary[key] = value?.databaseValue ?? .Null
-        }
         self.sqliteStatement = nil
-        self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
+        self.impl = DictionaryRowImpl(dictionary: dictionary)
     }
     
     /// Returns a copy of the row.
@@ -576,19 +572,6 @@ public final class Row: CollectionType {
     
     // MARK: - Not Public
     
-    /// There a three different RowImpl:
-    ///
-    /// - MetalRowImpl: metal rows grant direct access to the current state of
-    ///   an SQLite statement. Such rows are reused during the iteration of a
-    ///   statement.
-    ///
-    /// - DetachedRowImpl: detached rows hold a copy of the values that come
-    ///   from an SQLite statement.
-    ///
-    /// - DictionaryRowImpl: dictionary rows are created by the library users.
-    ///   They do not come from the database.
-    ///
-    /// - EmptyRowImpl: empty row
     let impl: RowImpl
     
     /// Only metal rows have a SQLiteStatement.
@@ -621,16 +604,16 @@ public final class Row: CollectionType {
     
     // MARK: - DictionaryRowImpl
     
-    /// See Row.init(databaseDictionary:)
+    /// See Row.init(dictionary:)
     private struct DictionaryRowImpl : RowImpl {
-        let databaseDictionary: [String: DatabaseValue]
+        let dictionary: [String: DatabaseValueConvertible?]
         
-        init (databaseDictionary: [String: DatabaseValue]) {
-            self.databaseDictionary = databaseDictionary
+        init (dictionary: [String: DatabaseValueConvertible?]) {
+            self.dictionary = dictionary
         }
         
         var count: Int {
-            return databaseDictionary.count
+            return dictionary.count
         }
         
         func dataNoCopy(atIndex index:Int) -> NSData? {
@@ -638,20 +621,20 @@ public final class Row: CollectionType {
         }
         
         func databaseValue(atIndex index: Int) -> DatabaseValue {
-            return databaseDictionary[databaseDictionary.startIndex.advancedBy(index)].1
+            return dictionary[dictionary.startIndex.advancedBy(index)].1?.databaseValue ?? .Null
         }
         
         func columnName(atIndex index: Int) -> String {
-            return databaseDictionary[databaseDictionary.startIndex.advancedBy(index)].0
+            return dictionary[dictionary.startIndex.advancedBy(index)].0
         }
         
         // This method MUST be case-insensitive.
         func indexForColumn(named name: String) -> Int? {
             let lowercaseName = name.lowercaseString
-            guard let index = databaseDictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) else {
+            guard let index = dictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) else {
                 return nil
             }
-            return databaseDictionary.startIndex.distanceTo(index)
+            return dictionary.startIndex.distanceTo(index)
         }
         
         func copiedRow(row: Row) -> Row {
