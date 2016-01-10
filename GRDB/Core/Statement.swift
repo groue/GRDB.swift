@@ -112,8 +112,13 @@ public class Statement {
                 try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
             }
             break
-        case .Dictionary:
-            fatalError("not implemented")
+        case .Dictionary(let dictionary):
+            // TODO: test
+            for (index, argumentName) in sqliteArgumentNames.enumerate() {
+                if let argumentName = argumentName, let value = dictionary[argumentName] {
+                    try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
+                }
+            }
         }
     }
     
