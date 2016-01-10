@@ -13,11 +13,12 @@ public class Statement {
     /// The SQL query
     public let sql: String
     
-    /// The query arguments
+    /// The statement arguments
     public var arguments: StatementArguments {
         get { return _arguments }
         set { try! setArgumentsWithValidation(newValue) }
     }
+    
     
     // MARK: Not public
     
@@ -76,6 +77,7 @@ public class Statement {
     
     // MARK: Arguments
     
+    var argumentsNeedValidation = true
     var _arguments: StatementArguments = []
     
     lazy var sqliteArgumentCount: Int = {
@@ -95,33 +97,57 @@ public class Statement {
         }
     }()
     
+    /// Set arguments without any validation. Trades safety for performance.
+    func unsafeSetArguments(arguments: StatementArguments) {
+        _arguments = arguments
+        argumentsNeedValidation = false
+        
+        // Apply
+        reset()
+        clearBindings()
+        
+        switch arguments.kind {
+        case .Array(let array):
+            for (index, value) in array.enumerate() {
+                try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
+            }
+            break
+        case .Dictionary:
+            fatalError("not implemented")
+        }
+    }
+    
     private func setArgumentsWithValidation(arguments: StatementArguments) throws {
         // Validate
         let bindings = try validatedBindings(arguments)
         _arguments = arguments
+        argumentsNeedValidation = false
         
         // Apply
         reset()
         clearBindings()
         for (index, databaseValue) in bindings.enumerate() {
-            let bindingIndex = Int32(index + 1)
-            let code: Int32
-            switch databaseValue.storage {
-            case .Null:
-                code = sqlite3_bind_null(sqliteStatement, bindingIndex)
-            case .Int64(let int64):
-                code = sqlite3_bind_int64(sqliteStatement, bindingIndex, int64)
-            case .Double(let double):
-                code = sqlite3_bind_double(sqliteStatement, bindingIndex, double)
-            case .String(let string):
-                code = sqlite3_bind_text(sqliteStatement, bindingIndex, string, -1, SQLITE_TRANSIENT)
-            case .Blob(let data):
-                code = sqlite3_bind_blob(sqliteStatement, bindingIndex, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
-            }
-            
-            if code != SQLITE_OK {
-                throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
-            }
+            try bindDatabaseValue(databaseValue, atIndex: Int32(index + 1))
+        }
+    }
+    
+    private func bindDatabaseValue(databaseValue: DatabaseValue, atIndex index: Int32) throws {
+        let code: Int32
+        switch databaseValue.storage {
+        case .Null:
+            code = sqlite3_bind_null(sqliteStatement, index)
+        case .Int64(let int64):
+            code = sqlite3_bind_int64(sqliteStatement, index, int64)
+        case .Double(let double):
+            code = sqlite3_bind_double(sqliteStatement, index, double)
+        case .String(let string):
+            code = sqlite3_bind_text(sqliteStatement, index, string, -1, SQLITE_TRANSIENT)
+        case .Blob(let data):
+            code = sqlite3_bind_blob(sqliteStatement, index, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
+        }
+        
+        if code != SQLITE_OK {
+            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
     
@@ -220,7 +246,7 @@ public class Statement {
     private func prepareWithArguments(arguments: StatementArguments?) throws {
         if let arguments = arguments {
             try setArgumentsWithValidation(arguments)
-        } else {
+        } else if argumentsNeedValidation {
             try validateArguments(self.arguments)
         }
     }
