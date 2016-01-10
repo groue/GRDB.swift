@@ -72,7 +72,7 @@ class FetchNamedValuesTests: XCTestCase {
         self.measureBlock {
             var count = 0
             
-            for item in db.prepare(itemsTable) {
+            for item in try! db.prepare(itemsTable) {
                 let _ = item[i0Column]
                 let _ = item[i1Column]
                 let _ = item[i2Column]

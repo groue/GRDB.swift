@@ -113,7 +113,7 @@ class FetchPositionalValuesTests: XCTestCase {
         self.measureBlock {
             var count = 0
             
-            for row in db.prepare("SELECT * FROM items") {
+            for row in try! db.prepare("SELECT * FROM items") {
                 // Direct Int extraction is not supported.
                 let _ = Int(row[0] as! Int64)
                 let _ = Int(row[1] as! Int64)

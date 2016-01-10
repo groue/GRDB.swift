@@ -142,7 +142,7 @@ class InsertPositionalValuesTests: XCTestCase {
                 })
             
             try! db.transaction {
-                let stmt = db.prepare("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                let stmt = try! db.prepare("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
                 for i in 0..<insertedRowCount {
                     try stmt.run(i, i, i, i, i, i, i, i, i, i)
                 }

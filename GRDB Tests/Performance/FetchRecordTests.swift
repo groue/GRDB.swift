@@ -108,7 +108,7 @@ class FetchRecordTests: XCTestCase {
         
         self.measureBlock {
             var items = [Item]()
-            for row in db.prepare(itemsTable) {
+            for row in try! db.prepare(itemsTable) {
                 let item = Item(
                     i0: row[i0Column],
                     i1: row[i1Column],
