@@ -34,11 +34,11 @@ public final class Database {
     func cachedSelectStatement(sql: String) throws -> SelectStatement {
         if let statement = selectStatementCache[sql] {
             return statement
-        } else {
-            let statement = try selectStatement(sql)
-            selectStatementCache[sql] = statement
-            return statement
         }
+        
+        let statement = try selectStatement(sql)
+        selectStatementCache[sql] = statement
+        return statement
     }
     
     
@@ -63,11 +63,11 @@ public final class Database {
     func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
         if let statement = updateStatementCache[sql] {
             return statement
-        } else {
-            let statement = try updateStatement(sql)
-            updateStatementCache[sql] = statement
-            return statement
         }
+        
+        let statement = try updateStatement(sql)
+        updateStatementCache[sql] = statement
+        return statement
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
@@ -546,6 +546,7 @@ public final class Database {
     var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
     
     private var columnInfosCache: [String: [ColumnInfo]] = [:]
+    private var primaryKeyCache: [String: PrimaryKey] = [:]
     private var updateStatementCache: [String: UpdateStatement] = [:]
     private var selectStatementCache: [String: SelectStatement] = [:]
     
@@ -556,9 +557,11 @@ public final class Database {
     public func clearSchemaCache() {
         preconditionValidQueue()
         columnInfosCache = [:]
+        primaryKeyCache = [:]
         updateStatementCache = [:]
         selectStatementCache = [:]
     }
+    
     /// Returns whether a table exists.
     ///
     /// - parameter tableName: A table name.
@@ -575,6 +578,10 @@ public final class Database {
     ///
     /// This method is not thread-safe.
     func primaryKey(tableName: String) -> PrimaryKey? {
+        if let primaryKey = primaryKeyCache[tableName] {
+            return primaryKey
+        }
+        
         // https://www.sqlite.org/pragma.html
         //
         // > PRAGMA database.table_info(table-name);
@@ -605,6 +612,7 @@ public final class Database {
             return nil
         }
         
+        let primaryKey: PrimaryKey
         let pkColumnInfos = columnInfos
             .filter { $0.primaryKeyIndex > 0 }
             .sort { $0.primaryKeyIndex < $1.primaryKeyIndex }
@@ -612,7 +620,7 @@ public final class Database {
         switch pkColumnInfos.count {
         case 0:
             // No primary key column
-            return PrimaryKey.None
+            primaryKey = PrimaryKey.None
         case 1:
             // Single column
             let pkColumnInfo = pkColumnInfos.first!
@@ -638,14 +646,17 @@ public final class Database {
             // We ignore the exception, and consider all INTEGER primary keys as
             // aliases for the rowid:
             if pkColumnInfo.type.uppercaseString == "INTEGER" {
-                return .Managed(pkColumnInfo.name)
+                primaryKey = .Managed(pkColumnInfo.name)
             } else {
-                return .Unmanaged([pkColumnInfo.name])
+                primaryKey = .Unmanaged([pkColumnInfo.name])
             }
         default:
             // Multi-columns primary key
-            return .Unmanaged(pkColumnInfos.map { $0.name })
+            primaryKey = .Unmanaged(pkColumnInfos.map { $0.name })
         }
+        
+        primaryKeyCache[tableName] = primaryKey
+        return primaryKey
     }
     
     // CREATE TABLE persons (
@@ -680,11 +691,11 @@ public final class Database {
     private func columnInfos(tableName: String) -> [ColumnInfo] {
         if let columnInfos = columnInfosCache[tableName] {
             return columnInfos
-        } else {
-            let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
-            columnInfosCache[tableName] = columnInfos
-            return columnInfos
         }
+        
+        let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+        columnInfosCache[tableName] = columnInfos
+        return columnInfos
     }
     
     
