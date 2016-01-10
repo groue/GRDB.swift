@@ -1,6 +1,7 @@
 import XCTest
 import GRDB
 import SQLite
+import CoreData
 
 private let expectedRowCount = 100_000
 
@@ -125,6 +126,34 @@ class FetchRecordTests: XCTestCase {
             XCTAssertEqual(items[0].i0, 0)
             XCTAssertEqual(items[1].i1, 1)
             XCTAssertEqual(items[expectedRowCount-1].i9, expectedRowCount-1)
+        }
+    }
+    
+    func testCoreData() {
+        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceCoreDataTests", ofType: "sqlite")!
+        let modelURL = NSBundle(forClass: self.dynamicType).URLForResource("PerformanceModel", withExtension: "momd")!
+        let mom = NSManagedObjectModel(contentsOfURL: modelURL)!
+        let psc = NSPersistentStoreCoordinator(managedObjectModel: mom)
+        try! psc.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: NSURL(fileURLWithPath: databasePath), options: nil)
+        let moc = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
+        moc.persistentStoreCoordinator = psc
+        
+        measureBlock {
+            let request = NSFetchRequest(entityName: "Item")
+            let items = try! moc.executeFetchRequest(request)
+            for item in items {
+                item.valueForKey("i0")
+                item.valueForKey("i1")
+                item.valueForKey("i2")
+                item.valueForKey("i3")
+                item.valueForKey("i4")
+                item.valueForKey("i5")
+                item.valueForKey("i6")
+                item.valueForKey("i7")
+                item.valueForKey("i8")
+                item.valueForKey("i9")
+            }
+            XCTAssertEqual(items.count, expectedRowCount)
         }
     }
 }

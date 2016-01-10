@@ -169,6 +169,9 @@
 		56DE7B281C41302500861EB8 /* FetchNamedValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */; };
 		56DE7B2A1C4130AF00861EB8 /* FetchPositionalValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */; };
 		56DE7B2C1C41311900861EB8 /* FetchRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B2B1C41311900861EB8 /* FetchRecordTests.swift */; };
+		56DE7B2F1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */; };
+		56DE7B351C42B37E00861EB8 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56DE7B341C42B37E00861EB8 /* CoreData.framework */; };
+		56DE7B371C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */; };
 		56E5891F1BBA5D5400CC0140 /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E5891E1BBA5D5400CC0140 /* NSURL.swift */; };
 		56E589201BBA5D5400CC0140 /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E5891E1BBA5D5400CC0140 /* NSURL.swift */; };
 		56E5D7D41B4D3FEE00430942 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E5D7CA1B4D3FED00430942 /* GRDB.framework */; };
@@ -402,6 +405,9 @@
 		56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchNamedValuesTests.swift; sourceTree = "<group>"; };
 		56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchPositionalValuesTests.swift; sourceTree = "<group>"; };
 		56DE7B2B1C41311900861EB8 /* FetchRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchRecordTests.swift; sourceTree = "<group>"; };
+		56DE7B2E1C42B23B00861EB8 /* PerformanceModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PerformanceModel.xcdatamodel; sourceTree = "<group>"; };
+		56DE7B341C42B37E00861EB8 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceCoreDataTests.sqlite; sourceTree = "<group>"; };
 		56E1524B1B43FD5B00EE27AA /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
 		56E5891E1BBA5D5400CC0140 /* NSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSURL.swift; sourceTree = "<group>"; };
 		56E5D7CA1B4D3FED00430942 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -430,6 +436,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56DE7B351C42B37E00861EB8 /* CoreData.framework in Frameworks */,
 				560C98121C0E22D300BF8471 /* SQLite.framework in Frameworks */,
 				560C98131C0E22D300BF8471 /* libsqlite3.tbd in Frameworks */,
 				560C98141C0E22D300BF8471 /* GRDB.framework in Frameworks */,
@@ -760,9 +767,8 @@
 		56BB86101BA9886D001F9168 /* Performance */ = {
 			isa = PBXGroup;
 			children = (
-				56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */,
-				56BB86171BA988F2001F9168 /* fmdb */,
 				56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */,
+				56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */,
 				56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */,
 				56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */,
 				56DE7B2B1C41311900861EB8 /* FetchRecordTests.swift */,
@@ -770,6 +776,9 @@
 				56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */,
 				56BB86121BA9886D001F9168 /* InsertRecordTests.swift */,
 				56CA22211BB41565009A04C5 /* PerformanceTests.swift */,
+				56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */,
+				56BB86171BA988F2001F9168 /* fmdb */,
+				56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */,
 			);
 			path = Performance;
 			sourceTree = "<group>";
@@ -871,6 +880,7 @@
 		DC3773E919C8CBB3004FCF85 = {
 			isa = PBXGroup;
 			children = (
+				56DE7B341C42B37E00861EB8 /* CoreData.framework */,
 				56DBEC341C19A0020093A2EE /* CHANGELOG.md */,
 				DC37744719C8F50B004FCF85 /* README.md */,
 				56E1524B1B43FD5B00EE27AA /* TODO.md */,
@@ -1186,6 +1196,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				560C98161C0E22D300BF8471 /* PerformanceTests.sqlite in Resources */,
+				56DE7B371C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1242,6 +1253,7 @@
 				560C97F21C0E22D300BF8471 /* FMDatabasePool.m in Sources */,
 				560C98241C0E23BB00BF8471 /* PerformanceTests.swift in Sources */,
 				56DE7B261C412FDA00861EB8 /* InsertNamedValuesTests.swift in Sources */,
+				56DE7B2F1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld in Sources */,
 				56DE7B2A1C4130AF00861EB8 /* FetchPositionalValuesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1843,6 +1855,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				56DE7B2E1C42B23B00861EB8 /* PerformanceModel.xcdatamodel */,
+			);
+			currentVersion = 56DE7B2E1C42B23B00861EB8 /* PerformanceModel.xcdatamodel */;
+			path = PerformanceModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = DC3773EA19C8CBB3004FCF85 /* Project object */;
 }

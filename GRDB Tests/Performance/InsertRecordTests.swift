@@ -1,5 +1,6 @@
 import XCTest
 import GRDB
+import CoreData
 
 private let insertedRowCount = 20_000
 
@@ -37,4 +38,34 @@ class InsertRecordTests: XCTestCase {
         }
     }
     
+    func testCoreData() {
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
+        let modelURL = NSBundle(forClass: self.dynamicType).URLForResource("PerformanceModel", withExtension: "momd")!
+        let mom = NSManagedObjectModel(contentsOfURL: modelURL)!
+        
+        measureBlock {
+            let psc = NSPersistentStoreCoordinator(managedObjectModel: mom)
+            let store = try! psc.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: NSURL(fileURLWithPath: databasePath), options: nil)
+            let moc = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
+            moc.persistentStoreCoordinator = psc
+            
+            for i in 0..<insertedRowCount {
+                let item = NSEntityDescription.insertNewObjectForEntityForName("Item", inManagedObjectContext: moc)
+                item.setValue(NSNumber(integer: i), forKey: "i0")
+                item.setValue(NSNumber(integer: i), forKey: "i1")
+                item.setValue(NSNumber(integer: i), forKey: "i2")
+                item.setValue(NSNumber(integer: i), forKey: "i3")
+                item.setValue(NSNumber(integer: i), forKey: "i4")
+                item.setValue(NSNumber(integer: i), forKey: "i5")
+                item.setValue(NSNumber(integer: i), forKey: "i6")
+                item.setValue(NSNumber(integer: i), forKey: "i7")
+                item.setValue(NSNumber(integer: i), forKey: "i8")
+                item.setValue(NSNumber(integer: i), forKey: "i9")
+            }
+            try! moc.save()
+            try! psc.removePersistentStore(store)
+            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        }
+    }
 }
