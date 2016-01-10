@@ -1,7 +1,17 @@
 Release Notes
 =============
 
+## 0.38.2
+
+Released January 10, 2016
+
+**Fixed**
+
+- Preconditions on invalid statements arguments are restored.
+
 ## 0.38.1
+
+Released January 10, 2016
 
 **New**
 
