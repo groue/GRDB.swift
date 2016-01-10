@@ -529,7 +529,7 @@ final class DataMapper {
     // MARK: - Statement builders
     
     func insertStatement() -> UpdateStatement {
-        let insertStatement = try! db.updateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(persistentDictionary.keys)))
+        let insertStatement = try! db.cachedUpdateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(persistentDictionary.keys)))
         insertStatement.arguments = StatementArguments(persistentDictionary.values)
         return insertStatement
     }
@@ -546,15 +546,13 @@ final class DataMapper {
             let updatableColums = Array(updatedDictionary.keys)
             
             // Validate requested columns
-            if case let unknownColumns = requestedColumns.filter({ !updatableColums.contains($0) }) where !unknownColumns.isEmpty {
-                fatalError("unknown column(s): \(unknownColumns.joinWithSeparator(", "))")
+            for column in requestedColumns where !updatableColums.contains(column) {
+                fatalError("unknown column: \(column)")
             }
             
             // Only update requested columns
-            for column in updatableColums {
-                if !requestedColumns.contains(column) {
-                    updatedDictionary.removeValueForKey(column)
-                }
+            for column in updatableColums where !requestedColumns.contains(column) {
+                updatedDictionary.removeValueForKey(column)
             }
         }
         
@@ -577,7 +575,7 @@ final class DataMapper {
         }
         
         // Update
-        let updateStatement = try! db.updateStatement(DataMapper.updateSQL(tableName: databaseTableName, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
+        let updateStatement = try! db.cachedUpdateStatement(DataMapper.updateSQL(tableName: databaseTableName, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
         updateStatement.arguments = StatementArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values))
         return updateStatement
     }
@@ -589,7 +587,7 @@ final class DataMapper {
         }
         
         // Delete
-        let deleteStatement = try! db.updateStatement(DataMapper.deleteSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
+        let deleteStatement = try! db.cachedUpdateStatement(DataMapper.deleteSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
         deleteStatement.arguments = StatementArguments(primaryKeyDictionary.values)
         return deleteStatement
     }
