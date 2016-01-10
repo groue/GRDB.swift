@@ -31,6 +31,16 @@ public final class Database {
         return try SelectStatement(database: self, sql: sql)
     }
     
+    func cachedSelectStatement(sql: String) throws -> SelectStatement {
+        if let statement = selectStatementCache[sql] {
+            return statement
+        } else {
+            let statement = try selectStatement(sql)
+            selectStatementCache[sql] = statement
+            return statement
+        }
+    }
+    
     
     // =========================================================================
     // MARK: - Update Statements
@@ -48,6 +58,16 @@ public final class Database {
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func updateStatement(sql: String) throws -> UpdateStatement {
         return try UpdateStatement(database: self, sql: sql)
+    }
+    
+    func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
+        if let statement = updateStatementCache[sql] {
+            return statement
+        } else {
+            let statement = try updateStatement(sql)
+            updateStatementCache[sql] = statement
+            return statement
+        }
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
@@ -522,18 +542,23 @@ public final class Database {
     /// The database configuration
     public let configuration: Configuration
     
-    /// Clears the database schema cache.
-    ///
-    /// You may need to clear the cache if you modify the database schema
-    /// outside of a migration (see DatabaseMigrator).
-    public func clearSchemaCache() {
-        preconditionValidQueue()
-        columnInfosCache = [:]
-    }
-
     /// The last error message
     var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
     
+    private var columnInfosCache: [String: [ColumnInfo]] = [:]
+    private var updateStatementCache: [String: UpdateStatement] = [:]
+    private var selectStatementCache: [String: SelectStatement] = [:]
+    
+    /// Clears the database schema cache.
+    ///
+    /// You may need to clear the cache if you modify the database schema
+    /// outside of a database migration performed by DatabaseMigrator.
+    public func clearSchemaCache() {
+        preconditionValidQueue()
+        columnInfosCache = [:]
+        updateStatementCache = [:]
+        selectStatementCache = [:]
+    }
     /// Returns whether a table exists.
     ///
     /// - parameter tableName: A table name.
@@ -652,13 +677,10 @@ public final class Database {
     }
     
     // Cache for columnInfos()
-    private var columnInfosCache: [String: [ColumnInfo]] = [:]
     private func columnInfos(tableName: String) -> [ColumnInfo] {
         if let columnInfos = columnInfosCache[tableName] {
             return columnInfos
         } else {
-            // This pragma is case-insensitive: PRAGMA table_info("PERSONS") and
-            // PRAGMA table_info("persons") yield the same results.
             let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
             columnInfosCache[tableName] = columnInfos
             return columnInfos
