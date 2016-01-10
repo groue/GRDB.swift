@@ -1,5 +1,4 @@
-- [X] Remove DefaultArgument.
-- [X] Partial updates
+- [ ] Remove partial updates. They were a bad idea.
 
 Not sure:
 
