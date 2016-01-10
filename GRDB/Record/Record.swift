@@ -212,7 +212,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// Executes an UPDATE statement.
     ///
     /// On success, this method sets the *hasPersistentChangedValues* flag
-    /// to false.
+    /// to false if the columns argument is nil.
     ///
     /// This method is guaranteed to have updated a row in the database if it
     /// returns without error.
