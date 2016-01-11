@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.39.0
+
+Released January 11, 2016
+
+**Breaking Changes**
+
+- Removed partial update introduced in 0.38.0.
+
+
 ## 0.38.2
 
 Released January 10, 2016
