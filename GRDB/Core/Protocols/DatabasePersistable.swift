@@ -99,11 +99,10 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// that they invoke the performUpdate() method.
     ///
     /// - parameter db: A Database.
-    /// - columns: An array of updated columns. If nil, all columns are updated.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update(db: Database, columns: [String]?) throws
+    func update(db: Database) throws
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
@@ -170,8 +169,8 @@ public extension MutableDatabasePersistable {
     /// Executes an UPDATE statement.
     ///
     /// The default implementation for update() invokes performUpdate().
-    func update(db: Database, columns: [String]? = nil) throws {
-        try performUpdate(db, columns: columns)
+    func update(db: Database) throws {
+        try performUpdate(db)
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -226,8 +225,8 @@ public extension MutableDatabasePersistable {
     /// that adopt MutableDatabasePersistable can invoke performUpdate() in
     /// their implementation of update(). They should not provide their own
     /// implementation of performUpdate().
-    func performUpdate(db: Database, columns: [String]?) throws {
-        let changes = try DataMapper(db, self).updateStatement(columns).execute()
+    func performUpdate(db: Database) throws {
+        let changes = try DataMapper(db, self).updateStatement().execute()
         if changes.changedRowCount == 0 {
             throw PersistenceError.NotFound(self)
         }
@@ -252,7 +251,7 @@ public extension MutableDatabasePersistable {
         }
         
         do {
-            try update(db, columns: nil)
+            try update(db)
         } catch PersistenceError.NotFound {
             // TODO: check that the not persisted objet is self
             //
@@ -414,7 +413,7 @@ public extension DatabasePersistable {
         }
         
         do {
-            try update(db, columns: nil)
+            try update(db)
         } catch PersistenceError.NotFound {
             // TODO: check that the not persisted objet is self
             //
@@ -534,27 +533,13 @@ final class DataMapper {
         return insertStatement
     }
     
-    func updateStatement(requestedColumns: [String]?) -> UpdateStatement {
+    func updateStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
             fatalError("invalid primary key in \(persistable)")
         }
         
         var updatedDictionary = persistentDictionary
-        
-        if let requestedColumns = requestedColumns {
-            let updatableColums = Array(updatedDictionary.keys)
-            
-            // Validate requested columns
-            for column in requestedColumns where !updatableColums.contains(column) {
-                fatalError("unknown column: \(column)")
-            }
-            
-            // Only update requested columns
-            for column in updatableColums where !requestedColumns.contains(column) {
-                updatedDictionary.removeValueForKey(column)
-            }
-        }
         
         // Don't update primary key columns
         for column in primaryKeyDictionary.keys {

@@ -212,7 +212,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// Executes an UPDATE statement.
     ///
     /// On success, this method sets the *hasPersistentChangedValues* flag
-    /// to false if the columns argument is nil.
+    /// to false.
     ///
     /// This method is guaranteed to have updated a row in the database if it
     /// returns without error.
@@ -221,14 +221,9 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
-    public func update(db: Database, columns: [String]? = nil) throws {
-        try performUpdate(db, columns: columns)
-        
-        // When all columns have been saved, it is safe to reset the
-        // hasPersistentChangedValues flag:
-        if columns == nil {
-            hasPersistentChangedValues = false
-        }
+    public func update(db: Database) throws {
+        try performUpdate(db)
+        hasPersistentChangedValues = false
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in

@@ -73,9 +73,9 @@ struct PersistableCustomizedCountry : DatabasePersistable {
         try performInsert(db)
     }
     
-    func update(db: Database, columns: [String]? = nil) throws {
+    func update(db: Database) throws {
         willUpdate()
-        try performUpdate(db, columns: columns)
+        try performUpdate(db)
     }
     
     func save(db: Database) throws {
@@ -182,53 +182,6 @@ class DatabasePersistableTests: GRDBTestCase {
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
                 XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
                 XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-            }
-        }
-    }
-    
-    func testPartialUpdatePersistablePersonClass() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
-                try person1.insert(db)
-                let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
-                try person2.insert(db)
-                
-                person1.name = "Craig"
-                person1.age = 18
-                do {
-                    try person1.update(db, columns: [])
-                    
-                    let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
-                    XCTAssertEqual(rows.count, 2)
-                    XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
-                    XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
-                    XCTAssertEqual(rows[0].value(named: "age") as Int, 42)
-                    XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
-                    XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                }
-                do {
-                    try person1.update(db, columns: ["name"])
-                    
-                    let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
-                    XCTAssertEqual(rows.count, 2)
-                    XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
-                    XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
-                    XCTAssertEqual(rows[0].value(named: "age") as Int, 42)
-                    XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
-                    XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                }
-                do {
-                    try person1.update(db, columns: ["name", "age"])
-                    
-                    let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
-                    XCTAssertEqual(rows.count, 2)
-                    XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
-                    XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
-                    XCTAssertEqual(rows[0].value(named: "age") as Int, 18)
-                    XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
-                    XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-                }
             }
         }
     }
