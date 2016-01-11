@@ -295,7 +295,6 @@ dbQueue.inDatabase { db in
 - [Fetching Rows](#fetching-rows)
 - [Column Values](#column-values)
 - [Rows as Dictionaries](#rows-as-dictionaries)
-- [Convenience Rows](#convenience-rows)
 
 
 #### Fetching Rows
@@ -423,7 +422,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 
 #### Rows as Dictionaries
 
-You may prefer thinking of rows as dictionaries of `DatabaseValue`, an intermediate type between SQLite and your values:
+**Rows can be seen as dictionaries** of `DatabaseValue`, an intermediate type between SQLite and your values:
 
 ```swift
 // Test if the column `date` is present:
@@ -455,7 +454,15 @@ if let databaseValue = row["date"] {
 }
 ```
 
-Row adopts the standard [CollectionType](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html) protocol:
+
+**You can build rows from scratch** using the dictionary and NSDictionary initializers (see [Values](#values) for more information on supported types):
+
+```swift
+let row = Row(["name": "foo", "date": nil])
+```
+
+
+**Rows are standard [collections](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html)**:
 
 ```swift
 // the number of columns
@@ -467,7 +474,8 @@ for (columnName, databaseValue) in row {
 }
 ```
 
-Rows are not real dictionaries, though, since they may contain duplicate keys:
+
+**Rows may contain duplicate keys**:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
@@ -476,17 +484,6 @@ row.databaseValues  // [1, 2]
 row["foo"]          // 1 (the value for the leftmost column "foo")
 for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
-
-
-#### Convenience Rows
-
-From time to time, you'll want to build a custom Row from scratch. Use the dictionary and NSDictionary initializers:
-
-```swift
-Row(["name": "foo", "date": nil])
-```
-
-See [Values](#values) for more information on supported types.
 
 
 ### Value Queries
