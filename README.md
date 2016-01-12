@@ -492,13 +492,13 @@ Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch 
 
 ```swift
 dbQueue.inDatabase { db in
-    Int.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int>
-    Int.fetchAll(db, "SELECT ...", arguments: ...) // [Int]
-    Int.fetchOne(db, "SELECT ...", arguments: ...) // Int?
+    Int.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Int>
+    Int.fetchAll(db, "SELECT ...", arguments: ...)  // [Int]
+    Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
 
     // When database may contain NULL:
-    Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
-    Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
+    Int?.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
+    Int?.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
 }
 ```
 
