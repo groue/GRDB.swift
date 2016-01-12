@@ -313,7 +313,7 @@ dbQueue.inDatabase { db in
     
     // Example:
     let wines = Wine.fetchAll(db, "SELECT * FROM wines ORDER BY name")
-    let favoriteWine = Wine.fetchOne(db, key: user.favoriteWineId)
+    let favoriteWine = Wine.fetchOne(db, key: favoriteWineID)
 }
 ```
 
