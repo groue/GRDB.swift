@@ -1,3 +1,6 @@
+- [ ] Expose Statement.unsafeSetArguments()
+- [ ] How to have robust single writer/several readers?
+
 Not sure:
 
 - [ ] Refactor errors in a single type?
