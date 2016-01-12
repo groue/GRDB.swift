@@ -1542,7 +1542,7 @@ Yet, here is the rule:
 - If your type is a struct that mutates on insertion, choose `MutableDatabasePersistable`. For example, if your table has an INTEGER PRIMARY KEY, you want to store the inserted id on successful insertion.
 - Otherwise, stick with `DatabasePersistable`.
 
-For example, the Country struct below has no INTEGER PRIMARY KEY, and is not mutated on insertion. On the other side, the Person struct is interested in its rowID, and mutates itself on insertion:
+For example, the Country struct below has no INTEGER PRIMARY KEY, and is not mutated on insertion:
 
 ```swift
 // CREATE TABLE countries (
@@ -1565,7 +1565,11 @@ struct Country : DatabasePersistable {
 // Declare the country as `let`, since its insertion does not mutate it:
 let country = Country(isoCode: "FR", name: "France")
 try country.insert(db)
+```
 
+On the other side, the Person struct is interested in its rowID, and mutates itself on insertion:
+
+```swift
 // CREATE TABLE persons (
 //     id INTEGER PRIMARY KEY,
 //     name TEXT
