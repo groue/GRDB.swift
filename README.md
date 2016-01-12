@@ -254,7 +254,9 @@ let personID = try db.execute(
 Don't miss the [DatabasePersistable protocol](#databasepersistable-protocol) and the [Record class](#record), that provide classic **persistence methods**:
 
 ```swift
-try Person(name: "Arthur").insert(db)
+let person = Person(name: "Arthur", age: 36)
+try person.insert(db)
+print("Inserted \(person.id)")
 ```
 
 
