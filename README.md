@@ -1916,7 +1916,7 @@ class Person : Record {
     }
     
     /// Update person ID after a successful insertion
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         id = rowID
     }
 }
