@@ -241,9 +241,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments in with arrays or dictionaries, as in the example above.
-
-See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
+The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments in with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
 
 **After an INSERT statement**, you extract the inserted Row ID from the result of the `execute` method:
 
@@ -251,6 +249,12 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 let personID = try db.execute(
     "INSERT INTO persons (name, age) VALUES (?, ?)",
     arguments: ["Arthur", 36]).insertedRowID
+```
+
+Don't miss the [DatabasePersistable protocol](#databasepersistable-protocol) and the [Record class](#record), that provide classic **persistence methods**:
+
+```swift
+try Person(name: "Arthur").insert(db)
 ```
 
 
