@@ -19,7 +19,7 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **GRDB owes a lot to FMDB.** You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
 
-**Your SQL skills are rewarded here.** GRDB grants equal treatment to all queries, simple or complex.
+**Your SQL skills are rewarded here.** You don't have to learn a complex query builder that makes it uneasy to express the SQL you have in mind.
 
 **GRDB provides [protocols and a Record class](#database-protocols-and-record)** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
