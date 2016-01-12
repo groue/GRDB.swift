@@ -262,10 +262,14 @@ GRDB lets you fetch **rows**, **values**, and **custom models**.
 
 ```swift
 dbQueue.inDatabase { db in
+    Row.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Row>
+    Row.fetchAll(db, "SELECT ...", arguments: ...)  // [Row]
+    Row.fetchOne(db, "SELECT ...", arguments: ...)  // Row?
+    
+    // Example:
     for row in Row.fetch(db, "SELECT * FROM wines") {
         let name: String = row.value(named: "name")
         let color: Color = row.value(named: "color")
-        print(name, color)
     }
 }
 ```
@@ -274,9 +278,16 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    let redWineCount = Int.fetchOne(db,
-        "SELECT COUNT(*) FROM wines WHERE color = ?",
-        arguments: [Color.Red])!
+    Int.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Int>
+    Int.fetchAll(db, "SELECT ...", arguments: ...)  // [Int]
+    Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
+
+    // When database may contain NULL:
+    Int?.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
+    Int?.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
+    
+    // Example:
+    let wineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
 }
 ```
 
@@ -284,6 +295,17 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
+    // By SQL:
+    Wine.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Wine>
+    Wine.fetchAll(db, "SELECT ...", arguments: ...) // [Wine]
+    Wine.fetchOne(db, "SELECT ...", arguments: ...) // Wine?
+    
+    // By key:
+    Wine.fetch(db, keys: ...)                       // DatabaseSequence<Wine>
+    Wine.fetchAll(db, keys: ...)                    // [Wine]
+    Wine.fetchOne(db, key: ...)                     // Wine?
+    
+    // Example:
     let wines = Wine.fetchAll(db, "SELECT * FROM wines ORDER BY name")
     let favoriteWine = Wine.fetchOne(db, key: user.favoriteWineId)
 }
