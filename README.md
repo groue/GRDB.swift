@@ -1,11 +1,11 @@
 GRDB.swift
 ==========
 
-GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2, from the author of [GRMustache](https://github.com/groue/GRMustache).
+GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2.
 
 It ships with a low-level database API, plus application-level tools.
 
-**December 28, 2015: GRDB.swift 0.36.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**January 11, 2016: GRDB.swift 0.39.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -19,11 +19,11 @@ Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccg
 
 **GRDB owes a lot to FMDB.** You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
 
-**Your SQL skills are rewarded here.** Complex queries are never treated differently from the simple ones. You won't lose a single feature or convenience by crafting custom SQL queries, on the contrary. And you are granted with type safety and all the niceties you expect from a real Swift library.
+**Your SQL skills are rewarded here.** You don't have to learn a complex query builder that makes it uneasy to express the SQL you have in mind.
 
 **GRDB provides [protocols and a Record class](#database-protocols-and-record)** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
-**GRDB is fast**. As fast, when not faster, than FMDB and SQLite.swift.
+**GRDB is fast**, and usually faster than FMDB and SQLite.swift (see the [Performance wiki page](https://github.com/groue/GRDB.swift/wiki/Performance)).
 
 **You can query your database [right from the debugger](https://twitter.com/groue/status/679347658557902849).**
 
@@ -32,7 +32,7 @@ Features
 --------
 
 - **A low-level [SQLite API](#sqlite-api)** that leverages the Swift 2 standard library.
-- **A [Record](#record) class** that wraps result sets, eats your custom SQL queries for breakfast, provides persistence operations, and changes tracking.
+- **[Protocols and a ready-made class](#database-protocols-and-record)** that eat your SQL queries for breakfast, provide persistence, and changes tracking.
 - **[Swift type freedom](#values)**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
 - **[Database migrations](#migrations)**
 - **[Database changes observation hooks](#database-changes-observation)**
@@ -41,7 +41,7 @@ Features
 Documentation
 =============
 
-- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.36.0/index.html)** (on cocoadocs.org)
+- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.39.0/index.html)** (on cocoadocs.org)
 
 - **[Installation](#installation)**
 
@@ -97,7 +97,7 @@ To use GRDB.swift with Cocoapods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '0.36.0'
+pod 'GRDB.swift', '~> 0.39.0'
 ```
 
 
@@ -108,7 +108,7 @@ pod 'GRDB.swift', '0.36.0'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" == 0.36.0
+github "groue/GRDB.swift" ~> 0.39.0
 ```
 
 
@@ -160,7 +160,7 @@ try dbQueue.inDatabase { db in
 
 ## Database Queues
 
-You access SQLite databases through **thread-safe database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
+You access SQLite databases through **database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
 
 ```swift
 import GRDB
@@ -169,26 +169,9 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 let inMemoryDBQueue = DatabaseQueue()
 ```
 
-SQLite creates the database file if it does not already exist.
+SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
 
-The connection is closed when the database queue gets deallocated.
-
-
-**Configure** databases:
-
-```swift
-var config = Configuration()
-config.trace = { print($0) } // Prints all SQL statements
-
-let dbQueue = try DatabaseQueue(
-    path: "/path/to/database.sqlite",
-    configuration: config)
-```
-
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.36.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
-
-
-Once connected, the `inDatabase` and `inTransaction` methods perform your **database statements** in a dedicated, serial, queue:
+**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed:
 
 ```swift
 // Execute database statements:
@@ -200,20 +183,35 @@ dbQueue.inDatabase { db in
     }
 }
 
-// Extract values from the database:
-let wineCount = dbQueue.inDatabase { db in
-    Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-}
-
 // Wrap database statements in a transaction:
 try dbQueue.inTransaction { db in
     try db.execute("INSERT ...")
     try db.execute("DELETE FROM ...")
     return .Commit
 }
+
+// Extract values from the database:
+let wineCount = dbQueue.inDatabase { db in
+    Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+}
+print(wineCount)
 ```
 
-See [Transactions](#transactions) for more information about GRDB transaction handling.
+
+You can **configure** databases:
+
+```swift
+var config = Configuration()
+config.readonly = true
+config.trace = { print($0) } // Prints all SQL statements
+
+let dbQueue = try DatabaseQueue(
+    path: "/path/to/database.sqlite",
+    configuration: config)
+```
+
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.39.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+
 
 
 ## Executing Updates
@@ -230,27 +228,35 @@ try dbQueue.inDatabase { db in
             "name TEXT NOT NULL," +
             "age INT" +
         ")")
-        
-    try db.execute(
-        "INSERT INTO persons (name, age) VALUES (?, ?)",
-        arguments: ["Arthur", 36])
-        
+    
     try db.execute(
         "INSERT INTO persons (name, age) VALUES (:name, :age)",
         arguments: ["name": "Barbara", "age": 39])
+    
+    // Join multiple statements with a semicolon:
+    try db.execute(
+        "INSERT INTO persons (name, age) VALUES (?, ?); " +
+        "INSERT INTO persons (name, age) VALUES (?, ?)",
+        arguments: ["Arthur", 36, "Barbara", 39])
 }
 ```
 
-The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments in with arrays or dictionaries, as in the example above (arguments are actually of type StatementArguments, which happens to adopt the ArrayLiteralConvertible and DictionaryLiteralConvertible protocols).
-
-See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
+The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments in with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
 
 **After an INSERT statement**, you extract the inserted Row ID from the result of the `execute` method:
 
 ```swift
-let insertedRowID = try db.execute(
+let personID = try db.execute(
     "INSERT INTO persons (name, age) VALUES (?, ?)",
     arguments: ["Arthur", 36]).insertedRowID
+```
+
+Don't miss the [DatabasePersistable protocol](#databasepersistable-protocol) and the [Record class](#record), that provide classic **persistence methods**:
+
+```swift
+let person = Person(name: "Arthur", age: 36)
+try person.insert(db)
+print("Inserted \(person.id)")
 ```
 
 
@@ -262,10 +268,14 @@ GRDB lets you fetch **rows**, **values**, and **custom models**.
 
 ```swift
 dbQueue.inDatabase { db in
+    Row.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Row>
+    Row.fetchAll(db, "SELECT ...", arguments: ...)  // [Row]
+    Row.fetchOne(db, "SELECT ...", arguments: ...)  // Row?
+    
+    // Example:
     for row in Row.fetch(db, "SELECT * FROM wines") {
         let name: String = row.value(named: "name")
         let color: Color = row.value(named: "color")
-        print(name, color)
     }
 }
 ```
@@ -274,9 +284,16 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    let redWineCount = Int.fetchOne(db,
-        "SELECT COUNT(*) FROM wines WHERE color = ?",
-        arguments: [Color.Red])!
+    Int.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Int>
+    Int.fetchAll(db, "SELECT ...", arguments: ...)  // [Int]
+    Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
+
+    // When database may contain NULL:
+    Int?.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
+    Int?.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
+    
+    // Example:
+    let wineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
 }
 ```
 
@@ -284,18 +301,21 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
+    // By SQL:
+    Wine.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Wine>
+    Wine.fetchAll(db, "SELECT ...", arguments: ...) // [Wine]
+    Wine.fetchOne(db, "SELECT ...", arguments: ...) // Wine?
+    
+    // By key:
+    Wine.fetch(db, keys: ...)                       // DatabaseSequence<Wine>
+    Wine.fetchAll(db, keys: ...)                    // [Wine]
+    Wine.fetchOne(db, key: ...)                     // Wine?
+    
+    // Example:
     let wines = Wine.fetchAll(db, "SELECT * FROM wines ORDER BY name")
-    let favoriteWine = Wine.fetchOne(db, key: user.favoriteWineId)
+    let favoriteWine = Wine.fetchOne(db, key: favoriteWineID)
 }
 ```
-
-Rows, values, and custom models can all be fetched in three fashions. Pick one, depending on the number of values you expect, and the way you use them:
-
-- The `fetch()` method returns a memory-efficient sequence that goes in the database as it is iterated.
-- The `fetchAll()` method returns an array which is less memory-efficient, but can be used from any thread.
-- The `fetchOne()` method returns a single optional value.
-
-Most of those methods take an SQL query as an argument. If SQL is not your cup of tea, then maybe you are looking for a query builder. [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift/blob/master/Documentation/Index.md#selecting-rows) is a pretty popular one.
 
 
 ### Row Queries
@@ -303,7 +323,6 @@ Most of those methods take an SQL query as an argument. If SQL is not your cup o
 - [Fetching Rows](#fetching-rows)
 - [Column Values](#column-values)
 - [Rows as Dictionaries](#rows-as-dictionaries)
-- [Convenience Rows](#convenience-rows)
 
 
 #### Fetching Rows
@@ -340,11 +359,8 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched rows. The differences are:
 
-- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
-- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
-- The sequence returned by `fetch` will return a different set of results if the database has been modified between two sequence iterations.
-
-Row sequences also grant the fastest access to the database. This performance advantage comes with extra precautions:
+- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 > :point_up: **Don't turn a row sequence into an array** with `Array(rowSequence)` or `rowSequence.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
 > 
@@ -392,17 +408,6 @@ row.value(...) as Int!
 > row.value(...) as? Int   // NO NO NO DON'T DO THAT!
 > ```
 
-When you ask for a missing column, you will get nil, or a fatal error:
-
-```swift
-let row = Row.fetchOne(db, "SELECT 'foo' AS foo")!
-row.value(named: "missing") as String? // nil
-row.value(named: "missing") as String  // fatal error: No such column: "missing"
-row.value(atIndex: 1)                  // fatal error: Row index out of range
-```
-
-You can explicitly check for a column presence with the `hasColumn` method.
-
 Generally speaking, you can extract the type you need, *provided it can be converted from the underlying SQLite value*:
 
 - **Successful conversions include:**
@@ -419,25 +424,33 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     let row = Row.fetchOne(db, "SELECT 'foo'")!
     row.value(atIndex: 0) as String  // "foo"
     row.value(atIndex: 0) as NSDate? // nil
-    row.value(atIndex: 0) as NSDate  // fatal error: Could not convert "foo" to NSDate.
+    row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
     ```
-
-- **GRDB crashes when you try to convert NULL to a non-optional value.**
     
-    This behavior is notably different from SQLite C API, or from ccgus/fmdb, that both turn NULL to 0 when extracting an integer, for example:
+    Notably, NULL won't turn to anything:
     
     ```swift
     let row = Row.fetchOne(db, "SELECT NULL")!
     row.value(atIndex: 0) as Int? // nil
-    row.value(atIndex: 0) as Int  // fatal error: Could not convert NULL to Int.
+    row.value(atIndex: 0) as Int  // fatal error: could not convert NULL to Int.
     ```
+
+- **Missing columns return nil.**
+    
+    ```swift
+    let row = Row.fetchOne(db, "SELECT 'foo' AS foo")!
+    row.value(named: "missing") as String? // nil
+    row.value(named: "missing") as String  // fatal error: no such column: missing
+    ```
+    
+    You can explicitly check for a column presence with the `hasColumn` method.
 
 - **The convenience conversions of SQLite, such as Blob to String, String to Int, or huge Double values to Int, are not guaranteed to apply.** You must not rely on them.
 
 
 #### Rows as Dictionaries
 
-You may prefer thinking of rows as dictionaries of `DatabaseValue`, an intermediate type between SQLite and your values:
+**Rows can be seen as dictionaries** of `DatabaseValue`, an intermediate type between SQLite and your values:
 
 ```swift
 // Test if the column `date` is present:
@@ -469,15 +482,28 @@ if let databaseValue = row["date"] {
 }
 ```
 
-Iterate all the tuples (columnName, databaseValue) in a row, from left to right:
+
+**You can build rows from scratch** using the dictionary and NSDictionary initializers (see [Values](#values) for more information on supported types):
 
 ```swift
+let row = Row(["name": "foo", "date": nil])
+```
+
+
+**Rows are standard [collections](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html)**:
+
+```swift
+// the number of columns
+row.count
+
+// All the (columnName, databaseValue) tuples, from left to right:
 for (columnName, databaseValue) in row {
     ...
 }
 ```
 
-Rows are not real dictionaries, though. They may contain duplicate keys:
+
+**Rows may contain duplicate keys**:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
@@ -488,30 +514,19 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
 
-#### Convenience Rows
-
-From time to time, you'll want to build a custom Row from scratch. Use the dictionary and NSDictionary initializers:
-
-```swift
-Row(["name": "foo", "date": nil])
-```
-
-See [Values](#values) for more information on supported types.
-
-
 ### Value Queries
 
 Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **sequences**, **arrays**, or **single** values. Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
 dbQueue.inDatabase { db in
-    Int.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int>
-    Int.fetchAll(db, "SELECT ...", arguments: ...) // [Int]
-    Int.fetchOne(db, "SELECT ...", arguments: ...) // Int?
+    Int.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Int>
+    Int.fetchAll(db, "SELECT ...", arguments: ...)  // [Int]
+    Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
 
     // When database may contain NULL:
-    Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
-    Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
+    Int?.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
+    Int?.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
 }
 ```
 
@@ -520,15 +535,15 @@ There are many supported value types (Bool, Int, String, NSDate, Swift enums, et
 ```swift
 dbQueue.inDatabase { db in
     // The number of persons with an email ending in @example.com:
-    let count = Int.fetchOne(db,
+    let count: Int = Int.fetchOne(db,
         "SELECT COUNT(*) FROM persons WHERE email LIKE ?",
         arguments: ["%@example.com"])!
     
     // All URLs:
-    let urls = NSURL.fetchAll(db, "SELECT url FROM links")
+    let urls: [NSURL] = NSURL.fetchAll(db, "SELECT url FROM links")
     
     // The emails of people who own at least two pets:
-    let emails = Optional<String>.fetchAll(db,
+    let emails: [String?] = String?.fetchAll(db,
         "SELECT persons.email " +
         "FROM persons " +
         "JOIN pets ON pets.masterId = persons.id " +
@@ -539,9 +554,8 @@ dbQueue.inDatabase { db in
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The differences are:
 
-- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
-- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
-- The sequence returned by `fetch` will return a different set of results if the database has been modified between two sequence iterations.
+- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 `fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
@@ -939,13 +953,7 @@ dbQueue.inTransaction(.Exclusive) { db in ... }
 
 ## Error Handling
 
-**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error.
-
-**The rule is:**
-
-- Methods that write to the database throw.
-- Methods that build [prepared statements](#prepared-statements) throw.
-- All other methods crash without notice (but with a detailed error message).
+**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error:
 
 ```swift
 // fatal error:
@@ -976,6 +984,47 @@ do {
 
 See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
+
+**Fatal errors can be avoided.** For example, let's consider a scenario where your application has to perform a fetch query with untrusted SQL and query arguments.
+
+The following code is dangerous for your application, because it has many opportunities to crash:
+
+```swift
+func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -> [Row] {
+    // Crashes if sql is invalid, if dictionary arguments contains invalid
+    // values, or if arguments don't fit the SQL query:
+    return Row.fetchAll(db, sql, arguments: StatementArguments(arguments))
+}
+
+// fatal error: no such table: foo
+try fetchUserQuery(db, sql: "SELECT * FROM foo", arguments: NSDictionary())
+
+// fatal error: missing statement argument(s): id.
+try fetchUserQuery(db, sql: "SELECT * FROM persons WHERE id = :id", arguments: NSDictionary(dictionary: ["name": "Arthur"]))
+```
+
+Compare with the safe version:
+
+```swift
+func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -> [Row] {
+    // Dictionary arguments may contain invalid values
+    guard let arguments = StatementArguments(arguments) else {
+        throw NSError(
+            domain: "MyDomain",
+            code: 0,
+            userInfo: [NSLocalizedDescriptionKey: "Invalid arguments"])
+    }
+    
+    // SQL may be invalid
+    let statement = try db.selectStatement(sql)
+    
+    // Arguments may not fit the statement
+    try statement.validateArguments(arguments)
+    
+    // OK now
+    return Row.fetchAll(statement, arguments: arguments)
+}
+```
 
 
 ## Prepared Statements
@@ -1229,17 +1278,16 @@ var migrator = DatabaseMigrator()
 
 // v1.0 database
 migrator.registerMigration("createTables") { db in
-    try db.execute("CREATE TABLE persons (...)")
-    try db.execute("CREATE TABLE books (...)")
+    try db.execute(
+        "CREATE TABLE persons (...); " +
+        "CREATE TABLE books (...)")
 }
 
 // v2.0 database
 migrator.registerMigration("AddAgeToPersons") { db in
-    try db.execute("ALTER TABLE persons ADD COLUMN age INT")
-}
-
-migrator.registerMigration("AddYearToBooks") { db in
-    try db.execute("ALTER TABLE books ADD COLUMN year INT")
+    try db.execute(
+        "ALTER TABLE persons ADD COLUMN age INT; " +
+        "ALTER TABLE books ADD COLUMN year INT")
 }
 
 // (Insert migrations for future versions here)
@@ -1251,32 +1299,6 @@ try migrator.migrate(dbQueue)
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table). When you are tuning your migrations, you may need to execute one several times. All you need then is to feed your application with a database file from a previous state.
 
-You might use Database.executeMultiStatement(): this method takes an SQL string containing multiple statements separated by semi-colons:
-
-```swift
-migrator.registerMigration("createTables") { db in
-    try db.executeMultiStatement(
-        "CREATE TABLE persons (...);" +
-        "CREATE TABLE books (...);" +
-        "...")
-}
-```
-
-You might even store your migrations as bundle resources:
-
-```swift
-// Execute migration01.sql, migration02.sql, etc.
-NSBundle.mainBundle()
-    .pathsForResourcesOfType("sql", inDirectory: "databaseMigrations")
-    .sort()
-    .forEach { path in
-        let migrationName = (path as NSString).lastPathComponent
-        migrator.registerMigration(migrationName) { db in
-            let sql = try String(contentsOfFile: path, encoding: NSUTF8StringEncoding)
-            try db.executeMultiStatement(sql)
-        }
-    }
-```
 
 ### Advanced Database Schema Changes
 
@@ -1287,7 +1309,7 @@ Yet any kind of schema change is still possible. The SQLite documentation explai
 ```swift
 // Add a NOT NULL constraint on persons.name:
 migrator.registerMigration("AddNotNullCheckOnName", withDisabledForeignKeyChecks: true) { db in
-    try db.executeMultiStatement(
+    try db.execute(
         "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT NOT NULL);" +
         "INSERT INTO new_persons SELECT * FROM persons;" +
         "DROP TABLE persons;" +
@@ -1302,32 +1324,31 @@ While your migration code runs with disabled foreign key checks, those are re-en
 
 **GRDB provides protocols and a Record class** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
-The [Record](#record) class grants its subclasses with fetching methods, persistence methods, and changes tracking:
-
-```swift
-class Person : Record { ... }
-
-try dbQueue.inDatabase { db in
-    // Store
-    let person = Person(name: "Arthur")
-    try person.save(db)
+- The [RowConvertible protocol](#rowconvertible-protocol) grants adopting types with fetching methods:
     
-    // Fetch
-    let person = Person.fetch(db, key: personId)
-    for person in Person.fetch(db, "SELECT * FROM persons") {
-        print(person.name)
-    }
+    ```swift
+    struct Person : RowConvertible { ... }
+    let persons = Person.fetchAll(db, "SELECT * FROM persons")
+    let person = let Person.fetchOne(db, key: 1)
+    ```
     
-    // Changes tracking
+- The [DatabasePersistable protocol](#databasepersistable-protocol) grants adopting types with persistence methods:
+    
+    ```swift
+    struct Person : DatabasePersistable { ... }
+    try Person(name: "Arthur").insert(db)
+    ```
+    
+- The [Record class](#record) grants its subclasses with fetching methods, persistence methods, and changes tracking:
+    
+    ```swift
+    class Person : Record { ... }
+    let person = Person.fetchOne(db, key: 1)!
     person.name = "Barbara"
-    person.persistentChangedValues.keys // ["name"]
-    if person.hasPersistentChangedValues {  // Avoid useless UPDATE statements
-        try person.save(db)
+    if person.hasPersistentChangedValues {
+        try person.update(db)
     }
-}
-```
-
-Whenever your application types can't inherit from Record, they can still adopt [RowConvertible](#rowconvertible-protocol), which grants fetching methods, and [DatabasePersistable](#databasepersistable-protocol), which grants persistence methods.
+    ```
 
 
 ### RowConvertible Protocol
@@ -1370,9 +1391,8 @@ See [Column Values](#column-values) for more information about the `row.value()`
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
 
-- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
-- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
-- The sequence returned by `fetch` will return a different set of results if the database has been modified between two sequence iterations.
+- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 > :point_up: **Note**: For performance reasons, the same row argument to `fromRow(:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `result.row = row.copy()`.
 
@@ -1426,9 +1446,8 @@ Person.fetchOne(db, key: ...)   // Person?
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
 
-- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
-- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
-- The sequence returned by `fetch` will return a different set of results if the database has been modified between two sequence iterations.
+- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
 
@@ -1523,7 +1542,7 @@ Yet, here is the rule:
 - If your type is a struct that mutates on insertion, choose `MutableDatabasePersistable`. For example, if your table has an INTEGER PRIMARY KEY, you want to store the inserted id on successful insertion.
 - Otherwise, stick with `DatabasePersistable`.
 
-For example, the Country struct below has no INTEGER PRIMARY KEY, and is not mutated on insertion. On the other side, the Person struct is interested in its rowID, and mutates itself on insertion:
+For example, the Country struct below has no INTEGER PRIMARY KEY, and is not mutated on insertion:
 
 ```swift
 // CREATE TABLE countries (
@@ -1546,7 +1565,11 @@ struct Country : DatabasePersistable {
 // Declare the country as `let`, since its insertion does not mutate it:
 let country = Country(isoCode: "FR", name: "France")
 try country.insert(db)
+```
 
+On the other side, the Person struct is interested in its rowID, and mutates itself on insertion:
+
+```swift
 // CREATE TABLE persons (
 //     id INTEGER PRIMARY KEY,
 //     name TEXT
@@ -1586,11 +1609,11 @@ The `persistentDictionary` property returns a dictionary whose keys are column n
 Types that adopt DatabasePersistable or MutableDatabasePersistable are given default implementations for methods that insert, update, and delete:
 
 ```swift
-try object.insert(db)  // INSERT
-try object.update(db)  // UPDATE
-try object.save(db)    // Inserts or updates
-try object.delete(db)  // DELETE
-object.exists(db)      // Bool
+try object.insert(db)                 // INSERT
+try object.update(db)                 // UPDATE
+try object.save(db)                   // Inserts or updates
+try object.delete(db)                 // DELETE
+object.exists(db)                     // Bool
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
@@ -1678,7 +1701,7 @@ struct Link : DatabasePersistable {
 
 #### Record Overview
 
-**Record** is a class that wraps a table row or the result of any query, provides persistence methods, and changes tracking. It is designed to be subclassed.
+**Record** is a class that wraps a table row or the result of any query, provides persistence methods, and changes tracking. It builds on top of the [RowConvertible](#rowconvertible-protocol) and [DatabasePersistable](#databasepersistable-protocol) protocols, and is designed to be subclassed.
 
 ```swift
 // Define Record subclass
@@ -1695,8 +1718,6 @@ try dbQueue.inDatabase { db in
     }
 }
 ```
-
-It builds on top of the [RowConvertible](#rowconvertible-protocol) and [DatabasePersistable](#databasepersistable-protocol) protocols.
 
 **Record is not a smart class.** It is no replacement for Core Data’s NSManagedObject, [Realm](https://realm.io)’s Object, or for an Active Record pattern. It does not provide any uniquing, automatic refresh, or synthesized properties. It has no knowledge of external references and table relationships, and will not generate JOIN queries for you.
 
@@ -1720,10 +1741,10 @@ Yet, it does a few things well:
     
     ```swift
     let person = Person(...)
-    try person.insert(db)   // INSERT
-    try person.update(db)   // UPDATE
-    try person.save(db)     // Inserts or updates
-    try person.delete(db)   // DELETE
+    try person.insert(db)                 // INSERT
+    try person.update(db)                 // UPDATE
+    try person.save(db)                   // Inserts or updates
+    try person.delete(db)                 // DELETE
     ```
     
 - **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
@@ -1773,7 +1794,7 @@ class Person {
     // Persistence
     func insert(db: Database) throws
     func update(db: Database) throws
-    func save(db: Database) throws           // inserts or updates
+    func save(db: Database) throws
     func delete(db: Database) throws -> Bool
     func exists(db: Database) -> Bool
     
@@ -1895,7 +1916,7 @@ class Person : Record {
     }
     
     /// Update person ID after a successful insertion
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         id = rowID
     }
 }
@@ -1932,16 +1953,15 @@ dbQueue.inDatabase { db in
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched records. The differences are:
 
-- The array returned by `fetchAll` can take a lot of memory. Yet it can be iterated on any thread.
-- The sequence returned by `fetch` only goes to the database as you iterate it, and is thus more memory efficient. The price for this efficiency is that the sequence must be iterated in the database queue (you'll get a fatal error if you do otherwise).
-- The sequence returned by `fetch` will return a different set of results if the database has been modified between two sequence iterations.
+- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
+- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
 For example:
 
 ```swift
 dbQueue.inDatabase { db in
     // All persons with an email ending in @example.com:
-    Person.fetch(db,
+    Person.fetchAll(db,
         "SELECT * FROM persons WHERE email LIKE ?",
         arguments: ["%@example.com"])
     
@@ -1990,11 +2010,11 @@ class Person : Record {
 
 try dbQueue.inDatabase { db in
     let person = Person(...)
-    try person.insert(db)   // INSERT
-    try person.update(db)   // UPDATE
-    try person.save(db)     // Inserts or updates
-    try person.delete(db)   // DELETE
-    person.exists(db)       // Bool
+    try person.insert(db)                 // INSERT
+    try person.update(db)                 // UPDATE
+    try person.save(db)                   // Inserts or updates
+    try person.delete(db)                 // DELETE
+    person.exists(db)                     // Bool
 }
 ```
 
@@ -2328,6 +2348,6 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [@pierlo](https://github.com/pierlo) for his feedback on GRDB.
+- [@Chiliec](https://github.com/Chiliec), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss) and [@pierlo](https://github.com/pierlo) for their feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.

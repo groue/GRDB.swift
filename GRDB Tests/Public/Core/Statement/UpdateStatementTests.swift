@@ -163,4 +163,91 @@ class UpdateStatementTests : GRDBTestCase {
             }
         }
     }
+    
+    func testExecuteMultipleStatement() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)")
+                XCTAssertTrue(db.tableExists("wines"))
+                XCTAssertTrue(db.tableExists("books"))
+            }
+        }
+    }
+    
+    func testExecuteMultipleStatementWithNamedArguments() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                try db.execute(
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                    arguments: ["age1": 41, "age2": 32])
+                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                return .Rollback
+            }
+            
+            try dbQueue.inTransaction { db in
+                try db.execute(
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                    arguments: [41, 32])
+                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                return .Rollback
+            }
+        }
+    }
+    
+    func testExecuteMultipleStatementWithReusedNamedArguments() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                try db.execute(
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);" +
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);",
+                    arguments: ["age": 41])
+                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
+                return .Rollback
+            }
+            
+//            // The test below fails because 41 in consumed by the first statement,
+//            // leaving no argument for the second statement.
+//            //
+//            // TODO? make it work
+//            try dbQueue.inTransaction { db in
+//                try db.execute(
+//                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);" +
+//                    "INSERT INTO persons (name, age) VALUES ('Arthur', :age);",
+//                    arguments: [41])
+//                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
+//                return .Rollback
+//            }
+        }
+    }
+    
+    func testExecuteMultipleStatementWithPositionalArguments() {
+        assertNoError {
+            try dbQueue.inTransaction { db in
+                try db.execute(
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                    "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
+                    arguments: [41, 32])
+                XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                return .Rollback
+            }
+        }
+    }
+    
+    func testDatabaseErrorThrownByUpdateStatementContainSQL() {
+        dbQueue.inDatabase { db in
+            do {
+                let _ = try db.updateStatement("UPDATE blah SET id = 12")
+                XCTFail()
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, 1)
+                XCTAssertEqual(error.message!, "no such table: blah")
+                XCTAssertEqual(error.sql!, "UPDATE blah SET id = 12")
+                XCTAssertEqual(error.description, "SQLite error 1 with statement `UPDATE blah SET id = 12`: no such table: blah")
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+    }
 }

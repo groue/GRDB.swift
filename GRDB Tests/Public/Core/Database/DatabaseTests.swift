@@ -22,7 +22,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 XCTAssertFalse(db.tableExists("persons"))
                 XCTAssertFalse(db.tableExists("pets"))
-                try db.executeMultiStatement(
+                try db.execute(
                     "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);" +
                     "CREATE TABLE pets (id INTEGER PRIMARY KEY, name TEXT, age INT);")
                 XCTAssertTrue(db.tableExists("persons"))

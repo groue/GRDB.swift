@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="9525" systemVersion="15B42" minimumToolsVersion="Xcode 7.0">
+    <entity name="Item" representedClassName="ManagedItem" syncable="YES">
+        <attribute name="i0" optional="YES" attributeType="Integer 64" syncable="YES"/>
+        <attribute name="i1" optional="YES" attributeType="Integer 64" syncable="YES"/>
+        <attribute name="i2" optional="YES" attributeType="Integer 64" syncable="YES"/>
+        <attribute name="i3" optional="YES" attributeType="Integer 64" syncable="YES"/>
+        <attribute name="i4" optional="YES" attributeType="Integer 64" syncable="YES"/>
+        <attribute name="i5" optional="YES" attributeType="Integer 64" syncable="YES"/>
+        <attribute name="i6" optional="YES" attributeType="Integer 64" syncable="YES"/>
+        <attribute name="i7" optional="YES" attributeType="Integer 64" syncable="YES"/>
+        <attribute name="i8" optional="YES" attributeType="Integer 64" syncable="YES"/>
+        <attribute name="i9" optional="YES" attributeType="Integer 64" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="Item" positionX="-63" positionY="-18" width="128" height="195"/>
+    </elements>
+</model>

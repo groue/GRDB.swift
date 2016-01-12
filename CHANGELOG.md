@@ -1,6 +1,91 @@
 Release Notes
 =============
 
+## 0.39.0
+
+Released January 11, 2016
+
+**Breaking Changes**
+
+- Removed partial update introduced in 0.38.0.
+
+
+## 0.38.2
+
+Released January 10, 2016
+
+**Fixed**
+
+- Preconditions on invalid statements arguments are restored.
+
+## 0.38.1
+
+Released January 10, 2016
+
+**New**
+
+- Various [performance improvements](https://github.com/groue/GRDB.swift/wiki/Performance)
+
+
+## 0.38.0
+
+Released January 8, 2016
+
+**New**
+
+- `Record.update()` and `DatabasePersistable.update()` can execute partial updates:
+    
+    ```swift
+    try person.update(db)                    // Full update
+    try person.update(db, columns: ["age"])  // Only updates the age column
+    ```
+
+**Breaking Changes**
+
+- `Statement.arguments` is no longer optional.
+- Your Record subclasses and DatabasePersistable types that provide custom implementation of `update` must use the signature below:
+    
+    ```swift
+    func update(db: Database, columns: [String]? = nil) throws
+    ```
+
+
+## 0.37.1
+
+Released January 7, 2016
+
+**Fixed**
+
+- Remove method `fromRow()` from NSData, NSDate, NSNull, NSNumber, NSString and NSURL, which should have been removed in v0.36.0.
+
+
+## 0.37.0
+
+Released January 7, 2016
+
+**Fixed**
+
+- A named argument such as `:name` can now be used several times in a statement.
+- Validation of statement arguments is much more solid (and tested).
+
+**New**
+
+- `Database.execute()` can now execute several statements separated by a semicolon.
+- `Statement.validateArguments(_)` throws an error if the arguments parameter doesn't match the prepared statement:
+    
+    ```swift
+    let statement = try db.selectStatement("SELECT * FROM persons WHERE id = ?")
+    // OK
+    try statement.validateArguments([1])
+    // Error: wrong number of statement arguments: 2
+    try statement.validateArguments([1, 2])
+    ```
+
+**Breaking Changes**
+
+- `Database.executeMultiStatement(sql)` has been removed. To execute several SQL statements separated by a semicolon, use `Database.execute()` instead.
+
+
 ## 0.36.0
 
 Released December 28, 2015
@@ -485,7 +570,7 @@ Released August 18, 2015
 
 - `RowModel.exists(db)` returns whether a row model has a matching row in the database.
 - `Statement.arguments` property gains a public setter.
-- `Database.executeMultiple(sql)` can execute several SQL statements separated by a semi-colon ([#6](http://github.com/groue/GRDB.swift/pull/6) by [peter-ss](https://github.com/peter-ss))
+- `Database.executeMultiStatement(sql)` can execute several SQL statements separated by a semi-colon ([#6](http://github.com/groue/GRDB.swift/pull/6) by [peter-ss](https://github.com/peter-ss))
 
 **Breaking changes**
 

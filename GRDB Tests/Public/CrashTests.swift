@@ -1,6 +1,7 @@
 // All tests in this file must crash.
 //
-// To run those tests, check the GRDBOSXTests and GRDBiOSTests membership.
+// To run those tests, run the GRDBOSXCrashTests target, and verify that each
+// test crashes with the expected error message.
 
 import XCTest
 import GRDB
@@ -69,7 +70,7 @@ struct IntConvertible: DatabaseValueConvertible {
         self.int = int
     }
     var databaseValue: DatabaseValue {
-        return DatabaseValue(int64: Int64(int))
+        return int.databaseValue
     }
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> IntConvertible? {
         guard let int = Int.fromDatabaseValue(databaseValue) else {
@@ -99,13 +100,13 @@ class CrashTests: GRDBTestCase {
     // MARK: - Migrations
     
     func testMigrationNamesMustBeUnique() {
-        assertCrash("Already registered migration: \"foo\"") {
+        assertCrash("already registered migration: \"foo\"") {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("foo") { db in }
             migrator.registerMigration("foo") { db in }
         }
     }
-    
+
     
     // =========================================================================
     // MARK: - Queue
@@ -141,7 +142,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testRowSequenceCanNotBeGeneratedOutsideOfDatabaseQueue() {
-        assertCrash("Database was not used on the correct queue.") {
+        assertCrash("Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.") {
             var rows: DatabaseSequence<Row>?
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT)")
@@ -152,7 +153,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testRowSequenceCanNotBeIteratedOutsideOfDatabaseQueue() {
-        assertCrash("Database was not used on the correct queue.") {
+        assertCrash("Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.") {
             var generator: DatabaseGenerator<Row>?
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT)")
@@ -166,37 +167,129 @@ class CrashTests: GRDBTestCase {
     // =========================================================================
     // MARK: - Statements
     
-    func testExecuteDoesNotSupportMultipleStatement() {
-        assertCrash("Invalid SQL string: multiple statements found.") {
+    func testInvalidStatementArguments() {
+        assertCrash("SQLite error 1 with statement `INSERT INTO persons (name, age) VALUES (:name, :age)`: missing statement argument(s): age") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE persons (name TEXT, age INT); CREATE TABLE books (name TEXT, age INT)")
+                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                try! db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur"])
+            }
+        }
+        
+        assertCrash("SQLite error 21 with statement `INSERT INTO persons (name, age) VALUES ('Arthur', ?);`: wrong number of statement arguments: 0") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);")
+                    XCTFail("Expected Error")
+                } catch {
+                    XCTAssertTrue(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age").isEmpty)
+                }
+                
+                return .Rollback
+            }
+        }
+        
+        assertCrash("SQLite error 21 with statement `INSERT INTO persons (name, age) VALUES ('Arthur', ?);`: wrong number of statement arguments: 0") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
+                        arguments: [41])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [41])
+                }
+                
+                return .Rollback
+            }
+        }
+        
+        assertCrash("SQLite error 21 with statement `INSERT INTO persons (name, age) VALUES ('Arthur', :age1);`: missing statement argument(s): age1") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);")
+                    XCTFail("Expected Error")
+                } catch {
+                    XCTAssertTrue(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age").isEmpty)
+                }
+                return .Rollback
+            }
+        }
+        
+        assertCrash("SQLite error 21 with statement `INSERT INTO persons (name, age) VALUES ('Arthur', :age2);`: missing statement argument(s): age2") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                        arguments: ["age1": 41])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [41])
+                }
+                return .Rollback
+            }
+        }
+        
+        assertCrash("wrong number of statement arguments: 3") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', :age2);",
+                        arguments: [41, 32, 17])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                }
+                return .Rollback
+            }
+        }
+        
+        assertCrash("wrong number of statement arguments: 3") {
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+                    try db.execute(
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
+                        "INSERT INTO persons (name, age) VALUES ('Arthur', ?);",
+                        arguments: [41, 32, 17])
+                    XCTFail("Expected Error")
+                } catch {
+                    // Partial fail
+                    XCTAssertEqual(Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+                }
+                return .Rollback
             }
         }
     }
     
-    func testInvalidNamedBinding() {
-        assertCrash("Key not found in SQLite statement: `:XXX`") {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-                try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["XXX": "foo", "name": "Arthur", "age": 41])
-            }
-        }
-    }
-
     
     // =========================================================================
     // MARK: - RecordWithoutDatabaseTableName
     
     func testRecordWithoutDatabaseTableNameCanNotBeFetchedByID() {
-        assertCrash("Nil returned from RecordWithoutDatabaseTableName.databaseTableName()") {
+        assertCrash("subclass must override") {
             dbQueue.inDatabase { db in
-                RecordWithoutDatabaseTableName.fetchOne(db, primaryKey: 1)
+                RecordWithoutDatabaseTableName.fetchOne(db, key: 1)
             }
         }
     }
     
     func testRecordWithoutDatabaseTableNameCanNotBeFetchedByKey() {
-        assertCrash("Nil returned from RecordWithoutDatabaseTableName.databaseTableName()") {
+        assertCrash("subclass must override") {
             dbQueue.inDatabase { db in
                 RecordWithoutDatabaseTableName.fetchOne(db, key: ["foo": "bar"])
             }
@@ -204,7 +297,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testRecordWithoutDatabaseTableNameCanNotBeInserted() {
-        assertCrash("Nil returned from RecordWithoutDatabaseTableName.databaseTableName()") {
+        assertCrash("subclass must override") {
             try dbQueue.inDatabase { db in
                 try RecordWithoutDatabaseTableName().insert(db)
             }
@@ -212,7 +305,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testRecordWithoutDatabaseTableNameCanNotBeUpdated() {
-        assertCrash("Nil returned from RecordWithoutDatabaseTableName.databaseTableName()") {
+        assertCrash("subclass must override") {
             try dbQueue.inDatabase { db in
                 try RecordWithoutDatabaseTableName().update(db)
             }
@@ -220,7 +313,7 @@ class CrashTests: GRDBTestCase {
     }
 
     func testRecordWithoutDatabaseTableNameCanNotBeSaved() {
-        assertCrash("Nil returned from RecordWithoutDatabaseTableName.databaseTableName()") {
+        assertCrash("subclass must override") {
             try dbQueue.inDatabase { db in
                 try RecordWithoutDatabaseTableName().save(db)
             }
@@ -228,23 +321,15 @@ class CrashTests: GRDBTestCase {
     }
 
     func testRecordWithoutDatabaseTableNameCanNotBeDeleted() {
-        assertCrash("Nil returned from RecordWithoutDatabaseTableName.databaseTableName()") {
+        assertCrash("subclass must override") {
             try dbQueue.inDatabase { db in
                 try RecordWithoutDatabaseTableName().delete(db)
             }
         }
     }
     
-    func testRecordWithoutDatabaseTableNameCanNotBeReloaded() {
-        assertCrash("Nil returned from RecordWithoutDatabaseTableName.databaseTableName()") {
-            try dbQueue.inDatabase { db in
-                try RecordWithoutDatabaseTableName().reload(db)
-            }
-        }
-    }
-    
     func testRecordWithoutDatabaseTableNameCanNotBeTestedForExistence() {
-        assertCrash("Nil returned from RecordWithoutDatabaseTableName.databaseTableName()") {
+        assertCrash("subclass must override") {
             dbQueue.inDatabase { db in
                 RecordWithoutDatabaseTableName().exists(db)
             }
@@ -256,15 +341,15 @@ class CrashTests: GRDBTestCase {
     // MARK: - RecordWithInexistingDatabaseTable
     
     func testRecordWithInexistingDatabaseTableCanNotBeFetchedByID() {
-        assertCrash("Table \"foo\" does not exist.") {
+        assertCrash("no such table: foo") {
             dbQueue.inDatabase { db in
-                RecordWithInexistingDatabaseTable.fetchOne(db, primaryKey: 1)
+                RecordWithInexistingDatabaseTable.fetchOne(db, key: 1)
             }
         }
     }
     
     func testRecordWithInexistingDatabaseTableCanNotBeFetchedByKey() {
-        assertCrash("no such table: foo") {
+        assertCrash("SQLite error 1 with statement `SELECT * FROM \"foo\" WHERE (\"id\" = ?)`: no such table: foo") {
             dbQueue.inDatabase { db in
                 RecordWithInexistingDatabaseTable.fetchOne(db, key: ["id": 1])
             }
@@ -272,7 +357,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testRecordWithInexistingDatabaseTableCanNotBeInserted() {
-        assertCrash("Table \"foo\" does not exist.") {
+        assertCrash("no such table: foo") {
             try dbQueue.inDatabase { db in
                 try RecordWithInexistingDatabaseTable().insert(db)
             }
@@ -280,15 +365,15 @@ class CrashTests: GRDBTestCase {
     }
     
     func testRecordWithInexistingDatabaseTableCanNotBeUpdated() {
-        assertCrash("Table \"foo\" does not exist.") {
+        assertCrash("no such table: foo") {
             try dbQueue.inDatabase { db in
                 try RecordWithInexistingDatabaseTable().update(db)
             }
         }
     }
-    
+
     func testRecordWithInexistingDatabaseTableCanNotBeSaved() {
-        assertCrash("Table \"foo\" does not exist.") {
+        assertCrash("no such table: foo") {
             try dbQueue.inDatabase { db in
                 try RecordWithInexistingDatabaseTable().save(db)
             }
@@ -296,23 +381,15 @@ class CrashTests: GRDBTestCase {
     }
 
     func testRecordWithInexistingDatabaseTableCanNotBeDeleted() {
-        assertCrash("Table \"foo\" does not exist.") {
+        assertCrash("no such table: foo") {
             try dbQueue.inDatabase { db in
                 try RecordWithInexistingDatabaseTable().delete(db)
             }
         }
     }
     
-    func testRecordWithInexistingDatabaseTableCanNotBeReloaded() {
-        assertCrash("Table \"foo\" does not exist.") {
-            try dbQueue.inDatabase { db in
-                try RecordWithInexistingDatabaseTable().reload(db)
-            }
-        }
-    }
-    
     func testRecordWithInexistingDatabaseTableCanNotBeTestedForExistence() {
-        assertCrash("Table \"foo\" does not exist.") {
+        assertCrash("no such table: foo") {
             dbQueue.inDatabase { db in
                 RecordWithInexistingDatabaseTable().exists(db)
             }
@@ -324,7 +401,7 @@ class CrashTests: GRDBTestCase {
     // MARK: - RecordWithEmptyPersistentDictionary
     
     func testRecordWithEmptyPersistentDictionaryCanNotBeInserted() {
-        assertCrash("Invalid empty dictionary") {
+        assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithEmptyPersistentDictionary().insert(db)
@@ -333,7 +410,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testRecordWithEmptyPersistentDictionaryCanNotBeUpdated() {
-        assertCrash("Invalid empty dictionary") {
+        assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithEmptyPersistentDictionary().update(db)
@@ -342,7 +419,7 @@ class CrashTests: GRDBTestCase {
     }
 
     func testRecordWithEmptyPersistentDictionaryCanNotBeSaved() {
-        assertCrash("Invalid empty dictionary") {
+        assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithEmptyPersistentDictionary().save(db)
@@ -351,7 +428,7 @@ class CrashTests: GRDBTestCase {
     }
 
     func testRecordWithEmptyPersistentDictionaryCanNotBeDeleted() {
-        assertCrash("Invalid empty dictionary") {
+        assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithEmptyPersistentDictionary().delete(db)
@@ -359,17 +436,8 @@ class CrashTests: GRDBTestCase {
         }
     }
     
-    func testRecordWithEmptyPersistentDictionaryCanNotBeReloaded() {
-        assertCrash("Invalid empty dictionary") {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
-                try RecordWithEmptyPersistentDictionary().reload(db)
-            }
-        }
-    }
-    
     func testRecordWithEmptyPersistentDictionaryCanNotBeTestedForExistence() {
-        assertCrash("Invalid empty dictionary") {
+        assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 RecordWithEmptyPersistentDictionary().exists(db)
@@ -382,7 +450,7 @@ class CrashTests: GRDBTestCase {
     // MARK: - RecordWithNilPrimaryKey
     
     func testRecordWithNilPrimaryKeyCanNotBeUpdated() {
-        assertCrash("Invalid primary key") {
+        assertCrash("invalid primary key in <RecordWithNilPrimaryKey id:nil>") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithNilPrimaryKey().update(db)
@@ -391,7 +459,7 @@ class CrashTests: GRDBTestCase {
     }
 
     func testRecordWithNilPrimaryKeyCanNotBeDeleted() {
-        assertCrash("Invalid primary key") {
+        assertCrash("invalid primary key in <RecordWithNilPrimaryKey id:nil>") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithNilPrimaryKey().delete(db)
@@ -399,48 +467,39 @@ class CrashTests: GRDBTestCase {
         }
     }
     
-    func testRecordWithNilPrimaryKeyCanNotBeReloaded() {
-        assertCrash("Invalid primary key") {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
-                try RecordWithNilPrimaryKey().reload(db)
-            }
-        }
-    }
-    
     func testRecordWithNilPrimaryKeyCanNotBeTestedForExistence() {
-        assertCrash("Invalid primary key") {
+        assertCrash("invalid primary key in <RecordWithNilPrimaryKey id:nil>") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 RecordWithNilPrimaryKey().exists(db)
             }
         }
     }
-    
+
     
     // =========================================================================
     // MARK: - RecordForTableWithoutPrimaryKey
     
     func testRecordForTableWithoutPrimaryKeyCanNotBeFetchedByID() {
-        assertCrash("Primary key of table \"records\" is not made of a single column.") {
+        assertCrash("expected single column primary key in table: records") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (name TEXT)")
-                RecordForTableWithoutPrimaryKey.fetchOne(db, primaryKey: 1)
+                RecordForTableWithoutPrimaryKey.fetchOne(db, key: 1)
             }
         }
     }
     
     func testRecordForTableWithoutPrimaryKeyCanNotBeUpdated() {
-        assertCrash("Invalid primary key") {
+        assertCrash("invalid primary key in <RecordForTableWithoutPrimaryKey name:\"foo\">") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (name TEXT)")
                 try RecordForTableWithoutPrimaryKey().update(db)
             }
         }
     }
-    
+
     func testRecordForTableWithoutPrimaryKeyCanNotBeDeleted() {
-        assertCrash("Invalid primary key") {
+        assertCrash("invalid primary key in <RecordForTableWithoutPrimaryKey name:\"foo\">") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (name TEXT)")
                 try RecordForTableWithoutPrimaryKey().delete(db)
@@ -448,17 +507,8 @@ class CrashTests: GRDBTestCase {
         }
     }
     
-    func testRecordForTableWithoutPrimaryKeyCanNotBeReloaded() {
-        assertCrash("Invalid primary key") {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (name TEXT)")
-                try RecordForTableWithoutPrimaryKey().reload(db)
-            }
-        }
-    }
-    
     func testRecordForTableWithoutPrimaryKeyCanNotBeTestedForExistence() {
-        assertCrash("Invalid primary key") {
+        assertCrash("invalid primary key in <RecordForTableWithoutPrimaryKey name:\"foo\">") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (name TEXT)")
                 RecordForTableWithoutPrimaryKey().exists(db)
@@ -471,10 +521,10 @@ class CrashTests: GRDBTestCase {
     // MARK: - RecordForTableWithMultipleColumnsPrimaryKey
     
     func testRecordForTableWithMultipleColumnsPrimaryKeyCanNotBeFetchedByID() {
-        assertCrash("Primary key of table \"records\" is not made of a single column.") {
+        assertCrash("expected single column primary key in table: records") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (a TEXT, b TEXT, PRIMARY KEY(a,b))")
-                RecordForTableWithMultipleColumnsPrimaryKey.fetchOne(db, primaryKey: 1)
+                RecordForTableWithMultipleColumnsPrimaryKey.fetchOne(db, key: 1)
             }
         }
     }
@@ -484,14 +534,14 @@ class CrashTests: GRDBTestCase {
     // MARK: - RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary
     
     func testRecordWithRowIDPrimaryKeyNotExposedInPersistentDictionaryCanNotBeInserted() {
-        assertCrash("RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary.persistentDictionary must return the value for the primary key \"id\"") {
+        assertCrash("invalid primary key in <RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary name:\"foo\">") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY, name TEXT)")
-                try RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary().insert(db)
+                try RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary().update(db)
             }
         }
     }
-    
+
     
     // =========================================================================
     // MARK: - Concurrency
@@ -539,34 +589,34 @@ class CrashTests: GRDBTestCase {
     // MARK: - DatabaseValueConvertible
     
     func testCrashFetchDatabaseValueConvertibleFromStatement() {
-        assertCrash("Could not convert NULL to IntConvertible while iterating `SELECT int FROM ints ORDER BY int`.") {
+        assertCrash("could not convert NULL to IntConvertible.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
                 let sequence = IntConvertible.fetch(statement)
                 for _ in sequence { }
             }
         }
     }
-    
+
     func testCrashFetchAllDatabaseValueConvertibleFromStatement() {
-        assertCrash("Could not convert NULL to IntConvertible while iterating `SELECT int FROM ints ORDER BY int`.") {
+        assertCrash("could not convert NULL to IntConvertible.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
                 let _ = IntConvertible.fetchAll(statement)
             }
         }
     }
     
     func testCrashFetchDatabaseValueConvertibleFromDatabase() {
-        assertCrash("Could not convert NULL to IntConvertible while iterating `SELECT int FROM ints ORDER BY int`.") {
+        assertCrash("could not convert NULL to IntConvertible.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -577,9 +627,9 @@ class CrashTests: GRDBTestCase {
             }
         }
     }
-    
+
     func testCrashFetchAllDatabaseValueConvertibleFromDatabase() {
-        assertCrash("Could not convert NULL to IntConvertible while iterating `SELECT int FROM ints ORDER BY int`.") {
+        assertCrash("could not convert NULL to IntConvertible.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -591,15 +641,15 @@ class CrashTests: GRDBTestCase {
     }
 
     func testCrashDatabaseValueConvertibleInvalidConversionFromNULL() {
-        assertCrash("Could not convert NULL to IntConvertible.") {
-            let row = Row(dictionary: ["int": nil])
+        assertCrash("could not convert NULL to IntConvertible.") {
+            let row = Row(["int": nil])
             let _ = row.value(named: "int") as IntConvertible
         }
     }
-    
+
     func testCrashDatabaseValueConvertibleInvalidConversionFromInvalidType() {
-        assertCrash("Could not convert \"foo\" to IntConvertible.") {
-            let row = Row(dictionary: ["int": "foo"])
+        assertCrash("could not convert \"foo\" to IntConvertible") {
+            let row = Row(["int": "foo"])
             let _ = row.value(named: "int") as IntConvertible
         }
     }
@@ -609,34 +659,34 @@ class CrashTests: GRDBTestCase {
     // MARK: - SQLiteStatementConvertible
     
     func testCrashFetchSQLiteStatementConvertibleFromStatement() {
-        assertCrash("Found NULL") {
+        assertCrash("could not convert NULL to Int.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
                 let sequence = Int.fetch(statement)
                 for _ in sequence { }
             }
         }
     }
-    
+
     func testCrashFetchAllSQLiteStatementConvertibleFromStatement() {
-        assertCrash("Found NULL") {
+        assertCrash("could not convert NULL to Int.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
                 let _ = Int.fetchAll(statement)
             }
         }
     }
     
     func testCrashFetchSQLiteStatementConvertibleFromDatabase() {
-        assertCrash("Found NULL") {
+        assertCrash("could not convert NULL to Int.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -647,9 +697,9 @@ class CrashTests: GRDBTestCase {
             }
         }
     }
-    
+
     func testCrashFetchAllSQLiteStatementConvertibleFromDatabase() {
-        assertCrash("Found NULL") {
+        assertCrash("could not convert NULL to Int.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")

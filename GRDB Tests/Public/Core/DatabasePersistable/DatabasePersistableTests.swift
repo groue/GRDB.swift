@@ -3,23 +3,26 @@ import GRDB
 
 struct PersistablePerson : DatabasePersistable {
     var name: String?
+    var age: Int?
     
     static func databaseTableName() -> String {
         return "persons"
     }
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["name": name]
+        return ["name": name, "age": age]
     }
 }
 
 class PersistablePersonClass : DatabasePersistable {
     var id: Int64?
     var name: String?
+    var age: Int?
     
-    init(id: Int64?, name: String?) {
+    init(id: Int64?, name: String?, age: Int?) {
         self.id = id
         self.name = name
+        self.age = age
     }
     
     static func databaseTableName() -> String {
@@ -27,7 +30,7 @@ class PersistablePersonClass : DatabasePersistable {
     }
     
     var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name]
+        return ["id": id, "name": name, "age": age]
     }
     
     func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
@@ -101,7 +104,8 @@ class DatabasePersistableTests: GRDBTestCase {
             try db.execute(
                 "CREATE TABLE persons (" +
                     "id INTEGER PRIMARY KEY, " +
-                    "name NOT NULL " +
+                    "name TEXT NOT NULL, " +
+                    "age INT NOT NULL " +
                 ")")
             try db.execute(
                 "CREATE TABLE countries (" +
@@ -121,7 +125,7 @@ class DatabasePersistableTests: GRDBTestCase {
     func testInsertPersistablePerson() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person = PersistablePerson(name: "Arthur")
+                let person = PersistablePerson(name: "Arthur", age: 42)
                 try person.insert(db)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM persons")
@@ -134,7 +138,7 @@ class DatabasePersistableTests: GRDBTestCase {
     func testSavePersistablePerson() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person = PersistablePerson(name: "Arthur")
+                let person = PersistablePerson(name: "Arthur", age: 42)
                 try person.save(db)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM persons")
@@ -150,7 +154,7 @@ class DatabasePersistableTests: GRDBTestCase {
     func testInsertPersistablePersonClass() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person = PersistablePersonClass(id: nil, name: "Arthur")
+                let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person.insert(db)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM persons")
@@ -164,9 +168,9 @@ class DatabasePersistableTests: GRDBTestCase {
     func testUpdatePersistablePersonClass() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person1 = PersistablePersonClass(id: nil, name: "Arthur")
+                let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person1.insert(db)
-                let person2 = PersistablePersonClass(id: nil, name: "Barbara")
+                let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
                 try person2.insert(db)
                 
                 person1.name = "Craig"
@@ -185,7 +189,7 @@ class DatabasePersistableTests: GRDBTestCase {
     func testSavePersistablePersonClass() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person1 = PersistablePersonClass(id: nil, name: "Arthur")
+                let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person1.save(db)
                 
                 var rows = Row.fetchAll(db, "SELECT * FROM persons")
@@ -193,7 +197,7 @@ class DatabasePersistableTests: GRDBTestCase {
                 XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
                 XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
                 
-                let person2 = PersistablePersonClass(id: nil, name: "Barbara")
+                let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
                 try person2.save(db)
                 
                 person1.name = "Craig"
@@ -222,9 +226,9 @@ class DatabasePersistableTests: GRDBTestCase {
     func testDeletePersistablePersonClass() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person1 = PersistablePersonClass(id: nil, name: "Arthur")
+                let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person1.insert(db)
-                let person2 = PersistablePersonClass(id: nil, name: "Barbara")
+                let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
                 try person2.insert(db)
                 
                 try person1.delete(db)
@@ -240,7 +244,7 @@ class DatabasePersistableTests: GRDBTestCase {
     func testExistsPersistablePersonClass() {
         assertNoError {
             try dbQueue.inDatabase { db in
-                let person = PersistablePersonClass(id: nil, name: "Arthur")
+                let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person.insert(db)
                 XCTAssertTrue(person.exists(db))
                 

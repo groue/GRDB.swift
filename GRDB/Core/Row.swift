@@ -25,12 +25,8 @@ public final class Row: CollectionType {
     
     /// Builds a row from an dictionary of values.
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        var databaseDictionary = [String: DatabaseValue]()
-        for (key, value) in dictionary {
-            databaseDictionary[key] = value?.databaseValue ?? .Null
-        }
         self.sqliteStatement = nil
-        self.impl = DictionaryRowImpl(databaseDictionary: databaseDictionary)
+        self.impl = DictionaryRowImpl(dictionary: dictionary)
     }
     
     /// Returns a copy of the row.
@@ -65,7 +61,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An Int64, Double, String, NSData or nil.
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -91,7 +87,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -122,7 +118,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -157,7 +153,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         return impl
             .databaseValue(atIndex: index)
             .value()
@@ -188,7 +184,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: A *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -196,7 +192,7 @@ public final class Row: CollectionType {
             // Perform a NULL check, and prevent SQLite from converting NULL to
             // a 0 integer, for example.
             guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
-                fatalError("Could not convert NULL to \(Value.self).")
+                fatalError("could not convert NULL to \(Value.self).")
             }
             return Value(sqliteStatement: sqliteStatement, index: Int32(index))
         } else {
@@ -301,7 +297,7 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            fatalError("no such column: \(columnName)")
         }
         return value(atIndex: index)
     }
@@ -332,7 +328,7 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
         guard let index = impl.indexForColumn(named: columnName) else {
-            fatalError("No such column: \(String(reflecting: columnName))")
+            fatalError("no such column: \(columnName)")
         }
         return value(atIndex: index)
     }
@@ -351,7 +347,7 @@ public final class Row: CollectionType {
     /// - parameter index: A column index.
     /// - returns: An optional NSData.
     public func dataNoCopy(atIndex index: Int) -> NSData? {
-        precondition(index >= 0 && index < count, "Row index out of range")
+        precondition(index >= 0 && index < count, "row index out of range")
         return impl.dataNoCopy(atIndex: index)
     }
     
@@ -473,9 +469,9 @@ public final class Row: CollectionType {
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Row> {
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(metalStatement: statement)
         return statement.fetch(arguments: arguments) { row }
@@ -487,9 +483,9 @@ public final class Row: CollectionType {
     ///     let rows = Row.fetchAll(statement)
     ///
     /// - parameter statement: The statement to run.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: An array of rows.
-    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> [Row] {
+    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
         let sequence = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
         }
@@ -502,14 +498,13 @@ public final class Row: CollectionType {
     ///     let row = Row.fetchOne(statement)
     ///
     /// - parameter statement: The statement to run.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional row.
-    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments = StatementArguments.Default) -> Row? {
+    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
         let sequence = statement.fetch(arguments: arguments) {
             Row(detachedStatement: statement)
         }
-        var generator = sequence.generate()
-        return generator.next()
+        return sequence.generate().next()
     }
     
     
@@ -544,9 +539,9 @@ public final class Row: CollectionType {
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> DatabaseSequence<Row> {
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
     
@@ -556,9 +551,9 @@ public final class Row: CollectionType {
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: An array of rows.
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> [Row] {
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
         return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
     
@@ -568,28 +563,15 @@ public final class Row: CollectionType {
     ///
     /// - parameter db: A Database.
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional row.
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments = StatementArguments.Default) -> Row? {
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
         return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
 
     
     // MARK: - Not Public
     
-    /// There a three different RowImpl:
-    ///
-    /// - MetalRowImpl: metal rows grant direct access to the current state of
-    ///   an SQLite statement. Such rows are reused during the iteration of a
-    ///   statement.
-    ///
-    /// - DetachedRowImpl: detached rows hold a copy of the values that come
-    ///   from an SQLite statement.
-    ///
-    /// - DictionaryRowImpl: dictionary rows are created by the library users.
-    ///   They do not come from the database.
-    ///
-    /// - EmptyRowImpl: empty row
     let impl: RowImpl
     
     /// Only metal rows have a SQLiteStatement.
@@ -622,16 +604,16 @@ public final class Row: CollectionType {
     
     // MARK: - DictionaryRowImpl
     
-    /// See Row.init(databaseDictionary:)
+    /// See Row.init(dictionary:)
     private struct DictionaryRowImpl : RowImpl {
-        let databaseDictionary: [String: DatabaseValue]
+        let dictionary: [String: DatabaseValueConvertible?]
         
-        init (databaseDictionary: [String: DatabaseValue]) {
-            self.databaseDictionary = databaseDictionary
+        init (dictionary: [String: DatabaseValueConvertible?]) {
+            self.dictionary = dictionary
         }
         
         var count: Int {
-            return databaseDictionary.count
+            return dictionary.count
         }
         
         func dataNoCopy(atIndex index:Int) -> NSData? {
@@ -639,20 +621,20 @@ public final class Row: CollectionType {
         }
         
         func databaseValue(atIndex index: Int) -> DatabaseValue {
-            return databaseDictionary[databaseDictionary.startIndex.advancedBy(index)].1
+            return dictionary[dictionary.startIndex.advancedBy(index)].1?.databaseValue ?? .Null
         }
         
         func columnName(atIndex index: Int) -> String {
-            return databaseDictionary[databaseDictionary.startIndex.advancedBy(index)].0
+            return dictionary[dictionary.startIndex.advancedBy(index)].0
         }
         
         // This method MUST be case-insensitive.
         func indexForColumn(named name: String) -> Int? {
             let lowercaseName = name.lowercaseString
-            guard let index = databaseDictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) else {
+            guard let index = dictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) else {
                 return nil
             }
-            return databaseDictionary.startIndex.distanceTo(index)
+            return dictionary.startIndex.distanceTo(index)
         }
         
         func copiedRow(row: Row) -> Row {
@@ -753,15 +735,15 @@ public final class Row: CollectionType {
         var count: Int { return 0 }
         
         func databaseValue(atIndex index: Int) -> DatabaseValue {
-            fatalError("Empty row has no column")
+            fatalError("row index out of range")
         }
         
         func dataNoCopy(atIndex index:Int) -> NSData? {
-            fatalError("Empty row has no column")
+            fatalError("row index out of range")
         }
         
         func columnName(atIndex index: Int) -> String {
-            fatalError("Empty row has no column")
+            fatalError("row index out of range")
         }
         
         func indexForColumn(named name: String) -> Int? {

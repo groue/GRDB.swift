@@ -139,7 +139,7 @@ public final class DatabaseQueue {
     ///   inTransaction(), which would create a deadlock
     /// - warning the user the he uses a statement outside of the database
     ///   queue.
-    private lazy var databaseQueueID: DatabaseQueueID = { [unowned self] in
+    private lazy var databaseQueueID: DatabaseQueueID = {
         unsafeBitCast(self, DatabaseQueueID.self)   // pointer to self
     }()
     

@@ -31,6 +31,16 @@ public final class Database {
         return try SelectStatement(database: self, sql: sql)
     }
     
+    func cachedSelectStatement(sql: String) throws -> SelectStatement {
+        if let statement = selectStatementCache[sql] {
+            return statement
+        }
+        
+        let statement = try selectStatement(sql)
+        selectStatementCache[sql] = statement
+        return statement
+    }
+    
     
     // =========================================================================
     // MARK: - Update Statements
@@ -50,46 +60,121 @@ public final class Database {
         return try UpdateStatement(database: self, sql: sql)
     }
     
-    /// Executes an update statement.
+    func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
+        if let statement = updateStatementCache[sql] {
+            return statement
+        }
+        
+        let statement = try updateStatement(sql)
+        updateStatementCache[sql] = statement
+        return statement
+    }
+    
+    /// Executes one or several SQL statements, separated by semi-colons.
     ///
-    ///     db.excute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+    ///     try db.execute(
+    ///         "INSERT INTO persons (name) VALUES (:name)",
+    ///         arguments: ["name": "Arthur"])
+    ///
+    ///     try db.execute(
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);",
+    ///         arguments; ['Harry', 'Ron', 'Hermione'])
     ///
     /// This method may throw a DatabaseError.
     ///
     /// - parameter sql: An SQL query.
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func execute(sql: String, arguments: StatementArguments = StatementArguments.Default) throws -> DatabaseChanges {
-        let statement = try updateStatement(sql)
-        return try statement.execute(arguments: arguments)
-    }
-    
-    /// Executes multiple SQL statements, separated by semi-colons.
-    ///
-    ///     try db.executeMultiStatement(
-    ///         "INSERT INTO persons (name) VALUES ('Harry');" +
-    ///         "INSERT INTO persons (name) VALUES ('Ron');" +
-    ///         "INSERT INTO persons (name) VALUES ('Hermione');")
-    ///
-    /// This method may throw a DatabaseError.
-    ///
-    /// - parameter sql: SQL containing multiple statements separated by
-    ///   semi-colons.
-    /// - returns: A DatabaseChanges. Note that insertedRowID will always be nil.
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
-    public func executeMultiStatement(sql: String) throws -> DatabaseChanges {
+    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         preconditionValidQueue()
         
-        let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
-        
-        let code = sqlite3_exec(sqliteConnection, sql, nil, nil, nil)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(code: code, message: lastErrorMessage, sql: sql, arguments: nil)
+        let usedArguments: StatementArguments
+        if let arguments = arguments {
+            usedArguments = arguments
+        } else {
+            usedArguments = []
         }
         
+        // The tricky part is to consume arguments as statements are executed.
+        //
+        // Here we return two functions:
+        // - one that returns arguments for a statement
+        // - one that validates the remaining arguments, in the same way as
+        //   Statement.validateArguments()
+        let (consumeArguments, validateRemainingArguments) = { () -> (UpdateStatement -> StatementArguments, () throws -> ()) in
+            switch usedArguments.kind {
+            case .Array(let values):
+                // Extract as many values as needed, statement after statement:
+                var remainingValues = values
+                let consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
+                    let argumentCount = statement.sqliteArgumentCount
+                    defer {
+                        if remainingValues.count >= argumentCount {
+                            remainingValues = Array(remainingValues.suffixFrom(argumentCount))
+                        } else {
+                            remainingValues = []
+                        }
+                    }
+                    return StatementArguments(remainingValues.prefix(argumentCount))
+                }
+                // It's not OK if there remains unused arguments:
+                let validateRemainingArguments = {
+                    if !remainingValues.isEmpty {
+                        fatalError("wrong number of statement arguments: \(values.count)")
+                    }
+                }
+                return (consumeArguments, validateRemainingArguments)
+            case .Dictionary:
+                // Reuse the dictionary argument for all statements:
+                let consumeArguments = { (_: UpdateStatement) -> StatementArguments in return usedArguments }
+                let validateRemainingArguments = { () in }
+                return (consumeArguments, validateRemainingArguments)
+            }
+        }()
+    
+        
+        // Execute statements
+        
+        let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
+        let sqlCodeUnits = sql.nulTerminatedUTF8
+        let length = sqlCodeUnits.count
+        var error: ErrorType?
+        sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
+            let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
+            let sqlEnd = sqlStart + length
+            var statementStart = sqlStart
+            while statementStart < sqlEnd - 1 {
+                var statementEnd: UnsafePointer<Int8> = nil
+                var sqliteStatement: SQLiteStatement = nil
+                let code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
+                guard code == SQLITE_OK else {
+                    error = DatabaseError(code: code, message: lastErrorMessage, sql: sql)
+                    break
+                }
+                let sql = NSString(bytes: statementStart, length: statementEnd - statementStart, encoding: NSUTF8StringEncoding)! as String
+                let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement)
+                
+                do {
+                    try statement.execute(arguments: consumeArguments(statement))
+                } catch let statementError {
+                    error = statementError
+                    break
+                }
+                
+                statementStart = statementEnd
+            }
+        }
+        if let error = error {
+            throw error
+        }
+        try validateRemainingArguments()
         let changedRowsAfter = sqlite3_total_changes(sqliteConnection)
-        return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: nil)
+        let lastInsertedRowID = sqlite3_last_insert_rowid(sqliteConnection)
+        let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
+        return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: insertedRowID)
     }
     
     
@@ -489,17 +574,28 @@ public final class Database {
     // =========================================================================
     // MARK: - Database Informations
     
+    /// The database configuration
+    public let configuration: Configuration
+    
+    /// The last error message
+    var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
+    
+    private var columnInfosCache: [String: [ColumnInfo]] = [:]
+    private var primaryKeyCache: [String: PrimaryKey] = [:]
+    private var updateStatementCache: [String: UpdateStatement] = [:]
+    private var selectStatementCache: [String: SelectStatement] = [:]
+    
     /// Clears the database schema cache.
     ///
     /// You may need to clear the cache if you modify the database schema
-    /// outside of a migration (see DatabaseMigrator).
+    /// outside of a database migration performed by DatabaseMigrator.
     public func clearSchemaCache() {
         preconditionValidQueue()
         columnInfosCache = [:]
+        primaryKeyCache = [:]
+        updateStatementCache = [:]
+        selectStatementCache = [:]
     }
-
-    /// The last error message
-    var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
     
     /// Returns whether a table exists.
     ///
@@ -517,6 +613,10 @@ public final class Database {
     ///
     /// This method is not thread-safe.
     func primaryKey(tableName: String) -> PrimaryKey? {
+        if let primaryKey = primaryKeyCache[tableName] {
+            return primaryKey
+        }
+        
         // https://www.sqlite.org/pragma.html
         //
         // > PRAGMA database.table_info(table-name);
@@ -547,6 +647,7 @@ public final class Database {
             return nil
         }
         
+        let primaryKey: PrimaryKey
         let pkColumnInfos = columnInfos
             .filter { $0.primaryKeyIndex > 0 }
             .sort { $0.primaryKeyIndex < $1.primaryKeyIndex }
@@ -554,7 +655,7 @@ public final class Database {
         switch pkColumnInfos.count {
         case 0:
             // No primary key column
-            return PrimaryKey.None
+            primaryKey = PrimaryKey.None
         case 1:
             // Single column
             let pkColumnInfo = pkColumnInfos.first!
@@ -580,14 +681,17 @@ public final class Database {
             // We ignore the exception, and consider all INTEGER primary keys as
             // aliases for the rowid:
             if pkColumnInfo.type.uppercaseString == "INTEGER" {
-                return .Managed(pkColumnInfo.name)
+                primaryKey = .Managed(pkColumnInfo.name)
             } else {
-                return .Unmanaged([pkColumnInfo.name])
+                primaryKey = .Unmanaged([pkColumnInfo.name])
             }
         default:
             // Multi-columns primary key
-            return .Unmanaged(pkColumnInfos.map { $0.name })
+            primaryKey = .Unmanaged(pkColumnInfos.map { $0.name })
         }
+        
+        primaryKeyCache[tableName] = primaryKey
+        return primaryKey
     }
     
     // CREATE TABLE persons (
@@ -619,17 +723,14 @@ public final class Database {
     }
     
     // Cache for columnInfos()
-    private var columnInfosCache: [String: [ColumnInfo]] = [:]
     private func columnInfos(tableName: String) -> [ColumnInfo] {
         if let columnInfos = columnInfosCache[tableName] {
             return columnInfos
-        } else {
-            // This pragma is case-insensitive: PRAGMA table_info("PERSONS") and
-            // PRAGMA table_info("persons") yield the same results.
-            let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
-            columnInfosCache[tableName] = columnInfos
-            return columnInfos
         }
+        
+        let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+        columnInfosCache[tableName] = columnInfos
+        return columnInfos
     }
     
     
@@ -638,13 +739,6 @@ public final class Database {
     
     /// The raw SQLite connection, suitable for the SQLite C API.
     public let sqliteConnection: SQLiteConnection
-    
-    
-    // =========================================================================
-    // MARK: - Configuration
-    
-    /// The database configuration
-    public let configuration: Configuration
     
     
     // =========================================================================
@@ -666,7 +760,9 @@ public final class Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
-        setupTrace()    // First, so that all queries, including initialization queries, are traced.
+        // Setup trace first, so that all queries, including initialization queries, are traced.
+        setupTrace()
+        
         try setupForeignKeys()
         setupBusyMode()
         setupTransactionHooks()
@@ -686,7 +782,7 @@ public final class Database {
     // MARK: - Misc
     
     func preconditionValidQueue() {
-        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, use fetchAll() instead: it returns an Array that can be iterated on any thread.")
+        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
     }
     
     func setupForeignKeys() throws {

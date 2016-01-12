@@ -152,7 +152,7 @@ public struct DatabaseValue : Hashable {
     /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>() -> Value {
         guard let value = Value.fromDatabaseValue(self) as Value? else {
-            fatalError("Could not convert \(self) to \(Value.self).")
+            fatalError("could not convert \(self) to \(Value.self).")
         }
         return value
     }
