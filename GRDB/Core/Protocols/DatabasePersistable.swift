@@ -428,7 +428,7 @@ public extension DatabasePersistable {
 // MARK: - DataMapper
 
 /// DataMapper takes care of DatabasePersistable CRUD
-final class DataMapper {
+private class DataMapper {
     
     /// The database
     let db: Database
