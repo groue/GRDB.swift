@@ -507,15 +507,15 @@ There are many supported value types (Bool, Int, String, NSDate, Swift enums, et
 ```swift
 dbQueue.inDatabase { db in
     // The number of persons with an email ending in @example.com:
-    let count = Int.fetchOne(db,
+    let count: Int = Int.fetchOne(db,
         "SELECT COUNT(*) FROM persons WHERE email LIKE ?",
         arguments: ["%@example.com"])!
     
     // All URLs:
-    let urls = NSURL.fetchAll(db, "SELECT url FROM links")
+    let urls: [NSURL] = NSURL.fetchAll(db, "SELECT url FROM links")
     
     // The emails of people who own at least two pets:
-    let emails = Optional<String>.fetchAll(db,
+    let emails: [String?] = String?.fetchAll(db,
         "SELECT persons.email " +
         "FROM persons " +
         "JOIN pets ON pets.masterId = persons.id " +
