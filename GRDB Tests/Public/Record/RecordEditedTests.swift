@@ -21,6 +21,57 @@ class IntegerPropertyOnRealAffinityColumn : Record {
     }
 }
 
+class PersonWithModifiedCaseColumns: Record {
+    var id: Int64!
+    var name: String!
+    var age: Int?
+    var creationDate: NSDate!
+    
+    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+        self.id = id
+        self.name = name
+        self.age = age
+        self.creationDate = creationDate
+        super.init()
+    }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "persons"
+    }
+    
+    required init(_ row: Row) {
+        id = row.value(named: "ID")
+        age = row.value(named: "AGE")
+        name = row.value(named: "NAME")
+        creationDate = row.value(named: "CREATIONDATE")
+        super.init(row)
+    }
+    
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return [
+            "ID": id,
+            "NAME": name,
+            "AGE": age,
+            "CREATIONDATE": creationDate,
+        ]
+    }
+    
+    override func insert(db: Database) throws {
+        // This is implicitely tested with the NOT NULL constraint on creationDate
+        if creationDate == nil {
+            creationDate = NSDate()
+        }
+        
+        try super.insert(db)
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
+    }
+}
+
 class RecordEditedTests: GRDBTestCase {
     
     override func setUp() {
@@ -57,6 +108,11 @@ class RecordEditedTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
+                let person = Person.fetchOne(db, "SELECT * FROM persons")!
+                XCTAssertFalse(person.hasPersistentChangedValues)
+            }
+            try dbQueue.inDatabase { db in
+                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT * FROM persons")!
                 XCTAssertFalse(person.hasPersistentChangedValues)
             }
@@ -104,6 +160,11 @@ class RecordEditedTests: GRDBTestCase {
                 let person = Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
                 XCTAssertFalse(person.hasPersistentChangedValues)
             }
+            try dbQueue.inDatabase { db in
+                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
+                let person = Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
+                XCTAssertFalse(person.hasPersistentChangedValues)
+            }
         }
     }
     
@@ -118,6 +179,11 @@ class RecordEditedTests: GRDBTestCase {
                 let person =  Person.fetchOne(db, "SELECT name FROM persons")!
                 XCTAssertTrue(person.hasPersistentChangedValues)
             }
+            try dbQueue.inDatabase { db in
+                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
+                let person =  Person.fetchOne(db, "SELECT name FROM persons")!
+                XCTAssertTrue(person.hasPersistentChangedValues)
+            }
         }
     }
     
@@ -126,6 +192,11 @@ class RecordEditedTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
+                try person.insert(db)
+                XCTAssertFalse(person.hasPersistentChangedValues)
+            }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
                 try person.insert(db)
                 XCTAssertFalse(person.hasPersistentChangedValues)
             }
@@ -159,6 +230,29 @@ class RecordEditedTests: GRDBTestCase {
                     XCTAssertTrue(person.hasPersistentChangedValues)
                 }
             }
+            try dbQueue.inDatabase { db in
+                do {
+                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.name != nil)
+                    person.name = "Bobby"           // non-nil vs. non-nil
+                    XCTAssertTrue(person.hasPersistentChangedValues)
+                }
+                do {
+                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.name != nil)
+                    person.name = nil               // non-nil vs. nil
+                    XCTAssertTrue(person.hasPersistentChangedValues)
+                }
+                do {
+                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.age == nil)
+                    person.age = 41                 // nil vs. non-nil
+                    XCTAssertTrue(person.hasPersistentChangedValues)
+                }
+            }
         }
     }
     
@@ -180,6 +274,22 @@ class RecordEditedTests: GRDBTestCase {
                     XCTAssertFalse(person.hasPersistentChangedValues)
                 }
             }
+            try dbQueue.inDatabase { db in
+                do {
+                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.name != nil)
+                    person.name = "Arthur"           // non-nil vs. non-nil
+                    XCTAssertFalse(person.hasPersistentChangedValues)
+                }
+                do {
+                    let person = PersonWithModifiedCaseColumns(name: "Arthur")
+                    try person.insert(db)
+                    XCTAssertTrue(person.age == nil)
+                    person.age = nil                 // nil vs. nil
+                    XCTAssertFalse(person.hasPersistentChangedValues)
+                }
+            }
         }
     }
     
@@ -188,6 +298,13 @@ class RecordEditedTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
+                try person.insert(db)
+                person.name = "Bobby"
+                try person.update(db)
+                XCTAssertFalse(person.hasPersistentChangedValues)
+            }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
                 try person.insert(db)
                 person.name = "Bobby"
                 try person.update(db)
@@ -208,6 +325,15 @@ class RecordEditedTests: GRDBTestCase {
                 try person.save(db)
                 XCTAssertFalse(person.hasPersistentChangedValues)
             }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+                try person.save(db)
+                XCTAssertFalse(person.hasPersistentChangedValues)
+                person.name = "Bobby"
+                XCTAssertTrue(person.hasPersistentChangedValues)
+                try person.save(db)
+                XCTAssertFalse(person.hasPersistentChangedValues)
+            }
         }
     }
     
@@ -220,6 +346,12 @@ class RecordEditedTests: GRDBTestCase {
                 person.id = person.id + 1
                 XCTAssertTrue(person.hasPersistentChangedValues)
             }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+                try person.insert(db)
+                person.id = person.id + 1
+                XCTAssertTrue(person.hasPersistentChangedValues)
+            }
         }
     }
     
@@ -227,6 +359,25 @@ class RecordEditedTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
+                
+                try person.insert(db)
+                XCTAssertFalse(person.hasPersistentChangedValues)
+                XCTAssertFalse(person.copy().hasPersistentChangedValues)
+                
+                person.name = "Barbara"
+                XCTAssertTrue(person.hasPersistentChangedValues)
+                XCTAssertTrue(person.copy().hasPersistentChangedValues)
+                
+                person.hasPersistentChangedValues = false
+                XCTAssertFalse(person.hasPersistentChangedValues)
+                XCTAssertFalse(person.copy().hasPersistentChangedValues)
+                
+                person.hasPersistentChangedValues = true
+                XCTAssertTrue(person.hasPersistentChangedValues)
+                XCTAssertTrue(person.copy().hasPersistentChangedValues)
+            }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
                 
                 try person.insert(db)
                 XCTAssertFalse(person.hasPersistentChangedValues)
@@ -299,6 +450,12 @@ class RecordEditedTests: GRDBTestCase {
                 let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 0)
             }
+            try dbQueue.inDatabase { db in
+                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
+                let person = Person.fetchOne(db, "SELECT * FROM persons")!
+                let changes = person.persistentChangedValues
+                XCTAssertEqual(changes.count, 0)
+            }
         }
     }
 
@@ -326,6 +483,24 @@ class RecordEditedTests: GRDBTestCase {
                     }
                 }
             }
+            try dbQueue.inDatabase { db in
+                try PersonWithModifiedCaseColumns(name: "Arthur", age: 41).insert(db)
+                let person =  Person.fetchOne(db, "SELECT name FROM persons")!
+                let changes = person.persistentChangedValues
+                XCTAssertEqual(changes.count, 3)
+                for (column, old) in changes {
+                    switch column {
+                    case "ID":
+                        XCTAssertTrue(old == nil)
+                    case "AGE":
+                        XCTAssertTrue(old == nil)
+                    case "CREATIONDATE":
+                        XCTAssertTrue(old == nil)
+                    default:
+                        XCTFail("Unexpected column: \(column)")
+                    }
+                }
+            }
         }
     }
     
@@ -334,6 +509,12 @@ class RecordEditedTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
+                try person.insert(db)
+                let changes = person.persistentChangedValues
+                XCTAssertEqual(changes.count, 0)
+            }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
                 try person.insert(db)
                 let changes = person.persistentChangedValues
                 XCTAssertEqual(changes.count, 0)
@@ -367,6 +548,28 @@ class RecordEditedTests: GRDBTestCase {
                     }
                 }
             }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: nil)
+                try person.insert(db)
+                
+                person.name = "Bobby"           // non-nil -> non-nil
+                person.age = 41                 // nil -> non-nil
+                person.creationDate = nil       // non-nil -> nil
+                let changes = person.persistentChangedValues
+                XCTAssertEqual(changes.count, 3)
+                for (column, old) in changes {
+                    switch column {
+                    case "NAME":
+                        XCTAssertEqual(old, "Arthur".databaseValue)
+                    case "AGE":
+                        XCTAssertEqual(old, DatabaseValue.Null)
+                    case "CREATIONDATE":
+                        XCTAssertTrue((old?.value() as NSDate?) != nil)
+                    default:
+                        XCTFail("Unexpected column: \(column)")
+                    }
+                }
+            }
         }
     }
     
@@ -375,6 +578,13 @@ class RecordEditedTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
+                try person.insert(db)
+                person.name = "Bobby"
+                try person.update(db)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
+            }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
                 try person.insert(db)
                 person.name = "Bobby"
                 try person.update(db)
@@ -405,6 +615,25 @@ class RecordEditedTests: GRDBTestCase {
                 try person.save(db)
                 XCTAssertEqual(person.persistentChangedValues.count, 0)
             }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+                try person.save(db)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
+                
+                person.name = "Bobby"
+                let changes = person.persistentChangedValues
+                XCTAssertEqual(changes.count, 1)
+                for (column, old) in changes {
+                    switch column {
+                    case "NAME":
+                        XCTAssertEqual(old, "Arthur".databaseValue)
+                    default:
+                        XCTFail("Unexpected column: \(column)")
+                    }
+                }
+                try person.save(db)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
+            }
         }
     }
     
@@ -426,6 +655,21 @@ class RecordEditedTests: GRDBTestCase {
                     }
                 }
             }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
+                try person.insert(db)
+                person.id = person.id + 1
+                let changes = person.persistentChangedValues
+                XCTAssertEqual(changes.count, 1)
+                for (column, old) in changes {
+                    switch column {
+                    case "ID":
+                        XCTAssertEqual(old, (person.id - 1).databaseValue)
+                    default:
+                        XCTFail("Unexpected column: \(column)")
+                    }
+                }
+            }
         }
     }
     
@@ -433,6 +677,25 @@ class RecordEditedTests: GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
+                
+                try person.insert(db)
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
+                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
+                
+                person.name = "Barbara"
+                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
+                
+                person.hasPersistentChangedValues = false
+                XCTAssertEqual(person.persistentChangedValues.count, 0)
+                XCTAssertEqual(person.copy().persistentChangedValues.count, 0)
+                
+                person.hasPersistentChangedValues = true
+                XCTAssertTrue(person.persistentChangedValues.count > 0)            // TODO: compare actual changes
+                XCTAssertEqual(person.persistentChangedValues.count, person.copy().persistentChangedValues.count)
+            }
+            try dbQueue.inDatabase { db in
+                let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
                 
                 try person.insert(db)
                 XCTAssertEqual(person.persistentChangedValues.count, 0)

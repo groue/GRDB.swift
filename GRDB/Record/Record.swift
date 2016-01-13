@@ -205,8 +205,40 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func insert(db: Database) throws {
-        try performInsert(db)
-        hasPersistentChangedValues = false
+        // The simplest code would be:
+        //
+        //     try performInsert(db)
+        //     hasPersistentChangedValues = false
+        //
+        // But this triggers two calls to persistentDictionary, and this is
+        // costly.
+        //
+        // So let's provide our custom implementation of insert:
+        
+        var persistentDictionary = self.persistentDictionary
+        
+        let dataMapper = DataMapper(db, persistable: self, persistentDictionary: persistentDictionary)
+        let changes = try dataMapper.insertStatement().execute()
+        if let rowID = changes.insertedRowID {
+            if case .Managed(let column) = dataMapper.primaryKey {
+                if persistentDictionary[column] != nil {
+                    persistentDictionary[column] = rowID
+                } else {
+                    let lowercaseColumn = column.lowercaseString
+                    for persistentColumn in persistentDictionary.keys {
+                        if lowercaseColumn == persistentColumn.lowercaseString {
+                            persistentDictionary[persistentColumn] = rowID
+                            break
+                        }
+                    }
+                }
+                didInsertWithRowID(rowID, forColumn: column)
+            } else {
+                didInsertWithRowID(rowID, forColumn: nil)
+            }
+        }
+        
+        referenceRow = Row(persistentDictionary)
     }
     
     /// Executes an UPDATE statement.

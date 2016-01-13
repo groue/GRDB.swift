@@ -210,8 +210,8 @@ public extension MutableDatabasePersistable {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .Managed(let columnName) = dataMapper.primaryKey {
-                didInsertWithRowID(rowID, forColumn: columnName)
+            if case .Managed(let column) = dataMapper.primaryKey {
+                didInsertWithRowID(rowID, forColumn: column)
             } else {
                 didInsertWithRowID(rowID, forColumn: nil)
             }
@@ -428,7 +428,7 @@ public extension DatabasePersistable {
 // MARK: - DataMapper
 
 /// DataMapper takes care of DatabasePersistable CRUD
-private class DataMapper {
+final class DataMapper {
     
     /// The database
     let db: Database
@@ -458,7 +458,17 @@ private class DataMapper {
         let persistentDictionary = self.persistentDictionary
         var dictionary: [String: DatabaseValueConvertible?] = [:]
         for column in columns {
-            dictionary[column] = persistentDictionary[column]
+            if let value = persistentDictionary[column] {
+                dictionary[column] = value
+            } else {
+                dictionary[column] = nil
+                let lowercaseColumn = column.lowercaseString
+                for (persistentColumn, value) in persistentDictionary {
+                    if persistentColumn.lowercaseString == lowercaseColumn {
+                        dictionary[column] = value
+                    }
+                }
+            }
         }
         return dictionary
         }()
@@ -505,16 +515,19 @@ private class DataMapper {
     
     // MARK: - Initializer
     
-    init(_ db: Database, _ persistable: MutableDatabasePersistable) {
+    convenience init(_ db: Database, _ persistable: MutableDatabasePersistable) {
+        self.init(db, persistable: persistable, persistentDictionary: persistable.persistentDictionary)
+    }
+    
+    init(_ db: Database, persistable: MutableDatabasePersistable, persistentDictionary: [String: DatabaseValueConvertible?]) {
         let databaseTableName = persistable.dynamicType.databaseTableName()
-
+        
         // Fail early if database table does not exist.
         guard let primaryKey = db.primaryKey(databaseTableName) else {
             fatalError("no such table: \(databaseTableName)")
         }
-
+        
         // Fail early if persistentDictionary is empty
-        let persistentDictionary = persistable.persistentDictionary
         precondition(persistentDictionary.count > 0, "\(persistable.dynamicType).persistentDictionary: invalid empty dictionary")
         
         self.db = db
