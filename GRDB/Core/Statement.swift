@@ -116,11 +116,9 @@ public class Statement {
             // TODO: test
             for (index, argumentName) in sqliteArgumentNames.enumerate() {
                 if let argumentName = argumentName {
-                    for (key, value) in namedValues {
-                        if key == argumentName {
-                            try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
-                            break
-                        }
+                    for (name, value) in namedValues where name == argumentName {
+                        try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
+                        break
                     }
                 }
             }
@@ -211,10 +209,8 @@ public class Statement {
             case .NamedValues(let namedValues):
                 return sqliteArgumentNames.map { argumentName in
                     if let argumentName = argumentName {
-                        for (key, value) in namedValues {
-                            if key == argumentName {
-                                return (argumentName, value?.databaseValue ?? .Null)
-                            }
+                        for (name, value) in namedValues where name == argumentName {
+                            return (argumentName, value?.databaseValue ?? .Null)
                         }
                         return (argumentName, nil)
                     }
