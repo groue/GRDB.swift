@@ -1,18 +1,25 @@
 // To run this playground, select and build the GRDBOSX scheme.
 //
-// This sample code shows how to synchronize a database table with a JSON
-// payload with as few SQL queries as possible. In particular, useless UPDATE
-// statement are avoided.
+// This sample code shows how to use GRDB to synchronize a database table
+// with a JSON payload. We use as few SQL queries as possible:
+//
+// - Only one SELECT query.
+// - One query per insert, delete, and update.
+// - Useless UPDATE statements are avoided.
 
 import Foundation
 import GRDB
 
 
-// Create the databsae
+// Open an in-memory database that logs all its SQL statements
 
 var configuration = Configuration()
-configuration.trace = LogSQL
-let dbQueue = DatabaseQueue(configuration: configuration)   // Memory database
+configuration.trace = { print($0) }
+let dbQueue = DatabaseQueue(configuration: configuration)
+
+
+// Create a database table
+
 try dbQueue.inDatabase { db in
     try db.execute(
         "CREATE TABLE persons (" +
@@ -22,9 +29,9 @@ try dbQueue.inDatabase { db in
 }
 
 
-// Person is a subclass of Record.
+// Define the Person subclass of GRDB's Record.
 //
-// We'll use the change tracking granted by the Record class to avoid useless
+// Record provides change tracking that helps avoiding useless
 // UPDATE statements.
 class Person : Record {
     var id: Int64?
@@ -62,7 +69,7 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
     let jsonData = jsonString.dataUsingEncoding(NSUTF8StringEncoding)!
     let json = try NSJSONSerialization.JSONObjectWithData(jsonData, options: []) as! NSDictionary
     
-    // A function that extracts an ID from a JSON person.
+    // A support function that extracts an ID from a JSON person.
     func jsonPersonId(jsonPerson: NSDictionary) -> Int64 {
         return (jsonPerson["id"] as! NSNumber).longLongValue
     }
@@ -72,11 +79,11 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
         return jsonPersonId($0) < jsonPersonId($1)
     }
     
-    // Load database persons, sorted by id.
+    // Sort database persons by id:
     let persons = Person.fetchAll(db, "SELECT * FROM persons ORDER BY id")
     
-    // Now that both lists are sorted by id, we can compare them with 
-    // the sortedMerge() function.
+    // Now that both lists are sorted by id, we can compare them with
+    // the sortedMerge() function (see https://gist.github.com/groue/7e8510849ded36f7d770).
     //
     // We'll delete, insert or update persons, depending on their presence
     // in either lists.
@@ -88,15 +95,15 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
     {
         switch mergeStep {
         case .Left(let person):
-            // Database person without matching JSON person:
+            // Delete database person without matching JSON person:
             try person.delete(db)
         case .Right(let jsonPerson):
-            // JSON person without matching database person:
-            let row = Row(dictionary: jsonPerson)!
+            // Insert JSON person without matching database person:
+            let row = Row(jsonPerson)! // Granted JSON keys are database columns
             let person = Person(row)
             try person.insert(db)
         case .Common(let person, let jsonPerson):
-            // Matching database and JSON persons:
+            // Update database person with its JSON counterpart:
             person.updateFromJSON(jsonPerson)
             if person.hasPersistentChangedValues {
                 try person.update(db)
