@@ -292,21 +292,19 @@ public final class SelectStatement : Statement {
     
     /// The column index, case insensitive.
     func indexForColumn(named name: String) -> Int? {
-        return lowercaseColumnIndexes[name] ?? lowercaseColumnIndexes[name.lowercaseString]
-    }
-    
-    /// Support for indexForColumn(named:)
-    private lazy var lowercaseColumnIndexes: [String: Int] = {
-        var indexes = [String: Int]()
-        let count = self.columnCount
-        // Reverse so that we return indexes for the leftmost columns.
-        // SELECT 1 AS a, 2 AS a -> lowercaseColumnIndexes["a”] = 0
-        for (index, columnName) in self.columnNames.reverse().enumerate() {
-            indexes[columnName.lowercaseString] = count - index - 1
+        // This is faster than dictionary lookup
+        for (index, column) in columnNames.enumerate() {
+            if column == name {
+                return index
+            }
         }
-        return indexes
-    }()
-    
+        for (index, column) in columnNames.enumerate() {
+            if column.lowercaseString == name.lowercaseString {
+                return index
+            }
+        }
+        return nil
+    }
 }
 
 /// A sequence of elements fetched from the database.
