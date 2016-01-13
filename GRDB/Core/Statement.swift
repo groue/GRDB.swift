@@ -493,18 +493,14 @@ public struct StatementArguments {
     
     // MARK: Named Arguments
     
-    /// Initializes arguments from a dictionary of optional values.
+    /// Initializes arguments from a sequence of (key, value) pairs, such as
+    /// a dictionary.
     ///
-    ///     let values: [String: String?] = ["firstName": nil, "lastName": "Miller"]
+    ///     let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
     ///     db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
     ///
-    /// - parameter dictionary: A dictionary of optional values that adopt the
-    ///   DatabaseValueConvertible protocol.
+    /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
-//    public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-//        kind = .Pairs(dictionary.map({ ($0, $1) }))
-//    }
-    
     public init<KeyValueSequence: SequenceType where KeyValueSequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: KeyValueSequence) {
         kind = .NamedValues(Array(sequence))
     }
