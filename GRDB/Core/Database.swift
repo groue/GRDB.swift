@@ -106,7 +106,7 @@ public final class Database {
         //   Statement.validateArguments()
         let (consumeArguments, validateRemainingArguments) = { () -> (UpdateStatement -> StatementArguments, () throws -> ()) in
             switch usedArguments.kind {
-            case .Array(let values):
+            case .Values(let values):
                 // Extract as many values as needed, statement after statement:
                 var remainingValues = values
                 let consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
@@ -127,7 +127,7 @@ public final class Database {
                     }
                 }
                 return (consumeArguments, validateRemainingArguments)
-            case .Dictionary:
+            case .NamedValues:
                 // Reuse the dictionary argument for all statements:
                 let consumeArguments = { (_: UpdateStatement) -> StatementArguments in return usedArguments }
                 let validateRemainingArguments = { () in }

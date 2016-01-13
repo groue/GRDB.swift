@@ -107,16 +107,21 @@ public class Statement {
         clearBindings()
         
         switch arguments.kind {
-        case .Array(let array):
-            for (index, value) in array.enumerate() {
+        case .Values(let values):
+            for (index, value) in values.enumerate() {
                 try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
             }
             break
-        case .Dictionary(let dictionary):
+        case .NamedValues(let namedValues):
             // TODO: test
             for (index, argumentName) in sqliteArgumentNames.enumerate() {
-                if let argumentName = argumentName, let value = dictionary[argumentName] {
-                    try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
+                if let argumentName = argumentName {
+                    for (key, value) in namedValues {
+                        if key == argumentName {
+                            try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
+                            break
+                        }
+                    }
                 }
             }
         }
@@ -179,10 +184,10 @@ public class Statement {
         // If one of the values is nil, then we have a missing argument.
         let keyValueBindings: [(String?, DatabaseValue?)] = {
             switch arguments.kind {
-            case .Array(let array):
+            case .Values(let values):
                 var keyValueBindings: [(String?, DatabaseValue?)] = []
                 var argumentNameGen = sqliteArgumentNames.generate()
-                var valuesGen = array.map { $0?.databaseValue ?? .Null }.generate()
+                var valuesGen = values.map { $0?.databaseValue ?? .Null }.generate()
                 var argumentNameOpt = argumentNameGen.next()
                 var valueOpt = valuesGen.next()
                 outer: while true {
@@ -203,14 +208,15 @@ public class Statement {
                 }
                 return keyValueBindings
                 
-            case .Dictionary(let dictionary):
+            case .NamedValues(let namedValues):
                 return sqliteArgumentNames.map { argumentName in
                     if let argumentName = argumentName {
-                        if let value = dictionary[argumentName] {
-                            return (argumentName, value?.databaseValue ?? .Null)
-                        } else {
-                            return (argumentName, nil)
+                        for (key, value) in namedValues {
+                            if key == argumentName {
+                                return (argumentName, value?.databaseValue ?? .Null)
+                            }
                         }
+                        return (argumentName, nil)
                     }
                     return (nil, nil)
                 }
@@ -485,7 +491,7 @@ public struct StatementArguments {
     ///   DatabaseValueConvertible protocol.
     /// - returns: A StatementArguments.
     public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<DatabaseValueConvertible>>(_ sequence: Sequence) {
-        kind = .Array(Array(sequence))
+        kind = .Values(Array(sequence))
     }
     
     
@@ -499,16 +505,20 @@ public struct StatementArguments {
     /// - parameter dictionary: A dictionary of optional values that adopt the
     ///   DatabaseValueConvertible protocol.
     /// - returns: A StatementArguments.
-    public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        kind = .Dictionary(dictionary)
+//    public init(_ dictionary: [String: DatabaseValueConvertible?]) {
+//        kind = .Pairs(dictionary.map({ ($0, $1) }))
+//    }
+    
+    public init<KeyValueSequence: SequenceType where KeyValueSequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: KeyValueSequence) {
+        kind = .NamedValues(Array(sequence))
     }
     
     public var isEmpty: Bool {
         switch kind {
-        case .Array(let array):
-            return array.isEmpty
-        case .Dictionary(let dictionary):
-            return dictionary.isEmpty
+        case .Values(let values):
+            return values.isEmpty
+        case .NamedValues(let namedValues):
+            return namedValues.isEmpty
         }
     }
     
@@ -516,8 +526,8 @@ public struct StatementArguments {
     // MARK: Not Public
     
     enum Kind {
-        case Array([DatabaseValueConvertible?])
-        case Dictionary([String: DatabaseValueConvertible?])
+        case Values([DatabaseValueConvertible?])
+        case NamedValues([(String, DatabaseValueConvertible?)])
     }
     
     let kind: Kind
@@ -541,11 +551,12 @@ extension StatementArguments : DictionaryLiteralConvertible {
     ///
     ///     db.selectRows("SELECT ...", arguments: ["name": "Arthur", "age": 41])
     public init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
-        var dictionary = [String: DatabaseValueConvertible?]()
-        for (key, value) in elements {
-            dictionary[key] = value
-        }
-        self.init(dictionary)
+        self.init(elements)
+//        var dictionary = [String: DatabaseValueConvertible?]()
+//        for (key, value) in elements {
+//            dictionary[key] = value
+//        }
+//        self.init(dictionary)
     }
 }
 
@@ -553,7 +564,7 @@ extension StatementArguments : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         switch kind {
-        case .Array(let values):
+        case .Values(let values):
             return "["
                 + values
                     .map { value in
@@ -566,9 +577,9 @@ extension StatementArguments : CustomStringConvertible {
                     .joinWithSeparator(", ")
                 + "]"
             
-        case .Dictionary(let dictionary):
+        case .NamedValues(let namedValues):
             return "["
-                + dictionary.map { (key, value) in
+                + namedValues.map { (key, value) in
                     if let value = value {
                         return "\(key):\(String(reflecting: value))"
                     } else {
