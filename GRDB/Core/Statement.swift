@@ -498,7 +498,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init<Sequence: SequenceType where Sequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
-        kind = .NamedValues(ShortDictionary(sequence))
+        kind = .NamedValues(OptimisticDictionary(sequence))
     }
     
     public var isEmpty: Bool {
@@ -515,7 +515,7 @@ public struct StatementArguments {
     
     enum Kind {
         case Values([DatabaseValueConvertible?])
-        case NamedValues(ShortDictionary<String, DatabaseValueConvertible?>)
+        case NamedValues(OptimisticDictionary<String, DatabaseValueConvertible?>)
     }
     
     let kind: Kind
@@ -572,9 +572,17 @@ extension StatementArguments : CustomStringConvertible {
 }
 
 
-// MARK: - ShortDictionary
+// MARK: - OptimisticDictionary
 
-struct ShortDictionary<Key, Value>: SequenceType {
+/// OptimisticDictionary is faster than Dictionary at optimistic key lookup when
+/// there are few keys.
+///
+/// TODO: we need evidence to support that.
+///
+/// Assuming this is true, this makes OptimisticDictionary a suitable storage
+/// for named statement arguments, since there are usually not numberous, and
+/// they usually match the names of arguments in the SQL query.
+struct OptimisticDictionary<Key: Hashable, Value>: SequenceType /* Require Hashable key like Dictionary */ {
     let pairs: [(Key, Value)]
     
     init<Sequence: SequenceType where Sequence.Generator.Element == (Key, Value)>(_ sequence: Sequence) {
@@ -588,9 +596,7 @@ struct ShortDictionary<Key, Value>: SequenceType {
     func generate() -> IndexingGenerator<[(Key, Value)]> {
         return pairs.generate()
     }
-}
-
-extension ShortDictionary where Key: Hashable /* Require Hashable to that ShortDictionary can be replaced with Dictionary */ {
+    
     subscript(key: Key) -> Value? {
         for (k, value) in pairs {
             if key == k {
