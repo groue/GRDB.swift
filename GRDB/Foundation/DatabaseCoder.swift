@@ -22,7 +22,7 @@ public struct DatabaseCoder: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(NSKeyedArchiver.archivedDataWithRootObject(object))
+        return NSKeyedArchiver.archivedDataWithRootObject(object).databaseValue
     }
     
     /// Returns a DatabaseCoder if *databaseValue* contains an archived object.

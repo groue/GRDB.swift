@@ -47,45 +47,8 @@ public struct DatabaseValue : Hashable {
         }
     }
     
-    
-    // MARK: - Creating DatabaseValue
-    
     /// The NULL DatabaseValue.
     public static let Null = DatabaseValue(storage: .Null)
-    
-    /// Returns a DatabaseValue storing an Int64.
-    init(_ int64: Swift.Int64) {
-        storage = .Int64(int64)
-    }
-    
-    /// Returns a DatabaseValue storing a Double.
-    init(_ double: Swift.Double) {
-        storage = .Double(double)
-    }
-    
-    /// Returns a DatabaseValue storing a String.
-    init(_ string: Swift.String) {
-        storage = .String(string)
-    }
-    
-    /// Returns a DatabaseValue storing NSData.
-    ///
-    /// SQLite cant' store zero-length blobs: if data has zero length, the
-    /// result is NULL.
-    init(_ data: NSData) {
-        if data.length == 0 {
-            // SQLite cant' store zero-length blobs.
-            storage = .Null
-        } else {
-            storage = .Blob(data)
-        }
-    }
-    
-    /// Copy initializer
-    init(_ databaseValue: DatabaseValue) {
-        // This initializer is used by DatabaseValue.init?(object: AnyObject)
-        self = databaseValue
-    }
     
     
     // MARK: - Extracting Value
@@ -167,6 +130,7 @@ public struct DatabaseValue : Hashable {
         self.storage = storage
     }
     
+    // SQLite column value
     init(sqliteStatement: SQLiteStatement, index: Int) {
         switch sqlite3_column_type(sqliteStatement, Int32(index)) {
         case SQLITE_NULL:
@@ -177,7 +141,7 @@ public struct DatabaseValue : Hashable {
             storage = .Double(sqlite3_column_double(sqliteStatement, Int32(index)))
         case SQLITE_TEXT:
             let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
-            storage = .String(Swift.String.fromCString(cString)!)
+            storage = .String(String.fromCString(cString)!)
         case SQLITE_BLOB:
             let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
             let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
@@ -187,6 +151,7 @@ public struct DatabaseValue : Hashable {
         }
     }
     
+    // SQLite function argument
     init(sqliteValue: SQLiteValue) {
         switch sqlite3_value_type(sqliteValue) {
         case SQLITE_NULL:

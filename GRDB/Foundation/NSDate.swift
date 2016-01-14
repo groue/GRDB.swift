@@ -6,7 +6,7 @@ extension NSDate : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(storageDateFormatter.stringFromDate(self))
+        return storageDateFormatter.stringFromDate(self).databaseValue
     }
     
     /// Returns an NSDate initialized from *databaseValue*, if possible.

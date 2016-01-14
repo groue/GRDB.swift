@@ -11,7 +11,7 @@ extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(Int64(self ? 1 : 0))
+        return (self ? 1 : 0).databaseValue
     }
     
     /// Returns a Bool initialized from *databaseValue*, if possible.
@@ -99,7 +99,7 @@ extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(Int64(self))
+        return Int64(self).databaseValue
     }
     
     /// Returns an Int initialized from *databaseValue*, if possible.
@@ -131,7 +131,7 @@ extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(Int64(self))
+        return Int64(self).databaseValue
     }
     
     /// Returns an Int32 initialized from *databaseValue*, if possible.
@@ -163,7 +163,7 @@ extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(self)
+        return DatabaseValue(storage: .Int64(self))
     }
     
     /// Returns an Int64 initialized from *databaseValue*, if possible.
@@ -195,7 +195,7 @@ extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(self)
+        return DatabaseValue(storage: .Double(self))
     }
     
     /// Returns a Double initialized from *databaseValue*, if possible.
@@ -227,7 +227,7 @@ extension Float: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(Double(self))
+        return Double(self).databaseValue
     }
     
     /// Returns a Float initialized from *databaseValue*, if possible.
@@ -260,7 +260,7 @@ extension String: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(self)
+        return DatabaseValue(storage: .String(self))
     }
     
     /// Returns a String initialized from *databaseValue*, if possible.

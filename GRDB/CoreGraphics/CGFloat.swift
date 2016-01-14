@@ -5,7 +5,7 @@ extension CGFloat : DatabaseValueConvertible {
 
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(Double(self))
+        return Double(self).databaseValue
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
