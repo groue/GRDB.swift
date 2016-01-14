@@ -113,13 +113,9 @@ public class Statement {
             }
             break
         case .NamedValues(let namedValues):
-            // TODO: test
             for (index, argumentName) in sqliteArgumentNames.enumerate() {
-                if let argumentName = argumentName {
-                    for (name, value) in namedValues where name == argumentName {
-                        try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
-                        break
-                    }
+                if let argumentName = argumentName, let value = namedValues[argumentName] {
+                    try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
                 }
             }
         }
@@ -209,10 +205,11 @@ public class Statement {
             case .NamedValues(let namedValues):
                 return sqliteArgumentNames.map { argumentName in
                     if let argumentName = argumentName {
-                        for (name, value) in namedValues where name == argumentName {
+                        if let value = namedValues[argumentName] {
                             return (argumentName, value?.databaseValue ?? .Null)
+                        } else {
+                            return (argumentName, nil)
                         }
-                        return (argumentName, nil)
                     }
                     return (nil, nil)
                 }
@@ -501,7 +498,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init<Sequence: SequenceType where Sequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
-        kind = .NamedValues(Array(sequence))
+        kind = .NamedValues(ShortDictionary(sequence))
     }
     
     public var isEmpty: Bool {
@@ -518,7 +515,7 @@ public struct StatementArguments {
     
     enum Kind {
         case Values([DatabaseValueConvertible?])
-        case NamedValues([(String, DatabaseValueConvertible?)])
+        case NamedValues(ShortDictionary<String, DatabaseValueConvertible?>)
     }
     
     let kind: Kind
@@ -571,6 +568,36 @@ extension StatementArguments : CustomStringConvertible {
                     .joinWithSeparator(", ")
                 + "]"
         }
+    }
+}
+
+
+/// MARK: - ShortDictionary
+
+struct ShortDictionary<Key, Value>: SequenceType {
+    let pairs: [(Key, Value)]
+    
+    init<Sequence: SequenceType where Sequence.Generator.Element == (Key, Value)>(_ sequence: Sequence) {
+        pairs = Array(sequence)
+    }
+    
+    var isEmpty: Bool {
+        return pairs.isEmpty
+    }
+    
+    func generate() -> IndexingGenerator<[(Key, Value)]> {
+        return pairs.generate()
+    }
+}
+
+extension ShortDictionary where Key: Hashable /* Require Hashable to that ShortDictionary can be replaced with Dictionary */ {
+    subscript(key: Key) -> Value? {
+        for (k, value) in pairs {
+            if key == k {
+                return value
+            }
+        }
+        return nil
     }
 }
 
