@@ -1,11 +1,12 @@
 Release Notes
 =============
 
-## Next Release
+## 0.40.0
 
 **New**
 
-- `Statement.unsafeSetArguments(_)` binds prepared statement arguments without checking if arguments fit the statement.
+- Various [performance improvements](https://github.com/groue/GRDB.swift/wiki/Performance)
+- `Statement.unsafeSetArguments(_)` binds arguments in a prepared statement without checking if arguments fit.
 
 
 ## 0.39.1
