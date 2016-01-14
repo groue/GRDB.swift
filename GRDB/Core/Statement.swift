@@ -572,7 +572,7 @@ extension StatementArguments : CustomStringConvertible {
 }
 
 
-/// MARK: - ShortDictionary
+// MARK: - ShortDictionary
 
 struct ShortDictionary<Key, Value>: SequenceType {
     let pairs: [(Key, Value)]
