@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `Statement.unsafeSetArguments(_)` binds prepared statement arguments without checking if arguments fit the statement.
+
+
 ## 0.39.1
 
 **New**

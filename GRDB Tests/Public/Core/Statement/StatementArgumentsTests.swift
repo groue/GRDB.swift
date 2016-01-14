@@ -96,6 +96,48 @@ class StatementArgumentsTests: GRDBTestCase {
         }
     }
     
+    func testPositionalStatementArguments() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let name = "Arthur"
+                let age = 42
+                let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
+                
+                let updateStatement = try db.updateStatement("INSERT INTO persons (firstName, age) VALUES (?, ?)")
+                updateStatement.arguments = arguments
+                try updateStatement.execute()
+                
+                let selectStatement = try db.selectStatement("SELECT * FROM persons WHERE firstName = ? AND age = ?")
+                selectStatement.arguments = arguments
+                let row = Row.fetchOne(selectStatement)!
+                
+                XCTAssertEqual(row.value(named: "firstName") as String, name)
+                XCTAssertEqual(row.value(named: "age") as Int, age)
+            }
+        }
+    }
+    
+    func testUnsafePositionalStatementArguments() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let name = "Arthur"
+                let age = 42
+                let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
+                
+                let updateStatement = try db.updateStatement("INSERT INTO persons (firstName, age) VALUES (?, ?)")
+                updateStatement.unsafeSetArguments(arguments)
+                try updateStatement.execute()
+                
+                let selectStatement = try db.selectStatement("SELECT * FROM persons WHERE firstName = ? AND age = ?")
+                selectStatement.unsafeSetArguments(arguments)
+                let row = Row.fetchOne(selectStatement)!
+                
+                XCTAssertEqual(row.value(named: "firstName") as String, name)
+                XCTAssertEqual(row.value(named: "age") as Int, age)
+            }
+        }
+    }
+    
     func testNamedStatementArgumentsValidation() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -171,6 +213,48 @@ class StatementArgumentsTests: GRDBTestCase {
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
+            }
+        }
+    }
+    
+    func testNamedStatementArguments() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let name = "Arthur"
+                let age = 42
+                let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+                
+                let updateStatement = try db.updateStatement("INSERT INTO persons (firstName, age) VALUES (:name, :age)")
+                updateStatement.arguments = arguments
+                try updateStatement.execute()
+                
+                let selectStatement = try db.selectStatement("SELECT * FROM persons WHERE firstName = :name AND age = :age")
+                selectStatement.arguments = arguments
+                let row = Row.fetchOne(selectStatement)!
+                
+                XCTAssertEqual(row.value(named: "firstName") as String, name)
+                XCTAssertEqual(row.value(named: "age") as Int, age)
+            }
+        }
+    }
+    
+    func testUnsafeNamedStatementArguments() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let name = "Arthur"
+                let age = 42
+                let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+                
+                let updateStatement = try db.updateStatement("INSERT INTO persons (firstName, age) VALUES (:name, :age)")
+                updateStatement.unsafeSetArguments(arguments)
+                try updateStatement.execute()
+                
+                let selectStatement = try db.selectStatement("SELECT * FROM persons WHERE firstName = :name AND age = :age")
+                selectStatement.unsafeSetArguments(arguments)
+                let row = Row.fetchOne(selectStatement)!
+                
+                XCTAssertEqual(row.value(named: "firstName") as String, name)
+                XCTAssertEqual(row.value(named: "age") as Int, age)
             }
         }
     }
@@ -261,4 +345,48 @@ class StatementArgumentsTests: GRDBTestCase {
             }
         }
     }
+
+    
+    func testReusedNamedStatementArguments() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let name = "Arthur"
+                let age = 42
+                let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+                
+                let updateStatement = try db.updateStatement("INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+                updateStatement.arguments = arguments
+                try updateStatement.execute()
+                
+                let selectStatement = try db.selectStatement("SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
+                selectStatement.arguments = arguments
+                let row = Row.fetchOne(selectStatement)!
+                
+                XCTAssertEqual(row.value(named: "firstName") as String, name)
+                XCTAssertEqual(row.value(named: "age") as Int, age)
+            }
+        }
+    }
+    
+    func testUnsafeReusedNamedStatementArguments() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let name = "Arthur"
+                let age = 42
+                let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+                
+                let updateStatement = try db.updateStatement("INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+                updateStatement.unsafeSetArguments(arguments)
+                try updateStatement.execute()
+                
+                let selectStatement = try db.selectStatement("SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
+                selectStatement.unsafeSetArguments(arguments)
+                let row = Row.fetchOne(selectStatement)!
+                
+                XCTAssertEqual(row.value(named: "firstName") as String, name)
+                XCTAssertEqual(row.value(named: "age") as Int, age)
+            }
+        }
+    }
+    
 }

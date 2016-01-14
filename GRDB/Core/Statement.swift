@@ -13,12 +13,6 @@ public class Statement {
     /// The SQL query
     public let sql: String
     
-    /// The statement arguments
-    public var arguments: StatementArguments {
-        get { return _arguments }
-        set { try! setArgumentsWithValidation(newValue) }
-    }
-    
     
     // MARK: Not public
     
@@ -97,8 +91,14 @@ public class Statement {
         }
     }()
     
+    /// The statement arguments.
+    public var arguments: StatementArguments {
+        get { return _arguments }
+        set { try! setArgumentsWithValidation(newValue) }
+    }
+    
     /// Set arguments without any validation. Trades safety for performance.
-    func unsafeSetArguments(arguments: StatementArguments) {
+    public func unsafeSetArguments(arguments: StatementArguments) {
         _arguments = arguments
         argumentsNeedValidation = false
         
