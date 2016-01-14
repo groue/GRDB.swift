@@ -498,7 +498,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init<Sequence: SequenceType where Sequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
-        kind = .NamedValues(OptimisticDictionary(sequence))
+        kind = .NamedValues(Dictionary(sequence))
     }
     
     public var isEmpty: Bool {
@@ -515,7 +515,7 @@ public struct StatementArguments {
     
     enum Kind {
         case Values([DatabaseValueConvertible?])
-        case NamedValues(OptimisticDictionary<String, DatabaseValueConvertible?>)
+        case NamedValues(Dictionary<String, DatabaseValueConvertible?>)
     }
     
     let kind: Kind
@@ -572,38 +572,12 @@ extension StatementArguments : CustomStringConvertible {
 }
 
 
-// MARK: - OptimisticDictionary
-
-/// OptimisticDictionary is faster than Dictionary at optimistic key lookup when
-/// there are few keys.
-///
-/// TODO: we need evidence to support that.
-///
-/// Assuming this is true, this makes OptimisticDictionary a suitable storage
-/// for named statement arguments, since there are usually not numberous, and
-/// they usually match the names of arguments in the SQL query.
-struct OptimisticDictionary<Key: Hashable, Value>: SequenceType /* Require Hashable key like Dictionary */ {
-    let pairs: [(Key, Value)]
-    
+extension Dictionary {
     init<Sequence: SequenceType where Sequence.Generator.Element == (Key, Value)>(_ sequence: Sequence) {
-        pairs = Array(sequence)
-    }
-    
-    var isEmpty: Bool {
-        return pairs.isEmpty
-    }
-    
-    func generate() -> IndexingGenerator<[(Key, Value)]> {
-        return pairs.generate()
-    }
-    
-    subscript(key: Key) -> Value? {
-        for (k, value) in pairs {
-            if key == k {
-                return value
-            }
+        self.init(minimumCapacity: sequence.underestimateCount())
+        for (key, value) in sequence {
+            self[key] = value
         }
-        return nil
     }
 }
 
