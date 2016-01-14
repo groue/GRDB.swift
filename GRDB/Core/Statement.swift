@@ -480,13 +480,12 @@ public struct StatementArguments {
     
     /// Initializes arguments from a sequence of optional values.
     ///
-    ///     let values: [String?] = ["foo", "bar", nil]
+    ///     let values: [DatabaseValueConvertible?] = ["foo", 1, nil]
     ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
     ///
-    /// - parameter sequence: A sequence of optional values that adopt the
-    ///   DatabaseValueConvertible protocol.
+    /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
-    public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<DatabaseValueConvertible>>(_ sequence: Sequence) {
+    public init<Sequence: SequenceType where Sequence.Generator.Element == DatabaseValueConvertible?>(_ sequence: Sequence) {
         kind = .Values(Array(sequence))
     }
     
@@ -501,7 +500,7 @@ public struct StatementArguments {
     ///
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
-    public init<KeyValueSequence: SequenceType where KeyValueSequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: KeyValueSequence) {
+    public init<Sequence: SequenceType where Sequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
         kind = .NamedValues(Array(sequence))
     }
     
@@ -523,10 +522,6 @@ public struct StatementArguments {
     }
     
     let kind: Kind
-    
-    private init(kind: Kind) {
-        self.kind = kind
-    }
 }
 
 extension StatementArguments : ArrayLiteralConvertible {
@@ -544,11 +539,6 @@ extension StatementArguments : DictionaryLiteralConvertible {
     ///     db.selectRows("SELECT ...", arguments: ["name": "Arthur", "age": 41])
     public init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
         self.init(elements)
-//        var dictionary = [String: DatabaseValueConvertible?]()
-//        for (key, value) in elements {
-//            dictionary[key] = value
-//        }
-//        self.init(dictionary)
     }
 }
 
