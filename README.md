@@ -2239,15 +2239,15 @@ public protocol TransactionObserverType : class {
 To activate a transaction observer, add it to the database:
 
 ```swift
-let transactionObserver = MyObserver()
+let observer = MyObserver()
 dbQueue.inDatabase { db in
-    db.addTransactionObserver(transactionObserver)
+    db.addTransactionObserver(observer)
 }
 ```
 
 **A transaction observer is notified of all database changes**, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
-Changes are not actually applied until databaseDidCommit is called. On the other side, databaseDidRollback confirms their invalidation:
+Changes are not actually applied until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -2270,7 +2270,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-**Eventual errors** thrown from databaseWillCommit are exposed to the application code:
+**Eventual errors** thrown from `databaseWillCommit` are exposed to the application code:
 
 ```swift
 do {
