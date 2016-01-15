@@ -1,6 +1,20 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+You can now register several database observers, thanks to [@pakko972](https://github.com/pakko972) ([documentation](https://github.com/groue/GRDB.swift#database-changes-observation)):
+
+- `Database.addTransactionObserver()`
+- `Database.removeTransactionObserver()`
+
+**Breaking Changes**
+
+- `Configuration.transactionObserver` has been removed.
+
+
 ## 0.40.0
 
 **New**
