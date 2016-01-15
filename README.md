@@ -2279,7 +2279,7 @@ do {
         return .Commit           // 1. willCommit (throws), 2. didRollback
     }
 } catch {
-    // The error thrown by the transaction observer.
+    // 3. The error thrown by the transaction observer.
 }
 ```
 
