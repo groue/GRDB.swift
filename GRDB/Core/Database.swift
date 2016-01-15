@@ -818,18 +818,6 @@ extension Database {
         }
     }
     
-    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
-        preconditionValidQueue()
-        transactionObservers.append(transactionObserver)
-    }
-    
-    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
-        preconditionValidQueue()
-        if let index = transactionObservers.indexOf({ observer in observer === transactionObserver}) {
-            transactionObservers.removeAtIndex(index)
-        }
-    }
-    
     private func beginTransaction(kind: TransactionKind? = nil) throws {
         switch kind ?? configuration.defaultTransactionKind {
         case .Deferred:
@@ -849,7 +837,21 @@ extension Database {
         try execute("COMMIT TRANSACTION")
     }
     
+    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+        preconditionValidQueue()
+        transactionObservers.append(transactionObserver)
+    }
+    
+    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
+        preconditionValidQueue()
+        if let index = transactionObservers.indexOf({ observer in observer === transactionObserver}) {
+            transactionObservers.removeAtIndex(index)
+        }
+    }
+    
     func updateStatementDidFail() throws {
+        // Reset statementCompletion before didRollback eventually executes
+        // other statements.
         let statementCompletion = self.statementCompletion
         self.statementCompletion = .Regular
         
@@ -857,7 +859,7 @@ extension Database {
         case .TransactionErrorRollback(let error):
             // The transaction has been rollbacked from
             // TransactionObserverType.transactionWillCommit().
-            propagateDatabaseDidRollback()
+            didRollback()
             throw error
         default:
             break
@@ -865,39 +867,41 @@ extension Database {
     }
     
     func updateStatementDidExecute() {
+        // Reset statementCompletion before didCommit or didRollback eventually
+        // execute other statements.
         let statementCompletion = self.statementCompletion
         self.statementCompletion = .Regular
         
         switch statementCompletion {
         case .TransactionCommit:
-            propagateDatabaseDidCommit()
+            didCommit()
         case .TransactionRollback:
-            propagateDatabaseDidRollback()
+            didRollback()
         default:
             break
         }
     }
     
-    private func propagateDatabaseWillCommit() throws {
-        for observer: TransactionObserverType in transactionObservers {
+    private func willCommit() throws {
+        for observer in transactionObservers {
             try observer.databaseWillCommit()
         }
     }
     
-    private func propagateDatabaseDidChangeWithEvent(event: DatabaseEvent) {
-        for observer: TransactionObserverType in transactionObservers {
+    private func didChangeWithEvent(event: DatabaseEvent) {
+        for observer in transactionObservers {
             observer.databaseDidChangeWithEvent(event)
         }
     }
     
-    private func propagateDatabaseDidCommit() {
-        for observer: TransactionObserverType in transactionObservers {
+    private func didCommit() {
+        for observer in transactionObservers {
             observer.databaseDidCommit(self)
         }
     }
     
-    private func propagateDatabaseDidRollback() {
-        for observer: TransactionObserverType in transactionObservers {
+    private func didRollback() {
+        for observer in transactionObservers {
             observer.databaseDidRollback(self)
         }
     }
@@ -909,25 +913,27 @@ extension Database {
             let db = unsafeBitCast(dbPointer, Database.self)
             
             // Notify change event
-            let event = DatabaseEvent(
-                kind: DatabaseEvent.Kind(rawValue: updateKind)!,
-                databaseName: String.fromCString(databaseName)!,
-                tableName: String.fromCString(tableName)!,
-                rowID: rowID)
-            db.propagateDatabaseDidChangeWithEvent(event)
+            if !db.transactionObservers.isEmpty {
+                db.didChangeWithEvent(DatabaseEvent(
+                    kind: DatabaseEvent.Kind(rawValue: updateKind)!,
+                    databaseName: String.fromCString(databaseName)!,
+                    tableName: String.fromCString(tableName)!,
+                    rowID: rowID))
+            }
             }, dbPointer)
         
         
         sqlite3_commit_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
+            
             do {
-                try db.propagateDatabaseWillCommit()
-                // Next step: updateStatementDidExecute()
+                try db.willCommit()
                 db.statementCompletion = .TransactionCommit
+                // Next step: updateStatementDidExecute()
                 return 0
             } catch {
-                // Next step: sqlite3_rollback_hook callback
                 db.statementCompletion = .TransactionErrorRollback(error)
+                // Next step: sqlite3_rollback_hook callback
                 return 1
             }
             }, dbPointer)
@@ -938,13 +944,13 @@ extension Database {
             
             switch db.statementCompletion {
             case .TransactionErrorRollback:
-                // The transactionObserver has rollbacked the transaction.
+                // A transactionObserver has rollbacked the transaction.
                 // Don't lose this information.
                 // Next step: updateStatementDidFail()
                 break
             default:
-                // Next step: updateStatementDidExecute()
                 db.statementCompletion = .TransactionRollback
+                // Next step: updateStatementDidExecute()
             }
             }, dbPointer)
     }
