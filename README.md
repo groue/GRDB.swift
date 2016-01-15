@@ -2251,13 +2251,13 @@ Changes are not actually applied until `databaseDidCommit` is called. On the oth
 
 ```swift
 try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...") // didChange
-    return .Commit               // willCommit, didCommit
+    try db.execute("INSERT ...") // 1. didChange
+    return .Commit               // 2. willCommit, 3. didCommit
 }
 
 try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...") // didChange
-    return .Rollback             // didRollback
+    try db.execute("INSERT ...") // 1. didChange
+    return .Rollback             // 2. didRollback
 }
 ```
 
@@ -2265,8 +2265,8 @@ Database statements that are executed outside of an explicit transaction do not 
 
 ```swift
 try dbQueue.inDatabase { db in
-    try db.execute("INSERT ...") // didChange, willCommit, didCommit
-    try db.execute("UPDATE ...") // didChange, willCommit, didCommit
+    try db.execute("INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
+    try db.execute("UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
 }
 ```
 
@@ -2276,7 +2276,7 @@ try dbQueue.inDatabase { db in
 do {
     try dbQueue.inTransaction { db in
         ...
-        return .Commit           // willCommit (throws), didRollback
+        return .Commit           // 1. willCommit (throws), 2. didRollback
     }
 } catch {
     // The error thrown by the transaction observer.
