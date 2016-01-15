@@ -210,7 +210,7 @@ public extension MutableDatabasePersistable {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .Managed(let column) = dataMapper.primaryKey {
+            if case .RowID(let column) = dataMapper.primaryKey {
                 didInsertWithRowID(rowID, forColumn: column)
             } else {
                 didInsertWithRowID(rowID, forColumn: nil)
@@ -386,8 +386,8 @@ public extension DatabasePersistable {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .Managed(let columnName) = dataMapper.primaryKey {
-                didInsertWithRowID(rowID, forColumn: columnName)
+            if case .RowID(let column) = dataMapper.primaryKey {
+                didInsertWithRowID(rowID, forColumn: column)
             } else {
                 didInsertWithRowID(rowID, forColumn: nil)
             }

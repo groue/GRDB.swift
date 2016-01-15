@@ -209,7 +209,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         var persistentDictionary = dataMapper.persistentDictionary
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .Managed(let column) = dataMapper.primaryKey {
+            if case .RowID(let column) = dataMapper.primaryKey {
                 // Update persistentDictionary with inserted id
                 if persistentDictionary[column] != nil {
                     persistentDictionary[column] = rowID

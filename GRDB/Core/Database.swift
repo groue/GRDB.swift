@@ -646,13 +646,13 @@ public final class Database {
             // We ignore the exception, and consider all INTEGER primary keys as
             // aliases for the rowid:
             if pkColumnInfo.type.uppercaseString == "INTEGER" {
-                primaryKey = .Managed(pkColumnInfo.name)
+                primaryKey = .RowID(pkColumnInfo.name)
             } else {
-                primaryKey = .Unmanaged([pkColumnInfo.name])
+                primaryKey = .Regular([pkColumnInfo.name])
             }
         default:
             // Multi-columns primary key
-            primaryKey = .Unmanaged(pkColumnInfos.map { $0.name })
+            primaryKey = .Regular(pkColumnInfos.map { $0.name })
         }
         
         primaryKeyCache[tableName] = primaryKey
@@ -778,21 +778,22 @@ enum PrimaryKey {
     /// No primary key
     case None
     
-    /// A primary key managed by SQLite. Associated string is a column name.
-    case Managed(String)
+    /// An INTEGER PRIMARY KEY column that aliases the Row ID.
+    /// Associated string is the column name.
+    case RowID(String)
     
-    /// A primary key not managed by SQLite. It can span accross several
-    /// columns. Associated strings are column names.
-    case Unmanaged([String])
+    /// Any primary key, but INTEGER PRIMARY KEY.
+    /// Associated strings are column names.
+    case Regular([String])
     
     /// The columns in the primary key. May be empty.
     var columns: [String] {
         switch self {
         case .None:
             return []
-        case .Managed(let column):
+        case .RowID(let column):
             return [column]
-        case .Unmanaged(let columns):
+        case .Regular(let columns):
             return columns
         }
     }
