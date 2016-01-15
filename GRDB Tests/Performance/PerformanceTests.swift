@@ -19,18 +19,18 @@ let i9Column = Expression<Int>("i9")
 // MARK:- GRDB
 
 class Item : Record {
-    var i0: Int?
-    var i1: Int?
-    var i2: Int?
-    var i3: Int?
-    var i4: Int?
-    var i5: Int?
-    var i6: Int?
-    var i7: Int?
-    var i8: Int?
-    var i9: Int?
+    var i0: Int
+    var i1: Int
+    var i2: Int
+    var i3: Int
+    var i4: Int
+    var i5: Int
+    var i6: Int
+    var i7: Int
+    var i8: Int
+    var i9: Int
     
-    init(i0: Int?, i1: Int?, i2: Int?, i3: Int?, i4: Int?, i5: Int?, i6: Int?, i7: Int?, i8: Int?, i9: Int?) {
+    init(i0: Int, i1: Int, i2: Int, i3: Int, i4: Int, i5: Int, i6: Int, i7: Int, i8: Int, i9: Int) {
         self.i0 = i0
         self.i1 = i1
         self.i2 = i2

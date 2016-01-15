@@ -4,7 +4,12 @@ import Foundation
 extension NSData : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(self)
+        if length == 0 {
+            // SQLite cant' store zero-length blobs.
+            return .Null
+        } else {
+            return DatabaseValue(storage: .Blob(self))
+        }
     }
     
     /// Returns an NSData initialized from *databaseValue*, if it contains

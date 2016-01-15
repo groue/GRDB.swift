@@ -88,9 +88,11 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
         precondition(index >= 0 && index < count, "row index out of range")
-        return impl
-            .databaseValue(atIndex: index)
-            .value()
+        return unsafeValue(atIndex: index)
+    }
+    
+    private func unsafeValue<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
+        return impl.databaseValue(atIndex: index).value()
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -119,6 +121,10 @@ public final class Row: CollectionType {
     /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
         precondition(index >= 0 && index < count, "row index out of range")
+        return unsafeValue(atIndex: index)
+    }
+    
+    private func unsafeValue<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -154,9 +160,11 @@ public final class Row: CollectionType {
     /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
         precondition(index >= 0 && index < count, "row index out of range")
-        return impl
-            .databaseValue(atIndex: index)
-            .value()
+        return unsafeValue(atIndex: index)
+    }
+    
+    private func unsafeValue<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
+        return impl.databaseValue(atIndex: index).value()
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -185,6 +193,10 @@ public final class Row: CollectionType {
     /// - returns: A *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
         precondition(index >= 0 && index < count, "row index out of range")
+        return unsafeValue(atIndex: index)
+    }
+    
+    private func unsafeValue<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
         let sqliteStatement = self.sqliteStatement
         if sqliteStatement != nil {
             // Metal row
@@ -244,7 +256,7 @@ public final class Row: CollectionType {
         guard let index = impl.indexForColumn(named: columnName) else {
             return nil
         }
-        return value(atIndex: index)
+        return unsafeValue(atIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -273,7 +285,7 @@ public final class Row: CollectionType {
         guard let index = impl.indexForColumn(named: columnName) else {
             return nil
         }
-        return value(atIndex: index)
+        return unsafeValue(atIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -299,7 +311,7 @@ public final class Row: CollectionType {
         guard let index = impl.indexForColumn(named: columnName) else {
             fatalError("no such column: \(columnName)")
         }
-        return value(atIndex: index)
+        return unsafeValue(atIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -330,7 +342,7 @@ public final class Row: CollectionType {
         guard let index = impl.indexForColumn(named: columnName) else {
             fatalError("no such column: \(columnName)")
         }
-        return value(atIndex: index)
+        return unsafeValue(atIndex: index)
     }
     
     /// Returns the optional `NSData` at given index.

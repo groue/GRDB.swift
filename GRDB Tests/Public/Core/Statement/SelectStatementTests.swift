@@ -58,7 +58,11 @@ class SelectStatementTests : GRDBTestCase {
                 let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: Remove this explicit type declaration required by rdar://22357375
                 let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
-                let counts = ageDicts.map { Int.fetchOne(statement, arguments: StatementArguments($0))! }
+                let counts = ageDicts.map { dic -> Int in
+                    // Make sure we don't trigger a failible initializer
+                    let arguments: StatementArguments = StatementArguments(dic)
+                    return Int.fetchOne(statement, arguments: arguments)!
+                }
                 XCTAssertEqual(counts, [1,2,2,3])
             }
         }

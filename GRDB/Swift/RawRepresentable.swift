@@ -25,7 +25,7 @@ extension DatabaseIntRepresentable {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(Int64(rawValue))
+        return rawValue.databaseValue
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
@@ -68,7 +68,7 @@ extension DatabaseInt32Representable {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(Int64(rawValue))
+        return rawValue.databaseValue
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
@@ -111,7 +111,7 @@ extension DatabaseInt64Representable {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(rawValue)
+        return rawValue.databaseValue
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
@@ -154,7 +154,7 @@ extension DatabaseStringRepresentable {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(rawValue)
+        return rawValue.databaseValue
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.

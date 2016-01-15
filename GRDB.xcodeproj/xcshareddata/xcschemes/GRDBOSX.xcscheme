@@ -66,9 +66,6 @@
                   Identifier = "DatabaseCoderTests">
                </Test>
                <Test
-                  Identifier = "DatabaseErrorFromStatementCreationTests">
-               </Test>
-               <Test
                   Identifier = "DatabaseErrorTests">
                </Test>
                <Test
@@ -102,9 +99,6 @@
                   Identifier = "DictionaryRowTests">
                </Test>
                <Test
-                  Identifier = "FMDBPerformanceTests">
-               </Test>
-               <Test
                   Identifier = "FetchedRecordsControllerTests/testEmptyFetchedRecordsAfterPerformFetch()">
                </Test>
                <Test
@@ -127,9 +121,6 @@
                </Test>
                <Test
                   Identifier = "FunctionTests">
-               </Test>
-               <Test
-                  Identifier = "GRDBPerformanceTests">
                </Test>
                <Test
                   Identifier = "GRDBTestCase">
@@ -222,7 +213,7 @@
                   Identifier = "StatementArgumentsFoundationTests">
                </Test>
                <Test
-                  Identifier = "StephenCelisSQLitePerformanceTests">
+                  Identifier = "StatementArgumentsTests">
                </Test>
                <Test
                   Identifier = "TransactionObserverTests">

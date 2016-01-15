@@ -1,6 +1,25 @@
 Release Notes
 =============
 
+## 0.40.0
+
+**New**
+
+- Various [performance improvements](https://github.com/groue/GRDB.swift/wiki/Performance)
+- `Statement.unsafeSetArguments(_)` binds arguments in a prepared statement without checking if arguments fit.
+
+
+## 0.39.1
+
+**New**
+
+- Various [performance improvements](https://github.com/groue/GRDB.swift/wiki/Performance)
+
+**Fixed**
+
+- Fixed the change tracking of Record subclasses that mangle the case of column names.
+
+
 ## 0.39.0
 
 Released January 11, 2016

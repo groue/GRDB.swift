@@ -13,12 +13,6 @@ public class Statement {
     /// The SQL query
     public let sql: String
     
-    /// The statement arguments
-    public var arguments: StatementArguments {
-        get { return _arguments }
-        set { try! setArgumentsWithValidation(newValue) }
-    }
-    
     
     // MARK: Not public
     
@@ -97,8 +91,14 @@ public class Statement {
         }
     }()
     
+    /// The statement arguments.
+    public var arguments: StatementArguments {
+        get { return _arguments }
+        set { try! setArgumentsWithValidation(newValue) }
+    }
+    
     /// Set arguments without any validation. Trades safety for performance.
-    func unsafeSetArguments(arguments: StatementArguments) {
+    public func unsafeSetArguments(arguments: StatementArguments) {
         _arguments = arguments
         argumentsNeedValidation = false
         
@@ -107,15 +107,14 @@ public class Statement {
         clearBindings()
         
         switch arguments.kind {
-        case .Array(let array):
-            for (index, value) in array.enumerate() {
+        case .Values(let values):
+            for (index, value) in values.enumerate() {
                 try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
             }
             break
-        case .Dictionary(let dictionary):
-            // TODO: test
+        case .NamedValues(let namedValues):
             for (index, argumentName) in sqliteArgumentNames.enumerate() {
-                if let argumentName = argumentName, let value = dictionary[argumentName] {
+                if let argumentName = argumentName, let value = namedValues[argumentName] {
                     try! bindDatabaseValue(value?.databaseValue ?? .Null, atIndex: Int32(index + 1))
                 }
             }
@@ -179,10 +178,10 @@ public class Statement {
         // If one of the values is nil, then we have a missing argument.
         let keyValueBindings: [(String?, DatabaseValue?)] = {
             switch arguments.kind {
-            case .Array(let array):
+            case .Values(let values):
                 var keyValueBindings: [(String?, DatabaseValue?)] = []
                 var argumentNameGen = sqliteArgumentNames.generate()
-                var valuesGen = array.map { $0?.databaseValue ?? .Null }.generate()
+                var valuesGen = values.map { $0?.databaseValue ?? .Null }.generate()
                 var argumentNameOpt = argumentNameGen.next()
                 var valueOpt = valuesGen.next()
                 outer: while true {
@@ -203,10 +202,10 @@ public class Statement {
                 }
                 return keyValueBindings
                 
-            case .Dictionary(let dictionary):
+            case .NamedValues(let namedValues):
                 return sqliteArgumentNames.map { argumentName in
                     if let argumentName = argumentName {
-                        if let value = dictionary[argumentName] {
+                        if let value = namedValues[argumentName] {
                             return (argumentName, value?.databaseValue ?? .Null)
                         } else {
                             return (argumentName, nil)
@@ -292,21 +291,19 @@ public final class SelectStatement : Statement {
     
     /// The column index, case insensitive.
     func indexForColumn(named name: String) -> Int? {
-        return lowercaseColumnIndexes[name] ?? lowercaseColumnIndexes[name.lowercaseString]
-    }
-    
-    /// Support for indexForColumn(named:)
-    private lazy var lowercaseColumnIndexes: [String: Int] = {
-        var indexes = [String: Int]()
-        let count = self.columnCount
-        // Reverse so that we return indexes for the leftmost columns.
-        // SELECT 1 AS a, 2 AS a -> lowercaseColumnIndexes["a”] = 0
-        for (index, columnName) in self.columnNames.reverse().enumerate() {
-            indexes[columnName.lowercaseString] = count - index - 1
+        // This is faster than dictionary lookup
+        for (index, column) in columnNames.enumerate() {
+            if column == name {
+                return index
+            }
         }
-        return indexes
-    }()
-    
+        for (index, column) in columnNames.enumerate() {
+            if column.lowercaseString == name.lowercaseString {
+                return index
+            }
+        }
+        return nil
+    }
 }
 
 /// A sequence of elements fetched from the database.
@@ -480,37 +477,36 @@ public struct StatementArguments {
     
     /// Initializes arguments from a sequence of optional values.
     ///
-    ///     let values: [String?] = ["foo", "bar", nil]
+    ///     let values: [DatabaseValueConvertible?] = ["foo", 1, nil]
     ///     db.execute("INSERT ... (?,?,?)", arguments: StatementArguments(values))
     ///
-    /// - parameter sequence: A sequence of optional values that adopt the
-    ///   DatabaseValueConvertible protocol.
+    /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
-    public init<Sequence: SequenceType where Sequence.Generator.Element == Optional<DatabaseValueConvertible>>(_ sequence: Sequence) {
-        kind = .Array(Array(sequence))
+    public init<Sequence: SequenceType where Sequence.Generator.Element == DatabaseValueConvertible?>(_ sequence: Sequence) {
+        kind = .Values(Array(sequence))
     }
     
     
     // MARK: Named Arguments
     
-    /// Initializes arguments from a dictionary of optional values.
+    /// Initializes arguments from a sequence of (key, value) pairs, such as
+    /// a dictionary.
     ///
-    ///     let values: [String: String?] = ["firstName": nil, "lastName": "Miller"]
+    ///     let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
     ///     db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
     ///
-    /// - parameter dictionary: A dictionary of optional values that adopt the
-    ///   DatabaseValueConvertible protocol.
+    /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
-    public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        kind = .Dictionary(dictionary)
+    public init<Sequence: SequenceType where Sequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
+        kind = .NamedValues(Dictionary(sequence))
     }
     
     public var isEmpty: Bool {
         switch kind {
-        case .Array(let array):
-            return array.isEmpty
-        case .Dictionary(let dictionary):
-            return dictionary.isEmpty
+        case .Values(let values):
+            return values.isEmpty
+        case .NamedValues(let namedValues):
+            return namedValues.isEmpty
         }
     }
     
@@ -518,15 +514,11 @@ public struct StatementArguments {
     // MARK: Not Public
     
     enum Kind {
-        case Array([DatabaseValueConvertible?])
-        case Dictionary([String: DatabaseValueConvertible?])
+        case Values([DatabaseValueConvertible?])
+        case NamedValues(Dictionary<String, DatabaseValueConvertible?>)
     }
     
     let kind: Kind
-    
-    private init(kind: Kind) {
-        self.kind = kind
-    }
 }
 
 extension StatementArguments : ArrayLiteralConvertible {
@@ -543,11 +535,7 @@ extension StatementArguments : DictionaryLiteralConvertible {
     ///
     ///     db.selectRows("SELECT ...", arguments: ["name": "Arthur", "age": 41])
     public init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
-        var dictionary = [String: DatabaseValueConvertible?]()
-        for (key, value) in elements {
-            dictionary[key] = value
-        }
-        self.init(dictionary)
+        self.init(elements)
     }
 }
 
@@ -555,7 +543,7 @@ extension StatementArguments : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         switch kind {
-        case .Array(let values):
+        case .Values(let values):
             return "["
                 + values
                     .map { value in
@@ -568,9 +556,9 @@ extension StatementArguments : CustomStringConvertible {
                     .joinWithSeparator(", ")
                 + "]"
             
-        case .Dictionary(let dictionary):
+        case .NamedValues(let namedValues):
             return "["
-                + dictionary.map { (key, value) in
+                + namedValues.map { (key, value) in
                     if let value = value {
                         return "\(key):\(String(reflecting: value))"
                     } else {
@@ -579,6 +567,18 @@ extension StatementArguments : CustomStringConvertible {
                     }
                     .joinWithSeparator(", ")
                 + "]"
+        }
+    }
+}
+
+
+extension Dictionary {
+    
+    /// Creates a dictionary with the keys and values in the given sequence.
+    init<Sequence: SequenceType where Sequence.Generator.Element == Generator.Element>(_ sequence: Sequence) {
+        self.init(minimumCapacity: sequence.underestimateCount())
+        for (key, value) in sequence {
+            self[key] = value
         }
     }
 }

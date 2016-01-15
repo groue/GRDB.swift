@@ -783,6 +783,7 @@
 			children = (
 				56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */,
 				56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */,
+				56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */,
 				56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */,
 				56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */,
 				56DE7B2B1C41311900861EB8 /* FetchRecordTests.swift */,
@@ -792,7 +793,6 @@
 				56CA22211BB41565009A04C5 /* PerformanceTests.swift */,
 				56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */,
 				56BB86171BA988F2001F9168 /* fmdb */,
-				56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */,
 			);
 			path = Performance;
 			sourceTree = "<group>";

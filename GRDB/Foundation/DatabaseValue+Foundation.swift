@@ -13,7 +13,7 @@ extension DatabaseValue {
         guard let convertible = object as? DatabaseValueConvertible else {
             return nil
         }
-        self.init(convertible.databaseValue)
+        self.init(storage: convertible.databaseValue.storage)
     }
     
     /// Converts a DatabaseValue to AnyObject.

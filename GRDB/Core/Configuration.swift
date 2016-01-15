@@ -14,10 +14,8 @@ public struct Configuration {
     
     // MARK: - Transactions
     
-    /// The transaction kind used by Database.inTransaction().
-    ///
-    /// Default is `.Immediate`.
-    public var defaultTransactionKind: TransactionKind
+    /// The default kind of transaction.
+    public var defaultTransactionKind: TransactionKind = .Immediate
     
     
     // MARK: - Concurrency
