@@ -2283,6 +2283,8 @@ do {
 }
 ```
 
+> :point_up: **Note**: All callbacks are called on the database queue.
+>
 > :point_up: **Note**: The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
