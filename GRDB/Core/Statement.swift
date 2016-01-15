@@ -573,7 +573,9 @@ extension StatementArguments : CustomStringConvertible {
 
 
 extension Dictionary {
-    init<Sequence: SequenceType where Sequence.Generator.Element == (Key, Value)>(_ sequence: Sequence) {
+    
+    /// Creates a dictionary with the keys and values in the given sequence.
+    init<Sequence: SequenceType where Sequence.Generator.Element == Generator.Element>(_ sequence: Sequence) {
         self.init(minimumCapacity: sequence.underestimateCount())
         for (key, value) in sequence {
             self[key] = value
