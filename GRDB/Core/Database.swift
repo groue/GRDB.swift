@@ -21,28 +21,24 @@ public final class Database {
     /// The raw SQLite connection, suitable for the SQLite C API.
     public let sqliteConnection: SQLiteConnection
     
-    /// The last error message
     var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
-    // Cache
     private var columnInfosCache: [String: [ColumnInfo]] = [:]
     private var primaryKeyCache: [String: PrimaryKey] = [:]
     private var updateStatementCache: [String: UpdateStatement] = [:]
     private var selectStatementCache: [String: SelectStatement] = [:]
     
-    /// Updated in SQLite callbacks (see setupTransactionHooks())
-    /// Consumed in updateStatementDidFail() and updateStatementDidExecute().
+    /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
     private var statementCompletion: StatementCompletion = .Regular
     
-    /// The busy handler callback, if any. See Configuration.busyMode.
+    /// See setupBusyMode()
     private var busyCallback: BusyCallback?
     
-    /// The queue from which the database can be used. See preconditionValidQueue().
-    /// Design note: this is not very clean. A delegation pattern may be a
-    /// better fit.
+    /// The queue from which the database can be used.
+    /// See preconditionValidQueue().
     var databaseQueueID: DatabaseQueueID = nil
     
     init(path: String, configuration: Configuration) throws {
