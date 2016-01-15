@@ -15,8 +15,177 @@ public typealias SQLiteConnection = COpaquePointer
 ///     }
 public final class Database {
     
-    // =========================================================================
-    // MARK: - Select Statements
+    /// The database configuration
+    public let configuration: Configuration
+    
+    /// The raw SQLite connection, suitable for the SQLite C API.
+    public let sqliteConnection: SQLiteConnection
+    
+    /// The last error message
+    var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
+    
+    private var functions = Set<DatabaseFunction>()
+    private var collations = Set<DatabaseCollation>()
+    
+    // Cache
+    private var columnInfosCache: [String: [ColumnInfo]] = [:]
+    private var primaryKeyCache: [String: PrimaryKey] = [:]
+    private var updateStatementCache: [String: UpdateStatement] = [:]
+    private var selectStatementCache: [String: SelectStatement] = [:]
+    
+    /// Updated in SQLite callbacks (see setupTransactionHooks())
+    /// Consumed in updateStatementDidFail() and updateStatementDidExecute().
+    private var statementCompletion: StatementCompletion = .Regular
+    
+    /// The busy handler callback, if any. See Configuration.busyMode.
+    private var busyCallback: BusyCallback?
+    
+    /// The queue from which the database can be used. See preconditionValidQueue().
+    /// Design note: this is not very clean. A delegation pattern may be a
+    /// better fit.
+    var databaseQueueID: DatabaseQueueID = nil
+    
+    init(path: String, configuration: Configuration) throws {
+        self.configuration = configuration
+        
+        // See https://www.sqlite.org/c3ref/open.html
+        var sqliteConnection = SQLiteConnection()
+        let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
+        self.sqliteConnection = sqliteConnection
+        if code != SQLITE_OK {
+            throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
+        }
+        
+        // Setup trace first, so that all queries, including initialization queries, are traced.
+        setupTrace()
+        
+        try setupForeignKeys()
+        setupBusyMode()
+        setupTransactionHooks()
+    }
+    
+    // Initializes an in-memory database
+    convenience init(configuration: Configuration) {
+        try! self.init(path: ":memory:", configuration: configuration)
+    }
+    
+    deinit {
+        sqlite3_close(sqliteConnection)
+    }
+
+    func preconditionValidQueue() {
+        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
+    }
+    
+    func setupForeignKeys() throws {
+        if configuration.foreignKeysEnabled {
+            try execute("PRAGMA foreign_keys = ON")
+        }
+    }
+    
+    func setupTrace() {
+        guard configuration.trace != nil else {
+            return
+        }
+        let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
+            let database = unsafeBitCast(dbPointer, Database.self)
+            database.configuration.trace!(String.fromCString(sql)!)
+            }, dbPointer)
+    }
+    
+    func setupBusyMode() {
+        switch configuration.busyMode {
+        case .ImmediateError:
+            break
+            
+        case .Timeout(let duration):
+            let milliseconds = Int32(duration * 1000)
+            sqlite3_busy_timeout(sqliteConnection, milliseconds)
+            
+        case .Callback(let callback):
+            let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+            busyCallback = callback
+            
+            sqlite3_busy_handler(
+                sqliteConnection,
+                { (dbPointer: UnsafeMutablePointer<Void>, numberOfTries: Int32) in
+                    let database = unsafeBitCast(dbPointer, Database.self)
+                    let callback = database.busyCallback!
+                    return callback(numberOfTries: Int(numberOfTries)) ? 1 : 0
+                },
+                dbPointer)
+        }
+    }
+}
+
+
+/// A SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
+enum ThreadingMode {
+    case Default
+    case MultiThread
+    case Serialized
+    
+    var sqliteOpenFlags: Int32 {
+        switch self {
+        case .Default:
+            return 0
+        case .MultiThread:
+            return SQLITE_OPEN_NOMUTEX
+        case .Serialized:
+            return SQLITE_OPEN_FULLMUTEX
+        }
+    }
+}
+
+
+/// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
+public typealias BusyCallback = (numberOfTries: Int) -> Bool
+
+/// When there are several connections to a database, a connection may try to
+/// access the database while it is locked by another connection.
+///
+/// The BusyMode enum describes the behavior of GRDB when such a situation
+/// occurs:
+///
+/// - .ImmediateError: The SQLITE_BUSY error is immediately returned to the
+///   connection that tries to access the locked database.
+///
+/// - .Timeout: The SQLITE_BUSY error will be returned only if the database
+///   remains locked for more than the specified duration.
+///
+/// - .Callback: Perform your custom lock handling.
+///
+/// To set the busy mode of a database, use Configuration:
+///
+///     let configuration = Configuration(busyMode: .Timeout(1))
+///     let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
+///
+/// Relevant SQLite documentation:
+///
+/// - https://www.sqlite.org/c3ref/busy_timeout.html
+/// - https://www.sqlite.org/c3ref/busy_handler.html
+/// - https://www.sqlite.org/lang_transaction.html
+/// - https://www.sqlite.org/wal.html
+public enum BusyMode {
+    /// The SQLITE_BUSY error is immediately returned to the connection that
+    /// tries to access the locked database.
+    case ImmediateError
+    
+    /// The SQLITE_BUSY error will be returned only if the database remains
+    /// locked for more than the specified duration.
+    case Timeout(NSTimeInterval)
+    
+    /// A custom callback that is called when a database is locked.
+    /// See https://www.sqlite.org/c3ref/busy_handler.html
+    case Callback(BusyCallback)
+}
+
+
+// =========================================================================
+// MARK: - Statements
+
+extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
@@ -41,11 +210,7 @@ public final class Database {
         return statement
     }
     
-    
-    // =========================================================================
-    // MARK: - Update Statements
-    
-    /// Returns an prepared statement that can be reused.
+    /// Returns a prepared statement that can be reused.
     ///
     ///     let statement = try db.updateStatement("INSERT INTO persons (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
@@ -134,7 +299,7 @@ public final class Database {
                 return (consumeArguments, validateRemainingArguments)
             }
         }()
-    
+        
         
         // Execute statements
         
@@ -178,244 +343,13 @@ public final class Database {
     }
     
     
-    // =========================================================================
-    // MARK: - Transactions
-    
-    /// Executes a block inside a database transaction.
-    ///
-    ///     try dbQueue.inDatabase do {
-    ///         try db.inTransaction {
-    ///             try db.execute("INSERT ...")
-    ///             return .Commit
-    ///         }
-    ///     }
-    ///
-    /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown.
-    ///
-    /// This method is not reentrant: you can't nest transactions.
-    ///
-    /// - parameter kind: The transaction type (default nil). If nil, the
-    ///   transaction type is configuration.defaultTransactionKind, which itself
-    ///   defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
-    ///   for more information.
-    /// - parameter block: A block that executes SQL statements and return
-    ///   either .Commit or .Rollback.
-    /// - throws: The error thrown by the block.
-    public func inTransaction(kind: TransactionKind? = nil, block: () throws -> TransactionCompletion) throws {
-        preconditionValidQueue()
-        
-        var completion: TransactionCompletion = .Rollback
-        var blockError: ErrorType? = nil
-        
-        try beginTransaction(kind)
-        
-        do {
-            completion = try block()
-        } catch {
-            completion = .Rollback
-            blockError = error
-        }
-        
-        switch completion {
-        case .Commit:
-            try commit()
-        case .Rollback:
-            // https://www.sqlite.org/lang_transaction.html#immediate
-            //
-            // > Response To Errors Within A Transaction
-            // >
-            // > If certain kinds of errors occur within a transaction, the
-            // > transaction may or may not be rolled back automatically. The
-            // > errors that can cause an automatic rollback include:
-            // >
-            // > - SQLITE_FULL: database or disk full
-            // > - SQLITE_IOERR: disk I/O error
-            // > - SQLITE_BUSY: database in use by another process
-            // > - SQLITE_NOMEM: out or memory
-            // >
-            // > [...] It is recommended that applications respond to the errors
-            // > listed above by explicitly issuing a ROLLBACK command. If the
-            // > transaction has already been rolled back automatically by the
-            // > error response, then the ROLLBACK command will fail with an
-            // > error, but no harm is caused by this.
-            if let blockError = blockError as? DatabaseError {
-                switch Int32(blockError.code) {
-                case SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM:
-                    do { try rollback() } catch { }
-                default:
-                    try rollback()
-                }
-            } else {
-                try rollback()
-            }
-        }
-        
-        if let blockError = blockError {
-            throw blockError
-        }
-    }
-    
-    private func beginTransaction(kind: TransactionKind? = nil) throws {
-        switch kind ?? configuration.defaultTransactionKind {
-        case .Deferred:
-            try execute("BEGIN DEFERRED TRANSACTION")
-        case .Immediate:
-            try execute("BEGIN IMMEDIATE TRANSACTION")
-        case .Exclusive:
-            try execute("BEGIN EXCLUSIVE TRANSACTION")
-        }
-    }
-    
-    private func rollback() throws {
-        try execute("ROLLBACK TRANSACTION")
-    }
-    
-    private func commit() throws {
-        try execute("COMMIT TRANSACTION")
-    }
-    
-    
-    // =========================================================================
-    // MARK: - Transaction Observation
-    
-    private enum StatementCompletion {
-        // Statement has ended with a commit (implicit or explicit).
-        case TransactionCommit
-        
-        // Statement has ended with a rollback.
-        case TransactionRollback
-        
-        // Statement has been rollbacked by transactionObserver.
-        case TransactionErrorRollback(ErrorType)
-        
-        // All other cases (CREATE TABLE, etc.)
-        case Regular
-    }
-    
-    /// Updated in SQLite callbacks (see setupTransactionHooks())
-    /// Consumed in updateStatementDidFail() and updateStatementDidExecute().
-    private var statementCompletion: StatementCompletion = .Regular
-    
-    func updateStatementDidFail() throws {
-        let statementCompletion = self.statementCompletion
-        self.statementCompletion = .Regular
-        
-        switch statementCompletion {
-        case .TransactionErrorRollback(let error):
-            // The transaction has been rollbacked from
-            // TransactionObserverType.transactionWillCommit().
-            configuration.transactionObserver!.databaseDidRollback(self)
-            throw error
-        default:
-            break
-        }
-    }
-    
-    func updateStatementDidExecute() {
-        let statementCompletion = self.statementCompletion
-        self.statementCompletion = .Regular
-        
-        switch statementCompletion {
-        case .TransactionCommit:
-            configuration.transactionObserver!.databaseDidCommit(self)
-        case .TransactionRollback:
-            configuration.transactionObserver!.databaseDidRollback(self)
-        default:
-            break
-        }
-    }
-    
-    private func setupTransactionHooks() {
-        // No need to setup any hook when there is no transactionObserver:
-        guard configuration.transactionObserver != nil else {
-            return
-        }
-        
-        let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-        
-        
-        sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
-            let db = unsafeBitCast(dbPointer, Database.self)
-            
-            // Notify change event
-            let event = DatabaseEvent(
-                kind: DatabaseEvent.Kind(rawValue: updateKind)!,
-                databaseName: String.fromCString(databaseName)!,
-                tableName: String.fromCString(tableName)!,
-                rowID: rowID)
-            db.configuration.transactionObserver!.databaseDidChangeWithEvent(event)
-            }, dbPointer)
-        
-        
-        sqlite3_commit_hook(sqliteConnection, { dbPointer in
-            let db = unsafeBitCast(dbPointer, Database.self)
-            
-            do {
-                try db.configuration.transactionObserver!.databaseWillCommit()
-                // Next step: updateStatementDidExecute()
-                db.statementCompletion = .TransactionCommit
-                return 0
-            } catch {
-                // Next step: sqlite3_rollback_hook callback
-                db.statementCompletion = .TransactionErrorRollback(error)
-                return 1
-            }
-            }, dbPointer)
-        
-        
-        sqlite3_rollback_hook(sqliteConnection, { dbPointer in
-            let db = unsafeBitCast(dbPointer, Database.self)
-            
-            switch db.statementCompletion {
-            case .TransactionErrorRollback:
-                // The transactionObserver has rollbacked the transaction.
-                // Don't lose this information.
-                // Next step: updateStatementDidFail()
-                break
-            default:
-                // Next step: updateStatementDidExecute()
-                db.statementCompletion = .TransactionRollback
-            }
-            }, dbPointer)
-    }
-    
-    
-    // =========================================================================
-    // MARK: - Concurrency
-    
-    /// The busy handler callback, if any. See Configuration.busyMode.
-    private var busyCallback: BusyCallback?
-    
-    func setupBusyMode() {
-        switch configuration.busyMode {
-        case .ImmediateError:
-            break
-            
-        case .Timeout(let duration):
-            let milliseconds = Int32(duration * 1000)
-            sqlite3_busy_timeout(sqliteConnection, milliseconds)
-            
-        case .Callback(let callback):
-            let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-            busyCallback = callback
-            
-            sqlite3_busy_handler(
-                sqliteConnection,
-                { (dbPointer: UnsafeMutablePointer<Void>, numberOfTries: Int32) in
-                    let database = unsafeBitCast(dbPointer, Database.self)
-                    let callback = database.busyCallback!
-                    return callback(numberOfTries: Int(numberOfTries)) ? 1 : 0
-                },
-                dbPointer)
-        }
-    }
-    
-    
-    // =========================================================================
-    // MARK: - Functions
-    
-    private var functions = Set<DatabaseFunction>()
+}
+
+
+// =========================================================================
+// MARK: - Functions
+
+extension Database {
     
     /// Add or redefine an SQL function.
     ///
@@ -486,12 +420,66 @@ public final class Database {
             fatalError(DatabaseError(code: code, message: lastErrorMessage, sql: nil, arguments: nil).description)
         }
     }
+}
+
+
+/// An SQL function.
+public class DatabaseFunction : Hashable {
+    let name: String
+    let argumentCount: Int32
+    let pure: Bool
+    let function: (COpaquePointer, Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
+    var eTextRep: Int32 { return pure ? SQLITE_DETERMINISTIC : 0 }
     
+    /// The hash value.
+    public var hashValue: Int {
+        return name.hashValue ^ argumentCount.hashValue
+    }
     
-    // =========================================================================
-    // MARK: - Collations
-    
-    private var collations = Set<DatabaseCollation>()
+    /// Returns an SQL function.
+    ///
+    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
+    ///         let dbv = databaseValues.first!
+    ///         guard let int = dbv.value() as Int? else {
+    ///             return nil
+    ///         }
+    ///         return int + 1
+    ///     }
+    ///     db.addFunction(fn)
+    ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
+    ///
+    /// - parameter name: The function name.
+    /// - parameter argumentCount: The number of arguments of the function. If
+    ///   omitted, or nil, the function accepts any number of arguments.
+    /// - parameter pure: Whether the function is "pure", which means that its
+    ///   results only depends on its inputs. When a function is pure, SQLite
+    ///   has the opportunity to perform additional optimizations. Default value
+    ///   is false.
+    /// - parameter function: A function that takes an array of DatabaseValue
+    ///   arguments, and returns an optional DatabaseValueConvertible such as
+    ///   Int, String, NSDate, etc. The array is guaranteed to have exactly
+    ///   *argumentCount* elements, provided *argumentCount* is not nil.
+    public init(_ name: String, argumentCount: Int32? = nil, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) {
+        self.name = name
+        self.argumentCount = argumentCount ?? -1
+        self.pure = pure
+        self.function = { (context, argc, argv) in
+            let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv[index]) }
+            return try function(arguments)?.databaseValue ?? .Null
+        }
+    }
+}
+
+/// Two functions are equal if they share the same name and argumentCount.
+public func ==(lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
+    return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
+}
+
+
+// =========================================================================
+// MARK: - Collations
+
+extension Database {
     
     /// Add or redefine a collation.
     ///
@@ -534,21 +522,47 @@ public final class Database {
             SQLITE_UTF8,
             nil, nil, nil)
     }
+}
+
+/// A Collation.
+public class DatabaseCollation : Hashable {
+    let name: String
+    let function: (String, String) -> NSComparisonResult
     
+    /// The hash value.
+    public var hashValue: Int {
+        // We can't compute a hash since the equality is based on the opaque
+        // sqlite3_strnicmp SQLite function.
+        return 0
+    }
     
-    // =========================================================================
-    // MARK: - Database Informations
-    
-    /// The database configuration
-    public let configuration: Configuration
-    
-    /// The last error message
-    var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
-    
-    private var columnInfosCache: [String: [ColumnInfo]] = [:]
-    private var primaryKeyCache: [String: PrimaryKey] = [:]
-    private var updateStatementCache: [String: UpdateStatement] = [:]
-    private var selectStatementCache: [String: SelectStatement] = [:]
+    /// Returns a collation.
+    ///
+    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
+    ///         return (string1 as NSString).localizedStandardCompare(string2)
+    ///     }
+    ///     db.addCollation(collation)
+    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///
+    /// - parameter name: The function name.
+    /// - parameter function: A function that compares two strings.
+    public init(_ name: String, function: (String, String) -> NSComparisonResult) {
+        self.name = name
+        self.function = function
+    }
+}
+
+/// Two collations are equal if they share the same name (case insensitive)
+public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
+    // See https://www.sqlite.org/c3ref/create_collation.html
+    return sqlite3_stricmp(lhs.name, lhs.name) == 0
+}
+
+
+// =========================================================================
+// MARK: - Database Schema
+
+extension Database {
     
     /// Clears the database schema cache.
     ///
@@ -687,7 +701,6 @@ public final class Database {
         }
     }
     
-    // Cache for columnInfos()
     private func columnInfos(tableName: String) -> [ColumnInfo] {
         if let columnInfos = columnInfosCache[tableName] {
             return columnInfos
@@ -697,80 +710,7 @@ public final class Database {
         columnInfosCache[tableName] = columnInfos
         return columnInfos
     }
-    
-    
-    // =========================================================================
-    // MARK: - Raw SQLite connetion
-    
-    /// The raw SQLite connection, suitable for the SQLite C API.
-    public let sqliteConnection: SQLiteConnection
-    
-    
-    // =========================================================================
-    // MARK: - Initialization
-    
-    /// The queue from which the database can be used. See preconditionValidQueue().
-    /// Design note: this is not very clean. A delegation pattern may be a
-    /// better fit.
-    var databaseQueueID: DatabaseQueueID = nil
-    
-    init(path: String, configuration: Configuration) throws {
-        self.configuration = configuration
-        
-        // See https://www.sqlite.org/c3ref/open.html
-        var sqliteConnection = SQLiteConnection()
-        let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
-        self.sqliteConnection = sqliteConnection
-        if code != SQLITE_OK {
-            throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
-        }
-        
-        // Setup trace first, so that all queries, including initialization queries, are traced.
-        setupTrace()
-        
-        try setupForeignKeys()
-        setupBusyMode()
-        setupTransactionHooks()
-    }
-    
-    // Initializes an in-memory database
-    convenience init(configuration: Configuration) {
-        try! self.init(path: ":memory:", configuration: configuration)
-    }
-    
-    deinit {
-        sqlite3_close(sqliteConnection)
-    }
-    
-    
-    // =========================================================================
-    // MARK: - Misc
-    
-    func preconditionValidQueue() {
-        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
-    }
-    
-    func setupForeignKeys() throws {
-        if configuration.foreignKeysEnabled {
-            try execute("PRAGMA foreign_keys = ON")
-        }
-    }
-    
-    func setupTrace() {
-        guard configuration.trace != nil else {
-            return
-        }
-        let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
-            let database = unsafeBitCast(dbPointer, Database.self)
-            database.configuration.trace!(String.fromCString(sql)!)
-            }, dbPointer)
-    }
 }
-
-
-// =============================================================================
-// MARK: - PrimaryKey
 
 /// A primary key
 enum PrimaryKey {
@@ -800,8 +740,202 @@ enum PrimaryKey {
 }
 
 
-// =============================================================================
-// MARK: - TransactionKind
+// =========================================================================
+// MARK: - Transactions
+
+extension Database {
+    /// Executes a block inside a database transaction.
+    ///
+    ///     try dbQueue.inDatabase do {
+    ///         try db.inTransaction {
+    ///             try db.execute("INSERT ...")
+    ///             return .Commit
+    ///         }
+    ///     }
+    ///
+    /// If the block throws an error, the transaction is rollbacked and the
+    /// error is rethrown.
+    ///
+    /// This method is not reentrant: you can't nest transactions.
+    ///
+    /// - parameter kind: The transaction type (default nil). If nil, the
+    ///   transaction type is configuration.defaultTransactionKind, which itself
+    ///   defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+    ///   for more information.
+    /// - parameter block: A block that executes SQL statements and return
+    ///   either .Commit or .Rollback.
+    /// - throws: The error thrown by the block.
+    public func inTransaction(kind: TransactionKind? = nil, block: () throws -> TransactionCompletion) throws {
+        preconditionValidQueue()
+        
+        var completion: TransactionCompletion = .Rollback
+        var blockError: ErrorType? = nil
+        
+        try beginTransaction(kind)
+        
+        do {
+            completion = try block()
+        } catch {
+            completion = .Rollback
+            blockError = error
+        }
+        
+        switch completion {
+        case .Commit:
+            try commit()
+        case .Rollback:
+            // https://www.sqlite.org/lang_transaction.html#immediate
+            //
+            // > Response To Errors Within A Transaction
+            // >
+            // > If certain kinds of errors occur within a transaction, the
+            // > transaction may or may not be rolled back automatically. The
+            // > errors that can cause an automatic rollback include:
+            // >
+            // > - SQLITE_FULL: database or disk full
+            // > - SQLITE_IOERR: disk I/O error
+            // > - SQLITE_BUSY: database in use by another process
+            // > - SQLITE_NOMEM: out or memory
+            // >
+            // > [...] It is recommended that applications respond to the errors
+            // > listed above by explicitly issuing a ROLLBACK command. If the
+            // > transaction has already been rolled back automatically by the
+            // > error response, then the ROLLBACK command will fail with an
+            // > error, but no harm is caused by this.
+            if let blockError = blockError as? DatabaseError {
+                switch Int32(blockError.code) {
+                case SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM:
+                    do { try rollback() } catch { }
+                default:
+                    try rollback()
+                }
+            } else {
+                try rollback()
+            }
+        }
+        
+        if let blockError = blockError {
+            throw blockError
+        }
+    }
+    
+    private func beginTransaction(kind: TransactionKind? = nil) throws {
+        switch kind ?? configuration.defaultTransactionKind {
+        case .Deferred:
+            try execute("BEGIN DEFERRED TRANSACTION")
+        case .Immediate:
+            try execute("BEGIN IMMEDIATE TRANSACTION")
+        case .Exclusive:
+            try execute("BEGIN EXCLUSIVE TRANSACTION")
+        }
+    }
+    
+    private func rollback() throws {
+        try execute("ROLLBACK TRANSACTION")
+    }
+    
+    private func commit() throws {
+        try execute("COMMIT TRANSACTION")
+    }
+    
+    func updateStatementDidFail() throws {
+        let statementCompletion = self.statementCompletion
+        self.statementCompletion = .Regular
+        
+        switch statementCompletion {
+        case .TransactionErrorRollback(let error):
+            // The transaction has been rollbacked from
+            // TransactionObserverType.transactionWillCommit().
+            configuration.transactionObserver!.databaseDidRollback(self)
+            throw error
+        default:
+            break
+        }
+    }
+    
+    func updateStatementDidExecute() {
+        let statementCompletion = self.statementCompletion
+        self.statementCompletion = .Regular
+        
+        switch statementCompletion {
+        case .TransactionCommit:
+            configuration.transactionObserver!.databaseDidCommit(self)
+        case .TransactionRollback:
+            configuration.transactionObserver!.databaseDidRollback(self)
+        default:
+            break
+        }
+    }
+    
+    private func setupTransactionHooks() {
+        // No need to setup any hook when there is no transactionObserver:
+        guard configuration.transactionObserver != nil else {
+            return
+        }
+        
+        let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        
+        
+        sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
+            let db = unsafeBitCast(dbPointer, Database.self)
+            
+            // Notify change event
+            let event = DatabaseEvent(
+                kind: DatabaseEvent.Kind(rawValue: updateKind)!,
+                databaseName: String.fromCString(databaseName)!,
+                tableName: String.fromCString(tableName)!,
+                rowID: rowID)
+            db.configuration.transactionObserver!.databaseDidChangeWithEvent(event)
+            }, dbPointer)
+        
+        
+        sqlite3_commit_hook(sqliteConnection, { dbPointer in
+            let db = unsafeBitCast(dbPointer, Database.self)
+            
+            do {
+                try db.configuration.transactionObserver!.databaseWillCommit()
+                // Next step: updateStatementDidExecute()
+                db.statementCompletion = .TransactionCommit
+                return 0
+            } catch {
+                // Next step: sqlite3_rollback_hook callback
+                db.statementCompletion = .TransactionErrorRollback(error)
+                return 1
+            }
+            }, dbPointer)
+        
+        
+        sqlite3_rollback_hook(sqliteConnection, { dbPointer in
+            let db = unsafeBitCast(dbPointer, Database.self)
+            
+            switch db.statementCompletion {
+            case .TransactionErrorRollback:
+                // The transactionObserver has rollbacked the transaction.
+                // Don't lose this information.
+                // Next step: updateStatementDidFail()
+                break
+            default:
+                // Next step: updateStatementDidExecute()
+                db.statementCompletion = .TransactionRollback
+            }
+            }, dbPointer)
+    }
+    
+    private enum StatementCompletion {
+        // Statement has ended with a commit (implicit or explicit).
+        case TransactionCommit
+        
+        // Statement has ended with a rollback.
+        case TransactionRollback
+        
+        // Statement has been rollbacked by transactionObserver.
+        case TransactionErrorRollback(ErrorType)
+        
+        // All other cases (CREATE TABLE, etc.)
+        case Regular
+    }
+}
+
 
 /// A SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
 public enum TransactionKind {
@@ -811,18 +945,12 @@ public enum TransactionKind {
 }
 
 
-// =============================================================================
-// MARK: - TransactionCompletion
-
 /// The end of a transaction: Commit, or Rollback
 public enum TransactionCompletion {
     case Commit
     case Rollback
 }
 
-
-// =============================================================================
-// MARK: - TransactionObserverType
 
 /// A transaction observer is notified of all changes and transactions committed
 /// or rollbacked on a database.
@@ -868,9 +996,6 @@ public protocol TransactionObserverType : class {
 }
 
 
-// =============================================================================
-// MARK: - DatabaseEvent
-
 /// A database event, notified to TransactionObserverType.
 ///
 /// See https://www.sqlite.org/c3ref/update_hook.html for more information.
@@ -893,166 +1018,4 @@ public struct DatabaseEvent {
     
     /// The rowID of the changed row.
     public let rowID: Int64
-}
-
-
-// =============================================================================
-// MARK: - ThreadingMode
-
-/// A SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
-enum ThreadingMode {
-    case Default
-    case MultiThread
-    case Serialized
-    
-    var sqliteOpenFlags: Int32 {
-        switch self {
-        case .Default:
-            return 0
-        case .MultiThread:
-            return SQLITE_OPEN_NOMUTEX
-        case .Serialized:
-            return SQLITE_OPEN_FULLMUTEX
-        }
-    }
-}
-
-
-// =============================================================================
-// MARK: - BusyMode
-
-/// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
-public typealias BusyCallback = (numberOfTries: Int) -> Bool
-
-/// When there are several connections to a database, a connection may try to
-/// access the database while it is locked by another connection.
-///
-/// The BusyMode enum describes the behavior of GRDB when such a situation
-/// occurs:
-///
-/// - .ImmediateError: The SQLITE_BUSY error is immediately returned to the
-///   connection that tries to access the locked database.
-///
-/// - .Timeout: The SQLITE_BUSY error will be returned only if the database
-///   remains locked for more than the specified duration.
-///
-/// - .Callback: Perform your custom lock handling.
-///
-/// To set the busy mode of a database, use Configuration:
-///
-///     let configuration = Configuration(busyMode: .Timeout(1))
-///     let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
-///
-/// Relevant SQLite documentation:
-///
-/// - https://www.sqlite.org/c3ref/busy_timeout.html
-/// - https://www.sqlite.org/c3ref/busy_handler.html
-/// - https://www.sqlite.org/lang_transaction.html
-/// - https://www.sqlite.org/wal.html
-public enum BusyMode {
-    /// The SQLITE_BUSY error is immediately returned to the connection that
-    /// tries to access the locked database.
-    case ImmediateError
-    
-    /// The SQLITE_BUSY error will be returned only if the database remains
-    /// locked for more than the specified duration.
-    case Timeout(NSTimeInterval)
-    
-    /// A custom callback that is called when a database is locked.
-    /// See https://www.sqlite.org/c3ref/busy_handler.html
-    case Callback(BusyCallback)
-}
-
-
-// =========================================================================
-// MARK: - Functions
-
-/// An SQL function.
-public class DatabaseFunction : Hashable {
-    let name: String
-    let argumentCount: Int32
-    let pure: Bool
-    let function: (COpaquePointer, Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
-    var eTextRep: Int32 { return pure ? SQLITE_DETERMINISTIC : 0 }
-    
-    /// The hash value.
-    public var hashValue: Int {
-        return name.hashValue ^ argumentCount.hashValue
-    }
-    
-    /// Returns an SQL function.
-    ///
-    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
-    ///         let dbv = databaseValues.first!
-    ///         guard let int = dbv.value() as Int? else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     db.addFunction(fn)
-    ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
-    ///
-    /// - parameter name: The function name.
-    /// - parameter argumentCount: The number of arguments of the function. If
-    ///   omitted, or nil, the function accepts any number of arguments.
-    /// - parameter pure: Whether the function is "pure", which means that its
-    ///   results only depends on its inputs. When a function is pure, SQLite
-    ///   has the opportunity to perform additional optimizations. Default value
-    ///   is false.
-    /// - parameter function: A function that takes an array of DatabaseValue
-    ///   arguments, and returns an optional DatabaseValueConvertible such as
-    ///   Int, String, NSDate, etc. The array is guaranteed to have exactly
-    ///   *argumentCount* elements, provided *argumentCount* is not nil.
-    public init(_ name: String, argumentCount: Int32? = nil, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) {
-        self.name = name
-        self.argumentCount = argumentCount ?? -1
-        self.pure = pure
-        self.function = { (context, argc, argv) in
-            let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv[index]) }
-            return try function(arguments)?.databaseValue ?? .Null
-        }
-    }
-}
-
-/// Two functions are equal if they share the same name and argumentCount.
-public func ==(lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
-    return lhs.name == rhs.name && lhs.argumentCount == rhs.argumentCount
-}
-
-
-// =========================================================================
-// MARK: - Collations
-
-/// A Collation.
-public class DatabaseCollation : Hashable {
-    let name: String
-    let function: (String, String) -> NSComparisonResult
-    
-    /// The hash value.
-    public var hashValue: Int {
-        // We can't compute a hash since the equality is based on the opaque
-        // sqlite3_strnicmp SQLite function.
-        return 0
-    }
-    
-    /// Returns a collation.
-    ///
-    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-    ///         return (string1 as NSString).localizedStandardCompare(string2)
-    ///     }
-    ///     db.addCollation(collation)
-    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
-    ///
-    /// - parameter name: The function name.
-    /// - parameter function: A function that compares two strings.
-    public init(_ name: String, function: (String, String) -> NSComparisonResult) {
-        self.name = name
-        self.function = function
-    }
-}
-
-/// Two collations are equal if they share the same name (case insensitive)
-public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
-    // See https://www.sqlite.org/c3ref/create_collation.html
-    return sqlite3_stricmp(lhs.name, lhs.name) == 0
 }
