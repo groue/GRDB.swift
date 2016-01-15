@@ -425,6 +425,7 @@ public extension DatabasePersistable {
     
 }
 
+
 // MARK: - DataMapper
 
 /// DataMapper takes care of DatabasePersistable CRUD
@@ -515,19 +516,15 @@ final class DataMapper {
     
     // MARK: - Initializer
     
-    convenience init(_ db: Database, _ persistable: MutableDatabasePersistable) {
-        self.init(db, persistable: persistable, persistentDictionary: persistable.persistentDictionary)
-    }
-    
-    init(_ db: Database, persistable: MutableDatabasePersistable, persistentDictionary: [String: DatabaseValueConvertible?]) {
-        let databaseTableName = persistable.dynamicType.databaseTableName()
-        
+    init(_ db: Database, _ persistable: MutableDatabasePersistable) {
         // Fail early if database table does not exist.
+        let databaseTableName = persistable.dynamicType.databaseTableName()
         guard let primaryKey = db.primaryKey(databaseTableName) else {
             fatalError("no such table: \(databaseTableName)")
         }
         
         // Fail early if persistentDictionary is empty
+        let persistentDictionary = persistable.persistentDictionary
         precondition(persistentDictionary.count > 0, "\(persistable.dynamicType).persistentDictionary: invalid empty dictionary")
         
         self.db = db

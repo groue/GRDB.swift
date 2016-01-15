@@ -134,16 +134,8 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// false does not prevent it from turning true on subsequent modifications
     /// of the record.
     public var hasPersistentChangedValues: Bool {
-        get {
-            return generatePersistentChangedValues().next() != nil
-        }
-        set {
-            if newValue {
-                referenceRow = nil
-            } else {
-                referenceRow = Row(persistentDictionary)
-            }
-        }
+        get { return generatePersistentChangedValues().next() != nil }
+        set { referenceRow = newValue ? nil : Row(persistentDictionary) }
     }
     
     /// A dictionary of changes that have not been saved.
@@ -156,11 +148,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///
     /// See `hasPersistentChangedValues` for more information.
     public var persistentChangedValues: [String: DatabaseValue?] {
-        var changes: [String: DatabaseValue?] = [:]
-        for (column: column, old: old) in generatePersistentChangedValues() {
-            changes[column] = old
-        }
-        return changes
+        return Dictionary(generatePersistentChangedValues())
     }
     
     // A change generator that is used by both hasPersistentChangedValues and
@@ -210,17 +198,19 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         //     try performInsert(db)
         //     hasPersistentChangedValues = false
         //
-        // But this triggers two calls to persistentDictionary, and this is
-        // costly.
+        // But this triggers two calls to persistentDictionary, and this is both
+        // costly, and ambiguous. Costly because persistentDictionary is slow.
+        // Ambiguous because persistentDictionary may return a different value.
         //
-        // So let's provide our custom implementation of insert:
+        // So let's provide our custom implementation of insert, which uses the
+        // same persistentDictionary for both insertion, and change tracking.
         
-        var persistentDictionary = self.persistentDictionary
-        
-        let dataMapper = DataMapper(db, persistable: self, persistentDictionary: persistentDictionary)
+        let dataMapper = DataMapper(db, self)
+        var persistentDictionary = dataMapper.persistentDictionary
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
             if case .Managed(let column) = dataMapper.primaryKey {
+                // Update persistentDictionary with inserted id
                 if persistentDictionary[column] != nil {
                     persistentDictionary[column] = rowID
                 } else {
@@ -238,6 +228,7 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
             }
         }
         
+        // Set hasPersistentChangedValues to false
         referenceRow = Row(persistentDictionary)
     }
     
@@ -254,8 +245,26 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
     public func update(db: Database) throws {
-        try performUpdate(db)
-        hasPersistentChangedValues = false
+        // The simplest code would be:
+        //
+        //     try performUpdate(db)
+        //     hasPersistentChangedValues = false
+        //
+        // But this triggers two calls to persistentDictionary, and this is both
+        // costly, and ambiguous. Costly because persistentDictionary is slow.
+        // Ambiguous because persistentDictionary may return a different value.
+        //
+        // So let's provide our custom implementation of insert, which uses the
+        // same persistentDictionary for both update, and change tracking.
+        
+        let dataMapper = DataMapper(db, self)
+        let changes = try dataMapper.updateStatement().execute()
+        if changes.changedRowCount == 0 {
+            throw PersistenceError.NotFound(self)
+        }
+        
+        // Set hasPersistentChangedValues to false
+        referenceRow = Row(dataMapper.persistentDictionary)
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
