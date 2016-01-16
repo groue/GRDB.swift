@@ -1,4 +1,4 @@
-//: Playground - noun: a place where people can play
+// To run this playground, select and build the GRDBOSX scheme.
 
 import GRDB
 
@@ -6,6 +6,7 @@ import GRDB
 // Create the databsae
 
 var configuration = Configuration()
+configuration.trace = { print($0) }
 let dbQueue = DatabaseQueue(configuration: configuration)   // Memory database
 var migrator = DatabaseMigrator()
 migrator.registerMigration("createPersons") { db in
