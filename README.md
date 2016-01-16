@@ -1854,10 +1854,10 @@ See [Column Values](#column-values) for more information about the `row.value()`
 The Country class is now ready:
 
 ```swift
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
     let unitedStates = Country.fetchOne(db, key: "US")!
     let country = Country(isoCode: "FR", name: "France")
-    country.insert(db)
+    try country.insert(db)
 }
 ```
 
