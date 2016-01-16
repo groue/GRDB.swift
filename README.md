@@ -1311,7 +1311,8 @@ While your migration code runs with disabled foreign key checks, those are re-en
     ```swift
     struct Person : RowConvertible { ... }
     let persons = Person.fetchAll(db, "SELECT * FROM persons")
-    let person = let Person.fetchOne(db, key: 1)
+    let person = let Person.fetchOne(db, key: 1)!
+    print(person.name)
     ```
     
 - The [DatabasePersistable protocol](#databasepersistable-protocol) grants adopting types with **persistence methods**:
