@@ -486,7 +486,7 @@ public final class Row: CollectionType {
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(metalStatement: statement)
-        return statement.fetch(arguments: arguments) { row }
+        return statement.fetchSequence(arguments: arguments) { row }
     }
     
     /// Returns an array of rows fetched from a prepared statement.
@@ -498,7 +498,7 @@ public final class Row: CollectionType {
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An array of rows.
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
-        let sequence = statement.fetch(arguments: arguments) {
+        let sequence = statement.fetchSequence(arguments: arguments) {
             Row(detachedStatement: statement)
         }
         return Array(sequence)
@@ -513,7 +513,7 @@ public final class Row: CollectionType {
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional row.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
-        let sequence = statement.fetch(arguments: arguments) {
+        let sequence = statement.fetchSequence(arguments: arguments) {
             Row(detachedStatement: statement)
         }
         return sequence.generate().next()

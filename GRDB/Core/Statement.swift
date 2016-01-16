@@ -284,7 +284,7 @@ public final class SelectStatement : Statement {
     // MARK: Not public
     
     /// The DatabaseSequence builder.
-    func fetch<T>(arguments arguments: StatementArguments?, yield: () -> T) -> DatabaseSequence<T> {
+    func fetchSequence<T>(arguments arguments: StatementArguments?, yield: () -> T) -> DatabaseSequence<T> {
         try! prepareWithArguments(arguments)
         return DatabaseSequence(statement: self, yield: yield)
     }
@@ -579,6 +579,14 @@ extension Dictionary {
         self.init(minimumCapacity: sequence.underestimateCount())
         for (key, value) in sequence {
             self[key] = value
+        }
+    }
+    
+    /// Creates a dictionary from keys and a value builder.
+    init<Sequence: SequenceType where Sequence.Generator.Element == Key>(keys: Sequence, value: Key -> Value) {
+        self.init(minimumCapacity: keys.underestimateCount())
+        for key in keys {
+            self[key] = value(key)
         }
     }
 }

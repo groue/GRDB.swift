@@ -67,9 +67,10 @@ extension RowConvertible {
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(metalStatement: statement)
-        return statement.fetch(arguments: arguments) {
+        let database = statement.database
+        return statement.fetchSequence(arguments: arguments) {
             var value = fromRow(row)
-            value.awakeFromFetch(row: row, database: statement.database)
+            value.awakeFromFetch(row: row, database: database)
             return value
         }
     }

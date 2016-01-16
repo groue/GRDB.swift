@@ -69,7 +69,7 @@ public extension DatabaseValueConvertible {
     /// - returns: A sequence.
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let sqliteStatement = statement.sqliteStatement
-        return statement.fetch(arguments: arguments) {
+        return statement.fetchSequence(arguments: arguments) {
             DatabaseValue(sqliteStatement: sqliteStatement, index: 0).value()
         }
     }
@@ -98,10 +98,10 @@ public extension DatabaseValueConvertible {
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional value.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
-        let sequence: DatabaseSequence<Self?> = statement.fetch(arguments: arguments) {
+        let sequence = statement.fetchSequence(arguments: arguments) {
             fromDatabaseValue(DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0))
         }
-        if let value = sequence.generate().next() {   // Unwrap Self? from Self??
+        if let value = sequence.generate().next() {
             return value
         }
         return nil
@@ -202,7 +202,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// - returns: A sequence of optional values.
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Wrapped?> {
         let sqliteStatement = statement.sqliteStatement
-        return statement.fetch(arguments: arguments) {
+        return statement.fetchSequence(arguments: arguments) {
             Wrapped.fromDatabaseValue(DatabaseValue(sqliteStatement: sqliteStatement, index: 0))
         }
     }
