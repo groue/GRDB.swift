@@ -75,13 +75,13 @@ public final class Database {
         precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
     }
     
-    func setupForeignKeys() throws {
+    private func setupForeignKeys() throws {
         if configuration.foreignKeysEnabled {
             try execute("PRAGMA foreign_keys = ON")
         }
     }
     
-    func setupTrace() {
+    private func setupTrace() {
         guard configuration.trace != nil else {
             return
         }
@@ -92,7 +92,7 @@ public final class Database {
             }, dbPointer)
     }
     
-    func setupBusyMode() {
+    private func setupBusyMode() {
         switch configuration.busyMode {
         case .ImmediateError:
             break
@@ -915,7 +915,6 @@ extension Database {
         let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
         
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
-            print("sqlite3_update_hook")
             let db = unsafeBitCast(dbPointer, Database.self)
             db.didChangeWithEvent(DatabaseEvent(
                 kind: DatabaseEvent.Kind(rawValue: updateKind)!,
