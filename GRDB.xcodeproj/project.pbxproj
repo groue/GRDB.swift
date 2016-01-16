@@ -777,6 +777,7 @@
 				56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */,
 				56BB86121BA9886D001F9168 /* InsertRecordTests.swift */,
 				56CA22211BB41565009A04C5 /* PerformanceTests.swift */,
+				56DE7B341C42B37E00861EB8 /* CoreData.framework */,
 				56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */,
 				56BB86171BA988F2001F9168 /* fmdb */,
 			);
@@ -880,7 +881,6 @@
 		DC3773E919C8CBB3004FCF85 = {
 			isa = PBXGroup;
 			children = (
-				56DE7B341C42B37E00861EB8 /* CoreData.framework */,
 				56DBEC341C19A0020093A2EE /* CHANGELOG.md */,
 				DC37744719C8F50B004FCF85 /* README.md */,
 				56E1524B1B43FD5B00EE27AA /* TODO.md */,
