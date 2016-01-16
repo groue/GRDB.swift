@@ -267,8 +267,8 @@ dbQueue.inDatabase { db in
     Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
 
     // When database may contain NULL:
-    Int?.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
-    Int?.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
+    Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
+    Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
     
     // Example:
     let wineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
@@ -503,8 +503,8 @@ dbQueue.inDatabase { db in
     Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
 
     // When database may contain NULL:
-    Int?.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
-    Int?.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
+    Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
+    Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
 }
 ```
 
@@ -521,7 +521,7 @@ dbQueue.inDatabase { db in
     let urls: [NSURL] = NSURL.fetchAll(db, "SELECT url FROM links")
     
     // The emails of people who own at least two pets:
-    let emails: [String?] = String?.fetchAll(db,
+    let emails: [String?] = Optional<String>.fetchAll(db,
         "SELECT persons.email " +
         "FROM persons " +
         "JOIN pets ON pets.masterId = persons.id " +
@@ -1063,8 +1063,8 @@ String.fetch(statement, arguments: ...)     // DatabaseSequence<String>
 String.fetchAll(statement, arguments: ...)  // [String]
 String.fetchOne(statement, arguments: ...)  // String?
 
-String?.fetch(statement, arguments: ...)    // DatabaseSequence<String?>
-String?.fetchAll(statement, arguments: ...) // [String?]
+Optional<String>.fetch(statement, arguments: ...)    // DatabaseSequence<String?>
+Optional<String>.fetchAll(statement, arguments: ...) // [String?]
 
 Person.fetch(statement, arguments: ...)     // DatabaseSequence<Person>
 Person.fetchAll(statement, arguments: ...)  // [Person]

@@ -35,16 +35,12 @@ extension SQLiteStatementConvertible {
 }
 
 
-// MARK: - Fetching SQLiteStatementConvertible
-
 /// Types that adopt both DatabaseValueConvertible and
 /// SQLiteStatementConvertible can be efficiently initialized from
 /// database values.
 ///
 /// See DatabaseValueConvertible for more information.
 public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible {
-    
-    // MARK: - Fetching From SelectStatement
     
     /// Returns a sequence of values fetched from a prepared statement.
     ///
@@ -104,9 +100,6 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
         }
         return nil
     }
-    
-    
-    // MARK: - Fetching From Database
     
     /// Returns a sequence of values fetched from an SQL query.
     ///

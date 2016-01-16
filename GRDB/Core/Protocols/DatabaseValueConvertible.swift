@@ -1,5 +1,3 @@
-// MARK: - DatabaseValueConvertible
-
 /// Types that adopt DatabaseValueConvertible can be initialized from
 /// database values.
 ///
@@ -28,8 +26,6 @@ public protocol DatabaseValueConvertible {
 }
 
 
-// MARK: - Fetching DatabaseValueConvertible
-
 /// DatabaseValueConvertible comes with built-in methods that allow to fetch
 /// sequences, arrays, or single values:
 ///
@@ -44,8 +40,6 @@ public protocol DatabaseValueConvertible {
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 public extension DatabaseValueConvertible {
-    
-    // MARK: - Fetching From SelectStatement
     
     /// Returns a sequence of values fetched from a prepared statement.
     ///
@@ -107,9 +101,6 @@ public extension DatabaseValueConvertible {
         return nil
     }
     
-    
-    // MARK: - Fetching From Database
-    
     /// Returns a sequence of values fetched from an SQL query.
     ///
     ///     let names = String.fetch(db, "SELECT name FROM ...") // DatabaseSequence<String>
@@ -163,8 +154,6 @@ public extension DatabaseValueConvertible {
 }
 
 
-// MARK: - Fetching optional DatabaseValueConvertible
-
 /// Swift's Optional comes with built-in methods that allow to fetch sequences
 /// and arrays of optional DatabaseValueConvertible:
 ///
@@ -177,8 +166,6 @@ public extension DatabaseValueConvertible {
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 public extension Optional where Wrapped: DatabaseValueConvertible {
-    
-    // MARK: - Fetching From SelectStatement
     
     /// Returns a sequence of optional values fetched from a prepared statement.
     ///
@@ -218,9 +205,6 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Wrapped?] {
         return Array(fetch(statement, arguments: arguments))
     }
-    
-    
-    // MARK: - Fetching From Database
     
     /// Returns a sequence of optional values fetched from an SQL query.
     ///
