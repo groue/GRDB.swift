@@ -22,18 +22,6 @@ public protocol SQLiteStatementConvertible {
     init(sqliteStatement: SQLiteStatement, index: Int32)
 }
 
-extension SQLiteStatementConvertible {
-    
-    static func fromSQLiteStatement(sqliteStatement: SQLiteStatement, index: Int32) -> Self? {
-        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            return nil
-        } else {
-            return Self.init(sqliteStatement: sqliteStatement, index: index)
-        }
-    }
-    
-}
-
 
 /// Types that adopt both DatabaseValueConvertible and
 /// SQLiteStatementConvertible can be efficiently initialized from
@@ -65,10 +53,10 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let sqliteStatement = statement.sqliteStatement
         return statement.fetchSequence(arguments: arguments) {
-            guard let value = fromSQLiteStatement(sqliteStatement, index: 0) else {
+            guard sqlite3_column_type(sqliteStatement, 0) != SQLITE_NULL else {
                 fatalError("could not convert NULL to \(Self.self).")
             }
-            return value
+            return Self.init(sqliteStatement: sqliteStatement, index: 0)
         }
     }
     
@@ -94,9 +82,11 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// - returns: An optional value.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
         let sqliteStatement = statement.sqliteStatement
-        let sequence = statement.fetchSequence(arguments: arguments) { fromSQLiteStatement(sqliteStatement, index: 0) }
-        if let value = sequence.generate().next() {
-            return value
+        let isNullSequence = statement.fetchSequence(arguments: arguments) {
+            sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL
+        }
+        if isNullSequence.generate().next() == false {
+            return Self.init(sqliteStatement: sqliteStatement, index: 0)
         }
         return nil
     }

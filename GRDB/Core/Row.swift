@@ -116,10 +116,13 @@ public final class Row: CollectionType {
     
     private func unsafeValue<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
         let sqliteStatement = self.sqliteStatement
-        if sqliteStatement != nil {
-            return Value.fromSQLiteStatement(sqliteStatement, index: Int32(index))
+        guard sqliteStatement != nil else {
+            return impl.databaseValue(atIndex: index).value()
         }
-        return impl.databaseValue(atIndex: index).value()
+        guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+            return nil
+        }
+        return Value.init(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -181,13 +184,13 @@ public final class Row: CollectionType {
     
     private func unsafeValue<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
         let sqliteStatement = self.sqliteStatement
-        if sqliteStatement != nil {
-            guard let value = Value.fromSQLiteStatement(sqliteStatement, index: Int32(index)) else {
-                fatalError("could not convert NULL to \(Value.self).")
-            }
-            return value
+        guard sqliteStatement != nil else {
+            return impl.databaseValue(atIndex: index).value()
         }
-        return impl.databaseValue(atIndex: index).value()
+        guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+            fatalError("could not convert NULL to \(Value.self).")
+        }
+        return Value.init(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
