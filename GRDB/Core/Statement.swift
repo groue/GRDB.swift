@@ -13,9 +13,6 @@ public class Statement {
     /// The SQL query
     public let sql: String
     
-    
-    // MARK: Not public
-    
     /// The database
     let database: Database
     
@@ -60,7 +57,6 @@ public class Statement {
         }
     }
     
-    // Not public until a need for it.
     final func reset() {
         let code = sqlite3_reset(sqliteStatement)
         if code != SQLITE_OK {
@@ -95,6 +91,12 @@ public class Statement {
     public var arguments: StatementArguments {
         get { return _arguments }
         set { try! setArgumentsWithValidation(newValue) }
+    }
+    
+    /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
+    /// statement arguments.
+    public func validateArguments(arguments: StatementArguments) throws {
+        let _ = try validatedBindings(arguments)
     }
     
     /// Set arguments without any validation. Trades safety for performance.
@@ -153,12 +155,6 @@ public class Statement {
         if code != SQLITE_OK {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
-    }
-    
-    /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
-    /// statement arguments.
-    public func validateArguments(arguments: StatementArguments) throws {
-        let _ = try validatedBindings(arguments)
     }
     
     // Returns a validated array of as many DatabaseValue as there are
@@ -310,6 +306,7 @@ public final class SelectStatement : Statement {
 public struct DatabaseSequence<T>: SequenceType {
     private let generateImpl: () -> DatabaseGenerator<T>
     
+    // Statement sequence
     private init(statement: SelectStatement, yield: () -> T) {
         generateImpl = {
             let preconditionValidQueue = statement.database.preconditionValidQueue
@@ -318,7 +315,7 @@ public struct DatabaseSequence<T>: SequenceType {
             // Check that sequence is built on a valid queue.
             preconditionValidQueue()
             
-            // DatabaseSequence can be restarted:
+            // DatabaseSequence can be restarted
             statement.reset()
             
             return DatabaseGenerator {
@@ -338,6 +335,7 @@ public struct DatabaseSequence<T>: SequenceType {
         }
     }
     
+    // Empty sequence
     init() {
         generateImpl = { return DatabaseGenerator { return nil } }
     }
@@ -382,10 +380,9 @@ public final class UpdateStatement : Statement {
         reset()
         
         let changes: DatabaseChanges
-        let code = sqlite3_step(sqliteStatement)
-        
-        switch code {
+        switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
+            // Success
             let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
             let lastInsertedRowID = sqlite3_last_insert_rowid(database.sqliteConnection)
             let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
@@ -414,17 +411,19 @@ public final class UpdateStatement : Statement {
             // So let's just silently ignore the row, and return successfully.
             changes = DatabaseChanges(changedRowCount: 0, insertedRowID: nil)
             
-        default:
-            // This error may be a consequence of an error thrown by
+        case let errorCode:
+            // Failure
+            //
+            // The error may be a consequence of an error thrown by
             // TransactionObserverType.transactionWillCommit().
             // Let database handle this case, before throwing a error:
             try database.updateStatementDidFail()
-            let errorArguments = self.arguments // self.arguments, not the arguments parameter.
-            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, arguments: errorArguments)
+            
+            throw DatabaseError(code: errorCode, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
         }
         
-        // Now that changes information has been loaded, we can trigger database
-        // transaction delegate callbacks that may eventually perform more
+        // Now that changes information has been loaded, we can trigger
+        // transaction observers that may eventually perform more
         // changes to the database.
         database.updateStatementDidExecute()
         
