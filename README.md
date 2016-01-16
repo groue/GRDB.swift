@@ -2234,12 +2234,14 @@ Changes are not actually applied until `databaseDidCommit` is called. On the oth
 ```swift
 try dbQueue.inTransaction { db in
     try db.execute("INSERT ...") // 1. didChange
-    return .Commit               // 2. willCommit, 3. didCommit
+    try db.execute("UPDATE ...") // 2. didChange
+    return .Commit               // 3. willCommit, 4. didCommit
 }
 
 try dbQueue.inTransaction { db in
     try db.execute("INSERT ...") // 1. didChange
-    return .Rollback             // 2. didRollback
+    try db.execute("UPDATE ...") // 2. didChange
+    return .Rollback             // 3. didRollback
 }
 ```
 
