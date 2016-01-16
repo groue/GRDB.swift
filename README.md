@@ -3,39 +3,22 @@ GRDB.swift
 
 GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2.
 
-It ships with a low-level database API, plus application-level tools.
+The library aims at developers who want to leverage their full SQL and SQLite skills. It has three focuses:
+
+- [X] [A robust and safe API around SQL](#sqlite-api).
+- [X] [A set of protocols](#database-protocols-and-record) that provide fetching and persistence methods to your custom model objects.
+- [X] Application tools such as [migrations](#migrations) and [database observation hooks](#database-changes-observation).
+
+You'll get a few niceties along the way:
+
+- [Speed](https://github.com/groue/GRDB.swift/wiki/Performance)
+- The ability to query your database [right from the debugger](https://twitter.com/groue/status/679347658557902849).
 
 **January 14, 2016: GRDB.swift 0.40.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
 **Swift Package Manager**: Use the [Swift2.2 branch](https://github.com/groue/GRDB.swift/tree/Swift2.2).
-
-
-But Why?
---------
-
-Why GRDB, when we already have the excellent [ccgus/fmdb](https://github.com/ccgus/fmdb), and the very popular [stephencelis/SQLite.swift](https://github.com/stephencelis/SQLite.swift)?
-
-**GRDB owes a lot to FMDB.** You will use the familiar and safe [database queues](#database-queues) you are used to. Yet you may appreciate that [database errors](#error-handling) are handled in the Swift way, and that [fetching data](#fetch-queries) is somewhat easier.
-
-**Your SQL skills are rewarded here.** You don't have to learn a complex query builder that makes it uneasy to express the SQL you have in mind.
-
-**GRDB provides [protocols and a Record class](#database-protocols-and-record)** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
-
-**GRDB is fast**, and usually faster than FMDB and SQLite.swift (see the [Performance wiki page](https://github.com/groue/GRDB.swift/wiki/Performance)).
-
-**You can query your database [right from the debugger](https://twitter.com/groue/status/679347658557902849).**
-
-
-Features
---------
-
-- **A low-level [SQLite API](#sqlite-api)** that leverages the Swift 2 standard library.
-- **[Protocols and a ready-made class](#database-protocols-and-record)** that eat your SQL queries for breakfast, provide persistence, and changes tracking.
-- **[Swift type freedom](#values)**: pick the right Swift type that fits your data. Use Int64 when needed, or stick with the convenient Int. Store and read NSDate or NSDateComponents. Declare Swift enums for discrete data types. Define your own database-convertible types.
-- **[Database migrations](#migrations)**
-- **[Database changes observation hooks](#database-changes-observation)**
 
 
 Documentation
@@ -138,9 +121,8 @@ try dbQueue.inDatabase { db in
     try db.execute("CREATE TABLE wines (...)")
     
     // Insert
-    let changes = try db.execute("INSERT INTO wines (color, name) VALUES (?, ?)",
-        arguments: [Color.Red, "Pomerol"])
-    let wineId = changes.insertedRowID
+    let wineId = try db.execute("INSERT INTO wines (color, name) VALUES (?, ?)",
+        arguments: [Color.Red, "Pomerol"]).insertedRowID
     print("Inserted wine id: \(wineId)")
     
     // Fetch rows
