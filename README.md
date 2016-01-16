@@ -1055,17 +1055,20 @@ let person = Person.fetchOne(selectStatement, arguments: ["Arthur"])
 Select statements can be used wherever a raw SQL query would fit:
 
 ```swift
-Row.fetch(statement, arguments: ...)       // DatabaseSequence<Row>
-Row.fetchAll(statement, arguments: ...)    // [Row]
-Row.fetchOne(statement, arguments: ...)    // Row?
+Row.fetch(statement, arguments: ...)        // DatabaseSequence<Row>
+Row.fetchAll(statement, arguments: ...)     // [Row]
+Row.fetchOne(statement, arguments: ...)     // Row?
 
-String.fetch(statement, arguments: ...)    // DatabaseSequence<String>
-String.fetchAll(statement, arguments: ...) // [String]
-String.fetchOne(statement, arguments: ...) // String?
+String.fetch(statement, arguments: ...)     // DatabaseSequence<String>
+String.fetchAll(statement, arguments: ...)  // [String]
+String.fetchOne(statement, arguments: ...)  // String?
 
-Person.fetch(statement, arguments: ...)    // DatabaseSequence<Person>
-Person.fetchAll(statement, arguments: ...) // [Person]
-Person.fetchOne(statement, arguments: ...) // Person?
+String?.fetch(statement, arguments: ...)    // DatabaseSequence<String?>
+String?.fetchAll(statement, arguments: ...) // [String?]
+
+Person.fetch(statement, arguments: ...)     // DatabaseSequence<Person>
+Person.fetchAll(statement, arguments: ...)  // [Person]
+Person.fetchOne(statement, arguments: ...)  // Person?
 ```
 
 See [Row Queries](#row-queries), [Value Queries](#value-queries), [RowConvertible](#rowconvertible-protocol), and [Records](#fetching-records) for more information.
