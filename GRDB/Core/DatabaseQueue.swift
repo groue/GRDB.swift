@@ -163,8 +163,8 @@ public final class DatabaseQueue {
         // > behavior is undefined.
         //
         // This is why we use a serial queue: to avoid UPDATE to fuck up SELECT.
-        queue = dispatch_queue_create("com.github.groue.GRDB", nil)
         self.database = database
+        queue = dispatch_queue_create("com.github.groue.GRDB", nil)
         dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
         database.databaseQueueID = databaseQueueID
     }
@@ -198,28 +198,7 @@ public final class DatabaseQueue {
         // I try not to ship half-baked solutions, so until a complete solution
         // is found to this problem, I prefer totally disabling reentrancy.
         precondition(databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "DatabaseQueue.inDatabase(_:) or DatabaseQueue.inTransaction(_:) was called reentrantly, which would lead to a deadlock.")
-        return try DatabaseQueue.dispatchSync(queue, block: block)
-    }
-    
-    // A function declared as rethrows that synchronously executes a throwing
-    // block in a dispatch_queue.
-    static func dispatchSync<T>(queue: dispatch_queue_t, block: () throws -> T) rethrows -> T {
-        func dispatchSyncImpl(queue: dispatch_queue_t, block: () throws -> T, block2: (ErrorType) throws -> Void) rethrows -> T {
-            var result: T? = nil
-            var blockError: ErrorType? = nil
-            dispatch_sync(queue) {
-                do {
-                    result = try block()
-                } catch {
-                    blockError = error
-                }
-            }
-            if let blockError = blockError {
-                try block2(blockError)
-            }
-            return result!
-        }
-        return try dispatchSyncImpl(queue, block: block, block2: { throw $0 })
+        return try dispatchSync(queue, block: block)
     }
 }
 

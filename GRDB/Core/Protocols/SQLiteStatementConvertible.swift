@@ -24,11 +24,11 @@ public protocol SQLiteStatementConvertible {
 
 extension SQLiteStatementConvertible {
     
-    static func fromFirstColumn(sqliteStatement: SQLiteStatement) -> Self? {
-        if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
+    static func fromSQLiteStatement(sqliteStatement: SQLiteStatement, index: Int32) -> Self? {
+        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
             return nil
         } else {
-            return Self.init(sqliteStatement: sqliteStatement, index: 0)
+            return Self.init(sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -65,7 +65,7 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let sqliteStatement = statement.sqliteStatement
         return statement.fetchSequence(arguments: arguments) {
-            guard let value = fromFirstColumn(sqliteStatement) else {
+            guard let value = fromSQLiteStatement(sqliteStatement, index: 0) else {
                 fatalError("could not convert NULL to \(Self.self).")
             }
             return value
@@ -94,7 +94,7 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// - returns: An optional value.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
         let sqliteStatement = statement.sqliteStatement
-        let sequence = statement.fetchSequence(arguments: arguments) { fromFirstColumn(sqliteStatement) }
+        let sequence = statement.fetchSequence(arguments: arguments) { fromSQLiteStatement(sqliteStatement, index: 0) }
         if let value = sequence.generate().next() {
             return value
         }

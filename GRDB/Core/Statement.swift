@@ -570,37 +570,3 @@ extension StatementArguments : CustomStringConvertible {
         }
     }
 }
-
-
-extension Dictionary {
-    
-    /// Creates a dictionary with the keys and values in the given sequence.
-    init<Sequence: SequenceType where Sequence.Generator.Element == Generator.Element>(_ sequence: Sequence) {
-        self.init(minimumCapacity: sequence.underestimateCount())
-        for (key, value) in sequence {
-            self[key] = value
-        }
-    }
-    
-    /// Creates a dictionary from keys and a value builder.
-    init<Sequence: SequenceType where Sequence.Generator.Element == Key>(keys: Sequence, value: Key -> Value) {
-        self.init(minimumCapacity: keys.underestimateCount())
-        for key in keys {
-            self[key] = value(key)
-        }
-    }
-}
-
-
-// MARK: - SQLite identifier quoting
-
-extension String {
-    /// Returns the receiver, quoted for safe insertion as an identifier in an
-    /// SQL query.
-    ///
-    ///     db.execute("SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
-    public var quotedDatabaseIdentifier: String {
-        // See https://www.sqlite.org/lang_keywords.html
-        return "\"\(self)\""
-    }
-}
