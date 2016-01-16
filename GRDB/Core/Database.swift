@@ -32,7 +32,7 @@ public final class Database {
     private var selectStatementCache: [String: SelectStatement] = [:]
     
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
-    private var statementCompletion: StatementCompletion = .Regular
+    private var transactionState: TransactionState = .WaitForTransactionCompletion
     
     /// The transaction observers
     private var transactionObservers = [TransactionObserverType]()
@@ -846,7 +846,7 @@ extension Database {
     
     public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
-        if let index = transactionObservers.indexOf({ observer in observer === transactionObserver}) {
+        if let index = transactionObservers.indexOf({ $0 === transactionObserver}) {
             transactionObservers.removeAtIndex(index)
         }
         if transactionObservers.isEmpty {
@@ -855,15 +855,13 @@ extension Database {
     }
     
     func updateStatementDidFail() throws {
-        // Reset statementCompletion before didRollback eventually executes
+        // Reset transactionState before didRollback eventually executes
         // other statements.
-        let statementCompletion = self.statementCompletion
-        self.statementCompletion = .Regular
+        let transactionState = self.transactionState
+        self.transactionState = .WaitForTransactionCompletion
         
-        switch statementCompletion {
-        case .TransactionErrorRollback(let error):
-            // The transaction has been rollbacked from
-            // TransactionObserverType.transactionWillCommit().
+        switch transactionState {
+        case .RollbackFromTransactionObserver(let error):
             didRollback()
             throw error
         default:
@@ -872,15 +870,15 @@ extension Database {
     }
     
     func updateStatementDidExecute() {
-        // Reset statementCompletion before didCommit or didRollback eventually
+        // Reset transactionState before didCommit or didRollback eventually
         // execute other statements.
-        let statementCompletion = self.statementCompletion
-        self.statementCompletion = .Regular
+        let transactionState = self.transactionState
+        self.transactionState = .WaitForTransactionCompletion
         
-        switch statementCompletion {
-        case .TransactionCommit:
+        switch transactionState {
+        case .Commit:
             didCommit()
-        case .TransactionRollback:
+        case .Rollback:
             didRollback()
         default:
             break
@@ -928,11 +926,11 @@ extension Database {
             let db = unsafeBitCast(dbPointer, Database.self)
             do {
                 try db.willCommit()
-                db.statementCompletion = .TransactionCommit
+                db.transactionState = .Commit
                 // Next step: updateStatementDidExecute()
                 return 0
             } catch {
-                db.statementCompletion = .TransactionErrorRollback(error)
+                db.transactionState = .RollbackFromTransactionObserver(error)
                 // Next step: sqlite3_rollback_hook callback
                 return 1
             }
@@ -941,14 +939,12 @@ extension Database {
         
         sqlite3_rollback_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
-            switch db.statementCompletion {
-            case .TransactionErrorRollback:
-                // A transactionObserver has rollbacked the transaction.
-                // Don't lose this information.
+            switch db.transactionState {
+            case .RollbackFromTransactionObserver:
                 // Next step: updateStatementDidFail()
                 break
             default:
-                db.statementCompletion = .TransactionRollback
+                db.transactionState = .Rollback
                 // Next step: updateStatementDidExecute()
             }
             }, dbPointer)
@@ -958,20 +954,6 @@ extension Database {
         sqlite3_update_hook(sqliteConnection, nil, nil)
         sqlite3_commit_hook(sqliteConnection, nil, nil)
         sqlite3_rollback_hook(sqliteConnection, nil, nil)
-    }
-    
-    private enum StatementCompletion {
-        // Statement has ended with a commit (implicit or explicit).
-        case TransactionCommit
-        
-        // Statement has ended with a rollback.
-        case TransactionRollback
-        
-        // Statement has been rollbacked by transactionObserver.
-        case TransactionErrorRollback(ErrorType)
-        
-        // All other cases (CREATE TABLE, etc.)
-        case Regular
     }
 }
 
@@ -990,6 +972,14 @@ public enum TransactionCompletion {
     case Rollback
 }
 
+/// The states that keep track of transaction completions in order to notify
+/// transaction observers.
+private enum TransactionState {
+    case WaitForTransactionCompletion
+    case Commit
+    case Rollback
+    case RollbackFromTransactionObserver(ErrorType)
+}
 
 /// A transaction observer is notified of all changes and transactions committed
 /// or rollbacked on a database.
