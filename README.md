@@ -35,10 +35,10 @@ Documentation
         - [NSData](#nsdata-and-memory-savings)
         - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
         - [Swift enums](#swift-enums)
-        - [Custom Value Types](#custom-value-types)
     - [Transactions](#transactions)
     - [Error Handling](#error-handling)
     - Advanced topics:
+        - [Custom Value Types](#custom-value-types)
         - [Prepared Statements](#prepared-statements)
         - [Concurrency](#concurrency)
         - [Custom SQL Functions](#custom-sql-functions)
@@ -799,90 +799,6 @@ Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
 
 
-### Custom Value Types
-
-Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
-
-```swift
-public protocol DatabaseValueConvertible {
-    /// Returns a value that can be stored in the database.
-    var databaseValue: DatabaseValue { get }
-    
-    /// Returns a value initialized from databaseValue, if possible.
-    static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
-}
-```
-
-All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat. Those built-in types actually adopt it.
-
-The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or the fact that Int, String, etc. adopt the protocol: `1.databaseValue`, `"foo".databaseValue`.
-
-The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
-
-As an example, let's write an alternative to the built-in [NSDate](#nsdate-and-nsdatecomponents) behavior, and store dates as timestamps. Our sample DatabaseTimestamp type applies all the best practices for a great GRDB.swift integration:
-
-```swift
-struct DatabaseTimestamp: DatabaseValueConvertible {
-    
-    // NSDate conversion
-    //
-    // Value types should consistently use the Swift nil to represent the
-    // database NULL: the date property is a non-optional NSDate.
-    let date: NSDate
-    
-    // As a convenience, the NSDate initializer accepts an optional NSDate, and
-    // is failable: the result is nil if and only if *date* is nil.
-    init?(_ date: NSDate?) {
-        guard let date = date else {
-            return nil
-        }
-        self.date = date
-    }
-    
-    
-    // DatabaseValueConvertible adoption
-    
-    /// Returns a value that can be stored in the database.
-    var databaseValue: DatabaseValue {
-        // Double itself adopts DatabaseValueConvertible:
-        return date.timeIntervalSince1970.databaseValue
-    }
-    
-    /// Returns a value initialized from *databaseValue*, if possible.
-    static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseTimestamp? {
-        // Double itself adopts DatabaseValueConvertible:
-        guard let timeInterval = Double.fromDatabaseValue(databaseValue) else {
-            // No Double, no NSDate!
-            return nil
-        }
-        return DatabaseTimestamp(NSDate(timeIntervalSince1970: timeInterval))
-    }
-}
-```
-
-As a DatabaseValueConvertible adopter, DatabaseTimestamp can be stored and fetched from the database just like simple types Int and String:
-
-```swift
-// Store NSDate
-let date = NSDate()
-try db.execute("INSERT INTO persons (date, ...) " +
-                            "VALUES (?, ...)",
-                         arguments: [DatabaseTimestamp(date), ...])
-
-// Extract NSDate from row:
-for rows in Row.fetch(db, "SELECT ...") {
-    let date = (row.value(named: "date") as DatabaseTimestamp).date
-}
-
-// Direct fetch:
-DatabaseTimestamp.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseTimestamp>
-DatabaseTimestamp.fetchAll(db, "SELECT ...") // [DatabaseTimestamp]
-DatabaseTimestamp.fetchOne(db, "SELECT ...") // DatabaseTimestamp?
-```
-
-See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
-
-
 ## Transactions
 
 The `DatabaseQueue.inTransaction()` method opens an SQLite transaction:
@@ -1003,6 +919,29 @@ func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -
     return Row.fetchAll(statement, arguments: arguments)
 }
 ```
+
+
+## Custom Value Types
+
+Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
+
+```swift
+public protocol DatabaseValueConvertible {
+    /// Returns a value that can be stored in the database.
+    var databaseValue: DatabaseValue { get }
+    
+    /// Returns a value initialized from databaseValue, if possible.
+    static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
+}
+```
+
+All types that adopt this protocol can be used wherever the built-in types `Int`, `String`, etc. are used. without any limitation or caveat. Those built-in types actually adopt it.
+
+The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
+
+The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
+
+As an example, see [DatabaseTimestamp](https://gist.github.com/groue/ab172d2ee3344a0bfed1), an alternative to the built-in [NSDate](#nsdate-and-nsdatecomponents), which stores dates as timestamps.
 
 
 ## Prepared Statements
