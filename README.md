@@ -1306,7 +1306,7 @@ While your migration code runs with disabled foreign key checks, those are re-en
 
 **GRDB provides protocols and a Record class** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
 
-- The [RowConvertible protocol](#rowconvertible-protocol) grants adopting types with fetching methods:
+- The [RowConvertible protocol](#rowconvertible-protocol) grants adopting types with **fetching methods**:
     
     ```swift
     struct Person : RowConvertible { ... }
@@ -1314,14 +1314,14 @@ While your migration code runs with disabled foreign key checks, those are re-en
     let person = let Person.fetchOne(db, key: 1)
     ```
     
-- The [DatabasePersistable protocol](#databasepersistable-protocol) grants adopting types with persistence methods:
+- The [DatabasePersistable protocol](#databasepersistable-protocol) grants adopting types with **persistence methods**:
     
     ```swift
     struct Person : DatabasePersistable { ... }
     try Person(name: "Arthur").insert(db)
     ```
     
-- The [Record class](#record) grants its subclasses with fetching methods, persistence methods, and changes tracking:
+- The [Record class](#record) grants its subclasses with fetching methods, persistence methods, and **changes tracking**:
     
     ```swift
     class Person : Record { ... }
