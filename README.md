@@ -3,16 +3,12 @@ GRDB.swift
 
 GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for developers who want to leverage their full SQL and SQLite skills.
 
-It has three focuses:
+It ships with:
 
-- [X] [A robust and safe API around SQL](#sqlite-api).
-- [X] [A set of protocols](#database-protocols-and-record) that provide fetching and persistence methods to your custom model objects.
-- [X] Application tools such as [migrations](#migrations) and [database observation hooks](#database-changes-observation).
-
-You'll get a few niceties along the way:
-
-- [Speed](https://github.com/groue/GRDB.swift/wiki/Performance)
-- The ability to query your database [right from the debugger](https://twitter.com/groue/status/679347658557902849).
+- [A robust and safe API around SQL](#sqlite-api).
+- [A set of protocols](#database-protocols-and-record) that provide fetching and persistence methods to your custom model objects.
+- Application tools such as [migrations](#migrations) and [database observation hooks](#database-changes-observation).
+- [Speed](https://github.com/groue/GRDB.swift/wiki/Performance).
 
 **January 14, 2016: GRDB.swift 0.40.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
