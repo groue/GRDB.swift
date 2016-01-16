@@ -60,7 +60,6 @@ public final class Database {
         
         try setupForeignKeys()
         setupBusyMode()
-        setupTransactionHooks()
     }
     
     // Initializes an in-memory database
@@ -840,12 +839,18 @@ extension Database {
     public func addTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
         transactionObservers.append(transactionObserver)
+        if transactionObservers.count == 1 {
+            installTransactionObserverHooks()
+        }
     }
     
     public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
         if let index = transactionObservers.indexOf({ observer in observer === transactionObserver}) {
             transactionObservers.removeAtIndex(index)
+        }
+        if transactionObservers.isEmpty {
+            uninstallTransactionObserverHooks()
         }
     }
     
@@ -906,26 +911,22 @@ extension Database {
         }
     }
     
-    private func setupTransactionHooks() {
+    private func installTransactionObserverHooks() {
         let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
         
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
+            print("sqlite3_update_hook")
             let db = unsafeBitCast(dbPointer, Database.self)
-            
-            // Notify change event
-            if !db.transactionObservers.isEmpty {
-                db.didChangeWithEvent(DatabaseEvent(
-                    kind: DatabaseEvent.Kind(rawValue: updateKind)!,
-                    databaseName: String.fromCString(databaseName)!,
-                    tableName: String.fromCString(tableName)!,
-                    rowID: rowID))
-            }
+            db.didChangeWithEvent(DatabaseEvent(
+                kind: DatabaseEvent.Kind(rawValue: updateKind)!,
+                databaseName: String.fromCString(databaseName)!,
+                tableName: String.fromCString(tableName)!,
+                rowID: rowID))
             }, dbPointer)
         
         
         sqlite3_commit_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
-            
             do {
                 try db.willCommit()
                 db.statementCompletion = .TransactionCommit
@@ -941,7 +942,6 @@ extension Database {
         
         sqlite3_rollback_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
-            
             switch db.statementCompletion {
             case .TransactionErrorRollback:
                 // A transactionObserver has rollbacked the transaction.
@@ -953,6 +953,12 @@ extension Database {
                 // Next step: updateStatementDidExecute()
             }
             }, dbPointer)
+    }
+    
+    private func uninstallTransactionObserverHooks() {
+        sqlite3_update_hook(sqliteConnection, nil, nil)
+        sqlite3_commit_hook(sqliteConnection, nil, nil)
+        sqlite3_rollback_hook(sqliteConnection, nil, nil)
     }
     
     private enum StatementCompletion {
