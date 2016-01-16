@@ -390,7 +390,7 @@ public final class UpdateStatement : Statement {
             //
             // What are our options?
             //
-            // 1. throw a DatabaseError with code SQLITE_ROW.
+            // 1. throw a DatabaseError.
             // 2. raise a fatal error.
             // 3. log a warning about the ignored row, and return successfully.
             // 4. silently ignore the row, and return successfully.
@@ -411,17 +411,14 @@ public final class UpdateStatement : Statement {
         case let errorCode:
             // Failure
             //
-            // The error may be a consequence of an error thrown by
-            // TransactionObserverType.transactionWillCommit().
-            // Let database handle this case, before throwing a error:
+            // Let database rethrow eventual transaction observer error:
             try database.updateStatementDidFail()
             
             throw DatabaseError(code: errorCode, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
         }
         
-        // Now that changes information has been loaded, we can trigger
-        // transaction observers that may eventually perform more
-        // changes to the database.
+        // Now that changes information has been loaded, let transaction
+        // observers do whatever they want:
         database.updateStatementDidExecute()
         
         return changes
