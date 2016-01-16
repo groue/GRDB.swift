@@ -899,7 +899,7 @@ A ROLLBACK statement is issued if an error is thrown within the transaction bloc
 
 Otherwise, transactions are guaranteed to succeed, *provided there is a single DatabaseQueue connected to the database file*. See [Concurrency](#concurrency) for more information about concurrent database access.
 
-If you want to insert a transaction between other database statements, and group those in a single block of code protected by the the database queue, you can use the Database.inTransaction() function:
+If you want to insert a transaction between other database statements, and group those in a single block of code protected by the database queue, you can use the Database.inTransaction() function:
 
 ```swift
 try dbQueue.inDatabase { db in
