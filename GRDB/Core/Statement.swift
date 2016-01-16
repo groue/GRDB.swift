@@ -276,29 +276,26 @@ public final class SelectStatement : Statement {
         (0..<self.columnCount).map { String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32($0)))! }
     }()
     
+    private lazy var columnIndexes: [String: Int] = {
+        return Dictionary(self.columnNames.enumerate().map { ($1, $0) })
+    }()
     
-    // MARK: Not public
+    /// The column index, case insensitive.
+    func indexForColumn(named name: String) -> Int? {
+        if let index = columnIndexes[name] {
+            return index
+        }
+        let lowercaseName = name.lowercaseString
+        for (column, index) in columnIndexes where column.lowercaseString == lowercaseName {
+            return index
+        }
+        return nil
+    }
     
     /// The DatabaseSequence builder.
     func fetchSequence<T>(arguments arguments: StatementArguments?, yield: () -> T) -> DatabaseSequence<T> {
         try! prepareWithArguments(arguments)
         return DatabaseSequence(statement: self, yield: yield)
-    }
-    
-    /// The column index, case insensitive.
-    func indexForColumn(named name: String) -> Int? {
-        // This is faster than dictionary lookup
-        for (index, column) in columnNames.enumerate() {
-            if column == name {
-                return index
-            }
-        }
-        for (index, column) in columnNames.enumerate() {
-            if column.lowercaseString == name.lowercaseString {
-                return index
-            }
-        }
-        return nil
     }
 }
 
