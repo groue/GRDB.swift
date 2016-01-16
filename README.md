@@ -1,9 +1,9 @@
 GRDB.swift
 ==========
 
-GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for Swift 2.
+GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for developers who want to leverage their full SQL and SQLite skills.
 
-The library aims at developers who want to leverage their full SQL and SQLite skills. It has three focuses:
+It has three focuses:
 
 - [X] [A robust and safe API around SQL](#sqlite-api).
 - [X] [A set of protocols](#database-protocols-and-record) that provide fetching and persistence methods to your custom model objects.
