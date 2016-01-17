@@ -7,7 +7,7 @@ GRDB.swift is an SQLite toolkit for Swift 2. It is written for developers who wa
 
 - [SQLite API](#sqlite-api)
 - [Protocols](#database-protocols-and-record) that provide fetching and persistence methods to your custom structs and class hierarchies
-- Tools, such as [migrations](#migrations) and [database observation hooks](#database-changes-observation)
+- Application tools, such as [migrations](#migrations) and [database observation hooks](#database-changes-observation)
 - [Speed](https://github.com/groue/GRDB.swift/wiki/Performance)
 
 **January 17, 2016: GRDB.swift 0.41.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
