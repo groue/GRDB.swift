@@ -37,7 +37,8 @@ public struct DatabaseValue : Hashable {
         case .Null:
             return 0
         case .Int64(let int64):
-            return int64.hashValue
+            // 1 == 1.0, hence 1 and 1.0 must have the same hash:
+            return Double(int64).hashValue
         case .Double(let double):
             return double.hashValue
         case .String(let string):
