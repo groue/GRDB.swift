@@ -14,7 +14,8 @@ class ConcurrencyTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        databasePath = "/tmp/GRDBConcurrencyTests.sqlite"
+        let databaseFileName = "GRDBConcurrencyTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
         do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
         self.busyCallback = nil
         let busyCallback: BusyCallback = {
