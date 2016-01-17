@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Release
+## 0.41.0
+
+Released January 17, 2016
 
 **New**
 
@@ -17,6 +19,8 @@ You can now register several database observers, thanks to [@pakko972](https://g
 
 ## 0.40.0
 
+Released January 14, 2016
+
 **New**
 
 - Various [performance improvements](https://github.com/groue/GRDB.swift/wiki/Performance)
@@ -24,6 +28,8 @@ You can now register several database observers, thanks to [@pakko972](https://g
 
 
 ## 0.39.1
+
+Released January 13, 2016
 
 **New**
 

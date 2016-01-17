@@ -1,16 +1,16 @@
 GRDB.swift
 ==========
 
-GRDB.swift is an [SQLite](https://www.sqlite.org) toolkit for developers who want to leverage their full SQL and SQLite skills.
+GRDB.swift is an SQLite toolkit for developers who want to leverage their SQL and SQLite skills.
 
-It ships with:
+Features:
 
-- [A robust and safe API around SQL](#sqlite-api).
-- [A set of protocols](#database-protocols-and-record) that provide fetching and persistence methods to your custom structs or class hierarchies.
-- Application tools such as [migrations](#migrations) and [database observation hooks](#database-changes-observation).
+- [An SQLite API](#sqlite-api).
+- [Protocols](#database-protocols-and-record) that provide fetching and persistence methods to your custom structs and class hierarchies.
+- Tools, such as [migrations](#migrations) and [database observation hooks](#database-changes-observation).
 - [Speed](https://github.com/groue/GRDB.swift/wiki/Performance).
 
-**January 14, 2016: GRDB.swift 0.40.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**January 17, 2016: GRDB.swift 0.41.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -20,7 +20,7 @@ It ships with:
 Documentation
 =============
 
-- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.40.0/index.html)** (on cocoadocs.org)
+- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.41.0/index.html)** (on cocoadocs.org)
 
 - **[Installation](#installation)**
 
@@ -76,7 +76,7 @@ To use GRDB.swift with Cocoapods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '~> 0.40.0'
+pod 'GRDB.swift', '~> 0.41.0'
 ```
 
 
@@ -87,7 +87,7 @@ pod 'GRDB.swift', '~> 0.40.0'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" ~> 0.40.0
+github "groue/GRDB.swift" ~> 0.41.0
 ```
 
 
@@ -188,7 +188,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.40.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.41.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 
 
