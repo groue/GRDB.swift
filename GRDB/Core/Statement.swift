@@ -76,14 +76,11 @@ public class Statement {
     
     // Returns ["id", nil", "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
     private lazy var sqliteArgumentNames: [String?] = {
-        guard self.sqliteArgumentCount > 0 else {
-            return []
-        }
-        return (1...self.sqliteArgumentCount).map {
-            guard let parameterName = String.fromCString(sqlite3_bind_parameter_name(self.sqliteStatement, Int32($0))) else {
+        return (0..<self.sqliteArgumentCount).map {
+            guard let name = String.fromCString(sqlite3_bind_parameter_name(self.sqliteStatement, Int32($0 + 1))) else {
                 return nil
             }
-            return String(parameterName.characters.dropFirst()) // Drop initial ":"
+            return String(name.characters.dropFirst()) // Drop initial ":"
         }
     }()
     
