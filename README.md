@@ -2210,51 +2210,7 @@ do {
 >
 > :point_up: **Note**: The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
-
-### Sample Transaction Observer: TableChangeObserver
-
-Let's write an object that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
-
-```swift
-/// The notification posted when database tables have changed:
-let DatabaseTablesDidChangeNotification = "DatabaseTablesDidChangeNotification"
-let ChangedTableNamesKey = "ChangedTableNames"
-
-/// TableChangeObserver posts a DatabaseTablesDidChangeNotification on the main
-/// thread after database tables have changed.
-class TableChangeObserver : NSObject, TransactionObserverType {
-    private var changedTableNames: Set<String> = []
-    
-    func databaseDidChangeWithEvent(event: DatabaseEvent) {
-        // Remember the name of the changed table:
-        changedTableNames.insert(event.tableName)
-    }
-    
-    func databaseWillCommit() throws {
-        // Let go
-    }
-    
-    func databaseDidCommit(db: Database) {
-        // Extract the names of changed tables, and reset until next
-        // database event:
-        let changedTableNames = self.changedTableNames
-        self.changedTableNames = []
-        
-        // Notify
-        dispatch_async(dispatch_get_main_queue()) {
-            NSNotificationCenter.defaultCenter().postNotificationName(
-                DatabaseTablesDidChangeNotification,
-                object: self,
-                userInfo: [ChangedTableNamesKey: changedTableNames])
-        }
-    }
-    
-    func databaseDidRollback(db: Database) {
-        // Reset until next database event:
-        changedTableNames = []
-    }
-}
-```
+Check [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd) for a transaction observer that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
 
 
 Sample Code
@@ -2264,7 +2220,9 @@ Sample Code
 - [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
 - [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7): A sample iOS7 application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
+- How to read and write NSDate as timestamp: https://gist.github.com/groue/ab172d2ee3344a0bfed1
 - How to synchronize a database table with a JSON payload: https://gist.github.com/groue/dcdd3784461747874f41
+- How to notify view controllers of database changes: https://gist.github.com/groue/2e21172719e634657dfd
 
 
 ---
