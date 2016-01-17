@@ -735,6 +735,18 @@ enum PrimaryKey {
             return columns
         }
     }
+    
+    /// The name of the INTEGER PRIMARY KEY
+    var rowIDColumn: String? {
+        switch self {
+        case .None:
+            return nil
+        case .RowID(let column):
+            return column
+        case .Regular:
+            return nil
+        }
+    }
 }
 
 

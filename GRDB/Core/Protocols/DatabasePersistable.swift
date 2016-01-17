@@ -210,11 +210,7 @@ public extension MutableDatabasePersistable {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .RowID(let column) = dataMapper.primaryKey {
-                didInsertWithRowID(rowID, forColumn: column)
-            } else {
-                didInsertWithRowID(rowID, forColumn: nil)
-            }
+            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
         }
     }
     
@@ -386,11 +382,7 @@ public extension DatabasePersistable {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .RowID(let column) = dataMapper.primaryKey {
-                didInsertWithRowID(rowID, forColumn: column)
-            } else {
-                didInsertWithRowID(rowID, forColumn: nil)
-            }
+            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
         }
     }
     
@@ -462,7 +454,7 @@ final class DataMapper {
                 return value
             }
             let pkColumn = pkColumn.lowercaseString
-            for (persistentColumn, value) in persistentDictionary where persistentColumn.lowercaseString == pkColumn {
+            for (column, value) in persistentDictionary where column.lowercaseString == pkColumn {
                 return value
             }
             return nil

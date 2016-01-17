@@ -45,8 +45,9 @@ configuration.trace = { print($0) }
 let dbQueue = DatabaseQueue(configuration: configuration)   // Memory database
 var migrator = DatabaseMigrator()
 migrator.registerMigration("createEvents") { db in
-    try db.execute("CREATE TABLE events (" +
-        "date DATETIME " +
+    try db.execute(
+        "CREATE TABLE events (" +
+            "date DATETIME " +
         ")")
 }
 try! migrator.migrate(dbQueue)

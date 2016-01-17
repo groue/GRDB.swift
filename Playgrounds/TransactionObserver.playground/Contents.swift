@@ -10,16 +10,18 @@ configuration.trace = { print($0) }
 let dbQueue = DatabaseQueue(configuration: configuration)   // Memory database
 var migrator = DatabaseMigrator()
 migrator.registerMigration("createPersons") { db in
-    try db.execute("CREATE TABLE persons (" +
-        "id INTEGER PRIMARY KEY, " +
-        "name TEXT NOT NULL " +
+    try db.execute(
+        "CREATE TABLE persons (" +
+            "id INTEGER PRIMARY KEY, " +
+            "name TEXT NOT NULL " +
         ")")
 }
 migrator.registerMigration("createPets") { db in
-    try db.execute("CREATE TABLE pets (" +
-        "id INTEGER PRIMARY KEY, " +
-        "name TEXT, " +
-        "ownerId INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE" +
+    try db.execute(
+        "CREATE TABLE pets (" +
+            "id INTEGER PRIMARY KEY, " +
+            "name TEXT, " +
+            "ownerId INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE" +
         ")")
 }
 try! migrator.migrate(dbQueue)

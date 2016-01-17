@@ -209,22 +209,21 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         var persistentDictionary = dataMapper.persistentDictionary
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .RowID(let column) = dataMapper.primaryKey {
-                // Update persistentDictionary with inserted id
-                if persistentDictionary[column] != nil {
-                    persistentDictionary[column] = rowID
+            let rowIDColumn = dataMapper.primaryKey.rowIDColumn
+            didInsertWithRowID(rowID, forColumn: rowIDColumn)
+            
+            // Update persistentDictionary with inserted id, so that we can
+            // set hasPersistentChangedValues to false:
+            if let rowIDColumn = rowIDColumn {
+                if persistentDictionary[rowIDColumn] != nil {
+                    persistentDictionary[rowIDColumn] = rowID
                 } else {
-                    let lowercaseColumn = column.lowercaseString
-                    for persistentColumn in persistentDictionary.keys {
-                        if lowercaseColumn == persistentColumn.lowercaseString {
-                            persistentDictionary[persistentColumn] = rowID
-                            break
-                        }
+                    let rowIDColumn = rowIDColumn.lowercaseString
+                    for column in persistentDictionary.keys where column.lowercaseString == rowIDColumn {
+                        persistentDictionary[column] = rowID
+                        break
                     }
                 }
-                didInsertWithRowID(rowID, forColumn: column)
-            } else {
-                didInsertWithRowID(rowID, forColumn: nil)
             }
         }
         
