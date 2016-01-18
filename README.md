@@ -1545,24 +1545,6 @@ object.exists(db)                     // Bool
 
 - `delete` returns whether a database row was deleted or not.
 
-The differences between `DatabasePersistable` and `MutableDatabasePersistable` only lie in insertion-related methods:
-
-```swift
-protocol MutableDatabasePersistable {
-    // Insertion can mutate:
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
-    mutating func insert(db: Database) throws
-    mutating func save(db: Database) throws
-}
-
-protocol DatabasePersistable : MutableDatabasePersistable {
-    // Insertion can not mutate:
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
-    func insert(db: Database) throws
-    func save(db: Database) throws
-}
-```
-
 
 #### Customizing the Persistence Methods
 
