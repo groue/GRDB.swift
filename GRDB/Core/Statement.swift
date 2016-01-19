@@ -57,10 +57,10 @@ public class Statement {
         }
     }
     
-    final func reset() {
+    final func reset() throws {
         let code = sqlite3_reset(sqliteStatement)
         if code != SQLITE_OK {
-            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
+            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
     
@@ -102,8 +102,8 @@ public class Statement {
         argumentsNeedValidation = false
         
         // Apply
-        reset()
-        clearBindings()
+        try! reset()
+        try! clearBindings()
         
         switch arguments.kind {
         case .Values(let values):
@@ -127,8 +127,8 @@ public class Statement {
         argumentsNeedValidation = false
         
         // Apply
-        reset()
-        clearBindings()
+        try! reset()
+        try! clearBindings()
         for (index, databaseValue) in bindings.enumerate() {
             try bindDatabaseValue(databaseValue, atIndex: Int32(index + 1))
         }
@@ -233,10 +233,10 @@ public class Statement {
     }
     
     // Don't make this one public unless we keep the arguments property in sync.
-    private func clearBindings() {
+    private func clearBindings() throws {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {
-            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
+            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
 
@@ -299,20 +299,18 @@ public final class SelectStatement : Statement {
 
 /// A sequence of elements fetched from the database.
 public struct DatabaseSequence<T>: SequenceType {
-    private let generateImpl: () -> DatabaseGenerator<T>
+    private let generateImpl: () throws -> DatabaseGenerator<T>
     
     // Statement sequence
     private init(statement: SelectStatement, element: () -> T) {
         let preconditionValidQueue = statement.database.preconditionValidQueue
         let sqliteStatement = statement.sqliteStatement
-        
         generateImpl = {
-            
             // Check that generator is built on a valid queue.
             preconditionValidQueue()
             
             // DatabaseSequence can be restarted
-            statement.reset()
+            try statement.reset()
             
             return DatabaseGenerator {
                 // Check that generator is used on a valid queue.
@@ -325,7 +323,7 @@ public struct DatabaseSequence<T>: SequenceType {
                 case SQLITE_ROW:
                     return element()
                 default:
-                    fatalError(DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments).description)
+                    throw DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
                 }
             }
         }
@@ -347,22 +345,22 @@ public struct DatabaseSequence<T>: SequenceType {
         }
     }
     
-    private init(generateImpl: () -> DatabaseGenerator<T>) {
+    private init(generateImpl: () throws -> DatabaseGenerator<T>) {
         self.generateImpl = generateImpl
     }
     
     /// Return a *generator* over the elements of this *sequence*.
     @warn_unused_result
     public func generate() -> DatabaseGenerator<T> {
-        return generateImpl()
+        return try! generateImpl()
     }
 }
 
 /// A generator of elements fetched from the database.
 public struct DatabaseGenerator<T>: GeneratorType {
-    private let element: () -> T?
+    private let element: () throws -> T?
     public func next() -> T? {
-        return element()
+        return try! element()
     }
 }
 
@@ -389,7 +387,7 @@ public final class UpdateStatement : Statement {
     public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
         try! prepareWithArguments(arguments)
-        reset()
+        try! reset()
         
         let changes: DatabaseChanges
         switch sqlite3_step(sqliteStatement) {

@@ -147,8 +147,8 @@ public struct DatabaseValue : Hashable {
             let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
             let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
             storage = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
-        default:
-            fatalError("Unexpected SQLite column type")
+        case let type:
+            fatalError("Unexpected SQLite column type: \(type)")
         }
     }
     
@@ -168,8 +168,8 @@ public struct DatabaseValue : Hashable {
             let bytes = sqlite3_value_blob(sqliteValue)
             let length = sqlite3_value_bytes(sqliteValue)
             storage = .Blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
-        default:
-            fatalError("Unexpected SQLite value type")
+        case let type:
+            fatalError("Unexpected SQLite value type: \(type)")
         }
     }
 }
