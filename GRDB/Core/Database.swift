@@ -360,8 +360,6 @@ extension Database {
     ///     }
     ///     db.addFunction(fn)
     ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
-    ///
-    /// - parameter function: A function.
     public func addFunction(function: DatabaseFunction) {
         functions.remove(function)
         functions.insert(function)
@@ -404,8 +402,6 @@ extension Database {
     }
     
     /// Remove an SQL function.
-    ///
-    /// - parameter function: A function.
     public func removeFunction(function: DatabaseFunction) {
         functions.remove(function)
         let code = sqlite3_create_function_v2(
@@ -486,8 +482,6 @@ extension Database {
     ///     }
     ///     db.addCollation(collation)
     ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
-    ///
-    /// - parameter collation: A collation.
     public func addCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         collations.insert(collation)
@@ -510,8 +504,6 @@ extension Database {
     }
     
     /// Remove a collation.
-    ///
-    /// - parameter collation: A collation.
     public func removeCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         sqlite3_create_collation_v2(
@@ -575,9 +567,6 @@ extension Database {
     }
     
     /// Returns whether a table exists.
-    ///
-    /// - parameter tableName: A table name.
-    /// - returns: True if the table exists.
     public func tableExists(tableName: String) -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         return Row.fetchOne(self,
@@ -1007,8 +996,6 @@ public protocol TransactionObserverType : class {
     /// This method is called on the database queue.
     ///
     /// **WARNING**: this method must not change the database.
-    ///
-    /// - parameter event: A database event.
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
     /// When a transaction is about to be committed, the transaction observer
@@ -1024,15 +1011,11 @@ public protocol TransactionObserverType : class {
     /// Database changes have been committed.
     ///
     /// This method is called on the database queue. It can change the database.
-    ///
-    /// - parameter db: A Database.
     func databaseDidCommit(db: Database)
     
     /// Database changes have been rollbacked.
     ///
     /// This method is called on the database queue. It can change the database.
-    ///
-    /// - parameter db: A Database.
     func databaseDidRollback(db: Database)
 }
 

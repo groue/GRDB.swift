@@ -10,9 +10,6 @@ extension NSURL : DatabaseValueConvertible {
     }
     
     /// Returns an NSURL initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional NSURL.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         guard let string = String.fromDatabaseValue(databaseValue) else {
             return nil

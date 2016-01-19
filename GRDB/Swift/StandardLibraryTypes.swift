@@ -15,9 +15,6 @@ extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
     }
     
     /// Returns a Bool initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Bool.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Bool? {
         // IMPLEMENTATION NOTE
         //
@@ -103,9 +100,6 @@ extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
     }
     
     /// Returns an Int initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Int.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int? {
         switch databaseValue.storage {
         case .Int64(let int64):
@@ -135,9 +129,6 @@ extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
     }
     
     /// Returns an Int32 initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Int32.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int32? {
         switch databaseValue.storage {
         case .Int64(let int64):
@@ -167,9 +158,6 @@ extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
     }
     
     /// Returns an Int64 initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Int64.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int64? {
         switch databaseValue.storage {
         case .Int64(let int64):
@@ -199,9 +187,6 @@ extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
     }
     
     /// Returns a Double initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Double.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Double? {
         switch databaseValue.storage {
         case .Int64(let int64):
@@ -231,9 +216,6 @@ extension Float: DatabaseValueConvertible, SQLiteStatementConvertible {
     }
     
     /// Returns a Float initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Double.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Float? {
         switch databaseValue.storage {
         case .Int64(let int64):
@@ -264,9 +246,6 @@ extension String: DatabaseValueConvertible, SQLiteStatementConvertible {
     }
     
     /// Returns a String initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional String.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> String? {
         switch databaseValue.storage {
         case .String(let string):

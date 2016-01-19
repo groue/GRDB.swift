@@ -19,9 +19,6 @@ public protocol DatabaseValueConvertible {
     var databaseValue: DatabaseValue { get }
     
     /// Returns a value initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Self.
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
 }
 

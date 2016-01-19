@@ -38,9 +38,6 @@ extension NSNumber: DatabaseValueConvertible {
     }
     
     /// Returns an NSNumber initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional NSNumber.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         switch databaseValue.storage {
         case .Int64(let int64):

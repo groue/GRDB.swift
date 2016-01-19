@@ -220,9 +220,6 @@ extension DatabaseValue : DatabaseValueConvertible {
     }
     
     /// Returns *databaseValue*.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: *databaseValue*.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseValue? {
         return databaseValue
     }

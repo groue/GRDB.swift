@@ -24,9 +24,6 @@ public protocol RowConvertible {
     /// instance initializations during the iteration of a fetch query. So if
     /// you want to keep the row for later use, make sure to store a copy:
     /// `result.row = row.copy()`.
-    ///
-    /// - parameter row: A Row.
-    /// - returns: A value.
     static func fromRow(row: Row) -> Self
     
     /// Do not call this method directly.

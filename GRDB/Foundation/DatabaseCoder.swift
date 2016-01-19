@@ -10,9 +10,6 @@ public struct DatabaseCoder: DatabaseValueConvertible {
     /// Creates a DatabaseCoder from an object that conforms to NSCoding.
     ///
     /// The result is nil if and only if *object* is nil.
-    ///
-    /// - parameter object: An optional object.
-    /// - returns: An optional DatabaseCoder.
     public init?(_ object: AnyObject?) {
         guard let object = object else {
             return nil
@@ -26,9 +23,6 @@ public struct DatabaseCoder: DatabaseValueConvertible {
     }
     
     /// Returns a DatabaseCoder if *databaseValue* contains an archived object.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional DatabaseCoder.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseCoder? {
         guard let data = NSData.fromDatabaseValue(databaseValue) else {
             return nil

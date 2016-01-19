@@ -54,7 +54,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     ///     let person = Person.fetchOne(db, key: 123) // Person?
     ///
     /// - parameter db: A Database.
-    /// - parameter key: A value.
+    /// - parameter key: A primary key value.
     /// - returns: An optional value.
     public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(db: Database, key: PrimaryKeyType?) -> Self? {
         guard let key = key else {

@@ -33,11 +33,8 @@ public final class Row: CollectionType {
     /// Returns true if and only if the row has that column.
     ///
     /// This method is case-insensitive.
-    ///
-    /// - parameter columnName: A column name.
-    /// - returns: Whether the row has this column.
     public func hasColumn(columnName: String) -> Bool {
-        return impl.indexForColumn(named: columnName) != nil
+        return impl.indexOfColumn(named: columnName) != nil
     }
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
@@ -45,9 +42,6 @@ public final class Row: CollectionType {
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
-    ///
-    /// - parameter index: A column index.
-    /// - returns: An Int64, Double, String, NSData or nil.
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
         precondition(index >= 0 && index < count, "row index out of range")
         return unsafeValue(atIndex: index)
@@ -73,9 +67,6 @@ public final class Row: CollectionType {
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible can provide more conversions.
-    ///
-    /// - parameter index: A column index.
-    /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
         precondition(index >= 0 && index < count, "row index out of range")
         return unsafeValue(atIndex: index)
@@ -106,9 +97,6 @@ public final class Row: CollectionType {
     /// This method exists as an optimization opportunity for types that adopt
     /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    ///
-    /// - parameter index: A column index.
-    /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
         precondition(index >= 0 && index < count, "row index out of range")
         return unsafeValue(atIndex: index)
@@ -141,9 +129,6 @@ public final class Row: CollectionType {
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible can provide more conversions.
-    ///
-    /// - parameter index: A column index.
-    /// - returns: A *Value*.
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
         precondition(index >= 0 && index < count, "row index out of range")
         return unsafeValue(atIndex: index)
@@ -174,9 +159,6 @@ public final class Row: CollectionType {
     /// This method exists as an optimization opportunity for types that adopt
     /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    ///
-    /// - parameter index: A column index.
-    /// - returns: A *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
         precondition(index >= 0 && index < count, "row index out of range")
         return unsafeValue(atIndex: index)
@@ -198,9 +180,6 @@ public final class Row: CollectionType {
     ///
     /// Column name is case-insensitive. The result is nil if the row does not
     /// contain the column.
-    ///
-    /// - parameter columnName: A column name.
-    /// - returns: An Int64, Double, String, NSData or nil.
     public func value(named columnName: String) -> DatabaseValueConvertible? {
         // IMPLEMENTATION NOTE
         // This method has a single know use case: checking if the value is nil,
@@ -209,7 +188,7 @@ public final class Row: CollectionType {
         //     if row.value(named: "foo") != nil { ... }
         //
         // Without this method, the code above would not compile.
-        guard let index = impl.indexForColumn(named: columnName) else {
+        guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
         }
         return unsafeValue(atIndex: index)
@@ -229,11 +208,8 @@ public final class Row: CollectionType {
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible can provide more conversions.
-    ///
-    /// - parameter columnName: A column name.
-    /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
-        guard let index = impl.indexForColumn(named: columnName) else {
+        guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
         }
         return unsafeValue(atIndex: index)
@@ -258,11 +234,8 @@ public final class Row: CollectionType {
     /// This method exists as an optimization opportunity for types that adopt
     /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    ///
-    /// - parameter columnName: A column name.
-    /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
-        guard let index = impl.indexForColumn(named: columnName) else {
+        guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
         }
         return unsafeValue(atIndex: index)
@@ -284,11 +257,8 @@ public final class Row: CollectionType {
     /// - Blob SQLite values to NSData.
     ///
     /// Types that adopt DatabaseValueConvertible can provide more conversions.
-    ///
-    /// - parameter columnName: A column name.
-    /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
-        guard let index = impl.indexForColumn(named: columnName) else {
+        guard let index = impl.indexOfColumn(named: columnName) else {
             fatalError("no such column: \(columnName)")
         }
         return unsafeValue(atIndex: index)
@@ -315,11 +285,8 @@ public final class Row: CollectionType {
     /// This method exists as an optimization opportunity for types that adopt
     /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    ///
-    /// - parameter columnName: A column name.
-    /// - returns: An optional *Value*.
     public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
-        guard let index = impl.indexForColumn(named: columnName) else {
+        guard let index = impl.indexOfColumn(named: columnName) else {
             fatalError("no such column: \(columnName)")
         }
         return unsafeValue(atIndex: index)
@@ -335,9 +302,6 @@ public final class Row: CollectionType {
     ///
     /// Otherwise, the returned data does not owns its bytes: it must not be
     /// used longer than the row's lifetime.
-    ///
-    /// - parameter index: A column index.
-    /// - returns: An optional NSData.
     public func dataNoCopy(atIndex index: Int) -> NSData? {
         precondition(index >= 0 && index < count, "row index out of range")
         return impl.dataNoCopy(atIndex: index)
@@ -351,11 +315,8 @@ public final class Row: CollectionType {
     ///
     /// Otherwise, the returned data does not owns its bytes: it must not be
     /// used longer than the row's lifetime.
-    ///
-    /// - parameter columnName: A column name.
-    /// - returns: An optional NSData.
     public func dataNoCopy(named columnName: String) -> NSData? {
-        guard let index = impl.indexForColumn(named: columnName) else {
+        guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
         }
         return dataNoCopy(atIndex: index)
@@ -377,7 +338,7 @@ public final class Row: CollectionType {
     /// - parameter columnName: A column name.
     /// - returns: A DatabaseValue if the row contains the requested column.
     public subscript(columnName: String) -> DatabaseValue? {
-        guard let index = impl.indexForColumn(named: columnName) else {
+        guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
         }
         return impl.databaseValue(atIndex: index)
@@ -636,7 +597,7 @@ protocol RowImpl {
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func dataNoCopy(atIndex index:Int) -> NSData?
     func columnName(atIndex index: Int) -> String
-    func indexForColumn(named name: String) -> Int? // This method MUST be case-insensitive.
+    func indexOfColumn(named name: String) -> Int? // This method MUST be case-insensitive.
     func copy(row: Row) -> Row                 // row.impl is guaranteed to be self.
 }
 
@@ -666,7 +627,7 @@ private struct DictionaryRowImpl : RowImpl {
     }
     
     // This method MUST be case-insensitive.
-    func indexForColumn(named name: String) -> Int? {
+    func indexOfColumn(named name: String) -> Int? {
         let lowercaseName = name.lowercaseString
         guard let index = dictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) else {
             return nil
@@ -708,7 +669,7 @@ private struct StatementCopyRowImpl : RowImpl {
     }
     
     // This method MUST be case-insensitive.
-    func indexForColumn(named name: String) -> Int? {
+    func indexOfColumn(named name: String) -> Int? {
         if let index = columnNames.indexOf({ $0 == name }) {
             return index
         }
@@ -754,8 +715,8 @@ private struct StatementRowImpl : RowImpl {
     }
     
     // This method MUST be case-insensitive.
-    func indexForColumn(named name: String) -> Int? {
-        return statement.indexForColumn(named: name)
+    func indexOfColumn(named name: String) -> Int? {
+        return statement.indexOfColumn(named: name)
     }
     
     func copy(row: Row) -> Row {
@@ -780,7 +741,7 @@ private struct EmptyRowImpl : RowImpl {
         fatalError("row index out of range")
     }
     
-    func indexForColumn(named name: String) -> Int? {
+    func indexOfColumn(named name: String) -> Int? {
         return nil
     }
     

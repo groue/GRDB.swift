@@ -84,7 +84,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of insert(). In their implementation, it is recommended
     /// that they invoke the performInsert() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     mutating func insert(db: Database) throws
     
@@ -98,7 +97,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of update(). In their implementation, it is recommended
     /// that they invoke the performUpdate() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
@@ -120,7 +118,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of save(). In their implementation, it is recommended
     /// that they invoke the performSave() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
     ///   thrown by update().
     mutating func save(db: Database) throws
@@ -132,7 +129,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of delete(). In their implementation, it is recommended
     /// that they invoke the performDelete() method.
     ///
-    /// - parameter db: A Database.
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     func delete(db: Database) throws -> Bool
@@ -145,7 +141,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of exists(). In their implementation, it is recommended
     /// that they invoke the performExists() method.
     ///
-    /// - parameter db: A Database.
     /// - returns: Whether the primary key matches a row in the database.
     func exists(db: Database) -> Bool
 }
@@ -319,7 +314,6 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
     /// implementation of insert(). In their implementation, it is recommended
     /// that they invoke the performInsert() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     func insert(db: Database) throws
     
@@ -339,7 +333,6 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
     /// implementation of save(). In their implementation, it is recommended
     /// that they invoke the performSave() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
     ///   thrown by update().
     func save(db: Database) throws

@@ -273,12 +273,13 @@ public final class SelectStatement : Statement {
         (0..<self.columnCount).map { String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32($0)))! }
     }()
     
+    /// Cache for indexOfColumn()
     private lazy var columnIndexes: [String: Int] = {
         return Dictionary(self.columnNames.enumerate().map { ($1, $0) })
     }()
     
     /// The column index, case insensitive.
-    func indexForColumn(named name: String) -> Int? {
+    func indexOfColumn(named name: String) -> Int? {
         if let index = columnIndexes[name] {
             return index
         }

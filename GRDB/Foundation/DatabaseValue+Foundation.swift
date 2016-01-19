@@ -7,8 +7,6 @@ extension DatabaseValue {
     ///
     /// The result is nil unless object adopts DatabaseValueConvertible (NSData,
     /// NSDate, NSNull, NSNumber, NSString, NSURL).
-    ///
-    /// - parameter object: An AnyObject.
     public init?(object: AnyObject) {
         guard let convertible = object as? DatabaseValueConvertible else {
             return nil
