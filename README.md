@@ -597,9 +597,9 @@ Your custom value types are supported as well, through the [DatabaseValueConvert
 let row = Row.fetchOne(db, "SELECT data, ...")!
 let data: NSData = row.value(named: "data")
 
-NSData.fetch(db, "SELECT ...")       // DatabaseSequence<NSData>
-NSData.fetchAll(db, "SELECT ...")    // [NSData]
-NSData.fetchOne(db, "SELECT ...")    // NSData?
+NSData.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<NSData>
+NSData.fetchAll(db, "SELECT ...", arguments:...) // [NSData]
+NSData.fetchOne(db, "SELECT ...", arguments:...) // NSData?
 ```
 
 Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**, using the `dataNoCopy()` method:
@@ -696,9 +696,9 @@ Extract NSDate from the database:
 let row = Row.fetchOne(db, "SELECT creationDate, ...")!
 let date: NSDate = row.value(named: "creationDate")
 
-NSDate.fetch(db, "SELECT ...")       // DatabaseSequence<NSDate>
-NSDate.fetchAll(db, "SELECT ...")    // [NSDate]
-NSDate.fetchOne(db, "SELECT ...")    // NSDate?
+NSDate.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<NSDate>
+NSDate.fetchAll(db, "SELECT ...", arguments:...) // [NSDate]
+NSDate.fetchOne(db, "SELECT ...", arguments:...) // NSDate?
 ```
 
 See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
@@ -741,10 +741,6 @@ let row = Row.fetchOne(db, "SELECT birthDate ...")!
 let dbComponents: DatabaseDateComponents = row.value(named: "birthDate")
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
-
-DatabaseDateComponents.fetch(db, "SELECT ...")    // DatabaseSequence<DatabaseDateComponents>
-DatabaseDateComponents.fetchAll(db, "SELECT ...") // [DatabaseDateComponents]
-DatabaseDateComponents.fetchOne(db, "SELECT ...") // DatabaseDateComponents?
 ```
 
 See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
@@ -1303,19 +1299,19 @@ struct PointOfInterest : RowConvertible {
     }
 }
 
-PointOfInterest.fetch(db, "SELECT ...")    // DatabaseSequence<PointOfInterest>
-PointOfInterest.fetchAll(db, "SELECT ...") // [PointOfInterest]
-PointOfInterest.fetchOne(db, "SELECT ...") // PointOfInterest?
+PointOfInterest.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<PointOfInterest>
+PointOfInterest.fetchAll(db, "SELECT ...", arguments:...) // [PointOfInterest]
+PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
 ```
 
-See [Column Values](#column-values) for more information about the `row.value()` method.
+See [Column Values](#column-values) for more information about the `row.value()` method, and [Fetching Rows](#fetching-rows) about the query arguments.
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
 
 - `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
 - `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
 
-> :point_up: **Note**: For performance reasons, the same row argument to `fromRow(:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `result.row = row.copy()`.
+> :point_up: **Note**: For performance reasons, the same row argument to `fromRow(:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like persistence methods, and changes tracking.
 
