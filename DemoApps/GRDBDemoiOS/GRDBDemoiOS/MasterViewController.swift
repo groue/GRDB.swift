@@ -1,9 +1,9 @@
 import UIKit
 import GRDB
 
-class MasterViewController: UITableViewController, FetchedRecordsControllerDelegate {
+class MasterViewController: UITableViewController, FetchedResultsControllerDelegate {
     var detailViewController: DetailViewController? = nil
-    var fetchedRecordsController: FetchedRecordsController<Person>!
+    var fetchedResultsController: FetchedResultsController<Person>!
     var persons = [Person]()
 
     override func viewDidLoad() {
@@ -14,9 +14,9 @@ class MasterViewController: UITableViewController, FetchedRecordsControllerDeleg
             self.detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
         }
         
-        fetchedRecordsController = FetchedRecordsController(sql: "SELECT * FROM persons ORDER BY LOWER(firstName), LOWER(lastName)", databaseQueue: dbQueue)
-        fetchedRecordsController.delegate = self
-        fetchedRecordsController.performFetch()
+        fetchedResultsController = FetchedResultsController(sql: "SELECT * FROM persons ORDER BY LOWER(firstName), LOWER(lastName)", databaseQueue: dbQueue)
+        fetchedResultsController.delegate = self
+        fetchedResultsController.performFetch()
         tableView.reloadData()
     }
 
@@ -30,7 +30,7 @@ class MasterViewController: UITableViewController, FetchedRecordsControllerDeleg
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "showPerson" {
-            let person = fetchedRecordsController.recordAtIndexPath(self.tableView.indexPathForSelectedRow!)
+            let person = fetchedResultsController.recordAtIndexPath(self.tableView.indexPathForSelectedRow!)
             let detailViewController = (segue.destinationViewController as! UINavigationController).topViewController as! DetailViewController
             detailViewController.person = person
             detailViewController.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem()
@@ -62,7 +62,7 @@ class MasterViewController: UITableViewController, FetchedRecordsControllerDeleg
     // MARK: - Table View
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if let persons = fetchedRecordsController.fetchedRecords {
+        if let persons = fetchedResultsController.fetchedResults {
             return persons.count
         }
         return 0
@@ -71,27 +71,27 @@ class MasterViewController: UITableViewController, FetchedRecordsControllerDeleg
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
 
-        let person = fetchedRecordsController.recordAtIndexPath(indexPath)!
+        let person = fetchedResultsController.recordAtIndexPath(indexPath)!
         cell.textLabel!.text = person.fullName
         return cell
     }
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
-        let person = fetchedRecordsController.recordAtIndexPath(indexPath)!
+        let person = fetchedResultsController.recordAtIndexPath(indexPath)!
         try! dbQueue.inTransaction { db in
             try person.delete(db)
             return .Commit
         }
     }
     
-    // MARK: - FetchedRecordsControllerDelegate
+    // MARK: - FetchedResultsControllerDelegate
     
-    func controllerWillUpdate<T>(controller: FetchedRecordsController<T>) {
+    func controllerWillUpdate<T>(controller: FetchedResultsController<T>) {
         tableView.beginUpdates()
     }
     
-    func controllerUpdate<T>(controller: FetchedRecordsController<T>, update: FetchedRecordsUpdate<T>) {
+    func controllerUpdate<T>(controller: FetchedResultsController<T>, update: Update<T>) {
         switch update {
         case .Inserted(_, let at):
             tableView.insertRowsAtIndexPaths([at], withRowAnimation: .Automatic)
@@ -117,7 +117,7 @@ class MasterViewController: UITableViewController, FetchedRecordsControllerDeleg
         }
     }
     
-    func controllerDidFinishUpdates<T>(controller: FetchedRecordsController<T>) {
+    func controllerDidFinishUpdates<T>(controller: FetchedResultsController<T>) {
         tableView.endUpdates()
     }
 }
