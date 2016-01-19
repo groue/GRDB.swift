@@ -28,7 +28,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - returns: A sequence.
     public static func fetch<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> DatabaseSequence<Self> {
         guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
-            return DatabaseSequence()
+            return DatabaseSequence.emptySequence(db)
         }
         return fetch(statement)
     }
@@ -114,7 +114,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - returns: A sequence.
     public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
         guard let statement = fetchByKeyStatement(db, keys: keys) else {
-            return DatabaseSequence()
+            return DatabaseSequence.emptySequence(db)
         }
         return fetch(statement)
     }

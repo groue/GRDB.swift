@@ -290,9 +290,10 @@ public final class SelectStatement : Statement {
     }
     
     /// The DatabaseSequence builder.
-    func fetchSequence<T>(arguments arguments: StatementArguments?, yield: () -> T) -> DatabaseSequence<T> {
+    func fetchSequence<T>(arguments arguments: StatementArguments?, element: () -> T) -> DatabaseSequence<T> {
+        // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepareWithArguments(arguments)
-        return DatabaseSequence(statement: self, yield: yield)
+        return DatabaseSequence(statement: self, element: element)
     }
 }
 
@@ -301,12 +302,13 @@ public struct DatabaseSequence<T>: SequenceType {
     private let generateImpl: () -> DatabaseGenerator<T>
     
     // Statement sequence
-    private init(statement: SelectStatement, yield: () -> T) {
+    private init(statement: SelectStatement, element: () -> T) {
+        let preconditionValidQueue = statement.database.preconditionValidQueue
+        let sqliteStatement = statement.sqliteStatement
+        
         generateImpl = {
-            let preconditionValidQueue = statement.database.preconditionValidQueue
-            let sqliteStatement = statement.sqliteStatement
             
-            // Check that sequence is built on a valid queue.
+            // Check that generator is built on a valid queue.
             preconditionValidQueue()
             
             // DatabaseSequence can be restarted
@@ -321,7 +323,7 @@ public struct DatabaseSequence<T>: SequenceType {
                 case SQLITE_DONE:
                     return nil
                 case SQLITE_ROW:
-                    return yield()
+                    return element()
                 default:
                     fatalError(DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments).description)
                 }
@@ -330,8 +332,23 @@ public struct DatabaseSequence<T>: SequenceType {
     }
     
     // Empty sequence
-    init() {
-        generateImpl = { return DatabaseGenerator { return nil } }
+    static func emptySequence(database: Database) -> DatabaseSequence {
+        // Empty sequence is just as strict as statement sequence, and requires
+        // to be used on the database queue.
+        let preconditionValidQueue = database.preconditionValidQueue
+        return DatabaseSequence() {
+            // Check that generator is built on a valid queue.
+            preconditionValidQueue()
+            return DatabaseGenerator {
+                // Check that generator is used on a valid queue.
+                preconditionValidQueue()
+                return nil
+            }
+        }
+    }
+    
+    private init(generateImpl: () -> DatabaseGenerator<T>) {
+        self.generateImpl = generateImpl
     }
     
     /// Return a *generator* over the elements of this *sequence*.
@@ -343,9 +360,9 @@ public struct DatabaseSequence<T>: SequenceType {
 
 /// A generator of elements fetched from the database.
 public struct DatabaseGenerator<T>: GeneratorType {
-    private let nextImpl: () -> T?
+    private let element: () -> T?
     public func next() -> T? {
-        return nextImpl()
+        return element()
     }
 }
 
@@ -370,7 +387,8 @@ public final class UpdateStatement : Statement {
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
-        try! prepareWithArguments(arguments)    // Crash on invalid arguments
+        // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
+        try! prepareWithArguments(arguments)
         reset()
         
         let changes: DatabaseChanges

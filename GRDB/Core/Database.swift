@@ -254,25 +254,22 @@ extension Database {
     public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         preconditionValidQueue()
         
-        let usedArguments: StatementArguments
-        if let arguments = arguments {
-            usedArguments = arguments
-        } else {
-            usedArguments = []
-        }
-        
         // The tricky part is to consume arguments as statements are executed.
         //
-        // Here we return two functions:
-        // - one that returns arguments for a statement
-        // - one that validates the remaining arguments, in the same way as
-        //   Statement.validateArguments()
-        let (consumeArguments, validateRemainingArguments) = { () -> (UpdateStatement -> StatementArguments, () throws -> ()) in
-            switch usedArguments.kind {
+        // Here we build two functions:
+        // - consumeArguments returns arguments for a statement
+        // - validateRemainingArguments validates the remaining arguments, after
+        //   all statements have been executed, in the same way
+        //   as Statement.validateArguments()
+        let consumeArguments: UpdateStatement -> StatementArguments
+        let validateRemainingArguments: () throws -> ()
+        
+        if let arguments = arguments {
+            switch arguments.kind {
             case .Values(let values):
                 // Extract as many values as needed, statement after statement:
                 var remainingValues = values
-                let consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
+                consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
                     let argumentCount = statement.sqliteArgumentCount
                     defer {
                         if remainingValues.count >= argumentCount {
@@ -284,30 +281,31 @@ extension Database {
                     return StatementArguments(remainingValues.prefix(argumentCount))
                 }
                 // It's not OK if there remains unused arguments:
-                let validateRemainingArguments = {
+                validateRemainingArguments = {
                     if !remainingValues.isEmpty {
-                        fatalError("wrong number of statement arguments: \(values.count)")
+                        throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(values.count)")
                     }
                 }
-                return (consumeArguments, validateRemainingArguments)
             case .NamedValues:
                 // Reuse the dictionary argument for all statements:
-                let consumeArguments = { (_: UpdateStatement) -> StatementArguments in return usedArguments }
-                let validateRemainingArguments = { () in }
-                return (consumeArguments, validateRemainingArguments)
+                consumeArguments = { _ in return arguments }
+                validateRemainingArguments = { _ in }
             }
-        }()
+        } else {
+            // Empty arguments for all statements:
+            consumeArguments = { _ in return [] }
+            validateRemainingArguments = { _ in }
+        }
         
         
         // Execute statements
         
         let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
         let sqlCodeUnits = sql.nulTerminatedUTF8
-        let length = sqlCodeUnits.count
         var error: ErrorType?
         sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
-            let sqlEnd = sqlStart + length
+            let sqlEnd = sqlStart + sqlCodeUnits.count
             var statementStart = sqlStart
             while statementStart < sqlEnd - 1 {
                 var statementEnd: UnsafePointer<Int8> = nil
@@ -333,7 +331,9 @@ extension Database {
         if let error = error {
             throw error
         }
-        try validateRemainingArguments()
+        // Force arguments validity. See UpdateStatement.execute(), and SelectStatement.fetchSequence()
+        try! validateRemainingArguments()
+        
         let changedRowsAfter = sqlite3_total_changes(sqliteConnection)
         let lastInsertedRowID = sqlite3_last_insert_rowid(sqliteConnection)
         let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
