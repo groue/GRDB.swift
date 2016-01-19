@@ -89,19 +89,17 @@ public class FetchedResultsController<T: FetchedResult> {
         func moveFromChanges(updates: [Change<T>], deletionOrInsertion update: Change<T>) -> (move: Change<T>, index: Int)? {
             if let inverseIndex = updates.indexOf({ (earlierChange) -> Bool in return earlierChange.isInverse(update) }) {
                 switch updates[inverseIndex] {
-                case .Deleted(_, let from):
+                case .Deletion(_, let from):
                     switch update {
-                    case .Inserted(let insertedItem, let to):
-                        //(Edit(.Move(origin: edit.destination), value: edit.value, destination: edits[insertionIndex].destination), insertionIndex)
-                        return (Change.Moved(item: insertedItem, from: from, to: to), inverseIndex)
+                    case .Insertion(let insertedItem, let to):
+                        return (Change.Move(item: insertedItem, from: from, to: to), inverseIndex)
                     default:
                         break
                     }
-                case .Inserted(let insertedItem, let to):
+                case .Insertion(let insertedItem, let to):
                     switch update {
-                    case .Deleted(_, let from):
-                        //(Edit(.Move(origin: edit.destination), value: edit.value, destination: edits[insertionIndex].destination), insertionIndex)
-                        return (Change.Moved(item: insertedItem, from: from, to: to), inverseIndex)
+                    case .Deletion(_, let from):
+                        return (Change.Move(item: insertedItem, from: from, to: to), inverseIndex)
                     default:
                         break
                     }
@@ -112,10 +110,10 @@ public class FetchedResultsController<T: FetchedResult> {
             return nil
         }
         
-        /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` edits.
+        /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
         func reducedChanges(updates: [Change<T>]) -> [Change<T>] {
             return updates.reduce([Change<T>]()) { (var reducedChanges, update) in
-                if let (moveChange, index) = moveFromChanges(reducedChanges, deletionOrInsertion: update), case .Moved = moveChange {
+                if let (moveChange, index) = moveFromChanges(reducedChanges, deletionOrInsertion: update), case .Move = moveChange {
                     reducedChanges.removeAtIndex(index)
                     reducedChanges.append(moveChange)
                 } else {
@@ -135,14 +133,14 @@ public class FetchedResultsController<T: FetchedResult> {
         
         var edits = [Change<T>]()
         for (row, element) in s.enumerate() {
-            let deletion = Change.Deleted(item: element, at: NSIndexPath(indexes:[0,row], length:2)) // Edit(.Deletion, value: element, destination: row)
+            let deletion = Change.Deletion(item: element, at: NSIndexPath(indexes:[0,row], length:2))
             edits.append(deletion)
             d[row + 1][0] = edits
         }
         
         edits.removeAll()
         for (col, element) in t.enumerate() {
-            let insertion = Change.Inserted(item: element, at: NSIndexPath(indexes:[0,col], length:2)) // Edit(.Insertion, value: element, destination: col)
+            let insertion = Change.Insertion(item: element, at: NSIndexPath(indexes:[0,col], length:2))
             edits.append(insertion)
             d[0][col + 1] = edits
         }
@@ -153,14 +151,24 @@ public class FetchedResultsController<T: FetchedResult> {
         var sx: Array<T>.Index
         var tx = t.startIndex
         
-        // Fill body of matrix.
         
+        // Fill body of matrix.
         for j in 1...targetCount {
             sx = s.startIndex
             
             for i in 1...sourceCount {
                 if s[sx] == t[tx] {
-                    // TODO! : Make Update operation
+                    // TODO! : Update
+                    /* if let oldRecord = s[sx] as? Record, let newRecord = t[tx] as? Record {
+                        let newRecordCopy = newRecord.copy()
+                        newRecordCopy.referenceRow = oldRecord.referenceRow
+                        let changes = newRecordCopy.persistentChangedValues
+                        if  changes.count > 0 {
+                            let update = Change.Update(item: t[tx], at: NSIndexPath(indexes:[0,i-1], length:2), changes: changes)
+                            updates.append(update)
+                        }
+                    }*/
+                    
                     d[i][j] = d[i - 1][j - 1] // no operation
                 } else {
                     
@@ -172,16 +180,16 @@ public class FetchedResultsController<T: FetchedResult> {
                     
                     let minimumCount = min(del.count, ins.count, sub.count)
                     if del.count == minimumCount {
-                        let deletion = Change.Deleted(item: s[sx], at: NSIndexPath(indexes:[0,i-1], length:2)) // Edit(.Deletion, value: s[sx], destination: i - 1)
+                        let deletion = Change.Deletion(item: s[sx], at: NSIndexPath(indexes:[0,i-1], length:2))
                         del.append(deletion)
                         d[i][j] = del
                     } else if ins.count == minimumCount {
-                        let insertion = Change.Inserted(item: t[tx], at: NSIndexPath(indexes:[0,j-1], length:2)) // Edit(.Insertion, value: t[tx], destination: j - 1)
+                        let insertion = Change.Insertion(item: t[tx], at: NSIndexPath(indexes:[0,j-1], length:2))
                         ins.append(insertion)
                         d[i][j] = ins
                     } else {
                         // TODO! : We dont want substitution, we want deletion and insertion
-                        print("Substitution => item =\(t[tx]), destination= \(j - 1)")
+                        // print("Substitution => item =\(t[tx]), destination= \(j - 1)")
                         // let substitution = Edit(.Substitution, value: t[tx], destination: j - 1)
                         // sub.append(substitution)
                         // d[i][j] = sub
@@ -244,23 +252,23 @@ public extension FetchedResultsControllerDelegate {
 
 
 public enum Change<T: FetchedResult> {
-    case Inserted(item:T, at: NSIndexPath)
-    case Deleted(item:T, at: NSIndexPath)
-    case Moved(item:T, from: NSIndexPath, to: NSIndexPath)
-    case Updated(item:T, at: NSIndexPath, changes: [String: DatabaseValue?]?)
+    case Insertion(item:T, at: NSIndexPath)
+    case Deletion(item:T, at: NSIndexPath)
+    case Move(item:T, from: NSIndexPath, to: NSIndexPath)
+    case Update(item:T, at: NSIndexPath, changes: [String: DatabaseValue?]?)
     
     var description: String {
         switch self {
-        case .Inserted(let item, let at):
+        case .Insertion(let item, let at):
             return "Inserted \(item) at indexpath \(at)"
             
-        case .Deleted(let item, let at):
+        case .Deletion(let item, let at):
             return "Deleted \(item) from indexpath \(at)"
             
-        case .Moved(let item, let from, let to):
+        case .Move(let item, let from, let to):
             return "Moved \(item) from indexpath \(from) to indexpath \(to)"
             
-        case .Updated(let item, let at, let changes):
+        case .Update(let item, let at, let changes):
             return "Updated \(changes) of \(item) at indexpath \(at)"
         }
     }
@@ -268,9 +276,9 @@ public enum Change<T: FetchedResult> {
     func isInverse(otherChange: Change<T>) -> Bool {
         
         switch (self, otherChange) {
-        case (.Deleted(let deletedItem, let from), .Inserted(let insertedItem, let to)): return (deletedItem == insertedItem && to == from)
-        case (.Inserted(let insertedItem, let to), .Deleted(let deletedItem, let from)): return (deletedItem == insertedItem && to == from)
-        case (.Moved(let item1, let from1, let to1), .Moved(let item2, let from2, let to2)): return (item1 == item2 && from1 == to2 && to1 == from2)
+        case (.Deletion(let deletedItem, let from), .Insertion(let insertedItem, let to)): return (deletedItem == insertedItem && to == from)
+        case (.Insertion(let insertedItem, let to), .Deletion(let deletedItem, let from)): return (deletedItem == insertedItem && to == from)
+        case (.Move(let item1, let from1, let to1), .Move(let item2, let from2, let to2)): return (item1 == item2 && from1 == to2 && to1 == from2)
         default: break
         }
         
@@ -280,10 +288,10 @@ public enum Change<T: FetchedResult> {
 
 func ==<T>(lhs: Change<T>, rhs: Change<T>) -> Bool {
     switch (lhs, rhs) {
-    case (.Inserted(let lhsResult, let lhsIndexPath), .Inserted(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
-    case (.Deleted(let lhsResult, let lhsIndexPath), .Deleted(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
-    case (.Moved(let lhsResult, let lhsFromIndexPath, let lhsToIndexPath), .Moved(let rhsResult, let rhsFromIndexPath, let rhsToIndexPath)) where lhsResult == rhsResult && lhsFromIndexPath == rhsFromIndexPath && lhsToIndexPath == rhsToIndexPath : return true
-    case (.Updated(let lhsResult, let lhsIndexPath, _), .Updated(let rhsResult, let rhsIndexPath, _)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
+    case (.Insertion(let lhsResult, let lhsIndexPath), .Insertion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
+    case (.Deletion(let lhsResult, let lhsIndexPath), .Deletion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
+    case (.Move(let lhsResult, let lhsFromIndexPath, let lhsToIndexPath), .Move(let rhsResult, let rhsFromIndexPath, let rhsToIndexPath)) where lhsResult == rhsResult && lhsFromIndexPath == rhsFromIndexPath && lhsToIndexPath == rhsToIndexPath : return true
+    case (.Update(let lhsResult, let lhsIndexPath, _), .Update(let rhsResult, let rhsIndexPath, _)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
     default: return false
     }
 }
