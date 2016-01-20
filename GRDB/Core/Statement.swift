@@ -120,7 +120,7 @@ public class Statement {
         }
     }
     
-    private func setArgumentsWithValidation(arguments: StatementArguments) throws {
+    func setArgumentsWithValidation(arguments: StatementArguments) throws {
         // Validate
         let bindings = try validatedBindings(arguments)
         _arguments = arguments
@@ -291,6 +291,7 @@ public final class SelectStatement : Statement {
     }
     
     /// The DatabaseSequence builder.
+    @warn_unused_result
     func fetchSequence<T>(arguments arguments: StatementArguments?, element: () -> T) -> DatabaseSequence<T> {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepareWithArguments(arguments)
@@ -479,6 +480,16 @@ public struct DatabaseChanges {
 /// See https://www.sqlite.org/lang_expr.html#varparam for more information.
 public struct StatementArguments {
     
+    public var isEmpty: Bool {
+        switch kind {
+        case .Values(let values):
+            return values.isEmpty
+        case .NamedValues(let namedValues):
+            return namedValues.isEmpty
+        }
+    }
+    
+    
     // MARK: Positional Arguments
     
     /// Initializes arguments from a sequence of optional values.
@@ -530,17 +541,18 @@ public struct StatementArguments {
         kind = .NamedValues(Dictionary(sequence.map { (key, value) in return (key, value as DatabaseValueConvertible?) }))
     }
     
-    public var isEmpty: Bool {
-        switch kind {
-        case .Values(let values):
-            return values.isEmpty
-        case .NamedValues(let namedValues):
-            return namedValues.isEmpty
-        }
-    }
-    
     
     // MARK: Not Public
+    
+    /// Returns a double optional
+    func value(named name: String) -> DatabaseValueConvertible?? {
+        switch kind {
+        case .Values:
+            return nil
+        case .NamedValues(let dictionary):
+            return dictionary[name]
+        }
+    }
     
     enum Kind {
         case Values([DatabaseValueConvertible?])

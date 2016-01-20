@@ -14,7 +14,7 @@
 ///     String.fetchOne(statement, arguments:...)        // String?
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
-public protocol DatabaseValueConvertible {
+public protocol DatabaseValueConvertible : _SQLExpressionType {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
@@ -38,6 +38,9 @@ public protocol DatabaseValueConvertible {
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 public extension DatabaseValueConvertible {
     
+    
+    // MARK: - Fetching From SelectStatement
+    
     /// Returns a sequence of values fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT name FROM ...")
@@ -58,6 +61,7 @@ public extension DatabaseValueConvertible {
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence.
+    @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let sqliteStatement = statement.sqliteStatement
         return statement.fetchSequence(arguments: arguments) {
@@ -73,6 +77,7 @@ public extension DatabaseValueConvertible {
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An array.
+    @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
         return Array(fetch(statement, arguments: arguments))
     }
@@ -88,6 +93,7 @@ public extension DatabaseValueConvertible {
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional value.
+    @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
         let sequence = statement.fetchSequence(arguments: arguments) {
             fromDatabaseValue(DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0))
@@ -97,6 +103,9 @@ public extension DatabaseValueConvertible {
         }
         return nil
     }
+    
+    
+    // MARK: - Fetching From SQL
     
     /// Returns a sequence of values fetched from an SQL query.
     ///
@@ -118,6 +127,7 @@ public extension DatabaseValueConvertible {
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence.
+    @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
@@ -130,6 +140,7 @@ public extension DatabaseValueConvertible {
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An array.
+    @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
         return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
@@ -145,6 +156,7 @@ public extension DatabaseValueConvertible {
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional value.
+    @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
         return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
@@ -163,6 +175,9 @@ public extension DatabaseValueConvertible {
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 public extension Optional where Wrapped: DatabaseValueConvertible {
+    
+    
+    // MARK: - Fetching From SelectStatement
     
     /// Returns a sequence of optional values fetched from a prepared statement.
     ///
@@ -184,6 +199,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence of optional values.
+    @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Wrapped?> {
         let sqliteStatement = statement.sqliteStatement
         return statement.fetchSequence(arguments: arguments) {
@@ -199,9 +215,13 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An array of optional values.
+    @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Wrapped?] {
         return Array(fetch(statement, arguments: arguments))
     }
+    
+    
+    // MARK: - Fetching From SQL
     
     /// Returns a sequence of optional values fetched from an SQL query.
     ///
@@ -223,6 +243,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence of optional values.
+    @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Wrapped?> {
         return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
@@ -235,6 +256,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An array of optional values.
+    @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Wrapped?] {
         return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }

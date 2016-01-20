@@ -24,7 +24,7 @@ class MasterViewController: UITableViewController {
     
     func reloadPersons() {
         persons = dbQueue.inDatabase { db in
-            Person.fetchAll(db, "SELECT * FROM persons ORDER BY LOWER(firstName), LOWER(lastName)")
+            Person.order(Col.firstName, Col.lastName).fetchAll(db)
         }
     }
     

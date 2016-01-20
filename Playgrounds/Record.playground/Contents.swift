@@ -3,10 +3,14 @@
 import GRDB
 
 
+// ==============================================
+// SETUP
+
 // Create the databsae
 
 var configuration = Configuration()
-configuration.trace = { print($0) }
+configuration.trace = { print($0) } // Log all SQL statements
+
 let dbQueue = DatabaseQueue(configuration: configuration)   // Memory database
 var migrator = DatabaseMigrator()
 migrator.registerMigration("createPersons") { db in
@@ -37,6 +41,7 @@ class Person : Record {
         super.init()
     }
     
+    
     // Record overrides
     
     override class func databaseTableName() -> String {
@@ -60,7 +65,16 @@ class Person : Record {
 }
 
 
-// Insert and fetch persons from the database
+// Define colums
+
+struct Col {
+    static let firstName = SQLColumn("firstName")
+    static let lastName = SQLColumn("lastName")
+}
+
+
+// END OF SETUP
+// ==============================================
 
 try! dbQueue.inTransaction { db in
     try Person(firstName: "Arthur", lastName: "Miller").insert(db)
@@ -70,8 +84,7 @@ try! dbQueue.inTransaction { db in
 }
 
 let persons = dbQueue.inDatabase { db in
-    Person.fetchAll(db, "SELECT * FROM persons ORDER BY firstName, lastName")
+    Person.order(Col.firstName, Col.lastName).fetchAll(db)
 }
 
-print(persons)
 print(persons.map { $0.fullName })

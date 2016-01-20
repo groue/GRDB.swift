@@ -2,7 +2,7 @@
 
 /// Record is a class that wraps a table row, or the result of any query. It is
 /// designed to be subclassed.
-public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable {
+public class Record : RowConvertible, TableMapping, Persistable {
     
     // MARK: - Initializers
     

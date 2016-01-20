@@ -1,6 +1,6 @@
 import Foundation
 
-/// Configuration are arguments to the DatabaseQueue initializers.
+/// Configure a DatabaseQueue
 public struct Configuration {
     
     // MARK: - Misc options

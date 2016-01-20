@@ -1,72 +1,35 @@
 GRDB.swift
 ==========
 
-GRDB.swift is an SQLite toolkit for Swift 2. It is written for developers who want to leverage their SQL and SQLite skills.
+GRDB.swift is an SQLite toolkit for Swift 2.
 
-**Features**
+It provides an SQL API and application tools.
 
-- [SQLite API](#sqlite-api)
-- [Protocols](#database-protocols-and-record) that provide fetching and persistence methods to your custom structs and class hierarchies
-- Application tools, such as [migrations](#migrations) and [database observation hooks](#database-changes-observation)
-- [Speed](https://github.com/groue/GRDB.swift/wiki/Performance)
-
-**January 17, 2016: GRDB.swift 0.41.0 is out** - [Release notes](CHANGELOG.md). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**January 17, 2016: GRDB.swift 0.41.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
-**Swift Package Manager**: Use the [Swift2.2 branch](https://github.com/groue/GRDB.swift/tree/Swift2.2).
+
+### Documentation
+
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.41.0/index.html) (on cocoadocs.org)
+- [Installation](#installation)
+- [SQLite API](#sqlite-api): SQL & SQLite
+- [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
+- [Query Interface](#the-query-interface): A swift way to generate SQL.
+- [Migrations](#migrations): Transform your database as your application evolves.
+- [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
+- [Sample Code](#sample-code)
 
 
-Documentation
-=============
+### Installation
 
-- **[GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.41.0/index.html)** (on cocoadocs.org)
-
-- **[Installation](#installation)**
-
-- **[SQLite API](#sqlite-api)**
-    - [SQLite API Overview](#sqlite-api-overview)
-    - [Database Queues](#database-queues)
-    - [Executing Updates](#executing-updates)
-    - [Fetch Queries](#fetch-queries)
-        - [Row Queries](#row-queries)
-        - [Value Queries](#value-queries)
-    - [Values](#values)
-        - [NSData](#nsdata-and-memory-savings)
-        - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
-        - [Swift enums](#swift-enums)
-    - [Transactions](#transactions)
-    - [Error Handling](#error-handling)
-    - Advanced topics:
-        - [Custom Value Types](#custom-value-types)
-        - [Prepared Statements](#prepared-statements)
-        - [Concurrency](#concurrency)
-        - [Custom SQL Functions](#custom-sql-functions)
-        - [Custom Collations](#custom-collations)
-        - [Raw SQLite Pointers](#raw-sqlite-pointers)
-    
-    
-- **[Migrations](#migrations)**: Transform your database as your application evolves.
-
-- **[Database Protocols, and Record](#database-protocols-and-record)**
-    - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
-    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with persistence methods.
-    - [Record](#record): The class that wraps a table row or the result of any query, provides persistence methods, and changes tracking.
-
-- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
-
-- **[Sample Code](#sample-code)**
-
-
-Installation
-============
-
-### iOS7
+#### iOS7
 
 You can use GRDB.swift in a project targetting iOS7. See [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7) for more information.
 
 
-### CocoaPods
+#### CocoaPods
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
 
@@ -80,7 +43,7 @@ pod 'GRDB.swift', '~> 0.41.0'
 ```
 
 
-### Carthage
+#### Carthage
 
 [Carthage](https://github.com/Carthage/Carthage) is another dependency manager for Xcode projects.
 
@@ -91,7 +54,7 @@ github "groue/GRDB.swift" ~> 0.41.0
 ```
 
 
-### Manually
+#### Manually
 
 1. Download a copy of GRDB.swift.
 2. Embed the `GRDB.xcodeproj` project in your own project.
@@ -104,7 +67,7 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 SQLite API
 ==========
 
-## SQLite API Overview
+**Overview**
 
 ```swift
 import GRDB
@@ -134,6 +97,25 @@ try dbQueue.inDatabase { db in
         arguments: [Color.Red])!
 }
 ```
+
+- [Database Queues](#database-queues)
+- [Executing Updates](#executing-updates)
+- [Fetch Queries](#fetch-queries)
+    - [Row Queries](#row-queries)
+    - [Value Queries](#value-queries)
+- [Values](#values)
+    - [NSData](#nsdata-and-memory-savings)
+    - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
+    - [Swift enums](#swift-enums)
+- [String Comparison](#string-comparison)
+- [Transactions](#transactions)
+- [Error Handling](#error-handling)
+- Advanced topics:
+    - [Custom Value Types](#custom-value-types)
+    - [Prepared Statements](#prepared-statements)
+    - [Concurrency](#concurrency)
+    - [Custom SQL Functions](#custom-sql-functions)
+    - [Raw SQLite Pointers](#raw-sqlite-pointers)
 
 
 ## Database Queues
@@ -190,6 +172,7 @@ let dbQueue = try DatabaseQueue(
 
 See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.41.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
+> :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a GRDB database.
 
 
 ## Executing Updates
@@ -229,7 +212,7 @@ let personID = try db.execute(
     arguments: ["Arthur", 36]).insertedRowID
 ```
 
-Don't miss the [DatabasePersistable protocol](#databasepersistable-protocol) and the [Record class](#record), that provide classic **persistence methods**:
+Don't miss the [Persistable](#persistable-protocol) protocol and the [Record](#record-class) class, that provide classic **persistence methods**:
 
 ```swift
 let person = Person(name: "Arthur", age: 36)
@@ -240,7 +223,7 @@ print("Inserted \(person.id)")
 
 ## Fetch Queries
 
-GRDB lets you fetch **rows**, **values**, and **custom models**.
+GRDB lets you fetch **rows**, **values**, and custom models aka "**records**".
 
 **Rows** are the results of SQL queries (see [row queries](#row-queries)):
 
@@ -250,7 +233,7 @@ dbQueue.inDatabase { db in
     Row.fetchAll(db, "SELECT ...", arguments: ...)  // [Row]
     Row.fetchOne(db, "SELECT ...", arguments: ...)  // Row?
     
-    // Example:
+    // Example
     for row in Row.fetch(db, "SELECT * FROM wines") {
         let name: String = row.value(named: "name")
         let color: Color = row.value(named: "color")
@@ -270,27 +253,32 @@ dbQueue.inDatabase { db in
     Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
     Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
     
-    // Example:
+    // Example
     let wineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
 }
 ```
 
-**Custom models** are your application objects that can initialize themselves from rows (see the [RowConvertible protocol](#rowconvertible-protocol) and the [Record class](#record)):
+**Records** are your application objects that can initialize themselves from rows (see [records](#records)).
 
 ```swift
 dbQueue.inDatabase { db in
-    // By SQL:
+    // Using the Query Interface
+    Wine.filter(name == "Pomerol").fetch(db)        // DatabaseSequence<Wine>
+    Wine.filter(name == "Pomerol").fetchAll(db)     // [Wine]
+    Wine.filter(name == "Pomerol").fetchOne(db)     // Wine?
+    
+    // By key
+    Wine.fetch(db, keys: [1, 2, 3])                 // DatabaseSequence<Wine>
+    Wine.fetchAll(db, keys: [1, 2, 3])              // [Wine]
+    Wine.fetchOne(db, key: 1)                       // Wine?
+    
+    // Using SQL
     Wine.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Wine>
     Wine.fetchAll(db, "SELECT ...", arguments: ...) // [Wine]
     Wine.fetchOne(db, "SELECT ...", arguments: ...) // Wine?
     
-    // By key:
-    Wine.fetch(db, keys: ...)                       // DatabaseSequence<Wine>
-    Wine.fetchAll(db, keys: ...)                    // [Wine]
-    Wine.fetchOne(db, key: ...)                     // Wine?
-    
-    // Example:
-    let wines = Wine.fetchAll(db, "SELECT * FROM wines ORDER BY name")
+    // Example
+    let wines = Wine.order(name).fetchAll(db)
     let favoriteWine = Wine.fetchOne(db, key: favoriteWineID)
 }
 ```
@@ -338,7 +326,7 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 Both `fetch` and `fetchAll` let you iterate the full list of fetched rows. The differences are:
 
 - `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
+- `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
 
 > :point_up: **Don't turn a row sequence into an array** with `Array(rowSequence)` or `rowSequence.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
 > 
@@ -533,7 +521,7 @@ dbQueue.inDatabase { db in
 Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The differences are:
 
 - `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
+- `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
 
 `fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
@@ -573,7 +561,7 @@ They can be [directly fetched](#value-queries) from the database:
 let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
 ```
 
-Use them in the `persistentDictionary` property of [DatabasePersistable protocol](#databasepersistable-protocol) and [Record subclasses](#record):
+Use them in the `persistentDictionary` property of [Persistable](#persistable-protocol) protocol and [Record](#record-class) subclasses:
 
 ```swift
 class Link : Record {
@@ -788,6 +776,59 @@ Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 ```
 
 See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
+
+
+## String Comparison
+
+SQLite compares strings in many occasions: when you sort rows according to a string column, or when you use a comparison operator such as `=` and `<=`.
+
+The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation):
+
+- `binary`, the default, which considers "Foo" and "foo" to be inequal, and "Jérôme" and "Jerome" to be inequal because it has no Unicode support.
+- `nocase`, which considers "Foo" and "foo" to be equal, but "Jérôme" and "Jerome" to be inequal because it has no Unicode support.
+- `rtrim`: the same as `binary`, except that trailing space characters are ignored.
+
+**You can define your own collations**, based on the rich set of Swift string comparisons:
+
+```swift
+let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
+    return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
+}
+
+dbQueue.inDatabase { db in
+    db.addCollation(collation)
+}
+```
+
+Once defined, the custom collation can be applied to a table column. All comparisons involving this column will automatically trigger your comparison function:
+    
+```swift
+dbQueue.inDatabase { db in
+    // Apply the custom collation to the `name` column
+    try db.execute(
+        "CREATE TABLE persons (" +
+            "name TEXT COLLATE localized_case_insensitive" + // The name of the collation
+        ")")
+    
+    // Persons are sorted as expected:
+    let persons = Person.order(name).fetchAll(db)
+    
+    // Matches "Jérôme", "jerome", etc.
+    let persons = Person.filter(name == "Jérôme").fetchAll(db)
+}
+```
+
+If you can't or don't want to define the comparison behavior of a column, you can still use an explicit collation on particular requests:
+
+```swift
+// SELECT * FROM "persons" WHERE ("name" = 'foo' COLLATE NOCASE)
+let persons = Person.filter(name.collating("NOCASE") == "foo").fetchAll(db)
+
+// SELECT * FROM "persons" WHERE ("name" = 'Jérôme' COLLATE localized_case_insensitive)
+let persons = Person.filter(name.collating(collation) == "Jérôme").fetchAll(db)
+```
+
+See the [query interface](#the-query-interface) for more information.
 
 
 ## Transactions
@@ -1096,31 +1137,6 @@ dbQueue.inDatabase { db in
 See [Error Handling](#error-handling) for more information on database errors.
 
 
-## Custom Collations
-
-**When SQLite compares two strings, it uses a collating function** to determine which string is greater or if the two strings are equal.
-
-SQLite lets you define your own collating functions. This is how you can bring support for unicode or localization when comparing strings:
-
-```swift
-dbQueue.inDatabase { db in
-    // Define the localized_case_insensitive collation:
-    let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
-        return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
-    }
-    db.addCollation(collation)
-    
-    // Put it to some use:
-    try db.execute("CREATE TABLE persons (lastName TEXT COLLATE LOCALIZED_CASE_INSENSITIVE)")
-    
-    // Persons are sorted as expected:
-    Person.fetchAll(db, "SELECT * FROM persons ORDER BY lastName")
-}
-```
-
-Check https://www.sqlite.org/datatype3.html#collation for more information.
-
-
 ## Raw SQLite Pointers
 
 Not all SQLite APIs are exposed in GRDB.
@@ -1154,7 +1170,7 @@ Before jumping in the low-level wagon, here is a reminder of SQLite APIs support
     - [sqlite3_changes](https://www.sqlite.org/c3ref/changes.html)
 - Custom SQL functions (see [Custom SQL Functions](#custom-sql-functions))
     - [sqlite3_create_function_v2](https://www.sqlite.org/c3ref/create_function.html)
-- Custom collations (see [Custom Collations](#custom-collations))
+- Custom collations (see [String Comparison](#string-comparison))
     - [sqlite3_create_collation_v2](https://www.sqlite.org/c3ref/create_collation.html)
 - Busy mode (see [Concurrency](#concurrency)).
     - [sqlite3_busy_handler](https://www.sqlite.org/c3ref/busy_handler.html)
@@ -1170,12 +1186,883 @@ Application Tools
 
 On top of the SQLite API described above, GRDB provides a toolkit for applications. While none of those are mandatory, all of them help dealing with the database:
 
-- **[Migrations](#migrations)**: Transform your database as your application evolves.
-- **[Database Protocols, and Record](#database-protocols-and-record)**
-    - [RowConvertible Protocol](#rowconvertible-protocol): Don't fetch rows, fetch your custom types instead.
-    - [DatabasePersistable Protocol](#databasepersistable-protocol): Grant any type with persistence methods.
-    - [Record](#record): The class that wraps a table row or the result of any query, provides persistence methods, and changes tracking.
-- **[Database Changes Observation](#database-changes-observation)**: A robust way to perform post-commit and post-rollback actions.
+- [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
+- [Query Interface](#the-query-interface): A swift way to generate SQL.
+- [Migrations](#migrations): Transform your database as your application evolves.
+- [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
+
+
+## Records
+
+**On top of the [SQLite API](#sqlite-api), GRDB provides protocols and a class** that help manipulating database rows as regular objects named "records".
+
+Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and changes tracking.
+
+
+#### Inserting Records
+
+To insert a record in the database, subclass the [Record](#record-class) class or adopt the [Persistable](#persistable-protocol) protocol, and call the `insert` method:
+
+```swift
+class Person : Record { ... }
+
+let person = Person(name: "Arthur", email: "arthur@example.com")
+try dbQueue.inDatabase { db in
+    try person.insert(db)
+}
+```
+
+Of course, you need to open a [database connection](#database-queues), and [create a database table](#executing-updates) first.
+
+
+#### Fetching Records
+
+[Record](#record-class) subclasses and types that adopt the [RowConvertible](#rowconvertible-protocol) protocol can be fetched from the database:
+
+```swift
+class Person : Record { ... }
+
+dbQueue.inDatabase { db in
+    // Using the Query Interface
+    let persons = Person.filter(email != nil).order(name).fetchAll(db)
+    
+    // By key
+    let person = Person.fetchOne(db, key: 1)
+    
+    // Using SQL
+    let persons = Person.fetchAll(db, "SELECT ...", arguments: ...)
+}
+```
+
+To learn more about querying records, check the [query interface](#the-query-interface).
+
+
+#### Updating Records
+
+[Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be updated in the database:
+
+```swift
+try dbQueue.inDatabase { db in
+    let person = Person.fetchOne(db, key: 1)!
+    person.name = "Arthur"
+    try person.update(db)
+}
+```
+
+For batch updates, you have to execute an [SQL query](#executing-updates):
+
+```swift
+try dbQueue.inDatabase { db in
+    try db.execute("UPDATE persons SET synchronized = 1")
+}
+```
+
+
+#### Deleting Records
+
+[Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be deleted from the database:
+
+```swift
+try dbQueue.inDatabase { db in
+    let person = Person.fetchOne(db, key: 1)!
+    try person.delete(db)
+}
+```
+
+For batch deletions, you have to execute an [SQL query](#executing-updates):
+
+```swift
+try dbQueue.inDatabase { db in
+    try db.execute("DELETE FROM persons")
+}
+```
+
+
+#### Counting Records
+
+[Record](#record-class) subclasses and types that adopt the [TableMapping](#tablemapping-protocol) protocol can be counted:
+
+```swift
+let personWithEmailCount = dbQueue.inDatabase { db in
+    Person.filter(email != nil).fetchCount(db)  // Int
+}
+```
+
+You can generally fetch the average, count, min, max and sum of any column. See the [query interface](#the-query-interface) for more details.
+
+You can now jump to:
+
+- [RowConvertible Protocol](#rowconvertible-protocol)
+- [TableMapping Protocol](#tablemapping-protocol)
+- [Persistable Protocol](#persistable-protocol)
+- [Record Class](#record-class)
+- [The Query Interface](#the-query-interface)
+
+
+### RowConvertible Protocol
+
+**The `RowConvertible` protocol grants fetching methods to any type** that can be built from a database row:
+
+```swift
+public protocol RowConvertible {
+    /// Returns a value initialized from `row`.
+    static func fromRow(row: Row) -> Self
+    
+    /// Optional method which gives adopting types an opportunity to complete
+    /// their initialization after being fetched. Do not call it directly.
+    mutating func awakeFromFetch(row row: Row, database: Database)
+}
+```
+
+**To use RowConvertible**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
+
+```swift
+struct PointOfInterest {
+    var id: Int64?
+    var title: String?
+    var coordinate: CLLocationCoordinate2D
+}
+
+extension PointOfInterest : RowConvertible {
+    static func fromRow(row: Row) -> PointOfInterest {
+        return PointOfInterest(
+            id: row.value(named: "id"),
+            title: row.value(named: "title"),
+            coordinate: CLLocationCoordinate2DMake(
+                row.value(named: "latitude"),
+                row.value(named: "longitude")))
+    }
+}
+```
+
+See [Column Values](#column-values) for more information about the `row.value()` method.
+
+> :point_up: **Note**: For performance reasons, the same row argument to `fromRow(:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+
+RowConvertible allows adopting types to be fetched:
+
+- From SQL queries:
+
+    ```swift
+    PointOfInterest.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<PointOfInterest>
+    PointOfInterest.fetchAll(db, "SELECT ...", arguments:...) // [PointOfInterest]
+    PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
+    ```
+
+    See [Fetching Rows](#fetching-rows) for more information about the query arguments.
+
+- From primary key:
+    
+    ```swift
+    PointOfInterest.fetch(db, keys: ...)    // DatabaseSequence<PointOfInterest>
+    PointOfInterest.fetchAll(db, keys: ...) // [PointOfInterest]
+    PointOfInterest.fetchOne(db, key: ...)  // PointOfInterest?
+    ```
+    
+    Any single-column primary key is OK:
+    
+    ```swift
+    // SELECT * FROM pointOfInterests WHERE id IN (1, 2, 3)
+    PointOfInterest.fetchAll(db, keys: [1, 2, 3])
+    
+    // SELECT * FROM pointOfInterests WHERE id = 1
+    PointOfInterest.fetchOne(db, key: 1)
+    
+    // SELECT * FROM countries WHERE isoCode = 'FR'
+    Country.fetchOne(db, key: "FR")
+    ```
+
+Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
+
+- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
+- `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
+
+
+### TableMapping Protocol
+
+**Adopt the `TableMapping` protocol** on top of `RowConvertible`, and you are granted with the full [query interface](#the-query-interface).
+
+```swift
+public protocol TableMapping {
+    static func databaseTableName() -> String
+}
+```
+
+**To use TableMapping**, subclass the [Record](#record-class) class, or adopt it explicitely. For example:
+
+```swift
+extension PointOfInterest : TableMapping {
+    static func databaseTableName() -> String {
+        return "pointOfInterests"
+    }
+}
+
+let paris = dbQueue.inDatabase { db in
+    PointOfInterest.filter(name == "Paris").fetchOne(db)?
+}
+```
+
+
+### Persistable Protocol
+
+**GRDB provides two protocols that let adopting types store themselves in the database:**
+
+```swift
+public protocol MutablePersistable : TableMapping {
+    /// The name of the database table (from TableMapping)
+    static func databaseTableName() -> String
+    
+    /// The values persisted in the database
+    var persistentDictionary: [String: DatabaseValueConvertible?] { get }
+    
+    /// Optional method that lets your adopting type store its rowID upon
+    /// successful insertion. Don't call it directly: it is called for you.
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+}
+```
+
+```swift
+public protocol Persistable : MutablePersistable {
+    /// Non-mutating version of the optional didInsertWithRowID(:forColumn:)
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+}
+```
+
+Yes, two protocols instead of one. Both grant exactly the same advantages. Here is how you pick one or the other:
+
+- *If your type is a struct that mutates on insertion*, choose `MutablePersistable`. For example, your table has an INTEGER PRIMARY KEY and you want to store the inserted id on successful insertion. Or your table has a UUID primary key, and you want to automatically generate one on insertion.
+- Otherwise, stick with `Persistable`. Particularly if your type is a class.
+
+The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
+
+**To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitely. For example:
+
+```swift
+extension PointOfInterest : MutablePersistable {
+    
+    /// The values persisted in the database
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return [
+            "id": id,
+            "title": title,
+            "latitude": coordinate.latitude,
+            "longitude": coordinate.longitude]
+    }
+    
+    // Update id upon successful insertion:
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        id = rowID
+    }
+}
+
+var paris = PointOfInterest(
+    id: nil,
+    title: "Paris",
+    coordinate: CLLocationCoordinate2DMake(48.8534100, 2.3488000))
+
+try dbQueue.inDatabase { db in
+    try paris.insert(db)
+    paris.id   // some value
+}
+```
+
+
+#### Persistence Methods
+
+[Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
+
+```swift
+try object.insert(db) // INSERT
+try object.update(db) // UPDATE
+try object.save(db)   // Inserts or updates
+try object.delete(db) // DELETE
+object.exists(db)     // Bool
+```
+
+- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
+
+- `update` can also throw a PersistenceError of type NotFound, should the update fail because there is no matching row in the database.
+    
+    When saving an object that may or may not already exist in the database, prefer the `save` method: it performs the UPDATE or INSERT statement that makes sure your values are saved in the database.
+
+- `delete` returns whether a database row was deleted or not.
+
+
+#### Customizing the Persistence Methods
+
+Your custom type may want to perform extra work when the persistence methods are invoked.
+
+For example, it may want to have its UUID automatically set before inserting. Or it may want to validate its values before saving.
+
+When you subclass [Record](#record-class), you simply have to override the customized method, and call `super`:
+
+```swift
+class Person : Record {
+    var uuid: String?
+    
+    override func insert(db: Database) throws {
+        if uuid == nil {
+            uuid = NSUUID().UUIDString
+        }
+        try super.insert(db)
+    }
+}
+```
+
+If you use the raw [Persistable](#persistable-protocol) protocol, use one of the *special methods* `performInsert`, `performUpdate`, `performSave`, `performDelete`, or `performExists`:
+
+```swift
+struct Link : Persistable {
+    var url: NSURL
+    
+    func insert(db: Database) throws {
+        try validate()
+        try performInsert(db)
+    }
+    
+    func update(db: Database) throws {
+        try validate()
+        try performUpdate(db)
+    }
+    
+    func validate() throws {
+        if url.host == nil {
+            throw ValidationError("url must be absolute.")
+        }
+    }
+}
+```
+
+> :point_up: **Note**: The special methods `performInsert`, `performUpdate`, etc. are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
+>
+> :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
+
+
+### Record Class
+
+**Record** is a class that builds on top of the [RowConvertible](#rowconvertible-protocol), [TableMapping](#tablemapping-protocol) and [Persistable](#persistable-protocol) protocols, and is designed to be subclassed.
+
+It provides [persistence methods](#persistence-methods), [changes tracking](#changes-tracking), and the [query interface](#the-query-interface):
+
+```swift
+class PointOfInterest : Record { ... }
+
+// Persistence
+let paris = PointOfInterest(
+    name: "Paris",
+    coordinate: CLLocationCoordinate2DMake(48.8534100, 2.3488000))
+try paris.insert(db)
+
+// Changes tracking
+paris.hasPersistentChangedValues    // false
+
+// Query interface
+for poi in PointOfInterest.order(name).fetch(db) { poi in
+    print(poi.name)
+}
+```
+
+
+**Record subclasses override the four core methods that define their relationship with the database:**
+
+```swift
+class Record {
+    /// The table name
+    class func databaseTableName() -> String
+    
+    /// Initialize from a database row
+    required init(_ row: Row)
+    
+    /// The values persisted in the database
+    var persistentDictionary: [String: DatabaseValueConvertible?]
+    
+    /// Optionally update record ID after a successful insertion
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+}
+```
+
+For example:
+
+```swift
+class PointOfInterest : Record {
+    var id: Int64?
+    var title: String?
+    var coordinate: CLLocationCoordinate2D
+    
+    /// The table name
+    override class func databaseTableName() -> String {
+        return "pointOfInterests"
+    }
+    
+    /// Initialize from a database row
+    required init(_ row: Row) {
+        self.id = row.value(named: "id")
+        self.title = row.value(named: "title")
+        self.coordinate = CLLocationCoordinate2DMake(
+            row.value(named: "latitude"),
+            row.value(named: "longitude"))
+    }
+    
+    /// The values persisted in the database
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return [
+            "id": id,
+            "title": title,
+            "latitude": coordinate.latitude,
+            "longitude": coordinate.longitude]
+    }
+    
+    /// Update record ID after a successful insertion
+    func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        id = rowID
+    }
+}
+```
+
+
+#### Changes Tracking
+
+**[Record](#record-class) provides changes tracking.**
+
+The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
+
+Avoid it with the `hasPersistentChangedValues` property, which returns whether the record has changes that have not been saved:
+
+```swift
+// Saves the person if it has changes that have not been saved:
+if person.hasPersistentChangedValues {
+    try person.save(db)
+}
+```
+
+The `hasPersistentChangedValues` flag is false after a record has been fetched or saved into the database. Subsequent modifications may set it: `hasPersistentChangedValues` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
+
+```swift
+let person = Person.fetchOne(db, key: 1)    // Barbara, aged 35
+
+person.name = "Barbara"
+person.hasPersistentChangedValues   // false
+
+person.age = 36
+person.hasPersistentChangedValues   // true
+person.persistentChangedValues      // ["age": 35]
+```
+
+For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check this [sample code](https://gist.github.com/groue/dcdd3784461747874f41).
+
+
+## The Query Interface
+
+**The query interface lets you write pure Swift instead of SQL:**
+
+```swift
+let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
+```
+
+Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL. Don't miss the [SQL API](#fetch-queries).
+
+- [Requests](#requests)
+- [Expressions](#expressions)
+    - [SQL Operators](#sql-operators)
+    - [SQL Functions](#sql-functions)
+- [Fetching from Requests](#fetching-from-requests)
+- [Counting with Requests](#counting-with-requests)
+
+
+### Requests
+
+Everything starts from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
+
+```swift
+class Person: Record {
+    static func databaseTableName() -> String {
+        return "persons"
+    }
+}
+```
+
+Define **columns** that represent SQL columns:
+
+```swift
+let id = SQLColumn("id")
+let name = SQLColumn("name")
+```
+
+> :bowtie: **Tip**: you don't want to lock a variable such as `name` for GRDB's fancy API, do you? My own practice is to declare a dedicated `Col` struct as below (see [sample code](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift)):
+>
+> ```swift
+> struct Col {
+>    static let id = SQLColumn("id")
+>    static let name = SQLColumn("name")
+>    static let age = SQLColumn("age")
+> }
+> ```
+
+You can now derive requests with the following methods:
+
+- `all`
+- `select`
+- `distinct`
+- `filter`
+- `group`
+- `having`
+- `order`
+- `reverse`
+- `limit`
+
+All the methods above return another request, which you can further refine by applying another derivation method.
+
+- `all()`: the request for all rows.
+
+    ```swift
+    // SELECT * FROM "persons"
+    Person.all()
+    ```
+
+- `select(expression, ...)` defines the selected columns.
+    
+    ```swift
+    // SELECT "id", "name" FROM "persons"
+    Person.select(Col.id, Col.name)
+    
+    // SELECT UPPER("name") FROM "persons"
+    Person.select(Col.name.uppercaseString)
+    
+    // SELECT UPPER("name") AS "uppercaseName" FROM "persons"
+    Person.select(Col.name.uppercaseString.aliased("uppercaseName"))
+    ```
+
+- `distinct` performs uniquing:
+    
+    ```swift
+    // SELECT DISTINCT "name" FROM "persons"
+    Person.select(Col.name).distinct
+    ```
+
+- `filter(expression)` applies conditions.
+    
+    ```swift
+    // SELECT * FROM "persons" WHERE ("id" IN (1, 2, 3))
+    Person.filter([1,2,3].contains(Col.id))
+    
+    // SELECT * FROM "persons" WHERE (("name" IS NOT NULL) AND ("height" > 1.75))
+    Person.filter(Col.name != nil && Col.height > 1.75)
+    ```
+
+- `group(expression, ...)` groups rows.
+    
+    ```swift
+    // SELECT "name", MAX("age") FROM "persons" GROUP BY "name"
+    Person
+        .select(Col.name, max(Col.age))
+        .group(Col.name)
+    ```
+
+- `having(expression)` applies conditions on grouped rows.
+    
+    ```swift
+    // SELECT "name", MAX("age") FROM "persons" GROUP BY "name" HAVING MIN("age") >= 18
+    Person
+        .select(Col.name, max(Col.age))
+        .group(Col.name)
+        .having(min(Col.age) >= 18)
+    ```
+
+- `order(sortDescriptor, ...)` sorts.
+    
+    ```swift
+    // SELECT * FROM "persons" ORDER BY "name"
+    Person.order(Col.name)
+    
+    // SELECT * FROM "persons" ORDER BY UPPER("name") DESC, "email" ASC
+    Person.order(Col.name.uppercaseString.desc, Col.email.asc)
+    ```
+
+- `reverse()` reverses the eventual sort descriptors.
+    
+    ```swift
+    // SELECT * FROM "persons" ORDER BY "name" DESC
+    Person.order(Col.name).reverse()
+
+    // SELECT * FROM "persons" ORDER BY UPPER("name") ASC, "email" DESC
+    Person.order(Col.name.uppercaseString.desc, Col.email.asc)reverse()
+    ```
+    
+    If no ordering was specified, the result is ordered by the primary key in reverse order.
+    
+    ```swift
+    // SELECT * FROM "persons" ORDER BY "id" DESC
+    Person.all().reverse()
+    ```
+
+- `limit(limit, offset: offset)` limits and pages results.
+    
+    ```swift
+    // SELECT * FROM "persons" LIMIT 5
+    Person.limit(5)
+    
+    // SELECT * FROM "persons" LIMIT 5 OFFSET 10
+    Person.limit(5, offset: 10)
+    ```
+
+You can refine requests by chaining those methods, in any order.
+
+```swift
+// SELECT * FROM "persons" WHERE ("email" IS NOT NULL) ORDER BY "name"
+Person.order(Col.name).filter(Col.email != nil)
+```
+
+The `select`, `group` and `limit` methods ignore and replace previously applied selection, grouping and limits. On the opposite, `filter`, `having`, and `order` methods augment the query:
+
+```swift
+Person                          // SELECT * FROM "persons"
+    .filter(Col.name != nil)    // WHERE (("name" IS NOT NULL)
+    .filter(Col.email != nil)   //        AND ("email IS NOT NULL"))
+    .order(Col.name)            // ORDER BY "name"
+    .limit(20, offset: 40)      // - ignored -
+    .limit(10)                  // LIMIT 10
+```
+
+
+Raw SQL snippets are also accepted:
+
+```swift
+// SELECT DATE(creationDate), COUNT(*) FROM "persons" GROUP BY date(creationDate)
+Person
+    .select(sql: "DATE(creationDate), COUNT(*)")
+    .group(sql: "DATE(creationDate)")
+```
+
+
+### Expressions
+
+Feed [requests](#requests) with SQL expressions built from your Swift code:
+
+
+#### SQL Operators
+
+- `=`, `<>`, `<`, `<=`, `>`, `>=`, `IS`, `IS NOT`
+    
+    Comparison operators are based on the Swift operators `==`, `!=`, `===`, `!==`, `<`, `<=`, `>`, `>=`:
+    
+    ```swift
+    // SELECT * FROM "persons" WHERE ("name" = 'Arthur')
+    Person.filter(Col.name == "Arthur")
+    
+    // SELECT * FROM "persons" WHERE ("name" IS NULL)
+    Person.filter(Col.name == nil)
+    
+    // SELECT * FROM "persons" WHERE ("age" <> 18)
+    Person.filter(Col.age != 18)
+    
+    // SELECT * FROM "persons" WHERE ("age" IS NOT 18)
+    Person.filter(Col.age !== 18)
+    
+    // SELECT * FROM "rectangles" WHERE ("width" < "height")
+    Rectangle.filter(Col.width < Col.height)
+    ```
+    
+    > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [String Comparison](#string-comparison) if you need more control.
+    
+
+- `*`, `/`, `+`, `-`
+    
+    SQLite arithmetic operators are derived from their Swift equivalent:
+    
+    ```swift
+    // SELECT (("temperature" * 1.8) + 32) AS "farenheit" FROM "persons"
+    Planet.select((Col.temperature * 1.8 + 32).aliased("farenheit"))
+    ```
+    
+    > :point_up: **Note**: an expression like `Col.name + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation.
+
+- `AND`, `OR`, `NOT`
+    
+    The SQL logical operators are derived from the Swift `&&`, `||` and `!`:
+    
+    ```swift
+    // SELECT * FROM "persons" WHERE ((NOT "verified") OR ("age" < 18))
+    Person.filter(!Col.verified || Col.age < 18)
+    ```
+
+- `BETWEEN`, `IN`, `NOT IN`
+    
+    To check inclusion in a collection, call the `contains` method on any Swift sequence:
+    
+    ```swift
+    // SELECT * FROM "persons" WHERE ("id" IN (1, 2, 3))
+    Person.filter([1, 2, 3].contains(Col.id))
+    
+    // SELECT * FROM "persons" WHERE ("id" NOT IN (1, 2, 3))
+    Person.filter(![1, 2, 3].contains(Col.id))
+    
+    // SELECT * FROM "persons" WHERE ("age" BETWEEN 0 AND 17)
+    Person.filter((0..<18).contains(Col.age))
+    
+    // SELECT * FROM "persons" WHERE ("age" BETWEEN 0 AND 17)
+    Person.filter((0...17).contains(Col.age))
+    
+    // SELECT * FROM "persons" WHERE ("name" BETWEEN 'A' AND 'z')
+    Person.filter(("A"..."z").contains(Col.name))
+    
+    // SELECT * FROM "persons" WHERE (("name" >= 'A') AND ("name" < 'z'))
+    Person.filter(("A"..<"z").contains(Col.name))
+    ```
+    
+    > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [String Comparison](#string-comparison) if you need more control.
+
+
+#### SQL Functions
+
+- `ABS`, `AVG`, `COUNT`, `MAX`, `MIN`, `SUM`:
+    
+    Those are based on the `abs`, `average`, `count`, `max`, `min` and `sum` Swift functions:
+    
+    ```swift
+    // SELECT MIN("age"), MAX("age") FROM persons
+    Person.select(min(Col.age), max(Col.age))
+    
+    // SELECT COUNT("name") FROM persons
+    Person.select(count(Col.name))
+    
+    // SELECT COUNT(DISTINCT "name") FROM persons
+    Person.select(count(distinct: Col.name))
+    ```
+
+- `IFNULL`
+    
+    Use the Swift `??` operator:
+    
+    ```swift
+    // SELECT IFNULL("name", 'Anonymous') FROM persons
+    Person.select(Col.name ?? "Anonymous")
+    
+    // SELECT IFNULL("name", "email") FROM persons
+    Person.select(Col.name ?? Col.email)
+    ```
+
+- `LOWER`, `UPPER`
+    
+    Use the `lowercaseString` and `uppercaseString` methods:
+    
+    ```swift
+    // SELECT * FROM persons WHERE LOWER(name) = 'arthur'
+    Person.filter(Col.name.lowercaseString == 'arthur)
+    ```
+    
+    > :point_up: **Note**: SQLite support for case translation is limited to ASCII characters. When comparing strings as in the example abobe, you may prefer a [custom comparison function](#string-comparison). When you actually want to transform strings in an Unicode-aware fashion, use a [custom SQL function](#custom-sql-functions).
+
+    
+### Fetching from Requests
+
+Once you have a request, you can fetch the records at the origin of the request:
+
+```swift
+dbQueue.inDatabase { db in
+    // Some request based on `Person`
+    let request = Person.filter(...)...
+    
+    // Fetch persons:
+    request.fetch(db)    // DatabaseSequence<Person>
+    request.fetchAll(db) // [Person]
+    request.fetchOne(db) // Person?
+}
+```
+
+For example:
+
+```swift
+let persons = Person.order(name).fetchAll(db) // [Persons]
+```
+
+Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
+
+- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
+- `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
+
+**When the selected columns don't fit the source type**, you just have to change your target: any other type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, plain [database rows](#column-values), and even [values](#values):
+
+```swift
+dbQueue.inDatabase { db in
+    let request = Person....
+    
+    // Alternative records:
+    Other.fetch(db, request)    // DatabaseSequence<Other>
+    Other.fetchAll(db, request) // [Other]
+    Other.fetchOne(db, request) // Other?
+    
+    // Rows:
+    Row.fetch(db, request)      // DatabaseSequence<Row>
+    Row.fetchAll(db, request)   // [Row]
+    Row.fetchOne(db, request)   // Row?
+    
+    // Values:
+    Int.fetch(db, request)      // DatabaseSequence<Int>
+    Int.fetchAll(db, request)   // [Int]
+    Int.fetchOne(db, request)   // Int?
+}
+```
+
+For example:
+
+```swift
+// Int
+let request = Person.select(min(Col.height))
+let minHeight = Int.fetchOne(db, request)!
+
+// Row
+let request = Person.select(min(Col.height), max(Col.height))
+let row = Row.fetchOne(db, request)!
+let minHeight = row.value(atIndex: 0) as Int
+let maxHeight = row.value(atIndex: 1) as Int
+```
+
+See [Column Values](#column-values) for more information about the `row.value()` method.
+
+**Fetching records according to their primary key** is a very common task. It has a shortcut which accepts any single-column primary key:
+
+```swift
+// SELECT * FROM persons WHERE id = 1
+Person.fetchOne(db, key: 1)!
+
+// SELECT * FROM persons WHERE id IN (1, 2, 3)
+Person.fetchAll(db, keys: [1, 2, 3])!
+
+// SELECT * FROM persons WHERE isoCode = 'FR'
+Country.fetchOne(db, key: "FR")!
+
+// SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
+Country.fetchAll(db, keys: ["FR", "US"])!
+```
+
+
+### Counting with Requests
+
+**Requests can count:**
+
+```swift
+dbQueue.inDatabase { db in
+    
+    // SELECT COUNT(*) FROM "persons" ...
+    request.fetchCount(db)                      // Int
+    
+    // SELECT COUNT(name) FROM "persons" ...
+    request.fetchCount(db, Col.name)            // Int
+    
+    // SELECT COUNT(DISTINCT name) FROM "persons" ...
+    request.fetchCount(db, distinct: Col.name)  // Int
+}
+```
+
+You can also fetch other aggregated values (average, sum, min, max, etc.) For example:
+
+```swift
+dbQueue.inDatabase { db in
+    // SELECT MIN("age") FROM "persons" WHERE email IS NOT NULL
+    let request = Person.select(min(Col.age))
+    let minAge = Int.fetchOne(db, request)  // Int?
+}
+```
 
 
 ## Migrations
@@ -1229,882 +2116,6 @@ migrator.registerMigration("AddNotNullCheckOnName", withDisabledForeignKeyChecks
 ```
 
 While your migration code runs with disabled foreign key checks, those are re-enabled and checked at the end of the migration, regardless of eventual errors.
-
-
-## Database Protocols, and Record
-
-**GRDB provides protocols and a Record class** that help isolating database management code into database layer types, and avoid cluterring the rest of your application.
-
-- The [RowConvertible protocol](#rowconvertible-protocol) grants adopting types with **fetching methods**:
-    
-    ```swift
-    struct Person : RowConvertible { ... }
-    let persons = Person.fetchAll(db, "SELECT * FROM persons")
-    let person = let Person.fetchOne(db, key: 1)!
-    print(person.name)
-    ```
-    
-- The [DatabasePersistable protocol](#databasepersistable-protocol) grants adopting types with **persistence methods**:
-    
-    ```swift
-    struct Person : DatabasePersistable { ... }
-    try Person(name: "Arthur").insert(db)
-    ```
-    
-- The [Record class](#record) grants its subclasses with fetching methods, persistence methods, and **changes tracking**:
-    
-    ```swift
-    class Person : Record { ... }
-    let person = Person.fetchOne(db, key: 1)!
-    person.name = "Barbara"
-    if person.hasPersistentChangedValues {
-        try person.update(db)
-    }
-    ```
-
-
-### RowConvertible Protocol
-
-**The `RowConvertible` protocol grants fetching methods to any type** that can be built from a database row:
-
-```swift
-public protocol RowConvertible {
-    /// Returns a value initialized from `row`.
-    static func fromRow(row: Row) -> Self
-    
-    /// Optional method which gives adopting types an opportunity to complete
-    /// their initialization after being fetched. Do not call it directly.
-    mutating func awakeFromFetch(row row: Row, database: Database)
-}
-```
-
-Adopting types can be fetched just like rows:
-
-```swift
-struct PointOfInterest : RowConvertible {
-    var coordinate: CLLocationCoordinate2D
-    var title: String?
-    
-    static func fromRow(row: Row) -> PointOfInterest {
-        return PointOfInterest(
-            coordinate: CLLocationCoordinate2DMake(
-                row.value(named: "latitude"),
-                row.value(named: "longitude")),
-            title: row.value(named: "title"))
-    }
-}
-
-PointOfInterest.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<PointOfInterest>
-PointOfInterest.fetchAll(db, "SELECT ...", arguments:...) // [PointOfInterest]
-PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
-```
-
-See [Column Values](#column-values) for more information about the `row.value()` method, and [Fetching Rows](#fetching-rows) about the query arguments.
-
-Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
-
-- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
-
-> :point_up: **Note**: For performance reasons, the same row argument to `fromRow(:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
-
-See also the [Record](#record) class, which builds on top of RowConvertible and adds a few extra features like persistence methods, and changes tracking.
-
-
-#### Fetching by Key
-
-**Adopt the `DatabaseTableMapping` protocol** on top of `RowConvertible`:
-
-```swift
-public protocol DatabaseTableMapping {
-    /// The name of the database table
-    static func databaseTableName() -> String
-}
-```
-
-For example:
-
-```swift
-// CREATE TABLE persons (
-//   id INTEGER PRIMARY KEY,
-//   name TEXT,
-//   email TEXT UNIQUE COLLATE NOCASE
-// )
-struct Person : RowConvertible, DatabaseTableMapping {
-    var id: Int64?
-    var name: String?
-    var email: String?
-    
-    static func databaseTableName() -> String {
-        return "persons"
-    }
-    
-    static func fromRow(row: Row) -> Person {
-        return Person(
-            id: row.value(named: "id"),
-            name: row.value(named: "name"),
-            email: row.value(named: "email"))
-    }
-}
-```
-
-You are then granted with fetching methods based on database keys:
-
-```swift
-Person.fetch(db, keys: ...)     // DatabaseSequence<Person>
-Person.fetchAll(db, keys: ...)  // [Person]
-Person.fetchOne(db, key: ...)   // Person?
-```
-
-Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
-
-- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
-
-The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
-
-
-**When the database table has a single column primary key**, you can fetch given key values:
-
-```swift
-// SELECT * FROM persons WHERE id = 1
-Person.fetchOne(db, key: 1)
-
-// SELECT * FROM persons WHERE id IN (1,2,3)
-Person.fetch(db, keys: [1,2,3])
-
-// SELECT * FROM countries WHERE isoCode = 'FR'
-Country.fetchOne(db, key: "FR")
-
-// SELECT * FROM countries WHERE isoCode IN ('FR', 'ES', 'US')
-Country.fetchAll(db, keys: ["FR", "ES", "US"])
-```
-
-**For multi-column primary keys and secondary keys**, use a key dictionary:
-
-```swift
-// SELECT * FROM persons WHERE email = 'me@example.com'
-Person.fetchOne(db, key: ["email": "me@example.com"])
-
-// SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
-Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
-```
-
-
-#### Optional Columns
-
-**Your RowConvertible type can accept rows that do not always contain the same columns.**
-
-This allows you to load only a subset of a table columns, or to load extra columns joined from other tables. For example:
-
-```swift
-struct Person : RowConvertible {
-    let id: Int64?
-    let name: String
-    let bookCount: Int? // Only set when person is fetched from fetchAllWithBookCount()
-    
-    static func fromRow(row: Row) -> Person {
-        return Person(
-            id: row.value(named: "id"),
-            name: row.value(named: "name"),
-            bookCount: row.value(named: "bookCount")) // nil if column is missing
-    }
-    
-    // The returned persons have a value in their bookCount property:
-    static func fetchAllWithBookCount(db: Database) -> [Person] {
-        return fetchAll(db,
-            "SELECT persons.*, COUNT(books.id) AS bookCount " +
-            "FROM persons " +
-            "LEFT JOIN books ON books.ownerId = persons.id " +
-            "GROUP BY persons.id")
-    }
-}
-```
-
-See [Column Values](#column-values) for more information about the `row.value()` method.
-
-
-### DatabasePersistable Protocol
-
-**GRDB provides two protocols that let adopting types store themselves in the database:**
-
-```swift
-public protocol MutableDatabasePersistable : DatabaseTableMapping {
-    /// The name of the database table (from DatabaseTableMapping)
-    static func databaseTableName() -> String
-    
-    /// Returns the values that should be persisted in the database.
-    var persistentDictionary: [String: DatabaseValueConvertible?] { get }
-    
-    /// Optional method that lets your adopting type store its rowID upon
-    /// successful insertion. Don't call it directly: it is called for you.
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
-}
-
-public protocol DatabasePersistable : MutableDatabasePersistable {
-    /// Non-mutating version of the optional didInsertWithRowID(:forColumn:)
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
-}
-```
-
-That's one more protocol that one could expect, and `MutableDatabasePersistable` may sound intimidating.
-
-Yet, here is the rule:
-
-- If your type is a struct that mutates on insertion, choose `MutableDatabasePersistable`. For example, if your table has an INTEGER PRIMARY KEY, you want to store the inserted id on successful insertion.
-- Otherwise, stick with `DatabasePersistable`.
-
-For example, the Country struct below has no INTEGER PRIMARY KEY, and is not mutated on insertion:
-
-```swift
-// CREATE TABLE countries (
-//   isoCode TEXT NOT NULL PRIMARY KEY,
-//   name TEXT NOT NULL
-// )
-struct Country : DatabasePersistable {
-    let isoCode: String
-    let name: String
-    
-    static func databaseTableName() -> String {
-        return "countries"
-    }
-
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["isoCode": isoCode, "name": name]
-    }
-}
-
-// Declare the country as `let`, since its insertion does not mutate it:
-let country = Country(isoCode: "FR", name: "France")
-try country.insert(db)
-```
-
-On the other side, the Person struct is interested in its rowID, and mutates itself on insertion:
-
-```swift
-// CREATE TABLE persons (
-//     id INTEGER PRIMARY KEY,
-//     name TEXT
-// )
-struct Person : MutableDatabasePersistable {
-    let id: Int64?
-    let name: String?
-    
-    static func databaseTableName() -> String {
-        return "persons"
-    }
-    
-    var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name]
-    }
-    
-    // Update person ID upon successful insertion:
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-        id = rowID
-    }
-}
-
-// Declare the person as `var`, since its insertion mutates it:
-var person = Person(id: nil, name: "Arthur")
-person.id   // nil
-try person.insert(db)
-person.id   // some value
-```
-
-The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
-
-> :point_up: **Note**: Classes should always prefer adopting `DatabasePersistable` over `MutableDatabasePersistable`, even if they mutate on insertion. This will prevent strange compiler errors when they insert an instance stored in a `let` variable (see [SR-142](https://bugs.swift.org/browse/SR-142)).
-
-
-#### Persistence Methods
-
-Types that adopt DatabasePersistable or MutableDatabasePersistable are given default implementations for methods that insert, update, and delete:
-
-```swift
-try object.insert(db)                 // INSERT
-try object.update(db)                 // UPDATE
-try object.save(db)                   // Inserts or updates
-try object.delete(db)                 // DELETE
-object.exists(db)                     // Bool
-```
-
-- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
-
-- `update` can also throw a PersistenceError of type NotFound, should the update fail because there is no matching row in the database.
-    
-    When saving an object that may or may not already exist in the database, prefer the `save` method: it performs the UPDATE or INSERT statement that makes sure your values are saved in the database.
-
-- `delete` returns whether a database row was deleted or not.
-
-
-#### Customizing the Persistence Methods
-
-Your custom type may want to perform extra work when the persistence methods are invoked.
-
-For example, it may want to have its UUID automatically set before inserting. Or it may want to validate its values before saving.
-
-The protocol exposes *special methods* for this exact purpose: `performInsert`, `performUpdate`, `performSave`, `performDelete`, and `performExists`.
-
-```swift
-struct Person : MutableDatabasePersistable {
-    var uuid: String?
-    
-    mutating func insert(db: Database) throws {
-        if uuid == nil {
-            uuid = NSUUID().UUIDString
-        }
-        try performInsert(db)
-    }
-}
-
-struct Link : DatabasePersistable {
-    var url: NSURL
-    
-    func insert(db: Database) throws {
-        try validate()
-        try performInsert(db)
-    }
-    
-    func update(db: Database) throws {
-        try validate()
-        try performUpdate(db)
-    }
-    
-    func validate() throws {
-        if url.host == nil {
-            throw ValidationError("url must be absolute.")
-        }
-    }
-}
-```
-
-> :point_up: **Note**: The special methods `performInsert`, `performUpdate`, etc. are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
->
-> :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
-
-
-### Record
-
-- [Overview](#record-overview)
-- [Subclassing Record](#subclassing-record)
-- [Fetching Records](#fetching-records)
-- [Record Persistence Methods](#record-persistence-methods)
-- [Changes Tracking](#changes-tracking)
-- [Advice](#advice)
-
-
-#### Record Overview
-
-**Record** is a class that wraps a table row or the result of any query, provides persistence methods, and changes tracking. It builds on top of the [RowConvertible](#rowconvertible-protocol) and [DatabasePersistable](#databasepersistable-protocol) protocols, and is designed to be subclassed.
-
-```swift
-// Define Record subclass
-class Person : Record { ... }
-
-try dbQueue.inDatabase { db in
-    // Store
-    let person = Person(name: "Arthur")
-    try person.save(db)
-    
-    // Fetch
-    for person in Person.fetch(db, "SELECT * FROM persons") {
-        print(person.name)
-    }
-}
-```
-
-**Record is not a smart class.** It is no replacement for Core Data’s NSManagedObject, [Realm](https://realm.io)’s Object, or for an Active Record pattern. It does not provide any uniquing, automatic refresh, or synthesized properties. It has no knowledge of external references and table relationships, and will not generate JOIN queries for you.
-
-Yet, it does a few things well:
-
-- **Records can be used from any thread**. Not being a replacement for NSManagedObject comes with advantages.
-
-- **It eats any SQL query.** A Record subclass is often tied to a database table, but this is not a requirement at all.
-
-    ```swift
-    let persons = Person.fetchAll(db,
-        "SELECT persons.*, COUNT(citizenships.isoCode) AS citizenshipsCount " +
-        "FROM persons " +
-        "LEFT JOIN citizenships ON citizenships.personId = persons.id " +
-        "GROUP BY persons.id")
-    let person = persons.first!
-    (person.name, person.citizenshipsCount)
-    ```
-
-- **It provides the classic CRUD persistence methods.** All primary keys are supported (auto-incremented INTEGER PRIMARY KEY, single column, multiple columns).
-    
-    ```swift
-    let person = Person(...)
-    try person.insert(db)                 // INSERT
-    try person.update(db)                 // UPDATE
-    try person.save(db)                   // Inserts or updates
-    try person.delete(db)                 // DELETE
-    ```
-    
-- **It tracks changes. Real changes**: setting a column to the same value does not constitute a change.
-    
-    ```swift
-    person = Person.fetch...
-    person.name = "Barbara"
-    person.age = 41
-    person.persistentChangedValues.keys // ["age"]
-    if person.hasPersistentChangedValues {
-        try person.save(db)
-    }
-    ```
-
-
-#### Subclassing Record
-
-**Record subclasses override the four core methods that define their relationship with the database:**
-
-```swift
-class Record {
-    /// The table name
-    class func databaseTableName() -> String
-    
-    /// Initialize a record from a database row
-    required init(_ row: Row)
-    
-    /// The values persisted in the database
-    var persistentDictionary: [String: DatabaseValueConvertible?]
-    
-    /// Optionally update record ID after a successful insertion
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
-}
-```
-
-**Given an implementation of those core methods, you are granted with the full Record toolkit:**
-
-```swift
-class Person {
-    // Copy
-    func copy() -> Self
-    
-    // Change Tracking
-    var hasPersistentChangedValues: Bool
-    var persistentChangedValues: [String: DatabaseValue?]
-    
-    // Persistence
-    func insert(db: Database) throws
-    func update(db: Database) throws
-    func save(db: Database) throws
-    func delete(db: Database) throws -> Bool
-    func exists(db: Database) -> Bool
-    
-    // Fetching
-    static func fetch(...) -> DatabaseSequence<Self>
-    static func fetchAll(...) -> [Self]
-    static func fetchOne(...) -> Self?
-    
-    // Events
-    func awakeFromFetch(row row: Row, database: Database)
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
-    
-    // Description (from the CustomStringConvertible protocol)
-    var description: String
-}
-```
-
-For example, given the following table:
-
-```sql
-CREATE TABLE countries (
-  isoCode TEXT NOT NULL PRIMARY KEY,
-  name TEXT NOT NULL
-)
-```
-
-The Country class freely defines its properties and initializers. Here we have chosen non optional properties that directly map database columns:
-
-```swift
-struct Country : Record {
-    let isoCode: String
-    let name: String
-    
-    init(isoCode: String, name: String) {
-        self.isoCode = isoCode
-        self.name = name
-        super.init()
-    }
-```
-
-Country overrides `databaseTableName()` to return the name of the table that should be used when fetching countries:
-
-```swift
-    /// The table name
-    override class func databaseTableName() -> String {
-        return "countries"
-    }
-```
-
-Country overrides `persistentDictionary` and returns a dictionary whose keys are column names, and values any `DatabaseValueConvertible` value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information:
-
-```swift
-    /// The values persisted in the database
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["isoCode": isoCode, "name": name]
-    }
-```
-
-Country overrides `init(row:)` so that it can be fetched:
-
-```swift
-    /// Initialize a Country from a row
-    required init(_ row: Row) {
-        isoCode = row.value(named: "isoCode")
-        name = row.value(named: "name")
-        super.init(row)
-    }
-}
-```
-
-See [Column Values](#column-values) for more information about the `row.value()` method.
-
-> :point_up: **Note**: For performance reasons, the same row argument to `init(row:)` is reused for all records during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
-
-The Country class is now ready:
-
-```swift
-try dbQueue.inDatabase { db in
-    let unitedStates = Country.fetchOne(db, key: "US")!
-    let country = Country(isoCode: "FR", name: "France")
-    try country.insert(db)
-}
-```
-
-When the database table has an INTEGER PRIMARY KEY, make sure to override the `didInsertWithRowID` method so that your record stores its id upon successful insertion:
-
-```swift
-// CREATE TABLE persons (
-//     id INTEGER PRIMARY KEY,
-//     name TEXT
-// )
-class Person : Record {
-    let id: Int64?
-    let name: String?
-    
-    init(name: String) {
-        self.id = nil
-        self.name = name
-        super.init()
-    }
-    
-    // Record overrides
-    
-    /// The table name
-    override class func databaseTableName() -> String {
-        return "persons"
-    }
-    
-    /// The values persisted in the database
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "name": name]
-    }
-    
-    /// Initialize a Person from a row
-    required init(_ row: Row) {
-        id = row.value(named: "id")
-        name = row.value(named: "name")
-        super.init(row)
-    }
-    
-    /// Update person ID after a successful insertion
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
-        id = rowID
-    }
-}
-
-let person = Person(...)
-person.id   // nil
-try person.insert(db)
-person.id   // some value
-```
-
-
-#### Fetching Records
-
-You can fetch **sequences**, **arrays**, or **single** records with raw SQL queries, or by key:
-
-```swift
-dbQueue.inDatabase { db in
-    // SQL
-    Person.fetch(db, "SELECT ...", arguments:...)     // DatabaseSequence<Person>
-    Person.fetchAll(db, "SELECT ...", arguments:...)  // [Person]
-    Person.fetchOne(db, "SELECT ...", arguments:...)  // Person?
-    
-    // When database table has a single column primary key
-    Person.fetch(db, keys: [1,2,3])                   // DatabaseSequence<Person>
-    Person.fetchAll(db, keys: [1,2,3])                // [Person]
-    Person.fetchOne(db, key: 1)                       // Person?
-    
-    // For multi-column primary keys and secondary keys
-    Person.fetch(db, keys: [["name": "Joe"], ...])    // DatabaseSequence<Person>
-    Person.fetchAll(db, keys: [["name": "Joe"], ...]) // [Person]
-    Person.fetchOne(db, key: ["name": "Joe"])         // Person?
-}
-```
-
-Both `fetch` and `fetchAll` let you iterate the full list of fetched records. The differences are:
-
-- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that performs a new request each time it is iterated. It is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise).
-
-For example:
-
-```swift
-dbQueue.inDatabase { db in
-    // All persons with an email ending in @example.com:
-    Person.fetchAll(db,
-        "SELECT * FROM persons WHERE email LIKE ?",
-        arguments: ["%@example.com"])
-    
-    // All persons who have a single citizenship:
-    Person.fetch(db,
-        "SELECT persons.* " +
-        "FROM persons " +
-        "JOIN citizenships ON citizenships.personId = persons.id " +
-        "GROUP BY persons.id " +
-        "HAVING COUNT(citizenships.id) = 1")
-    
-    // SELECT * FROM persons WHERE id = 1
-    Person.fetchOne(db, key: 1)
-    
-    // SELECT * FROM persons WHERE id IN (1,2,3)
-    Person.fetch(db, keys: [1,2,3])
-    
-    // SELECT * FROM countries WHERE isoCode = 'FR'
-    Country.fetchOne(db, key: "FR")
-    
-    // SELECT * FROM countries WHERE isoCode IN ('FR', 'ES', 'US')
-    Country.fetchAll(db, keys: ["FR", "ES", "US"])
-    
-    // SELECT * FROM persons WHERE email = 'me@example.com'
-    Person.fetchOne(db, key: ["email": "me@example.com"])
-    
-    // SELECT * FROM citizenships WHERE personId = 1 AND countryIsoCode = 'FR'
-    Citizenship.fetchOne(db, key: ["personId": 1, "countryIsoCode": "FR"])
-}
-```
-
-The order of sequences and arrays returned by the key-based methods is undefined. To specify the order of returned elements, use a raw SQL query.
-
-
-#### Record Persistence Methods
-
-Records can store themselves in the database through the `persistentDictionary` core property:
-
-```swift
-class Person : Record {
-    /// The values stored in the database
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["id": id, "url": url, "name": name, "email": email]
-    }
-}
-
-try dbQueue.inDatabase { db in
-    let person = Person(...)
-    try person.insert(db)                 // INSERT
-    try person.update(db)                 // UPDATE
-    try person.save(db)                   // Inserts or updates
-    try person.delete(db)                 // DELETE
-    person.exists(db)                     // Bool
-}
-```
-
-- `insert` automatically sets the primary key of record whose primary key is declared as "INTEGER PRIMARY KEY", if you override the `didInsertWithRowID` method:
-    
-    ```swift
-    let person = Person()
-    person.id   // nil
-    try person.insert(db)
-    person.id   // some value
-    ```
-    
-    Other primary keys (single or multiple columns) are not managed by GRDB: you have to manage them yourself. For example, you can override the `insert` primitive method, and generate an UUID before calling `super.insert`.
-
-- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
-
-- `update` can also throw a PersistenceError of type NotFound, should the update fail because the record does not exist in the database.
-    
-    When saving a record that may or may not already exist in the database, prefer the `save` method: it performs the UPDATE or INSERT statement that makes sure your values are saved in the database.
-
-- `delete` returns whether a database row was deleted or not.
-
-
-#### Changes Tracking
-
-The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
-
-Avoid it with the `hasPersistentChangedValues` property, which returns whether the record has changes that have not been saved:
-
-```swift
-// Saves the person if it has changes that have not been saved:
-if person.hasPersistentChangedValues {
-    try person.save(db)
-}
-```
-
-Note that `hasPersistentChangedValues` is based on value comparison: **setting a property to the same value does not set the edited flag**.
-
-For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check this [sample code](https://gist.github.com/groue/dcdd3784461747874f41).
-
-
-#### Advice
-
-- [Ad Hoc Subclasses](#ad-hoc-subclasses)
-- [Validation](#validation)
-- [Default Values](#default-values)
-- [INSERT OR REPLACE](#insert-or-replace)
-
-
-##### Ad Hoc Subclasses
-
-Don't hesitate deriving subclasses from your base records when you have a need for a specific query.
-
-For example, if a view controller needs to display a list of persons along with the number of books they own, it would be unreasonable to fetch the list of persons, and then, for each of them, fetch the number of books they own. That would perform N+1 requests, and [this is a well known issue](http://stackoverflow.com/questions/97197/what-is-the-n1-selects-issue).
-
-Instead, subclass Person:
-
-```swift
-class PersonsViewController: UITableViewController {
-    
-    // An ad-hoc Person subclass that fits the need of this view controller:
-    private class PersonWithBookCount : Person {
-        var bookCount: Int?
-    
-        required init(_ row: Row) {
-            bookCount = row.value(named: "bookCount")
-            super.init(row)
-        }
-    }
-```
-
-Perform a single request:
-
-```swift
-    var persons: [PersonWithBookCount]!
-    
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        persons = dbQueue.inDatabase { db in
-            PersonWithBookCount.fetchAll(db,
-                "SELECT persons.*, COUNT(books.id) AS bookCount " +
-                "FROM persons " +
-                "LEFT JOIN books ON books.ownerId = persons.id " +
-                "GROUP BY persons.id")
-        }
-        
-        tableView.reloadData()
-    }
-```
-
-Other application objects that expect a Person will gently accept the private subclass:
-
-```swift
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if segue.identifier == "showPerson" {
-            let personVC: PersonViewController = segue...
-            personVC.person = persons[tableView.indexPathForSelectedRow!.row]
-        }
-    }
-}
-```
-
-
-##### Validation
-
-Record does not provide any built-in validation.
-
-You can use some external library such as [GRValidation](https://github.com/groue/GRValidation) in the update() and insert() methods:
-
-```swift
-class Person : Record, Validable {
-    var name: String?
-    
-    override func update(db: Database) throws {
-        // Validate before update
-        try validate()
-        try super.update(db)
-    }
-    
-    override func insert(db: Database) throws {
-        // Validate before insert
-        try validate()
-        try super.insert(db)
-    }
-    
-    func validate() throws {
-        // Name should not be nil
-        try validate(property: "name", with: name >>> ValidationNotNil())
-    }
-}
-
-// fatal error: 'try!' expression unexpectedly raised an error:
-// Invalid <Person name:nil>: name should not be nil.
-try! Person(name: nil).save(db)
-```
-
-
-##### Default Values
-
-**Avoid default values in table declarations.** Record doesn't know about them, and those default values won't be present in a record after it has been inserted.
-    
-For example, avoid the table below:
-
-```sql
-CREATE TABLE persons (
-    id INTEGER PRIMARY KEY,
-    creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,   -- Avoid
-    ...
-)
-```
-
-Instead, override `insert()` and provide the default value there:
-
-```sql
-CREATE TABLE persons (
-    id INTEGER PRIMARY KEY,
-    creationDate DATETIME NOT NULL,   -- OK
-    ...
-)
-```
-
-```swift
-class Person : Record {
-    var creationDate: NSDate?
-    
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["creationDate": creationDate, ...]
-    }
-    
-    override func insert(db: Database) throws {
-        if creationDate == nil {
-            creationDate = NSDate()
-        }
-        try super.insert(db)
-    }
-}
-```
-
-
-##### INSERT OR REPLACE
-
-**Record does not provide any API which executes a INSERT OR REPLACE query.** Instead, consider adding an ON CONFLICT clause to your table definition, and let the simple insert() method perform the eventual replacement:
-
-```sql
-CREATE TABLE persons (
-    id INTEGER PRIMARY KEY,
-    name TEXT UNIQUE ON CONFLICT REPLACE,
-    ...
-)
-```
-
-```swift
-let person = Person(name: "Arthur")
-person.insert(db)   // Replace any existing person named "Arthur"
-```
 
 
 ## Database Changes Observation

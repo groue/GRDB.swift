@@ -1,11 +1,11 @@
 // MARK: - PersistenceError
 
-/// An error thrown by a type that adopts DatabasePersistable.
+/// An error thrown by a type that adopts Persistable.
 public enum PersistenceError: ErrorType {
     
-    /// Thrown by MutableDatabasePersistable.update() when no matching row could be
+    /// Thrown by MutablePersistable.update() when no matching row could be
     /// found in the database.
-    case NotFound(MutableDatabasePersistable)
+    case NotFound(MutablePersistable)
 }
 
 extension PersistenceError : CustomStringConvertible {
@@ -34,26 +34,25 @@ private func databaseValues(forColumns columns: [String], inDictionary dictionar
 }
 
 
-// MARK: - MutableDatabasePersistable
+// MARK: - MutablePersistable
 
-/// Types that adopt MutableDatabasePersistable can be inserted, updated,
-/// and deleted.
+/// Types that adopt MutablePersistable can be inserted, updated, and deleted.
 ///
 /// This protocol is intented for types that have an INTEGER PRIMARY KEY, and
 /// are interested in the inserted RowID: they can mutate themselves upon
 /// successful insertion with the didInsertWithRowID(_:forColumn:) method.
 ///
 /// The insert() and save() methods are mutating methods.
-public protocol MutableDatabasePersistable : DatabaseTableMapping {
+public protocol MutablePersistable : TableMapping {
     
     /// Returns the values that should be stored in the database.
     ///
     /// Keys of the returned dictionary must match the column names of the
-    /// target database table (see DatabaseTableMapping.databaseTableName()).
+    /// target database table (see TableMapping.databaseTableName()).
     ///
     /// In particular, primary key columns, if any, must be included.
     ///
-    ///     struct Person : MutableDatabasePersistable {
+    ///     struct Person : MutablePersistable {
     ///         var id: Int64?
     ///         var name: String?
     ///
@@ -69,7 +68,7 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     ///
     /// This method is optional: the default implementation does nothing.
     ///
-    ///     struct Person : MutableDatabasePersistable {
+    ///     struct Person : MutablePersistable {
     ///         var id: Int64?
     ///         var name: String?
     ///
@@ -160,7 +159,7 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     func exists(db: Database) -> Bool
 }
 
-public extension MutableDatabasePersistable {
+public extension MutablePersistable {
     
     /// The default implementation does nothing.
     mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
@@ -222,11 +221,11 @@ public extension MutableDatabasePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutableDatabasePersistable.
+    /// that adopt MutablePersistable.
     ///
     /// performInsert() provides the default implementation for insert(). Types
-    /// that adopt MutableDatabasePersistable can invoke performInsert() in
-    /// their implementation of insert(). They should not provide their own
+    /// that adopt MutablePersistable can invoke performInsert() in their
+    /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     mutating func performInsert(db: Database) throws {
         let dataMapper = DataMapper(db, self)
@@ -237,11 +236,11 @@ public extension MutableDatabasePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutableDatabasePersistable.
+    /// that adopt MutablePersistable.
     ///
     /// performUpdate() provides the default implementation for update(). Types
-    /// that adopt MutableDatabasePersistable can invoke performUpdate() in
-    /// their implementation of update(). They should not provide their own
+    /// that adopt MutablePersistable can invoke performUpdate() in their
+    /// implementation of update(). They should not provide their own
     /// implementation of performUpdate().
     func performUpdate(db: Database) throws {
         let changes = try DataMapper(db, self).updateStatement().execute()
@@ -251,10 +250,10 @@ public extension MutableDatabasePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutableDatabasePersistable.
+    /// that adopt MutablePersistable.
     ///
     /// performSave() provides the default implementation for save(). Types
-    /// that adopt MutableDatabasePersistable can invoke performSave() in their
+    /// that adopt MutablePersistable can invoke performSave() in their
     /// implementation of save(). They should not provide their own
     /// implementation of performSave().
     ///
@@ -280,10 +279,10 @@ public extension MutableDatabasePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutableDatabasePersistable.
+    /// that adopt MutablePersistable.
     ///
     /// performDelete() provides the default implementation for deelte(). Types
-    /// that adopt MutableDatabasePersistable can invoke performDelete() in
+    /// that adopt MutablePersistable can invoke performDelete() in
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
     func performDelete(db: Database) throws -> Bool {
@@ -291,10 +290,10 @@ public extension MutableDatabasePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt MutableDatabasePersistable.
+    /// that adopt MutablePersistable.
     ///
     /// performExists() provides the default implementation for exists(). Types
-    /// that adopt MutableDatabasePersistable can invoke performExists() in
+    /// that adopt MutablePersistable can invoke performExists() in
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
     func performExists(db: Database) -> Bool {
@@ -304,15 +303,15 @@ public extension MutableDatabasePersistable {
 }
 
 
-// MARK: - DatabasePersistable
+// MARK: - Persistable
 
-/// Types that adopt DatabasePersistable can be inserted, updated, and deleted.
+/// Types that adopt Persistable can be inserted, updated, and deleted.
 ///
 /// This protocol is intented for types that don't have an INTEGER PRIMARY KEY.
 ///
-/// Unlike MutableDatabasePersistable, the insert() and save() methods are not
+/// Unlike MutablePersistable, the insert() and save() methods are not
 /// mutating methods.
-public protocol DatabasePersistable : MutableDatabasePersistable {
+public protocol Persistable : MutablePersistable {
     
     /// Don't call this method directly: it is called upon successful insertion,
     /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
@@ -321,7 +320,7 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
     /// This method is optional: the default implementation does nothing.
     ///
     /// If you need a mutating variant of this method, adopt the
-    /// MutableDatabasePersistable protocol instead.
+    /// MutablePersistable protocol instead.
     ///
     /// - parameter rowID: The inserted rowID.
     /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
@@ -365,7 +364,7 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
     func save(db: Database) throws
 }
 
-public extension DatabasePersistable {
+public extension Persistable {
     
     /// The default implementation does nothing.
     func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
@@ -392,10 +391,10 @@ public extension DatabasePersistable {
     // MARK: - Immutable CRUD Internals
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt DatabasePersistable.
+    /// that adopt Persistable.
     ///
     /// performInsert() provides the default implementation for insert(). Types
-    /// that adopt DatabasePersistable can invoke performInsert() in their
+    /// that adopt Persistable can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     func performInsert(db: Database) throws {
@@ -407,10 +406,10 @@ public extension DatabasePersistable {
     }
     
     /// Don't invoke this method directly: it is an internal method for types
-    /// that adopt DatabasePersistable.
+    /// that adopt Persistable.
     ///
     /// performSave() provides the default implementation for save(). Types
-    /// that adopt DatabasePersistable can invoke performSave() in their
+    /// that adopt Persistable can invoke performSave() in their
     /// implementation of save(). They should not provide their own
     /// implementation of performSave().
     ///
@@ -440,14 +439,14 @@ public extension DatabasePersistable {
 
 // MARK: - DataMapper
 
-/// DataMapper takes care of DatabasePersistable CRUD
+/// DataMapper takes care of Persistable CRUD
 final class DataMapper {
     
     /// The database
     let db: Database
     
     /// The persistable
-    let persistable: MutableDatabasePersistable
+    let persistable: MutablePersistable
     
     /// DataMapper keeps a copy the persistable's persistentDictionary, so
     /// that this dictionary is built once whatever the database operation.
@@ -460,7 +459,7 @@ final class DataMapper {
     /// The table primary key
     let primaryKey: PrimaryKey
     
-    init(_ db: Database, _ persistable: MutableDatabasePersistable) {
+    init(_ db: Database, _ persistable: MutablePersistable) {
         // Fail early if database table does not exist.
         let databaseTableName = persistable.dynamicType.databaseTableName()
         let primaryKey = try! db.primaryKey(databaseTableName)

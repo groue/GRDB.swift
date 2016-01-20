@@ -515,7 +515,7 @@ extension Database {
 
 /// A Collation.
 public class DatabaseCollation : Hashable {
-    let name: String
+    public let name: String
     let function: (String, String) -> NSComparisonResult
     
     /// The hash value.

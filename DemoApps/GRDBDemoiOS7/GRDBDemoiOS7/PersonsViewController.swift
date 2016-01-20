@@ -14,7 +14,7 @@ class PersonsViewController: UITableViewController {
     
     func reloadPersons() {
         persons = dbQueue.inDatabase { db in
-            Person.fetchAll(db, "SELECT * FROM persons ORDER BY LOWER(firstName), LOWER(lastName)")
+            Person.order(Col.firstName, Col.lastName).fetchAll(db)
         }
     }
     
@@ -61,6 +61,7 @@ class PersonsViewController: UITableViewController {
         
         let person = persons[indexPath.row]
         cell.textLabel!.text = person.fullName
+        cell.selectionStyle = .None
         return cell
     }
     
@@ -73,6 +74,10 @@ class PersonsViewController: UITableViewController {
         }
         persons.removeAtIndex(indexPath.row)
         tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+    }
+    
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
     
     
