@@ -2,16 +2,11 @@ import XCTest
 import GRDB
 
 
-extension Person : Hashable {
-    
-    var hashValue: Int {
-        return self.id.hashValue
-    }
-}
-
+extension Person : Equatable {}
 func ==(lhs: Person, rhs: Person) -> Bool {
     return lhs.id == rhs.id
 }
+
 
 class FetchedResultsControllerTests: GRDBTestCase, FetchedResultsControllerDelegate {
     
@@ -224,7 +219,7 @@ class FetchedResultsControllerTests: GRDBTestCase, FetchedResultsControllerDeleg
     }
 
     func testRecordUpdate() {
-        /*
+        
         // Insert 4 person
         let pascal = Person(); pascal.name = "Pascal"; pascal.age = 27
         let gwen = Person(); gwen.name = "Gwendal"; gwen.age = 42
@@ -258,6 +253,7 @@ class FetchedResultsControllerTests: GRDBTestCase, FetchedResultsControllerDeleg
         waitForExpectationsWithTimeout(2, handler: nil)
         
         // We got 1 Change
+        print(updates)
         if (updates.count != 1) {
             XCTFail("Expected updates to contain 1 change")
             return
@@ -274,11 +270,9 @@ class FetchedResultsControllerTests: GRDBTestCase, FetchedResultsControllerDeleg
             XCTAssert(changes!["age"] != nil)
         default: XCTFail("unexpected update: \(update)")
         }
-*/
     }
     
     func testRecordMove() {
-        /*
         // Insert 4 person
         let pascal = Person(); pascal.name = "Pascal"; pascal.age = 27
         let gwen = Person(); gwen.name = "Gwendal"; gwen.age = 42
@@ -325,8 +319,6 @@ class FetchedResultsControllerTests: GRDBTestCase, FetchedResultsControllerDeleg
             XCTAssert(to == NSIndexPath(indexes: [0,0], length: 2))
         default: XCTFail("unexpected update: \(update)")
         }
-        */
     }
-
 }
 

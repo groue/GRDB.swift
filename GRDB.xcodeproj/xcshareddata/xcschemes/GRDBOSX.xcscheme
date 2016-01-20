@@ -99,6 +99,9 @@
                   Identifier = "DictionaryRowTests">
                </Test>
                <Test
+                  Identifier = "FetchedRecordsControllerTests">
+               </Test>
+               <Test
                   Identifier = "FetchedRecordsControllerTests/testEmptyFetchedRecordsAfterPerformFetch()">
                </Test>
                <Test

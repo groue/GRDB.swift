@@ -83,74 +83,33 @@ public class FetchedResultsController<T: FetchedResult> {
     
     func diff(fromRows s: [T], toRows t: [T]) -> [Change<T>] {
         
-        /// Returns a potential move `Change` based on an array of `Change` elements and an `update` to match up against.
-        /// If `update` is a deletion or an insertion, and there is a matching inverse insertion/deletion with the same value in the array, a corresponding `.Move` update is returned.
-        /// As a convenience, the index of the matched edit into `edits` is returned as well.
-        func moveFromChanges(updates: [Change<T>], deletionOrInsertion update: Change<T>) -> (move: Change<T>, index: Int)? {
-            if let inverseIndex = updates.indexOf({ (earlierChange) -> Bool in return earlierChange.isInverse(update) }) {
-                switch updates[inverseIndex] {
-                case .Deletion(_, let from):
-                    switch update {
-                    case .Insertion(let insertedItem, let to):
-                        return (Change.Move(item: insertedItem, from: from, to: to), inverseIndex)
-                    default:
-                        break
-                    }
-                case .Insertion(let insertedItem, let to):
-                    switch update {
-                    case .Deletion(_, let from):
-                        return (Change.Move(item: insertedItem, from: from, to: to), inverseIndex)
-                    default:
-                        break
-                    }
-                default:
-                    break
-                }
-            }
-            return nil
-        }
-        
-        /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
-        func reducedChanges(updates: [Change<T>]) -> [Change<T>] {
-            return updates.reduce([Change<T>]()) { (var reducedChanges, update) in
-                if let (moveChange, index) = moveFromChanges(reducedChanges, deletionOrInsertion: update), case .Move = moveChange {
-                    reducedChanges.removeAtIndex(index)
-                    reducedChanges.append(moveChange)
-                } else {
-                    reducedChanges.append(update)
-                }
-                return reducedChanges
-            }
-        }
-
-        
         let sourceCount = s.count
         let targetCount = t.count
         
         // Fill first row and column of insertions and deletions.
         
         var d: [[[Change<T>]]] = Array(count: sourceCount + 1, repeatedValue: Array(count: targetCount + 1, repeatedValue: []))
-        
         var edits = [Change<T>]()
         for (row, element) in s.enumerate() {
             let deletion = Change.Deletion(item: element, at: NSIndexPath(indexes:[0,row], length:2))
             edits.append(deletion)
             d[row + 1][0] = edits
         }
-        
         edits.removeAll()
         for (col, element) in t.enumerate() {
             let insertion = Change.Insertion(item: element, at: NSIndexPath(indexes:[0,col], length:2))
             edits.append(insertion)
             d[0][col + 1] = edits
         }
+        edits.removeAll()
         
         guard sourceCount > 0 && targetCount > 0 else { return d[sourceCount][targetCount] }
+        
+        var complexUpdates = [Change<T>]()
         
         // Indexes into the two collections.
         var sx: Array<T>.Index
         var tx = t.startIndex
-        
         
         // Fill body of matrix.
         for j in 1...targetCount {
@@ -159,15 +118,15 @@ public class FetchedResultsController<T: FetchedResult> {
             for i in 1...sourceCount {
                 if s[sx] == t[tx] {
                     // TODO! : Update
-                    /* if let oldRecord = s[sx] as? Record, let newRecord = t[tx] as? Record {
+                    if let oldRecord = s[sx] as? Record, let newRecord = t[tx] as? Record {
                         let newRecordCopy = newRecord.copy()
                         newRecordCopy.referenceRow = oldRecord.referenceRow
                         let changes = newRecordCopy.persistentChangedValues
                         if  changes.count > 0 {
                             let update = Change.Update(item: t[tx], at: NSIndexPath(indexes:[0,i-1], length:2), changes: changes)
-                            updates.append(update)
+                            complexUpdates.append(update)
                         }
-                    }*/
+                    }
                     
                     d[i][j] = d[i - 1][j - 1] // no operation
                 } else {
@@ -188,11 +147,12 @@ public class FetchedResultsController<T: FetchedResult> {
                         ins.append(insertion)
                         d[i][j] = ins
                     } else {
-                        // TODO! : We dont want substitution, we want deletion and insertion
-                        // print("Substitution => item =\(t[tx]), destination= \(j - 1)")
-                        // let substitution = Edit(.Substitution, value: t[tx], destination: j - 1)
-                        // sub.append(substitution)
-                        // d[i][j] = sub
+                         // We dont want substitution, we want deletion and insertion
+                        let deletion = Change.Deletion(item: s[sx], at: NSIndexPath(indexes:[0,j-1], length:2))
+                        let insertion = Change.Insertion(item: t[tx], at: NSIndexPath(indexes:[0,j-1], length:2))
+                        sub.append(deletion)
+                        sub.append(insertion)
+                        d[i][j] = sub
                     }
                 }
                 
@@ -201,9 +161,57 @@ public class FetchedResultsController<T: FetchedResult> {
             
             tx = tx.advancedBy(1)
         }
+    
+        // .Update changes must have been added to the end of updates !
+        var allChanges = d[sourceCount][targetCount]; allChanges.appendContentsOf(complexUpdates)
         
-        // Convert deletion/insertion pairs of same element into moves.
-        return reducedChanges(d[sourceCount][targetCount])
+        /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
+        func standardizeChanges(changes: [Change<T>]) -> [Change<T>] {
+            
+            /// Returns a potential .Move `Change` based on an array of `Change` elements and a `Change` to match up against.
+            /// If `update` is a deletion or an insertion, and there is a matching inverse insertion/deletion with the same value in the array, a corresponding `.Move` update is returned.
+            /// As a convenience, the index of the matched edit into `edits` is returned as well.
+            func moveFromChanges(changes: [Change<T>], deletionOrInsertion change: Change<T>) -> (move: Change<T>, index: Int)? {
+                if let inverseIndex = changes.indexOf({ (earlierChange) -> Bool in return earlierChange.isMoveCounterpart(change) }) {
+                    switch changes[inverseIndex] {
+                    case .Deletion(_, let from):
+                        switch change {
+                        case .Insertion(let insertedItem, let to):
+                            return (Change.Move(item: insertedItem, from: from, to: to), inverseIndex)
+                        default:
+                            break
+                        }
+                    case .Insertion(let insertedItem, let to):
+                        switch change {
+                        case .Deletion(_, let from):
+                            return (Change.Move(item: insertedItem, from: from, to: to), inverseIndex)
+                        default:
+                            break
+                        }
+                    default:
+                        break
+                    }
+                }
+                return nil
+            }
+            
+            return changes.reduce([Change<T>]()) { (var reducedChanges, update) in
+                // Try to combine Insertion & Deletion of same result into a Move
+                if let (moveChange, index) = moveFromChanges(reducedChanges, deletionOrInsertion: update), case .Move = moveChange {
+                    reducedChanges.removeAtIndex(index)
+                    reducedChanges.append(moveChange)
+                } else {
+                    // .Update changes must have been added to the end of updates !
+                    switch update {
+                    case .Update(_, _, _): if !reducedChanges.reduce(false, combine: { ( sum, nextChange) in sum || update.isRelativeToSameResult(nextChange) })  { reducedChanges.append(update) }
+                    default: reducedChanges.append(update)
+                    }
+                }
+                return reducedChanges
+            }
+        }
+        
+        return standardizeChanges(allChanges)
     }
 }
 
@@ -257,7 +265,53 @@ public enum Change<T: FetchedResult> {
     case Move(item:T, from: NSIndexPath, to: NSIndexPath)
     case Update(item:T, at: NSIndexPath, changes: [String: DatabaseValue?]?)
     
-    var description: String {
+    func isMoveCounterpart(otherChange: Change<T>) -> Bool {
+        switch (self, otherChange) {
+        case (.Deletion(let deletedItem, _), .Insertion(let insertedItem, _)):
+            return (deletedItem == insertedItem)
+        case (.Insertion(let insertedItem, _), .Deletion(let deletedItem, _)):
+            return (deletedItem == insertedItem)
+        default:
+            return false
+        }
+    }
+    
+    func isRelativeToSameResult(otherChange: Change<T>) -> Bool {
+        switch self {
+        case .Insertion(let item, _):
+            switch otherChange {
+            case .Insertion(let otherItem, _): return item == otherItem
+            case .Deletion(let otherItem, _): return item == otherItem
+            case .Move(let otherItem, _, _): return item == otherItem
+            case .Update(let otherItem, _, _): return item == otherItem
+            }
+        case .Deletion(let item, _):
+            switch otherChange {
+            case .Insertion(let otherItem, _): return item == otherItem
+            case .Deletion(let otherItem, _): return item == otherItem
+            case .Move(let otherItem, _, _): return item == otherItem
+            case .Update(let otherItem, _, _): return item == otherItem
+            }
+        case .Move(let item, _, _):
+            switch otherChange {
+            case .Insertion(let otherItem, _): return item == otherItem
+            case .Deletion(let otherItem, _): return item == otherItem
+            case .Move(let otherItem, _, _): return item == otherItem
+            case .Update(let otherItem, _, _): return item == otherItem
+            }
+        case .Update(let item, _, _):
+            switch otherChange {
+            case .Insertion(let otherItem, _): return item == otherItem
+            case .Deletion(let otherItem, _): return item == otherItem
+            case .Move(let otherItem, _, _): return item == otherItem
+            case .Update(let otherItem, _, _): return item == otherItem
+            }
+        }
+    }
+}
+
+extension Change: CustomStringConvertible {
+    public var description: String {
         switch self {
         case .Insertion(let item, let at):
             return "Inserted \(item) at indexpath \(at)"
@@ -271,18 +325,6 @@ public enum Change<T: FetchedResult> {
         case .Update(let item, let at, let changes):
             return "Updated \(changes) of \(item) at indexpath \(at)"
         }
-    }
-    
-    func isInverse(otherChange: Change<T>) -> Bool {
-        
-        switch (self, otherChange) {
-        case (.Deletion(let deletedItem, let from), .Insertion(let insertedItem, let to)): return (deletedItem == insertedItem && to == from)
-        case (.Insertion(let insertedItem, let to), .Deletion(let deletedItem, let from)): return (deletedItem == insertedItem && to == from)
-        case (.Move(let item1, let from1, let to1), .Move(let item2, let from2, let to2)): return (item1 == item2 && from1 == to2 && to1 == from2)
-        default: break
-        }
-        
-        return false
     }
 }
 
