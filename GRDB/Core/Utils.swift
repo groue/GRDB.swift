@@ -14,6 +14,13 @@ extension String {
     }
 }
 
+/// Return as many question marks separated with commas as the *count* argument.
+///
+///     databaseQuestionMarks(count: 3) // "?,?,?"
+public func databaseQuestionMarks(count count: Int) -> String {
+    return Array(count: count, repeatedValue: "?").joinWithSeparator(",")
+}
+
 
 // MARK: - Internal
 
@@ -38,10 +45,18 @@ func dispatchSync<T>(queue: dispatch_queue_t, block: () throws -> T) rethrows ->
     return try dispatchSyncImpl(queue, block: block, block2: { throw $0 })
 }
 
+extension Array {
+    /// Removesthe first object that matches *predicate*.
+    mutating func removeFirst(@noescape predicate: (Element) throws -> Bool) rethrows {
+        if let index = try indexOf(predicate) {
+            removeAtIndex(index)
+        }
+    }
+}
 
 extension Dictionary {
     
-    /// Creates a dictionary with the keys and values in the given sequence.
+    /// Create a dictionary with the keys and values in the given sequence.
     init<Sequence: SequenceType where Sequence.Generator.Element == Generator.Element>(_ sequence: Sequence) {
         self.init(minimumCapacity: sequence.underestimateCount())
         for (key, value) in sequence {
@@ -49,11 +64,19 @@ extension Dictionary {
         }
     }
     
-    /// Creates a dictionary from keys and a value builder.
+    /// Create a dictionary from keys and a value builder.
     init<Sequence: SequenceType where Sequence.Generator.Element == Key>(keys: Sequence, value: Key -> Value) {
         self.init(minimumCapacity: keys.underestimateCount())
         for key in keys {
             self[key] = value(key)
         }
+    }
+}
+
+extension SequenceType where Generator.Element: Equatable {
+    
+    /// Filter out elements contained in *removedElements*.
+    func removingElementsOf<S : SequenceType where S.Generator.Element == Self.Generator.Element>(removedElements: S) -> [Self.Generator.Element] {
+        return filter { element in !removedElements.contains(element) }
     }
 }

@@ -92,7 +92,7 @@ public struct DatabaseMigrator {
     private var migrations: [Migration] = []
     
     private mutating func registerMigration(migration: Migration) {
-        precondition(migrations.map({ $0.identifier }).contains(migration.identifier) == false, "already registered migration: \"\(migration.identifier)\"")
+        precondition(!migrations.map({ $0.identifier }).contains(migration.identifier), "already registered migration: \"\(migration.identifier)\"")
         migrations.append(migration)
     }
     
@@ -101,12 +101,10 @@ public struct DatabaseMigrator {
     }
     
     private func runMigrations(db: Database) throws {
-        let appliedMigrationIdentifiers = String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
-        try migrations
-            .filter { !appliedMigrationIdentifiers.contains($0.identifier) }
-            .forEach {
-                try $0.run(db)
-                db.clearSchemaCache()
-            }
+        let appliedIdentifiers = String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
+        for migration in migrations where !appliedIdentifiers.contains(migration.identifier) {
+            try migration.run(db)
+            db.clearSchemaCache()
+        }
     }
 }

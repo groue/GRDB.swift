@@ -212,7 +212,7 @@ public extension MutableDatabasePersistable {
     private func canUpdateInDatabase(db: Database) -> Bool {
         // Fail early if database table does not exist.
         let databaseTableName = self.dynamicType.databaseTableName()
-        let primaryKey = db.primaryKey(databaseTableName)
+        let primaryKey = try! db.primaryKey(databaseTableName)
         
         let persistentDictionary = self.persistentDictionary
         for column in primaryKey.columns where !databaseValue(forColumn: column, inDictionary: persistentDictionary).isNull {
@@ -463,7 +463,7 @@ final class DataMapper {
     init(_ db: Database, _ persistable: MutableDatabasePersistable) {
         // Fail early if database table does not exist.
         let databaseTableName = persistable.dynamicType.databaseTableName()
-        let primaryKey = db.primaryKey(databaseTableName)
+        let primaryKey = try! db.primaryKey(databaseTableName)
         
         // Fail early if persistentDictionary is empty
         let persistentDictionary = persistable.persistentDictionary
@@ -477,11 +477,10 @@ final class DataMapper {
     }
     
     func insertStatement() -> UpdateStatement {
-        let sql = InsertQuery(
+        let query = InsertQuery(
             tableName: databaseTableName,
             insertedColumns: Array(persistentDictionary.keys))
-            .sql
-        let statement = try! db.cachedUpdateStatement(sql)
+        let statement = try! db.cachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(persistentDictionary.values))
         return statement
     }
@@ -490,9 +489,10 @@ final class DataMapper {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
-        precondition(primaryKeyValues.indexOf({ !$0.isNull }) != nil, "invalid primary key in \(persistable)")
+        precondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
-        var updatedColumns = Array(persistentDictionary.keys.filter { !primaryKeyColumns.contains($0) })
+        // Update everything but primary key
+        var updatedColumns = persistentDictionary.keys.removingElementsOf(primaryKeyColumns)
         if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
             //
@@ -506,12 +506,11 @@ final class DataMapper {
         }
         let updatedValues = databaseValues(forColumns: updatedColumns, inDictionary: persistentDictionary)
         
-        let sql = UpdateQuery(
+        let query = UpdateQuery(
             tableName: databaseTableName,
             updatedColumns: updatedColumns,
             conditionColumns: primaryKeyColumns)
-            .sql
-        let statement = try! db.cachedUpdateStatement(sql)
+        let statement = try! db.cachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(updatedValues + primaryKeyValues))
         return statement
     }
@@ -520,13 +519,12 @@ final class DataMapper {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
-        precondition(primaryKeyValues.indexOf({ !$0.isNull }) != nil, "invalid primary key in \(persistable)")
+        precondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
-        let sql = DeleteQuery(
+        let query = DeleteQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-            .sql
-        let statement = try! db.cachedUpdateStatement(sql)
+        let statement = try! db.cachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
         return statement
     }
@@ -535,13 +533,12 @@ final class DataMapper {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
-        precondition(primaryKeyValues.indexOf({ !$0.isNull }) != nil, "invalid primary key in \(persistable)")
+        precondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
-        let sql = ExistsQuery(
+        let query = ExistsQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-            .sql
-        let statement = try! db.cachedSelectStatement(sql)
+        let statement = try! db.cachedSelectStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
         return statement
     }
@@ -570,9 +567,9 @@ extension InsertQuery {
         if let sql = InsertQuery.sqlCache[self] {
             return sql
         }
-        let columnSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
-        let valuesSQL = Array(count: insertedColumns.count, repeatedValue: "?").joinWithSeparator(",")
-        let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
+        let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
+        let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
+        let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) VALUES (\(valuesSQL))"
         InsertQuery.sqlCache[self] = sql
         return sql
     }

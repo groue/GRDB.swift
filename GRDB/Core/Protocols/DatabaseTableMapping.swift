@@ -27,7 +27,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - parameter keys: An array of primary keys.
     /// - returns: A sequence.
     public static func fetch<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> DatabaseSequence<Self> {
-        guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
+        guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
             return DatabaseSequence.emptySequence(db)
         }
         return fetch(statement)
@@ -43,7 +43,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - parameter keys: An array of primary keys.
     /// - returns: An array.
     public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> [Self] {
-        guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
+        guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
             return []
         }
         return fetchAll(statement)
@@ -60,39 +60,39 @@ extension RowConvertible where Self: DatabaseTableMapping {
         guard let key = key else {
             return nil
         }
-        return fetchOne(fetchByPrimaryKeyStatement(db, keys: [key])!)
+        return fetchOne(fetchByPrimaryKeyStatement(db, values: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE id IN (?,?,?)"
     //
-    // Returns nil if keys is empty.
-    private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> SelectStatement? {
+    // Returns nil if values is empty.
+    private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, values: Sequence) -> SelectStatement? {
         // Fail early if database table does not exist.
         let databaseTableName = self.databaseTableName()
-        let primaryKey = db.primaryKey(databaseTableName)
+        let primaryKey = try! db.primaryKey(databaseTableName)
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns
         precondition(columns.count == 1, "expected single column primary key in table: \(databaseTableName)")
+        let column = columns.first!
         
-        let keys = keys.map { $0 as DatabaseValueConvertible? }
-        
-        switch keys.count {
+        let values = Array(values)
+        switch values.count {
         case 0:
             // Avoid performing useless SELECT
             return nil
         case 1:
-            // Use '=' in SQL query
-            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
+            // SELECT * FROM table WHERE id = ?
+            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
             let statement = try! db.selectStatement(sql)
-            statement.arguments = StatementArguments(keys)
+            statement.arguments = StatementArguments(values)
             return statement
-        default:
-            // Use 'IN'
-            let questionMarks = Array(count: keys.count, repeatedValue: "?").joinWithSeparator(",")
-            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) IN (\(questionMarks))"
+        case let count:
+            // SELECT * FROM table WHERE id IN (?,?,?)
+            let valuesSQL = databaseQuestionMarks(count: count)
+            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) IN (\(valuesSQL))"
             let statement = try! db.selectStatement(sql)
-            statement.arguments = StatementArguments(keys)
+            statement.arguments = StatementArguments(values)
             return statement
         }
     }
