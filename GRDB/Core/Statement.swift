@@ -59,7 +59,7 @@ public class Statement {
     
     final func reset() throws {
         let code = sqlite3_reset(sqliteStatement)
-        if code != SQLITE_OK {
+        guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
@@ -149,7 +149,7 @@ public class Statement {
             code = sqlite3_bind_blob(sqliteStatement, index, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
         }
         
-        if code != SQLITE_OK {
+        guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
@@ -235,7 +235,7 @@ public class Statement {
     // Don't make this one public unless we keep the arguments property in sync.
     private func clearBindings() throws {
         let code = sqlite3_clear_bindings(sqliteStatement)
-        if code != SQLITE_OK {
+        guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
@@ -317,14 +317,13 @@ public struct DatabaseSequence<T>: SequenceType {
                 // Check that generator is used on a valid queue.
                 preconditionValidQueue()
                 
-                let code = sqlite3_step(sqliteStatement)
-                switch code {
+                switch sqlite3_step(sqliteStatement) {
                 case SQLITE_DONE:
                     return nil
                 case SQLITE_ROW:
                     return element()
-                default:
-                    throw DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+                case let errorCode:
+                    throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
                 }
             }
         }
