@@ -1,7 +1,25 @@
 Release Notes
 =============
 
+## 0.41.0
+
+Released January 17, 2016
+
+**New**
+
+You can now register several database observers, thanks to [@pakko972](https://github.com/pakko972) ([documentation](https://github.com/groue/GRDB.swift#database-changes-observation)):
+
+- `Database.addTransactionObserver()`
+- `Database.removeTransactionObserver()`
+
+**Breaking Changes**
+
+- `Configuration.transactionObserver` has been removed.
+
+
 ## 0.40.0
+
+Released January 14, 2016
 
 **New**
 
@@ -10,6 +28,8 @@ Release Notes
 
 
 ## 0.39.1
+
+Released January 13, 2016
 
 **New**
 

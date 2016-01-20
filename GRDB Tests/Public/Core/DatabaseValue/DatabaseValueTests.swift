@@ -69,4 +69,12 @@ class DatabaseValueTests: GRDBTestCase {
         XCTAssertEqual(fooData.databaseValue, fooData.databaseValue)
         XCTAssertNotEqual(fooData.databaseValue, barData.databaseValue)
     }
+    
+    func testDatabaseValueHash() {
+        // Equal => Same hash
+        let intValue = 1.databaseValue
+        let doubleValue = 1.0.databaseValue
+        XCTAssertEqual(intValue, doubleValue)
+        XCTAssertEqual(intValue.hashValue, doubleValue.hashValue)
+    }
 }

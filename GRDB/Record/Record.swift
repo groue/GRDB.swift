@@ -19,8 +19,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// The input row may not come straight from the database. When you want to
     /// complete your initialization after being fetched, override
     /// awakeFromFetch(row:database:).
-    ///
-    /// - parameter row: A Row
     required public init(_ row: Row) {
     }
     
@@ -190,7 +188,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// their id automatically set after successful insertion, if it was nil
     /// before the insertion.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func insert(db: Database) throws {
         // The simplest code would be:
@@ -209,22 +206,21 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
         var persistentDictionary = dataMapper.persistentDictionary
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .RowID(let column) = dataMapper.primaryKey {
-                // Update persistentDictionary with inserted id
-                if persistentDictionary[column] != nil {
-                    persistentDictionary[column] = rowID
+            let rowIDColumn = dataMapper.primaryKey.rowIDColumn
+            didInsertWithRowID(rowID, forColumn: rowIDColumn)
+            
+            // Update persistentDictionary with inserted id, so that we can
+            // set hasPersistentChangedValues to false:
+            if let rowIDColumn = rowIDColumn {
+                if persistentDictionary[rowIDColumn] != nil {
+                    persistentDictionary[rowIDColumn] = rowID
                 } else {
-                    let lowercaseColumn = column.lowercaseString
-                    for persistentColumn in persistentDictionary.keys {
-                        if lowercaseColumn == persistentColumn.lowercaseString {
-                            persistentDictionary[persistentColumn] = rowID
-                            break
-                        }
+                    let rowIDColumn = rowIDColumn.lowercaseString
+                    for column in persistentDictionary.keys where column.lowercaseString == rowIDColumn {
+                        persistentDictionary[column] = rowID
+                        break
                     }
                 }
-                didInsertWithRowID(rowID, forColumn: column)
-            } else {
-                didInsertWithRowID(rowID, forColumn: nil)
             }
         }
         
@@ -240,7 +236,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// This method is guaranteed to have updated a row in the database if it
     /// returns without error.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
@@ -281,7 +276,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// This method is guaranteed to have inserted or updated a row in the
     /// database if it returns without error.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
     ///   thrown by update().
     final public func save(db: Database) throws {
@@ -293,7 +287,6 @@ public class Record : RowConvertible, DatabaseTableMapping, DatabasePersistable 
     /// On success, this method sets the *hasPersistentChangedValues* flag
     /// to true.
     ///
-    /// - parameter db: A Database.
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     public func delete(db: Database) throws -> Bool {

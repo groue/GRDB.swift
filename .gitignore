@@ -93,3 +93,5 @@ xcuserdata
 *.hmap
 *.ipa
 
+# Performance test baselines
+*.xcbaseline

@@ -100,9 +100,6 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     
     /// Returns a DatabaseDateComponents if *databaseValue* contains a
     /// valid date.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional DatabaseDateComponents.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseDateComponents? {
         // https://www.sqlite.org/lang_datefunc.html
         //

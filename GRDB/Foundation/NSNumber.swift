@@ -5,8 +5,7 @@ extension NSNumber: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        let objCType = String.fromCString(self.objCType)!
-        switch objCType {
+        switch String.fromCString(objCType)! {
         case "c":
             return Int64(charValue).databaseValue
         case "C":
@@ -33,15 +32,12 @@ extension NSNumber: DatabaseValueConvertible {
             return doubleValue.databaseValue
         case "B":
             return boolValue.databaseValue
-        default:
+        case let objCType:
             fatalError("DatabaseValueConvertible: Unsupported NSNumber type: \(objCType)")
         }
     }
     
     /// Returns an NSNumber initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional NSNumber.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         switch databaseValue.storage {
         case .Int64(let int64):

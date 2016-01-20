@@ -18,6 +18,21 @@ extension PersistenceError : CustomStringConvertible {
     }
 }
 
+private func databaseValue(forColumn column: String, inDictionary dictionary: [String: DatabaseValueConvertible?]) -> DatabaseValue {
+    if let value = dictionary[column] {
+        return value?.databaseValue ?? .Null
+    }
+    let column = column.lowercaseString
+    for (key, value) in dictionary where key.lowercaseString == column {
+        return value?.databaseValue ?? .Null
+    }
+    return .Null
+}
+
+private func databaseValues(forColumns columns: [String], inDictionary dictionary: [String: DatabaseValueConvertible?]) -> [DatabaseValue] {
+    return columns.map { databaseValue(forColumn: $0, inDictionary: dictionary) }
+}
+
 
 // MARK: - MutableDatabasePersistable
 
@@ -84,7 +99,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of insert(). In their implementation, it is recommended
     /// that they invoke the performInsert() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     mutating func insert(db: Database) throws
     
@@ -98,7 +112,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of update(). In their implementation, it is recommended
     /// that they invoke the performUpdate() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
@@ -120,7 +133,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of save(). In their implementation, it is recommended
     /// that they invoke the performSave() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
     ///   thrown by update().
     mutating func save(db: Database) throws
@@ -132,7 +144,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of delete(). In their implementation, it is recommended
     /// that they invoke the performDelete() method.
     ///
-    /// - parameter db: A Database.
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
     func delete(db: Database) throws -> Bool
@@ -145,7 +156,6 @@ public protocol MutableDatabasePersistable : DatabaseTableMapping {
     /// implementation of exists(). In their implementation, it is recommended
     /// that they invoke the performExists() method.
     ///
-    /// - parameter db: A Database.
     /// - returns: Whether the primary key matches a row in the database.
     func exists(db: Database) -> Bool
 }
@@ -199,6 +209,18 @@ public extension MutableDatabasePersistable {
     
     // MARK: - CRUD Internals
     
+    private func canUpdateInDatabase(db: Database) -> Bool {
+        // Fail early if database table does not exist.
+        let databaseTableName = self.dynamicType.databaseTableName()
+        let primaryKey = db.primaryKey(databaseTableName)
+        
+        let persistentDictionary = self.persistentDictionary
+        for column in primaryKey.columns where !databaseValue(forColumn: column, inDictionary: persistentDictionary).isNull {
+            return true
+        }
+        return false
+    }
+    
     /// Don't invoke this method directly: it is an internal method for types
     /// that adopt MutableDatabasePersistable.
     ///
@@ -210,11 +232,7 @@ public extension MutableDatabasePersistable {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .RowID(let column) = dataMapper.primaryKey {
-                didInsertWithRowID(rowID, forColumn: column)
-            } else {
-                didInsertWithRowID(rowID, forColumn: nil)
-            }
+            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
         }
     }
     
@@ -245,7 +263,7 @@ public extension MutableDatabasePersistable {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         
-        if DataMapper(db, self).resolvingPrimaryKeyDictionary == nil {
+        if !canUpdateInDatabase(db) {
             try insert(db)
             return
         }
@@ -323,7 +341,6 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
     /// implementation of insert(). In their implementation, it is recommended
     /// that they invoke the performInsert() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     func insert(db: Database) throws
     
@@ -343,7 +360,6 @@ public protocol DatabasePersistable : MutableDatabasePersistable {
     /// implementation of save(). In their implementation, it is recommended
     /// that they invoke the performSave() method.
     ///
-    /// - parameter db: A Database.
     /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
     ///   thrown by update().
     func save(db: Database) throws
@@ -386,11 +402,7 @@ public extension DatabasePersistable {
         let dataMapper = DataMapper(db, self)
         let changes = try dataMapper.insertStatement().execute()
         if let rowID = changes.insertedRowID {
-            if case .RowID(let column) = dataMapper.primaryKey {
-                didInsertWithRowID(rowID, forColumn: column)
-            } else {
-                didInsertWithRowID(rowID, forColumn: nil)
-            }
+            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
         }
     }
     
@@ -407,7 +419,7 @@ public extension DatabasePersistable {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         
-        if DataMapper(db, self).resolvingPrimaryKeyDictionary == nil {
+        if !canUpdateInDatabase(db) {
             try insert(db)
             return
         }
@@ -448,80 +460,10 @@ final class DataMapper {
     /// The table primary key
     let primaryKey: PrimaryKey
     
-    /// An excerpt from persistentDictionary whose keys are primary key columns.
-    ///
-    /// It is nil when persistable has no primary key.
-    lazy var primaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
-        let columns = self.primaryKey.columns
-        guard columns.count > 0 else {
-            return nil
-        }
-        let persistentDictionary = self.persistentDictionary
-        var dictionary: [String: DatabaseValueConvertible?] = [:]
-        for column in columns {
-            if let value = persistentDictionary[column] {
-                dictionary[column] = value
-            } else {
-                dictionary[column] = nil
-                let lowercaseColumn = column.lowercaseString
-                for (persistentColumn, value) in persistentDictionary {
-                    if persistentColumn.lowercaseString == lowercaseColumn {
-                        dictionary[column] = value
-                    }
-                }
-            }
-        }
-        return dictionary
-        }()
-    
-    /// An excerpt from persistentDictionary whose keys are primary key
-    /// columns. It is able to resolve a row in the database.
-    ///
-    /// It is nil when the primaryKeyDictionary is nil or unable to identify a
-    /// row in the database.
-    lazy var resolvingPrimaryKeyDictionary: [String: DatabaseValueConvertible?]? = {
-        // IMPLEMENTATION NOTE
-        //
-        // https://www.sqlite.org/lang_createtable.html
-        //
-        // > According to the SQL standard, PRIMARY KEY should always
-        // > imply NOT NULL. Unfortunately, due to a bug in some early
-        // > versions, this is not the case in SQLite. Unless the column
-        // > is an INTEGER PRIMARY KEY or the table is a WITHOUT ROWID
-        // > table or the column is declared NOT NULL, SQLite allows
-        // > NULL values in a PRIMARY KEY column. SQLite could be fixed
-        // > to conform to the standard, but doing so might break legacy
-        // > applications. Hence, it has been decided to merely document
-        // > the fact that SQLite allowing NULLs in most PRIMARY KEY
-        // > columns.
-        //
-        // What we implement: we consider that the primary key is missing if
-        // and only if *all* columns of the primary key are NULL.
-        //
-        // For tables with a single column primary key, we comply to the
-        // SQL standard.
-        //
-        // For tables with multi-column primary keys, we let the user
-        // store NULL in all but one columns of the primary key.
-        
-        guard let dictionary = self.primaryKeyDictionary else {
-            return nil
-        }
-        for case let value? in dictionary.values {
-            return dictionary
-        }
-        return nil
-        }()
-    
-    
-    // MARK: - Initializer
-    
     init(_ db: Database, _ persistable: MutableDatabasePersistable) {
         // Fail early if database table does not exist.
         let databaseTableName = persistable.dynamicType.databaseTableName()
-        guard let primaryKey = db.primaryKey(databaseTableName) else {
-            fatalError("no such table: \(databaseTableName)")
-        }
+        let primaryKey = db.primaryKey(databaseTableName)
         
         // Fail early if persistentDictionary is empty
         let persistentDictionary = persistable.persistentDictionary
@@ -534,30 +476,24 @@ final class DataMapper {
         self.primaryKey = primaryKey
     }
     
-    
-    // MARK: - Statement builders
-    
     func insertStatement() -> UpdateStatement {
-        let insertStatement = try! db.cachedUpdateStatement(DataMapper.insertSQL(tableName: databaseTableName, insertedColumns: Array(persistentDictionary.keys)))
-        insertStatement.unsafeSetArguments(StatementArguments(persistentDictionary.values))
-        return insertStatement
+        let sql = InsertQuery(
+            tableName: databaseTableName,
+            insertedColumns: Array(persistentDictionary.keys))
+            .sql
+        let statement = try! db.cachedUpdateStatement(sql)
+        statement.unsafeSetArguments(StatementArguments(persistentDictionary.values))
+        return statement
     }
     
     func updateStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
-        guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("invalid primary key in \(persistable)")
-        }
+        let primaryKeyColumns = primaryKey.columns
+        let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
+        precondition(primaryKeyValues.indexOf({ !$0.isNull }) != nil, "invalid primary key in \(persistable)")
         
-        var updatedDictionary = persistentDictionary
-        
-        // Don't update primary key columns
-        for column in primaryKeyDictionary.keys {
-            updatedDictionary.removeValueForKey(column)
-        }
-        
-        // We need something to update.
-        if updatedDictionary.count == 0 {
+        var updatedColumns = Array(persistentDictionary.keys.filter { !primaryKeyColumns.contains($0) })
+        if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
             //
             // It is important to update something, so that
@@ -566,106 +502,141 @@ final class DataMapper {
             //
             // The goal is to be able to write tests with minimal tables,
             // including tables made of a single primary key column.
-            updatedDictionary = primaryKeyDictionary
+            updatedColumns = primaryKeyColumns
         }
+        let updatedValues = databaseValues(forColumns: updatedColumns, inDictionary: persistentDictionary)
         
-        // Update
-        let updateStatement = try! db.cachedUpdateStatement(DataMapper.updateSQL(tableName: databaseTableName, updatedColumns: Array(updatedDictionary.keys), conditionColumns: Array(primaryKeyDictionary.keys)))
-        updateStatement.unsafeSetArguments(StatementArguments(Array(updatedDictionary.values) + Array(primaryKeyDictionary.values)))
-        return updateStatement
+        let sql = UpdateQuery(
+            tableName: databaseTableName,
+            updatedColumns: updatedColumns,
+            conditionColumns: primaryKeyColumns)
+            .sql
+        let statement = try! db.cachedUpdateStatement(sql)
+        statement.unsafeSetArguments(StatementArguments(updatedValues + primaryKeyValues))
+        return statement
     }
     
     func deleteStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
-        guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("invalid primary key in \(persistable)")
-        }
+        let primaryKeyColumns = primaryKey.columns
+        let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
+        precondition(primaryKeyValues.indexOf({ !$0.isNull }) != nil, "invalid primary key in \(persistable)")
         
-        // Delete
-        let deleteStatement = try! db.cachedUpdateStatement(DataMapper.deleteSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
-        deleteStatement.unsafeSetArguments(StatementArguments(primaryKeyDictionary.values))
-        return deleteStatement
+        let sql = DeleteQuery(
+            tableName: databaseTableName,
+            conditionColumns: primaryKeyColumns)
+            .sql
+        let statement = try! db.cachedUpdateStatement(sql)
+        statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
+        return statement
     }
     
-    /// SELECT statement that returns a row if and only if the primary key
-    /// matches a row in the database.
     func existsStatement() -> SelectStatement {
         // Fail early if primary key does not resolve to a database row.
-        guard let primaryKeyDictionary = resolvingPrimaryKeyDictionary else {
-            fatalError("invalid primary key in \(persistable)")
-        }
+        let primaryKeyColumns = primaryKey.columns
+        let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
+        precondition(primaryKeyValues.indexOf({ !$0.isNull }) != nil, "invalid primary key in \(persistable)")
         
-        // Fetch
-        let existsStatement = try! db.selectStatement(DataMapper.existsSQL(tableName: databaseTableName, conditionColumns: Array(primaryKeyDictionary.keys)))
-        existsStatement.unsafeSetArguments(StatementArguments(primaryKeyDictionary.values))
-        return existsStatement
-    }
-    
-    
-    // MARK: - SQL query builders
-    
-    private struct InsertQuery: Hashable {
-        let tableName: String
-        let insertedColumns: [String]
-        var hashValue: Int {
-            return tableName.hashValue
-        }
-    }
-    private static var insertSQLCache: [InsertQuery: String] = [:]
-    private class func insertSQL(tableName tableName: String, insertedColumns: [String]) -> String {
-        let query = InsertQuery(tableName: tableName, insertedColumns: insertedColumns)
-        if let sql = insertSQLCache[query] {
-            return sql
-        }
-        
-        let columnSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
-        let valuesSQL = Array(count: insertedColumns.count, repeatedValue: "?").joinWithSeparator(",")
-        let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
-        insertSQLCache[query] = sql
-        return sql
-    }
-    
-    private struct UpdateQuery: Hashable {
-        let tableName: String
-        let updatedColumns: [String]
-        let conditionColumns: [String]
-        var hashValue: Int {
-            return tableName.hashValue
-        }
-    }
-    private static var updateSQLCache: [UpdateQuery: String] = [:]
-    private class func updateSQL(tableName tableName: String, updatedColumns: [String], conditionColumns: [String]) -> String {
-        let query = UpdateQuery(tableName: tableName, updatedColumns: updatedColumns, conditionColumns: conditionColumns)
-        if let sql = updateSQLCache[query] {
-            return sql
-        }
-        
-        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(",")
-        let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL(conditionColumns))"
-        updateSQLCache[query] = sql
-        return sql
-    }
-    
-    private class func deleteSQL(tableName tableName: String, conditionColumns: [String]) -> String {
-        return "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
-    }
-    
-    private class func existsSQL(tableName tableName: String, conditionColumns: [String]) -> String {
-        return "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL(conditionColumns))"
-    }
-    
-    private class func whereSQL(conditionColumns: [String]) -> String {
-        return conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
+        let sql = ExistsQuery(
+            tableName: databaseTableName,
+            conditionColumns: primaryKeyColumns)
+            .sql
+        let statement = try! db.cachedSelectStatement(sql)
+        statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
+        return statement
     }
 }
 
-private func == (lhs: DataMapper.InsertQuery, rhs: DataMapper.InsertQuery) -> Bool {
+
+// MARK: - InsertQuery
+
+private struct InsertQuery {
+    let tableName: String
+    let insertedColumns: [String]
+}
+
+extension InsertQuery : Hashable {
+    var hashValue: Int { return tableName.hashValue }
+}
+
+private func == (lhs: InsertQuery, rhs: InsertQuery) -> Bool {
     if lhs.tableName != rhs.tableName { return false }
     return lhs.insertedColumns == rhs.insertedColumns
 }
 
-private func == (lhs: DataMapper.UpdateQuery, rhs: DataMapper.UpdateQuery) -> Bool {
+extension InsertQuery {
+    static var sqlCache: [InsertQuery: String] = [:]
+    var sql: String {
+        if let sql = InsertQuery.sqlCache[self] {
+            return sql
+        }
+        let columnSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
+        let valuesSQL = Array(count: insertedColumns.count, repeatedValue: "?").joinWithSeparator(",")
+        let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnSQL)) VALUES (\(valuesSQL))"
+        InsertQuery.sqlCache[self] = sql
+        return sql
+    }
+}
+
+
+// MARK: - UpdateQuery
+
+private struct UpdateQuery {
+    let tableName: String
+    let updatedColumns: [String]
+    let conditionColumns: [String]
+}
+
+extension UpdateQuery : Hashable {
+    var hashValue: Int { return tableName.hashValue }
+}
+
+private func == (lhs: UpdateQuery, rhs: UpdateQuery) -> Bool {
     if lhs.tableName != rhs.tableName { return false }
     if lhs.updatedColumns != rhs.updatedColumns { return false }
     return lhs.conditionColumns == rhs.conditionColumns
+}
+
+extension UpdateQuery {
+    static var sqlCache: [UpdateQuery: String] = [:]
+    var sql: String {
+        if let sql = UpdateQuery.sqlCache[self] {
+            return sql
+        }
+        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(",")
+        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
+        let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+        UpdateQuery.sqlCache[self] = sql
+        return sql
+    }
+}
+
+
+// MARK: - DeleteQuery
+
+private struct DeleteQuery {
+    let tableName: String
+    let conditionColumns: [String]
+}
+
+extension DeleteQuery {
+    var sql: String {
+        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
+        return "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
+    }
+}
+
+
+// MARK: - ExistsQuery
+
+private struct ExistsQuery {
+    let tableName: String
+    let conditionColumns: [String]
+}
+
+extension ExistsQuery {
+    var sql: String {
+        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
+        return "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
+    }
 }

@@ -29,9 +29,6 @@ extension DatabaseIntRepresentable {
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Self.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         guard let int = Int.fromDatabaseValue(databaseValue) else {
             return nil
@@ -72,9 +69,6 @@ extension DatabaseInt32Representable {
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Self.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         guard let int = Int32.fromDatabaseValue(databaseValue) else {
             return nil
@@ -115,9 +109,6 @@ extension DatabaseInt64Representable {
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Self.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         guard let int = Int64.fromDatabaseValue(databaseValue) else {
             return nil
@@ -158,9 +149,6 @@ extension DatabaseStringRepresentable {
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Self.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         guard let string = String.fromDatabaseValue(databaseValue) else {
             return nil

@@ -150,7 +150,7 @@ class TransactionObserverTests: GRDBTestCase {
     
     
     // MARK: - Events
-
+    
     func testInsertEvent() {
         assertNoError {
             try dbQueue.inDatabase { db in
@@ -510,7 +510,11 @@ class TransactionObserverTests: GRDBTestCase {
             self.observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
             do {
                 try dbQueue.inTransaction { db in
-                    try Artist(name: "Gerhard Richter").save(db)
+                    do {
+                        try Artist(name: "Gerhard Richter").save(db)
+                    } catch {
+                        XCTFail("Unexpected Error")
+                    }
                     return .Commit
                 }
                 XCTFail("Expected Error")
@@ -610,4 +614,82 @@ class TransactionObserverTests: GRDBTestCase {
             }
         }
     }
+    
+    
+    // MARK: - Multiple observers
+    
+    func testInsertEventIsNotifiedToAllObservers() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                let observer1 = TransactionObserver()
+                let observer2 = TransactionObserver()
+                
+                db.addTransactionObserver(observer1)
+                db.addTransactionObserver(observer2)
+                
+                let artist = Artist(name: "Gerhard Richter")
+                
+                //
+                try artist.save(db)
+                
+                do {
+                    XCTAssertEqual(observer1.lastCommittedEvents.count, 1)
+                    let event = observer1.lastCommittedEvents.filter { event in
+                        self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                        }.first
+                    XCTAssertTrue(event != nil)
+                }
+                do {
+                    XCTAssertEqual(observer2.lastCommittedEvents.count, 1)
+                    let event = observer2.lastCommittedEvents.filter { event in
+                        self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                        }.first
+                    XCTAssertTrue(event != nil)
+                }
+            }
+        }
+    }
+    
+    func testExplicitTransactionRollbackCausedBySecondTransactionObserverOutOfThree() {
+        assertNoError {
+            let observer1 = TransactionObserver()
+            let observer2 = TransactionObserver()
+            let observer3 = TransactionObserver()
+            observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+            do {
+                try dbQueue.inTransaction { db in
+                    db.addTransactionObserver(observer1)
+                    db.addTransactionObserver(observer2)
+                    db.addTransactionObserver(observer3)
+                    
+                    do {
+                        try Artist(name: "Gerhard Richter").save(db)
+                    } catch {
+                        XCTFail("Unexpected Error")
+                    }
+                    return .Commit
+                }
+                XCTFail("Expected Error")
+            } catch let error as NSError {
+                XCTAssertEqual(error.domain, "foo")
+                XCTAssertEqual(error.code, 0)
+                
+                XCTAssertEqual(observer1.didChangeCount, 1)
+                XCTAssertEqual(observer1.willCommitCount, 1)
+                XCTAssertEqual(observer1.didCommitCount, 0)
+                XCTAssertEqual(observer1.didRollbackCount, 1)
+
+                XCTAssertEqual(observer2.didChangeCount, 1)
+                XCTAssertEqual(observer2.willCommitCount, 1)
+                XCTAssertEqual(observer2.didCommitCount, 0)
+                XCTAssertEqual(observer2.didRollbackCount, 1)
+                
+                XCTAssertEqual(observer3.didChangeCount, 1)
+                XCTAssertEqual(observer3.willCommitCount, 0)
+                XCTAssertEqual(observer3.didCommitCount, 0)
+                XCTAssertEqual(observer3.didRollbackCount, 1)
+            }
+        }
+    }
+
 }

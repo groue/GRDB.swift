@@ -8,8 +8,6 @@ extension Row {
     /// The result is nil unless all dictionary keys are strings, and values
     /// adopt DatabaseValueConvertible (NSData, NSDate, NSNull, NSNumber,
     /// NSString, NSURL).
-    ///
-    /// - parameter dictionary: An NSDictionary.
     public convenience init?(_ dictionary: NSDictionary) {
         var initDictionary = [String: DatabaseValueConvertible?]()
         for (key, value) in dictionary {

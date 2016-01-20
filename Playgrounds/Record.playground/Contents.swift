@@ -6,14 +6,15 @@ import GRDB
 // Create the databsae
 
 var configuration = Configuration()
-configuration.trace = LogSQL
+configuration.trace = { print($0) }
 let dbQueue = DatabaseQueue(configuration: configuration)   // Memory database
 var migrator = DatabaseMigrator()
 migrator.registerMigration("createPersons") { db in
-    try db.execute("CREATE TABLE persons (" +
-        "id INTEGER PRIMARY KEY, " +
-        "firstName TEXT, " +
-        "lastName TEXT" +
+    try db.execute(
+        "CREATE TABLE persons (" +
+            "id INTEGER PRIMARY KEY, " +
+            "firstName TEXT, " +
+            "lastName TEXT" +
         ")")
 }
 try! migrator.migrate(dbQueue)

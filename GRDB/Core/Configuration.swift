@@ -44,9 +44,7 @@ public struct Configuration {
     }
 }
 
-/// A tracing function.
-///
-/// - parameter sql: An SQL query
+/// A tracing function that takes an SQL string.
 public typealias TraceFunction = (String) -> Void
 
 /// A tracing function that logs SQL statements with NSLog

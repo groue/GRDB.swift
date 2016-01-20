@@ -13,9 +13,6 @@ public class Statement {
     /// The SQL query
     public let sql: String
     
-    
-    // MARK: Not public
-    
     /// The database
     let database: Database
     
@@ -60,11 +57,10 @@ public class Statement {
         }
     }
     
-    // Not public until a need for it.
-    final func reset() {
+    final func reset() throws {
         let code = sqlite3_reset(sqliteStatement)
         if code != SQLITE_OK {
-            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
+            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
     
@@ -80,14 +76,11 @@ public class Statement {
     
     // Returns ["id", nil", "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
     private lazy var sqliteArgumentNames: [String?] = {
-        guard self.sqliteArgumentCount > 0 else {
-            return []
-        }
-        return (1...self.sqliteArgumentCount).map {
-            guard let parameterName = String.fromCString(sqlite3_bind_parameter_name(self.sqliteStatement, Int32($0))) else {
+        return (0..<self.sqliteArgumentCount).map {
+            guard let name = String.fromCString(sqlite3_bind_parameter_name(self.sqliteStatement, Int32($0 + 1))) else {
                 return nil
             }
-            return String(parameterName.characters.dropFirst()) // Drop initial ":"
+            return String(name.characters.dropFirst()) // Drop initial ":"
         }
     }()
     
@@ -97,14 +90,20 @@ public class Statement {
         set { try! setArgumentsWithValidation(newValue) }
     }
     
+    /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
+    /// statement arguments.
+    public func validateArguments(arguments: StatementArguments) throws {
+        let _ = try validatedBindings(arguments)
+    }
+    
     /// Set arguments without any validation. Trades safety for performance.
     public func unsafeSetArguments(arguments: StatementArguments) {
         _arguments = arguments
         argumentsNeedValidation = false
         
         // Apply
-        reset()
-        clearBindings()
+        try! reset()
+        try! clearBindings()
         
         switch arguments.kind {
         case .Values(let values):
@@ -128,8 +127,8 @@ public class Statement {
         argumentsNeedValidation = false
         
         // Apply
-        reset()
-        clearBindings()
+        try! reset()
+        try! clearBindings()
         for (index, databaseValue) in bindings.enumerate() {
             try bindDatabaseValue(databaseValue, atIndex: Int32(index + 1))
         }
@@ -153,12 +152,6 @@ public class Statement {
         if code != SQLITE_OK {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
-    }
-    
-    /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
-    /// statement arguments.
-    public func validateArguments(arguments: StatementArguments) throws {
-        let _ = try validatedBindings(arguments)
     }
     
     // Returns a validated array of as many DatabaseValue as there are
@@ -240,10 +233,10 @@ public class Statement {
     }
     
     // Don't make this one public unless we keep the arguments property in sync.
-    private func clearBindings() {
+    private func clearBindings() throws {
         let code = sqlite3_clear_bindings(sqliteStatement)
         if code != SQLITE_OK {
-            fatalError(DatabaseError(code: code, message: database.lastErrorMessage, sql: sql).description)
+            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
 
@@ -280,46 +273,45 @@ public final class SelectStatement : Statement {
         (0..<self.columnCount).map { String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32($0)))! }
     }()
     
-    
-    // MARK: Not public
-    
-    /// The DatabaseSequence builder.
-    func fetch<T>(arguments arguments: StatementArguments?, yield: () -> T) -> DatabaseSequence<T> {
-        try! prepareWithArguments(arguments)
-        return DatabaseSequence(statement: self, yield: yield)
-    }
+    /// Cache for indexOfColumn()
+    private lazy var columnIndexes: [String: Int] = {
+        return Dictionary(self.columnNames.enumerate().map { ($1, $0) })
+    }()
     
     /// The column index, case insensitive.
-    func indexForColumn(named name: String) -> Int? {
-        // This is faster than dictionary lookup
-        for (index, column) in columnNames.enumerate() {
-            if column == name {
-                return index
-            }
+    func indexOfColumn(named name: String) -> Int? {
+        if let index = columnIndexes[name] {
+            return index
         }
-        for (index, column) in columnNames.enumerate() {
-            if column.lowercaseString == name.lowercaseString {
-                return index
-            }
+        let lowercaseName = name.lowercaseString
+        for (column, index) in columnIndexes where column.lowercaseString == lowercaseName {
+            return index
         }
         return nil
+    }
+    
+    /// The DatabaseSequence builder.
+    func fetchSequence<T>(arguments arguments: StatementArguments?, element: () -> T) -> DatabaseSequence<T> {
+        // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
+        try! prepareWithArguments(arguments)
+        return DatabaseSequence(statement: self, element: element)
     }
 }
 
 /// A sequence of elements fetched from the database.
 public struct DatabaseSequence<T>: SequenceType {
-    private let generateImpl: () -> DatabaseGenerator<T>
+    private let generateImpl: () throws -> DatabaseGenerator<T>
     
-    private init(statement: SelectStatement, yield: () -> T) {
+    // Statement sequence
+    private init(statement: SelectStatement, element: () -> T) {
+        let preconditionValidQueue = statement.database.preconditionValidQueue
+        let sqliteStatement = statement.sqliteStatement
         generateImpl = {
-            let preconditionValidQueue = statement.database.preconditionValidQueue
-            let sqliteStatement = statement.sqliteStatement
-            
-            // Check that sequence is built on a valid queue.
+            // Check that generator is built on a valid queue.
             preconditionValidQueue()
             
-            // DatabaseSequence can be restarted:
-            statement.reset()
+            // DatabaseSequence can be restarted
+            try statement.reset()
             
             return DatabaseGenerator {
                 // Check that generator is used on a valid queue.
@@ -330,30 +322,46 @@ public struct DatabaseSequence<T>: SequenceType {
                 case SQLITE_DONE:
                     return nil
                 case SQLITE_ROW:
-                    return yield()
+                    return element()
                 default:
-                    fatalError(DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments).description)
+                    throw DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
                 }
             }
         }
     }
     
-    init() {
-        generateImpl = { return DatabaseGenerator { return nil } }
+    // Empty sequence
+    static func emptySequence(database: Database) -> DatabaseSequence {
+        // Empty sequence is just as strict as statement sequence, and requires
+        // to be used on the database queue.
+        let preconditionValidQueue = database.preconditionValidQueue
+        return DatabaseSequence() {
+            // Check that generator is built on a valid queue.
+            preconditionValidQueue()
+            return DatabaseGenerator {
+                // Check that generator is used on a valid queue.
+                preconditionValidQueue()
+                return nil
+            }
+        }
+    }
+    
+    private init(generateImpl: () throws -> DatabaseGenerator<T>) {
+        self.generateImpl = generateImpl
     }
     
     /// Return a *generator* over the elements of this *sequence*.
     @warn_unused_result
     public func generate() -> DatabaseGenerator<T> {
-        return generateImpl()
+        return try! generateImpl()
     }
 }
 
 /// A generator of elements fetched from the database.
 public struct DatabaseGenerator<T>: GeneratorType {
-    private let nextImpl: () -> T?
+    private let element: () throws -> T?
     public func next() -> T? {
-        return nextImpl()
+        return try! element()
     }
 }
 
@@ -378,14 +386,14 @@ public final class UpdateStatement : Statement {
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
-        try! prepareWithArguments(arguments)    // Crash on invalid arguments
-        reset()
+        // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
+        try! prepareWithArguments(arguments)
+        try! reset()
         
         let changes: DatabaseChanges
-        let code = sqlite3_step(sqliteStatement)
-        
-        switch code {
+        switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
+            // Success
             let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
             let lastInsertedRowID = sqlite3_last_insert_rowid(database.sqliteConnection)
             let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
@@ -396,7 +404,7 @@ public final class UpdateStatement : Statement {
             //
             // What are our options?
             //
-            // 1. throw a DatabaseError with code SQLITE_ROW.
+            // 1. throw a DatabaseError.
             // 2. raise a fatal error.
             // 3. log a warning about the ignored row, and return successfully.
             // 4. silently ignore the row, and return successfully.
@@ -414,18 +422,17 @@ public final class UpdateStatement : Statement {
             // So let's just silently ignore the row, and return successfully.
             changes = DatabaseChanges(changedRowCount: 0, insertedRowID: nil)
             
-        default:
-            // This error may be a consequence of an error thrown by
-            // TransactionObserverType.transactionWillCommit().
-            // Let database handle this case, before throwing a error:
+        case let errorCode:
+            // Failure
+            //
+            // Let database rethrow eventual transaction observer error:
             try database.updateStatementDidFail()
-            let errorArguments = self.arguments // self.arguments, not the arguments parameter.
-            throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql, arguments: errorArguments)
+            
+            throw DatabaseError(code: errorCode, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
         }
         
-        // Now that changes information has been loaded, we can trigger database
-        // transaction delegate callbacks that may eventually perform more
-        // changes to the database.
+        // Now that changes information has been loaded, let transaction
+        // observers do whatever they want:
         database.updateStatementDidExecute()
         
         return changes
@@ -486,6 +493,17 @@ public struct StatementArguments {
         kind = .Values(Array(sequence))
     }
     
+    /// Initializes arguments from a sequence of optional values.
+    ///
+    ///     let values: [String] = ["foo", "bar"]
+    ///     db.execute("INSERT ... (?,?)", arguments: StatementArguments(values))
+    ///
+    /// - parameter sequence: A sequence of DatabaseValueConvertible values.
+    /// - returns: A StatementArguments.
+    public init<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(_ sequence: Sequence) {
+        kind = .Values(sequence.map { $0 })
+    }
+    
     
     // MARK: Named Arguments
     
@@ -499,6 +517,18 @@ public struct StatementArguments {
     /// - returns: A StatementArguments.
     public init<Sequence: SequenceType where Sequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
         kind = .NamedValues(Dictionary(sequence))
+    }
+    
+    /// Initializes arguments from a sequence of (key, value) pairs, such as
+    /// a dictionary.
+    ///
+    ///     let values: [String: String] = ["firstName": "Arthur", "lastName": "Miller"]
+    ///     db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
+    ///
+    /// - parameter sequence: A sequence of (key, value) pairs
+    /// - returns: A StatementArguments.
+    public init<Sequence: SequenceType, Value: DatabaseValueConvertible where Sequence.Generator.Element == (String, Value)>(_ sequence: Sequence) {
+        kind = .NamedValues(Dictionary(sequence.map { (key, value) in return (key, value as DatabaseValueConvertible?) }))
     }
     
     public var isEmpty: Bool {
@@ -568,31 +598,5 @@ extension StatementArguments : CustomStringConvertible {
                     .joinWithSeparator(", ")
                 + "]"
         }
-    }
-}
-
-
-extension Dictionary {
-    
-    /// Creates a dictionary with the keys and values in the given sequence.
-    init<Sequence: SequenceType where Sequence.Generator.Element == Generator.Element>(_ sequence: Sequence) {
-        self.init(minimumCapacity: sequence.underestimateCount())
-        for (key, value) in sequence {
-            self[key] = value
-        }
-    }
-}
-
-
-// MARK: - SQLite identifier quoting
-
-extension String {
-    /// Returns the receiver, quoted for safe insertion as an identifier in an
-    /// SQL query.
-    ///
-    ///     db.execute("SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
-    public var quotedDatabaseIdentifier: String {
-        // See https://www.sqlite.org/lang_keywords.html
-        return "\"\(self)\""
     }
 }

@@ -15,6 +15,7 @@
 		562FF9EC1BCE903D00759400 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 562FF9EB1BCE903D00759400 /* libsqlite3.tbd */; };
 		562FF9EF1BCE912C00759400 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562FF9EE1BCE912C00759400 /* PersonEditionViewController.swift */; };
 		562FF9F21BCE914E00759400 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562FF9F11BCE914E00759400 /* Person.swift */; };
+		563445081C4A8060003D3DC6 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563445071C4A8060003D3DC6 /* Utils.swift */; };
 		56FCB3691C21210B00305D10 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3421C21210B00305D10 /* Configuration.swift */; };
 		56FCB36A1C21210B00305D10 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3431C21210B00305D10 /* Database.swift */; };
 		56FCB36C1C21210B00305D10 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3451C21210B00305D10 /* DatabaseError.swift */; };
@@ -58,6 +59,7 @@
 		562FF9EE1BCE912C00759400 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
 		562FF9F11BCE914E00759400 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		562FF9F41BCE930C00759400 /* GRDBDemoiOS7-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBDemoiOS7-Bridging-Header.h"; sourceTree = "<group>"; };
+		563445071C4A8060003D3DC6 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		56FCB3421C21210B00305D10 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		56FCB3431C21210B00305D10 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		56FCB3451C21210B00305D10 /* DatabaseError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseError.swift; sourceTree = "<group>"; };
@@ -200,6 +202,7 @@
 				56FCB3481C21210B00305D10 /* Protocols */,
 				56FCB34E1C21210B00305D10 /* Row.swift */,
 				56FCB3501C21210B00305D10 /* Statement.swift */,
+				563445071C4A8060003D3DC6 /* Utils.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -347,6 +350,7 @@
 				56FCB37F1C21210B00305D10 /* NSNull.swift in Sources */,
 				56FCB37D1C21210B00305D10 /* NSData.swift in Sources */,
 				56FCB36A1C21210B00305D10 /* Database.swift in Sources */,
+				563445081C4A8060003D3DC6 /* Utils.swift in Sources */,
 				56FCB37C1C21210B00305D10 /* DatabaseValue+Foundation.swift in Sources */,
 				562FF9EF1BCE912C00759400 /* PersonEditionViewController.swift in Sources */,
 				56FCB3831C21210B00305D10 /* Row+Foundation.swift in Sources */,

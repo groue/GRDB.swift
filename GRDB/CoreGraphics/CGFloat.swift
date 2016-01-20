@@ -8,10 +8,7 @@ extension CGFloat : DatabaseValueConvertible {
         return Double(self).databaseValue
     }
     
-    /// Returns a value initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional CGFloat.
+    /// Returns a CGFloat initialized from *databaseValue*, if possible.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> CGFloat? {
         guard let double = Double.fromDatabaseValue(databaseValue) else {
             return nil

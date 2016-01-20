@@ -23,16 +23,12 @@ public protocol SQLiteStatementConvertible {
 }
 
 
-// MARK: - Fetching SQLiteStatementConvertible
-
 /// Types that adopt both DatabaseValueConvertible and
 /// SQLiteStatementConvertible can be efficiently initialized from
 /// database values.
 ///
 /// See DatabaseValueConvertible for more information.
 public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible {
-    
-    // MARK: - Fetching From SelectStatement
     
     /// Returns a sequence of values fetched from a prepared statement.
     ///
@@ -56,12 +52,11 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// - returns: A sequence of values.
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let sqliteStatement = statement.sqliteStatement
-        return statement.fetch(arguments: arguments) {
-            if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
+        return statement.fetchSequence(arguments: arguments) {
+            guard sqlite3_column_type(sqliteStatement, 0) != SQLITE_NULL else {
                 fatalError("could not convert NULL to \(Self.self).")
-            } else {
-                return Self.init(sqliteStatement: sqliteStatement, index: 0)
             }
+            return Self.init(sqliteStatement: sqliteStatement, index: 0)
         }
     }
     
@@ -86,19 +81,15 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional value.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
-        let generator = statement.fetch(arguments: arguments, yield: { }).generate()
-        guard generator.next() != nil else {
-            return nil
-        }
         let sqliteStatement = statement.sqliteStatement
-        if sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL {
-            return nil
-        } else {
+        let isNullSequence = statement.fetchSequence(arguments: arguments) {
+            sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL
+        }
+        if isNullSequence.generate().next() == false {
             return Self.init(sqliteStatement: sqliteStatement, index: 0)
         }
+        return nil
     }
-    
-    // MARK: - Fetching From Database
     
     /// Returns a sequence of values fetched from an SQL query.
     ///

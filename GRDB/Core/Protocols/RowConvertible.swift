@@ -24,9 +24,6 @@ public protocol RowConvertible {
     /// instance initializations during the iteration of a fetch query. So if
     /// you want to keep the row for later use, make sure to store a copy:
     /// `result.row = row.copy()`.
-    ///
-    /// - parameter row: A Row.
-    /// - returns: A value.
     static func fromRow(row: Row) -> Self
     
     /// Do not call this method directly.
@@ -65,11 +62,11 @@ extension RowConvertible {
     /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence.
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
-        // Metal rows can be reused. And reusing them yields better performance.
-        let row = Row(metalStatement: statement)
-        return statement.fetch(arguments: arguments) {
+        let row = Row(statement: statement)
+        let database = statement.database
+        return statement.fetchSequence(arguments: arguments) {
             var value = fromRow(row)
-            value.awakeFromFetch(row: row, database: statement.database)
+            value.awakeFromFetch(row: row, database: database)
             return value
         }
     }

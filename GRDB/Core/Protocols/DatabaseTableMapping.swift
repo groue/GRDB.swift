@@ -28,7 +28,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - returns: A sequence.
     public static func fetch<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> DatabaseSequence<Self> {
         guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
-            return DatabaseSequence()
+            return DatabaseSequence.emptySequence(db)
         }
         return fetch(statement)
     }
@@ -54,7 +54,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     ///     let person = Person.fetchOne(db, key: 123) // Person?
     ///
     /// - parameter db: A Database.
-    /// - parameter key: A value.
+    /// - parameter key: A primary key value.
     /// - returns: An optional value.
     public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(db: Database, key: PrimaryKeyType?) -> Self? {
         guard let key = key else {
@@ -67,12 +67,9 @@ extension RowConvertible where Self: DatabaseTableMapping {
     //
     // Returns nil if keys is empty.
     private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> SelectStatement? {
-        let databaseTableName = self.databaseTableName()
-        
         // Fail early if database table does not exist.
-        guard let primaryKey = db.primaryKey(databaseTableName) else {
-            fatalError("no such table: \(databaseTableName)")
-        }
+        let databaseTableName = self.databaseTableName()
+        let primaryKey = db.primaryKey(databaseTableName)
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns
@@ -114,7 +111,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - returns: A sequence.
     public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
         guard let statement = fetchByKeyStatement(db, keys: keys) else {
-            return DatabaseSequence()
+            return DatabaseSequence.emptySequence(db)
         }
         return fetch(statement)
     }

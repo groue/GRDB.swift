@@ -32,7 +32,7 @@ public final class Database {
     private var selectStatementCache: [String: SelectStatement] = [:]
     
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
-    private var statementCompletion: StatementCompletion = .Regular
+    private var transactionState: TransactionState = .WaitForTransactionCompletion
     
     /// The transaction observers
     private var transactionObservers = [TransactionObserverType]()
@@ -60,7 +60,6 @@ public final class Database {
         
         try setupForeignKeys()
         setupBusyMode()
-        setupTransactionHooks()
     }
     
     // Initializes an in-memory database
@@ -76,13 +75,13 @@ public final class Database {
         precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
     }
     
-    func setupForeignKeys() throws {
+    private func setupForeignKeys() throws {
         if configuration.foreignKeysEnabled {
             try execute("PRAGMA foreign_keys = ON")
         }
     }
     
-    func setupTrace() {
+    private func setupTrace() {
         guard configuration.trace != nil else {
             return
         }
@@ -93,7 +92,7 @@ public final class Database {
             }, dbPointer)
     }
     
-    func setupBusyMode() {
+    private func setupBusyMode() {
         switch configuration.busyMode {
         case .ImmediateError:
             break
@@ -255,25 +254,22 @@ extension Database {
     public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         preconditionValidQueue()
         
-        let usedArguments: StatementArguments
-        if let arguments = arguments {
-            usedArguments = arguments
-        } else {
-            usedArguments = []
-        }
-        
         // The tricky part is to consume arguments as statements are executed.
         //
-        // Here we return two functions:
-        // - one that returns arguments for a statement
-        // - one that validates the remaining arguments, in the same way as
-        //   Statement.validateArguments()
-        let (consumeArguments, validateRemainingArguments) = { () -> (UpdateStatement -> StatementArguments, () throws -> ()) in
-            switch usedArguments.kind {
+        // Here we build two functions:
+        // - consumeArguments returns arguments for a statement
+        // - validateRemainingArguments validates the remaining arguments, after
+        //   all statements have been executed, in the same way
+        //   as Statement.validateArguments()
+        let consumeArguments: UpdateStatement -> StatementArguments
+        let validateRemainingArguments: () throws -> ()
+        
+        if let arguments = arguments {
+            switch arguments.kind {
             case .Values(let values):
                 // Extract as many values as needed, statement after statement:
                 var remainingValues = values
-                let consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
+                consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
                     let argumentCount = statement.sqliteArgumentCount
                     defer {
                         if remainingValues.count >= argumentCount {
@@ -285,30 +281,31 @@ extension Database {
                     return StatementArguments(remainingValues.prefix(argumentCount))
                 }
                 // It's not OK if there remains unused arguments:
-                let validateRemainingArguments = {
+                validateRemainingArguments = {
                     if !remainingValues.isEmpty {
-                        fatalError("wrong number of statement arguments: \(values.count)")
+                        throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(values.count)")
                     }
                 }
-                return (consumeArguments, validateRemainingArguments)
             case .NamedValues:
                 // Reuse the dictionary argument for all statements:
-                let consumeArguments = { (_: UpdateStatement) -> StatementArguments in return usedArguments }
-                let validateRemainingArguments = { () in }
-                return (consumeArguments, validateRemainingArguments)
+                consumeArguments = { _ in return arguments }
+                validateRemainingArguments = { _ in }
             }
-        }()
+        } else {
+            // Empty arguments for all statements:
+            consumeArguments = { _ in return [] }
+            validateRemainingArguments = { _ in }
+        }
         
         
         // Execute statements
         
         let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
         let sqlCodeUnits = sql.nulTerminatedUTF8
-        let length = sqlCodeUnits.count
         var error: ErrorType?
         sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
-            let sqlEnd = sqlStart + length
+            let sqlEnd = sqlStart + sqlCodeUnits.count
             var statementStart = sqlStart
             while statementStart < sqlEnd - 1 {
                 var statementEnd: UnsafePointer<Int8> = nil
@@ -334,7 +331,9 @@ extension Database {
         if let error = error {
             throw error
         }
-        try validateRemainingArguments()
+        // Force arguments validity. See UpdateStatement.execute(), and SelectStatement.fetchSequence()
+        try! validateRemainingArguments()
+        
         let changedRowsAfter = sqlite3_total_changes(sqliteConnection)
         let lastInsertedRowID = sqlite3_last_insert_rowid(sqliteConnection)
         let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
@@ -361,8 +360,6 @@ extension Database {
     ///     }
     ///     db.addFunction(fn)
     ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
-    ///
-    /// - parameter function: A function.
     public func addFunction(function: DatabaseFunction) {
         functions.remove(function)
         functions.insert(function)
@@ -405,8 +402,6 @@ extension Database {
     }
     
     /// Remove an SQL function.
-    ///
-    /// - parameter function: A function.
     public func removeFunction(function: DatabaseFunction) {
         functions.remove(function)
         let code = sqlite3_create_function_v2(
@@ -487,8 +482,6 @@ extension Database {
     ///     }
     ///     db.addCollation(collation)
     ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
-    ///
-    /// - parameter collation: A collation.
     public func addCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         collations.insert(collation)
@@ -511,8 +504,6 @@ extension Database {
     }
     
     /// Remove a collation.
-    ///
-    /// - parameter collation: A collation.
     public func removeCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         sqlite3_create_collation_v2(
@@ -576,9 +567,6 @@ extension Database {
     }
     
     /// Returns whether a table exists.
-    ///
-    /// - parameter tableName: A table name.
-    /// - returns: True if the table exists.
     public func tableExists(tableName: String) -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         return Row.fetchOne(self,
@@ -586,11 +574,11 @@ extension Database {
             arguments: [tableName.lowercaseString]) != nil
     }
     
-    /// Return the primary key for table named `tableName`, or nil if table does
-    /// not exist.
+    /// Return the primary key for table named `tableName`.
+    /// Crashes if table does not exist.
     ///
     /// This method is not thread-safe.
-    func primaryKey(tableName: String) -> PrimaryKey? {
+    func primaryKey(tableName: String) -> PrimaryKey {
         if let primaryKey = primaryKeyCache[tableName] {
             return primaryKey
         }
@@ -621,8 +609,7 @@ extension Database {
         
         let columnInfos = self.columnInfos(tableName)
         guard columnInfos.count > 0 else {
-            // Table does not exist
-            return nil
+            fatalError("no such table: \(tableName)")
         }
         
         let primaryKey: PrimaryKey
@@ -736,6 +723,18 @@ enum PrimaryKey {
             return columns
         }
     }
+    
+    /// The name of the INTEGER PRIMARY KEY
+    var rowIDColumn: String? {
+        switch self {
+        case .None:
+            return nil
+        case .RowID(let column):
+            return column
+        case .Regular:
+            return nil
+        }
+    }
 }
 
 
@@ -818,18 +817,6 @@ extension Database {
         }
     }
     
-    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
-        preconditionValidQueue()
-        transactionObservers.append(transactionObserver)
-    }
-    
-    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
-        preconditionValidQueue()
-        if let index = transactionObservers.indexOf({ observer in observer === transactionObserver}) {
-            transactionObservers.removeAtIndex(index)
-        }
-    }
-    
     private func beginTransaction(kind: TransactionKind? = nil) throws {
         switch kind ?? configuration.defaultTransactionKind {
         case .Deferred:
@@ -849,15 +836,33 @@ extension Database {
         try execute("COMMIT TRANSACTION")
     }
     
+    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+        preconditionValidQueue()
+        transactionObservers.append(transactionObserver)
+        if transactionObservers.count == 1 {
+            installTransactionObserverHooks()
+        }
+    }
+    
+    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
+        preconditionValidQueue()
+        if let index = transactionObservers.indexOf({ $0 === transactionObserver}) {
+            transactionObservers.removeAtIndex(index)
+        }
+        if transactionObservers.isEmpty {
+            uninstallTransactionObserverHooks()
+        }
+    }
+    
     func updateStatementDidFail() throws {
-        let statementCompletion = self.statementCompletion
-        self.statementCompletion = .Regular
+        // Reset transactionState before didRollback eventually executes
+        // other statements.
+        let transactionState = self.transactionState
+        self.transactionState = .WaitForTransactionCompletion
         
-        switch statementCompletion {
-        case .TransactionErrorRollback(let error):
-            // The transaction has been rollbacked from
-            // TransactionObserverType.transactionWillCommit().
-            propagateDatabaseDidRollback()
+        switch transactionState {
+        case .RollbackFromTransactionObserver(let error):
+            didRollback()
             throw error
         default:
             break
@@ -865,69 +870,68 @@ extension Database {
     }
     
     func updateStatementDidExecute() {
-        let statementCompletion = self.statementCompletion
-        self.statementCompletion = .Regular
+        // Reset transactionState before didCommit or didRollback eventually
+        // execute other statements.
+        let transactionState = self.transactionState
+        self.transactionState = .WaitForTransactionCompletion
         
-        switch statementCompletion {
-        case .TransactionCommit:
-            propagateDatabaseDidCommit()
-        case .TransactionRollback:
-            propagateDatabaseDidRollback()
+        switch transactionState {
+        case .Commit:
+            didCommit()
+        case .Rollback:
+            didRollback()
         default:
             break
         }
     }
     
-    private func propagateDatabaseWillCommit() throws {
-        for observer: TransactionObserverType in transactionObservers {
+    private func willCommit() throws {
+        for observer in transactionObservers {
             try observer.databaseWillCommit()
         }
     }
     
-    private func propagateDatabaseDidChangeWithEvent(event: DatabaseEvent) {
-        for observer: TransactionObserverType in transactionObservers {
+    private func didChangeWithEvent(event: DatabaseEvent) {
+        for observer in transactionObservers {
             observer.databaseDidChangeWithEvent(event)
         }
     }
     
-    private func propagateDatabaseDidCommit() {
-        for observer: TransactionObserverType in transactionObservers {
+    private func didCommit() {
+        for observer in transactionObservers {
             observer.databaseDidCommit(self)
         }
     }
     
-    private func propagateDatabaseDidRollback() {
-        for observer: TransactionObserverType in transactionObservers {
+    private func didRollback() {
+        for observer in transactionObservers {
             observer.databaseDidRollback(self)
         }
     }
     
-    private func setupTransactionHooks() {
+    private func installTransactionObserverHooks() {
         let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
         
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
             let db = unsafeBitCast(dbPointer, Database.self)
-            
-            // Notify change event
-            let event = DatabaseEvent(
+            db.didChangeWithEvent(DatabaseEvent(
                 kind: DatabaseEvent.Kind(rawValue: updateKind)!,
                 databaseName: String.fromCString(databaseName)!,
                 tableName: String.fromCString(tableName)!,
-                rowID: rowID)
-            db.propagateDatabaseDidChangeWithEvent(event)
+                rowID: rowID))
             }, dbPointer)
         
         
         sqlite3_commit_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
             do {
-                try db.propagateDatabaseWillCommit()
+                try db.willCommit()
+                db.transactionState = .Commit
                 // Next step: updateStatementDidExecute()
-                db.statementCompletion = .TransactionCommit
                 return 0
             } catch {
+                db.transactionState = .RollbackFromTransactionObserver(error)
                 // Next step: sqlite3_rollback_hook callback
-                db.statementCompletion = .TransactionErrorRollback(error)
                 return 1
             }
             }, dbPointer)
@@ -935,32 +939,21 @@ extension Database {
         
         sqlite3_rollback_hook(sqliteConnection, { dbPointer in
             let db = unsafeBitCast(dbPointer, Database.self)
-            
-            switch db.statementCompletion {
-            case .TransactionErrorRollback:
-                // The transactionObserver has rollbacked the transaction.
-                // Don't lose this information.
+            switch db.transactionState {
+            case .RollbackFromTransactionObserver:
                 // Next step: updateStatementDidFail()
                 break
             default:
+                db.transactionState = .Rollback
                 // Next step: updateStatementDidExecute()
-                db.statementCompletion = .TransactionRollback
             }
             }, dbPointer)
     }
     
-    private enum StatementCompletion {
-        // Statement has ended with a commit (implicit or explicit).
-        case TransactionCommit
-        
-        // Statement has ended with a rollback.
-        case TransactionRollback
-        
-        // Statement has been rollbacked by transactionObserver.
-        case TransactionErrorRollback(ErrorType)
-        
-        // All other cases (CREATE TABLE, etc.)
-        case Regular
+    private func uninstallTransactionObserverHooks() {
+        sqlite3_update_hook(sqliteConnection, nil, nil)
+        sqlite3_commit_hook(sqliteConnection, nil, nil)
+        sqlite3_rollback_hook(sqliteConnection, nil, nil)
     }
 }
 
@@ -979,6 +972,14 @@ public enum TransactionCompletion {
     case Rollback
 }
 
+/// The states that keep track of transaction completions in order to notify
+/// transaction observers.
+private enum TransactionState {
+    case WaitForTransactionCompletion
+    case Commit
+    case Rollback
+    case RollbackFromTransactionObserver(ErrorType)
+}
 
 /// A transaction observer is notified of all changes and transactions committed
 /// or rollbacked on a database.
@@ -994,8 +995,6 @@ public protocol TransactionObserverType : class {
     /// This method is called on the database queue.
     ///
     /// **WARNING**: this method must not change the database.
-    ///
-    /// - parameter event: A database event.
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
     /// When a transaction is about to be committed, the transaction observer
@@ -1011,15 +1010,11 @@ public protocol TransactionObserverType : class {
     /// Database changes have been committed.
     ///
     /// This method is called on the database queue. It can change the database.
-    ///
-    /// - parameter db: A Database.
     func databaseDidCommit(db: Database)
     
     /// Database changes have been rollbacked.
     ///
     /// This method is called on the database queue. It can change the database.
-    ///
-    /// - parameter db: A Database.
     func databaseDidRollback(db: Database)
 }
 

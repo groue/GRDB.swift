@@ -10,9 +10,6 @@ extension NSDate : DatabaseValueConvertible {
     }
     
     /// Returns an NSDate initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional NSDate.
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
         if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
             // Julian day number

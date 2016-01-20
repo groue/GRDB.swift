@@ -13,6 +13,12 @@
       <FileRef
          location = "group:Record.playground">
       </FileRef>
+      <FileRef
+         location = "group:TransactionObserver.playground">
+      </FileRef>
+      <FileRef
+         location = "group:DatabaseTimestamp.playground">
+      </FileRef>
    </Group>
    <FileRef
       location = "group:GRDB.xcodeproj">

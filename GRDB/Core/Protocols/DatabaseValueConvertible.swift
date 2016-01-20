@@ -1,5 +1,3 @@
-// MARK: - DatabaseValueConvertible
-
 /// Types that adopt DatabaseValueConvertible can be initialized from
 /// database values.
 ///
@@ -21,14 +19,9 @@ public protocol DatabaseValueConvertible {
     var databaseValue: DatabaseValue { get }
     
     /// Returns a value initialized from *databaseValue*, if possible.
-    ///
-    /// - parameter databaseValue: A DatabaseValue.
-    /// - returns: An optional Self.
     static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
 }
 
-
-// MARK: - Fetching DatabaseValueConvertible
 
 /// DatabaseValueConvertible comes with built-in methods that allow to fetch
 /// sequences, arrays, or single values:
@@ -44,8 +37,6 @@ public protocol DatabaseValueConvertible {
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 public extension DatabaseValueConvertible {
-    
-    // MARK: - Fetching From SelectStatement
     
     /// Returns a sequence of values fetched from a prepared statement.
     ///
@@ -69,7 +60,7 @@ public extension DatabaseValueConvertible {
     /// - returns: A sequence.
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let sqliteStatement = statement.sqliteStatement
-        return statement.fetch(arguments: arguments) {
+        return statement.fetchSequence(arguments: arguments) {
             DatabaseValue(sqliteStatement: sqliteStatement, index: 0).value()
         }
     }
@@ -98,17 +89,14 @@ public extension DatabaseValueConvertible {
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional value.
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
-        let sequence: DatabaseSequence<Self?> = statement.fetch(arguments: arguments) {
+        let sequence = statement.fetchSequence(arguments: arguments) {
             fromDatabaseValue(DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0))
         }
-        if let value = sequence.generate().next() {   // Unwrap Self? from Self??
+        if let value = sequence.generate().next() {
             return value
         }
         return nil
     }
-    
-    
-    // MARK: - Fetching From Database
     
     /// Returns a sequence of values fetched from an SQL query.
     ///
@@ -163,8 +151,6 @@ public extension DatabaseValueConvertible {
 }
 
 
-// MARK: - Fetching optional DatabaseValueConvertible
-
 /// Swift's Optional comes with built-in methods that allow to fetch sequences
 /// and arrays of optional DatabaseValueConvertible:
 ///
@@ -177,8 +163,6 @@ public extension DatabaseValueConvertible {
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
 public extension Optional where Wrapped: DatabaseValueConvertible {
-    
-    // MARK: - Fetching From SelectStatement
     
     /// Returns a sequence of optional values fetched from a prepared statement.
     ///
@@ -202,7 +186,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// - returns: A sequence of optional values.
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Wrapped?> {
         let sqliteStatement = statement.sqliteStatement
-        return statement.fetch(arguments: arguments) {
+        return statement.fetchSequence(arguments: arguments) {
             Wrapped.fromDatabaseValue(DatabaseValue(sqliteStatement: sqliteStatement, index: 0))
         }
     }
@@ -218,9 +202,6 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Wrapped?] {
         return Array(fetch(statement, arguments: arguments))
     }
-    
-    
-    // MARK: - Fetching From Database
     
     /// Returns a sequence of optional values fetched from an SQL query.
     ///
