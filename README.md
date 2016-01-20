@@ -607,11 +607,6 @@ Yet, when extracting NSData from a row, **you have the opportunity to save memor
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
     let data = row.dataNoCopy(named: "data")     // NSData?
-
-    // When the column `data` may not be there:
-    if row.hasColumn("data") {
-        let data = row.dataNoCopy(named: "data") // NSData?
-    }
 }
 ```
 
