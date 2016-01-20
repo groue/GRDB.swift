@@ -574,11 +574,11 @@ extension Database {
             arguments: [tableName.lowercaseString]) != nil
     }
     
-    /// Return the primary key for table named `tableName`, or nil if table does
-    /// not exist.
+    /// Return the primary key for table named `tableName`.
+    /// Crashes if table does not exist.
     ///
     /// This method is not thread-safe.
-    func primaryKey(tableName: String) -> PrimaryKey? {
+    func primaryKey(tableName: String) -> PrimaryKey {
         if let primaryKey = primaryKeyCache[tableName] {
             return primaryKey
         }
@@ -609,8 +609,7 @@ extension Database {
         
         let columnInfos = self.columnInfos(tableName)
         guard columnInfos.count > 0 else {
-            // Table does not exist
-            return nil
+            fatalError("no such table: \(tableName)")
         }
         
         let primaryKey: PrimaryKey

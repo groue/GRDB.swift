@@ -67,12 +67,9 @@ extension RowConvertible where Self: DatabaseTableMapping {
     //
     // Returns nil if keys is empty.
     private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> SelectStatement? {
-        let databaseTableName = self.databaseTableName()
-        
         // Fail early if database table does not exist.
-        guard let primaryKey = db.primaryKey(databaseTableName) else {
-            fatalError("no such table: \(databaseTableName)")
-        }
+        let databaseTableName = self.databaseTableName()
+        let primaryKey = db.primaryKey(databaseTableName)
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns

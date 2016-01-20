@@ -493,6 +493,17 @@ public struct StatementArguments {
         kind = .Values(Array(sequence))
     }
     
+    /// Initializes arguments from a sequence of optional values.
+    ///
+    ///     let values: [String] = ["foo", "bar"]
+    ///     db.execute("INSERT ... (?,?)", arguments: StatementArguments(values))
+    ///
+    /// - parameter sequence: A sequence of DatabaseValueConvertible values.
+    /// - returns: A StatementArguments.
+    public init<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(_ sequence: Sequence) {
+        kind = .Values(sequence.map { $0 })
+    }
+    
     
     // MARK: Named Arguments
     
@@ -506,6 +517,18 @@ public struct StatementArguments {
     /// - returns: A StatementArguments.
     public init<Sequence: SequenceType where Sequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
         kind = .NamedValues(Dictionary(sequence))
+    }
+    
+    /// Initializes arguments from a sequence of (key, value) pairs, such as
+    /// a dictionary.
+    ///
+    ///     let values: [String: String] = ["firstName": "Arthur", "lastName": "Miller"]
+    ///     db.execute("INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
+    ///
+    /// - parameter sequence: A sequence of (key, value) pairs
+    /// - returns: A StatementArguments.
+    public init<Sequence: SequenceType, Value: DatabaseValueConvertible where Sequence.Generator.Element == (String, Value)>(_ sequence: Sequence) {
+        kind = .NamedValues(Dictionary(sequence.map { (key, value) in return (key, value as DatabaseValueConvertible?) }))
     }
     
     public var isEmpty: Bool {

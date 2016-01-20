@@ -1,4 +1,5 @@
 - [ ] How to have robust single writer/several readers?
+- [ ] protocol DatabaseEquatable, with default implementation for MutableDatabasePersistable
 
 Not sure:
 
