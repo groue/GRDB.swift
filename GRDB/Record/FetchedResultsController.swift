@@ -5,6 +5,7 @@
 //  Created by Pascal Edmond on 09/12/2015.
 //  Copyright © 2015 Gwendal Roué. All rights reserved.
 //
+import UIKit
 
 public typealias FetchedResult = protocol<RowConvertible, DatabaseTableMapping, Equatable>
 
@@ -47,11 +48,11 @@ public class FetchedResultsController<T: FetchedResult> {
     /// The databaseQueue
     public let databaseQueue: DatabaseQueue
     
-    /// Delegate that is notified when the records set changes.
+    /// Delegate that is notified when the resultss set changes.
     weak public var delegate: FetchedResultsControllerDelegate?
     
     
-    // MARK: - Accessing records
+    // MARK: - Accessing results
 
     /// Returns the results of the query.
     /// Returns nil if the performQuery: hasn't been called.
@@ -59,29 +60,37 @@ public class FetchedResultsController<T: FetchedResult> {
 
     
     /// Returns the fetched object at a given indexPath.
-    public func recordAtIndexPath(indexPath: NSIndexPath) -> T? {
-        if let record = fetchedResults?[indexPath.indexAtPosition(1)] {
-            return record
+    public func resultAtIndexPath(indexPath: NSIndexPath) -> T? {
+        if let result = fetchedResults?[indexPath.indexAtPosition(1)] {
+            return result
         } else {
             return nil
         }
     }
     
     /// Returns the indexPath of a given object.
-    public func indexPathForRecord(record: T) -> NSIndexPath? {
+    public func indexPathForResult(result: T) -> NSIndexPath? {
         return nil
     }
 
+    public func changesAreEquivalent(change: Change<T>, otherChange: Change<T>) -> Bool {
+        switch (change, otherChange) {
+        case (.Move(let item1, let from1, let to1), .Move(let item2, let from2, let to2)):
+            return (from1 == to2 && to1 == from2 && item1 == resultAtIndexPath(from2) && item2 == resultAtIndexPath(from1))
+        default:
+            return false
+        }
+    }
 
     // MARK: - Not public
     
-    func fetchRecords() -> [T] {
+    func fetchResults() -> [T] {
         return databaseQueue.inDatabase { db in
             T.fetchAll(db, self.sql)
         }
     }
     
-    func diff(fromRows s: [T], toRows t: [T]) -> [Change<T>] {
+    static func diff(fromRows s: [T], toRows t: [T]) -> [Change<T>] {
         
         let sourceCount = s.count
         let targetCount = t.count
@@ -134,8 +143,6 @@ public class FetchedResultsController<T: FetchedResult> {
                     var del = d[i - 1][j] // a deletion
                     var ins = d[i][j - 1] // an insertion
                     var sub = d[i - 1][j - 1] // a substitution
-                    
-                    // Record operation.
                     
                     let minimumCount = min(del.count, ins.count, sub.count)
                     if del.count == minimumCount {
@@ -221,19 +228,19 @@ extension FetchedResultsController : TransactionObserverType {
     public func databaseWillCommit() throws { }
     public func databaseDidRollback(db: Database) { }
     public func databaseDidCommit(db: Database) {
-        let newRecords = T.fetchAll(db, self.sql)
+        let newResults = T.fetchAll(db, self.sql)
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-            let oldRecords = self.fetchedResults
+            let oldResults = self.fetchedResults
             
             // horrible diff computation
             dispatch_async(dispatch_get_main_queue()) {
                 self.delegate?.controllerWillUpdate(self)
                 
                 // after controllerWillChangeContent
-                self.fetchedResults = newRecords
+                self.fetchedResults = newResults
                 
                 // notify horrible diff computation
-                for update in self.diff(fromRows: oldRecords!, toRows: newRecords) {
+                for update in FetchedResultsController.diff(fromRows: oldResults!, toRows: newResults) {
                     self.delegate?.controllerUpdate(self, update: update)
                 }
                 
@@ -314,21 +321,21 @@ extension Change: CustomStringConvertible {
     public var description: String {
         switch self {
         case .Insertion(let item, let at):
-            return "Inserted \(item) at indexpath \(at)"
+            return "INSERTED \(item) AT index \(at.row)"
             
         case .Deletion(let item, let at):
-            return "Deleted \(item) from indexpath \(at)"
+            return "DELETED \(item) FROM index \(at.row)"
             
         case .Move(let item, let from, let to):
-            return "Moved \(item) from indexpath \(from) to indexpath \(to)"
+            return "MOVED \(item) FROM index \(from.row) TO index \(to.row)"
             
         case .Update(let item, let at, let changes):
-            return "Updated \(changes) of \(item) at indexpath \(at)"
+            return "UPDATES \(changes) OF \(item) AT index \(at.row)"
         }
     }
 }
 
-func ==<T>(lhs: Change<T>, rhs: Change<T>) -> Bool {
+public func ==<T>(lhs: Change<T>, rhs: Change<T>) -> Bool {
     switch (lhs, rhs) {
     case (.Insertion(let lhsResult, let lhsIndexPath), .Insertion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
     case (.Deletion(let lhsResult, let lhsIndexPath), .Deletion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
