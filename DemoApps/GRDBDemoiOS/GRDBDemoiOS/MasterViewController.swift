@@ -4,7 +4,7 @@ import GRDB
 class MasterViewController: UITableViewController, FetchedResultsControllerDelegate {
     var detailViewController: DetailViewController? = nil
     var fetchedResultsController: FetchedResultsController<Person>!
-    var persons = [Person]()
+    var userDrivenMove: Change<Person>?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -14,7 +14,14 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
             self.detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
         }
         
-        fetchedResultsController = FetchedResultsController(sql: "SELECT * FROM persons ORDER BY LOWER(firstName), LOWER(lastName)", databaseQueue: dbQueue)
+        toolbarItems = [
+            UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(title: "Shuffle", style: UIBarButtonItemStyle.Done, target: self, action: "shufflePersons"),
+            UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil)
+        ]
+        self.navigationController?.toolbarHidden = false
+        
+        fetchedResultsController = FetchedResultsController(sql: "SELECT * FROM persons WHERE visible = 1 ORDER BY LOWER(position), LOWER(firstName), LOWER(lastName)", databaseQueue: dbQueue)
         fetchedResultsController.delegate = self
         fetchedResultsController.performFetch()
         tableView.reloadData()
@@ -25,12 +32,14 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         super.viewWillAppear(animated)
     }
     
-    
+    func shufflePersons() {
+    }
+
     // MARK: - Segues
-    
+
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "showPerson" {
-            let person = fetchedResultsController.recordAtIndexPath(self.tableView.indexPathForSelectedRow!)
+            let person = fetchedResultsController.resultAtIndexPath(self.tableView.indexPathForSelectedRow!)
             let detailViewController = (segue.destinationViewController as! UINavigationController).topViewController as! DetailViewController
             detailViewController.person = person
             detailViewController.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem()
@@ -71,17 +80,41 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
 
-        let person = fetchedResultsController.recordAtIndexPath(indexPath)!
+        let person = fetchedResultsController.resultAtIndexPath(indexPath)!
         cell.textLabel!.text = person.fullName
         return cell
     }
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
-        let person = fetchedResultsController.recordAtIndexPath(indexPath)!
+        let person = fetchedResultsController.resultAtIndexPath(indexPath)!
         try! dbQueue.inTransaction { db in
             try person.delete(db)
             return .Commit
+        }
+    }
+    
+    override func tableView(tableView: UITableView, moveRowAtIndexPath sourceIndexPath: NSIndexPath, toIndexPath destinationIndexPath: NSIndexPath) {
+        
+        guard let result = fetchedResultsController.resultAtIndexPath(sourceIndexPath) else {
+            return
+        }
+        
+        userDrivenMove = Change.Move(item: result, from: sourceIndexPath, to: destinationIndexPath)
+        
+        // Update db
+        if let fetchedResults = fetchedResultsController.fetchedResults {
+            var persons = fetchedResults
+            persons.removeAtIndex(sourceIndexPath.row)
+            persons.insert(result, atIndex: destinationIndexPath.row)
+            
+            try! dbQueue.inTransaction { db in
+                for (i, p) in persons.enumerate() {
+                    p.position = Int64(i)
+                    try p.save(db)
+                }
+                return .Commit
+            }
         }
     }
     
@@ -91,7 +124,8 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         tableView.beginUpdates()
     }
     
-    func controllerUpdate<T>(controller: FetchedResultsController<T>, update: Update<T>) {
+    func controllerUpdate<T>(controller: FetchedResultsController<T>, update: Change<T>) {
+        print(update)
         switch update {
         case .Insertion(_, let at):
             tableView.insertRowsAtIndexPaths([at], withRowAnimation: .Automatic)
@@ -99,7 +133,14 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         case .Deletion(_, let from):
             tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Automatic)
             
-        case .Move(_, let from, let to):
+        case .Move(let item, let from, let to):
+            if let userDrivenMove = userDrivenMove, let person = item as? Person {
+                let personMove = Change.Move(item: person, from: from, to: to)
+                if personMove == userDrivenMove || fetchedResultsController.changesAreEquivalent(personMove, otherChange: userDrivenMove) {
+                    self.userDrivenMove = nil
+                    return
+                }
+            }
             tableView.moveRowAtIndexPath(from, toIndexPath: to)
             
         case .Update(_, let at, let changes):

@@ -20,6 +20,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		31B0795C1C5120D2003790B7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B8F4871B4E235C00C24296 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56553C181C3E906C00522B5C;
+			remoteInfo = GRDBOSXCrashTests;
+		};
+		31B0795E1C5120D2003790B7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56B8F4871B4E235C00C24296 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 560C981A1C0E22D300BF8471;
+			remoteInfo = GRDBOSXPerformanceTests;
+		};
 		567AA8A41B4E3F120082C3E4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56B8F4871B4E235C00C24296 /* GRDB.xcodeproj */;
@@ -117,7 +131,9 @@
 			isa = PBXGroup;
 			children = (
 				567AA8A51B4E3F120082C3E4 /* GRDB.framework */,
+				31B0795D1C5120D2003790B7 /* GRDBOSXCrashTests.xctest */,
 				567AA8A71B4E3F120082C3E4 /* GRDBTests.xctest */,
+				31B0795F1C5120D2003790B7 /* GRDBOSXPerformanceTests.xctest */,
 				567AA8A91B4E3F120082C3E4 /* GRDB.framework */,
 				567AA8AB1B4E3F120082C3E4 /* GRDBTests.xctest */,
 			);
@@ -260,6 +276,20 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		31B0795D1C5120D2003790B7 /* GRDBOSXCrashTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBOSXCrashTests.xctest;
+			remoteRef = 31B0795C1C5120D2003790B7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		31B0795F1C5120D2003790B7 /* GRDBOSXPerformanceTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBOSXPerformanceTests.xctest;
+			remoteRef = 31B0795E1C5120D2003790B7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		567AA8A51B4E3F120082C3E4 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;

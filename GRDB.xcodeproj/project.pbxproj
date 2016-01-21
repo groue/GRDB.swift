@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		317194AF1C2304AA002E3BDA /* FetchedResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31AEFE3E1C185E63003DB703 /* FetchedResultsController.swift */; };
 		317194B51C230DDD002E3BDA /* FetchedResultsControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 317194B31C230DDD002E3BDA /* FetchedResultsControllerTests.swift */; };
 		31AEFE421C185E63003DB703 /* FetchedResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31AEFE3E1C185E63003DB703 /* FetchedResultsController.swift */; };
 		5606AF911C0ED37000D20487 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
@@ -1453,7 +1452,6 @@
 				56A2387B1B9C75030082EB20 /* Configuration.swift in Sources */,
 				56B7F42E1BE14CD400E39BBF /* CGFloat.swift in Sources */,
 				56A2389B1B9C752B0082EB20 /* DatabaseValueConvertible.swift in Sources */,
-				317194AF1C2304AA002E3BDA /* FetchedResultsController.swift in Sources */,
 				56A2380F1B9C74460082EB20 /* RawRepresentable.swift in Sources */,
 				56A238AA1B9C7E540082EB20 /* StatementArguments+Foundation.swift in Sources */,
 				56A238811B9C75030082EB20 /* DatabaseError.swift in Sources */,
