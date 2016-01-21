@@ -26,13 +26,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
                 "CREATE TABLE persons (" +
                     "id INTEGER PRIMARY KEY, " +
                     "firstName TEXT, " +
-                    "lastName TEXT " +
+                    "lastName TEXT ," +
+                    "visible BOOLEAN DEFAULT TRUE ," +
+                    "position INTEGER " +
                 ")")
         }
         migrator.registerMigration("addPersons") { db in
             try Person(firstName: "Arthur", lastName: "Miller").insert(db)
             try Person(firstName: "Barbra", lastName: "Streisand").insert(db)
             try Person(firstName: "Cinderella").insert(db)
+            try Person(firstName: "John", lastName: "Appleseed").insert(db)
+            try Person(firstName: "Kate", lastName: "Bell").insert(db)
+            try Person(firstName: "Anna", lastName: "Haro").insert(db)
+            try Person(firstName: "Daniel", lastName: "Higgins").insert(db)
+            try Person(firstName: "David", lastName: "Taylor").insert(db)
+            try Person(firstName: "Hank", lastName: "Zakroff").insert(db)
+            try Person(firstName: "Steve", lastName: "Jobs").insert(db)
+            try Person(firstName: "Bill", lastName: "Gates").insert(db)
+            try Person(firstName: "Zlatan", lastName: "Ibrahimovic").insert(db)
+            try Person(firstName: "Barack", lastName: "Obama").insert(db)
+            try Person(firstName: "François", lastName: "Hollande").insert(db)
+            try Person(firstName: "Britney", lastName: "Spears").insert(db)
+            try Person(firstName: "Andre", lastName: "Agassi").insert(db)
+            try Person(firstName: "Roger", lastName: "Federer").insert(db)
+            try Person(firstName: "Rafael", lastName: "Nadal").insert(db)
+            try Person(firstName: "Gael", lastName: "Monfils").insert(db)
+            try Person(firstName: "Jo Wilfried", lastName: "Tsonga").insert(db)
+            try Person(firstName: "Serena", lastName: "Williams").insert(db)
+            try Person(firstName: "Venus", lastName: "Williams").insert(db)
+            try Person(firstName: "Amélie", lastName: "Poulain").insert(db)
         }
         try! migrator.migrate(dbQueue)
         
