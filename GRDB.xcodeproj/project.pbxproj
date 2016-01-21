@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		317194AF1C2304AA002E3BDA /* FetchedResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31AEFE3E1C185E63003DB703 /* FetchedResultsController.swift */; };
-		317194B41C230DDD002E3BDA /* FetchedResultsControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 317194B31C230DDD002E3BDA /* FetchedResultsControllerTests.swift */; };
 		317194B51C230DDD002E3BDA /* FetchedResultsControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 317194B31C230DDD002E3BDA /* FetchedResultsControllerTests.swift */; };
 		31AEFE421C185E63003DB703 /* FetchedResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31AEFE3E1C185E63003DB703 /* FetchedResultsController.swift */; };
 		5606AF911C0ED37000D20487 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB86301BA98AB0001F9168 /* libsqlite3.tbd */; };
@@ -167,7 +166,6 @@
 		56CA0D421BF5D8E20019C023 /* DatabaseValue+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA0D401BF5D8E20019C023 /* DatabaseValue+Foundation.swift */; };
 		56CA21BA1BB3FCF7009A04C5 /* NSDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */; };
 		56CA21BB1BB3FCF7009A04C5 /* NSDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */; };
-		56CA22291BB41663009A04C5 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56CA220B1BB414FE009A04C5 /* SQLite.framework */; };
 		56DE7B111C3D93ED00861EB8 /* StatementArgumentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B101C3D93ED00861EB8 /* StatementArgumentsTests.swift */; };
 		56DE7B121C3D93ED00861EB8 /* StatementArgumentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B101C3D93ED00861EB8 /* StatementArgumentsTests.swift */; };
 		56DE7B241C412F7E00861EB8 /* InsertPositionalValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */; };
@@ -473,7 +471,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56CA22291BB41663009A04C5 /* SQLite.framework in Frameworks */,
 				56BB862F1BA98AA9001F9168 /* libsqlite3.tbd in Frameworks */,
 				56E5D7D41B4D3FEE00430942 /* GRDB.framework in Frameworks */,
 			);
@@ -1393,7 +1390,6 @@
 				56A238551B9C74A90082EB20 /* PrimaryKeyNoneTests.swift in Sources */,
 				56A2384F1B9C74A90082EB20 /* MinimalPrimaryKeyRowIDTests.swift in Sources */,
 				56AC8CCE1BA3F2AD009E4319 /* ConcurrencyTests.swift in Sources */,
-				317194B41C230DDD002E3BDA /* FetchedResultsControllerTests.swift in Sources */,
 				56A238451B9C74A90082EB20 /* DictionaryRowTests.swift in Sources */,
 				56A238491B9C74A90082EB20 /* SelectStatementTests.swift in Sources */,
 				56B7F4371BE4C11200E39BBF /* DatabaseCoderTests.swift in Sources */,
@@ -1641,7 +1637,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
 				PRODUCT_NAME = GRDBTests;
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBTests-Bridging.h";
 			};
 			name = Debug;
 		};
@@ -1658,7 +1653,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
 				PRODUCT_NAME = GRDBTests;
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBTests-Bridging.h";
 			};
 			name = Release;
 		};
