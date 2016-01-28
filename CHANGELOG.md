@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- The query interface lets you write pure Swift instead of SQL ([documentation](#https://github.com/groue/GRDB.swift/#the-query-interface)):
+- The query interface lets you write pure Swift instead of SQL ([documentation](https://github.com/groue/GRDB.swift/#the-query-interface)):
     
     ```swift
     let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
@@ -13,8 +13,8 @@ Release Notes
 
 **Breaking Changes**
 
-- `DatabasePersistable` and `MutableDatabasePersistable` protocols have been renamed `Persistable` and `MutablePersistable` ([documentation](#https://github.com/groue/GRDB.swift/#persistable-protocol))
-- `DatabaseTableMapping` protocol has been renamed `TableMapping` ([documentation](#https://github.com/groue/GRDB.swift/#tablemapping-protocol))
+- `DatabasePersistable` and `MutableDatabasePersistable` protocols have been renamed `Persistable` and `MutablePersistable` ([documentation](https://github.com/groue/GRDB.swift/#persistable-protocol))
+- `DatabaseTableMapping` protocol has been renamed `TableMapping` ([documentation](https://github.com/groue/GRDB.swift/#tablemapping-protocol))
 
 
 ## 0.41.0
