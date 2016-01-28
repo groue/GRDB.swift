@@ -1975,7 +1975,7 @@ dbQueue.inDatabase { db in
 For example:
 
 ```swift
-let persons = Person.order(name).fetchAll(db) // [Persons]
+let persons = Person.all().fetchAll(db) // [Persons]
 ```
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
@@ -2061,7 +2061,7 @@ You can also fetch other aggregated values (average, sum, min, max, etc.) For ex
 
 ```swift
 dbQueue.inDatabase { db in
-    // SELECT MIN("age") FROM "persons" WHERE email IS NOT NULL
+    // SELECT MIN("age") FROM "persons"
     let request = Person.select(min(Col.age))
     let minAge = Int.fetchOne(db, request)  // Int?
 }
