@@ -1603,6 +1603,7 @@ class PointOfInterest : Record {
         self.coordinate = CLLocationCoordinate2DMake(
             row.value(named: "latitude"),
             row.value(named: "longitude"))
+        super.init(row)
     }
     
     /// The values persisted in the database
