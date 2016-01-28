@@ -589,8 +589,10 @@ extension SQLLiteral : _DerivedSQLExpressionType {
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct SQLColumn {
-    let name: String
     let sourceName: String?
+    
+    /// The name of the column
+    public let name: String
     
     /// Initializes a column given its name.
     public init(_ name: String) {

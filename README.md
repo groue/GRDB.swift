@@ -1301,7 +1301,7 @@ You can now jump to:
 
 ### RowConvertible Protocol
 
-**The `RowConvertible` protocol grants fetching methods to any type** that can be built from a database row:
+**The RowConvertible protocol grants fetching methods to any type** that can be built from a database row:
 
 ```swift
 public protocol RowConvertible {
@@ -1339,38 +1339,15 @@ See [Column Values](#column-values) for more information about the `row.value()`
 
 > :point_up: **Note**: For performance reasons, the same row argument to `fromRow(:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
-RowConvertible allows adopting types to be fetched:
+RowConvertible allows adopting types to be fetched from SQL queries:
 
-- From SQL queries:
+```swift
+PointOfInterest.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<PointOfInterest>
+PointOfInterest.fetchAll(db, "SELECT ...", arguments:...) // [PointOfInterest]
+PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
+```
 
-    ```swift
-    PointOfInterest.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<PointOfInterest>
-    PointOfInterest.fetchAll(db, "SELECT ...", arguments:...) // [PointOfInterest]
-    PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
-    ```
-
-    See [Fetching Rows](#fetching-rows) for more information about the query arguments.
-
-- From primary key:
-    
-    ```swift
-    PointOfInterest.fetch(db, keys: ...)    // DatabaseSequence<PointOfInterest>
-    PointOfInterest.fetchAll(db, keys: ...) // [PointOfInterest]
-    PointOfInterest.fetchOne(db, key: ...)  // PointOfInterest?
-    ```
-    
-    Any single-column primary key is OK:
-    
-    ```swift
-    // SELECT * FROM pointOfInterests WHERE id IN (1, 2, 3)
-    PointOfInterest.fetchAll(db, keys: [1, 2, 3])
-    
-    // SELECT * FROM pointOfInterests WHERE id = 1
-    PointOfInterest.fetchOne(db, key: 1)
-    
-    // SELECT * FROM countries WHERE isoCode = 'FR'
-    Country.fetchOne(db, key: "FR")
-    ```
+See [Fetching Rows](#fetching-rows) for more information about the query arguments.
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
 
@@ -1380,7 +1357,7 @@ Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. Th
 
 ### TableMapping Protocol
 
-**Adopt the `TableMapping` protocol** on top of `RowConvertible`, and you are granted with the full [query interface](#the-query-interface).
+**Adopt the TableMapping protocol** on top of [RowConvertible](#rowconvertible-protocol), and you are granted with the full [query interface](#the-query-interface).
 
 ```swift
 public protocol TableMapping {
@@ -1396,10 +1373,35 @@ extension PointOfInterest : TableMapping {
         return "pointOfInterests"
     }
 }
+```
 
+Adopting types can be fetched using the [query interface](#the-query-interface):
+
+```swift
 let paris = dbQueue.inDatabase { db in
     PointOfInterest.filter(name == "Paris").fetchOne(db)?
 }
+```
+
+You can also fetch records according to their primary key:
+
+```swift
+PointOfInterest.fetch(db, keys: ...)    // DatabaseSequence<PointOfInterest>
+PointOfInterest.fetchAll(db, keys: ...) // [PointOfInterest]
+PointOfInterest.fetchOne(db, key: ...)  // PointOfInterest?
+```
+
+Any single-column primary key is OK:
+
+```swift
+// SELECT * FROM pointOfInterests WHERE id IN (1, 2, 3)
+PointOfInterest.fetchAll(db, keys: [1, 2, 3])
+
+// SELECT * FROM pointOfInterests WHERE id = 1
+PointOfInterest.fetchOne(db, key: 1)
+
+// SELECT * FROM countries WHERE isoCode = 'FR'
+Country.fetchOne(db, key: "FR")
 ```
 
 
@@ -1622,7 +1624,7 @@ class PointOfInterest : Record {
 
 #### Changes Tracking
 
-**[Record](#record-class) provides changes tracking.**
+**The [Record](#record-class) class provides changes tracking.**
 
 The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
 

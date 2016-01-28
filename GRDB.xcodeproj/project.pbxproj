@@ -931,7 +931,7 @@
 			path = Experimental;
 			sourceTree = "<group>";
 		};
-		DC10500F19C904DD00D8CA30 /* GRDB Tests */ = {
+		DC10500F19C904DD00D8CA30 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
 				5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */,
@@ -942,7 +942,7 @@
 				DC37740319C8CBB3004FCF85 /* Supporting Files */,
 				5614DEEE1BA9D6F9003163B3 /* Frameworks */,
 			);
-			path = "GRDB Tests";
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		DC3773E919C8CBB3004FCF85 = {
@@ -952,7 +952,7 @@
 				DC37744719C8F50B004FCF85 /* README.md */,
 				56E1524B1B43FD5B00EE27AA /* TODO.md */,
 				DC37742D19C8CC90004FCF85 /* GRDB */,
-				DC10500F19C904DD00D8CA30 /* GRDB Tests */,
+				DC10500F19C904DD00D8CA30 /* Tests */,
 				DC3773F419C8CBB3004FCF85 /* Products */,
 			);
 			indentWidth = 4;
@@ -980,7 +980,6 @@
 				56BB862D1BA98933001F9168 /* GRDBPerformanceTests-Bridging.h */,
 			);
 			name = "Supporting Files";
-			path = "../GRDB Tests";
 			sourceTree = "<group>";
 		};
 		DC37742D19C8CC90004FCF85 /* GRDB */ = {
@@ -1588,13 +1587,13 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBPerformanceTests-Bridging.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Tests/GRDBPerformanceTests-Bridging.h";
 			};
 			name = Debug;
 		};
@@ -1605,13 +1604,13 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBPerformanceTests-Bridging.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Tests/GRDBPerformanceTests-Bridging.h";
 			};
 			name = Release;
 		};
@@ -1621,7 +1620,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
@@ -1637,7 +1636,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
@@ -1702,13 +1701,12 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
 				PRODUCT_NAME = GRDBTests;
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBTests-Bridging.h";
 			};
 			name = Debug;
 		};
@@ -1719,13 +1717,12 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
 				PRODUCT_NAME = GRDBTests;
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = "GRDB Tests/GRDBTests-Bridging.h";
 			};
 			name = Release;
 		};
@@ -1735,7 +1732,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
@@ -1751,7 +1748,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
-				INFOPLIST_FILE = "GRDB Tests/Info.plist";
+				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;

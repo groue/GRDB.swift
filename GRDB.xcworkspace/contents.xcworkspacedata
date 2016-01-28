@@ -21,7 +21,7 @@
       location = "group:GRDB.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:GRDB Tests/GRDBProfiling/GRDBProfiling.xcodeproj">
+      location = "group:Tests/GRDBProfiling/GRDBProfiling.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj">
