@@ -61,11 +61,7 @@ extension PointOfInterest {
 
 try dbQueue.inDatabase { db in
     // INSERT INTO "pointOfInterests" ...
-    var berlin = PointOfInterest(
-        id: nil,
-        title: "Berlin",
-        favorite: false,
-        coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
+    var berlin = PointOfInterest(id: nil, title: "Berlin", favorite: false, coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
     try berlin.insert(db)
     print(berlin.id)
     
