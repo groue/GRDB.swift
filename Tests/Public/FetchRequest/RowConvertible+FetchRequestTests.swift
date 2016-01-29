@@ -60,7 +60,7 @@ class RowConvertibleFetchRequestTests: GRDBTestCase {
     
     // MARK: - Fetch RowConvertible
     
-    func testFetch() {
+    func testAll() {
         assertNoError {
             try dbQueue.inDatabase { db in
                 var arthur = Reader(id: nil, name: "Arthur", age: 42)
@@ -92,6 +92,43 @@ class RowConvertibleFetchRequestTests: GRDBTestCase {
                 
                 do {
                     let names = request.fetch(db).map { $0.name }
+                    XCTAssertEqual(self.lastSQLQuery, "SELECT * FROM \"readers\"")
+                    XCTAssertEqual(names, [arthur.name, barbara.name])
+                }
+            }
+        }
+    }
+    
+    func testFetch() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                var arthur = Reader(id: nil, name: "Arthur", age: 42)
+                try arthur.insert(db)
+                var barbara = Reader(id: nil, name: "Barbara", age: 36)
+                try barbara.insert(db)
+                
+                do {
+                    let readers = Reader.fetchAll(db)
+                    XCTAssertEqual(self.lastSQLQuery, "SELECT * FROM \"readers\"")
+                    XCTAssertEqual(readers.count, 2)
+                    XCTAssertEqual(readers[0].id!, arthur.id!)
+                    XCTAssertEqual(readers[0].name, arthur.name)
+                    XCTAssertEqual(readers[0].age, arthur.age)
+                    XCTAssertEqual(readers[1].id!, barbara.id!)
+                    XCTAssertEqual(readers[1].name, barbara.name)
+                    XCTAssertEqual(readers[1].age, barbara.age)
+                }
+                
+                do {
+                    let reader = Reader.fetchOne(db)!
+                    XCTAssertEqual(self.lastSQLQuery, "SELECT * FROM \"readers\"")
+                    XCTAssertEqual(reader.id!, arthur.id!)
+                    XCTAssertEqual(reader.name, arthur.name)
+                    XCTAssertEqual(reader.age, arthur.age)
+                }
+                
+                do {
+                    let names = Reader.fetch(db).map { $0.name }
                     XCTAssertEqual(self.lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(names, [arthur.name, barbara.name])
                 }

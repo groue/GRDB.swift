@@ -160,6 +160,15 @@ class TableMappingFetchRequestTests: GRDBTestCase {
     }
     
     
+    // MARK: - Reverse
+    
+    func testReverse() {
+        XCTAssertEqual(
+            sql(Reader.reverse()),
+            "SELECT * FROM \"readers\" ORDER BY \"id\" DESC")
+    }
+    
+    
     // MARK: - Limit
     
     func testLimit() {
