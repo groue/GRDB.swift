@@ -1776,7 +1776,6 @@ let name = SQLColumn("name")
 > struct Col {
 >    static let id = SQLColumn("id")
 >    static let name = SQLColumn("name")
->    static let age = SQLColumn("age")
 > }
 > ```
 
