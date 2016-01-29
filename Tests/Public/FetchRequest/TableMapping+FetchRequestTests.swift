@@ -56,18 +56,6 @@ class TableMappingFetchRequestTests: GRDBTestCase {
                 
                 XCTAssertEqual(Reader.filter(Col.age == 42).fetchCount(db), 3)
                 XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
-                
-                XCTAssertEqual(Reader.fetchCount(db, Col.age), 4)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(\"age\") FROM \"readers\"")
-                
-                XCTAssertEqual(Reader.fetchCount(db, Col.age ?? 0), 5)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(IFNULL(\"age\", 0)) FROM \"readers\"")
-                
-                XCTAssertEqual(Reader.fetchCount(db, distinct: Col.age), 2)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT \"age\") FROM \"readers\"")
-                
-                XCTAssertEqual(Reader.fetchCount(db, distinct: Col.age / Col.age), 1)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" / \"age\")) FROM \"readers\"")
             }
         }
     }

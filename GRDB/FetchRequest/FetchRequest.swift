@@ -146,24 +146,7 @@ extension FetchRequest {
     /// Returns the number of rows matched by the request.
     @warn_unused_result
     public func fetchCount(db: Database) -> Int {
-        return fetchAggregate(db, _SQLExpression.Count(_SQLResultColumn.Star(nil)))!
-    }
-    
-    /// Returns the number of non-NULL values of *counted*.
-    @warn_unused_result
-    public func fetchCount(db: Database, _ counted: _SQLSelectable) -> Int {
-        return fetchAggregate(db, _SQLExpression.Count(counted ?? _SQLResultColumn.Star(nil)))!
-    }
-    
-    /// Returns the number of distinct values of *counted*.
-    @warn_unused_result
-    public func fetchCount(db: Database, distinct counted: _SQLExpressionType) -> Int {
-        return fetchAggregate(db, count(distinct: counted.SQLExpression))!
-    }
-    
-    @warn_unused_result
-    private func fetchAggregate<T: DatabaseValueConvertible>(db: Database, _ selection: _SQLSelectable) -> T? {
-        return T.fetchOne(db, FetchRequest<Void>(query.select([selection])))
+        return Int.fetchOne(db, select([_SQLExpression.Count(_SQLResultColumn.Star(nil))]))!
     }
 }
 
@@ -290,18 +273,6 @@ extension TableMapping {
     @warn_unused_result
     public static func fetchCount(db: Database) -> Int {
         return all().fetchCount(db)
-    }
-    
-    /// Returns the number of non-NULL values of *counted*.
-    @warn_unused_result
-    public static func fetchCount(db: Database, _ counted: _SQLSelectable) -> Int {
-        return all().fetchCount(db, counted)
-    }
-    
-    /// Returns the number of distinct values of *counted*.
-    @warn_unused_result
-    public static func fetchCount(db: Database, distinct counted: _SQLExpressionType) -> Int {
-        return all().fetchCount(db, distinct: counted)
     }
 }
 

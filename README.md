@@ -1367,7 +1367,6 @@ let personWithEmailCount = dbQueue.inDatabase { db in
 }
 ```
 
-You can generally fetch the average, count, min, max and sum of any column. See the [query interface](#the-query-interface) for more details.
 
 You can now jump to:
 
@@ -1748,7 +1747,7 @@ Please bear in mind that the query interface can not generate all possible SQL q
     - [SQL Operators](#sql-operators)
     - [SQL Functions](#sql-functions)
 - [Fetching from Requests](#fetching-from-requests)
-- [Counting with Requests](#counting-with-requests)
+- [Fetching Aggregated Values](#fetching-aggregated-values)
 
 
 ### Requests
@@ -2117,31 +2116,33 @@ Country.fetchAll(db, keys: ["FR", "US"])!
 ```
 
 
-### Counting with Requests
+### Fetching Aggregated Values
 
 **Requests can count:**
 
 ```swift
 dbQueue.inDatabase { db in
+    // SELECT COUNT(*) FROM "persons"
+    let count = Person.all().fetchCount(db)                    // Int
     
-    // SELECT COUNT(*) FROM "persons" ...
-    request.fetchCount(db)                      // Int
-    
-    // SELECT COUNT(name) FROM "persons" ...
-    request.fetchCount(db, Col.name)            // Int
-    
-    // SELECT COUNT(DISTINCT name) FROM "persons" ...
-    request.fetchCount(db, distinct: Col.name)  // Int
+    // SELECT COUNT(*) FROM "persons" WHERE "email" IS NOT NULL
+    let count = Person.filter(Col.email != nil).fetchCount(db) // Int
 }
 ```
 
-You can also fetch other aggregated values (average, sum, min, max, etc.) For example:
+Other aggregated values can also be selected and fetched (see [SQL Functions](#sql-functions)):
 
 ```swift
 dbQueue.inDatabase { db in
     // SELECT MIN("age") FROM "persons"
     let request = Person.select(min(Col.age))
     let minAge = Int.fetchOne(db, request)  // Int?
+    
+    // SELECT MIN("height"), MAX("height") FROM "persons"
+    let request = Person.select(min(Col.height), max(Col.height))
+    let row = Row.fetchOne(db, request)!
+    let minHeight = row.value(atIndex: 0) as Int?
+    let maxHeight = row.value(atIndex: 1) as Int?
 }
 ```
 
