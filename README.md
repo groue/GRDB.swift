@@ -12,14 +12,14 @@ It provides an SQL API and application tools.
 
 ### Usage
 
-Connect to the database
+Open a connection to the [database](#database-queues):
 
 ```swift
 import GRDB
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 ```
 
-SQL usage
+Execute [SQL queries](#executing-updates):
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -45,7 +45,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-Records
+Insert and fetch [Records](#records):
 
 ```swift
 struct PointOfInterest {
@@ -73,7 +73,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-Query Interface
+Turn Swift into SQL with the [Query Interface](#the-query-interface):
 
 ```swift
 let title = SQLColumn("title")
