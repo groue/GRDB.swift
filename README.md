@@ -10,6 +10,85 @@ It provides an SQL API and application tools.
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
 
+### Usage
+
+```swift
+import GRDB
+
+// SQL usage
+
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+try dbQueue.inDatabase { db in
+    try db.execute(
+        "CREATE TABLE pointOfInterests (" +
+            "id INTEGER PRIMARY KEY, " +
+            "title TEXT, " +
+            "favorite BOOLEAN NOT NULL, " +
+            "latitude DOUBLE NOT NULL, " +
+            "longitude DOUBLE NOT NULL" +
+        ")")
+    
+    let parisId = try db.execute(
+        "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
+        "VALUES (:title, :favorite, :latitude, :longitude)",
+        arguments: [
+            "title": "Paris",
+            "favorite": true,
+            "latitude": 48.85341,
+            "longitude": 2.3488,
+        ]).insertedRowID
+    
+    for row in Row.fetch(db, "SELECT * FROM pointOfInterests") {
+        let title: String = row.value(named: "title")
+        let favorite: Bool = row.value(named: "favorite")
+        print(title, favorite)
+    }
+}
+
+
+// Database protocols and Records
+
+struct PointOfInterest {
+    var id: Int64?
+    var title: String?
+    var favorite: Bool
+    var coordinate: CLLocationCoordinate2D
+}
+
+extension PointOfInterest {
+    // snip: conformance to database protocols
+}
+
+try dbQueue.inDatabase { db in
+    // INSERT INTO "pointOfInterests" ...
+    var berlin = PointOfInterest(
+        id: nil,
+        title: "Berlin",
+        favorite: false,
+        coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
+    try berlin.insert(db)
+    print(berlin.id)
+    
+    // UPDATE "pointOfInterests" ...
+    berlin.favorite = true
+    try berlin.update(db)
+    
+    // SELECT * FROM "pointOfInterests"
+    for poi in PointOfInterest.all().fetch(db) {
+        print(poi.title, poi.coordinate)
+    }
+}
+
+let title = SQLColumn("title")
+let favorite = SQLColumn("favorite")
+
+let favorites = dbQueue.inDatabase { db in
+    // SELECT * FROM "pointOfInterests" WHERE "favorite" ORDER BY "title"
+    PointOfInterest.filter(favorite).order(title).fetchAll(db)
+}
+```
+
+
 ### Documentation
 
 - [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.42.0/index.html) (on cocoadocs.org)
@@ -1598,9 +1677,9 @@ class PointOfInterest : Record {
     
     /// Initialize from a database row
     required init(_ row: Row) {
-        self.id = row.value(named: "id")
-        self.title = row.value(named: "title")
-        self.coordinate = CLLocationCoordinate2DMake(
+        id = row.value(named: "id")
+        title = row.value(named: "title")
+        coordinate = CLLocationCoordinate2DMake(
             row.value(named: "latitude"),
             row.value(named: "longitude"))
         super.init(row)
