@@ -31,7 +31,7 @@ try dbQueue.inDatabase { db in
     let parisId = try db.execute(
         "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
         "VALUES (?, ?, ?, ?)",
-        arguments: ["Paris", true, 48.85341, 2.3488,]).insertedRowID
+        arguments: ["Paris", true, 48.85341, 2.3488]).insertedRowID
     
     for row in Row.fetch(db, "SELECT * FROM pointOfInterests") {
         let title: String = row.value(named: "title")
