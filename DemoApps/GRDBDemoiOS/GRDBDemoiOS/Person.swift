@@ -45,6 +45,18 @@ class Person : Record {
     override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         id = rowID
     }
+    
+    override func insert(db: Database) throws {
+        
+        // Basic Ordering
+        if self.position == 0 {
+            if let maxPosition = Int.fetchOne(db, "SELECT MAX(position) from persons") {
+                self.position = maxPosition + 1
+            }
+        }
+        
+        try super.insert(db)
+    }
 }
 
 extension Person : Equatable { }
