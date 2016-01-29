@@ -81,7 +81,7 @@ let favorite = SQLColumn("favorite")
 
 dbQueue.inDatabase { db in
     // SELECT * FROM "pointOfInterests" WHERE "title" = 'Paris'
-    let paris = PointOfInterest.filter(title == 'Paris').fetchOne(db)
+    let paris = PointOfInterest.filter(title == "Paris").fetchOne(db)
     
     // SELECT * FROM "pointOfInterests" WHERE "favorite" ORDER BY "title"
     let favoritePois = PointOfInterest.filter(favorite).order(title).fetchAll(db)
