@@ -201,6 +201,30 @@ public class FetchedResultsController<T: FetchedResult> {
         }
         
         return standardizeChanges(d[m][n])
+        
+        // NSFetchResultsController sometimes add some extra notifications
+        // We'll see in the future if it is needed or not
+        //for (sIndex, sItem) in s.enumerate() {
+        //    if let tIndex = t.indexOf(sItem) as? Int where tIndex != sIndex {
+        //        var shouldAdd = true
+        //        for edit in reducedAndOrdoredEdits {
+        //            switch edit.operation {
+        //            case .Move:
+        //                if edit.value == sItem {
+        //                    shouldAdd = false
+        //                }
+        //            default: break
+        //            }
+        //        }
+        //
+        //        if shouldAdd {
+        //            // TODO! get value from destination array!!!!
+        //            let move = Edit(.Move(origin: sIndex), value: sItem, destination: tIndex)
+        //            print("Added extra \(move)")
+        //            reducedAndOrdoredEdits.append(move)
+        //        }
+        //    }
+        //}
     }
 }
 
