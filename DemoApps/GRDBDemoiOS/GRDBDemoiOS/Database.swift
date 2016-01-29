@@ -8,6 +8,8 @@ struct Col {
     static let id = SQLColumn("id")
     static let firstName = SQLColumn("firstName")
     static let lastName = SQLColumn("lastName")
+    static let position = SQLColumn("position")
+    static let visible = SQLColumn("visible")
 }
 
 
