@@ -7,7 +7,7 @@
 //
 import UIKit
 
-public typealias FetchedResult = protocol<RowConvertible, DatabaseTableMapping, Equatable>
+public typealias FetchedResult = protocol<RowConvertible, TableMapping, Equatable>
 
 public class FetchedResultsController<T: FetchedResult> {
     
