@@ -33,6 +33,16 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
     }
     
     func shufflePersons() {
+        try! dbQueue.inTransaction { (db) -> TransactionCompletion in
+            var persons = Person.fetchAll(db, "SELECT * FROM persons")
+            persons.shuffleInPlace()
+            for (i, p) in persons.enumerate() {
+                p.position = Int64(i)
+                p.visible = (Int(arc4random_uniform(2)) == 0)
+                try p.save(db)
+            }
+            return .Commit
+        }
     }
 
     // MARK: - Segues
@@ -163,3 +173,16 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
     }
 }
 
+extension MutableCollectionType where Index == Int {
+    /// Shuffle the elements of `self` in-place.
+    mutating func shuffleInPlace() {
+        // empty and single-element collections don't shuffle
+        if count < 2 { return }
+        
+        for i in 0..<count - 1 {
+            let j = Int(arc4random_uniform(UInt32(count - i))) + i
+            guard i != j else { continue }
+            swap(&self[i], &self[j])
+        }
+    }
+}
