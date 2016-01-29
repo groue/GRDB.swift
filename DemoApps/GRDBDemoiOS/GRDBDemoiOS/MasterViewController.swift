@@ -20,10 +20,10 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         ]
         self.navigationController?.toolbarHidden = false
         
-        fetchedResultsController = FetchedResultsController(sql: "SELECT * FROM persons WHERE visible = 1 ORDER BY LOWER(position), LOWER(firstName), LOWER(lastName)", databaseQueue: dbQueue)
+        let fetchRequest = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
+        fetchedResultsController = FetchedResultsController(fetchRequest: fetchRequest, databaseQueue: dbQueue)
         fetchedResultsController.delegate = self
         fetchedResultsController.performFetch()
-        tableView.reloadData()
     }
 
     override func viewWillAppear(animated: Bool) {
@@ -33,7 +33,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
     
     func shufflePersons() {
         try! dbQueue.inTransaction { (db) -> TransactionCompletion in
-            var persons = Person.fetchAll(db, "SELECT * FROM persons")
+            var persons = Person.fetchAll(db)
             persons.shuffleInPlace()
             for (i, p) in persons.enumerate() {
                 p.position = Int64(i)
@@ -102,28 +102,6 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
             return .Commit
         }
     }
-    
-    //override func tableView(tableView: UITableView, moveRowAtIndexPath sourceIndexPath: NSIndexPath, toIndexPath destinationIndexPath: NSIndexPath) {
-    //    
-    //    guard let result = fetchedResultsController.resultAtIndexPath(sourceIndexPath) else {
-    //        return
-    //    }
-    //    
-    //    // Update db
-    //    if let fetchedResults = fetchedResultsController.fetchedResults {
-    //        var persons = fetchedResults
-    //        persons.removeAtIndex(sourceIndexPath.row)
-    //        persons.insert(result, atIndex: destinationIndexPath.row)
-    //        
-    //        try! dbQueue.inTransaction { db in
-    //            for (i, p) in persons.enumerate() {
-    //                p.position = Int64(i)
-    //                try p.save(db)
-    //            }
-    //            return .Commit
-    //        }
-    //    }
-    //}
     
     // MARK: - FetchedResultsControllerDelegate
     
