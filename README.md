@@ -59,6 +59,9 @@ extension PointOfInterest {
     // snip: conformance to database protocols
 }
 
+let title = SQLColumn("title")
+let favorite = SQLColumn("favorite")
+
 try dbQueue.inDatabase { db in
     // INSERT INTO "pointOfInterests" ...
     var berlin = PointOfInterest(id: nil, title: "Berlin", favorite: false, coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
@@ -69,21 +72,14 @@ try dbQueue.inDatabase { db in
     berlin.favorite = true
     try berlin.update(db)
     
-    // SELECT * FROM "pointOfInterests"
-    for poi in PointOfInterest.all().fetch(db) {
-        print(poi.title, poi.coordinate)
-    }
-}
-
-let title = SQLColumn("title")
-let favorite = SQLColumn("favorite")
-
-let favorites = dbQueue.inDatabase { db in
     // SELECT * FROM "pointOfInterests" WHERE "favorite" ORDER BY "title"
-    PointOfInterest.filter(favorite).order(title).fetchAll(db)
+    let favorites = PointOfInterest.filter(favorite).order(title).fetchAll(db)
+    
+    // Fetch from SQL
+    let pois = PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
 }
 ```
-
+  
 
 ### Documentation
 
