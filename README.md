@@ -49,7 +49,8 @@ struct PointOfInterest {
     var coordinate: CLLocationCoordinate2D
 }
 
-// snip: turn PointOfInterest into a "record" by adopting database protocols
+// snip: turn PointOfInterest into a "record" by adopting the protocols that
+// provide fetching and persistence methods.
 
 try dbQueue.inDatabase { db in
     // INSERT INTO "pointOfInterests" ...
