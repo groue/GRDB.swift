@@ -131,7 +131,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         tableView.beginUpdates()
     }
     
-    func controllerUpdate<T>(controller: FetchedResultsController<T>, update: Change<T>) {
+    func controllerUpdate<T>(controller: FetchedResultsController<T>, update: ResultChange<T>) {
         print(update)
         switch update {
         case .Insertion(_, let at):
