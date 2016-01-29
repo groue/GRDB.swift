@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 	s.name     = 'GRDB.swift'
-	s.version  = '0.41.0'
+	s.version  = '0.42.0'
 	s.license  = { :type => 'MIT', :file => 'LICENSE' }
 	s.summary  = 'Versatile SQLite toolkit for Swift.'
 	s.homepage = 'https://github.com/groue/GRDB.swift'
@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
 	s.ios.deployment_target = '8.0'
 	s.osx.deployment_target = '10.9'
 	s.requires_arc = true
-	s.module_map = 'GRDB/module.modulemap'
+	s.module_map = 'Support/module.modulemap'
 	s.framework = 'Foundation'
 	s.library = 'sqlite3'
 end

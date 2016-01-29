@@ -1,0 +1,1 @@
+MODULEMAP_FILE = $(SRCROOT)/Support/module.modulemap

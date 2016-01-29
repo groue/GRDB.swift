@@ -26,7 +26,6 @@ public final class Database {
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
-    private var columnInfosCache: [String: [ColumnInfo]] = [:]
     private var primaryKeyCache: [String: PrimaryKey] = [:]
     private var updateStatementCache: [String: UpdateStatement] = [:]
     private var selectStatementCache: [String: SelectStatement] = [:]
@@ -51,7 +50,7 @@ public final class Database {
         var sqliteConnection = SQLiteConnection()
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
         self.sqliteConnection = sqliteConnection
-        if code != SQLITE_OK {
+        guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
@@ -516,7 +515,7 @@ extension Database {
 
 /// A Collation.
 public class DatabaseCollation : Hashable {
-    let name: String
+    public let name: String
     let function: (String, String) -> NSComparisonResult
     
     /// The hash value.
@@ -560,7 +559,6 @@ extension Database {
     /// outside of a database migration performed by DatabaseMigrator.
     public func clearSchemaCache() {
         preconditionValidQueue()
-        columnInfosCache = [:]
         primaryKeyCache = [:]
         updateStatementCache = [:]
         selectStatementCache = [:]
@@ -575,10 +573,10 @@ extension Database {
     }
     
     /// Return the primary key for table named `tableName`.
-    /// Crashes if table does not exist.
+    /// Throws if table does not exist.
     ///
     /// This method is not thread-safe.
-    func primaryKey(tableName: String) -> PrimaryKey {
+    func primaryKey(tableName: String) throws -> PrimaryKey {
         if let primaryKey = primaryKeyCache[tableName] {
             return primaryKey
         }
@@ -607,9 +605,9 @@ extension Database {
         // 1   | firstName | TEXT    | 0       | NULL       | 0  |
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
         
-        let columnInfos = self.columnInfos(tableName)
+        let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
         guard columnInfos.count > 0 else {
-            fatalError("no such table: \(tableName)")
+            throw DatabaseError(message: "no such table: \(tableName)")
         }
         
         let primaryKey: PrimaryKey
@@ -685,16 +683,6 @@ extension Database {
                 defaultDatabaseValue:row["dflt_value"]!,
                 primaryKeyIndex:row.value(named: "pk"))
         }
-    }
-    
-    private func columnInfos(tableName: String) -> [ColumnInfo] {
-        if let columnInfos = columnInfosCache[tableName] {
-            return columnInfos
-        }
-        
-        let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
-        columnInfosCache[tableName] = columnInfos
-        return columnInfos
     }
 }
 
@@ -846,9 +834,7 @@ extension Database {
     
     public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
-        if let index = transactionObservers.indexOf({ $0 === transactionObserver}) {
-            transactionObservers.removeAtIndex(index)
-        }
+        transactionObservers.removeFirst { $0 === transactionObserver }
         if transactionObservers.isEmpty {
             uninstallTransactionObserverHooks()
         }

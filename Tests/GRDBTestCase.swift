@@ -5,10 +5,12 @@ class GRDBTestCase: XCTestCase {
     var databasePath: String!
     var dbQueue: DatabaseQueue!
     var sqlQueries: [String]!
+    var lastSQLQuery: String!
     var dbConfiguration: Configuration {
         var dbConfiguration = Configuration()
         dbConfiguration.trace = { (sql) in
             self.sqlQueries.append(sql)
+            self.lastSQLQuery = sql
             // LogSQL(sql) // Uncomment for verbose tests
         }
         return dbConfiguration
@@ -37,6 +39,13 @@ class GRDBTestCase: XCTestCase {
             try test()
         } catch {
             XCTFail("unexpected error: \(error)")
+        }
+    }
+    
+    func sql<T>(request: FetchRequest<T>) -> String {
+        return dbQueue.inDatabase { db in
+            let _ = Row.fetchOne(db, request)
+            return self.lastSQLQuery
         }
     }
 }

@@ -391,13 +391,14 @@ public final class Row: CollectionType {
     }
     
     
-    // MARK: - Fetch Rows
+    // MARK: - Fetching From SelectStatement
     
     /// Returns a sequence of rows fetched from a prepared statement.
     ///
-    ///     for row in Row.fetch(db, "SELECT id, name FROM persons") {
-    ///         let id = row.int64(atIndex: 0)
-    ///         let name = row.string(atIndex: 1)
+    ///     let statement = db.selectStatement("SELECT ...")
+    ///     for row in Row.fetch(statement) {
+    ///         let id: Int64 = row.value(atIndex: 0)
+    ///         let name: String = row.value(atIndex: 1)
     ///     }
     ///
     /// Fetched rows are reused during the sequence iteration: don't wrap a row
@@ -424,6 +425,7 @@ public final class Row: CollectionType {
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
+    @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(statement: statement)
@@ -438,6 +440,7 @@ public final class Row: CollectionType {
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An array of rows.
+    @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
         let sequence = statement.fetchSequence(arguments: arguments) {
             Row(copiedFromStatement: statement)
@@ -453,6 +456,7 @@ public final class Row: CollectionType {
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional row.
+    @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
         let sequence = statement.fetchSequence(arguments: arguments) {
             Row(copiedFromStatement: statement)
@@ -460,11 +464,14 @@ public final class Row: CollectionType {
         return sequence.generate().next()
     }
     
+    
+    // MARK: - Fetching From SQL
+    
     /// Returns a sequence of rows fetched from an SQL query.
     ///
     ///     for row in Row.fetch(db, "SELECT id, name FROM persons") {
-    ///         let id = row.int64(atIndex: 0)
-    ///         let name = row.string(atIndex: 1)
+    ///         let id: Int64 = row.value(atIndex: 0)
+    ///         let name: String = row.value(atIndex: 1)
     ///     }
     ///
     /// Fetched rows are reused during the sequence iteration: don't wrap a row
@@ -491,6 +498,7 @@ public final class Row: CollectionType {
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
+    @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
@@ -503,6 +511,7 @@ public final class Row: CollectionType {
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An array of rows.
+    @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
         return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
@@ -515,10 +524,11 @@ public final class Row: CollectionType {
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Optional statement arguments.
     /// - returns: An optional row.
+    @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
         return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
-
+    
     
     // MARK: - Not Public
     

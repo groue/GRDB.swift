@@ -15,36 +15,42 @@
 		562FF9EC1BCE903D00759400 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 562FF9EB1BCE903D00759400 /* libsqlite3.tbd */; };
 		562FF9EF1BCE912C00759400 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562FF9EE1BCE912C00759400 /* PersonEditionViewController.swift */; };
 		562FF9F21BCE914E00759400 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562FF9F11BCE914E00759400 /* Person.swift */; };
-		563445081C4A8060003D3DC6 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563445071C4A8060003D3DC6 /* Utils.swift */; };
-		56FCB3691C21210B00305D10 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3421C21210B00305D10 /* Configuration.swift */; };
-		56FCB36A1C21210B00305D10 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3431C21210B00305D10 /* Database.swift */; };
-		56FCB36C1C21210B00305D10 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3451C21210B00305D10 /* DatabaseError.swift */; };
-		56FCB36D1C21210B00305D10 /* DatabaseQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3461C21210B00305D10 /* DatabaseQueue.swift */; };
-		56FCB36E1C21210B00305D10 /* DatabaseValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3471C21210B00305D10 /* DatabaseValue.swift */; };
-		56FCB36F1C21210B00305D10 /* DatabasePersistable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3491C21210B00305D10 /* DatabasePersistable.swift */; };
-		56FCB3701C21210B00305D10 /* DatabaseTableMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB34A1C21210B00305D10 /* DatabaseTableMapping.swift */; };
-		56FCB3711C21210B00305D10 /* DatabaseValueConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB34B1C21210B00305D10 /* DatabaseValueConvertible.swift */; };
-		56FCB3721C21210B00305D10 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB34C1C21210B00305D10 /* RowConvertible.swift */; };
-		56FCB3731C21210B00305D10 /* SQLiteStatementConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB34D1C21210B00305D10 /* SQLiteStatementConvertible.swift */; };
-		56FCB3741C21210B00305D10 /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB34E1C21210B00305D10 /* Row.swift */; };
-		56FCB3761C21210B00305D10 /* Statement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3501C21210B00305D10 /* Statement.swift */; };
-		56FCB3791C21210B00305D10 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3541C21210B00305D10 /* CGFloat.swift */; };
-		56FCB37A1C21210B00305D10 /* DatabaseCoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3561C21210B00305D10 /* DatabaseCoder.swift */; };
-		56FCB37B1C21210B00305D10 /* DatabaseDateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3571C21210B00305D10 /* DatabaseDateComponents.swift */; };
-		56FCB37C1C21210B00305D10 /* DatabaseValue+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3581C21210B00305D10 /* DatabaseValue+Foundation.swift */; };
-		56FCB37D1C21210B00305D10 /* NSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3591C21210B00305D10 /* NSData.swift */; };
-		56FCB37E1C21210B00305D10 /* NSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB35A1C21210B00305D10 /* NSDate.swift */; };
-		56FCB37F1C21210B00305D10 /* NSNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB35B1C21210B00305D10 /* NSNull.swift */; };
-		56FCB3801C21210B00305D10 /* NSNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB35C1C21210B00305D10 /* NSNumber.swift */; };
-		56FCB3811C21210B00305D10 /* NSString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB35D1C21210B00305D10 /* NSString.swift */; };
-		56FCB3821C21210B00305D10 /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB35E1C21210B00305D10 /* NSURL.swift */; };
-		56FCB3831C21210B00305D10 /* Row+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB35F1C21210B00305D10 /* Row+Foundation.swift */; };
-		56FCB3841C21210B00305D10 /* StatementArguments+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3601C21210B00305D10 /* StatementArguments+Foundation.swift */; };
-		56FCB3851C21210B00305D10 /* DatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3621C21210B00305D10 /* DatabaseMigrator.swift */; };
-		56FCB3861C21210B00305D10 /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3631C21210B00305D10 /* Migration.swift */; };
-		56FCB3871C21210B00305D10 /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3651C21210B00305D10 /* Record.swift */; };
-		56FCB3881C21210B00305D10 /* RawRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3671C21210B00305D10 /* RawRepresentable.swift */; };
-		56FCB3891C21210B00305D10 /* StandardLibraryTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FCB3681C21210B00305D10 /* StandardLibraryTypes.swift */; };
+		566A20F31C58A4B300C5A218 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20F21C58A4B300C5A218 /* AppDatabase.swift */; };
+		566A21271C58A54F00C5A218 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20F61C58A54F00C5A218 /* Configuration.swift */; };
+		566A21281C58A54F00C5A218 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20F71C58A54F00C5A218 /* Database.swift */; };
+		566A21291C58A54F00C5A218 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20F81C58A54F00C5A218 /* DatabaseError.swift */; };
+		566A212A1C58A54F00C5A218 /* DatabaseQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20F91C58A54F00C5A218 /* DatabaseQueue.swift */; };
+		566A212B1C58A54F00C5A218 /* DatabaseValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20FA1C58A54F00C5A218 /* DatabaseValue.swift */; };
+		566A212C1C58A54F00C5A218 /* DatabaseValueConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20FC1C58A54F00C5A218 /* DatabaseValueConvertible.swift */; };
+		566A212D1C58A54F00C5A218 /* Persistable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20FD1C58A54F00C5A218 /* Persistable.swift */; };
+		566A212E1C58A54F00C5A218 /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20FE1C58A54F00C5A218 /* RowConvertible.swift */; };
+		566A212F1C58A54F00C5A218 /* SQLiteStatementConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20FF1C58A54F00C5A218 /* SQLiteStatementConvertible.swift */; };
+		566A21301C58A54F00C5A218 /* TableMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21001C58A54F00C5A218 /* TableMapping.swift */; };
+		566A21311C58A54F00C5A218 /* Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21011C58A54F00C5A218 /* Row.swift */; };
+		566A21321C58A54F00C5A218 /* Statement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21021C58A54F00C5A218 /* Statement.swift */; };
+		566A21331C58A54F00C5A218 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21031C58A54F00C5A218 /* Utils.swift */; };
+		566A21341C58A54F00C5A218 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21051C58A54F00C5A218 /* CGFloat.swift */; };
+		566A21351C58A54F00C5A218 /* FetchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21071C58A54F00C5A218 /* FetchRequest.swift */; };
+		566A21361C58A54F00C5A218 /* Collation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21091C58A54F00C5A218 /* Collation.swift */; };
+		566A21371C58A54F00C5A218 /* Function.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A210A1C58A54F00C5A218 /* Function.swift */; };
+		566A21381C58A54F00C5A218 /* Operator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A210B1C58A54F00C5A218 /* Operator.swift */; };
+		566A21391C58A54F00C5A218 /* SQLQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A210C1C58A54F00C5A218 /* SQLQuery.swift */; };
+		566A213A1C58A54F00C5A218 /* DatabaseCoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A210E1C58A54F00C5A218 /* DatabaseCoder.swift */; };
+		566A213B1C58A54F00C5A218 /* DatabaseDateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A210F1C58A54F00C5A218 /* DatabaseDateComponents.swift */; };
+		566A213C1C58A54F00C5A218 /* DatabaseValue+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21101C58A54F00C5A218 /* DatabaseValue+Foundation.swift */; };
+		566A213D1C58A54F00C5A218 /* NSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21111C58A54F00C5A218 /* NSData.swift */; };
+		566A213E1C58A54F00C5A218 /* NSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21121C58A54F00C5A218 /* NSDate.swift */; };
+		566A213F1C58A54F00C5A218 /* NSNull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21131C58A54F00C5A218 /* NSNull.swift */; };
+		566A21401C58A54F00C5A218 /* NSNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21141C58A54F00C5A218 /* NSNumber.swift */; };
+		566A21411C58A54F00C5A218 /* NSString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21151C58A54F00C5A218 /* NSString.swift */; };
+		566A21421C58A54F00C5A218 /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21161C58A54F00C5A218 /* NSURL.swift */; };
+		566A21431C58A54F00C5A218 /* Row+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21171C58A54F00C5A218 /* Row+Foundation.swift */; };
+		566A21441C58A54F00C5A218 /* StatementArguments+Foundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21181C58A54F00C5A218 /* StatementArguments+Foundation.swift */; };
+		566A21471C58A54F00C5A218 /* DatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A211E1C58A54F00C5A218 /* DatabaseMigrator.swift */; };
+		566A21481C58A54F00C5A218 /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A211F1C58A54F00C5A218 /* Migration.swift */; };
+		566A214A1C58A54F00C5A218 /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21231C58A54F00C5A218 /* Record.swift */; };
+		566A214B1C58A54F00C5A218 /* RawRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21251C58A54F00C5A218 /* RawRepresentable.swift */; };
+		566A214C1C58A54F00C5A218 /* StandardLibraryTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A21261C58A54F00C5A218 /* StandardLibraryTypes.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,36 +65,42 @@
 		562FF9EE1BCE912C00759400 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
 		562FF9F11BCE914E00759400 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		562FF9F41BCE930C00759400 /* GRDBDemoiOS7-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBDemoiOS7-Bridging-Header.h"; sourceTree = "<group>"; };
-		563445071C4A8060003D3DC6 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
-		56FCB3421C21210B00305D10 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
-		56FCB3431C21210B00305D10 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		56FCB3451C21210B00305D10 /* DatabaseError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseError.swift; sourceTree = "<group>"; };
-		56FCB3461C21210B00305D10 /* DatabaseQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueue.swift; sourceTree = "<group>"; };
-		56FCB3471C21210B00305D10 /* DatabaseValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValue.swift; sourceTree = "<group>"; };
-		56FCB3491C21210B00305D10 /* DatabasePersistable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabasePersistable.swift; sourceTree = "<group>"; };
-		56FCB34A1C21210B00305D10 /* DatabaseTableMapping.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTableMapping.swift; sourceTree = "<group>"; };
-		56FCB34B1C21210B00305D10 /* DatabaseValueConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertible.swift; sourceTree = "<group>"; };
-		56FCB34C1C21210B00305D10 /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
-		56FCB34D1C21210B00305D10 /* SQLiteStatementConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteStatementConvertible.swift; sourceTree = "<group>"; };
-		56FCB34E1C21210B00305D10 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
-		56FCB3501C21210B00305D10 /* Statement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Statement.swift; sourceTree = "<group>"; };
-		56FCB3541C21210B00305D10 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
-		56FCB3561C21210B00305D10 /* DatabaseCoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCoder.swift; sourceTree = "<group>"; };
-		56FCB3571C21210B00305D10 /* DatabaseDateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDateComponents.swift; sourceTree = "<group>"; };
-		56FCB3581C21210B00305D10 /* DatabaseValue+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DatabaseValue+Foundation.swift"; sourceTree = "<group>"; };
-		56FCB3591C21210B00305D10 /* NSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSData.swift; sourceTree = "<group>"; };
-		56FCB35A1C21210B00305D10 /* NSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDate.swift; sourceTree = "<group>"; };
-		56FCB35B1C21210B00305D10 /* NSNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSNull.swift; sourceTree = "<group>"; };
-		56FCB35C1C21210B00305D10 /* NSNumber.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSNumber.swift; sourceTree = "<group>"; };
-		56FCB35D1C21210B00305D10 /* NSString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSString.swift; sourceTree = "<group>"; };
-		56FCB35E1C21210B00305D10 /* NSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSURL.swift; sourceTree = "<group>"; };
-		56FCB35F1C21210B00305D10 /* Row+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Row+Foundation.swift"; sourceTree = "<group>"; };
-		56FCB3601C21210B00305D10 /* StatementArguments+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StatementArguments+Foundation.swift"; sourceTree = "<group>"; };
-		56FCB3621C21210B00305D10 /* DatabaseMigrator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseMigrator.swift; sourceTree = "<group>"; };
-		56FCB3631C21210B00305D10 /* Migration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
-		56FCB3651C21210B00305D10 /* Record.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
-		56FCB3671C21210B00305D10 /* RawRepresentable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RawRepresentable.swift; sourceTree = "<group>"; };
-		56FCB3681C21210B00305D10 /* StandardLibraryTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StandardLibraryTypes.swift; sourceTree = "<group>"; };
+		566A20F21C58A4B300C5A218 /* AppDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
+		566A20F61C58A54F00C5A218 /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
+		566A20F71C58A54F00C5A218 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
+		566A20F81C58A54F00C5A218 /* DatabaseError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseError.swift; sourceTree = "<group>"; };
+		566A20F91C58A54F00C5A218 /* DatabaseQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueue.swift; sourceTree = "<group>"; };
+		566A20FA1C58A54F00C5A218 /* DatabaseValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValue.swift; sourceTree = "<group>"; };
+		566A20FC1C58A54F00C5A218 /* DatabaseValueConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertible.swift; sourceTree = "<group>"; };
+		566A20FD1C58A54F00C5A218 /* Persistable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Persistable.swift; sourceTree = "<group>"; };
+		566A20FE1C58A54F00C5A218 /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
+		566A20FF1C58A54F00C5A218 /* SQLiteStatementConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteStatementConvertible.swift; sourceTree = "<group>"; };
+		566A21001C58A54F00C5A218 /* TableMapping.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableMapping.swift; sourceTree = "<group>"; };
+		566A21011C58A54F00C5A218 /* Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Row.swift; sourceTree = "<group>"; };
+		566A21021C58A54F00C5A218 /* Statement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Statement.swift; sourceTree = "<group>"; };
+		566A21031C58A54F00C5A218 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		566A21051C58A54F00C5A218 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
+		566A21071C58A54F00C5A218 /* FetchRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchRequest.swift; sourceTree = "<group>"; };
+		566A21091C58A54F00C5A218 /* Collation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Collation.swift; sourceTree = "<group>"; };
+		566A210A1C58A54F00C5A218 /* Function.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Function.swift; sourceTree = "<group>"; };
+		566A210B1C58A54F00C5A218 /* Operator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Operator.swift; sourceTree = "<group>"; };
+		566A210C1C58A54F00C5A218 /* SQLQuery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLQuery.swift; sourceTree = "<group>"; };
+		566A210E1C58A54F00C5A218 /* DatabaseCoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCoder.swift; sourceTree = "<group>"; };
+		566A210F1C58A54F00C5A218 /* DatabaseDateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDateComponents.swift; sourceTree = "<group>"; };
+		566A21101C58A54F00C5A218 /* DatabaseValue+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DatabaseValue+Foundation.swift"; sourceTree = "<group>"; };
+		566A21111C58A54F00C5A218 /* NSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSData.swift; sourceTree = "<group>"; };
+		566A21121C58A54F00C5A218 /* NSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDate.swift; sourceTree = "<group>"; };
+		566A21131C58A54F00C5A218 /* NSNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSNull.swift; sourceTree = "<group>"; };
+		566A21141C58A54F00C5A218 /* NSNumber.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSNumber.swift; sourceTree = "<group>"; };
+		566A21151C58A54F00C5A218 /* NSString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSString.swift; sourceTree = "<group>"; };
+		566A21161C58A54F00C5A218 /* NSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSURL.swift; sourceTree = "<group>"; };
+		566A21171C58A54F00C5A218 /* Row+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Row+Foundation.swift"; sourceTree = "<group>"; };
+		566A21181C58A54F00C5A218 /* StatementArguments+Foundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StatementArguments+Foundation.swift"; sourceTree = "<group>"; };
+		566A211E1C58A54F00C5A218 /* DatabaseMigrator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseMigrator.swift; sourceTree = "<group>"; };
+		566A211F1C58A54F00C5A218 /* Migration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
+		566A21231C58A54F00C5A218 /* Record.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Record.swift; sourceTree = "<group>"; };
+		566A21251C58A54F00C5A218 /* RawRepresentable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RawRepresentable.swift; sourceTree = "<group>"; };
+		566A21261C58A54F00C5A218 /* StandardLibraryTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StandardLibraryTypes.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,6 +135,7 @@
 			isa = PBXGroup;
 			children = (
 				562FF9941BCE8FA400759400 /* AppDelegate.swift */,
+				566A20F21C58A4B300C5A218 /* AppDatabase.swift */,
 				562FF9F01BCE913900759400 /* Controllers */,
 				562FF9F31BCE915B00759400 /* Models */,
 				562FF9A61BCE8FB000759400 /* Resources */,
@@ -151,25 +164,11 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		562FF9A81BCE900100759400 /* GRDB */ = {
-			isa = PBXGroup;
-			children = (
-				56FCB3411C21210B00305D10 /* Core */,
-				56FCB3531C21210B00305D10 /* CoreGraphics */,
-				56FCB3551C21210B00305D10 /* Foundation */,
-				56FCB3611C21210B00305D10 /* Migrations */,
-				56FCB3641C21210B00305D10 /* Record */,
-				56FCB3661C21210B00305D10 /* Swift */,
-			);
-			name = GRDB;
-			path = ../../GRDB;
-			sourceTree = SOURCE_ROOT;
-		};
 		562FF9ED1BCE904D00759400 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
 				562FF9EB1BCE903D00759400 /* libsqlite3.tbd */,
-				562FF9A81BCE900100759400 /* GRDB */,
+				566A20F41C58A54F00C5A218 /* GRDB */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -191,82 +190,117 @@
 			name = Models;
 			sourceTree = "<group>";
 		};
-		56FCB3411C21210B00305D10 /* Core */ = {
+		566A20F41C58A54F00C5A218 /* GRDB */ = {
 			isa = PBXGroup;
 			children = (
-				56FCB3421C21210B00305D10 /* Configuration.swift */,
-				56FCB3431C21210B00305D10 /* Database.swift */,
-				56FCB3451C21210B00305D10 /* DatabaseError.swift */,
-				56FCB3461C21210B00305D10 /* DatabaseQueue.swift */,
-				56FCB3471C21210B00305D10 /* DatabaseValue.swift */,
-				56FCB3481C21210B00305D10 /* Protocols */,
-				56FCB34E1C21210B00305D10 /* Row.swift */,
-				56FCB3501C21210B00305D10 /* Statement.swift */,
-				563445071C4A8060003D3DC6 /* Utils.swift */,
+				566A20F51C58A54F00C5A218 /* Core */,
+				566A21041C58A54F00C5A218 /* CoreGraphics */,
+				566A21061C58A54F00C5A218 /* FetchRequest */,
+				566A210D1C58A54F00C5A218 /* Foundation */,
+				566A211D1C58A54F00C5A218 /* Migrations */,
+				566A21221C58A54F00C5A218 /* Record */,
+				566A21241C58A54F00C5A218 /* Swift */,
+			);
+			name = GRDB;
+			path = ../../../GRDB;
+			sourceTree = "<group>";
+		};
+		566A20F51C58A54F00C5A218 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				566A20F61C58A54F00C5A218 /* Configuration.swift */,
+				566A20F71C58A54F00C5A218 /* Database.swift */,
+				566A20F81C58A54F00C5A218 /* DatabaseError.swift */,
+				566A20F91C58A54F00C5A218 /* DatabaseQueue.swift */,
+				566A20FA1C58A54F00C5A218 /* DatabaseValue.swift */,
+				566A20FB1C58A54F00C5A218 /* Protocols */,
+				566A21011C58A54F00C5A218 /* Row.swift */,
+				566A21021C58A54F00C5A218 /* Statement.swift */,
+				566A21031C58A54F00C5A218 /* Utils.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
 		};
-		56FCB3481C21210B00305D10 /* Protocols */ = {
+		566A20FB1C58A54F00C5A218 /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
-				56FCB3491C21210B00305D10 /* DatabasePersistable.swift */,
-				56FCB34A1C21210B00305D10 /* DatabaseTableMapping.swift */,
-				56FCB34B1C21210B00305D10 /* DatabaseValueConvertible.swift */,
-				56FCB34C1C21210B00305D10 /* RowConvertible.swift */,
-				56FCB34D1C21210B00305D10 /* SQLiteStatementConvertible.swift */,
+				566A20FC1C58A54F00C5A218 /* DatabaseValueConvertible.swift */,
+				566A20FD1C58A54F00C5A218 /* Persistable.swift */,
+				566A20FE1C58A54F00C5A218 /* RowConvertible.swift */,
+				566A20FF1C58A54F00C5A218 /* SQLiteStatementConvertible.swift */,
+				566A21001C58A54F00C5A218 /* TableMapping.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
 		};
-		56FCB3531C21210B00305D10 /* CoreGraphics */ = {
+		566A21041C58A54F00C5A218 /* CoreGraphics */ = {
 			isa = PBXGroup;
 			children = (
-				56FCB3541C21210B00305D10 /* CGFloat.swift */,
+				566A21051C58A54F00C5A218 /* CGFloat.swift */,
 			);
 			path = CoreGraphics;
 			sourceTree = "<group>";
 		};
-		56FCB3551C21210B00305D10 /* Foundation */ = {
+		566A21061C58A54F00C5A218 /* FetchRequest */ = {
 			isa = PBXGroup;
 			children = (
-				56FCB3561C21210B00305D10 /* DatabaseCoder.swift */,
-				56FCB3571C21210B00305D10 /* DatabaseDateComponents.swift */,
-				56FCB3581C21210B00305D10 /* DatabaseValue+Foundation.swift */,
-				56FCB3591C21210B00305D10 /* NSData.swift */,
-				56FCB35A1C21210B00305D10 /* NSDate.swift */,
-				56FCB35B1C21210B00305D10 /* NSNull.swift */,
-				56FCB35C1C21210B00305D10 /* NSNumber.swift */,
-				56FCB35D1C21210B00305D10 /* NSString.swift */,
-				56FCB35E1C21210B00305D10 /* NSURL.swift */,
-				56FCB35F1C21210B00305D10 /* Row+Foundation.swift */,
-				56FCB3601C21210B00305D10 /* StatementArguments+Foundation.swift */,
+				566A21071C58A54F00C5A218 /* FetchRequest.swift */,
+				566A21081C58A54F00C5A218 /* SQLSupport */,
+			);
+			path = FetchRequest;
+			sourceTree = "<group>";
+		};
+		566A21081C58A54F00C5A218 /* SQLSupport */ = {
+			isa = PBXGroup;
+			children = (
+				566A21091C58A54F00C5A218 /* Collation.swift */,
+				566A210A1C58A54F00C5A218 /* Function.swift */,
+				566A210B1C58A54F00C5A218 /* Operator.swift */,
+				566A210C1C58A54F00C5A218 /* SQLQuery.swift */,
+			);
+			path = SQLSupport;
+			sourceTree = "<group>";
+		};
+		566A210D1C58A54F00C5A218 /* Foundation */ = {
+			isa = PBXGroup;
+			children = (
+				566A210E1C58A54F00C5A218 /* DatabaseCoder.swift */,
+				566A210F1C58A54F00C5A218 /* DatabaseDateComponents.swift */,
+				566A21101C58A54F00C5A218 /* DatabaseValue+Foundation.swift */,
+				566A21111C58A54F00C5A218 /* NSData.swift */,
+				566A21121C58A54F00C5A218 /* NSDate.swift */,
+				566A21131C58A54F00C5A218 /* NSNull.swift */,
+				566A21141C58A54F00C5A218 /* NSNumber.swift */,
+				566A21151C58A54F00C5A218 /* NSString.swift */,
+				566A21161C58A54F00C5A218 /* NSURL.swift */,
+				566A21171C58A54F00C5A218 /* Row+Foundation.swift */,
+				566A21181C58A54F00C5A218 /* StatementArguments+Foundation.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
 		};
-		56FCB3611C21210B00305D10 /* Migrations */ = {
+		566A211D1C58A54F00C5A218 /* Migrations */ = {
 			isa = PBXGroup;
 			children = (
-				56FCB3621C21210B00305D10 /* DatabaseMigrator.swift */,
-				56FCB3631C21210B00305D10 /* Migration.swift */,
+				566A211E1C58A54F00C5A218 /* DatabaseMigrator.swift */,
+				566A211F1C58A54F00C5A218 /* Migration.swift */,
 			);
 			path = Migrations;
 			sourceTree = "<group>";
 		};
-		56FCB3641C21210B00305D10 /* Record */ = {
+		566A21221C58A54F00C5A218 /* Record */ = {
 			isa = PBXGroup;
 			children = (
-				56FCB3651C21210B00305D10 /* Record.swift */,
+				566A21231C58A54F00C5A218 /* Record.swift */,
 			);
 			path = Record;
 			sourceTree = "<group>";
 		};
-		56FCB3661C21210B00305D10 /* Swift */ = {
+		566A21241C58A54F00C5A218 /* Swift */ = {
 			isa = PBXGroup;
 			children = (
-				56FCB3671C21210B00305D10 /* RawRepresentable.swift */,
-				56FCB3681C21210B00305D10 /* StandardLibraryTypes.swift */,
+				566A21251C58A54F00C5A218 /* RawRepresentable.swift */,
+				566A21261C58A54F00C5A218 /* StandardLibraryTypes.swift */,
 			);
 			path = Swift;
 			sourceTree = "<group>";
@@ -341,40 +375,46 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56FCB3821C21210B00305D10 /* NSURL.swift in Sources */,
-				56FCB3881C21210B00305D10 /* RawRepresentable.swift in Sources */,
-				56FCB3841C21210B00305D10 /* StatementArguments+Foundation.swift in Sources */,
-				56FCB37A1C21210B00305D10 /* DatabaseCoder.swift in Sources */,
-				56FCB3891C21210B00305D10 /* StandardLibraryTypes.swift in Sources */,
-				56FCB3731C21210B00305D10 /* SQLiteStatementConvertible.swift in Sources */,
-				56FCB37F1C21210B00305D10 /* NSNull.swift in Sources */,
-				56FCB37D1C21210B00305D10 /* NSData.swift in Sources */,
-				56FCB36A1C21210B00305D10 /* Database.swift in Sources */,
-				563445081C4A8060003D3DC6 /* Utils.swift in Sources */,
-				56FCB37C1C21210B00305D10 /* DatabaseValue+Foundation.swift in Sources */,
+				566A21381C58A54F00C5A218 /* Operator.swift in Sources */,
+				566A21411C58A54F00C5A218 /* NSString.swift in Sources */,
+				566A21401C58A54F00C5A218 /* NSNumber.swift in Sources */,
+				566A21351C58A54F00C5A218 /* FetchRequest.swift in Sources */,
+				566A21271C58A54F00C5A218 /* Configuration.swift in Sources */,
 				562FF9EF1BCE912C00759400 /* PersonEditionViewController.swift in Sources */,
-				56FCB3831C21210B00305D10 /* Row+Foundation.swift in Sources */,
-				56FCB3711C21210B00305D10 /* DatabaseValueConvertible.swift in Sources */,
-				56FCB3691C21210B00305D10 /* Configuration.swift in Sources */,
-				56FCB3851C21210B00305D10 /* DatabaseMigrator.swift in Sources */,
-				56FCB37E1C21210B00305D10 /* NSDate.swift in Sources */,
 				562FF9971BCE8FA400759400 /* PersonsViewController.swift in Sources */,
-				56FCB36E1C21210B00305D10 /* DatabaseValue.swift in Sources */,
-				56FCB3791C21210B00305D10 /* CGFloat.swift in Sources */,
-				56FCB3801C21210B00305D10 /* NSNumber.swift in Sources */,
+				566A214B1C58A54F00C5A218 /* RawRepresentable.swift in Sources */,
 				562FF9F21BCE914E00759400 /* Person.swift in Sources */,
-				56FCB3701C21210B00305D10 /* DatabaseTableMapping.swift in Sources */,
-				56FCB3861C21210B00305D10 /* Migration.swift in Sources */,
-				56FCB3761C21210B00305D10 /* Statement.swift in Sources */,
-				56FCB36C1C21210B00305D10 /* DatabaseError.swift in Sources */,
-				56FCB3811C21210B00305D10 /* NSString.swift in Sources */,
-				56FCB36F1C21210B00305D10 /* DatabasePersistable.swift in Sources */,
+				566A212B1C58A54F00C5A218 /* DatabaseValue.swift in Sources */,
 				562FF9951BCE8FA400759400 /* AppDelegate.swift in Sources */,
-				56FCB3741C21210B00305D10 /* Row.swift in Sources */,
-				56FCB36D1C21210B00305D10 /* DatabaseQueue.swift in Sources */,
-				56FCB37B1C21210B00305D10 /* DatabaseDateComponents.swift in Sources */,
-				56FCB3871C21210B00305D10 /* Record.swift in Sources */,
-				56FCB3721C21210B00305D10 /* RowConvertible.swift in Sources */,
+				566A213C1C58A54F00C5A218 /* DatabaseValue+Foundation.swift in Sources */,
+				566A212D1C58A54F00C5A218 /* Persistable.swift in Sources */,
+				566A21421C58A54F00C5A218 /* NSURL.swift in Sources */,
+				566A21441C58A54F00C5A218 /* StatementArguments+Foundation.swift in Sources */,
+				566A212E1C58A54F00C5A218 /* RowConvertible.swift in Sources */,
+				566A21481C58A54F00C5A218 /* Migration.swift in Sources */,
+				566A21291C58A54F00C5A218 /* DatabaseError.swift in Sources */,
+				566A21281C58A54F00C5A218 /* Database.swift in Sources */,
+				566A212C1C58A54F00C5A218 /* DatabaseValueConvertible.swift in Sources */,
+				566A21331C58A54F00C5A218 /* Utils.swift in Sources */,
+				566A214A1C58A54F00C5A218 /* Record.swift in Sources */,
+				566A21321C58A54F00C5A218 /* Statement.swift in Sources */,
+				566A21391C58A54F00C5A218 /* SQLQuery.swift in Sources */,
+				566A21301C58A54F00C5A218 /* TableMapping.swift in Sources */,
+				566A21431C58A54F00C5A218 /* Row+Foundation.swift in Sources */,
+				566A214C1C58A54F00C5A218 /* StandardLibraryTypes.swift in Sources */,
+				566A21341C58A54F00C5A218 /* CGFloat.swift in Sources */,
+				566A21361C58A54F00C5A218 /* Collation.swift in Sources */,
+				566A21311C58A54F00C5A218 /* Row.swift in Sources */,
+				566A212A1C58A54F00C5A218 /* DatabaseQueue.swift in Sources */,
+				566A213E1C58A54F00C5A218 /* NSDate.swift in Sources */,
+				566A212F1C58A54F00C5A218 /* SQLiteStatementConvertible.swift in Sources */,
+				566A20F31C58A4B300C5A218 /* AppDatabase.swift in Sources */,
+				566A213F1C58A54F00C5A218 /* NSNull.swift in Sources */,
+				566A213A1C58A54F00C5A218 /* DatabaseCoder.swift in Sources */,
+				566A213B1C58A54F00C5A218 /* DatabaseDateComponents.swift in Sources */,
+				566A213D1C58A54F00C5A218 /* NSData.swift in Sources */,
+				566A21371C58A54F00C5A218 /* Function.swift in Sources */,
+				566A21471C58A54F00C5A218 /* DatabaseMigrator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

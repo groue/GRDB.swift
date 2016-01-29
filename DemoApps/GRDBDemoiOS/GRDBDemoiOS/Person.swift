@@ -5,7 +5,7 @@ class Person : Record {
     var firstName: String?
     var lastName: String?
     var fullName: String {
-        return [firstName, lastName].flatMap { $0 }.joinWithSeparator(" ")
+        return [firstName, lastName].flatMap { $0 }.filter { !$0.isEmpty }.joinWithSeparator(" ")
     }
     var visible: Bool = true
     var position: Int64 = 0

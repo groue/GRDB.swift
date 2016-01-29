@@ -59,7 +59,7 @@ public class Statement {
     
     final func reset() throws {
         let code = sqlite3_reset(sqliteStatement)
-        if code != SQLITE_OK {
+        guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
@@ -120,7 +120,7 @@ public class Statement {
         }
     }
     
-    private func setArgumentsWithValidation(arguments: StatementArguments) throws {
+    func setArgumentsWithValidation(arguments: StatementArguments) throws {
         // Validate
         let bindings = try validatedBindings(arguments)
         _arguments = arguments
@@ -149,7 +149,7 @@ public class Statement {
             code = sqlite3_bind_blob(sqliteStatement, index, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
         }
         
-        if code != SQLITE_OK {
+        guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
@@ -235,7 +235,7 @@ public class Statement {
     // Don't make this one public unless we keep the arguments property in sync.
     private func clearBindings() throws {
         let code = sqlite3_clear_bindings(sqliteStatement)
-        if code != SQLITE_OK {
+        guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
     }
@@ -291,6 +291,7 @@ public final class SelectStatement : Statement {
     }
     
     /// The DatabaseSequence builder.
+    @warn_unused_result
     func fetchSequence<T>(arguments arguments: StatementArguments?, element: () -> T) -> DatabaseSequence<T> {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepareWithArguments(arguments)
@@ -317,14 +318,13 @@ public struct DatabaseSequence<T>: SequenceType {
                 // Check that generator is used on a valid queue.
                 preconditionValidQueue()
                 
-                let code = sqlite3_step(sqliteStatement)
-                switch code {
+                switch sqlite3_step(sqliteStatement) {
                 case SQLITE_DONE:
                     return nil
                 case SQLITE_ROW:
                     return element()
-                default:
-                    throw DatabaseError(code: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+                case let errorCode:
+                    throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
                 }
             }
         }
@@ -480,6 +480,16 @@ public struct DatabaseChanges {
 /// See https://www.sqlite.org/lang_expr.html#varparam for more information.
 public struct StatementArguments {
     
+    public var isEmpty: Bool {
+        switch kind {
+        case .Values(let values):
+            return values.isEmpty
+        case .NamedValues(let namedValues):
+            return namedValues.isEmpty
+        }
+    }
+    
+    
     // MARK: Positional Arguments
     
     /// Initializes arguments from a sequence of optional values.
@@ -531,17 +541,18 @@ public struct StatementArguments {
         kind = .NamedValues(Dictionary(sequence.map { (key, value) in return (key, value as DatabaseValueConvertible?) }))
     }
     
-    public var isEmpty: Bool {
-        switch kind {
-        case .Values(let values):
-            return values.isEmpty
-        case .NamedValues(let namedValues):
-            return namedValues.isEmpty
-        }
-    }
-    
     
     // MARK: Not Public
+    
+    /// Returns a double optional
+    func value(named name: String) -> DatabaseValueConvertible?? {
+        switch kind {
+        case .Values:
+            return nil
+        case .NamedValues(let dictionary):
+            return dictionary[name]
+        }
+    }
     
     enum Kind {
         case Values([DatabaseValueConvertible?])

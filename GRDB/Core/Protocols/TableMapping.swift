@@ -1,19 +1,19 @@
-/// Types that adopt DatabaseTableMapping declare a particular relationship with
+/// Types that adopt TableMapping declare a particular relationship with
 /// a database table.
 ///
-/// Types that adopt both DatabaseTableMapping and RowConvertible are granted
-/// with built-in methods that allow to fetch instances identified by key:
+/// Types that adopt both TableMapping and RowConvertible are granted with
+/// built-in methods that allow to fetch instances identified by key:
 ///
 ///     Person.fetchOne(db, key: 123)  // Person?
 ///     Citizenship.fetchOne(db, key: ["personId": 12, "countryId": 45]) // Citizenship?
 ///
-/// DatabaseTableMapping is adopted by Record.
-public protocol DatabaseTableMapping {
+/// TableMapping is adopted by Record.
+public protocol TableMapping {
     /// The name of the database table
     static func databaseTableName() -> String
 }
 
-extension RowConvertible where Self: DatabaseTableMapping {
+extension RowConvertible where Self: TableMapping {
     
     // MARK: - Single-Column Primary Key
     
@@ -26,8 +26,9 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - parameter db: A Database.
     /// - parameter keys: An array of primary keys.
     /// - returns: A sequence.
+    @warn_unused_result
     public static func fetch<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> DatabaseSequence<Self> {
-        guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
+        guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
             return DatabaseSequence.emptySequence(db)
         }
         return fetch(statement)
@@ -42,8 +43,9 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - parameter db: A Database.
     /// - parameter keys: An array of primary keys.
     /// - returns: An array.
+    @warn_unused_result
     public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> [Self] {
-        guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
+        guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
             return []
         }
         return fetchAll(statement)
@@ -56,43 +58,45 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - parameter db: A Database.
     /// - parameter key: A primary key value.
     /// - returns: An optional value.
+    @warn_unused_result
     public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(db: Database, key: PrimaryKeyType?) -> Self? {
         guard let key = key else {
             return nil
         }
-        return fetchOne(fetchByPrimaryKeyStatement(db, keys: [key])!)
+        return fetchOne(fetchByPrimaryKeyStatement(db, values: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE id IN (?,?,?)"
     //
-    // Returns nil if keys is empty.
-    private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> SelectStatement? {
+    // Returns nil if values is empty.
+    @warn_unused_result
+    private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, values: Sequence) -> SelectStatement? {
         // Fail early if database table does not exist.
         let databaseTableName = self.databaseTableName()
-        let primaryKey = db.primaryKey(databaseTableName)
+        let primaryKey = try! db.primaryKey(databaseTableName)
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns
         precondition(columns.count == 1, "expected single column primary key in table: \(databaseTableName)")
+        let column = columns.first!
         
-        let keys = keys.map { $0 as DatabaseValueConvertible? }
-        
-        switch keys.count {
+        let values = Array(values)
+        switch values.count {
         case 0:
             // Avoid performing useless SELECT
             return nil
         case 1:
-            // Use '=' in SQL query
-            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) = ?"
+            // SELECT * FROM table WHERE id = ?
+            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
             let statement = try! db.selectStatement(sql)
-            statement.arguments = StatementArguments(keys)
+            statement.arguments = StatementArguments(values)
             return statement
-        default:
-            // Use 'IN'
-            let questionMarks = Array(count: keys.count, repeatedValue: "?").joinWithSeparator(",")
-            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(columns.first!.quotedDatabaseIdentifier) IN (\(questionMarks))"
+        case let count:
+            // SELECT * FROM table WHERE id IN (?,?,?)
+            let valuesSQL = databaseQuestionMarks(count: count)
+            let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) IN (\(valuesSQL))"
             let statement = try! db.selectStatement(sql)
-            statement.arguments = StatementArguments(keys)
+            statement.arguments = StatementArguments(values)
             return statement
         }
     }
@@ -109,6 +113,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - parameter db: A Database.
     /// - parameter keys: An array of key dictionaries.
     /// - returns: A sequence.
+    @warn_unused_result
     public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
         guard let statement = fetchByKeyStatement(db, keys: keys) else {
             return DatabaseSequence.emptySequence(db)
@@ -125,6 +130,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - parameter db: A Database.
     /// - parameter keys: An array of key dictionaries.
     /// - returns: An array.
+    @warn_unused_result
     public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
         guard let statement = fetchByKeyStatement(db, keys: keys) else {
             return []
@@ -139,6 +145,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     /// - parameter db: A Database.
     /// - parameter key: A dictionary of values.
     /// - returns: An optional value.
+    @warn_unused_result
     public static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
         return fetchOne(fetchByKeyStatement(db, keys: [key])!)
     }
@@ -146,6 +153,7 @@ extension RowConvertible where Self: DatabaseTableMapping {
     // Returns "SELECT * FROM table WHERE (a = ? AND b = ?) OR (a = ? AND b = ?) ...
     //
     // Returns nil if keys is empty.
+    @warn_unused_result
     private static func fetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> SelectStatement? {
         // Avoid performing useless SELECT
         guard keys.count > 0 else {

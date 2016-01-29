@@ -1,5 +1,5 @@
-GRDB Tests
-==========
+Tests
+=====
 
 - [Carthage](Carthage)
     

@@ -1,6 +1,24 @@
 Release Notes
 =============
 
+## 0.42.0
+
+Released January 28, 2016
+
+**New**
+
+- The query interface lets you write pure Swift instead of SQL ([documentation](https://github.com/groue/GRDB.swift/#the-query-interface)):
+    
+    ```swift
+    let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
+    ```
+
+**Breaking Changes**
+
+- `DatabasePersistable` and `MutableDatabasePersistable` protocols have been renamed `Persistable` and `MutablePersistable` ([documentation](https://github.com/groue/GRDB.swift/#persistable-protocol))
+- `DatabaseTableMapping` protocol has been renamed `TableMapping` ([documentation](https://github.com/groue/GRDB.swift/#tablemapping-protocol))
+
+
 ## 0.41.0
 
 Released January 17, 2016
@@ -137,7 +155,7 @@ Released December 28, 2015
 **Breaking Changes**
 
 - Methods that return prepared statements can now throw errors ([documentation](https://github.com/groue/GRDB.swift#prepared-statements)).
-- `Row(dictionary:)` has been renamed `Row(_:)` ([documentation](https://github.com/groue/GRDB.swift#convenience-rows)).
+- `Row(dictionary:)` has been renamed `Row(_:)`.
 - `RowConvertible.awakeFromFetch()` now takes a database argument ([documentation](https://github.com/groue/GRDB.swift#rowconvertible-protocol)).
 
 
@@ -155,7 +173,7 @@ Methods names that did not match [Swift 3 API Design Guidelines](https://swift.o
 
 **Breaking Changes**
 
-Record ([documentation](https://github.com/groue/GRDB.swift#record)):
+Record ([documentation](https://github.com/groue/GRDB.swift#record-class)):
 
 - `Record.storedDatabaseDictionary` has been renamed `persistentDictionary`.
 - `Record.reload()` has been removed. You have to provide your own implementation, should you need reloading.
@@ -171,7 +189,7 @@ Row:
 
 DatabasePersistable:
 
-- `DatabasePersistable.storedDatabaseDictionary` has been renamed `persistentDictionary` ([documentation](https://github.com/groue/GRDB.swift#databasepersistable-protocol)).
+- `DatabasePersistable.storedDatabaseDictionary` has been renamed `persistentDictionary` ([documentation](https://github.com/groue/GRDB.swift#persistable-protocol)).
 
 DatabaseValue:
 

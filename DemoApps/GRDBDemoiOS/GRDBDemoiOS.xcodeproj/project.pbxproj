@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		56300B8A1C564EC8005A543B /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56300B891C564EC8005A543B /* Database.swift */; };
 		56900E421BBFF7D500B815B5 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56900E411BBFF7D500B815B5 /* PersonEditionViewController.swift */; };
 		56B8F4581B4E22B200C24296 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4571B4E22B200C24296 /* AppDelegate.swift */; };
 		56B8F45A1B4E22B200C24296 /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B8F4591B4E22B200C24296 /* MasterViewController.swift */; };
@@ -102,6 +103,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		56300B891C564EC8005A543B /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		56900E411BBFF7D500B815B5 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
 		56B8F4541B4E22B200C24296 /* GRDBDemoiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56B8F4571B4E22B200C24296 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -204,6 +206,7 @@
 			isa = PBXGroup;
 			children = (
 				56B8F4571B4E22B200C24296 /* AppDelegate.swift */,
+				56300B891C564EC8005A543B /* Database.swift */,
 				56900E3E1BBFF2E900B815B5 /* Controllers */,
 				56900E3F1BBFF2F200B815B5 /* Models */,
 				56900E3C1BBFF2C400B815B5 /* Resources */,
@@ -338,6 +341,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56300B8A1C564EC8005A543B /* Database.swift in Sources */,
 				56B8F45C1B4E22B200C24296 /* DetailViewController.swift in Sources */,
 				56B8F45A1B4E22B200C24296 /* MasterViewController.swift in Sources */,
 				56B8F4991B4E23AA00C24296 /* Person.swift in Sources */,
