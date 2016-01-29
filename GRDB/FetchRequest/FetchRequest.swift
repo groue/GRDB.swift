@@ -146,24 +146,7 @@ extension FetchRequest {
     /// Returns the number of rows matched by the request.
     @warn_unused_result
     public func fetchCount(db: Database) -> Int {
-        return fetchAggregate(db, _SQLExpression.Count(_SQLResultColumn.Star(nil)))!
-    }
-    
-    /// Returns the number of non-NULL values of *counted*.
-    @warn_unused_result
-    public func fetchCount(db: Database, _ counted: _SQLSelectable) -> Int {
-        return fetchAggregate(db, _SQLExpression.Count(counted ?? _SQLResultColumn.Star(nil)))!
-    }
-    
-    /// Returns the number of distinct values of *counted*.
-    @warn_unused_result
-    public func fetchCount(db: Database, distinct counted: _SQLExpressionType) -> Int {
-        return fetchAggregate(db, count(distinct: counted.SQLExpression))!
-    }
-    
-    @warn_unused_result
-    private func fetchAggregate<T: DatabaseValueConvertible>(db: Database, _ selection: _SQLSelectable) -> T? {
-        return T.fetchOne(db, FetchRequest<Void>(query.select([selection])))
+        return Int.fetchOne(db, select([_SQLExpression.Count(_SQLResultColumn.Star(nil))]))!
     }
 }
 
@@ -196,7 +179,7 @@ extension FetchRequest where T: RowConvertible {
     /// Returns an array of values fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
-    ///     let persons = request.fetchAll(db) // DatabaseSequence<Person>
+    ///     let persons = request.fetchAll(db) // [Person]
     @warn_unused_result
     public func fetchAll(db: Database) -> [T] {
         return Array(fetch(db))
@@ -205,7 +188,7 @@ extension FetchRequest where T: RowConvertible {
     /// Returns a single value fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
-    ///     let persons = request.fetchOne(db) // Person?
+    ///     let person = request.fetchOne(db) // Person?
     @warn_unused_result
     public func fetchOne(db: Database) -> T? {
         return fetch(db).generate().next()
@@ -273,6 +256,12 @@ extension TableMapping {
         return all().order(sql: sql)
     }
     
+    /// Returns a FetchRequest sorted in reversed order.
+    @warn_unused_result
+    public static func reverse() -> FetchRequest<Self> {
+        return all().reverse()
+    }
+    
     /// Returns a FetchRequest which fetches *limit* rows, starting at
     /// *offset*.
     @warn_unused_result
@@ -290,18 +279,6 @@ extension TableMapping {
     @warn_unused_result
     public static func fetchCount(db: Database) -> Int {
         return all().fetchCount(db)
-    }
-    
-    /// Returns the number of non-NULL values of *counted*.
-    @warn_unused_result
-    public static func fetchCount(db: Database, _ counted: _SQLSelectable) -> Int {
-        return all().fetchCount(db, counted)
-    }
-    
-    /// Returns the number of distinct values of *counted*.
-    @warn_unused_result
-    public static func fetchCount(db: Database, distinct counted: _SQLExpressionType) -> Int {
-        return all().fetchCount(db, distinct: counted)
     }
 }
 
@@ -466,7 +443,7 @@ extension RowConvertible {
     /// Returns an array of values fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
-    ///     let persons = Person.fetchAll(db, request) // DatabaseSequence<Person>
+    ///     let persons = Person.fetchAll(db, request) // [Person]
     @warn_unused_result
     public static func fetchAll<T>(db: Database, _ request: FetchRequest<T>) -> [Self] {
         return try! fetchAll(request.selectStatement(db))
@@ -475,10 +452,51 @@ extension RowConvertible {
     /// Returns a single value fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
-    ///     let persons = Person.fetchOne(db, request) // Person?
+    ///     let person = Person.fetchOne(db, request) // Person?
     @warn_unused_result
     public static func fetchOne<T>(db: Database, _ request: FetchRequest<T>) -> Self? {
         return try! fetchOne(request.selectStatement(db))
+    }
+}
+
+extension RowConvertible where Self: TableMapping {
+    
+    // MARK: Fetching All
+    
+    /// Returns a sequence of all values fetched from the database.
+    ///
+    ///     let persons = Person.fetch(db) // DatabaseSequence<Person>
+    ///
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let persons = Person.fetch(db)
+    ///     Array(persons).count // 3
+    ///     db.execute("DELETE ...")
+    ///     Array(persons).count // 2
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements are undefined.
+    @warn_unused_result
+    public static func fetch(db: Database) -> DatabaseSequence<Self> {
+        return all().fetch(db)
+    }
+    
+    /// Returns an array of all values fetched from the database.
+    ///
+    ///     let persons = Person.fetchAll(db) // [Person]
+    @warn_unused_result
+    public static func fetchAll(db: Database) -> [Self] {
+        return all().fetchAll(db)
+    }
+    
+    /// Returns the first value fetched from a fetch request.
+    ///
+    ///     let person = Person.fetchOne(db) // Person?
+    @warn_unused_result
+    public static func fetchOne(db: Database) -> Self? {
+        return all().fetchOne(db)
     }
 }
 

@@ -88,7 +88,7 @@ extension RowConvertible {
     /// Returns a single value fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT * FROM persons")
-    ///     let persons = Person.fetchOne(statement) // Person?
+    ///     let person = Person.fetchOne(statement) // Person?
     ///
     /// - parameter statement: The statement to run.
     /// - parameter arguments: Optional statement arguments.
