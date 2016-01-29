@@ -75,6 +75,7 @@ let title = SQLColumn("title")
 let favorite = SQLColumn("favorite")
 
 let favoritePois = dbQueue.inDatabase { db in
+    // SELECT * FROM "pointOfInterests" WHERE "favorite" ORDER BY "title"
     PointOfInterest.filter(favorite).order(title).fetchAll(db)
 }
 ```
