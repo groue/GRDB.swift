@@ -90,53 +90,42 @@ public class FetchedResultsController<T: FetchedResult> {
         }
     }
     
-    static func diff(fromRows s: [T], toRows t: [T]) -> [Change<T>] {
+    static func computeChanges(fromRows s: [T], toRows t: [T]) -> [Change<T>] {
         
-        let sourceCount = s.count
-        let targetCount = t.count
+        let m = s.count
+        let n = t.count
         
         // Fill first row and column of insertions and deletions.
         
-        var d: [[[Change<T>]]] = Array(count: sourceCount + 1, repeatedValue: Array(count: targetCount + 1, repeatedValue: []))
-        var edits = [Change<T>]()
-        for (row, element) in s.enumerate() {
-            let deletion = Change.Deletion(item: element, at: NSIndexPath(indexes:[0,row], length:2))
-            edits.append(deletion)
-            d[row + 1][0] = edits
-        }
-        edits.removeAll()
-        for (col, element) in t.enumerate() {
-            let insertion = Change.Insertion(item: element, at: NSIndexPath(indexes:[0,col], length:2))
-            edits.append(insertion)
-            d[0][col + 1] = edits
-        }
-        edits.removeAll()
+        var d: [[[Change<T>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
         
-        guard sourceCount > 0 && targetCount > 0 else { return d[sourceCount][targetCount] }
+        var changes = [Change<T>]()
+        for (row, item) in s.enumerate() {
+            let deletion = Change.Deletion(item: item, at: NSIndexPath(forRow: row, inSection: 0))
+            changes.append(deletion)
+            d[row + 1][0] = changes
+        }
         
-        var complexUpdates = [Change<T>]()
+        changes.removeAll()
+        for (col, item) in t.enumerate() {
+            let insertion = Change.Insertion(item: item, at: NSIndexPath(forRow: col, inSection: 0))
+            changes.append(insertion)
+            d[0][col + 1] = changes
+        }
+        
+        guard m > 0 && n > 0 else { return d[m][n] }
         
         // Indexes into the two collections.
         var sx: Array<T>.Index
         var tx = t.startIndex
         
         // Fill body of matrix.
-        for j in 1...targetCount {
+        
+        for j in 1...n {
             sx = s.startIndex
             
-            for i in 1...sourceCount {
+            for i in 1...m {
                 if s[sx] == t[tx] {
-                    // TODO! : Update
-                    if let oldRecord = s[sx] as? Record, let newRecord = t[tx] as? Record {
-                        let newRecordCopy = newRecord.copy()
-                        newRecordCopy.referenceRow = oldRecord.referenceRow
-                        let changes = newRecordCopy.persistentChangedValues
-                        if  changes.count > 0 {
-                            let update = Change.Update(item: t[tx], at: NSIndexPath(indexes:[0,i-1], length:2), changes: changes)
-                            complexUpdates.append(update)
-                        }
-                    }
-                    
                     d[i][j] = d[i - 1][j - 1] // no operation
                 } else {
                     
@@ -144,19 +133,20 @@ public class FetchedResultsController<T: FetchedResult> {
                     var ins = d[i][j - 1] // an insertion
                     var sub = d[i - 1][j - 1] // a substitution
                     
+                    // Record operation.
+                    
                     let minimumCount = min(del.count, ins.count, sub.count)
                     if del.count == minimumCount {
-                        let deletion = Change.Deletion(item: s[sx], at: NSIndexPath(indexes:[0,i-1], length:2))
+                        let deletion = Change.Deletion(item: s[sx], at: NSIndexPath(forRow: i-1, inSection: 0))
                         del.append(deletion)
                         d[i][j] = del
                     } else if ins.count == minimumCount {
-                        let insertion = Change.Insertion(item: t[tx], at: NSIndexPath(indexes:[0,j-1], length:2))
+                        let insertion = Change.Insertion(item: t[tx], at: NSIndexPath(forRow: j-1, inSection: 0))
                         ins.append(insertion)
                         d[i][j] = ins
                     } else {
-                         // We dont want substitution, we want deletion and insertion
-                        let deletion = Change.Deletion(item: s[sx], at: NSIndexPath(indexes:[0,j-1], length:2))
-                        let insertion = Change.Insertion(item: t[tx], at: NSIndexPath(indexes:[0,j-1], length:2))
+                        let deletion = Change.Deletion(item: s[sx], at: NSIndexPath(forRow: i-1, inSection: 0))
+                        let insertion = Change.Insertion(item: t[tx], at: NSIndexPath(forRow: j-1, inSection: 0))
                         sub.append(deletion)
                         sub.append(insertion)
                         d[i][j] = sub
@@ -168,9 +158,6 @@ public class FetchedResultsController<T: FetchedResult> {
             
             tx = tx.advancedBy(1)
         }
-    
-        // .Update changes must have been added to the end of updates !
-        var allChanges = d[sourceCount][targetCount]; allChanges.appendContentsOf(complexUpdates)
         
         /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
         func standardizeChanges(changes: [Change<T>]) -> [Change<T>] {
@@ -203,22 +190,17 @@ public class FetchedResultsController<T: FetchedResult> {
             }
             
             return changes.reduce([Change<T>]()) { (var reducedChanges, update) in
-                // Try to combine Insertion & Deletion of same result into a Move
-                if let (moveChange, index) = moveFromChanges(reducedChanges, deletionOrInsertion: update), case .Move = moveChange {
+                if let (move, index) = moveFromChanges(reducedChanges, deletionOrInsertion: update) {
                     reducedChanges.removeAtIndex(index)
-                    reducedChanges.append(moveChange)
+                    reducedChanges.append(move)
                 } else {
-                    // .Update changes must have been added to the end of updates !
-                    switch update {
-                    case .Update(_, _, _): if !reducedChanges.reduce(false, combine: { ( sum, nextChange) in sum || update.isRelativeToSameResult(nextChange) })  { reducedChanges.append(update) }
-                    default: reducedChanges.append(update)
-                    }
+                    reducedChanges.append(update)
                 }
                 return reducedChanges
             }
         }
         
-        return standardizeChanges(allChanges)
+        return standardizeChanges(d[m][n])
     }
 }
 
@@ -231,16 +213,15 @@ extension FetchedResultsController : TransactionObserverType {
         let newResults = T.fetchAll(db, self.sql)
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             let oldResults = self.fetchedResults
-            
-            // horrible diff computation
+
             dispatch_async(dispatch_get_main_queue()) {
                 self.delegate?.controllerWillUpdate(self)
                 
                 // after controllerWillChangeContent
                 self.fetchedResults = newResults
                 
-                // notify horrible diff computation
-                for update in FetchedResultsController.diff(fromRows: oldResults!, toRows: newResults) {
+                // notify all updates
+                for update in FetchedResultsController.computeChanges(fromRows: oldResults!, toRows: newResults) {
                     self.delegate?.controllerUpdate(self, update: update)
                 }
                 
@@ -330,7 +311,7 @@ extension Change: CustomStringConvertible {
             return "MOVED \(item) FROM index \(from.row) TO index \(to.row)"
             
         case .Update(let item, let at, let changes):
-            return "UPDATES \(changes) OF \(item) AT index \(at.row)"
+            return "UPDATED \(changes) OF \(item) AT index \(at.row)"
         }
     }
 }

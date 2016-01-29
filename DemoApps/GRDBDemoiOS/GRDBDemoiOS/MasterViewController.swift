@@ -138,10 +138,10 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         print(update)
         switch update {
         case .Insertion(_, let at):
-            tableView.insertRowsAtIndexPaths([at], withRowAnimation: .Automatic)
+            tableView.insertRowsAtIndexPaths([at], withRowAnimation: .Fade)
             
         case .Deletion(_, let from):
-            tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Automatic)
+            tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Fade)
             
         case .Move(let item, let from, let to):
             if let userDrivenMove = userDrivenMove, let person = item as? Person {
@@ -158,12 +158,12 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
                 let columns = ["firstName", "lastName"]
                 for (key, _) in changes {
                     if columns.contains(key) {
-                        tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Automatic)
+                        tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Fade)
                         break
                     }
                 }
             } else {
-                tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Automatic)
+                tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Fade)
             }
         }
     }
