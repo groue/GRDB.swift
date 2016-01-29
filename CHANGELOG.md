@@ -1,6 +1,16 @@
 Release Notes
 =============
 
+
+## 0.42.1
+
+Released January 29, 2016
+
+**Fixed**
+
+- Improved consistency of the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface).
+
+
 ## 0.42.0
 
 Released January 28, 2016

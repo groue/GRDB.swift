@@ -5,7 +5,7 @@ GRDB.swift is an SQLite toolkit for Swift 2.
 
 It provides an SQL API and application tools.
 
-**January 28, 2016: GRDB.swift 0.42.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**January 29, 2016: GRDB.swift 0.42.1 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -91,7 +91,7 @@ dbQueue.inDatabase { db in
 
 ### Documentation
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.42.0/index.html) (on cocoadocs.org)
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.42.1/index.html) (on cocoadocs.org)
 - [Installation](#installation)
 - [SQLite API](#sqlite-api): SQL & SQLite
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
@@ -118,7 +118,7 @@ To use GRDB.swift with Cocoapods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '~> 0.42.0'
+pod 'GRDB.swift', '~> 0.42.1'
 ```
 
 
@@ -129,7 +129,7 @@ pod 'GRDB.swift', '~> 0.42.0'
 To use GRDB.swift with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" ~> 0.42.0
+github "groue/GRDB.swift" ~> 0.42.1
 ```
 
 
@@ -249,7 +249,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.42.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.42.1/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 > :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a GRDB database.
 
@@ -2052,7 +2052,7 @@ dbQueue.inDatabase { db in
 For example:
 
 ```swift
-let persons = Person.all().fetchAll(db) // [Persons]
+let persons = Person.fetchAll(db) // [Persons]
 ```
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
@@ -2123,7 +2123,7 @@ Country.fetchAll(db, keys: ["FR", "US"])!
 ```swift
 dbQueue.inDatabase { db in
     // SELECT COUNT(*) FROM "persons"
-    let count = Person.all().fetchCount(db)                    // Int
+    let count = Person.fetchCount(db)                    // Int
     
     // SELECT COUNT(*) FROM "persons" WHERE "email" IS NOT NULL
     let count = Person.filter(Col.email != nil).fetchCount(db) // Int
