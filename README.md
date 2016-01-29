@@ -14,10 +14,10 @@ It provides an SQL API and application tools.
 
 ```swift
 import GRDB
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 
 // SQL usage
 
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 try dbQueue.inDatabase { db in
     try db.execute(
         "CREATE TABLE pointOfInterests (" +
@@ -40,8 +40,7 @@ try dbQueue.inDatabase { db in
     }
 }
 
-
-// Database protocols and Records
+// Records
 
 struct PointOfInterest {
     var id: Int64?
@@ -50,9 +49,7 @@ struct PointOfInterest {
     var coordinate: CLLocationCoordinate2D
 }
 
-extension PointOfInterest {
-    // snip: conformance to database protocols
-}
+// snip: turn PointOfInterest into a "record" by adopting database protocols
 
 try dbQueue.inDatabase { db in
     // INSERT INTO "pointOfInterests" ...
@@ -74,9 +71,12 @@ try dbQueue.inDatabase { db in
 let title = SQLColumn("title")
 let favorite = SQLColumn("favorite")
 
-let favoritePois = dbQueue.inDatabase { db in
+dbQueue.inDatabase { db in
+    // SELECT * FROM "pointOfInterests" WHERE "title" = 'Paris'
+    let paris = PointOfInterest.filter(title == 'Paris').fetchOne(db)
+    
     // SELECT * FROM "pointOfInterests" WHERE "favorite" ORDER BY "title"
-    PointOfInterest.filter(favorite).order(title).fetchAll(db)
+    let favoritePois = PointOfInterest.filter(favorite).order(title).fetchAll(db)
 }
 ```
   
