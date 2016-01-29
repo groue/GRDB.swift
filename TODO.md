@@ -1,6 +1,7 @@
 - [ ] How to have robust single writer/several readers?
 - [ ] protocol DatabaseEquatable, with default implementation for MutablePersistable
 - [ ] Query builder
+    - [ ] Question the utility of request.fetchCount(db, Col.name) and request.fetchCount(db, distinct: Col.name)
     - [ ] Check for gross pollution (`1.SQLexpression`)
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
