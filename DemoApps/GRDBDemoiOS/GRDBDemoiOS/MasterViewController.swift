@@ -4,7 +4,6 @@ import GRDB
 class MasterViewController: UITableViewController, FetchedResultsControllerDelegate {
     var detailViewController: DetailViewController? = nil
     var fetchedResultsController: FetchedResultsController<Person>!
-    var userDrivenMove: Change<Person>?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -104,29 +103,27 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         }
     }
     
-    override func tableView(tableView: UITableView, moveRowAtIndexPath sourceIndexPath: NSIndexPath, toIndexPath destinationIndexPath: NSIndexPath) {
-        
-        guard let result = fetchedResultsController.resultAtIndexPath(sourceIndexPath) else {
-            return
-        }
-        
-        userDrivenMove = Change.Move(item: result, from: sourceIndexPath, to: destinationIndexPath)
-        
-        // Update db
-        if let fetchedResults = fetchedResultsController.fetchedResults {
-            var persons = fetchedResults
-            persons.removeAtIndex(sourceIndexPath.row)
-            persons.insert(result, atIndex: destinationIndexPath.row)
-            
-            try! dbQueue.inTransaction { db in
-                for (i, p) in persons.enumerate() {
-                    p.position = Int64(i)
-                    try p.save(db)
-                }
-                return .Commit
-            }
-        }
-    }
+    //override func tableView(tableView: UITableView, moveRowAtIndexPath sourceIndexPath: NSIndexPath, toIndexPath destinationIndexPath: NSIndexPath) {
+    //    
+    //    guard let result = fetchedResultsController.resultAtIndexPath(sourceIndexPath) else {
+    //        return
+    //    }
+    //    
+    //    // Update db
+    //    if let fetchedResults = fetchedResultsController.fetchedResults {
+    //        var persons = fetchedResults
+    //        persons.removeAtIndex(sourceIndexPath.row)
+    //        persons.insert(result, atIndex: destinationIndexPath.row)
+    //        
+    //        try! dbQueue.inTransaction { db in
+    //            for (i, p) in persons.enumerate() {
+    //                p.position = Int64(i)
+    //                try p.save(db)
+    //            }
+    //            return .Commit
+    //        }
+    //    }
+    //}
     
     // MARK: - FetchedResultsControllerDelegate
     
@@ -143,14 +140,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         case .Deletion(_, let from):
             tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Fade)
             
-        case .Move(let item, let from, let to):
-            if let userDrivenMove = userDrivenMove, let person = item as? Person {
-                let personMove = Change.Move(item: person, from: from, to: to)
-                if personMove == userDrivenMove || fetchedResultsController.changesAreEquivalent(personMove, otherChange: userDrivenMove) {
-                    self.userDrivenMove = nil
-                    return
-                }
-            }
+        case .Move(_, let from, let to):
             tableView.moveRowAtIndexPath(from, toIndexPath: to)
             
         case .Update(_, let at, let changes):
