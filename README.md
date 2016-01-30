@@ -644,7 +644,7 @@ Use values in [Record](#record-class) subclasses and types that adopt the [RowCo
 
 ```swift
 class Link : Record {
-    var url: NSURL?
+    var url: NSURL
     var verified: Bool
     
     required init(_ row: Row) {
