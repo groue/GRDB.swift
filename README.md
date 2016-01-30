@@ -73,7 +73,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-Turn Swift into SQL with the [Query Interface](#the-query-interface):
+Turn Swift into SQL with the [query interface](#the-query-interface):
 
 ```swift
 let title = SQLColumn("title")
@@ -341,7 +341,7 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    // Using the Query Interface
+    // Using the query interface
     Wine.filter(name == "Pomerol").fetch(db)        // DatabaseSequence<Wine>
     Wine.filter(name == "Pomerol").fetchAll(db)     // [Wine]
     Wine.filter(name == "Pomerol").fetchOne(db)     // Wine?
@@ -1261,7 +1261,7 @@ Of course, you need to open a [database connection](#database-queues), and [crea
 class Person : Record { ... }
 
 dbQueue.inDatabase { db in
-    // Using the Query Interface
+    // Using the query interface
     let persons = Person.filter(email != nil).order(name).fetchAll(db)
     
     // By key
@@ -1581,26 +1581,7 @@ struct Link : Persistable {
 
 **Record** is a class that builds on top of the [RowConvertible](#rowconvertible-protocol), [TableMapping](#tablemapping-protocol) and [Persistable](#persistable-protocol) protocols, and is designed to be subclassed.
 
-It provides [persistence methods](#persistence-methods), [changes tracking](#changes-tracking), and the [query interface](#the-query-interface):
-
-```swift
-class PointOfInterest : Record { ... }
-
-// Persistence
-let paris = PointOfInterest(
-    name: "Paris",
-    coordinate: CLLocationCoordinate2DMake(48.8534100, 2.3488000))
-try paris.insert(db)
-
-// Changes tracking
-paris.hasPersistentChangedValues    // false
-
-// Query interface
-for poi in PointOfInterest.order(name).fetch(db) { poi in
-    print(poi.name)
-}
-```
-
+It provides [persistence methods](#persistence-methods), [changes tracking](#changes-tracking), and the [query interface](#the-query-interface).
 
 **Record subclasses override the four core methods that define their relationship with the database:**
 
@@ -1620,7 +1601,7 @@ class Record {
 }
 ```
 
-For example:
+For example, here is a fully functional Record subclass:
 
 ```swift
 class PointOfInterest : Record {
@@ -1656,6 +1637,53 @@ class PointOfInterest : Record {
     func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         id = rowID
     }
+}
+```
+
+
+**Insert records** (see [persistence methods](#persistence-methods)):
+
+```swift
+let poi = PointOfInterest(...)
+try dbQueue.inDatabase { db in
+    try poi.insert(db)
+}
+```
+
+
+**Fetch records** (see [RowConvertible](#rowconvertible-protocol) and the [query interface](#the-query-interface)):
+
+```swift
+dbQueue.inDatabase { db in
+    // Using the query interface
+    let pois = PointOfInterest.order(title).fetchAll(db)
+    
+    // By key
+    let poi = PointOfInterest.fetchOne(db, key: 1)
+    
+    // Using SQL
+    let pois = PointOfInterest.fetchAll(db, "SELECT ...", arguments: ...)
+}
+```
+
+
+**Update records** (see [persistence methods](#persistence-methods)):
+
+```swift
+try dbQueue.inDatabase { db in
+    let poi = PointOfInterest.fetchOne(db, key: 1)!
+    poi.coordinate = ...
+    try poi.update(db)
+}
+```
+
+
+**Delete records** (see [persistence methods](#persistence-methods)):
+
+```swift
+try dbQueue.inDatabase { db in
+    let poi = PointOfInterest.fetchOne(db, key: 1)!
+    try poi.delete(db)
 }
 ```
 
