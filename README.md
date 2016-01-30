@@ -615,7 +615,7 @@ GRDB ships with built-in support for the following value types:
     
 - **CoreGraphics**: CGFloat.
 
-All those types can be used as [statement arguments](#executing-updates):
+Values can be used as [statement arguments](#executing-updates):
 
 ```swift
 let url: NSURL = ...
@@ -625,7 +625,7 @@ try db.execute(
     arguments: [url, verified])
 ```
 
-They can be [extracted from rows](#column-values):
+Values can be [extracted from rows](#column-values):
 
 ```swift
 for row in Row.fetch(db, "SELECT * FROM links") {
@@ -634,24 +634,38 @@ for row in Row.fetch(db, "SELECT * FROM links") {
 }
 ```
 
-They can be [directly fetched](#value-queries) from the database:
+Values can be [directly fetched](#value-queries) from the database:
 
 ```swift
 let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
 ```
 
-Use them in the `persistentDictionary` property of [Persistable](#persistable-protocol) protocol and [Record](#record-class) subclasses:
+Use values in [Record](#record-class) subclasses and types that adopt the [RowConvertible](#rowconvertible-protocol) and [Persistable](#persistable-protocol) protocols:
 
 ```swift
 class Link : Record {
     var url: NSURL?
     var verified: Bool
     
+    required init(_ row: Row) {
+        url = row.value("url")
+        verified = row.value("verified")
+        super.init(row)
+    }
+    
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["url": url, "verified": verified]
     }
 }
 ```
+
+Use values in the [query interface](#the-query-interface):
+
+```swift
+let url = NSURL(string: "http://example.com")!
+let link = Link.filter(Col.url == url).fetchOne(db)
+```
+
 
 Your custom value types are supported as well, through the [DatabaseValueConvertible](#custom-value-types) protocol.
 
