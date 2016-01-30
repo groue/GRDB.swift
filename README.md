@@ -2070,7 +2070,11 @@ dbQueue.inDatabase { db in
 For example:
 
 ```swift
-let persons = Person.fetchAll(db) // [Persons]
+for person in Person.filter(Col.name != nil).fetch(db) {
+    print(person)
+}
+let allPersons = Person.fetchAll(db)                            // [Person]
+let arthur = Person.filter(Col.name == "Arthur").fetchOne(db)   // Person?
 ```
 
 Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
