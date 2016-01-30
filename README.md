@@ -1692,7 +1692,7 @@ try dbQueue.inDatabase { db in
 
 **The [Record](#record-class) class provides changes tracking.**
 
-The `update()` method always executes an UPDATE statement. When the record has not been edited, this database access is generally useless.
+The `update()` [method](#persistence-methods) always executes an UPDATE statement. When the record has not been edited, this costly database access is generally useless.
 
 Avoid it with the `hasPersistentChangedValues` property, which returns whether the record has changes that have not been saved:
 
@@ -1706,14 +1706,18 @@ if person.hasPersistentChangedValues {
 The `hasPersistentChangedValues` flag is false after a record has been fetched or saved into the database. Subsequent modifications may set it: `hasPersistentChangedValues` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
 
 ```swift
-let person = Person.fetchOne(db, key: 1)    // Barbara, aged 35
+let person = Person(name: "Barbara", age: 35)
+person.hasPersistentChangedValues // true
+
+try person.insert(db)
+person.hasPersistentChangedValues // false
 
 person.name = "Barbara"
-person.hasPersistentChangedValues   // false
+person.hasPersistentChangedValues // false
 
 person.age = 36
-person.hasPersistentChangedValues   // true
-person.persistentChangedValues      // ["age": 35]
+person.hasPersistentChangedValues // true
+person.persistentChangedValues    // ["age": 35]
 ```
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check this [sample code](https://gist.github.com/groue/dcdd3784461747874f41).
