@@ -1021,7 +1021,7 @@ As an example, see [DatabaseTimestamp](https://gist.github.com/groue/ab172d2ee33
 There are two kinds of prepared statements: **select statements**, and **update statements**:
 
 ```swift
-try dbQueue.inTransaction { db in
+try dbQueue.inDatabase { db in
     let updateSQL = "INSERT INTO persons (name, age) VALUES (:name, :age)"
     let updateStatement = try db.updateStatement(updateSQL)
     
@@ -1109,43 +1109,43 @@ You can for example use the Unicode support of Swift strings, and go beyond the 
 
 ```swift
 dbQueue.inDatabase { db in
-    let fn = DatabaseFunction("unicodeUpper", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
-        // databaseValues is guaranteed to have `argumentCount` elements:
-        let dbv = databaseValues[0]
-        guard let string: String = dbv.value() else {
-            return nil
-        }
-        return string.uppercaseString
-    }
-    db.addFunction(fn)
+    let unicodeUpper = DatabaseFunction(
+        "unicodeUpper",   // The name of the function
+        argumentCount: 1, // Number of arguments
+        pure: true,       // True means that the result only depends on input
+        function: { (databaseValues: [DatabaseValue]) in
+            guard let string: String = databaseValues[0].value() else {
+                return nil
+            }
+            return string.uppercaseString })
     
-    // "É"
-    String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["é"])!
+    // "JÉRÔME"
+    String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["Jérôme"])!
 
-    // "é"
-    String.fetchOne(db, "SELECT upper(?)", arguments: ["é"])!
+    // "JéRôME"
+    String.fetchOne(db, "SELECT upper(?)", arguments: ["Jérôme"])!
 }
 ```
 
-See [Rows as Dictionaries](#rows-as-dictionaries) for more information about the `DatabaseValue` type.
+The *function* argument takes an array of [DatabaseValue](#rows-as-dictionaries), and returns any valid [value](#values) (Bool, Int, String, NSDate, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
 
-The result of a *pure* function only depends on its arguments (unlike the built-in `random()` SQL function, for example). SQLite has the opportunity to perform additional optimizations when functions are pure.
-
-See [Values](#values) for more information on supported arguments and return types (Bool, Int, String, NSDate, Swift enums, etc.).
+SQLite has the opportunity to perform additional optimizations when functions are "pure", which means that their result only depends on their arguments. So make sure to set the *pure* argument to true when possible.
 
 
 **Functions can take a variable number of arguments:**
 
+When you don't provide any explicit *argumentCount*, the function can take any number of arguments:
+
 ```swift
 dbQueue.inDatabase { db in
-    let fn = DatabaseFunction("sumOf", pure: true) { (databaseValues: [DatabaseValue]) in
-        let ints: [Int] = databaseValues.flatMap { $0.value() }
-        return ints.reduce(0, combine: +)
+    let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [DatabaseValue]) in
+        let doubles: [Double] = databaseValues.flatMap { $0.value() }
+        return doubles.reduce(0, combine: +) / Double(doubles.count)
     }
-    db.addFunction(fn)
+    db.addFunction(averageOf)
     
-    // 6
-    Int.fetchOne(db, "SELECT sumOf(1, 2, 3)")!
+    // 2.0
+    Double.fetchOne(db, "SELECT averageOf(1, 2, 3)")!
 }
 ```
 
@@ -1154,7 +1154,7 @@ dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    let fn = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
+    let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
         let dbv = databaseValues[0]
         guard let double: Double = dbv.value() else {
             return nil
@@ -1164,7 +1164,7 @@ dbQueue.inDatabase { db in
         }
         return sqrt(double)
     }
-    db.addFunction(fn)
+    db.addFunction(sqrt)
     
     // fatal error: SQLite error 1 with statement `SELECT sqrt(-1)`:
     // Invalid negative value in function sqrt()
@@ -2036,10 +2036,10 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     You can apply your own [custom SQL functions](#custom-sql-functions):
     
     ```swift
-    let function = DatabaseFunction("myFunction", ...)
+    let unicodeUpper = DatabaseFunction("unicodeUpper", ...)
     
-    // SELECT myFunction("name") FROM persons
-    Person.select(function.apply(Col.name))
+    // SELECT unicodeUpper("name") AS "uppercaseName" FROM persons
+    Person.select(unicodeUpper.apply(Col.name).aliased("uppercaseName"))
     ```
 
     
