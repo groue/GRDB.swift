@@ -1175,6 +1175,14 @@ dbQueue.inDatabase { db in
 See [Error Handling](#error-handling) for more information on database errors.
 
 
+**Use custom functions in the [query interface](#the-query-interface):**
+
+```swift
+// SELECT unicodeUpper("name") AS "uppercaseName" FROM persons
+Person.select(unicodeUpper.apply(Col.name).aliased("uppercaseName"))
+```
+
+
 ## Raw SQLite Pointers
 
 Not all SQLite APIs are exposed in GRDB.
