@@ -2031,6 +2031,17 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     > :point_up: **Note**: SQLite support for case translation is limited to ASCII characters. When comparing strings as in the example abobe, you may prefer a [custom comparison function](#string-comparison). When you actually want to transform strings in an Unicode-aware fashion, use a [custom SQL function](#custom-sql-functions).
 
+- Custom SQL functions
+    
+    You can apply your own [custom SQL functions](#custom-sql-functions):
+    
+    ```swift
+    let function = DatabaseFunction("myFunction", ...)
+    
+    // SELECT myFunction("name") FROM persons
+    Person.select(function.apply(Col.name))
+    ```
+
     
 ### Fetching from Requests
 
