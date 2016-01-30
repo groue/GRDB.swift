@@ -1119,9 +1119,11 @@ dbQueue.inDatabase { db in
             }
             return string.uppercaseString })
     
+    db.addFunction(unicodeUpper)
+    
     // "JÉRÔME"
     String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["Jérôme"])!
-
+    
     // "JéRôME"
     String.fetchOne(db, "SELECT upper(?)", arguments: ["Jérôme"])!
 }
