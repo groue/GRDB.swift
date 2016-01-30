@@ -1731,7 +1731,15 @@ For an efficient algorithm which synchronizes the content of a database table wi
 let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
 ```
 
-Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL. Don't miss the [SQL API](#fetch-queries).
+Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL:
+
+```swift
+let wines = Wine.fetchAll(db,
+    "SELECT * FROM wines WHERE origin = ? ORDER BY price",
+    arguments: ["Burgundy"])
+```
+
+So don't miss the [SQL API](#fetch-queries).
 
 - [Requests](#requests)
 - [Expressions](#expressions)
