@@ -105,14 +105,14 @@ dbQueue.inDatabase { db in
 
 #### iOS7
 
-You can use GRDB.swift in a project targetting iOS7. See [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7) for more information.
+You can use GRDB in a project targetting iOS7. See [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7) for more information.
 
 
 #### CocoaPods
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
 
-To use GRDB.swift with Cocoapods, specify in your Podfile:
+To use GRDB with Cocoapods, specify in your Podfile:
 
 ```ruby
 source 'https://github.com/CocoaPods/Specs.git'
@@ -126,7 +126,7 @@ pod 'GRDB.swift', '~> 0.42.1'
 
 [Carthage](https://github.com/Carthage/Carthage) is another dependency manager for Xcode projects.
 
-To use GRDB.swift with Carthage, specify in your Cartfile:
+To use GRDB with Carthage, specify in your Cartfile:
 
 ```
 github "groue/GRDB.swift" ~> 0.42.1
@@ -658,16 +658,7 @@ Your custom value types are supported as well, through the [DatabaseValueConvert
 
 ### NSData (and Memory Savings)
 
-**NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other value types:
-
-```swift
-let row = Row.fetchOne(db, "SELECT data, ...")!
-let data: NSData = row.value(named: "data")
-
-NSData.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<NSData>
-NSData.fetchAll(db, "SELECT ...", arguments:...) // [NSData]
-NSData.fetchOne(db, "SELECT ...", arguments:...) // NSData?
-```
+**NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other [value types](#values).
 
 Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**, using the `dataNoCopy()` method:
 
@@ -683,17 +674,22 @@ Compare with the **anti-patterns** below:
 
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
-    // Data is copied, row after row:
+    // This data is copied:
     let data: NSData = row.value(named: "data")
     
-    // Data is copied, row after row:
+    // This data is copied:
     if let databaseValue = row["data"] {
         let data: NSData = databaseValue.value()
     }
+    
+    // This data is copied:
+    let copiedRow = row.copy()
+    let data = copiedRow.dataNoCopy(named: "data")
 }
 
-// All rows have been copied in memory when the loop begins:
-for row in Row.fetchAll(db, "SELECT data, ...") {
+// All rows have been copied when the loop begins:
+let rows = Row.fetchAll(db, "SELECT data, ...") // [Row]
+for row in rows {
     // Too late to do the right thing:
     let data = row.dataNoCopy(named: "data")
 }
@@ -704,7 +700,7 @@ for row in Row.fetchAll(db, "SELECT data, ...") {
 
 [**NSDate**](#nsdate) and [**NSDateComponents**](#nsdatecomponents) can be stored and fetched from the database.
 
-Here is the support provided by GRDB.swift for the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
+Here is the support provided by GRDB for the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
 
 | SQLite format                | NSDate       | NSDateComponents |
 |:---------------------------- |:------------:|:----------------:|
@@ -728,42 +724,17 @@ Here is the support provided by GRDB.swift for the various [date formats](https:
 
 #### NSDate
 
-**GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.**
+**GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.** It is precise to the millisecond.
 
-> :point_up: **Note**: This format is lexically comparable with SQLite's CURRENT_TIMESTAMP, which means that your ORDER BY clauses will behave as expected.
->
-> Yet, this format may not fit your needs. We provide below some sample code for [storing dates as timestamps](#custom-value-types). You can adapt it for your application.
+This format may not fit your needs. We provide below some sample code for [storing dates as timestamps](#custom-value-types). You can adapt it for your application.
 
-Declare DATETIME columns in your tables:
+NSDate can be stored and fetched from the database just like other [value types](#values):
 
 ```swift
-try db.execute(
-    "CREATE TABLE persons (" +
-    "creationDate DATETIME, " +
-    "...)")
-```
-
-Store NSDate into the database:
-
-```swift
-let creationDate = NSDate()
 try db.execute("INSERT INTO persons (creationDate, ...) " +
                             "VALUES (?, ...)",
-                         arguments: [creationDate, ...])
+                         arguments: [NSDate(), ...])
 ```
-
-Extract NSDate from the database:
-
-```swift
-let row = Row.fetchOne(db, "SELECT creationDate, ...")!
-let date: NSDate = row.value(named: "creationDate")
-
-NSDate.fetch(db, "SELECT ...", arguments:...)    // DatabaseSequence<NSDate>
-NSDate.fetchAll(db, "SELECT ...", arguments:...) // [NSDate]
-NSDate.fetchOne(db, "SELECT ...", arguments:...) // NSDate?
-```
-
-See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
 
 
 #### NSDateComponents
@@ -772,16 +743,7 @@ NSDateComponents is indirectly supported, through the **DatabaseDateComponents**
 
 DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to YYYY-MM-DD HH:MM:SS.SSS.
 
-Declare DATETIME columns in your tables:
-
-```swift
-try db.execute(
-    "CREATE TABLE persons (" +
-    "birthDate DATETIME, " +
-    "...)")
-```
-
-Store NSDateComponents into the database:
+DatabaseDateComponents can be stored and fetched from the database just like other [value types](#values):
 
 ```swift
 let components = NSDateComponents()
@@ -789,30 +751,23 @@ components.year = 1973
 components.month = 9
 components.day = 18
 
-// The .YMD format stores "1973-09-18" in the database.
+// Store "1973-09-18"
 let dbComponents = DatabaseDateComponents(components, format: .YMD)
 try db.execute("INSERT INTO persons (birthDate, ...) " +
                             "VALUES (?, ...)",
                          arguments: [dbComponents, ...])
-```
 
-Extract NSDateComponents from the database:
-
-```swift
+// Read "1973-09-18"
 let row = Row.fetchOne(db, "SELECT birthDate ...")!
 let dbComponents: DatabaseDateComponents = row.value(named: "birthDate")
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
 ```
 
-See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
-
 
 ### Swift Enums
 
-**Swift enums** get full support from GRDB.swift as long as their raw values are Int, Int32, Int64 or String.
-
-Given those two enums:
+**Swift enums** get full support from GRDB as long as their raw values are Int, Int32, Int64 or String:
 
 ```swift
 enum Color : Int {
@@ -828,33 +783,31 @@ enum Grape : String {
 }
 ```
 
-Simply add those two lines:
+Add conformance to a protocol, and the enum type can be stored and fetched from the database just like other [value types](#values):
 
 ```swift
 extension Color : DatabaseIntRepresentable { } // DatabaseInt32Representable for Int32, DatabaseInt64Representable for Int64
 extension Grape : DatabaseStringRepresentable { }
-```
 
-And both types gain database powers:
-
-```swift
-// Store:
+// Store
 try db.execute("INSERT INTO wines (grape, color) VALUES (?, ?)",
                arguments: [Grape.Merlot, Color.Red])
 
-// Extract from row:
+// Read
 for rows in Row.fetch(db, "SELECT * FROM wines") {
     let grape: Grape = row.value(named: "grape")
     let color: Color = row.value(named: "color")
 }
-
-// Direct fetch:
-Color.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Color>
-Color.fetchAll(db, "SELECT ...", arguments: ...) // [Color]
-Color.fetchOne(db, "SELECT ...", arguments: ...) // Color?
 ```
 
-See [Column Values](#column-values) and [Value Queries](#value-queries) for more information.
+Database values that do not match any enum case are extracted as nil:
+
+```swift
+let row = Row.fetchOne(db, "SELECT 'Syrah'")!
+row.value(atIndex: 0) as String  // "Syrah"
+row.value(atIndex: 0) as Grape?  // nil
+row.value(atIndex: 0) as Grape   // fatal error: could not convert "Syrah" to Grape.
+```
 
 
 ## String Comparison
@@ -958,7 +911,9 @@ dbQueue.inTransaction(.Exclusive) { db in ... }
 
 ## Error Handling
 
-**No SQLite error goes unnoticed.** Yet when such an error happens, some GRDB.swift functions throw a DatabaseError error, and some crash with a fatal error:
+**No SQLite error goes unnoticed.**
+
+When an [SQLite error](https://www.sqlite.org/rescode.html) happens, some GRDB functions throw a DatabaseError, and some crash with a fatal error:
 
 ```swift
 // fatal error:
@@ -987,49 +942,39 @@ do {
 }
 ```
 
-See [SQLite Result Codes](https://www.sqlite.org/rescode.html).
 
-
-**Fatal errors can be avoided.** For example, let's consider a scenario where your application has to perform a fetch query with untrusted SQL and query arguments.
-
-The following code is dangerous for your application, because it has many opportunities to crash:
+**Fatal errors can be avoided.** For example, let's consider the code below:
 
 ```swift
-func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -> [Row] {
-    // Crashes if sql is invalid, if dictionary arguments contains invalid
-    // values, or if arguments don't fit the SQL query:
-    return Row.fetchAll(db, sql, arguments: StatementArguments(arguments))
-}
-
-// fatal error: no such table: foo
-try fetchUserQuery(db, sql: "SELECT * FROM foo", arguments: NSDictionary())
-
-// fatal error: missing statement argument(s): id.
-try fetchUserQuery(db, sql: "SELECT * FROM persons WHERE id = :id", arguments: NSDictionary(dictionary: ["name": "Arthur"]))
+let sql = "..."
+let arguments: NSDictionary = ...
+let rows = Row.fetchAll(db, sql, arguments: StatementArguments(arguments))
 ```
+
+It has many opportunities to fail:
+
+- The sql string may contain invalid sql, or refer to non-existing tables or columns.
+- The arguments dictionary may contain unsuitable values.
+- The arguments dictionary may miss values required by the statement.
 
 Compare with the safe version:
 
 ```swift
-func fetchUserQuery(db: Database, sql: String, arguments: NSDictionary) throws -> [Row] {
-    // Dictionary arguments may contain invalid values
-    guard let arguments = StatementArguments(arguments) else {
-        throw NSError(
-            domain: "MyDomain",
-            code: 0,
-            userInfo: [NSLocalizedDescriptionKey: "Invalid arguments"])
-    }
-    
+// Dictionary arguments may contain invalid values:
+if let arguments = StatementArguments(arguments) {
+
     // SQL may be invalid
     let statement = try db.selectStatement(sql)
-    
+
     // Arguments may not fit the statement
     try statement.validateArguments(arguments)
-    
+
     // OK now
-    return Row.fetchAll(statement, arguments: arguments)
+    let rows = Row.fetchAll(statement, arguments: arguments)
 }
 ```
+
+See [Prepared Statements](#prepared-statements) for more information.
 
 
 ## Custom Value Types
