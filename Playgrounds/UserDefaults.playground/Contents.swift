@@ -2,13 +2,15 @@
 
 import GRDB
 
-/// Usage
+/// UserDefaults is a class that behaves like NSUserDefaults.
+///
+/// Usage:
 ///
 ///     let dbQueue = DatabaseQueue(...)
 ///     dbQueue.inDatabase { db in
 ///         let defaults = UserDefaults.inDatabase(db)
 ///         defaults.registerDefaults(["foo": "bar"])
-///         defaults.setInteger(12, forKey: "baz")
+///         defaults.setInteger(12, forKey: "bar")
 ///         defaults.integerForKey("bar") // 12
 ///     }
 public class UserDefaults {
@@ -71,6 +73,11 @@ public class UserDefaults {
     }
     
     public func setObject(value: AnyObject?, forKey key: String) {
+        guard let value = value else {
+            removeObjectForKey(key)
+            return
+        }
+        
         createTableIfNeeded()
         if var item = UserDefaultsItem.fetchOne(db, key: key) {
             item.value = value
@@ -138,17 +145,14 @@ public class UserDefaults {
 
 private struct UserDefaultsItem {
     let key: String
-    var value: AnyObject?
+    var value: AnyObject
 }
 
 extension UserDefaultsItem: RowConvertible {
     static func fromRow(row: Row) -> UserDefaultsItem {
-        if let data = row.dataNoCopy(named: "value") {
-            let value = try! NSPropertyListSerialization.propertyListWithData(data, options: .Immutable, format: nil)
-            return UserDefaultsItem(key: row.value(named: "key"), value: value)
-        } else {
-            return UserDefaultsItem(key: row.value(named: "key"), value: nil)
-        }
+        let data = row.dataNoCopy(named: "value")!
+        let value = try! NSPropertyListSerialization.propertyListWithData(data, options: .Immutable, format: nil)
+        return UserDefaultsItem(key: row.value(named: "key"), value: value)
     }
 }
 
@@ -157,12 +161,8 @@ extension UserDefaultsItem: Persistable {
         return UserDefaultsItemTableName
     }
     var persistentDictionary: [String: DatabaseValueConvertible?] {
-        if let value = value {
-            let data = try! NSPropertyListSerialization.dataWithPropertyList(value, format: .BinaryFormat_v1_0, options: 0)
-            return ["key": key, "value": data]
-        } else {
-            return ["key": key, "value": nil]
-        }
+        let data = try! NSPropertyListSerialization.dataWithPropertyList(value, format: .BinaryFormat_v1_0, options: 0)
+        return ["key": key, "value": data]
     }
 }
 
