@@ -419,7 +419,7 @@ extension Database {
 
 
 /// An SQL function.
-public class DatabaseFunction {
+public final class DatabaseFunction {
     let name: String
     let argumentCount: Int32
     let pure: Bool
@@ -517,7 +517,7 @@ extension Database {
 }
 
 /// A Collation.
-public class DatabaseCollation {
+public final class DatabaseCollation {
     public let name: String
     let function: (Int32, UnsafePointer<Void>, Int32, UnsafePointer<Void>) -> NSComparisonResult
     
