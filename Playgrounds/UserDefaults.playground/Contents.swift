@@ -53,7 +53,6 @@ public class UserDefaults {
     public func removeObjectForKey(key: String) {
         createTableIfNeeded()
         try! db.execute("DELETE FROM \(UserDefaultsItemTableName) WHERE key = ?", arguments: [key])
-        try! UserDefaultsItem.fetchOne(db, key: key)?.delete(db)
     }
     
     public func setBool(value: Bool, forKey key: String) {
