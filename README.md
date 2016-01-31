@@ -291,7 +291,7 @@ let personID = try db.execute(
     arguments: ["Arthur", 36]).insertedRowID
 ```
 
-Don't miss the [Persistable](#persistable-protocol) protocol and the [Record](#record-class) class, that provide classic **persistence methods**:
+Don't miss [Records](#records), that provide classic **persistence methods**:
 
 ```swift
 let person = Person(name: "Arthur", age: 36)
