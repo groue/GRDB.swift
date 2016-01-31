@@ -2310,8 +2310,9 @@ Sample Code
 - [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
 - [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7): A sample iOS7 application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
-- How to read and write NSDate as timestamp: https://gist.github.com/groue/ab172d2ee3344a0bfed1
-- How to synchronize a database table with a JSON payload: https://gist.github.com/groue/dcdd3784461747874f41
+- How to read and write NSDate as timestamp: [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift)
+- How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
+- A class that behaves like NSUserDefaults, but backed by SQLite: [UserDefaults.playground](Playgrounds/UserDefaults.playground/Contents.swift)
 - How to notify view controllers of database changes: https://gist.github.com/groue/2e21172719e634657dfd
 
 
