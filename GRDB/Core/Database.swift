@@ -315,7 +315,8 @@ extension Database {
                     error = DatabaseError(code: code, message: lastErrorMessage, sql: sql)
                     break
                 }
-                let sql = NSString(bytes: statementStart, length: statementEnd - statementStart, encoding: NSUTF8StringEncoding)! as String
+                
+                let sql = String(data: NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd - statementStart, freeWhenDone: false), encoding: NSUTF8StringEncoding)!
                 let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement)
                 
                 do {
@@ -373,7 +374,7 @@ extension Database {
             { (context, argc, argv) in
                 let function = unsafeBitCast(sqlite3_user_data(context), DatabaseFunction.self)
                 do {
-                    let result = try function.function(context, argc, argv)
+                    let result = try function.function(argc, argv)
                     switch result.storage {
                     case .Null:
                         sqlite3_result_null(context)
@@ -418,17 +419,12 @@ extension Database {
 
 
 /// An SQL function.
-public class DatabaseFunction : Hashable {
+public class DatabaseFunction {
     let name: String
     let argumentCount: Int32
     let pure: Bool
-    let function: (COpaquePointer, Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
+    let function: (Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
     var eTextRep: Int32 { return pure ? SQLITE_DETERMINISTIC : 0 }
-    
-    /// The hash value.
-    public var hashValue: Int {
-        return name.hashValue ^ argumentCount.hashValue
-    }
     
     /// Returns an SQL function.
     ///
@@ -459,10 +455,17 @@ public class DatabaseFunction : Hashable {
         self.name = name
         self.argumentCount = argumentCount ?? -1
         self.pure = pure
-        self.function = { (context, argc, argv) in
+        self.function = { (argc, argv) in
             let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv[index]) }
             return try function(arguments)?.databaseValue ?? .Null
         }
+    }
+}
+
+extension DatabaseFunction : Hashable {
+    /// The hash value.
+    public var hashValue: Int {
+        return name.hashValue ^ argumentCount.hashValue
     }
 }
 
@@ -495,10 +498,7 @@ extension Database {
             collationPointer,
             { (collationPointer, length1, buffer1, length2, buffer2) -> Int32 in
                 let collation = unsafeBitCast(collationPointer, DatabaseCollation.self)
-                // Buffers are not C strings: they do not end with \0.
-                let string1 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer1), length: Int(length1), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
-                let string2 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer2), length: Int(length2), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
-                return Int32(collation.function(string1, string2).rawValue)
+                return Int32(collation.function(length1, buffer1, length2, buffer2).rawValue)
             }, nil)
         guard code == SQLITE_OK else {
             fatalError(DatabaseError(code: code, message: lastErrorMessage, sql: nil, arguments: nil).description)
@@ -517,16 +517,9 @@ extension Database {
 }
 
 /// A Collation.
-public class DatabaseCollation : Hashable {
+public class DatabaseCollation {
     public let name: String
-    let function: (String, String) -> NSComparisonResult
-    
-    /// The hash value.
-    public var hashValue: Int {
-        // We can't compute a hash since the equality is based on the opaque
-        // sqlite3_strnicmp SQLite function.
-        return 0
-    }
+    let function: (Int32, UnsafePointer<Void>, Int32, UnsafePointer<Void>) -> NSComparisonResult
     
     /// Returns a collation.
     ///
@@ -541,7 +534,21 @@ public class DatabaseCollation : Hashable {
     ///     - function: A function that compares two strings.
     public init(_ name: String, function: (String, String) -> NSComparisonResult) {
         self.name = name
-        self.function = function
+        self.function = { (length1, buffer1, length2, buffer2) in
+            // Buffers are not C strings: they do not end with \0.
+            let string1 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer1), length: Int(length1), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
+            let string2 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer2), length: Int(length2), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
+            return function(string1, string2)
+        }
+    }
+}
+
+extension DatabaseCollation : Hashable {
+    /// The hash value.
+    public var hashValue: Int {
+        // We can't compute a hash since the equality is based on the opaque
+        // sqlite3_strnicmp SQLite function.
+        return 0
     }
 }
 
