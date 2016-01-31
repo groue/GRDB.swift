@@ -32,6 +32,15 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         
         /// The format "HH:mm:ss.SSS".
         case HMSS = "HH:mm:ss.SSS"
+        
+        var hasYMDComponents: Bool {
+            switch self {
+            case .YMD, .YMD_HM, .YMD_HMS, .YMD_HMSS:
+                return true
+            case .HM, .HMS, .HMSS:
+                return false
+            }
+        }
     }
     
     // MARK: - NSDateComponents conversion
