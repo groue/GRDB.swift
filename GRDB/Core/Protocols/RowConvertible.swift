@@ -58,8 +58,9 @@ extension RowConvertible {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence.
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
@@ -77,8 +78,9 @@ extension RowConvertible {
     ///     let statement = db.selectStatement("SELECT * FROM persons")
     ///     let persons = Person.fetchAll(statement) // [Person]
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
@@ -90,8 +92,9 @@ extension RowConvertible {
     ///     let statement = db.selectStatement("SELECT * FROM persons")
     ///     let person = Person.fetchOne(statement) // Person?
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
@@ -117,9 +120,10 @@ extension RowConvertible {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
@@ -130,9 +134,10 @@ extension RowConvertible {
     ///
     ///     let persons = Person.fetchAll(db, "SELECT * FROM persons") // [Person]
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
@@ -143,9 +148,10 @@ extension RowConvertible {
     ///
     ///     let person = Person.fetchOne(db, "SELECT * FROM persons") // Person?
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {

@@ -421,9 +421,10 @@ public final class Row: CollectionType {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements of the sequence are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
@@ -437,8 +438,9 @@ public final class Row: CollectionType {
     ///     let statement = db.selectStatement("SELECT ...")
     ///     let rows = Row.fetchAll(statement)
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array of rows.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
@@ -453,8 +455,9 @@ public final class Row: CollectionType {
     ///     let statement = db.selectStatement("SELECT ...")
     ///     let row = Row.fetchOne(statement)
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional row.
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
@@ -494,9 +497,10 @@ public final class Row: CollectionType {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements of the sequence are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
@@ -507,9 +511,10 @@ public final class Row: CollectionType {
     ///
     ///     let rows = Row.fetchAll(db, "SELECT ...")
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array of rows.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
@@ -520,9 +525,10 @@ public final class Row: CollectionType {
     ///
     ///     let row = Row.fetchOne(db, "SELECT ...")
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional row.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {

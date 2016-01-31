@@ -46,9 +46,10 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     ///
     /// The result is nil if and only if *dateComponents* is nil.
     ///
-    /// - parameter dateComponents: An optional NSDateComponents.
-    /// - parameter format: The format used for storing the date components in
-    ///   the database.
+    /// - parameters:
+    ///     - dateComponents: An optional NSDateComponents.
+    ///     - format: The format used for storing the date components in
+    ///       the database.
     /// - returns: An optional DatabaseDateComponents.
     public init?(_ dateComponents: NSDateComponents?, format: Format) {
         guard let dateComponents = dateComponents else {

@@ -3,8 +3,9 @@ extension Bool: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
-    /// - parameter sqliteStatement: A pointer to a SQLite statement.
-    /// - parameter index: The column index.
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to a SQLite statement.
+    ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = sqlite3_column_int64(sqliteStatement, index) != 0
     }
@@ -88,8 +89,9 @@ extension Int: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
-    /// - parameter sqliteStatement: A pointer to a SQLite statement.
-    /// - parameter index: The column index.
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to a SQLite statement.
+    ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = Int(sqlite3_column_int64(sqliteStatement, index))
     }
@@ -117,8 +119,9 @@ extension Int32: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
-    /// - parameter sqliteStatement: A pointer to a SQLite statement.
-    /// - parameter index: The column index.
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to a SQLite statement.
+    ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = Int32(sqlite3_column_int64(sqliteStatement, index))
     }
@@ -146,8 +149,9 @@ extension Int64: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
-    /// - parameter sqliteStatement: A pointer to a SQLite statement.
-    /// - parameter index: The column index.
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to a SQLite statement.
+    ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = sqlite3_column_int64(sqliteStatement, index)
     }
@@ -175,8 +179,9 @@ extension Double: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
-    /// - parameter sqliteStatement: A pointer to a SQLite statement.
-    /// - parameter index: The column index.
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to a SQLite statement.
+    ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = sqlite3_column_double(sqliteStatement, index)
     }
@@ -204,8 +209,9 @@ extension Float: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
-    /// - parameter sqliteStatement: A pointer to a SQLite statement.
-    /// - parameter index: The column index.
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to a SQLite statement.
+    ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         self = Float(sqlite3_column_double(sqliteStatement, index))
     }
@@ -233,8 +239,9 @@ extension String: DatabaseValueConvertible, SQLiteStatementConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
-    /// - parameter sqliteStatement: A pointer to a SQLite statement.
-    /// - parameter index: The column index.
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to a SQLite statement.
+    ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
         self = String.fromCString(cString)!

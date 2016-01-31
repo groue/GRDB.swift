@@ -17,8 +17,9 @@ public protocol SQLiteStatementConvertible {
     ///
     /// See https://www.sqlite.org/c3ref/column_blob.html for more information.
     ///
-    /// - parameter sqliteStatement: A pointer to a SQLite statement.
-    /// - parameter index: The column index.
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to a SQLite statement.
+    ///     - index: The column index.
     init(sqliteStatement: SQLiteStatement, index: Int32)
 }
 
@@ -50,8 +51,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of values.
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
@@ -69,8 +71,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetchAll(statement)  // [String]
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array of values.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
@@ -82,8 +85,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let name = String.fetchOne(statement)   // String?
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
@@ -116,9 +120,10 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of values.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
@@ -129,9 +134,10 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array of values.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
@@ -142,9 +148,10 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {

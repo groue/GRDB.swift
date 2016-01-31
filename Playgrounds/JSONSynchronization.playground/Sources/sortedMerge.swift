@@ -1,45 +1,44 @@
-/**
- Given two sorted sequences (left and right), this function emits "merge steps"
- which tell whether elements are only found on the left, on the right, or on
- both sides.
- 
- Both sequences do not have to share the same element type. Yet elements must
- share a common comparable *key*.
- 
- Both sequences must be sorted by this key.
- 
- Keys must be unique in both sequences.
- 
- The example below compare two sequences sorted by integer representation,
- and prints:
- 
- - Left: 1
- - Common: 2, 2
- - Common: 3, 3
- - Right: 4
- 
-    for mergeStep in sortedMerge(
-        left: [1,2,3],
-        right: ["2", "3", "4"],
-        leftKey: { $0 },
-        rightKey: { Int($0)! })
-    {
-        switch mergeStep {
-        case .Left(let left):
-            print("- Left: \(left)")
-        case .Right(let right):
-            print("- Right: \(right)")
-        case .Common(let left, let right):
-            print("- Common: \(left), \(right)")
-        }
-    }
- 
- - parameter left: The left sequence.
- - parameter right: The right sequence.
- - parameter leftKey: A function that returns the key of a left element.
- - parameter rightKey: A function that returns the key of a right element.
- - returns: A sequence of MergeStep
- */
+/// Given two sorted sequences (left and right), this function emits "merge steps"
+/// which tell whether elements are only found on the left, on the right, or on
+/// both sides.
+///
+/// Both sequences do not have to share the same element type. Yet elements must
+/// share a common comparable *key*.
+///
+/// Both sequences must be sorted by this key.
+///
+/// Keys must be unique in both sequences.
+///
+/// The example below compare two sequences sorted by integer representation,
+/// and prints:
+///
+/// - Left: 1
+/// - Common: 2, 2
+/// - Common: 3, 3
+/// - Right: 4
+///
+///     for mergeStep in sortedMerge(
+///         left: [1,2,3],
+///         right: ["2", "3", "4"],
+///         leftKey: { $0 },
+///         rightKey: { Int($0)! })
+///     {
+///         switch mergeStep {
+///         case .Left(let left):
+///             print("- Left: \(left)")
+///         case .Right(let right):
+///             print("- Right: \(right)")
+///         case .Common(let left, let right):
+///             print("- Common: \(left), \(right)")
+///         }
+///     }
+///
+/// - parameters:
+///     - left: The left sequence.
+///     - right: The right sequence.
+///     - leftKey: A function that returns the key of a left element.
+///     - rightKey: A function that returns the key of a right element.
+/// - returns: A sequence of MergeStep
 public func sortedMerge<LeftSequence: SequenceType, RightSequence: SequenceType, Key: Comparable>(
     left lSeq: LeftSequence,
     right rSeq: RightSequence,

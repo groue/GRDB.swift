@@ -77,8 +77,9 @@ public protocol MutablePersistable : TableMapping {
     ///         }
     ///     }
     ///
-    /// - parameter rowID: The inserted rowID.
-    /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
+    /// - parameters:
+    ///     - rowID: The inserted rowID.
+    ///     - column: The name of the eventual INTEGER PRIMARY KEY column.
     mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
     
     
@@ -322,8 +323,9 @@ public protocol Persistable : MutablePersistable {
     /// If you need a mutating variant of this method, adopt the
     /// MutablePersistable protocol instead.
     ///
-    /// - parameter rowID: The inserted rowID.
-    /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
+    /// - parameters:
+    ///     - rowID: The inserted rowID.
+    ///     - column: The name of the eventual INTEGER PRIMARY KEY column.
     func didInsertWithRowID(rowID: Int64, forColumn column: String?)
     
     /// Executes an INSERT statement.

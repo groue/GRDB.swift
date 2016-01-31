@@ -91,8 +91,9 @@ public class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// The default implementation does nothing.
     ///
-    /// - parameter rowID: The inserted rowID.
-    /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
+    /// - parameters:
+    ///     - rowID: The inserted rowID.
+    ///     - column: The name of the eventual INTEGER PRIMARY KEY column.
     public func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
     }
     

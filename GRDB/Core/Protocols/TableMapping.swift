@@ -23,8 +23,9 @@ extension RowConvertible where Self: TableMapping {
     ///
     /// The order of values in the returned sequence is undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter keys: An array of primary keys.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - keys: A sequence of primary keys.
     /// - returns: A sequence.
     @warn_unused_result
     public static func fetch<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> DatabaseSequence<Self> {
@@ -40,8 +41,9 @@ extension RowConvertible where Self: TableMapping {
     ///
     /// The order of values in the returned array is undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter keys: An array of primary keys.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - keys: A sequence of primary keys.
     /// - returns: An array.
     @warn_unused_result
     public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> [Self] {
@@ -55,8 +57,9 @@ extension RowConvertible where Self: TableMapping {
     ///
     ///     let person = Person.fetchOne(db, key: 123) // Person?
     ///
-    /// - parameter db: A Database.
-    /// - parameter key: A primary key value.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - key: A primary key value.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(db: Database, key: PrimaryKeyType?) -> Self? {
@@ -110,8 +113,9 @@ extension RowConvertible where Self: TableMapping {
     ///
     /// The order of values in the returned sequence is undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter keys: An array of key dictionaries.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - keys: An array of key dictionaries.
     /// - returns: A sequence.
     @warn_unused_result
     public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
@@ -127,8 +131,9 @@ extension RowConvertible where Self: TableMapping {
     ///
     /// The order of values in the returned array is undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter keys: An array of key dictionaries.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - keys: An array of key dictionaries.
     /// - returns: An array.
     @warn_unused_result
     public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
@@ -142,8 +147,9 @@ extension RowConvertible where Self: TableMapping {
     ///
     ///     let person = Person.fetchOne(db, key: ["name": Arthur"]) // Person?
     ///
-    /// - parameter db: A Database.
-    /// - parameter key: A dictionary of values.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - key: A dictionary of values.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {

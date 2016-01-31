@@ -65,10 +65,11 @@ public struct DatabaseMigrator {
     ///             "ALTER TABLE new_persons RENAME TO persons;")
     ///     }
     ///
-    /// - parameter identifier: The migration identifier. It must be unique.
-    /// - parameter disabledForeignKeyChecks: If true, the migration is run with
-    ///   disabled foreign key checks.
-    /// - parameter block: The migration block that performs SQL statements.
+    /// - parameters:
+    ///     - identifier: The migration identifier. It must be unique.
+    ///     - disabledForeignKeyChecks: If true, the migration is run with
+    //        disabled foreign key checks.
+    ///     - block: The migration block that performs SQL statements.
     public mutating func registerMigration(identifier: String, withDisabledForeignKeyChecks disabledForeignKeyChecks: Bool = false, migrate: (db: Database) throws -> Void) {
         registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: disabledForeignKeyChecks, migrate: migrate))
     }

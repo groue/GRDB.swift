@@ -246,8 +246,9 @@ extension Database {
     ///
     /// This method may throw a DatabaseError.
     ///
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
@@ -441,17 +442,19 @@ public class DatabaseFunction : Hashable {
     ///     db.addFunction(fn)
     ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
     ///
-    /// - parameter name: The function name.
-    /// - parameter argumentCount: The number of arguments of the function. If
-    ///   omitted, or nil, the function accepts any number of arguments.
-    /// - parameter pure: Whether the function is "pure", which means that its
-    ///   results only depends on its inputs. When a function is pure, SQLite
-    ///   has the opportunity to perform additional optimizations. Default value
-    ///   is false.
-    /// - parameter function: A function that takes an array of DatabaseValue
-    ///   arguments, and returns an optional DatabaseValueConvertible such as
-    ///   Int, String, NSDate, etc. The array is guaranteed to have exactly
-    ///   *argumentCount* elements, provided *argumentCount* is not nil.
+    /// - parameters:
+    ///     - name: The function name.
+    ///     - argumentCount: The number of arguments of the function. If
+    ///       omitted, or nil, the function accepts any number of arguments.
+    ///     - pure: Whether the function is "pure", which means that its results
+    ///       only depends on its inputs. When a function is pure, SQLite has
+    ///       the opportunity to perform additional optimizations. Default value
+    ///       is false.
+    ///     - function: A function that takes an array of DatabaseValue
+    ///       arguments, and returns an optional DatabaseValueConvertible such
+    ///       as Int, String, NSDate, etc. The array is guaranteed to have
+    ///       exactly *argumentCount* elements, provided *argumentCount* is
+    ///       not nil.
     public init(_ name: String, argumentCount: Int32? = nil, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) {
         self.name = name
         self.argumentCount = argumentCount ?? -1
@@ -533,8 +536,9 @@ public class DatabaseCollation : Hashable {
     ///     db.addCollation(collation)
     ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///
-    /// - parameter name: The function name.
-    /// - parameter function: A function that compares two strings.
+    /// - parameters:
+    ///     - name: The function name.
+    ///     - function: A function that compares two strings.
     public init(_ name: String, function: (String, String) -> NSComparisonResult) {
         self.name = name
         self.function = function
@@ -744,12 +748,13 @@ extension Database {
     ///
     /// This method is not reentrant: you can't nest transactions.
     ///
-    /// - parameter kind: The transaction type (default nil). If nil, the
-    ///   transaction type is configuration.defaultTransactionKind, which itself
-    ///   defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
-    ///   for more information.
-    /// - parameter block: A block that executes SQL statements and return
-    ///   either .Commit or .Rollback.
+    /// - parameters:
+    ///     - kind: The transaction type (default nil). If nil, the transaction
+    ///       type is configuration.defaultTransactionKind, which itself
+    ///       defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+    ///       for more information.
+    ///     - block: A block that executes SQL statements and return either
+    ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(kind: TransactionKind? = nil, block: () throws -> TransactionCompletion) throws {
         preconditionValidQueue()

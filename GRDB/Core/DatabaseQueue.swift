@@ -19,8 +19,9 @@ public final class DatabaseQueue {
     ///
     /// Database connections get closed when the database queue gets deallocated.
     ///
-    /// - parameter path: The path to the database file.
-    /// - parameter configuration: A configuration
+    /// - parameters:
+    ///     - path: The path to the database file.
+    ///     - configuration: A configuration.
     /// - throws: A DatabaseError whenever a SQLite error occurs.
     public convenience init(path: String, var configuration: Configuration = Configuration()) throws {
         // IMPLEMENTATION NOTE
@@ -48,7 +49,7 @@ public final class DatabaseQueue {
     ///
     /// Database memory is released when the database queue gets deallocated.
     ///
-    /// - parameter configuration: A configuration
+    /// - parameter configuration: A configuration.
     public convenience init(var configuration: Configuration = Configuration()) {
         configuration.threadingMode = .MultiThread  // See IMPLEMENTATION NOTE in init(_:configuration:)
         self.init(database: Database(configuration: configuration))
@@ -103,12 +104,13 @@ public final class DatabaseQueue {
     ///
     /// This method is *not* reentrant.
     ///
-    /// - parameter kind: The transaction type (default nil). If nil, the
-    ///   transaction type is configuration.defaultTransactionKind, which itself
-    ///   defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
-    ///   for more information.
-    /// - parameter block: A block that executes SQL statements and return
-    ///   either .Commit or .Rollback.
+    /// - parameters:
+    ///     - kind: The transaction type (default nil). If nil, the transaction
+    ///       type is configuration.defaultTransactionKind, which itself
+    ///       defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+    ///       for more information.
+    ///     - block: A block that executes SQL statements and return either
+    ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(kind: TransactionKind? = nil, block: (db: Database) throws -> TransactionCompletion) throws {
         try inQueue {
