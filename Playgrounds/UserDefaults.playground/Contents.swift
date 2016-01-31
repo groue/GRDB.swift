@@ -94,6 +94,14 @@ public class UserDefaults {
     
     // MARK: - Reading Default Values
     
+    public var dictionaryRepresentation: [String: AnyObject] {
+        var dic = registrationDictionary
+        for item in UserDefaultsItem.fetchAll(db) {
+            dic[item.key] = item.value
+        }
+        return dic
+    }
+    
     public func arrayForKey(key: String) -> [AnyObject]? {
         return objectForKey(key) as? [AnyObject]
     }
@@ -181,6 +189,4 @@ dbQueue.inDatabase { db in
     defaults.integerForKey("bar") // 0
     defaults.setInteger(12, forKey: "bar")
     defaults.integerForKey("bar") // 12
-    defaults.removeObjectForKey("bar")
-    defaults.integerForKey("bar") // 0
 }
