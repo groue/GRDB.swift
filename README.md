@@ -640,7 +640,7 @@ Values can be [directly fetched](#value-queries) from the database:
 let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
 ```
 
-Use values in [Record](#record-class) subclasses and types that adopt the [RowConvertible](#rowconvertible-protocol) and [Persistable](#persistable-protocol) protocols:
+Use values in [Records](#records):
 
 ```swift
 class Link : Record {
@@ -1080,7 +1080,7 @@ Person.fetchAll(statement, arguments: ...)  // [Person]
 Person.fetchOne(statement, arguments: ...)  // Person?
 ```
 
-See [Row Queries](#row-queries), [Value Queries](#value-queries), [RowConvertible](#rowconvertible-protocol), and [Records](#fetching-records) for more information.
+See [Row Queries](#row-queries), [Value Queries](#value-queries), and [Records](#records) for more information.
 
 
 ## Concurrency
