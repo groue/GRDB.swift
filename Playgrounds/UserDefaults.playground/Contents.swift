@@ -95,6 +95,7 @@ public class UserDefaults {
     // MARK: - Reading Default Values
     
     public var dictionaryRepresentation: [String: AnyObject] {
+        createTableIfNeeded()
         var dic = registrationDictionary
         for item in UserDefaultsItem.fetchAll(db) {
             dic[item.key] = item.value
