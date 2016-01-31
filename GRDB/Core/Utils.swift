@@ -46,7 +46,7 @@ func dispatchSync<T>(queue: dispatch_queue_t, block: () throws -> T) rethrows ->
 }
 
 extension Array {
-    /// Removesthe first object that matches *predicate*.
+    /// Removes the first object that matches *predicate*.
     mutating func removeFirst(@noescape predicate: (Element) throws -> Bool) rethrows {
         if let index = try indexOf(predicate) {
             removeAtIndex(index)

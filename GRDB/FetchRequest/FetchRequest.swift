@@ -10,6 +10,8 @@ public struct FetchRequest<T> {
     }
     
     /// Returns a prepared statement that is ready to be executed.
+    ///
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     @warn_unused_result
     public func selectStatement(db: Database) throws -> SelectStatement {
         // TODO: split statement generation from arguments building
