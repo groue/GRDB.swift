@@ -1352,8 +1352,8 @@ You can now jump to:
 
 ```swift
 public protocol RowConvertible {
-    /// Returns a value initialized from `row`.
-    static func fromRow(row: Row) -> Self
+    /// Row initializer
+    init(_ row: Row)
     
     /// Optional method which gives adopting types an opportunity to complete
     /// their initialization after being fetched. Do not call it directly.
@@ -1371,20 +1371,19 @@ struct PointOfInterest {
 }
 
 extension PointOfInterest : RowConvertible {
-    static func fromRow(row: Row) -> PointOfInterest {
-        return PointOfInterest(
-            id: row.value(named: "id"),
-            title: row.value(named: "title"),
-            coordinate: CLLocationCoordinate2DMake(
-                row.value(named: "latitude"),
-                row.value(named: "longitude")))
+    init(_ row: Row){
+        id = row.value(named: "id")
+        title = row.value(named: "title")
+        coordinate = CLLocationCoordinate2DMake(
+            row.value(named: "latitude"),
+            row.value(named: "longitude"))
     }
 }
 ```
 
 See [Column Values](#column-values) for more information about the `row.value()` method.
 
-> :point_up: **Note**: For performance reasons, the same row argument to `fromRow(:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+> :point_up: **Note**: For performance reasons, the same row argument to `init(_:Row)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 RowConvertible allows adopting types to be fetched from SQL queries:
 
