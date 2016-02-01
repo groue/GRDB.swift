@@ -2,6 +2,15 @@ Release Notes
 =============
 
 
+## 0.43.0
+
+Release February 1, 2016
+
+**Breaking Changes**
+
+- Static method `RowConvertible.fromRow(_:Row)` has been replaced by a regular conversion initializer `RowConvertible.init(_:Row)` ([documentation](https://github.com/groue/GRDB.swift#rowconvertible-protocol))
+
+
 ## 0.42.1
 
 Released January 29, 2016
