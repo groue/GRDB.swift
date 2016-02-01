@@ -1,11 +1,13 @@
 import XCTest
 import GRDB
 
-struct SimpleRowConvertible : RowConvertible {
+struct SimpleRowConvertible {
     var firstName: String
     var lastName: String
     var fetched: Bool = false
-    
+}
+
+extension SimpleRowConvertible : RowConvertible {
     init(_ row: Row) {
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")

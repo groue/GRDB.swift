@@ -1,23 +1,21 @@
 import XCTest
 import GRDB
 
-private struct Reader : RowConvertible, MutablePersistable {
+private struct Reader {
     var id: Int64?
     let name: String
     let age: Int?
-    
-    init(id: Int64?, name: String, age: Int?) {
-        self.id = id
-        self.name = name
-        self.age = age
-    }
-    
+}
+
+extension Reader : RowConvertible {
     init(_ row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
         age = row.value(named: "age")
     }
-    
+}
+
+extension Reader : MutablePersistable {
     static func databaseTableName() -> String {
         return "readers"
     }
@@ -31,11 +29,13 @@ private struct Reader : RowConvertible, MutablePersistable {
     }
 }
 
-private struct AltReader : RowConvertible {
+private struct AltReader {
     var id: Int64?
     let name: String
     let age: Int?
-    
+}
+
+extension AltReader : RowConvertible {
     init(_ row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
