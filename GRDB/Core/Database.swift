@@ -686,13 +686,12 @@ extension Database {
         let defaultDatabaseValue: DatabaseValue
         let primaryKeyIndex: Int
         
-        static func fromRow(row: Row) -> ColumnInfo {
-            return ColumnInfo(
-                name:row.value(named: "name"),
-                type:row.value(named: "type"),
-                notNull:row.value(named: "notnull"),
-                defaultDatabaseValue:row["dflt_value"]!,
-                primaryKeyIndex:row.value(named: "pk"))
+        init(_ row: Row) {
+            name = row.value(named: "name")
+            type = row.value(named: "type")
+            notNull = row.value(named: "notnull")
+            defaultDatabaseValue = row["dflt_value"]!
+            primaryKeyIndex = row.value(named: "pk")
         }
     }
 }

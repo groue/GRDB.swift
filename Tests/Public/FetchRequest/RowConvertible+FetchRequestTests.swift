@@ -6,11 +6,16 @@ private struct Reader : RowConvertible, MutablePersistable {
     let name: String
     let age: Int?
     
-    static func fromRow(row: Row) -> Reader {
-        return Reader(
-            id: row.value(named: "id"),
-            name: row.value(named: "name"),
-            age: row.value(named: "age"))
+    init(id: Int64?, name: String, age: Int?) {
+        self.id = id
+        self.name = name
+        self.age = age
+    }
+    
+    init(_ row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        age = row.value(named: "age")
     }
     
     static func databaseTableName() -> String {
@@ -31,11 +36,10 @@ private struct AltReader : RowConvertible {
     let name: String
     let age: Int?
     
-    static func fromRow(row: Row) -> AltReader {
-        return AltReader(
-            id: row.value(named: "id"),
-            name: row.value(named: "name"),
-            age: row.value(named: "age"))
+    init(_ row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+        age = row.value(named: "age")
     }
 }
 

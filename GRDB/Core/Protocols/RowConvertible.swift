@@ -18,13 +18,12 @@
 /// RowConvertible is adopted by Record.
 public protocol RowConvertible {
     
-    /// Returns a value initialized from `row`.
+    /// Initializes a value from `row`.
     ///
-    /// For performance reasons, the row argument may be reused between several
-    /// instance initializations during the iteration of a fetch query. So if
-    /// you want to keep the row for later use, make sure to store a copy:
-    /// `result.row = row.copy()`.
-    static func fromRow(row: Row) -> Self
+    /// For performance reasons, the row argument may be reused during the
+    /// iteration of a fetch query. If you want to keep the row for later use,
+    /// make sure to store a copy: `self.row = row.copy()`.
+    init(_ row: Row)
     
     /// Do not call this method directly.
     ///
@@ -67,7 +66,7 @@ extension RowConvertible {
         let row = Row(statement: statement)
         let database = statement.database
         return statement.fetchSequence(arguments: arguments) {
-            var value = fromRow(row)
+            var value = self.init(row)
             value.awakeFromFetch(row: row, database: database)
             return value
         }

@@ -35,14 +35,6 @@ public class Record : RowConvertible, TableMapping, Persistable {
         referenceRow = row.copy()
     }
     
-    /// Returns a new Record initialized from a row.
-    ///
-    /// This method is required by the RowConvertible protocol. It returns a
-    /// record initialized from the row. See init(row:Row).
-    public final class func fromRow(row: Row) -> Self {
-        return self.init(row)
-    }
-    
     
     // MARK: - Core methods
     
@@ -109,7 +101,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.fromRow(Row(persistentDictionary))
+        let copy = self.dynamicType.init(Row(persistentDictionary))
         copy.referenceRow = referenceRow
         return copy
     }
