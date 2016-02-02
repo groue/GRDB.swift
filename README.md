@@ -1011,7 +1011,7 @@ The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swi
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
 
-As an example, see [DatabaseTimestamp](https://gist.github.com/groue/ab172d2ee3344a0bfed1), an alternative to the built-in [NSDate](#nsdate-and-nsdatecomponents). DatabaseTimestamp stores dates as timestamps.
+As an example, see [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift): it shows how to store dates as timestamps, unlike the built-in [NSDate](#nsdate-and-nsdatecomponents).
 
 
 ## Prepared Statements
@@ -1729,7 +1729,7 @@ person.hasPersistentChangedValues // true
 person.persistentChangedValues    // ["age": 35]
 ```
 
-For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check this [sample code](https://gist.github.com/groue/dcdd3784461747874f41).
+For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift).
 
 
 ## The Query Interface
@@ -2312,7 +2312,7 @@ Sample Code
 - How to read and write NSDate as timestamp: [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift)
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
 - A class that behaves like NSUserDefaults, but backed by SQLite: [UserDefaults.playground](Playgrounds/UserDefaults.playground/Contents.swift)
-- How to notify view controllers of database changes: https://gist.github.com/groue/2e21172719e634657dfd
+- How to notify view controllers of database changes: [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd)
 
 
 ---
