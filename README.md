@@ -615,6 +615,8 @@ GRDB ships with built-in support for the following value types:
     
 - **CoreGraphics**: CGFloat.
 
+All types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol are supported.
+
 Values can be used as [statement arguments](#executing-updates):
 
 ```swift
@@ -664,10 +666,8 @@ Use values in the [query interface](#the-query-interface):
 ```swift
 let url = NSURL(string: "http://example.com")!
 let link = Link.filter(Col.url == url).fetchOne(db)
+let urlCount = Int.fetchOne(db, Link.select(count(distinct: Col.url)))!
 ```
-
-
-Your custom value types are supported as well, through the [DatabaseValueConvertible](#custom-value-types) protocol.
 
 
 ### NSData (and Memory Savings)
