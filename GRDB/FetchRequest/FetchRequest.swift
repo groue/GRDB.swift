@@ -13,11 +13,11 @@ public struct FetchRequest<T> {
     ///
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     @warn_unused_result
-    public func selectStatement(db: Database) throws -> SelectStatement {
+    public func selectStatement(database: Database) throws -> SelectStatement {
         // TODO: split statement generation from arguments building
         var bindings: [DatabaseValueConvertible?] = []
-        let sql = try query.sql(db, &bindings)
-        let statement = try db.selectStatement(sql)
+        let sql = try query.sql(database, &bindings)
+        let statement = try database.selectStatement(sql)
         try statement.setArgumentsWithValidation(StatementArguments(bindings))
         return statement
     }
