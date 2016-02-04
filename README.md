@@ -1777,7 +1777,7 @@ let id = SQLColumn("id")
 let name = SQLColumn("name")
 ```
 
-> :bowtie: **Tip**: you don't want to lock a variable such as `name` for GRDB's fancy API, do you? My own practice is to declare a dedicated `Col` struct as below (see [sample code](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift)):
+> :bowtie: **Tip**: you don't want to lock a variable such as `name` for GRDB's fancy API, do you? My own practice is to declare a dedicated `Col` struct as below (see example [declaration](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift#L3-L11) and [usage](DemoApps/GRDBDemoiOS/GRDBDemoiOS/MasterViewController.swift#L25-L29)):
 >
 > ```swift
 > struct Col {
