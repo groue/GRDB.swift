@@ -302,17 +302,12 @@ print("Inserted \(person.id)")
 
 ## Fetch Queries
 
-GRDB lets you fetch **rows**, **values**, and custom models aka "**records**".
+You can fetch database rows, plain values, and custom models aka "records".
 
-**Rows** are the results of SQL queries (see [row queries](#row-queries)):
+**Rows** are the raw results of SQL queries:
 
 ```swift
 dbQueue.inDatabase { db in
-    Row.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Row>
-    Row.fetchAll(db, "SELECT ...", arguments: ...)  // [Row]
-    Row.fetchOne(db, "SELECT ...", arguments: ...)  // Row?
-    
-    // Example
     for row in Row.fetch(db, "SELECT * FROM wines") {
         let name: String = row.value(named: "name")
         let color: Color = row.value(named: "color")
@@ -320,47 +315,47 @@ dbQueue.inDatabase { db in
 }
 ```
 
-**Values** are the Bool, Int, String, NSDate, Swift enums, etc that feed your application (see [value queries](#value-queries)):
+
+**Values** are the Bool, Int, String, NSDate, Swift enums, etc. stored in row columns:
 
 ```swift
 dbQueue.inDatabase { db in
-    Int.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Int>
-    Int.fetchAll(db, "SELECT ...", arguments: ...)  // [Int]
-    Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
-
-    // When database may contain NULL:
-    Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
-    Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
-    
-    // Example
-    let wineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    let wineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")! // Int
+    let urls = NSURL.fetchAll(db, "SELECT url FROM wines")          // [NSURL]
 }
 ```
 
-**Records** are your application objects that can initialize themselves from rows (see [records](#records)).
+
+**Records** are your application objects that can initialize themselves from rows:
 
 ```swift
 dbQueue.inDatabase { db in
-    // Using the query interface
-    Wine.filter(name == "Pomerol").fetch(db)        // DatabaseSequence<Wine>
-    Wine.filter(name == "Pomerol").fetchAll(db)     // [Wine]
-    Wine.filter(name == "Pomerol").fetchOne(db)     // Wine?
-    
-    // By key
-    Wine.fetch(db, keys: [1, 2, 3])                 // DatabaseSequence<Wine>
-    Wine.fetchAll(db, keys: [1, 2, 3])              // [Wine]
-    Wine.fetchOne(db, key: 1)                       // Wine?
-    
-    // Using SQL
-    Wine.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Wine>
-    Wine.fetchAll(db, "SELECT ...", arguments: ...) // [Wine]
-    Wine.fetchOne(db, "SELECT ...", arguments: ...) // Wine?
-    
-    // Example
-    let wines = Wine.order(name).fetchAll(db)
-    let favoriteWine = Wine.fetchOne(db, key: favoriteWineID)
+    let wines = Wine.fetchAll(db,                                   // [Wine]
+        "SELECT * FROM wines WHERE origin = ? ORDER BY price",
+        arguments: ["Burgundy"])
+    let favoriteWine = Wine.fetchOne(db, key: favoriteWineID)       // Wine?
 }
 ```
+
+- [Fetching Methods](#fetching-methods)
+- [Row Queries](#row-queries)
+- [Value Queries](#value-queries)
+- [Records](#records)
+
+
+### Fetching Methods
+
+**Throughout GRDB**, values can always be fetched as a *sequence*, as an *array*, or as a *single value*:
+
+```swift
+Value.fetch(...)    // DatabaseSequence<Value>
+Value.fetchAll(...) // [Value]
+Value.fetchOne(...) // Value?
+```
+
+- `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
+- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
+- `fetchOne` consumes a single database row, if any is available.
 
 
 ### Row Queries
@@ -372,7 +367,7 @@ dbQueue.inDatabase { db in
 
 #### Fetching Rows
 
-Fetch **sequences** of rows, **arrays**, or a **single** row:
+Fetch **sequences** of rows, **arrays**, or **single** rows (see [Fetch Queries](#fetch-queries)):
 
 ```swift
 dbQueue.inDatabase { db in
@@ -401,11 +396,6 @@ let rows = Row.fetch(db,
 ```
 
 See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
-
-Both `fetch` and `fetchAll` let you iterate the full list of fetched rows. The differences are:
-
-- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
 
 > :point_up: **Don't turn a row sequence into an array** with `Array(rowSequence)` or `rowSequence.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
 > 
@@ -561,7 +551,7 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 
 ### Value Queries
 
-Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **sequences**, **arrays**, or **single** values. Values are extracted from the leftmost column of the SQL queries:
+Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **sequences**, **arrays**, or **single** values (see [Fetching Methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -574,6 +564,8 @@ dbQueue.inDatabase { db in
     Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
 }
 ```
+
+`fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
 There are many supported value types (Bool, Int, String, NSDate, Swift enums, etc.). See [Values](#values) for more information:
 
@@ -596,13 +588,6 @@ dbQueue.inDatabase { db in
         "HAVING COUNT(pets.id) >= 2")
 }
 ```
-
-Both `fetch` and `fetchAll` let you iterate the full list of fetched values. The differences are:
-
-- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
-
-`fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
 
 ## Values
@@ -1061,7 +1046,7 @@ try statement.execute(arguments: ["name": "Arthur", "age": 41])
 let person = Person.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
-Select statements can be used wherever a raw SQL query would fit:
+Select statements can be used wherever a raw SQL query would fit (see [Fetching Methods](#fetching-methods)):
 
 ```swift
 Row.fetch(statement, arguments: ...)        // DatabaseSequence<Row>
@@ -1393,12 +1378,7 @@ PointOfInterest.fetchAll(db, "SELECT ...", arguments:...) // [PointOfInterest]
 PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
 ```
 
-See [Fetching Rows](#fetching-rows) for more information about the query arguments.
-
-Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
-
-- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
+See [Fetching Methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods. See [Fetching Rows](#fetching-rows) for more information about the query arguments.
 
 
 ### TableMapping Protocol
@@ -1429,7 +1409,7 @@ let paris = dbQueue.inDatabase { db in
 }
 ```
 
-You can also fetch records according to their primary key:
+You can also fetch records according to their primary key (see [Fetching Methods](#fetching-methods)):
 
 ```swift
 PointOfInterest.fetch(db, keys: ...)    // DatabaseSequence<PointOfInterest>
@@ -2068,6 +2048,8 @@ dbQueue.inDatabase { db in
 }
 ```
 
+See [Fetching Methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods.
+
 For example:
 
 ```swift
@@ -2078,10 +2060,6 @@ let allPersons = Person.fetchAll(db)                            // [Person]
 let arthur = Person.filter(Col.name == "Arthur").fetchOne(db)   // Person?
 ```
 
-Both `fetch` and `fetchAll` let you iterate the full list of fetched objects. The differences are:
-
-- `fetchAll` performs a single request, and returns an array that can be iterated on any thread. It can take a lot of memory.
-- `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
 
 **When the selected columns don't fit the source type**, you just have to change your target: any other type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, plain [database rows](#column-values), and even [values](#values):
 
