@@ -367,7 +367,7 @@ Value.fetchOne(...) // Value?
 
 #### Fetching Rows
 
-Fetch **sequences** of rows, **arrays**, or **single** rows (see [Fetch Queries](#fetch-queries)):
+Fetch **sequences** of rows, **arrays**, or **single** rows (see [Fetching Methods](#fetching-methods)):
 
 ```swift
 dbQueue.inDatabase { db in
