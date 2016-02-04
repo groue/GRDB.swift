@@ -2,7 +2,7 @@ import UIKit
 
 class MasterViewController: UITableViewController {
     var detailViewController: DetailViewController? = nil
-    var persons = [Person]()
+    var persons: [Person] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
