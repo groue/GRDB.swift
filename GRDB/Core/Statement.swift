@@ -29,13 +29,14 @@ public class Statement {
         
         let sqlCodeUnits = sql.nulTerminatedUTF8
         var sqliteStatement: SQLiteStatement = nil
-        var consumedCharactersCount: Int = 0
         var code: Int32 = 0
+        var remainingSQL = ""
         sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
-            let sqlHead = UnsafePointer<Int8>(codeUnits.baseAddress)
-            var sqlTail: UnsafePointer<Int8> = nil
-            code = sqlite3_prepare_v2(database.sqliteConnection, sqlHead, -1, &sqliteStatement, &sqlTail)
-            consumedCharactersCount = sqlTail - sqlHead + 1
+            let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
+            var sqlEnd: UnsafePointer<Int8> = nil
+            code = sqlite3_prepare_v2(database.sqliteConnection, sqlStart, -1, &sqliteStatement, &sqlEnd)
+            let remainingData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(sqlEnd), length: sqlStart + sqlCodeUnits.count - sqlEnd - 1, freeWhenDone: false)
+            remainingSQL = String(data: remainingData, encoding: NSUTF8StringEncoding)!.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet())
         }
         
         self.database = database
@@ -46,8 +47,8 @@ public class Statement {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
         
-        guard consumedCharactersCount == sqlCodeUnits.count else {
-            throw DatabaseError(code: SQLITE_MISUSE, message: "Invalid SQL string: multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
+        guard remainingSQL.isEmpty else {
+            throw DatabaseError(code: SQLITE_MISUSE, message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
         }
     }
     

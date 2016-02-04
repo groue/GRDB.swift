@@ -316,10 +316,14 @@ extension Database {
                     break
                 }
                 
-                let sql = String(data: NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd - statementStart, freeWhenDone: false), encoding: NSUTF8StringEncoding)!
-                let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement)
+                let sqlData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd - statementStart, freeWhenDone: false)
+                let sql = String(data: sqlData, encoding: NSUTF8StringEncoding)!.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet())
+                guard !sql.isEmpty else {
+                    break
+                }
                 
                 do {
+                    let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement)
                     try statement.execute(arguments: consumeArguments(statement))
                 } catch let statementError {
                     error = statementError
