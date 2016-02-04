@@ -2,9 +2,18 @@ Release Notes
 =============
 
 
+## 0.43.1
+
+Released February 4, 2016
+
+**Fixed**
+
+- SQL queries ending with a semicolon followed by whitespace characters no longer throw errors.
+
+
 ## 0.43.0
 
-Release February 1, 2016
+Released February 1, 2016
 
 **Breaking Changes**
 
