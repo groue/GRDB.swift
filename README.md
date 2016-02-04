@@ -1046,7 +1046,7 @@ try statement.execute(arguments: ["name": "Arthur", "age": 41])
 let person = Person.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
-Select statements can be used wherever a raw SQL query would fit (see [Fetching Methods](#fetching-methods)):
+Select statements can be used wherever a raw SQL query would fit (see [Fetch Queries](#fetch-queries)):
 
 ```swift
 Row.fetch(statement, arguments: ...)        // DatabaseSequence<Row>
