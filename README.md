@@ -367,7 +367,7 @@ Value.fetchOne(...) // Value?
 
 #### Fetching Rows
 
-Fetch **sequences** of rows, **arrays**, or **single** rows (see [Fetching Methods](#fetching-methods)):
+Fetch **sequences** of rows, **arrays**, or **single** rows (see [fetching methods](#fetching-methods)):
 
 ```swift
 dbQueue.inDatabase { db in
@@ -551,7 +551,7 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 
 ### Value Queries
 
-Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **sequences**, **arrays**, or **single** values (see [Fetching Methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
+Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **sequences**, **arrays**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -973,7 +973,7 @@ if let arguments = StatementArguments(arguments) {
 }
 ```
 
-See [Prepared Statements](#prepared-statements) for more information.
+See [prepared statements](#prepared-statements) for more information.
 
 
 ## Custom Value Types
@@ -1046,7 +1046,7 @@ try statement.execute(arguments: ["name": "Arthur", "age": 41])
 let person = Person.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
-Select statements can be used wherever a raw SQL query would fit (see [Fetch Queries](#fetch-queries)):
+Select statements can be used wherever a raw SQL query would fit (see [fetch queries](#fetch-queries)):
 
 ```swift
 Row.fetch(statement, arguments: ...)        // DatabaseSequence<Row>
@@ -1065,7 +1065,7 @@ Person.fetchAll(statement, arguments: ...)  // [Person]
 Person.fetchOne(statement, arguments: ...)  // Person?
 ```
 
-See [Row Queries](#row-queries), [Value Queries](#value-queries), and [Records](#records) for more information.
+See [row queries](#row-queries), [value queries](#value-queries), and [Records](#records) for more information.
 
 
 ## Concurrency
@@ -1159,7 +1159,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-See [Error Handling](#error-handling) for more information on database errors.
+See [error handling](#error-handling) for more information on database errors.
 
 
 **Use custom functions in the [query interface](#the-query-interface):**
@@ -1190,7 +1190,7 @@ dbQueue.inDatabase { db in
 > :point_up: **Notes**
 >
 > - Those pointers are owned by GRDB: don't close connections or finalize statements created by GRDB.
-> - SQLite connections are opened in the [Multi-thread mode](https://www.sqlite.org/threadsafe.html), which means that **they are not thread-safe**. Make sure you touch raw databases and statements inside the database queues.
+> - SQLite connections are opened in the [multi-thread mode](https://www.sqlite.org/threadsafe.html), which means that **they are not thread-safe**. Make sure you touch raw databases and statements inside the database queues.
 
 Before jumping in the low-level wagon, here is a reminder of SQLite APIs supported by GRDB:
 
@@ -1366,7 +1366,7 @@ extension PointOfInterest : RowConvertible {
 }
 ```
 
-See [Column Values](#column-values) for more information about the `row.value()` method.
+See [column values](#column-values) for more information about the `row.value()` method.
 
 > :point_up: **Note**: For performance reasons, the same row argument to `init(_:Row)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
@@ -1378,7 +1378,7 @@ PointOfInterest.fetchAll(db, "SELECT ...", arguments:...) // [PointOfInterest]
 PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
 ```
 
-See [Fetching Methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods. See [Fetching Rows](#fetching-rows) for more information about the query arguments.
+See [fetching methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods. See [fetching rows](#fetching-rows) for more information about the query arguments.
 
 
 ### TableMapping Protocol
@@ -1409,7 +1409,7 @@ let paris = dbQueue.inDatabase { db in
 }
 ```
 
-You can also fetch records according to their primary key (see [Fetching Methods](#fetching-methods)):
+You can also fetch records according to their primary key (see [fetching methods](#fetching-methods)):
 
 ```swift
 PointOfInterest.fetch(db, keys: ...)    // DatabaseSequence<PointOfInterest>
@@ -1930,7 +1930,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Rectangle.filter(Col.width < Col.height)
     ```
     
-    > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [String Comparison](#string-comparison) if you need more control.
+    > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
     
 
 - `*`, `/`, `+`, `-`
@@ -1977,7 +1977,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Person.filter(("A"..<"z").contains(Col.name))
     ```
     
-    > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [String Comparison](#string-comparison) if you need more control.
+    > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
 
 
 #### SQL Functions
@@ -2048,7 +2048,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-See [Fetching Methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods.
+See [fetching methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods.
 
 For example:
 
@@ -2098,7 +2098,7 @@ let minHeight = row.value(atIndex: 0) as Int
 let maxHeight = row.value(atIndex: 1) as Int
 ```
 
-See [Column Values](#column-values) for more information about the `row.value()` method.
+See [column values](#column-values) for more information about the `row.value()` method.
 
 **Fetching records according to their primary key** is a very common task. It has a shortcut which accepts any single-column primary key:
 
