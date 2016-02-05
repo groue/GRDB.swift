@@ -17,16 +17,16 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: - Single-Column Primary Key
     
-    /// Returns a sequence of values, given their primary keys.
+    /// Returns a sequence of records, given their primary keys.
     ///
     ///     let persons = Person.fetch(db, keys: [1, 2, 3]) // DatabaseSequence<Person>
     ///
-    /// The order of values in the returned sequence is undefined.
+    /// The order of records in the returned sequence is undefined.
     ///
     /// - parameters:
     ///     - db: A Database.
     ///     - keys: A sequence of primary keys.
-    /// - returns: A sequence.
+    /// - returns: A sequence of records.
     @warn_unused_result
     public static func fetch<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> DatabaseSequence<Self> {
         guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
@@ -35,16 +35,16 @@ extension RowConvertible where Self: TableMapping {
         return fetch(statement)
     }
     
-    /// Returns an array of values, given their primary keys.
+    /// Returns an array of records, given their primary keys.
     ///
     ///     let persons = Person.fetchAll(db, keys: [1, 2, 3]) // [Person]
     ///
-    /// The order of values in the returned array is undefined.
+    /// The order of records in the returned array is undefined.
     ///
     /// - parameters:
     ///     - db: A Database.
     ///     - keys: A sequence of primary keys.
-    /// - returns: An array.
+    /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> [Self] {
         guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
@@ -53,14 +53,14 @@ extension RowConvertible where Self: TableMapping {
         return fetchAll(statement)
     }
     
-    /// Returns a single value given its primary key.
+    /// Returns a single record given its primary key.
     ///
     ///     let person = Person.fetchOne(db, key: 123) // Person?
     ///
     /// - parameters:
     ///     - db: A Database.
     ///     - key: A primary key value.
-    /// - returns: An optional value.
+    /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(db: Database, key: PrimaryKeyType?) -> Self? {
         guard let key = key else {
@@ -107,16 +107,16 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: - Other Keys
     
-    /// Returns a sequence of values, given an array of key dictionaries.
+    /// Returns a sequence of records, given an array of key dictionaries.
     ///
     ///     let persons = Person.fetch(db, keys: [["name": "Arthur"], ["name": "Barbara"]]) // DatabaseSequence<Person>
     ///
-    /// The order of values in the returned sequence is undefined.
+    /// The order of records in the returned sequence is undefined.
     ///
     /// - parameters:
     ///     - db: A Database.
     ///     - keys: An array of key dictionaries.
-    /// - returns: A sequence.
+    /// - returns: A sequence of records.
     @warn_unused_result
     public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
         guard let statement = fetchByKeyStatement(db, keys: keys) else {
@@ -125,16 +125,16 @@ extension RowConvertible where Self: TableMapping {
         return fetch(statement)
     }
     
-    /// Returns an array of values, given an array of key dictionaries.
+    /// Returns an array of records, given an array of key dictionaries.
     ///
     ///     let persons = Person.fetchAll(db, keys: [["name": "Arthur"], ["name": "Barbara"]]) // [Person]
     ///
-    /// The order of values in the returned array is undefined.
+    /// The order of records in the returned array is undefined.
     ///
     /// - parameters:
     ///     - db: A Database.
     ///     - keys: An array of key dictionaries.
-    /// - returns: An array.
+    /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
         guard let statement = fetchByKeyStatement(db, keys: keys) else {
@@ -143,14 +143,14 @@ extension RowConvertible where Self: TableMapping {
         return fetchAll(statement)
     }
     
-    /// Returns a single value given a key dictionary.
+    /// Returns a single record given a key dictionary.
     ///
     ///     let person = Person.fetchOne(db, key: ["name": Arthur"]) // Person?
     ///
     /// - parameters:
     ///     - db: A Database.
     ///     - key: A dictionary of values.
-    /// - returns: An optional value.
+    /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
         return fetchOne(fetchByKeyStatement(db, keys: [key])!)

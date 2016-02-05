@@ -277,7 +277,7 @@ extension TableMapping {
     
     // MARK: Counting
     
-    /// Returns the number of rows.
+    /// Returns the number of records.
     @warn_unused_result
     public static func fetchCount(db: Database) -> Int {
         return all().fetchCount(db)
@@ -421,7 +421,7 @@ extension RowConvertible {
     
     // MARK: Fetching From FetchRequest
     
-    /// Returns a sequence of values fetched from a fetch request.
+    /// Returns a sequence of records fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
     ///     let persons = Person.fetch(db, request) // DatabaseSequence<Person>
@@ -442,7 +442,7 @@ extension RowConvertible {
         return try! fetch(request.selectStatement(db))
     }
     
-    /// Returns an array of values fetched from a fetch request.
+    /// Returns an array of records fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
     ///     let persons = Person.fetchAll(db, request) // [Person]
@@ -451,7 +451,7 @@ extension RowConvertible {
         return try! fetchAll(request.selectStatement(db))
     }
     
-    /// Returns a single value fetched from a fetch request.
+    /// Returns a single record fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
     ///     let person = Person.fetchOne(db, request) // Person?
@@ -465,7 +465,7 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: Fetching All
     
-    /// Returns a sequence of all values fetched from the database.
+    /// Returns a sequence of all records fetched from the database.
     ///
     ///     let persons = Person.fetch(db) // DatabaseSequence<Person>
     ///
@@ -485,7 +485,7 @@ extension RowConvertible where Self: TableMapping {
         return all().fetch(db)
     }
     
-    /// Returns an array of all values fetched from the database.
+    /// Returns an array of all records fetched from the database.
     ///
     ///     let persons = Person.fetchAll(db) // [Person]
     @warn_unused_result
@@ -493,7 +493,7 @@ extension RowConvertible where Self: TableMapping {
         return all().fetchAll(db)
     }
     
-    /// Returns the first value fetched from a fetch request.
+    /// Returns the first record fetched from a fetch request.
     ///
     ///     let person = Person.fetchOne(db) // Person?
     @warn_unused_result
