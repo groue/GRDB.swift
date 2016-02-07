@@ -237,12 +237,13 @@ print(wineCount)
 ```
 
 
-You can **configure** databases:
+**You can configure databases:**
 
 ```swift
 var config = Configuration()
 config.readonly = true
-config.trace = { print($0) } // Prints all SQL statements
+config.foreignKeysEnabled = true // The default is already true
+config.trace = { print($0) }     // Prints all SQL statements
 
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
