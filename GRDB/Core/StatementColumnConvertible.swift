@@ -92,11 +92,13 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
         let sqliteStatement = statement.sqliteStatement
-        let isNullSequence = statement.fetchSequence(arguments: arguments) {
-            sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL
+        let sequence = statement.fetchSequence(arguments: arguments) {
+            (sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL) ?
+                (nil as Self?) :
+                Self.init(sqliteStatement: sqliteStatement, index: 0)
         }
-        if isNullSequence.generate().next() == false {
-            return Self.init(sqliteStatement: sqliteStatement, index: 0)
+        if let value = sequence.generate().next() {
+            return value
         }
         return nil
     }
