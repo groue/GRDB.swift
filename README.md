@@ -1950,7 +1950,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Person.filter(!Col.verified || Col.age < 18)
     ```
 
-- `BETWEEN`, `IN`, `NOT IN`
+- `BETWEEN`, `IN`, `IN (SELECT ...)`, `NOT IN`, `NOT IN (SELECT ...)`
     
     To check inclusion in a collection, call the `contains` method on any Swift sequence:
     
