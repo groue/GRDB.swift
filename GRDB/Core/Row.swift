@@ -613,8 +613,13 @@ protocol RowImpl {
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func dataNoCopy(atIndex index:Int) -> NSData?
     func columnName(atIndex index: Int) -> String
-    func indexOfColumn(named name: String) -> Int? // This method MUST be case-insensitive.
-    func copy(row: Row) -> Row                 // row.impl is guaranteed to be self.
+    
+    // This method MUST be case-insensitive, and returns the index of the
+    // leftmost column that matches *name*.
+    func indexOfColumn(named name: String) -> Int?
+    
+    // row.impl is guaranteed to be self.
+    func copy(row: Row) -> Row
 }
 
 
@@ -642,7 +647,8 @@ private struct DictionaryRowImpl : RowImpl {
         return dictionary[dictionary.startIndex.advancedBy(index)].0
     }
     
-    // This method MUST be case-insensitive.
+    // This method MUST be case-insensitive, and returns the index of the
+    // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int? {
         let lowercaseName = name.lowercaseString
         guard let index = dictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) else {
@@ -684,11 +690,9 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames[index]
     }
     
-    // This method MUST be case-insensitive.
+    // This method MUST be case-insensitive, and returns the index of the
+    // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int? {
-        if let index = columnNames.indexOf({ $0 == name }) {
-            return index
-        }
         let lowercaseName = name.lowercaseString
         return columnNames.indexOf { $0.lowercaseString == lowercaseName }
     }
@@ -730,7 +734,8 @@ private struct StatementRowImpl : RowImpl {
         return statement.columnNames[index]
     }
     
-    // This method MUST be case-insensitive.
+    // This method MUST be case-insensitive, and returns the index of the
+    // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int? {
         return statement.indexOfColumn(named: name)
     }

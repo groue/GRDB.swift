@@ -2130,7 +2130,7 @@ Country.fetchAll(db, keys: ["FR", "US"])!
 ```swift
 dbQueue.inDatabase { db in
     // SELECT COUNT(*) FROM "persons"
-    let count = Person.fetchCount(db)                    // Int
+    let count = Person.fetchCount(db) // Int
     
     // SELECT COUNT(*) FROM "persons" WHERE "email" IS NOT NULL
     let count = Person.filter(Col.email != nil).fetchCount(db) // Int

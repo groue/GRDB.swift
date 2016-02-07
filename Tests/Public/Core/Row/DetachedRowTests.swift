@@ -157,13 +157,11 @@ class DetachedRowTests: GRDBTestCase {
         }
     }
     
-    func testRowSubscriptIsCaseInsensitive() {
+    func testRowIsCaseInsensitive() {
         assertNoError {
             let dbQueue = DatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE stuffs (name TEXT)")
-                try db.execute("INSERT INTO stuffs (name) VALUES ('foo')")
-                let row = Row.fetchOne(db, "SELECT nAmE FROM stuffs")!
+            dbQueue.inDatabase { db in
+                let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE")!
                 XCTAssertEqual(row["name"], "foo".databaseValue)
                 XCTAssertEqual(row["NAME"], "foo".databaseValue)
                 XCTAssertEqual(row["NaMe"], "foo".databaseValue)
@@ -174,13 +172,26 @@ class DetachedRowTests: GRDBTestCase {
         }
     }
     
+    func testRowIsCaseInsensitiveAndReturnsLeftmostMatchingColumn() {
+        assertNoError {
+            let dbQueue = DatabaseQueue()
+            dbQueue.inDatabase { db in
+                let row = Row.fetchOne(db, "SELECT 1 AS name, 2 AS NAME")!
+                XCTAssertEqual(row["name"], 1.databaseValue)
+                XCTAssertEqual(row["NAME"], 1.databaseValue)
+                XCTAssertEqual(row["NaMe"], 1.databaseValue)
+                XCTAssertEqual(row.value(named: "name") as Int, 1)
+                XCTAssertEqual(row.value(named: "NAME") as Int, 1)
+                XCTAssertEqual(row.value(named: "NaMe") as Int, 1)
+            }
+        }
+    }
+    
     func testRowHasColumnIsCaseInsensitive() {
         assertNoError {
             let dbQueue = DatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE stuffs (name TEXT)")
-                try db.execute("INSERT INTO stuffs (name) VALUES ('foo')")
-                let row = Row.fetchOne(db, "SELECT nAmE, 1 AS foo FROM stuffs")!
+            dbQueue.inDatabase { db in
+                let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
                 XCTAssertTrue(row.hasColumn("name"))
                 XCTAssertTrue(row.hasColumn("NAME"))
                 XCTAssertTrue(row.hasColumn("Name"))

@@ -1,6 +1,16 @@
 Release Notes
 =============
 
+## Next version
+
+**Fixed**
+
+- `row.value(named:)` and `row[_]` reliably returns the value for the leftmost case-insensitive matching column.
+
+**New**
+
+- Support for `IN (SELECT ...)` SQL expressions in the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface).
+
 
 ## 0.43.1
 
