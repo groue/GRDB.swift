@@ -11,7 +11,7 @@ public final class Row: CollectionType {
         impl = EmptyRowImpl()
     }
     
-    /// Builds a row from an dictionary of values.
+    /// Builds a row from a dictionary of values.
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
         sqliteStatement = nil
         impl = DictionaryRowImpl(dictionary: dictionary)
