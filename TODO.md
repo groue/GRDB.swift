@@ -3,6 +3,7 @@
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
+    - [ ] NOW
     - [ ] RANDOM() https://www.sqlite.org/lang_corefunc.html
     - [ ] LIKE https://www.sqlite.org/lang_expr.html
     - [ ] GLOB https://www.sqlite.org/lang_expr.html
