@@ -181,7 +181,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// their id automatically set after successful insertion, if it was nil
     /// before the insertion.
     ///
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func insert(db: Database) throws {
         // The simplest code would be:
         //
@@ -229,7 +229,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// This method is guaranteed to have updated a row in the database if it
     /// returns without error.
     ///
-    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
     public func update(db: Database) throws {
@@ -269,7 +269,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// This method is guaranteed to have inserted or updated a row in the
     /// database if it returns without error.
     ///
-    /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
+    /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
     final public func save(db: Database) throws {
         try performSave(db)
@@ -281,7 +281,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// to true.
     ///
     /// - returns: Whether a database row was deleted.
-    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func delete(db: Database) throws -> Bool {
         let deleted = try performDelete(db)
         // Future calls to update() will throw NotFound. Make the user

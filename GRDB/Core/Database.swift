@@ -117,7 +117,7 @@ public final class Database {
 }
 
 
-/// A SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
+/// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
 enum ThreadingMode {
     case Default
     case MultiThread
@@ -250,7 +250,7 @@ extension Database {
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: A DatabaseChanges.
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         preconditionValidQueue()
         
@@ -959,7 +959,7 @@ extension Database {
 }
 
 
-/// A SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
+/// An SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
 public enum TransactionKind {
     case Deferred
     case Immediate

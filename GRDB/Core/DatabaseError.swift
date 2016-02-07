@@ -1,4 +1,4 @@
-/// DatabaseError wraps a SQLite error.
+/// DatabaseError wraps an SQLite error.
 public struct DatabaseError : ErrorType {
     
     /// The SQLite error code (see https://www.sqlite.org/c3ref/c_abort.html).

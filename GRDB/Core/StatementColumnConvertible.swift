@@ -18,7 +18,7 @@ public protocol StatementColumnConvertible {
     /// See https://www.sqlite.org/c3ref/column_blob.html for more information.
     ///
     /// - parameters:
-    ///     - sqliteStatement: A pointer to a SQLite statement.
+    ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     init(sqliteStatement: SQLiteStatement, index: Int32)
 }

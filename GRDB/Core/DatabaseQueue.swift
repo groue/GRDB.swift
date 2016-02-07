@@ -22,7 +22,7 @@ public final class DatabaseQueue {
     /// - parameters:
     ///     - path: The path to the database file.
     ///     - configuration: A configuration.
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public convenience init(path: String, var configuration: Configuration = Configuration()) throws {
         // IMPLEMENTATION NOTE
         //

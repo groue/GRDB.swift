@@ -1,7 +1,7 @@
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = COpaquePointer
 
-/// A statement represents a SQL query.
+/// A statement represents an SQL query.
 ///
 /// It is the base class of UpdateStatement that executes *update statements*,
 /// and SelectStatement that fetches rows.
@@ -385,7 +385,7 @@ public final class UpdateStatement : Statement {
     ///
     /// - parameter arguments: Statement arguments.
     /// - returns: A DatabaseChanges.
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
         try! prepareWithArguments(arguments)
