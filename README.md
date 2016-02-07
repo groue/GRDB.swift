@@ -1877,7 +1877,7 @@ You can refine requests by chaining those methods, in any order.
 Person.order(Col.name).filter(Col.email != nil)
 ```
 
-The `select`, `group` and `limit` methods ignore and replace previously applied selection, grouping and limits. On the opposite, `filter`, `having`, and `order` methods augment the query:
+The `select`, `group` and `limit` methods ignore and replace previously applied selection, grouping and limits. On the opposite, `filter`, `having`, and `order` methods extend the query:
 
 ```swift
 Person                          // SELECT * FROM "persons"
