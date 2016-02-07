@@ -41,7 +41,9 @@ extension FetchRequest {
     /// Returns a new FetchRequest with a new net of selected columns.
     @warn_unused_result
     public func select(selection: [_SQLSelectable]) -> FetchRequest<T> {
-        return FetchRequest(query.select(selection))
+        var query = self.query
+        query.selection = selection
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with a new net of selected columns.
@@ -61,7 +63,13 @@ extension FetchRequest {
     /// eventual set of already applied predicates.
     @warn_unused_result
     public func filter(predicate: _SQLExpressionType) -> FetchRequest<T> {
-        return FetchRequest(query.filter(predicate.SQLExpression))
+        var query = self.query
+        if let whereExpression = query.whereExpression {
+            query.whereExpression = .InfixOperator("AND", whereExpression, predicate.SQLExpression)
+        } else {
+            query.whereExpression = predicate.SQLExpression
+        }
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with the provided *predicate* added to the
@@ -80,7 +88,9 @@ extension FetchRequest {
     /// Returns a new FetchRequest grouped according to *expressions*.
     @warn_unused_result
     public func group(expressions: [_SQLExpressionType]) -> FetchRequest<T> {
-        return FetchRequest(query.group(expressions.map { $0.SQLExpression }))
+        var query = self.query
+        query.groupByExpressions = expressions.map { $0.SQLExpression }
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with a new grouping.
@@ -93,7 +103,13 @@ extension FetchRequest {
     /// eventual set of already applied predicates.
     @warn_unused_result
     public func having(predicate: _SQLExpressionType) -> FetchRequest<T> {
-        return FetchRequest(query.having(predicate.SQLExpression))
+        var query = self.query
+        if let havingExpression = query.havingExpression {
+            query.havingExpression = (havingExpression && predicate).SQLExpression
+        } else {
+            query.havingExpression = predicate.SQLExpression
+        }
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with the provided *sql* added to
@@ -114,7 +130,9 @@ extension FetchRequest {
     /// the eventual set of already applied sort descriptors.
     @warn_unused_result
     public func order(sortDescriptors: [_SQLSortDescriptorType]) -> FetchRequest<T> {
-        return FetchRequest(query.order(sortDescriptors))
+        var query = self.query
+        query.sortDescriptors.appendContentsOf(sortDescriptors)
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with the provided *sql* added to the
@@ -136,7 +154,9 @@ extension FetchRequest {
     /// *offset*.
     @warn_unused_result
     public func limit(limit: Int, offset: Int? = nil) -> FetchRequest<T> {
-        return FetchRequest(query.limit(limit, offset: offset))
+        var query = self.query
+        query.limit = _SQLLimit(limit: limit, offset: offset)
+        return FetchRequest(query)
     }
 }
 

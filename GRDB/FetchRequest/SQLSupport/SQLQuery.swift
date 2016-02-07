@@ -87,62 +87,6 @@ struct _SQLQuery {
 }
 
 
-// MARK: - _SQLQuery derivation
-
-extension _SQLQuery {
-    
-    @warn_unused_result
-    func select(selection: [_SQLSelectable]) -> _SQLQuery {
-        var query = self
-        query.selection = selection
-        return query
-    }
-    
-    @warn_unused_result
-    func filter(predicate: _SQLExpression) -> _SQLQuery {
-        var query = self
-        if let whereExpression = query.whereExpression {
-            query.whereExpression = .InfixOperator("AND", whereExpression, predicate)
-        } else {
-            query.whereExpression = predicate
-        }
-        return query
-    }
-    
-    @warn_unused_result
-    func group(expressions: [_SQLExpression]) -> _SQLQuery {
-        var query = self
-        query.groupByExpressions = expressions
-        return query
-    }
-    
-    @warn_unused_result
-    func having(predicate: _SQLExpression) -> _SQLQuery {
-        var query = self
-        if let havingExpression = query.havingExpression {
-            query.havingExpression = .InfixOperator("AND", havingExpression, predicate)
-        } else {
-            query.havingExpression = predicate
-        }
-        return query
-    }
-    
-    @warn_unused_result
-    func order(sortDescriptors: [_SQLSortDescriptorType]) -> _SQLQuery {
-        var query = self
-        query.sortDescriptors.appendContentsOf(sortDescriptors)
-        return query
-    }
-    
-    @warn_unused_result
-    func limit(limit: Int, offset: Int?) -> _SQLQuery {
-        var query = self
-        query.limit = _SQLLimit(limit: limit, offset: offset)
-        return query
-    }
-}
-
-
 // MARK: - _SQLSource
 
 indirect enum _SQLSource {
