@@ -9,7 +9,7 @@ typealias SQLiteValue = COpaquePointer
 /// See https://www.sqlite.org/datatype3.html
 public struct DatabaseValue : Hashable {
     
-    /// An SQLite storage (NULL, INTEGER, REAL, TEST, BLOB).
+    /// An SQLite storage (NULL, INTEGER, REAL, TEXT, BLOB).
     public enum Storage {
         /// The NULL storage class.
         case Null
