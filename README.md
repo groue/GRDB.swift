@@ -770,15 +770,11 @@ dbComponents.dateComponents // NSDateComponents
 
 ```swift
 enum Color : Int {
-    case Red
-    case White
-    case Rose
+    case Red, White, Rose
 }
 
 enum Grape : String {
-    case Chardonnay
-    case Merlot
-    case Riesling
+    case Chardonnay, Merlot, Riesling
 }
 ```
 
