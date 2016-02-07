@@ -2,7 +2,11 @@
 
 // MARK: - _SQLQuery
 
-struct _SQLQuery {
+/// This type is an implementation detail of the query interface.
+/// Do not use it directly.
+///
+/// See https://github.com/groue/GRDB.swift/#the-query-interface
+public struct _SQLQuery {
     var selection: [_SQLSelectable]
     var distinct: Bool
     var source: _SQLSource?
@@ -42,22 +46,22 @@ struct _SQLQuery {
             sql += " DISTINCT"
         }
         
-        sql += try " " + selection.map { try $0.resultColumnSQL(&bindings) }.joinWithSeparator(", ")
+        sql += try " " + selection.map { try $0.resultColumnSQL(db, &bindings) }.joinWithSeparator(", ")
         
         if let source = source {
             sql += try " FROM " + source.sql(db, &bindings)
         }
         
         if let whereExpression = whereExpression {
-            sql += try " WHERE " + whereExpression.sql(&bindings)
+            sql += try " WHERE " + whereExpression.sql(db, &bindings)
         }
         
         if !groupByExpressions.isEmpty {
-            sql += try " GROUP BY " + groupByExpressions.map { try $0.sql(&bindings) }.joinWithSeparator(", ")
+            sql += try " GROUP BY " + groupByExpressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ")
         }
         
         if let havingExpression = havingExpression {
-            sql += try " HAVING " + havingExpression.sql(&bindings)
+            sql += try " HAVING " + havingExpression.sql(db, &bindings)
         }
         
         var sortDescriptors = self.sortDescriptors
@@ -75,7 +79,7 @@ struct _SQLQuery {
             }
         }
         if !sortDescriptors.isEmpty {
-            sql += try " ORDER BY " + sortDescriptors.map { try $0.orderingSQL(&bindings) }.joinWithSeparator(", ")
+            sql += try " ORDER BY " + sortDescriptors.map { try $0.orderingSQL(db, &bindings) }.joinWithSeparator(", ")
         }
         
         if let limit = limit {
@@ -113,7 +117,7 @@ indirect enum _SQLSource {
             default:
                 break
             }
-            return try first.sql(db, &bindings) + " JOIN " + second.sql(db, &bindings) + " ON " + expression.sql(&bindings)
+            return try first.sql(db, &bindings) + " JOIN " + second.sql(db, &bindings) + " ON " + expression.sql(db, &bindings)
         }
     }
 }
@@ -127,7 +131,7 @@ indirect enum _SQLSource {
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
 public protocol _SQLSortDescriptorType {
     var reversedSortDescriptor: _SQLSortDescriptor { get }
-    func orderingSQL(inout bindings: [DatabaseValueConvertible?]) throws -> String
+    func orderingSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
 }
 
 /// This type is an implementation detail of the query interface.
@@ -158,12 +162,12 @@ extension _SQLSortDescriptor : _SQLSortDescriptorType {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func orderingSQL(inout bindings: [DatabaseValueConvertible?]) throws -> String {
+    public func orderingSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
         switch self {
         case .Asc(let expression):
-            return try expression.sql(&bindings) + " ASC"
+            return try expression.sql(db, &bindings) + " ASC"
         case .Desc(let expression):
-            return try expression.sql(&bindings) + " DESC"
+            return try expression.sql(db, &bindings) + " DESC"
         }
     }
 }
@@ -230,8 +234,8 @@ extension _DerivedSQLExpressionType {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func orderingSQL(inout bindings: [DatabaseValueConvertible?]) throws -> String {
-        return try SQLExpression.sql(&bindings)
+    public func orderingSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
+        return try SQLExpression.sql(db, &bindings)
     }
 }
 
@@ -242,16 +246,16 @@ extension _DerivedSQLExpressionType {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func resultColumnSQL(inout bindings: [DatabaseValueConvertible?]) throws -> String {
-        return try SQLExpression.sql(&bindings)
+    public func resultColumnSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
+        return try SQLExpression.sql(db, &bindings)
     }
     
     /// This method is an implementation detail of the query interface.
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func countedSQL(inout bindings: [DatabaseValueConvertible?]) throws -> String {
-        return try SQLExpression.sql(&bindings)
+    public func countedSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
+        return try SQLExpression.sql(db, &bindings)
     }
 }
 
@@ -321,6 +325,9 @@ public indirect enum _SQLExpression {
     /// For example: `id IN (1,2,3)`
     case In([_SQLExpression], _SQLExpression)
     
+    /// For example `id IN (SELECT ...)`
+    case InSubQuery(_SQLQuery, _SQLExpression)
+    
     /// For example: `age BETWEEN 1 AND 2`
     case Between(value: _SQLExpression, min: _SQLExpression, max: _SQLExpression)
     
@@ -334,7 +341,7 @@ public indirect enum _SQLExpression {
     case CountDistinct(_SQLExpression)
     
     ///
-    func sql(inout bindings: [DatabaseValueConvertible?]) throws -> String {
+    func sql(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
         switch self {
         case .Literal(let sql):
             return sql
@@ -354,7 +361,7 @@ public indirect enum _SQLExpression {
             }
             
         case .Collate(let expression, let collation):
-            let sql = try expression.sql(&bindings)
+            let sql = try expression.sql(db, &bindings)
             let chars = sql.characters
             if chars.last! == ")" {
                 return String(chars.prefixUpTo(chars.endIndex.predecessor())) + " COLLATE " + collation + ")"
@@ -365,23 +372,23 @@ public indirect enum _SQLExpression {
         case .Not(let condition):
             switch condition {
             case .Not(let expression):
-                return try expression.sql(&bindings)
+                return try expression.sql(db, &bindings)
             case .In(let expressions, let expression):
                 if expressions.isEmpty {
                     return "1"
                 } else {
-                    return try "(" + expression.sql(&bindings) + " NOT IN (" + expressions.map { try $0.sql(&bindings) }.joinWithSeparator(", ") + "))"
+                    return try "(" + expression.sql(db, &bindings) + " NOT IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ") + "))"
                 }
             case .Equal(let lhs, let rhs):
-                return try _SQLExpression.NotEqual(lhs, rhs).sql(&bindings)
+                return try _SQLExpression.NotEqual(lhs, rhs).sql(db, &bindings)
             case .NotEqual(let lhs, let rhs):
-                return try _SQLExpression.Equal(lhs, rhs).sql(&bindings)
+                return try _SQLExpression.Equal(lhs, rhs).sql(db, &bindings)
             case .Is(let lhs, let rhs):
-                return try _SQLExpression.IsNot(lhs, rhs).sql(&bindings)
+                return try _SQLExpression.IsNot(lhs, rhs).sql(db, &bindings)
             case .IsNot(let lhs, let rhs):
-                return try _SQLExpression.Is(lhs, rhs).sql(&bindings)
+                return try _SQLExpression.Is(lhs, rhs).sql(db, &bindings)
             default:
-                return try "(NOT " + condition.sql(&bindings) + ")"
+                return try "(NOT " + condition.sql(db, &bindings) + ")"
             }
             
         case .Equal(let lhs, let rhs):
@@ -389,12 +396,12 @@ public indirect enum _SQLExpression {
             case (let lhs, .Value(let rhs)) where rhs == nil:
                 // Swiftism!
                 // Turn `filter(a == nil)` into `a IS NULL` since the intention is obviously to check for NULL. `a = NULL` would evaluate to NULL.
-                return try "(" + lhs.sql(&bindings) + " IS NULL)"
+                return try "(" + lhs.sql(db, &bindings) + " IS NULL)"
             case (.Value(let lhs), let rhs) where lhs == nil:
                 // Swiftism!
-                return try "(" + rhs.sql(&bindings) + " IS NULL)"
+                return try "(" + rhs.sql(db, &bindings) + " IS NULL)"
             default:
-                return try "(" + lhs.sql(&bindings) + " = " + rhs.sql(&bindings) + ")"
+                return try "(" + lhs.sql(db, &bindings) + " = " + rhs.sql(db, &bindings) + ")"
             }
             
         case .NotEqual(let lhs, let rhs):
@@ -402,57 +409,60 @@ public indirect enum _SQLExpression {
             case (let lhs, .Value(let rhs)) where rhs == nil:
                 // Swiftism!
                 // Turn `filter(a != nil)` into `a IS NOT NULL` since the intention is obviously to check for NULL. `a <> NULL` would evaluate to NULL.
-                return try "(" + lhs.sql(&bindings) + " IS NOT NULL)"
+                return try "(" + lhs.sql(db, &bindings) + " IS NOT NULL)"
             case (.Value(let lhs), let rhs) where lhs == nil:
                 // Swiftism!
-                return try "(" + rhs.sql(&bindings) + " IS NOT NULL)"
+                return try "(" + rhs.sql(db, &bindings) + " IS NOT NULL)"
             default:
-                return try "(" + lhs.sql(&bindings) + " <> " + rhs.sql(&bindings) + ")"
+                return try "(" + lhs.sql(db, &bindings) + " <> " + rhs.sql(db, &bindings) + ")"
             }
             
         case .Is(let lhs, let rhs):
             switch (lhs, rhs) {
             case (let lhs, .Value(let rhs)) where rhs == nil:
-                return try "(" + lhs.sql(&bindings) + " IS NULL)"
+                return try "(" + lhs.sql(db, &bindings) + " IS NULL)"
             case (.Value(let lhs), let rhs) where lhs == nil:
-                return try "(" + rhs.sql(&bindings) + " IS NULL)"
+                return try "(" + rhs.sql(db, &bindings) + " IS NULL)"
             default:
-                return try "(" + lhs.sql(&bindings) + " IS " + rhs.sql(&bindings) + ")"
+                return try "(" + lhs.sql(db, &bindings) + " IS " + rhs.sql(db, &bindings) + ")"
             }
             
         case .IsNot(let lhs, let rhs):
             switch (lhs, rhs) {
             case (let lhs, .Value(let rhs)) where rhs == nil:
-                return try "(" + lhs.sql(&bindings) + " IS NOT NULL)"
+                return try "(" + lhs.sql(db, &bindings) + " IS NOT NULL)"
             case (.Value(let lhs), let rhs) where lhs == nil:
-                return try "(" + rhs.sql(&bindings) + " IS NOT NULL)"
+                return try "(" + rhs.sql(db, &bindings) + " IS NOT NULL)"
             default:
-                return try "(" + lhs.sql(&bindings) + " IS NOT " + rhs.sql(&bindings) + ")"
+                return try "(" + lhs.sql(db, &bindings) + " IS NOT " + rhs.sql(db, &bindings) + ")"
             }
             
         case .PrefixOperator(let SQLOperator, let value):
-            return try SQLOperator + value.sql(&bindings)
+            return try SQLOperator + value.sql(db, &bindings)
             
         case .InfixOperator(let SQLOperator, let lhs, let rhs):
-            return try "(" + lhs.sql(&bindings) + " \(SQLOperator) " + rhs.sql(&bindings) + ")"
+            return try "(" + lhs.sql(db, &bindings) + " \(SQLOperator) " + rhs.sql(db, &bindings) + ")"
             
         case .In(let expressions, let expression):
             guard !expressions.isEmpty else {
                 return "0"
             }
-            return try "(" + expression.sql(&bindings) + " IN (" + expressions.map { try $0.sql(&bindings) }.joinWithSeparator(", ")  + "))"
+            return try "(" + expression.sql(db, &bindings) + " IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ")  + "))"
+        
+        case .InSubQuery(let subQuery, let expression):
+            return try "(" + expression.sql(db, &bindings) + " IN (" + subQuery.sql(db, &bindings)  + "))"
             
         case .Between(value: let value, min: let min, max: let max):
-            return try "(" + value.sql(&bindings) + " BETWEEN " + min.sql(&bindings) + " AND " + max.sql(&bindings) + ")"
+            return try "(" + value.sql(db, &bindings) + " BETWEEN " + min.sql(db, &bindings) + " AND " + max.sql(db, &bindings) + ")"
             
         case .Function(let functionName, let functionArguments):
-            return try functionName + "(" + functionArguments.map { try $0.sql(&bindings) }.joinWithSeparator(", ")  + ")"
+            return try functionName + "(" + functionArguments.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ")  + ")"
             
         case .Count(let counted):
-            return try "COUNT(" + counted.countedSQL(&bindings) + ")"
+            return try "COUNT(" + counted.countedSQL(db, &bindings) + ")"
             
         case .CountDistinct(let expression):
-            return try "COUNT(DISTINCT " + expression.sql(&bindings) + ")"
+            return try "COUNT(DISTINCT " + expression.sql(db, &bindings) + ")"
         }
     }
 }
@@ -476,8 +486,8 @@ extension _SQLExpression : _DerivedSQLExpressionType {
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
 public protocol _SQLSelectable {
-    func resultColumnSQL(inout bindings: [DatabaseValueConvertible?]) throws -> String
-    func countedSQL(inout bindings: [DatabaseValueConvertible?]) throws -> String
+    func resultColumnSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
+    func countedSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
 }
 
 enum _SQLResultColumn {
@@ -487,7 +497,7 @@ enum _SQLResultColumn {
 
 extension _SQLResultColumn : _SQLSelectable {
     
-    func resultColumnSQL(inout bindings: [DatabaseValueConvertible?]) throws -> String {
+    func resultColumnSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
         switch self {
         case .Star(let sourceName):
             if let sourceName = sourceName {
@@ -496,16 +506,16 @@ extension _SQLResultColumn : _SQLSelectable {
                 return "*"
             }
         case .Expression(let expression, let identifier):
-            return try expression.sql(&bindings) + " AS " + identifier.quotedDatabaseIdentifier
+            return try expression.sql(db, &bindings) + " AS " + identifier.quotedDatabaseIdentifier
         }
     }
     
-    func countedSQL(inout bindings: [DatabaseValueConvertible?]) throws -> String {
+    func countedSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
         switch self {
         case .Star:
             return "*"
         case .Expression(let expression, _):
-            return try expression.sql(&bindings)
+            return try expression.sql(db, &bindings)
         }
     }
 }
@@ -560,3 +570,4 @@ extension SQLColumn : _DerivedSQLExpressionType {
         return .Identifier(identifier: name, sourceName: sourceName)
     }
 }
+

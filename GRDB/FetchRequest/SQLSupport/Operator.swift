@@ -275,7 +275,7 @@ public func && (lhs: _DerivedSQLExpressionType, rhs: _DerivedSQLExpressionType) 
 // MARK: - Operator BETWEEN
 
 extension Range where Element: protocol<_SQLExpressionType, BidirectionalIndexType> {
-    /// Returns an SQL expression that compares the inclusion of a value in
+    /// Returns an SQL expression that checks the inclusion of a value in
     /// a range.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-operators
@@ -285,7 +285,7 @@ extension Range where Element: protocol<_SQLExpressionType, BidirectionalIndexTy
 }
 
 extension ClosedInterval where Bound: _SQLExpressionType {
-    /// Returns an SQL expression that compares the inclusion of a value in
+    /// Returns an SQL expression that checks the inclusion of a value in
     /// an interval.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-operators
@@ -295,7 +295,7 @@ extension ClosedInterval where Bound: _SQLExpressionType {
 }
 
 extension HalfOpenInterval where Bound: _SQLExpressionType {
-    /// Returns an SQL expression that compares the inclusion of a value in
+    /// Returns an SQL expression that checks the inclusion of a value in
     /// an interval.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-operators
@@ -308,7 +308,7 @@ extension HalfOpenInterval where Bound: _SQLExpressionType {
 // MARK: - Operator IN
 
 extension SequenceType where Self.Generator.Element: _SQLExpressionType {
-    /// Returns an SQL expression that compares the inclusion of a value in
+    /// Returns an SQL expression that checks the inclusion of a value in
     /// a sequence.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-operators

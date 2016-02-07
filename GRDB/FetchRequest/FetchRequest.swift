@@ -173,6 +173,15 @@ extension FetchRequest {
 }
 
 
+extension FetchRequest {
+    /// Returns an SQL expression that checks the inclusion of a value in
+    /// the results of another request.
+    public func contains(element: _SQLExpressionType) -> _SQLExpression {
+        return .InSubQuery(query, element.SQLExpression)
+    }
+}
+
+
 extension FetchRequest where T: RowConvertible {
     
     // MARK: Fetching Record and RowConvertible

@@ -107,6 +107,11 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(halfOpenInterval.contains(Col.name))),
             "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A') AND (\"name\" < 'z'))")
+        
+        // Subquery
+        XCTAssertEqual(
+            sql(tableRequest.filter(tableRequest.select(Col.id).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" IN (SELECT \"id\" FROM \"readers\"))")
     }
     
     func testContainsWithCollation() {
