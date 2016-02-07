@@ -1747,7 +1747,7 @@ class Person: Record {
 }
 ```
 
-Define **columns** that represent SQL columns:
+Declare the table **columns** that you want to use for filtering, or sorting:
 
 ```swift
 let id = SQLColumn("id")
