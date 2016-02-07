@@ -1,6 +1,5 @@
 import Foundation
 
-let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
 typealias SQLiteValue = COpaquePointer
 
 // MARK: - DatabaseValue

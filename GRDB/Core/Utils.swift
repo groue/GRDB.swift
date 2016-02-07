@@ -24,6 +24,8 @@ public func databaseQuestionMarks(count count: Int) -> String {
 
 // MARK: - Internal
 
+let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
+
 /// A function declared as rethrows that synchronously executes a throwing
 /// block in a dispatch_queue.
 func dispatchSync<T>(queue: dispatch_queue_t, block: () throws -> T) rethrows -> T {
