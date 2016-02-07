@@ -725,7 +725,7 @@ Here is the support provided by GRDB for the various [date formats](https://www.
 
 **GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.** It is precise to the millisecond.
 
-This format may not fit your needs. We provide below some sample code for [storing dates as timestamps](#custom-value-types). You can adapt it for your application.
+This format may not fit your needs. We provide below some sample code for [storing dates as timestamps](#custom-value-types) that you can adapt for your application.
 
 NSDate can be stored and fetched from the database just like other [value types](#values):
 
