@@ -379,6 +379,8 @@ public indirect enum _SQLExpression {
                 } else {
                     return try "(" + expression.sql(db, &bindings) + " NOT IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ") + "))"
                 }
+            case .InSubQuery(let subQuery, let expression):
+                return try "(" + expression.sql(db, &bindings) + " NOT IN (" + subQuery.sql(db, &bindings)  + "))"
             case .Equal(let lhs, let rhs):
                 return try _SQLExpression.NotEqual(lhs, rhs).sql(db, &bindings)
             case .NotEqual(let lhs, let rhs):

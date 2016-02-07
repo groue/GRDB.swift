@@ -112,6 +112,11 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(tableRequest.select(Col.id).contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (SELECT \"id\" FROM \"readers\"))")
+        
+        // Subquery
+        XCTAssertEqual(
+            sql(tableRequest.filter(!tableRequest.select(Col.id).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" NOT IN (SELECT \"id\" FROM \"readers\"))")
     }
     
     func testContainsWithCollation() {
