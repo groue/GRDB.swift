@@ -24,7 +24,7 @@ class FunctionTests: GRDBTestCase {
                     return nil
                 }
                 db.addFunction(fn)
-                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT f()")!.isNull)
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT f()") == nil)
             }
         }
     }

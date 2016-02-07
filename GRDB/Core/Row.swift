@@ -664,7 +664,7 @@ private struct StatementCopyRowImpl : RowImpl {
     
     init(statement: SelectStatement) {
         let sqliteStatement = statement.sqliteStatement
-        self.databaseValues = (0..<statement.columnCount).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) }
+        self.databaseValues = (0..<Int32(statement.columnCount)).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) }
         self.columnNames = statement.columnNames
     }
     
@@ -723,7 +723,7 @@ private struct StatementRowImpl : RowImpl {
     }
     
     func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+        return DatabaseValue(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
     func columnName(atIndex index: Int) -> String {

@@ -3,6 +3,10 @@ import Foundation
 /// A raw SQLite connection, suitable for the SQLite C API.
 public typealias SQLiteConnection = COpaquePointer
 
+/// A raw SQLite function argument.
+typealias SQLiteValue = COpaquePointer
+
+
 /// A Database connection.
 ///
 /// You don't create a database directly. Instead, you use a DatabaseQueue:
