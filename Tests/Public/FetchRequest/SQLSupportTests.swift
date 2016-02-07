@@ -309,7 +309,13 @@ class SQLSupportTests: GRDBTestCase {
             sql(tableRequest.filter(Col.age == 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" = 10)")
         XCTAssertEqual(
+            sql(tableRequest.filter(Col.age == (10 as Int?))),
+            "SELECT * FROM \"readers\" WHERE (\"age\" = 10)")
+        XCTAssertEqual(
             sql(tableRequest.filter(10 == Col.age)),
+            "SELECT * FROM \"readers\" WHERE (10 = \"age\")")
+        XCTAssertEqual(
+            sql(tableRequest.filter((10 as Int?) == Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 = \"age\")")
         XCTAssertEqual(
             sql(tableRequest.filter(10 == 10)),
@@ -347,6 +353,12 @@ class SQLSupportTests: GRDBTestCase {
             sql(tableRequest.filter(Col.name.collating("NOCASE") == "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
+            sql(tableRequest.filter(Col.name.collating("NOCASE") == ("fOo" as String?))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE NOCASE)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.name.collating("NOCASE") == nil)),
+            "SELECT * FROM \"readers\" WHERE (\"name\" IS NULL COLLATE NOCASE)")
+        XCTAssertEqual(
             sql(tableRequest.filter(Col.name.collating(collation) == "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE localized_case_insensitive)")
     }
@@ -356,7 +368,13 @@ class SQLSupportTests: GRDBTestCase {
             sql(tableRequest.filter(Col.age != 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" <> 10)")
         XCTAssertEqual(
+            sql(tableRequest.filter(Col.age != (10 as Int?))),
+            "SELECT * FROM \"readers\" WHERE (\"age\" <> 10)")
+        XCTAssertEqual(
             sql(tableRequest.filter(10 != Col.age)),
+            "SELECT * FROM \"readers\" WHERE (10 <> \"age\")")
+        XCTAssertEqual(
+            sql(tableRequest.filter((10 as Int?) != Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 <> \"age\")")
         XCTAssertEqual(
             sql(tableRequest.filter(10 != 10)),
@@ -393,6 +411,12 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name.collating("NOCASE") != "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE NOCASE)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.name.collating("NOCASE") != ("fOo" as String?))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE NOCASE)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.name.collating("NOCASE") != nil)),
+            "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT NULL COLLATE NOCASE)")
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name.collating(collation) != "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE localized_case_insensitive)")
