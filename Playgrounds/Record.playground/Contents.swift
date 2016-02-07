@@ -113,23 +113,18 @@ dbQueue.inDatabase { db in
 }
 
 
-//: ## The Query Interface
-//:
-//: The query interface lets you write Swift instead of SQL.
-//:
-//: First define the colums you want to use in the query interface
+//: To fetch persons using the query interface, you need some colums that can filter or sort:
 
 struct Col {
     static let firstName = SQLColumn("firstName")
     static let lastName = SQLColumn("lastName")
 }
 
-//: Use columns to filter or order fetched records:
-
 dbQueue.inDatabase { db in
-//: Use columns for sorting:
+
+//: Sort
     let personsSortedByName = Person.order(Col.firstName, Col.lastName).fetchAll(db)
     
-//: Use columns for filtering:
+//: Filter
     let millers = Person.filter(Col.lastName == "Miller").fetchAll(db)
 }
