@@ -63,7 +63,7 @@ class RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary : Record {
     }
 }
 
-// A type that adopts DatabaseValueConvertible but does not adopt SQLiteStatementConvertible
+// A type that adopts DatabaseValueConvertible but does not adopt StatementColumnConvertible
 struct IntConvertible: DatabaseValueConvertible {
     let int: Int
     init(int: Int) {
@@ -656,9 +656,9 @@ class CrashTests: GRDBTestCase {
     
     
     // =========================================================================
-    // MARK: - SQLiteStatementConvertible
+    // MARK: - StatementColumnConvertible
     
-    func testCrashFetchSQLiteStatementConvertibleFromStatement() {
+    func testCrashFetchStatementColumnConvertibleFromStatement() {
         assertCrash("could not convert NULL to Int.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
@@ -672,7 +672,7 @@ class CrashTests: GRDBTestCase {
         }
     }
 
-    func testCrashFetchAllSQLiteStatementConvertibleFromStatement() {
+    func testCrashFetchAllStatementColumnConvertibleFromStatement() {
         assertCrash("could not convert NULL to Int.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
@@ -685,7 +685,7 @@ class CrashTests: GRDBTestCase {
         }
     }
     
-    func testCrashFetchSQLiteStatementConvertibleFromDatabase() {
+    func testCrashFetchStatementColumnConvertibleFromDatabase() {
         assertCrash("could not convert NULL to Int.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
@@ -698,7 +698,7 @@ class CrashTests: GRDBTestCase {
         }
     }
 
-    func testCrashFetchAllSQLiteStatementConvertibleFromDatabase() {
+    func testCrashFetchAllStatementColumnConvertibleFromDatabase() {
         assertCrash("could not convert NULL to Int.") {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")

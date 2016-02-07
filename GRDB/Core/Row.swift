@@ -91,18 +91,18 @@ public final class Row: CollectionType {
     /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
-    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// Types that adopt DatabaseValueConvertible and StatementColumnConvertible
     /// can provide more conversions.
     ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value? {
         precondition(index >= 0 && index < count, "row index out of range")
         return unsafeValue(atIndex: index)
     }
     
-    private func unsafeValue<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
+    private func unsafeValue<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value? {
         let sqliteStatement = self.sqliteStatement
         guard sqliteStatement != nil else {
             return impl.databaseValue(atIndex: index).value()
@@ -153,18 +153,18 @@ public final class Row: CollectionType {
     /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
-    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// Types that adopt DatabaseValueConvertible and StatementColumnConvertible
     /// can provide more conversions.
     ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value {
         precondition(index >= 0 && index < count, "row index out of range")
         return unsafeValue(atIndex: index)
     }
     
-    private func unsafeValue<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
+    private func unsafeValue<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value {
         let sqliteStatement = self.sqliteStatement
         guard sqliteStatement != nil else {
             return impl.databaseValue(atIndex: index).value()
@@ -228,13 +228,13 @@ public final class Row: CollectionType {
     /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
-    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// Types that adopt DatabaseValueConvertible and StatementColumnConvertible
     /// can provide more conversions.
     ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value? {
         guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
         }
@@ -279,13 +279,13 @@ public final class Row: CollectionType {
     /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
-    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// Types that adopt DatabaseValueConvertible and StatementColumnConvertible
     /// can provide more conversions.
     ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value {
         guard let index = impl.indexOfColumn(named: columnName) else {
             fatalError("no such column: \(columnName)")
         }

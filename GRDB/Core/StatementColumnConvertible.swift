@@ -1,13 +1,13 @@
 /// When a type adopts both DatabaseValueConvertible and
-/// SQLiteStatementConvertible, it is granted with faster access to the SQLite
+/// StatementColumnConvertible, it is granted with faster access to the SQLite
 /// database values.
-public protocol SQLiteStatementConvertible {
+public protocol StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
-    /// As an example, here is the how Int64 adopts SQLiteStatementConvertible:
+    /// As an example, here is the how Int64 adopts StatementColumnConvertible:
     ///
-    ///     extension Int64: SQLiteStatementConvertible {
+    ///     extension Int64: StatementColumnConvertible {
     ///         public init(sqliteStatement: SQLiteStatement, index: Int32) {
     ///             self = sqlite3_column_int64(sqliteStatement, index)
     ///         }
@@ -25,11 +25,11 @@ public protocol SQLiteStatementConvertible {
 
 
 /// Types that adopt both DatabaseValueConvertible and
-/// SQLiteStatementConvertible can be efficiently initialized from
+/// StatementColumnConvertible can be efficiently initialized from
 /// database values.
 ///
 /// See DatabaseValueConvertible for more information.
-public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible {
+public extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     
     // MARK: - Fetching From SelectStatement

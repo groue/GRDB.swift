@@ -369,7 +369,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
 }
 
 
-extension DatabaseValueConvertible where Self: SQLiteStatementConvertible {
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     // MARK: Fetching From FetchRequest
     
