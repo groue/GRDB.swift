@@ -263,6 +263,22 @@ public class Statement {
 ///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement {
+    /// The tables this statement feeds on.
+    var sourceTables: Set<String>
+    
+    override init(database: Database, sql: String) throws {
+        self.sourceTables = []
+        
+        // During the execution of sqlite3_prepare_v2 by super.init, the sniffer
+        // listens for authorization callbacks in order to grabs the list of
+        // source tables.
+        let sniffer = SourceTableSniffer(database)
+        sniffer.start()
+        try super.init(database: database, sql: sql)
+        sniffer.stop()
+        
+        self.sourceTables = sniffer.sourceTables
+    }
     
     /// The number of columns in the resulting rows.
     public lazy var columnCount: Int = {
@@ -291,6 +307,32 @@ public final class SelectStatement : Statement {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepareWithArguments(arguments)
         return DatabaseSequence(statement: self, element: element)
+    }
+    
+    // A class that uses sqlite3_set_authorizer to fetch the list of tables
+    // used by a select statement.
+    private class SourceTableSniffer {
+        var sourceTables: Set<String> = []
+        let database: Database
+        
+        init(_ database: Database) {
+            self.database = database
+        }
+        
+        func start() {
+            let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+            sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
+                if actionCode == SQLITE_READ {
+                    let sniffer = unsafeBitCast(snifferPointer, SourceTableSniffer.self)
+                    sniffer.sourceTables.insert(String.fromCString(CString1)!)
+                }
+                return SQLITE_OK
+                }, snifferPointer)
+        }
+        
+        func stop() {
+            sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
+        }
     }
 }
 
