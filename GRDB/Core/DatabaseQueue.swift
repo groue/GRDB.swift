@@ -131,7 +131,7 @@ public final class DatabaseQueue {
     
     /// The key for the dispatch queue specific that holds the DatabaseQueue
     /// identity. See databaseQueueID.
-    static var databaseQueueIDKey = unsafeBitCast(DatabaseQueue.self, UnsafePointer<Void>.self)     // some unique pointer
+    static let databaseQueueIDKey = unsafeBitCast(DatabaseQueue.self, UnsafePointer<Void>.self)     // some unique pointer
     
     /// The value for the dispatch queue specific that holds the DatabaseQueue
     /// identity.
