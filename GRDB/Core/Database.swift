@@ -660,8 +660,8 @@ extension Database {
             // > column with declared type "INTEGER" includes an "PRIMARY KEY
             // > DESC" clause, it does not become an alias for the rowid [...]
             //
-            // We ignore the exception, and consider all INTEGER primary keys as
-            // aliases for the rowid:
+            // FIXME: We ignore the exception, and consider all INTEGER primary
+            // keys as aliases for the rowid:
             if pkColumnInfo.type.uppercaseString == "INTEGER" {
                 primaryKey = .RowID(pkColumnInfo.name)
             } else {
