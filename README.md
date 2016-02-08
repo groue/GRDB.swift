@@ -1950,7 +1950,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Person.filter(!Col.verified || Col.age < 18)
     ```
 
-- `BETWEEN`, `IN`, `IN (SELECT ...)`, `NOT IN`, `NOT IN (SELECT ...)`
+- `BETWEEN`, `IN`, `IN (subquery)`, `NOT IN`, `NOT IN (subquery)`
     
     To check inclusion in a collection, call the `contains` method on any Swift sequence:
     
@@ -1976,13 +1976,24 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
     
-    To check inclusion in a sub query, calls the `contains` method on another request:
+    To check inclusion in a subquery, call the `contains` method on another request:
     
     ```swift
     // SELECT * FROM "events"
-    // WHERE ("userId" IN (SELECT "id" FROM "persons" WHERE "verified"))
+    //  WHERE ("userId" IN (SELECT "id" FROM "persons" WHERE "verified"))
     let verifiedUsers = User.filter(Col.verified)
     Event.filter(verifiedPersonIds.select(Col.id).contains(Col.userId))
+    ```
+
+- `EXISTS (subquery)`, `NOT EXISTS (subquery)`
+
+    To check is a subquery would return any row, use the `exists` property on another request:
+    
+    ```swift
+    // SELECT * FROM "persons"
+    // WHERE EXISTS (SELECT * FROM "books"
+    //                WHERE books.ownerId = persons.id)
+    Person.filter(Book.filter(sql: "books.ownerId = persons.id").exists)
     ```
 
 

@@ -9,7 +9,10 @@ Release Notes
 
 **New**
 
-- Support for `IN (SELECT ...)` SQL expressions in the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface).
+Support for more SQL expressions in the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface):
+
+- `IN (subquery)`
+- `EXISTS (subquery)`
 
 
 ## 0.43.1

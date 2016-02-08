@@ -566,6 +566,15 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT \"age\")")
     }
     
+    func testExists() {
+        XCTAssertEqual(
+            sql(tableRequest.filter(tableRequest.exists)),
+            "SELECT * FROM \"readers\" WHERE (EXISTS (SELECT * FROM \"readers\"))")
+        XCTAssertEqual(
+            sql(tableRequest.filter(!tableRequest.exists)),
+            "SELECT * FROM \"readers\" WHERE (NOT EXISTS (SELECT * FROM \"readers\"))")
+    }
+    
     func testLogicalOperators() {
         XCTAssertEqual(
             sql(tableRequest.filter(!Col.age)),

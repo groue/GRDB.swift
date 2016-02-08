@@ -174,10 +174,19 @@ extension FetchRequest {
 
 
 extension FetchRequest {
+    
+    // MARK: FetchRequest as subquery
+    
     /// Returns an SQL expression that checks the inclusion of a value in
     /// the results of another request.
     public func contains(element: _SQLExpressionType) -> _SQLExpression {
         return .InSubQuery(query, element.SQLExpression)
+    }
+    
+    /// Returns an SQL expression that checks whether the receiver, as a
+    /// subquery, returns any row.
+    public var exists: _SQLExpression {
+        return .Exists(query)
     }
 }
 

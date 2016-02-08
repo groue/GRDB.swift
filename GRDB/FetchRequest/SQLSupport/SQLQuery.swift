@@ -328,6 +328,9 @@ public indirect enum _SQLExpression {
     /// For example `id IN (SELECT ...)`
     case InSubQuery(_SQLQuery, _SQLExpression)
     
+    /// For example `EXISTS (SELECT ...)`
+    case Exists(_SQLQuery)
+    
     /// For example: `age BETWEEN 1 AND 2`
     case Between(value: _SQLExpression, min: _SQLExpression, max: _SQLExpression)
     
@@ -373,22 +376,32 @@ public indirect enum _SQLExpression {
             switch condition {
             case .Not(let expression):
                 return try expression.sql(db, &bindings)
+                
             case .In(let expressions, let expression):
                 if expressions.isEmpty {
                     return "1"
                 } else {
                     return try "(" + expression.sql(db, &bindings) + " NOT IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ") + "))"
                 }
+                
             case .InSubQuery(let subQuery, let expression):
                 return try "(" + expression.sql(db, &bindings) + " NOT IN (" + subQuery.sql(db, &bindings)  + "))"
+                
+            case .Exists(let subQuery):
+                return try "(NOT EXISTS (" + subQuery.sql(db, &bindings)  + "))"
+                
             case .Equal(let lhs, let rhs):
                 return try _SQLExpression.NotEqual(lhs, rhs).sql(db, &bindings)
+                
             case .NotEqual(let lhs, let rhs):
                 return try _SQLExpression.Equal(lhs, rhs).sql(db, &bindings)
+                
             case .Is(let lhs, let rhs):
                 return try _SQLExpression.IsNot(lhs, rhs).sql(db, &bindings)
+                
             case .IsNot(let lhs, let rhs):
                 return try _SQLExpression.Is(lhs, rhs).sql(db, &bindings)
+                
             default:
                 return try "(NOT " + condition.sql(db, &bindings) + ")"
             }
@@ -453,6 +466,9 @@ public indirect enum _SQLExpression {
         
         case .InSubQuery(let subQuery, let expression):
             return try "(" + expression.sql(db, &bindings) + " IN (" + subQuery.sql(db, &bindings)  + "))"
+            
+        case .Exists(let subQuery):
+            return try "(EXISTS (" + subQuery.sql(db, &bindings)  + "))"
             
         case .Between(value: let value, min: let min, max: let max):
             return try "(" + value.sql(db, &bindings) + " BETWEEN " + min.sql(db, &bindings) + " AND " + max.sql(db, &bindings) + ")"
