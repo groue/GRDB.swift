@@ -270,7 +270,7 @@ public final class SelectStatement : Statement {
         self.sourceTables = []
         
         // During the execution of sqlite3_prepare_v2 by super.init, the sniffer
-        // listens for authorization callbacks in order to grabs the list of
+        // listens for authorization callbacks in order to grab the list of
         // source tables.
         let sniffer = SourceTableSniffer(database)
         sniffer.start()
