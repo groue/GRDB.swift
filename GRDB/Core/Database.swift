@@ -71,7 +71,9 @@ public final class Database {
     }
     
     deinit {
-        sqlite3_close(sqliteConnection)
+        if sqliteConnection != nil {
+            sqlite3_close(sqliteConnection)
+        }
     }
     
     func preconditionValidQueue() {
@@ -365,8 +367,6 @@ extension Database {
         let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
         return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: insertedRowID)
     }
-    
-    
 }
 
 

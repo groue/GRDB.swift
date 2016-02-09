@@ -14,7 +14,7 @@ public class Statement {
     public let sql: String
     
     /// The database
-    let database: Database
+    unowned let database: Database
     
     init(database: Database, sql: String, sqliteStatement: SQLiteStatement) {
         self.database = database
