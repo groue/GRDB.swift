@@ -311,6 +311,12 @@ extension Database {
         let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
         let sqlCodeUnits = sql.nulTerminatedUTF8
         var error: ErrorType?
+        
+        // During the execution of sqlite3_prepare_v2, the observer listens to
+        // authorization callbacks in order to observe schema changes.
+        let schemaChangeObserver = SchemaChangeObserver(self)
+        schemaChangeObserver.start()
+        
         sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
             let sqlEnd = sqlStart + sqlCodeUnits.count
@@ -341,9 +347,16 @@ extension Database {
                 statementStart = statementEnd
             }
         }
+        
+        schemaChangeObserver.stop()
+        if schemaChangeObserver.schemaChanged {
+            clearSchemaCache()
+        }
+        
         if let error = error {
             throw error
         }
+        
         // Force arguments validity. See UpdateStatement.execute(), and SelectStatement.fetchSequence()
         try! validateRemainingArguments()
         
@@ -578,8 +591,8 @@ extension Database {
     
     /// Clears the database schema cache.
     ///
-    /// You may need to clear the cache if you modify the database schema
-    /// outside of a database migration performed by DatabaseMigrator.
+    /// You may need to clear the cache manually if the database schema is
+    /// modified by another connection.
     public func clearSchemaCache() {
         preconditionValidQueue()
         primaryKeyCache = [:]
@@ -744,6 +757,61 @@ enum PrimaryKey {
         case .Regular:
             return nil
         }
+    }
+}
+
+// A class that uses sqlite3_set_authorizer to fetch the list of tables
+// used by a select statement.
+final class SourceTableObserver {
+    var sourceTables: Set<String> = []
+    let database: Database
+    
+    init(_ database: Database) {
+        self.database = database
+    }
+    
+    func start() {
+        let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
+            if actionCode == SQLITE_READ {
+                let sniffer = unsafeBitCast(snifferPointer, SourceTableObserver.self)
+                sniffer.sourceTables.insert(String.fromCString(CString1)!)
+            }
+            return SQLITE_OK
+            }, snifferPointer)
+    }
+    
+    func stop() {
+        sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
+    }
+}
+
+// A class that uses sqlite3_set_authorizer to check if the database schema
+// changes.
+final class SchemaChangeObserver {
+    var schemaChanged: Bool = false
+    let database: Database
+    
+    init(_ database: Database) {
+        self.database = database
+    }
+    
+    func start() {
+        let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
+            switch actionCode {
+            case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE:
+                let sniffer = unsafeBitCast(snifferPointer, SchemaChangeObserver.self)
+                sniffer.schemaChanged = true
+            default:
+                break
+            }
+            return SQLITE_OK
+            }, snifferPointer)
+    }
+    
+    func stop() {
+        sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
     }
 }
 

@@ -269,14 +269,16 @@ public final class SelectStatement : Statement {
     override init(database: Database, sql: String) throws {
         self.sourceTables = []
         
-        // During the execution of sqlite3_prepare_v2 by super.init, the sniffer
-        // listens for authorization callbacks in order to grab the list of
-        // source tables.
-        let sniffer = SourceTableSniffer(database)
-        sniffer.start()
-        defer { sniffer.stop() }
+        // During the execution of sqlite3_prepare_v2 by super.init, the
+        // observer listens to authorization callbacks in order to grab the
+        // list of source tables.
+        let observer = SourceTableObserver(database)
+        observer.start()
+        defer { observer.stop() }
+        
         try super.init(database: database, sql: sql)
-        self.sourceTables = sniffer.sourceTables
+        
+        self.sourceTables = observer.sourceTables
     }
     
     /// The number of columns in the resulting rows.
@@ -306,32 +308,6 @@ public final class SelectStatement : Statement {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepareWithArguments(arguments)
         return DatabaseSequence(statement: self, element: element)
-    }
-    
-    // A class that uses sqlite3_set_authorizer to fetch the list of tables
-    // used by a select statement.
-    private class SourceTableSniffer {
-        var sourceTables: Set<String> = []
-        let database: Database
-        
-        init(_ database: Database) {
-            self.database = database
-        }
-        
-        func start() {
-            let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-            sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
-                if actionCode == SQLITE_READ {
-                    let sniffer = unsafeBitCast(snifferPointer, SourceTableSniffer.self)
-                    sniffer.sourceTables.insert(String.fromCString(CString1)!)
-                }
-                return SQLITE_OK
-                }, snifferPointer)
-        }
-        
-        func stop() {
-            sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
-        }
     }
 }
 
@@ -415,6 +391,25 @@ public struct DatabaseGenerator<T>: GeneratorType {
 ///         return .Commit
 ///     }
 public final class UpdateStatement : Statement {
+    
+    override init(database: Database, sql: String, sqliteStatement: SQLiteStatement) {
+        super.init(database: database, sql: sql, sqliteStatement: sqliteStatement)
+    }
+    
+    override init(database: Database, sql: String) throws {
+        // During the execution of sqlite3_prepare_v2 by super.init, the
+        // observer listens to authorization callbacks in order to observe
+        // schema changes.
+        let observer = SchemaChangeObserver(database)
+        observer.start()
+        defer { observer.stop() }
+        
+        try super.init(database: database, sql: sql)
+        
+        if observer.schemaChanged {
+            database.clearSchemaCache()
+        }
+    }
     
     /// Executes the SQL query.
     ///

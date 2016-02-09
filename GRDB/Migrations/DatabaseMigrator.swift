@@ -106,7 +106,6 @@ public struct DatabaseMigrator {
         let appliedIdentifiers = String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
         for migration in migrations where !appliedIdentifiers.contains(migration.identifier) {
             try migration.run(db)
-            db.clearSchemaCache()
         }
     }
 }
