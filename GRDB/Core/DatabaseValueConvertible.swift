@@ -58,8 +58,9 @@ public extension DatabaseValueConvertible {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence.
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
@@ -74,8 +75,9 @@ public extension DatabaseValueConvertible {
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetchAll(statement)  // [String]
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
@@ -90,8 +92,9 @@ public extension DatabaseValueConvertible {
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let name = String.fetchOne(statement)   // String?
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
@@ -123,9 +126,10 @@ public extension DatabaseValueConvertible {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
@@ -136,9 +140,10 @@ public extension DatabaseValueConvertible {
     ///
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
@@ -152,9 +157,10 @@ public extension DatabaseValueConvertible {
     ///
     ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
@@ -196,8 +202,9 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of optional values.
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Wrapped?> {

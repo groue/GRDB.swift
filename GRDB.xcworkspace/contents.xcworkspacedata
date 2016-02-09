@@ -19,6 +19,9 @@
       <FileRef
          location = "group:DatabaseTimestamp.playground">
       </FileRef>
+      <FileRef
+         location = "group:UserDefaults.playground">
+      </FileRef>
    </Group>
    <FileRef
       location = "group:GRDB.xcodeproj">

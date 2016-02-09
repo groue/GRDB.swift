@@ -4,8 +4,8 @@ extension DatabaseFunction {
     /// Returns an SQL expression that applies the function.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public func apply(arguments: _SQLExpressionType...) -> _DerivedSQLExpressionType {
-        return _SQLExpression.Function(name, arguments.map { $0.SQLExpression })
+    public func apply(arguments: _SQLExpressionType...) -> _SQLExpression {
+        return .Function(name, arguments.map { $0.SQLExpression })
     }
 }
 
@@ -15,8 +15,8 @@ extension DatabaseFunction {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func abs(value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
-    return _SQLExpression.Function("ABS", [value.SQLExpression])
+public func abs(value: _DerivedSQLExpressionType) -> _SQLExpression {
+    return .Function("ABS", [value.SQLExpression])
 }
 
 
@@ -25,8 +25,8 @@ public func abs(value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func average(value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
-    return _SQLExpression.Function("AVG", [value.SQLExpression])
+public func average(value: _DerivedSQLExpressionType) -> _SQLExpression {
+    return .Function("AVG", [value.SQLExpression])
 }
 
 
@@ -35,8 +35,8 @@ public func average(value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionTy
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func count(counted: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
-    return _SQLExpression.Count(counted)
+public func count(counted: _DerivedSQLExpressionType) -> _SQLExpression {
+    return .Count(counted)
 }
 
 
@@ -45,8 +45,8 @@ public func count(counted: _DerivedSQLExpressionType) -> _DerivedSQLExpressionTy
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func count(distinct value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
-    return _SQLExpression.CountDistinct(value.SQLExpression)
+public func count(distinct value: _DerivedSQLExpressionType) -> _SQLExpression {
+    return .CountDistinct(value.SQLExpression)
 }
 
 
@@ -55,16 +55,16 @@ public func count(distinct value: _DerivedSQLExpressionType) -> _DerivedSQLExpre
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func ?? (lhs: _DerivedSQLExpressionType, rhs: _SQLExpressionType) -> _DerivedSQLExpressionType {
-    return _SQLExpression.Function("IFNULL", [lhs.SQLExpression, rhs.SQLExpression])
+public func ?? (lhs: _DerivedSQLExpressionType, rhs: _SQLExpressionType) -> _SQLExpression {
+    return .Function("IFNULL", [lhs.SQLExpression, rhs.SQLExpression])
 }
 
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func ?? (lhs: _SQLExpressionType?, rhs: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
+public func ?? (lhs: _SQLExpressionType?, rhs: _DerivedSQLExpressionType) -> _SQLExpression {
     if let lhs = lhs {
-        return _SQLExpression.Function("IFNULL", [lhs.SQLExpression, rhs.SQLExpression])
+        return .Function("IFNULL", [lhs.SQLExpression, rhs.SQLExpression])
     } else {
         return rhs.SQLExpression
     }
@@ -77,8 +77,8 @@ extension _DerivedSQLExpressionType {
     /// Returns an SQL expression.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public var lowercaseString: _DerivedSQLExpressionType {
-        return _SQLExpression.Function("LOWER", [SQLExpression])
+    public var lowercaseString: _SQLExpression {
+        return .Function("LOWER", [SQLExpression])
     }
 }
 
@@ -88,8 +88,8 @@ extension _DerivedSQLExpressionType {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func max(value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
-    return _SQLExpression.Function("MAX", [value.SQLExpression])
+public func max(value: _DerivedSQLExpressionType) -> _SQLExpression {
+    return .Function("MAX", [value.SQLExpression])
 }
 
 
@@ -98,8 +98,8 @@ public func max(value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func min(value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
-    return _SQLExpression.Function("MIN", [value.SQLExpression])
+public func min(value: _DerivedSQLExpressionType) -> _SQLExpression {
+    return .Function("MIN", [value.SQLExpression])
 }
 
 
@@ -108,8 +108,8 @@ public func min(value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func sum(value: _DerivedSQLExpressionType) -> _DerivedSQLExpressionType {
-    return _SQLExpression.Function("SUM", [value.SQLExpression])
+public func sum(value: _DerivedSQLExpressionType) -> _SQLExpression {
+    return .Function("SUM", [value.SQLExpression])
 }
 
 
@@ -119,7 +119,7 @@ extension _DerivedSQLExpressionType {
     /// Returns an SQL expression.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public var uppercaseString: _DerivedSQLExpressionType {
-        return _SQLExpression.Function("UPPER", [SQLExpression])
+    public var uppercaseString: _SQLExpression {
+        return .Function("UPPER", [SQLExpression])
     }
 }

@@ -18,13 +18,12 @@
 /// RowConvertible is adopted by Record.
 public protocol RowConvertible {
     
-    /// Returns a value initialized from `row`.
+    /// Initializes a value from `row`.
     ///
-    /// For performance reasons, the row argument may be reused between several
-    /// instance initializations during the iteration of a fetch query. So if
-    /// you want to keep the row for later use, make sure to store a copy:
-    /// `result.row = row.copy()`.
-    static func fromRow(row: Row) -> Self
+    /// For performance reasons, the row argument may be reused during the
+    /// iteration of a fetch query. If you want to keep the row for later use,
+    /// make sure to store a copy: `self.row = row.copy()`.
+    init(_ row: Row)
     
     /// Do not call this method directly.
     ///
@@ -41,7 +40,7 @@ extension RowConvertible {
     
     // MARK: - Fetching From SelectStatement
     
-    /// Returns a sequence of values fetched from a prepared statement.
+    /// Returns a sequence of records fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT * FROM persons")
     ///     let persons = Person.fetch(statement) // DatabaseSequence<Person>
@@ -58,41 +57,44 @@ extension RowConvertible {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
-    /// - returns: A sequence.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    /// - returns: A sequence of records.
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let row = Row(statement: statement)
         let database = statement.database
         return statement.fetchSequence(arguments: arguments) {
-            var value = fromRow(row)
+            var value = self.init(row)
             value.awakeFromFetch(row: row, database: database)
             return value
         }
     }
     
-    /// Returns an array of values fetched from a prepared statement.
+    /// Returns an array of records fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT * FROM persons")
     ///     let persons = Person.fetchAll(statement) // [Person]
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
-    /// - returns: An array.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
         return Array(fetch(statement, arguments: arguments))
     }
     
-    /// Returns a single value fetched from a prepared statement.
+    /// Returns a single record fetched from a prepared statement.
     ///
     ///     let statement = db.selectStatement("SELECT * FROM persons")
     ///     let person = Person.fetchOne(statement) // Person?
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
-    /// - returns: An optional value.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
         return fetch(statement, arguments: arguments).generate().next()
@@ -101,7 +103,7 @@ extension RowConvertible {
     
     // MARK: - Fetching From SQL
     
-    /// Returns a sequence of values fetched from an SQL query.
+    /// Returns a sequence of records fetched from an SQL query.
     ///
     ///     let persons = Person.fetch(db, "SELECT * FROM persons") // DatabaseSequence<Person>
     ///
@@ -117,36 +119,39 @@ extension RowConvertible {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
-    /// - returns: A sequence.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    /// - returns: A sequence of records.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         return fetch(try! db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Returns an array of values fetched from an SQL query.
+    /// Returns an array of records fetched from an SQL query.
     ///
     ///     let persons = Person.fetchAll(db, "SELECT * FROM persons") // [Person]
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
-    /// - returns: An array.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
         return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
     
-    /// Returns a single value fetched from an SQL query.
+    /// Returns a single record fetched from an SQL query.
     ///
     ///     let person = Person.fetchOne(db, "SELECT * FROM persons") // Person?
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
-    /// - returns: An optional value.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
         return fetchOne(try! db.selectStatement(sql), arguments: arguments)

@@ -1,13 +1,13 @@
 /// When a type adopts both DatabaseValueConvertible and
-/// SQLiteStatementConvertible, it is granted with faster access to the SQLite
+/// StatementColumnConvertible, it is granted with faster access to the SQLite
 /// database values.
-public protocol SQLiteStatementConvertible {
+public protocol StatementColumnConvertible {
     
     /// Returns a value initialized from a raw SQLite statement pointer.
     ///
-    /// As an example, here is the how Int64 adopts SQLiteStatementConvertible:
+    /// As an example, here is the how Int64 adopts StatementColumnConvertible:
     ///
-    ///     extension Int64: SQLiteStatementConvertible {
+    ///     extension Int64: StatementColumnConvertible {
     ///         public init(sqliteStatement: SQLiteStatement, index: Int32) {
     ///             self = sqlite3_column_int64(sqliteStatement, index)
     ///         }
@@ -17,18 +17,19 @@ public protocol SQLiteStatementConvertible {
     ///
     /// See https://www.sqlite.org/c3ref/column_blob.html for more information.
     ///
-    /// - parameter sqliteStatement: A pointer to a SQLite statement.
-    /// - parameter index: The column index.
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
     init(sqliteStatement: SQLiteStatement, index: Int32)
 }
 
 
 /// Types that adopt both DatabaseValueConvertible and
-/// SQLiteStatementConvertible can be efficiently initialized from
+/// StatementColumnConvertible can be efficiently initialized from
 /// database values.
 ///
 /// See DatabaseValueConvertible for more information.
-public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible {
+public extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     
     // MARK: - Fetching From SelectStatement
@@ -50,8 +51,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of values.
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
@@ -69,8 +71,9 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = String.fetchAll(statement)  // [String]
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array of values.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
@@ -82,17 +85,20 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let name = String.fetchOne(statement)   // String?
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
         let sqliteStatement = statement.sqliteStatement
-        let isNullSequence = statement.fetchSequence(arguments: arguments) {
-            sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL
+        let sequence = statement.fetchSequence(arguments: arguments) {
+            (sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL) ?
+                (nil as Self?) :
+                Self.init(sqliteStatement: sqliteStatement, index: 0)
         }
-        if isNullSequence.generate().next() == false {
-            return Self.init(sqliteStatement: sqliteStatement, index: 0)
+        if let value = sequence.generate().next() {
+            return value
         }
         return nil
     }
@@ -116,9 +122,10 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of values.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
@@ -129,9 +136,10 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array of values.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
@@ -142,9 +150,10 @@ public extension DatabaseValueConvertible where Self: SQLiteStatementConvertible
     ///
     ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {

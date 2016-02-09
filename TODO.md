@@ -1,10 +1,9 @@
 - [ ] How to have robust single writer/several readers?
 - [ ] protocol DatabaseEquatable, with default implementation for MutablePersistable
 - [ ] Query builder
-    - [ ] Check for gross pollution (`1.SQLexpression`)
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
-    - [ ] Document custom functions
+    - [ ] NOW
     - [ ] RANDOM() https://www.sqlite.org/lang_corefunc.html
     - [ ] LIKE https://www.sqlite.org/lang_expr.html
     - [ ] GLOB https://www.sqlite.org/lang_expr.html
@@ -12,6 +11,9 @@
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
     - [ ] EXISTS https://www.sqlite.org/lang_expr.html
+- [X] Support for FetchedResultsController: which tables are involved in a SELECT query?
+- [ ] Check for retain cycle between database and its cached statements
+- [ ] Only invalidate schema cache if a statement is executed.
 
 
 
@@ -26,8 +28,8 @@ Not sure:
 
 Require changes in the Swift language:
 
-- [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into SQLiteStatementConvertible when Swift allows for it.
-- [ ] Specific and optimized Optional<SQLiteStatementConvertible>.fetch... methods when http://openradar.appspot.com/22852669 is fixed.
+- [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into StatementColumnConvertible when Swift allows for it.
+- [ ] Specific and optimized Optional<StatementColumnConvertible>.fetch... methods when http://openradar.appspot.com/22852669 is fixed.
 
 
 Requires recompilation of SQLite:

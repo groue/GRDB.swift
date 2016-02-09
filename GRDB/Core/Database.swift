@@ -3,6 +3,10 @@ import Foundation
 /// A raw SQLite connection, suitable for the SQLite C API.
 public typealias SQLiteConnection = COpaquePointer
 
+/// A raw SQLite function argument.
+typealias SQLiteValue = COpaquePointer
+
+
 /// A Database connection.
 ///
 /// You don't create a database directly. Instead, you use a DatabaseQueue:
@@ -67,7 +71,9 @@ public final class Database {
     }
     
     deinit {
-        sqlite3_close(sqliteConnection)
+        if sqliteConnection != nil {
+            sqlite3_close(sqliteConnection)
+        }
     }
     
     func preconditionValidQueue() {
@@ -117,7 +123,7 @@ public final class Database {
 }
 
 
-/// A SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
+/// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
 enum ThreadingMode {
     case Default
     case MultiThread
@@ -193,10 +199,12 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    @warn_unused_result
     public func selectStatement(sql: String) throws -> SelectStatement {
         return try SelectStatement(database: self, sql: sql)
     }
     
+    @warn_unused_result
     func cachedSelectStatement(sql: String) throws -> SelectStatement {
         if let statement = selectStatementCache[sql] {
             return statement
@@ -218,10 +226,12 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    @warn_unused_result
     public func updateStatement(sql: String) throws -> UpdateStatement {
         return try UpdateStatement(database: self, sql: sql)
     }
     
+    @warn_unused_result
     func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
         if let statement = updateStatementCache[sql] {
             return statement
@@ -246,10 +256,11 @@ extension Database {
     ///
     /// This method may throw a DatabaseError.
     ///
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A DatabaseChanges.
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         preconditionValidQueue()
         
@@ -302,6 +313,12 @@ extension Database {
         let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
         let sqlCodeUnits = sql.nulTerminatedUTF8
         var error: ErrorType?
+        
+        // During the execution of sqlite3_prepare_v2, the observer listens to
+        // authorization callbacks in order to observe schema changes.
+        let schemaChangeObserver = SchemaChangeObserver(self)
+        schemaChangeObserver.start()
+        
         sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
             let sqlEnd = sqlStart + sqlCodeUnits.count
@@ -314,10 +331,15 @@ extension Database {
                     error = DatabaseError(code: code, message: lastErrorMessage, sql: sql)
                     break
                 }
-                let sql = NSString(bytes: statementStart, length: statementEnd - statementStart, encoding: NSUTF8StringEncoding)! as String
-                let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement)
+                
+                let sqlData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd - statementStart, freeWhenDone: false)
+                let sql = String(data: sqlData, encoding: NSUTF8StringEncoding)!.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet())
+                guard !sql.isEmpty else {
+                    break
+                }
                 
                 do {
+                    let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement)
                     try statement.execute(arguments: consumeArguments(statement))
                 } catch let statementError {
                     error = statementError
@@ -327,9 +349,16 @@ extension Database {
                 statementStart = statementEnd
             }
         }
+        
+        schemaChangeObserver.stop()
+        if schemaChangeObserver.schemaChanged {
+            clearSchemaCache()
+        }
+        
         if let error = error {
             throw error
         }
+        
         // Force arguments validity. See UpdateStatement.execute(), and SelectStatement.fetchSequence()
         try! validateRemainingArguments()
         
@@ -338,8 +367,6 @@ extension Database {
         let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
         return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: insertedRowID)
     }
-    
-    
 }
 
 
@@ -372,7 +399,7 @@ extension Database {
             { (context, argc, argv) in
                 let function = unsafeBitCast(sqlite3_user_data(context), DatabaseFunction.self)
                 do {
-                    let result = try function.function(context, argc, argv)
+                    let result = try function.function(argc, argv)
                     switch result.storage {
                     case .Null:
                         sqlite3_result_null(context)
@@ -417,17 +444,12 @@ extension Database {
 
 
 /// An SQL function.
-public class DatabaseFunction : Hashable {
+public final class DatabaseFunction {
     let name: String
     let argumentCount: Int32
     let pure: Bool
-    let function: (COpaquePointer, Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
+    let function: (Int32, UnsafeMutablePointer<COpaquePointer>) throws -> DatabaseValue
     var eTextRep: Int32 { return pure ? SQLITE_DETERMINISTIC : 0 }
-    
-    /// The hash value.
-    public var hashValue: Int {
-        return name.hashValue ^ argumentCount.hashValue
-    }
     
     /// Returns an SQL function.
     ///
@@ -441,25 +463,34 @@ public class DatabaseFunction : Hashable {
     ///     db.addFunction(fn)
     ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
     ///
-    /// - parameter name: The function name.
-    /// - parameter argumentCount: The number of arguments of the function. If
-    ///   omitted, or nil, the function accepts any number of arguments.
-    /// - parameter pure: Whether the function is "pure", which means that its
-    ///   results only depends on its inputs. When a function is pure, SQLite
-    ///   has the opportunity to perform additional optimizations. Default value
-    ///   is false.
-    /// - parameter function: A function that takes an array of DatabaseValue
-    ///   arguments, and returns an optional DatabaseValueConvertible such as
-    ///   Int, String, NSDate, etc. The array is guaranteed to have exactly
-    ///   *argumentCount* elements, provided *argumentCount* is not nil.
+    /// - parameters:
+    ///     - name: The function name.
+    ///     - argumentCount: The number of arguments of the function. If
+    ///       omitted, or nil, the function accepts any number of arguments.
+    ///     - pure: Whether the function is "pure", which means that its results
+    ///       only depends on its inputs. When a function is pure, SQLite has
+    ///       the opportunity to perform additional optimizations. Default value
+    ///       is false.
+    ///     - function: A function that takes an array of DatabaseValue
+    ///       arguments, and returns an optional DatabaseValueConvertible such
+    ///       as Int, String, NSDate, etc. The array is guaranteed to have
+    ///       exactly *argumentCount* elements, provided *argumentCount* is
+    ///       not nil.
     public init(_ name: String, argumentCount: Int32? = nil, pure: Bool = false, function: [DatabaseValue] throws -> DatabaseValueConvertible?) {
         self.name = name
         self.argumentCount = argumentCount ?? -1
         self.pure = pure
-        self.function = { (context, argc, argv) in
+        self.function = { (argc, argv) in
             let arguments = (0..<Int(argc)).map { index in DatabaseValue(sqliteValue: argv[index]) }
             return try function(arguments)?.databaseValue ?? .Null
         }
+    }
+}
+
+extension DatabaseFunction : Hashable {
+    /// The hash value.
+    public var hashValue: Int {
+        return name.hashValue ^ argumentCount.hashValue
     }
 }
 
@@ -492,10 +523,7 @@ extension Database {
             collationPointer,
             { (collationPointer, length1, buffer1, length2, buffer2) -> Int32 in
                 let collation = unsafeBitCast(collationPointer, DatabaseCollation.self)
-                // Buffers are not C strings: they do not end with \0.
-                let string1 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer1), length: Int(length1), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
-                let string2 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer2), length: Int(length2), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
-                return Int32(collation.function(string1, string2).rawValue)
+                return Int32(collation.function(length1, buffer1, length2, buffer2).rawValue)
             }, nil)
         guard code == SQLITE_OK else {
             fatalError(DatabaseError(code: code, message: lastErrorMessage, sql: nil, arguments: nil).description)
@@ -514,16 +542,9 @@ extension Database {
 }
 
 /// A Collation.
-public class DatabaseCollation : Hashable {
+public final class DatabaseCollation {
     public let name: String
-    let function: (String, String) -> NSComparisonResult
-    
-    /// The hash value.
-    public var hashValue: Int {
-        // We can't compute a hash since the equality is based on the opaque
-        // sqlite3_strnicmp SQLite function.
-        return 0
-    }
+    let function: (Int32, UnsafePointer<Void>, Int32, UnsafePointer<Void>) -> NSComparisonResult
     
     /// Returns a collation.
     ///
@@ -533,11 +554,26 @@ public class DatabaseCollation : Hashable {
     ///     db.addCollation(collation)
     ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///
-    /// - parameter name: The function name.
-    /// - parameter function: A function that compares two strings.
+    /// - parameters:
+    ///     - name: The function name.
+    ///     - function: A function that compares two strings.
     public init(_ name: String, function: (String, String) -> NSComparisonResult) {
         self.name = name
-        self.function = function
+        self.function = { (length1, buffer1, length2, buffer2) in
+            // Buffers are not C strings: they do not end with \0.
+            let string1 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer1), length: Int(length1), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
+            let string2 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer2), length: Int(length2), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
+            return function(string1, string2)
+        }
+    }
+}
+
+extension DatabaseCollation : Hashable {
+    /// The hash value.
+    public var hashValue: Int {
+        // We can't compute a hash since the equality is based on the opaque
+        // sqlite3_strnicmp SQLite function.
+        return 0
     }
 }
 
@@ -555,17 +591,24 @@ extension Database {
     
     /// Clears the database schema cache.
     ///
-    /// You may need to clear the cache if you modify the database schema
-    /// outside of a database migration performed by DatabaseMigrator.
+    /// You may need to clear the cache manually if the database schema is
+    /// modified by another connection.
     public func clearSchemaCache() {
         preconditionValidQueue()
         primaryKeyCache = [:]
+        
+        // We do clear updateStatementCache and selectStatementCache despite
+        // the automatic statement recompilation (see https://www.sqlite.org/c3ref/prepare.html)
+        // because the automatic statement recompilation only happens a
+        // limited number of times.
         updateStatementCache = [:]
         selectStatementCache = [:]
     }
     
     /// Returns whether a table exists.
     public func tableExists(tableName: String) -> Bool {
+        preconditionValidQueue()
+        
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         return Row.fetchOne(self,
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND LOWER(name) = ?",
@@ -641,8 +684,8 @@ extension Database {
             // > column with declared type "INTEGER" includes an "PRIMARY KEY
             // > DESC" clause, it does not become an alias for the rowid [...]
             //
-            // We ignore the exception, and consider all INTEGER primary keys as
-            // aliases for the rowid:
+            // FIXME: We ignore the exception, and consider all INTEGER primary
+            // keys as aliases for the rowid:
             if pkColumnInfo.type.uppercaseString == "INTEGER" {
                 primaryKey = .RowID(pkColumnInfo.name)
             } else {
@@ -675,13 +718,12 @@ extension Database {
         let defaultDatabaseValue: DatabaseValue
         let primaryKeyIndex: Int
         
-        static func fromRow(row: Row) -> ColumnInfo {
-            return ColumnInfo(
-                name:row.value(named: "name"),
-                type:row.value(named: "type"),
-                notNull:row.value(named: "notnull"),
-                defaultDatabaseValue:row["dflt_value"]!,
-                primaryKeyIndex:row.value(named: "pk"))
+        init(_ row: Row) {
+            name = row.value(named: "name")
+            type = row.value(named: "type")
+            notNull = row.value(named: "notnull")
+            defaultDatabaseValue = row["dflt_value"]!
+            primaryKeyIndex = row.value(named: "pk")
         }
     }
 }
@@ -725,6 +767,61 @@ enum PrimaryKey {
     }
 }
 
+// A class that uses sqlite3_set_authorizer to fetch the list of tables
+// used by a select statement.
+final class SourceTableObserver {
+    var sourceTables: Set<String> = []
+    let database: Database
+    
+    init(_ database: Database) {
+        self.database = database
+    }
+    
+    func start() {
+        let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
+            if actionCode == SQLITE_READ {
+                let sniffer = unsafeBitCast(snifferPointer, SourceTableObserver.self)
+                sniffer.sourceTables.insert(String.fromCString(CString1)!)
+            }
+            return SQLITE_OK
+            }, snifferPointer)
+    }
+    
+    func stop() {
+        sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
+    }
+}
+
+// A class that uses sqlite3_set_authorizer to check if the database schema
+// changes.
+final class SchemaChangeObserver {
+    var schemaChanged: Bool = false
+    let database: Database
+    
+    init(_ database: Database) {
+        self.database = database
+    }
+    
+    func start() {
+        let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
+            switch actionCode {
+            case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE:
+                let sniffer = unsafeBitCast(snifferPointer, SchemaChangeObserver.self)
+                sniffer.schemaChanged = true
+            default:
+                break
+            }
+            return SQLITE_OK
+            }, snifferPointer)
+    }
+    
+    func stop() {
+        sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
+    }
+}
+
 
 // =========================================================================
 // MARK: - Transactions
@@ -744,12 +841,13 @@ extension Database {
     ///
     /// This method is not reentrant: you can't nest transactions.
     ///
-    /// - parameter kind: The transaction type (default nil). If nil, the
-    ///   transaction type is configuration.defaultTransactionKind, which itself
-    ///   defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
-    ///   for more information.
-    /// - parameter block: A block that executes SQL statements and return
-    ///   either .Commit or .Rollback.
+    /// - parameters:
+    ///     - kind: The transaction type (default nil). If nil, the transaction
+    ///       type is configuration.defaultTransactionKind, which itself
+    ///       defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+    ///       for more information.
+    ///     - block: A block that executes SQL statements and return either
+    ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(kind: TransactionKind? = nil, block: () throws -> TransactionCompletion) throws {
         preconditionValidQueue()
@@ -944,7 +1042,7 @@ extension Database {
 }
 
 
-/// A SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
+/// An SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
 public enum TransactionKind {
     case Deferred
     case Immediate

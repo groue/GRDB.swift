@@ -10,12 +10,14 @@ public struct FetchRequest<T> {
     }
     
     /// Returns a prepared statement that is ready to be executed.
+    ///
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     @warn_unused_result
-    public func selectStatement(db: Database) throws -> SelectStatement {
+    public func selectStatement(database: Database) throws -> SelectStatement {
         // TODO: split statement generation from arguments building
         var bindings: [DatabaseValueConvertible?] = []
-        let sql = try query.sql(db, &bindings)
-        let statement = try db.selectStatement(sql)
+        let sql = try query.sql(database, &bindings)
+        let statement = try database.selectStatement(sql)
         try statement.setArgumentsWithValidation(StatementArguments(bindings))
         return statement
     }
@@ -39,7 +41,9 @@ extension FetchRequest {
     /// Returns a new FetchRequest with a new net of selected columns.
     @warn_unused_result
     public func select(selection: [_SQLSelectable]) -> FetchRequest<T> {
-        return FetchRequest(query.select(selection))
+        var query = self.query
+        query.selection = selection
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with a new net of selected columns.
@@ -59,7 +63,13 @@ extension FetchRequest {
     /// eventual set of already applied predicates.
     @warn_unused_result
     public func filter(predicate: _SQLExpressionType) -> FetchRequest<T> {
-        return FetchRequest(query.filter(predicate.SQLExpression))
+        var query = self.query
+        if let whereExpression = query.whereExpression {
+            query.whereExpression = .InfixOperator("AND", whereExpression, predicate.SQLExpression)
+        } else {
+            query.whereExpression = predicate.SQLExpression
+        }
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with the provided *predicate* added to the
@@ -78,7 +88,9 @@ extension FetchRequest {
     /// Returns a new FetchRequest grouped according to *expressions*.
     @warn_unused_result
     public func group(expressions: [_SQLExpressionType]) -> FetchRequest<T> {
-        return FetchRequest(query.group(expressions.map { $0.SQLExpression }))
+        var query = self.query
+        query.groupByExpressions = expressions.map { $0.SQLExpression }
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with a new grouping.
@@ -91,7 +103,13 @@ extension FetchRequest {
     /// eventual set of already applied predicates.
     @warn_unused_result
     public func having(predicate: _SQLExpressionType) -> FetchRequest<T> {
-        return FetchRequest(query.having(predicate.SQLExpression))
+        var query = self.query
+        if let havingExpression = query.havingExpression {
+            query.havingExpression = (havingExpression && predicate).SQLExpression
+        } else {
+            query.havingExpression = predicate.SQLExpression
+        }
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with the provided *sql* added to
@@ -112,7 +130,9 @@ extension FetchRequest {
     /// the eventual set of already applied sort descriptors.
     @warn_unused_result
     public func order(sortDescriptors: [_SQLSortDescriptorType]) -> FetchRequest<T> {
-        return FetchRequest(query.order(sortDescriptors))
+        var query = self.query
+        query.sortDescriptors.appendContentsOf(sortDescriptors)
+        return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with the provided *sql* added to the
@@ -134,7 +154,9 @@ extension FetchRequest {
     /// *offset*.
     @warn_unused_result
     public func limit(limit: Int, offset: Int? = nil) -> FetchRequest<T> {
-        return FetchRequest(query.limit(limit, offset: offset))
+        var query = self.query
+        query.limit = _SQLLimit(limit: limit, offset: offset)
+        return FetchRequest(query)
     }
 }
 
@@ -147,6 +169,24 @@ extension FetchRequest {
     @warn_unused_result
     public func fetchCount(db: Database) -> Int {
         return Int.fetchOne(db, select([_SQLExpression.Count(_SQLResultColumn.Star(nil))]))!
+    }
+}
+
+
+extension FetchRequest {
+    
+    // MARK: FetchRequest as subquery
+    
+    /// Returns an SQL expression that checks the inclusion of a value in
+    /// the results of another request.
+    public func contains(element: _SQLExpressionType) -> _SQLExpression {
+        return .InSubQuery(query, element.SQLExpression)
+    }
+    
+    /// Returns an SQL expression that checks whether the receiver, as a
+    /// subquery, returns any row.
+    public var exists: _SQLExpression {
+        return .Exists(query)
     }
 }
 
@@ -275,7 +315,7 @@ extension TableMapping {
     
     // MARK: Counting
     
-    /// Returns the number of rows.
+    /// Returns the number of records.
     @warn_unused_result
     public static func fetchCount(db: Database) -> Int {
         return all().fetchCount(db)
@@ -367,7 +407,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
 }
 
 
-extension DatabaseValueConvertible where Self: SQLiteStatementConvertible {
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     // MARK: Fetching From FetchRequest
     
@@ -419,7 +459,7 @@ extension RowConvertible {
     
     // MARK: Fetching From FetchRequest
     
-    /// Returns a sequence of values fetched from a fetch request.
+    /// Returns a sequence of records fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
     ///     let persons = Person.fetch(db, request) // DatabaseSequence<Person>
@@ -440,7 +480,7 @@ extension RowConvertible {
         return try! fetch(request.selectStatement(db))
     }
     
-    /// Returns an array of values fetched from a fetch request.
+    /// Returns an array of records fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
     ///     let persons = Person.fetchAll(db, request) // [Person]
@@ -449,7 +489,7 @@ extension RowConvertible {
         return try! fetchAll(request.selectStatement(db))
     }
     
-    /// Returns a single value fetched from a fetch request.
+    /// Returns a single record fetched from a fetch request.
     ///
     ///     let request = Person.order(name)
     ///     let person = Person.fetchOne(db, request) // Person?
@@ -463,7 +503,7 @@ extension RowConvertible where Self: TableMapping {
     
     // MARK: Fetching All
     
-    /// Returns a sequence of all values fetched from the database.
+    /// Returns a sequence of all records fetched from the database.
     ///
     ///     let persons = Person.fetch(db) // DatabaseSequence<Person>
     ///
@@ -483,7 +523,7 @@ extension RowConvertible where Self: TableMapping {
         return all().fetch(db)
     }
     
-    /// Returns an array of all values fetched from the database.
+    /// Returns an array of all records fetched from the database.
     ///
     ///     let persons = Person.fetchAll(db) // [Person]
     @warn_unused_result
@@ -491,7 +531,7 @@ extension RowConvertible where Self: TableMapping {
         return all().fetchAll(db)
     }
     
-    /// Returns the first value fetched from a fetch request.
+    /// Returns the first record fetched from a fetch request.
     ///
     ///     let person = Person.fetchOne(db) // Person?
     @warn_unused_result

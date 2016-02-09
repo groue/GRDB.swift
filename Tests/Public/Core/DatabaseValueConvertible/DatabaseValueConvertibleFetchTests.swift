@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-// A type that adopts DatabaseValueConvertible but does not adopt SQLiteStatementConvertible
+// A type that adopts DatabaseValueConvertible but does not adopt StatementColumnConvertible
 struct WrappedInt: DatabaseValueConvertible {
     let int: Int
     init(int: Int) {

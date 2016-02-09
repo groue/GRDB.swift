@@ -35,14 +35,6 @@ public class Record : RowConvertible, TableMapping, Persistable {
         referenceRow = row.copy()
     }
     
-    /// Returns a new Record initialized from a row.
-    ///
-    /// This method is required by the RowConvertible protocol. It returns a
-    /// record initialized from the row. See init(row:Row).
-    public final class func fromRow(row: Row) -> Self {
-        return self.init(row)
-    }
-    
     
     // MARK: - Core methods
     
@@ -91,8 +83,9 @@ public class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// The default implementation does nothing.
     ///
-    /// - parameter rowID: The inserted rowID.
-    /// - parameter column: The name of the eventual INTEGER PRIMARY KEY column.
+    /// - parameters:
+    ///     - rowID: The inserted rowID.
+    ///     - column: The name of the eventual INTEGER PRIMARY KEY column.
     public func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
     }
     
@@ -108,7 +101,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// - returns: A copy of self.
     @warn_unused_result
     public func copy() -> Self {
-        let copy = self.dynamicType.fromRow(Row(persistentDictionary))
+        let copy = self.dynamicType.init(Row(persistentDictionary))
         copy.referenceRow = referenceRow
         return copy
     }
@@ -188,7 +181,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// their id automatically set after successful insertion, if it was nil
     /// before the insertion.
     ///
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func insert(db: Database) throws {
         // The simplest code would be:
         //
@@ -236,7 +229,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// This method is guaranteed to have updated a row in the database if it
     /// returns without error.
     ///
-    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
     public func update(db: Database) throws {
@@ -276,7 +269,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// This method is guaranteed to have inserted or updated a row in the
     /// database if it returns without error.
     ///
-    /// - throws: A DatabaseError whenever a SQLite error occurs, or errors
+    /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
     final public func save(db: Database) throws {
         try performSave(db)
@@ -288,7 +281,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// to true.
     ///
     /// - returns: Whether a database row was deleted.
-    /// - throws: A DatabaseError is thrown whenever a SQLite error occurs.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func delete(db: Database) throws -> Bool {
         let deleted = try performDelete(db)
         // Future calls to update() will throw NotFound. Make the user

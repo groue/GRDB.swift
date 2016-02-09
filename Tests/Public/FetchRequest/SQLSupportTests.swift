@@ -107,6 +107,16 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(halfOpenInterval.contains(Col.name))),
             "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A') AND (\"name\" < 'z'))")
+        
+        // Subquery
+        XCTAssertEqual(
+            sql(tableRequest.filter(tableRequest.select(Col.id).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" IN (SELECT \"id\" FROM \"readers\"))")
+        
+        // Subquery
+        XCTAssertEqual(
+            sql(tableRequest.filter(!tableRequest.select(Col.id).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" NOT IN (SELECT \"id\" FROM \"readers\"))")
     }
     
     func testContainsWithCollation() {
@@ -299,7 +309,13 @@ class SQLSupportTests: GRDBTestCase {
             sql(tableRequest.filter(Col.age == 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" = 10)")
         XCTAssertEqual(
+            sql(tableRequest.filter(Col.age == (10 as Int?))),
+            "SELECT * FROM \"readers\" WHERE (\"age\" = 10)")
+        XCTAssertEqual(
             sql(tableRequest.filter(10 == Col.age)),
+            "SELECT * FROM \"readers\" WHERE (10 = \"age\")")
+        XCTAssertEqual(
+            sql(tableRequest.filter((10 as Int?) == Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 = \"age\")")
         XCTAssertEqual(
             sql(tableRequest.filter(10 == 10)),
@@ -337,6 +353,12 @@ class SQLSupportTests: GRDBTestCase {
             sql(tableRequest.filter(Col.name.collating("NOCASE") == "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
+            sql(tableRequest.filter(Col.name.collating("NOCASE") == ("fOo" as String?))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE NOCASE)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.name.collating("NOCASE") == nil)),
+            "SELECT * FROM \"readers\" WHERE (\"name\" IS NULL COLLATE NOCASE)")
+        XCTAssertEqual(
             sql(tableRequest.filter(Col.name.collating(collation) == "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE localized_case_insensitive)")
     }
@@ -346,7 +368,13 @@ class SQLSupportTests: GRDBTestCase {
             sql(tableRequest.filter(Col.age != 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" <> 10)")
         XCTAssertEqual(
+            sql(tableRequest.filter(Col.age != (10 as Int?))),
+            "SELECT * FROM \"readers\" WHERE (\"age\" <> 10)")
+        XCTAssertEqual(
             sql(tableRequest.filter(10 != Col.age)),
+            "SELECT * FROM \"readers\" WHERE (10 <> \"age\")")
+        XCTAssertEqual(
+            sql(tableRequest.filter((10 as Int?) != Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 <> \"age\")")
         XCTAssertEqual(
             sql(tableRequest.filter(10 != 10)),
@@ -383,6 +411,12 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name.collating("NOCASE") != "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE NOCASE)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.name.collating("NOCASE") != ("fOo" as String?))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE NOCASE)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.name.collating("NOCASE") != nil)),
+            "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT NULL COLLATE NOCASE)")
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name.collating(collation) != "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE localized_case_insensitive)")
@@ -530,6 +564,15 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(!(Col.age === Col.age))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT \"age\")")
+    }
+    
+    func testExists() {
+        XCTAssertEqual(
+            sql(tableRequest.filter(tableRequest.exists)),
+            "SELECT * FROM \"readers\" WHERE (EXISTS (SELECT * FROM \"readers\"))")
+        XCTAssertEqual(
+            sql(tableRequest.filter(!tableRequest.exists)),
+            "SELECT * FROM \"readers\" WHERE (NOT EXISTS (SELECT * FROM \"readers\"))")
     }
     
     func testLogicalOperators() {

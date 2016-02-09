@@ -1,8 +1,8 @@
 import XCTest
 import GRDB
 
-// A type that adopts DatabaseValueConvertible and SQLiteStatementConvertible
-struct FastWrappedInt: DatabaseValueConvertible, SQLiteStatementConvertible {
+// A type that adopts DatabaseValueConvertible and StatementColumnConvertible
+struct FastWrappedInt: DatabaseValueConvertible, StatementColumnConvertible {
     let int: Int
     let fast: Bool
     
@@ -27,7 +27,7 @@ struct FastWrappedInt: DatabaseValueConvertible, SQLiteStatementConvertible {
     }
 }
 
-class SQLiteStatementConvertibleFetchTests: GRDBTestCase {
+class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testSlowConversion() {
         let slow = FastWrappedInt.fromDatabaseValue(0.databaseValue)!

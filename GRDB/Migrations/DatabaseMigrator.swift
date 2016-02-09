@@ -65,10 +65,12 @@ public struct DatabaseMigrator {
     ///             "ALTER TABLE new_persons RENAME TO persons;")
     ///     }
     ///
-    /// - parameter identifier: The migration identifier. It must be unique.
-    /// - parameter disabledForeignKeyChecks: If true, the migration is run with
-    ///   disabled foreign key checks.
-    /// - parameter block: The migration block that performs SQL statements.
+    /// - parameters:
+    ///     - identifier: The migration identifier.
+    ///     - disabledForeignKeyChecks: If true, the migration is run with
+    ///       disabled foreign key checks.
+    ///     - block: The migration block that performs SQL statements.
+    /// - precondition: No migration with the same same as already been registered.
     public mutating func registerMigration(identifier: String, withDisabledForeignKeyChecks disabledForeignKeyChecks: Bool = false, migrate: (db: Database) throws -> Void) {
         registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: disabledForeignKeyChecks, migrate: migrate))
     }
@@ -104,7 +106,6 @@ public struct DatabaseMigrator {
         let appliedIdentifiers = String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
         for migration in migrations where !appliedIdentifiers.contains(migration.identifier) {
             try migration.run(db)
-            db.clearSchemaCache()
         }
     }
 }

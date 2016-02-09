@@ -1,6 +1,40 @@
 Release Notes
 =============
 
+## 0.44.0
+
+Released February 9, 2016
+
+**Fixed**
+
+- `row.value(named:)` and `row[_]` reliably returns the value for the leftmost case-insensitive matching column.
+- A memory leak
+
+**New**
+
+Support for more SQL expressions in the [query interface](https://github.com/groue/GRDB.swift/#the-query-interface):
+
+- `IN (subquery)`
+- `EXISTS (subquery)`
+
+
+## 0.43.1
+
+Released February 4, 2016
+
+**Fixed**
+
+- SQL queries ending with a semicolon followed by whitespace characters no longer throw errors.
+
+
+## 0.43.0
+
+Released February 1, 2016
+
+**Breaking Changes**
+
+- Static method `RowConvertible.fromRow(_:Row)` has been replaced by a regular conversion initializer `RowConvertible.init(_:Row)` ([documentation](https://github.com/groue/GRDB.swift#rowconvertible-protocol))
+
 
 ## 0.42.1
 

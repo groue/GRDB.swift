@@ -11,7 +11,7 @@ public final class Row: CollectionType {
         impl = EmptyRowImpl()
     }
     
-    /// Builds a row from an dictionary of values.
+    /// Builds a row from a dictionary of values.
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
         sqliteStatement = nil
         impl = DictionaryRowImpl(dictionary: dictionary)
@@ -91,18 +91,18 @@ public final class Row: CollectionType {
     /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
-    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// Types that adopt DatabaseValueConvertible and StatementColumnConvertible
     /// can provide more conversions.
     ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value? {
         precondition(index >= 0 && index < count, "row index out of range")
         return unsafeValue(atIndex: index)
     }
     
-    private func unsafeValue<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value? {
+    private func unsafeValue<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value? {
         let sqliteStatement = self.sqliteStatement
         guard sqliteStatement != nil else {
             return impl.databaseValue(atIndex: index).value()
@@ -153,18 +153,18 @@ public final class Row: CollectionType {
     /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
-    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// Types that adopt DatabaseValueConvertible and StatementColumnConvertible
     /// can provide more conversions.
     ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value {
         precondition(index >= 0 && index < count, "row index out of range")
         return unsafeValue(atIndex: index)
     }
     
-    private func unsafeValue<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(atIndex index: Int) -> Value {
+    private func unsafeValue<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value {
         let sqliteStatement = self.sqliteStatement
         guard sqliteStatement != nil else {
             return impl.databaseValue(atIndex: index).value()
@@ -228,13 +228,13 @@ public final class Row: CollectionType {
     /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
-    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// Types that adopt DatabaseValueConvertible and StatementColumnConvertible
     /// can provide more conversions.
     ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value? {
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value? {
         guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
         }
@@ -279,13 +279,13 @@ public final class Row: CollectionType {
     /// - Text SQLite values to Swift String.
     /// - Blob SQLite values to NSData.
     ///
-    /// Types that adopt DatabaseValueConvertible and SQLiteStatementConvertible
+    /// Types that adopt DatabaseValueConvertible and StatementColumnConvertible
     /// can provide more conversions.
     ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// SQLiteStatementConvertible. It *may* trigger SQLite built-in conversions
+    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public func value<Value: protocol<DatabaseValueConvertible, SQLiteStatementConvertible>>(named columnName: String) -> Value {
+    public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value {
         guard let index = impl.indexOfColumn(named: columnName) else {
             fatalError("no such column: \(columnName)")
         }
@@ -421,9 +421,10 @@ public final class Row: CollectionType {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements of the sequence are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
@@ -437,8 +438,9 @@ public final class Row: CollectionType {
     ///     let statement = db.selectStatement("SELECT ...")
     ///     let rows = Row.fetchAll(statement)
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array of rows.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
@@ -453,8 +455,9 @@ public final class Row: CollectionType {
     ///     let statement = db.selectStatement("SELECT ...")
     ///     let row = Row.fetchOne(statement)
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional row.
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
@@ -494,9 +497,10 @@ public final class Row: CollectionType {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements of the sequence are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
@@ -507,9 +511,10 @@ public final class Row: CollectionType {
     ///
     ///     let rows = Row.fetchAll(db, "SELECT ...")
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array of rows.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
@@ -520,9 +525,10 @@ public final class Row: CollectionType {
     ///
     ///     let row = Row.fetchOne(db, "SELECT ...")
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An optional row.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
@@ -607,8 +613,13 @@ protocol RowImpl {
     func databaseValue(atIndex index: Int) -> DatabaseValue
     func dataNoCopy(atIndex index:Int) -> NSData?
     func columnName(atIndex index: Int) -> String
-    func indexOfColumn(named name: String) -> Int? // This method MUST be case-insensitive.
-    func copy(row: Row) -> Row                 // row.impl is guaranteed to be self.
+    
+    // This method MUST be case-insensitive, and returns the index of the
+    // leftmost column that matches *name*.
+    func indexOfColumn(named name: String) -> Int?
+    
+    // row.impl is guaranteed to be self.
+    func copy(row: Row) -> Row
 }
 
 
@@ -636,7 +647,8 @@ private struct DictionaryRowImpl : RowImpl {
         return dictionary[dictionary.startIndex.advancedBy(index)].0
     }
     
-    // This method MUST be case-insensitive.
+    // This method MUST be case-insensitive, and returns the index of the
+    // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int? {
         let lowercaseName = name.lowercaseString
         guard let index = dictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) else {
@@ -658,7 +670,7 @@ private struct StatementCopyRowImpl : RowImpl {
     
     init(statement: SelectStatement) {
         let sqliteStatement = statement.sqliteStatement
-        self.databaseValues = (0..<statement.columnCount).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) }
+        self.databaseValues = (0..<Int32(statement.columnCount)).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) }
         self.columnNames = statement.columnNames
     }
     
@@ -678,11 +690,9 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames[index]
     }
     
-    // This method MUST be case-insensitive.
+    // This method MUST be case-insensitive, and returns the index of the
+    // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int? {
-        if let index = columnNames.indexOf({ $0 == name }) {
-            return index
-        }
         let lowercaseName = name.lowercaseString
         return columnNames.indexOf { $0.lowercaseString == lowercaseName }
     }
@@ -717,14 +727,15 @@ private struct StatementRowImpl : RowImpl {
     }
     
     func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+        return DatabaseValue(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
     func columnName(atIndex index: Int) -> String {
         return statement.columnNames[index]
     }
     
-    // This method MUST be case-insensitive.
+    // This method MUST be case-insensitive, and returns the index of the
+    // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int? {
         return statement.indexOfColumn(named: name)
     }

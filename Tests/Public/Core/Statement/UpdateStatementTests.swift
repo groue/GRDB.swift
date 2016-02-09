@@ -23,20 +23,20 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    func testTrailingSemiColonIsAcceptedAndOptional() {
+    func testTrailingSemicolonAndWhiteSpaceIsAcceptedAndOptional() {
         assertNoError {
             try dbQueue.inTransaction { db in
-                try db.updateStatement("INSERT INTO persons (name) VALUES ('Arthur')").execute()
-                try db.updateStatement("INSERT INTO persons (name) VALUES ('Barbara');").execute()
+                try db.updateStatement("INSERT INTO persons (name) VALUES ('Arthur');").execute()
+                try db.updateStatement("INSERT INTO persons (name) VALUES ('Barbara')\n \t").execute()
+                try db.updateStatement("INSERT INTO persons (name) VALUES ('Craig');").execute()
+                try db.updateStatement("INSERT INTO persons (name) VALUES ('Daniel');\n \t").execute()
                 return .Commit
             }
         }
         
         dbQueue.inDatabase { db in
-            let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
-            XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
+            let names = String.fetchAll(db, "SELECT name FROM persons ORDER BY name")
+            XCTAssertEqual(names, ["Arthur", "Barbara", "Craig", "Daniel"])
         }
     }
     
@@ -174,6 +174,26 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
+    func testExecuteMultipleStatementWithTrailingWhiteSpace() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)\n \t")
+                XCTAssertTrue(db.tableExists("wines"))
+                XCTAssertTrue(db.tableExists("books"))
+            }
+        }
+    }
+    
+    func testExecuteMultipleStatementWithTrailingSemicolonAndWhiteSpace() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT);\n \t")
+                XCTAssertTrue(db.tableExists("wines"))
+                XCTAssertTrue(db.tableExists("books"))
+            }
+        }
+    }
+    
     func testExecuteMultipleStatementWithNamedArguments() {
         assertNoError {
             try dbQueue.inTransaction { db in
@@ -247,6 +267,38 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(error.description, "SQLite error 1 with statement `UPDATE blah SET id = 12`: no such table: blah")
             } catch {
                 XCTFail("\(error)")
+            }
+        }
+    }
+    
+    func testMultipleValidStatementsError() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                do {
+                    let _ = try db.updateStatement("UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
+                    XCTFail("Expected error")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 21)  // SQLITE_MISUSE
+                    XCTAssertEqual(error.message!, "Multiple statements found. To execute multiple statements, use Database.execute() instead.")
+                    XCTAssertEqual(error.sql!, "UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
+                    XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1; UPDATE persons SET age = 2;`: Multiple statements found. To execute multiple statements, use Database.execute() instead.")
+                }
+            }
+        }
+    }
+    
+    func testMultipleStatementsWithSecondOneInvalidError() {
+        assertNoError {
+            try dbQueue.inDatabase { db in
+                do {
+                    let _ = try db.updateStatement("UPDATE persons SET age = 1;x")
+                    XCTFail("Expected error")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 21)  // SQLITE_MISUSE
+                    XCTAssertEqual(error.message!, "Multiple statements found. To execute multiple statements, use Database.execute() instead.")
+                    XCTAssertEqual(error.sql!, "UPDATE persons SET age = 1;x")
+                    XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1;x`: Multiple statements found. To execute multiple statements, use Database.execute() instead.")
+                }
             }
         }
     }

@@ -1,16 +1,17 @@
 import XCTest
 import GRDB
 
-struct SimpleRowConvertible : RowConvertible {
+struct SimpleRowConvertible {
     var firstName: String
     var lastName: String
     var fetched: Bool = false
-    
-    static func fromRow(row: Row) -> SimpleRowConvertible {
-        return SimpleRowConvertible(
-            firstName: row.value(named: "firstName"),
-            lastName: row.value(named: "lastName"),
-            fetched: false)
+}
+
+extension SimpleRowConvertible : RowConvertible {
+    init(_ row: Row) {
+        firstName = row.value(named: "firstName")
+        lastName = row.value(named: "lastName")
+        fetched = false
     }
     
     mutating func awakeFromFetch(row row: Row, database: Database) {
@@ -32,7 +33,7 @@ class RowConvertibleTests: GRDBTestCase {
     
     func testRowInitializer() {
         let row = Row(["firstName": "Arthur", "lastName": "Martin"])
-        let s = SimpleRowConvertible.fromRow(row)
+        let s = SimpleRowConvertible(row)
         XCTAssertEqual(s.firstName, "Arthur")
         XCTAssertEqual(s.lastName, "Martin")
         XCTAssertFalse(s.fetched)

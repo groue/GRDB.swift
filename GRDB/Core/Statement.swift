@@ -1,7 +1,7 @@
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = COpaquePointer
 
-/// A statement represents a SQL query.
+/// A statement represents an SQL query.
 ///
 /// It is the base class of UpdateStatement that executes *update statements*,
 /// and SelectStatement that fetches rows.
@@ -14,7 +14,7 @@ public class Statement {
     public let sql: String
     
     /// The database
-    let database: Database
+    unowned let database: Database
     
     init(database: Database, sql: String, sqliteStatement: SQLiteStatement) {
         self.database = database
@@ -29,13 +29,14 @@ public class Statement {
         
         let sqlCodeUnits = sql.nulTerminatedUTF8
         var sqliteStatement: SQLiteStatement = nil
-        var consumedCharactersCount: Int = 0
         var code: Int32 = 0
+        var remainingSQL = ""
         sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
-            let sqlHead = UnsafePointer<Int8>(codeUnits.baseAddress)
-            var sqlTail: UnsafePointer<Int8> = nil
-            code = sqlite3_prepare_v2(database.sqliteConnection, sqlHead, -1, &sqliteStatement, &sqlTail)
-            consumedCharactersCount = sqlTail - sqlHead + 1
+            let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
+            var sqlEnd: UnsafePointer<Int8> = nil
+            code = sqlite3_prepare_v2(database.sqliteConnection, sqlStart, -1, &sqliteStatement, &sqlEnd)
+            let remainingData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(sqlEnd), length: sqlStart + sqlCodeUnits.count - sqlEnd - 1, freeWhenDone: false)
+            remainingSQL = String(data: remainingData, encoding: NSUTF8StringEncoding)!.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet())
         }
         
         self.database = database
@@ -46,8 +47,8 @@ public class Statement {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
         
-        guard consumedCharactersCount == sqlCodeUnits.count else {
-            throw DatabaseError(code: SQLITE_MISUSE, message: "Invalid SQL string: multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
+        guard remainingSQL.isEmpty else {
+            throw DatabaseError(code: SQLITE_MISUSE, message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.", sql: sql, arguments: nil)
         }
     }
     
@@ -262,6 +263,23 @@ public class Statement {
 ///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement {
+    /// The tables this statement feeds on.
+    var sourceTables: Set<String>
+    
+    override init(database: Database, sql: String) throws {
+        self.sourceTables = []
+        
+        // During the execution of sqlite3_prepare_v2 by super.init, the
+        // observer listens to authorization callbacks in order to grab the
+        // list of source tables.
+        let observer = SourceTableObserver(database)
+        observer.start()
+        defer { observer.stop() }
+        
+        try super.init(database: database, sql: sql)
+        
+        self.sourceTables = observer.sourceTables
+    }
     
     /// The number of columns in the resulting rows.
     public lazy var columnCount: Int = {
@@ -273,21 +291,15 @@ public final class SelectStatement : Statement {
         (0..<self.columnCount).map { String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32($0)))! }
     }()
     
-    /// Cache for indexOfColumn()
+    /// Cache for indexOfColumn(). Keys are lowercase.
     private lazy var columnIndexes: [String: Int] = {
-        return Dictionary(self.columnNames.enumerate().map { ($1, $0) })
+        return Dictionary(self.columnNames.enumerate().map { ($1.lowercaseString, $0) }.reverse())
     }()
     
-    /// The column index, case insensitive.
+    // This method MUST be case-insensitive, and returns the index of the
+    // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int? {
-        if let index = columnIndexes[name] {
-            return index
-        }
-        let lowercaseName = name.lowercaseString
-        for (column, index) in columnIndexes where column.lowercaseString == lowercaseName {
-            return index
-        }
-        return nil
+        return columnIndexes[name.lowercaseString]
     }
     
     /// The DatabaseSequence builder.
@@ -380,11 +392,30 @@ public struct DatabaseGenerator<T>: GeneratorType {
 ///     }
 public final class UpdateStatement : Statement {
     
+    override init(database: Database, sql: String, sqliteStatement: SQLiteStatement) {
+        super.init(database: database, sql: sql, sqliteStatement: sqliteStatement)
+    }
+    
+    override init(database: Database, sql: String) throws {
+        // During the execution of sqlite3_prepare_v2 by super.init, the
+        // observer listens to authorization callbacks in order to observe
+        // schema changes.
+        let observer = SchemaChangeObserver(database)
+        observer.start()
+        defer { observer.stop() }
+        
+        try super.init(database: database, sql: sql)
+        
+        if observer.schemaChanged {
+            database.clearSchemaCache()
+        }
+    }
+    
     /// Executes the SQL query.
     ///
     /// - parameter arguments: Statement arguments.
     /// - returns: A DatabaseChanges.
-    /// - throws: A DatabaseError whenever a SQLite error occurs.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
         try! prepareWithArguments(arguments)

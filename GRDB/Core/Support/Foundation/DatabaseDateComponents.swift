@@ -32,6 +32,15 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         
         /// The format "HH:mm:ss.SSS".
         case HMSS = "HH:mm:ss.SSS"
+        
+        var hasYMDComponents: Bool {
+            switch self {
+            case .YMD, .YMD_HM, .YMD_HMS, .YMD_HMSS:
+                return true
+            case .HM, .HMS, .HMSS:
+                return false
+            }
+        }
     }
     
     // MARK: - NSDateComponents conversion
@@ -46,9 +55,10 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     ///
     /// The result is nil if and only if *dateComponents* is nil.
     ///
-    /// - parameter dateComponents: An optional NSDateComponents.
-    /// - parameter format: The format used for storing the date components in
-    ///   the database.
+    /// - parameters:
+    ///     - dateComponents: An optional NSDateComponents.
+    ///     - format: The format used for storing the date components in
+    ///       the database.
     /// - returns: An optional DatabaseDateComponents.
     public init?(_ dateComponents: NSDateComponents?, format: Format) {
         guard let dateComponents = dateComponents else {

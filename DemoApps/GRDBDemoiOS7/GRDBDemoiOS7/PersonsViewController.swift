@@ -1,7 +1,7 @@
 import UIKit
 
 class PersonsViewController: UITableViewController {
-    var persons = [Person]()
+    var persons: [Person] = []
 
     override func viewWillAppear(animated: Bool) {
         // Reload persons, and the tableView
