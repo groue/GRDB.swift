@@ -391,12 +391,18 @@ public struct DatabaseGenerator<T>: GeneratorType {
 ///         return .Commit
 ///     }
 public final class UpdateStatement : Statement {
+    /// If true, the database schema cache gets invalidated after this statement
+    /// is executed.
+    var invalidatesDatabaseSchemaCache: Bool
     
-    override init(database: Database, sql: String, sqliteStatement: SQLiteStatement) {
+    init(database: Database, sql: String, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool) {
+        self.invalidatesDatabaseSchemaCache = invalidatesDatabaseSchemaCache
         super.init(database: database, sql: sql, sqliteStatement: sqliteStatement)
     }
     
     override init(database: Database, sql: String) throws {
+        self.invalidatesDatabaseSchemaCache = false
+        
         // During the execution of sqlite3_prepare_v2 by super.init, the
         // observer listens to authorization callbacks in order to observe
         // schema changes.
@@ -406,9 +412,7 @@ public final class UpdateStatement : Statement {
         
         try super.init(database: database, sql: sql)
         
-        if observer.schemaChanged {
-            database.clearSchemaCache()
-        }
+        self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
     }
     
     /// Executes the SQL query.
@@ -460,6 +464,11 @@ public final class UpdateStatement : Statement {
             try database.updateStatementDidFail()
             
             throw DatabaseError(code: errorCode, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
+        }
+        
+        // Now that statement has been executed, clear database schema cache if needed
+        if invalidatesDatabaseSchemaCache {
+            database.clearSchemaCache()
         }
         
         // Now that changes information has been loaded, let transaction

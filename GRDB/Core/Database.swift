@@ -324,6 +324,7 @@ extension Database {
             let sqlEnd = sqlStart + sqlCodeUnits.count
             var statementStart = sqlStart
             while statementStart < sqlEnd - 1 {
+                schemaChangeObserver.invalidatesDatabaseSchemaCache = false
                 var statementEnd: UnsafePointer<Int8> = nil
                 var sqliteStatement: SQLiteStatement = nil
                 let code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
@@ -339,7 +340,7 @@ extension Database {
                 }
                 
                 do {
-                    let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement)
+                    let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement, invalidatesDatabaseSchemaCache: schemaChangeObserver.invalidatesDatabaseSchemaCache)
                     try statement.execute(arguments: consumeArguments(statement))
                 } catch let statementError {
                     error = statementError
@@ -351,9 +352,6 @@ extension Database {
         }
         
         schemaChangeObserver.stop()
-        if schemaChangeObserver.schemaChanged {
-            clearSchemaCache()
-        }
         
         if let error = error {
             throw error
@@ -778,14 +776,14 @@ final class SourceTableObserver {
     }
     
     func start() {
-        let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-        sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
+        let observerPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        sqlite3_set_authorizer(database.sqliteConnection, { (observerPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
             if actionCode == SQLITE_READ {
-                let sniffer = unsafeBitCast(snifferPointer, SourceTableObserver.self)
-                sniffer.sourceTables.insert(String.fromCString(CString1)!)
+                let observer = unsafeBitCast(observerPointer, SourceTableObserver.self)
+                observer.sourceTables.insert(String.fromCString(CString1)!)
             }
             return SQLITE_OK
-            }, snifferPointer)
+            }, observerPointer)
     }
     
     func stop() {
@@ -796,7 +794,7 @@ final class SourceTableObserver {
 // A class that uses sqlite3_set_authorizer to check if the database schema
 // changes.
 final class SchemaChangeObserver {
-    var schemaChanged: Bool = false
+    var invalidatesDatabaseSchemaCache: Bool = false
     let database: Database
     
     init(_ database: Database) {
@@ -804,17 +802,23 @@ final class SchemaChangeObserver {
     }
     
     func start() {
-        let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-        sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
+        let observerPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        sqlite3_set_authorizer(database.sqliteConnection, { (observerPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
             switch actionCode {
-            case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE:
-                let sniffer = unsafeBitCast(snifferPointer, SchemaChangeObserver.self)
-                sniffer.schemaChanged = true
+            case SQLITE_DROP_TABLE,
+                 SQLITE_DROP_TEMP_TABLE,
+                 SQLITE_DROP_TEMP_VIEW,
+                 SQLITE_DROP_VIEW,
+                 SQLITE_DETACH,
+                 SQLITE_ALTER_TABLE,
+                 SQLITE_DROP_VTABLE:
+                let observer = unsafeBitCast(observerPointer, SchemaChangeObserver.self)
+                observer.invalidatesDatabaseSchemaCache = true
             default:
                 break
             }
             return SQLITE_OK
-            }, snifferPointer)
+            }, observerPointer)
     }
     
     func stop() {

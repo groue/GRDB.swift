@@ -12,7 +12,7 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
     - [ ] EXISTS https://www.sqlite.org/lang_expr.html
 - [X] Support for FetchedResultsController: which tables are involved in a SELECT query?
-- [ ] Only invalidate schema cache if a statement is executed.
+- [X] Only invalidate schema cache if a statement is executed.
 - [ ] Transaction observers should be weakly kept, so that a FetchedResultsController does not need to be explicitely "stopped".
 
 
