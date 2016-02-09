@@ -274,9 +274,8 @@ public final class SelectStatement : Statement {
         // source tables.
         let sniffer = SourceTableSniffer(database)
         sniffer.start()
+        defer { sniffer.stop() }
         try super.init(database: database, sql: sql)
-        sniffer.stop()
-        
         self.sourceTables = sniffer.sourceTables
     }
     
