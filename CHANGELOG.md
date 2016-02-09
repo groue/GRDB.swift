@@ -3,6 +3,8 @@ Release Notes
 
 ## 0.45.0
 
+Released February 9, 2016
+
 **Breaking Change**
 
 - Transaction observers are no longer retained ([documentation](https://github.com/groue/GRDB.swift#database-changes-observation)).
