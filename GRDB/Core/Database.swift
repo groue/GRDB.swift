@@ -607,6 +607,8 @@ extension Database {
     
     /// Returns whether a table exists.
     public func tableExists(tableName: String) -> Bool {
+        preconditionValidQueue()
+        
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         return Row.fetchOne(self,
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND LOWER(name) = ?",
