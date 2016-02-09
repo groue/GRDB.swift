@@ -1,11 +1,14 @@
 Release Notes
 =============
 
-## Next version
+## 0.44.0
+
+Released February 9, 2016
 
 **Fixed**
 
 - `row.value(named:)` and `row[_]` reliably returns the value for the leftmost case-insensitive matching column.
+- A memory leak
 
 **New**
 
