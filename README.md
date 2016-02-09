@@ -2250,6 +2250,8 @@ dbQueue.inDatabase { db in
 }
 ```
 
+Database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated.
+
 **A transaction observer is notified of all database changes**, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
 Changes are not actually applied until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:

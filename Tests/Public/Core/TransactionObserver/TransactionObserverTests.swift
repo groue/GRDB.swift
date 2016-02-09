@@ -5,6 +5,17 @@ class TransactionObserver : TransactionObserverType {
     var lastCommittedEvents: [DatabaseEvent] = []
     var events: [DatabaseEvent] = []
     var commitError: ErrorType?
+    var deinitBlock: (() -> ())?
+    
+    init(deinitBlock: (() -> ())? = nil) {
+        self.deinitBlock = deinitBlock
+    }
+    
+    deinit {
+        if let deinitBlock = deinitBlock {
+            deinitBlock()
+        }
+    }
     
     var didChangeCount: Int = 0
     var willCommitCount: Int = 0
@@ -688,6 +699,25 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer3.willCommitCount, 0)
                 XCTAssertEqual(observer3.didCommitCount, 0)
                 XCTAssertEqual(observer3.didRollbackCount, 1)
+            }
+        }
+    }
+    
+    func testTransactionObserverIsNotRetained() {
+        assertNoError {
+            var observerReleased = false
+            do {
+                let observer = TransactionObserver(deinitBlock: { observerReleased = true })
+                withExtendedLifetime(observer) {
+                    dbQueue.inDatabase { db in
+                        db.addTransactionObserver(observer)
+                    }
+                    XCTAssertFalse(observerReleased)
+                }
+            }
+            XCTAssertTrue(observerReleased)
+            try dbQueue.inDatabase { db in
+                try Artist(name: "Gerhard Richter").save(db)
             }
         }
     }

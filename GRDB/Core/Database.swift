@@ -38,7 +38,7 @@ public final class Database {
     private var transactionState: TransactionState = .WaitForTransactionCompletion
     
     /// The transaction observers
-    private var transactionObservers = [TransactionObserverType]()
+    private var transactionObservers = [WeakTransactionObserver]()
     
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
@@ -926,17 +926,30 @@ extension Database {
         try execute("COMMIT TRANSACTION")
     }
     
+    /// Add a transaction observer, so that it gets notified of all
+    /// database changes.
+    ///
+    /// Database holds weak references to its transaction observers: they are
+    /// not retained, and stop getting notifications after they are deallocated.
     public func addTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
-        transactionObservers.append(transactionObserver)
+        transactionObservers.append(WeakTransactionObserver(transactionObserver))
         if transactionObservers.count == 1 {
             installTransactionObserverHooks()
         }
     }
     
+    /// Remove a transaction observer.
     public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
-        transactionObservers.removeFirst { $0 === transactionObserver }
+        transactionObservers.removeFirst { $0.observer === transactionObserver }
+        if transactionObservers.isEmpty {
+            uninstallTransactionObserverHooks()
+        }
+    }
+    
+    private func cleanupTransactionObservers() {
+        transactionObservers = transactionObservers.filter { $0.observer != nil }
         if transactionObservers.isEmpty {
             uninstallTransactionObserverHooks()
         }
@@ -974,27 +987,29 @@ extension Database {
     }
     
     private func willCommit() throws {
-        for observer in transactionObservers {
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             try observer.databaseWillCommit()
         }
     }
     
     private func didChangeWithEvent(event: DatabaseEvent) {
-        for observer in transactionObservers {
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidChangeWithEvent(event)
         }
     }
     
     private func didCommit() {
-        for observer in transactionObservers {
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidCommit(self)
         }
+        cleanupTransactionObservers()
     }
     
     private func didRollback() {
-        for observer in transactionObservers {
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidRollback(self)
         }
+        cleanupTransactionObservers()
     }
     
     private func installTransactionObserverHooks() {
@@ -1104,6 +1119,13 @@ public protocol TransactionObserverType : class {
     ///
     /// This method is called on the database queue. It can change the database.
     func databaseDidRollback(db: Database)
+}
+
+class WeakTransactionObserver {
+    weak var observer: TransactionObserverType?
+    init(_ observer: TransactionObserverType) {
+        self.observer = observer
+    }
 }
 
 
