@@ -596,6 +596,11 @@ extension Database {
     public func clearSchemaCache() {
         preconditionValidQueue()
         primaryKeyCache = [:]
+        
+        // We do clear updateStatementCache and selectStatementCache despite
+        // the automatic statement recompilation (see https://www.sqlite.org/c3ref/prepare.html)
+        // because the automatic statement recompilation only happens a
+        // limited number of times.
         updateStatementCache = [:]
         selectStatementCache = [:]
     }
