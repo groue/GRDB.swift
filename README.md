@@ -1279,6 +1279,18 @@ try dbQueue.inDatabase { db in
 }
 ```
 
+[Record](#record-class) subclasses track changes:
+
+```swift
+try dbQueue.inDatabase { db in
+    let person = Person.fetchOne(db, key: 1)!
+    person.name = "Arthur"
+    if person.hasPersistentChangedValues {
+        try person.update(db)
+    }
+}
+```
+
 For batch updates, you have to execute an [SQL query](#executing-updates):
 
 ```swift
