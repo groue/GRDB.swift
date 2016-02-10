@@ -2182,20 +2182,25 @@ migrator.registerMigration("createTables") { db in
 }
 
 // v2.0 database
-migrator.registerMigration("AddAgeToPersons") { db in
+migrator.registerMigration("AddBirthDateToPersons") { db in
     try db.execute(
-        "ALTER TABLE persons ADD COLUMN age INT; " +
-        "ALTER TABLE books ADD COLUMN year INT")
+        "ALTER TABLE persons ADD COLUMN birthDate DATE")
 }
 
-// (Insert migrations for future versions here)
+// Migrations for future versions will be inserted here:
+//
+// // v3.0 database
+// migrator.registerMigration("AddYearAgeToBooks") { db in
+//     try db.execute(
+//         "ALTER TABLE books ADD COLUMN year INT")
+// }
 
 try migrator.migrate(dbQueue)
 ```
 
 **Each migration runs in a separate transaction.** Should one throw an error, its transaction is rollbacked, subsequent migrations do not run, and the error is eventually thrown by `migrator.migrate(dbQueue)`.
 
-**The memory of applied migrations is stored in the database itself** (in a reserved table). When you are tuning your migrations, you may need to execute one several times. All you need then is to feed your application with a database file from a previous state.
+**The memory of applied migrations is stored in the database itself** (in a reserved table).
 
 
 ### Advanced Database Schema Changes
