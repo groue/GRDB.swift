@@ -1,7 +1,7 @@
 import Foundation
 
 /// A database row.
-public final class Row: CollectionType {
+public final class Row {
     
     // MARK: - Building rows
     
@@ -28,7 +28,43 @@ public final class Row: CollectionType {
     }
     
     
-    // MARK: - Extracting Column Values
+    // MARK: - Not Public
+    
+    let impl: RowImpl
+    let sqliteStatement: SQLiteStatement
+    
+    /// Builds a row from the an SQLite statement.
+    ///
+    /// The row is implemented on top of StatementRowImpl, which grants *direct*
+    /// access to the SQLite statement. Iteration of the statement does modify
+    /// the row.
+    init(statement: SelectStatement) {
+        self.sqliteStatement = statement.sqliteStatement
+        self.impl = StatementRowImpl(statement: statement)
+    }
+    
+    /// Builds a row from the *current state* of the SQLite statement.
+    ///
+    /// The row is implemented on top of StatementCopyRowImpl, which *copies*
+    /// the values from the SQLite statement so that further iteration of the
+    /// statement does not modify the row.
+    init(copiedFromStatement statement: SelectStatement) {
+        self.sqliteStatement = nil
+        self.impl = StatementCopyRowImpl(statement: statement)
+    }
+}
+
+extension Row {
+
+    // MARK: - Columns
+    
+    /// The names of columns in the row.
+    ///
+    /// Columns appear in the same order as they occur as the `.0` member
+    /// of column-value pairs in `self`.
+    public var columnNames: LazyMapCollection<Row, String> {
+        return LazyMapCollection(self) { $0.0 }
+    }
     
     /// Returns true if and only if the row has that column.
     ///
@@ -36,6 +72,11 @@ public final class Row: CollectionType {
     public func hasColumn(columnName: String) -> Bool {
         return impl.indexOfColumn(named: columnName) != nil
     }
+}
+
+extension Row {
+    
+    // MARK: - Extracting Values
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
     /// stored at the given index.
@@ -321,7 +362,9 @@ public final class Row: CollectionType {
         }
         return dataNoCopy(atIndex: index)
     }
-    
+}
+
+extension Row {
     
     // MARK: - Extracting DatabaseValue
     
@@ -344,20 +387,6 @@ public final class Row: CollectionType {
         return impl.databaseValue(atIndex: index)
     }
     
-    
-    // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
-    
-    /// The number of columns in the row.
-    public lazy var count: Int = { self.impl.count }()
-    
-    /// The names of columns in the row.
-    ///
-    /// Columns appear in the same order as they occur as the `.0` member
-    /// of column-value pairs in `self`.
-    public var columnNames: LazyMapCollection<Row, String> {
-        return LazyMapCollection(self) { $0.0 }
-    }
-    
     /// The database values in the row.
     ///
     /// Values appear in the same order as they occur as the `.1` member
@@ -365,31 +394,9 @@ public final class Row: CollectionType {
     public var databaseValues: LazyMapCollection<Row, DatabaseValue> {
         return LazyMapCollection(self) { $0.1 }
     }
-    
-    /// Returns a *generator* over (ColumnName, DatabaseValue) pairs, from left
-    /// to right.
-    public func generate() -> IndexingGenerator<Row> {
-        return IndexingGenerator(self)
-    }
-    
-    /// The index of the first (ColumnName, DatabaseValue) pair.
-    public var startIndex: RowIndex {
-        return Index(0)
-    }
-    
-    /// The "past-the-end" index, successor of the index of the last
-    /// (ColumnName, DatabaseValue) pair.
-    public var endIndex: RowIndex {
-        return Index(impl.count)
-    }
-    
-    /// Returns the (ColumnName, DatabaseValue) pair at given index.
-    public subscript(index: RowIndex) -> (String, DatabaseValue) {
-        return (
-            impl.columnName(atIndex: index.index),
-            impl.databaseValue(atIndex: index.index))
-    }
-    
+}
+
+extension Row {
     
     // MARK: - Fetching From SelectStatement
     
@@ -534,31 +541,39 @@ public final class Row: CollectionType {
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
         return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
+}
+
+extension Row : CollectionType {
     
+    // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
     
-    // MARK: - Not Public
-    
-    let impl: RowImpl
-    let sqliteStatement: SQLiteStatement
-    
-    /// Builds a row from the an SQLite statement.
-    ///
-    /// The row is implemented on top of StatementRowImpl, which grants *direct*
-    /// access to the SQLite statement. Iteration of the statement does modify
-    /// the row.
-    init(statement: SelectStatement) {
-        self.sqliteStatement = statement.sqliteStatement
-        self.impl = StatementRowImpl(statement: statement)
+    /// The number of columns in the row.
+    public var count: Int {
+        return impl.count
     }
     
-    /// Builds a row from the *current state* of the SQLite statement.
-    ///
-    /// The row is implemented on top of StatementCopyRowImpl, which *copies*
-    /// the values from the SQLite statement so that further iteration of the
-    /// statement does not modify the row.
-    init(copiedFromStatement statement: SelectStatement) {
-        self.sqliteStatement = nil
-        self.impl = StatementCopyRowImpl(statement: statement)
+    /// Returns a *generator* over (ColumnName, DatabaseValue) pairs, from left
+    /// to right.
+    public func generate() -> IndexingGenerator<Row> {
+        return IndexingGenerator(self)
+    }
+    
+    /// The index of the first (ColumnName, DatabaseValue) pair.
+    public var startIndex: RowIndex {
+        return Index(0)
+    }
+    
+    /// The "past-the-end" index, successor of the index of the last
+    /// (ColumnName, DatabaseValue) pair.
+    public var endIndex: RowIndex {
+        return Index(impl.count)
+    }
+    
+    /// Returns the (ColumnName, DatabaseValue) pair at given index.
+    public subscript(index: RowIndex) -> (String, DatabaseValue) {
+        return (
+            impl.columnName(atIndex: index.index),
+            impl.databaseValue(atIndex: index.index))
     }
 }
 
