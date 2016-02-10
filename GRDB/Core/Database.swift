@@ -190,7 +190,7 @@ extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.selectStatement("SELECT * FROM persons WHERE age > ?")
+    ///     let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
     ///     let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
     ///
