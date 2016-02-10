@@ -2,11 +2,11 @@
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct FetchRequest<T> {
-    let query: _SQLQuery
+    let query: _SQLSelectQuery
     
     /// Initializes a FetchRequest based on table *tableName*.
     public init(tableName: String) {
-        self.init(_SQLQuery(select: [_SQLResultColumn.Star(nil)], from: .Table(name: tableName, alias: nil)))
+        self.init(_SQLSelectQuery(select: [_SQLResultColumn.Star(nil)], from: .Table(name: tableName, alias: nil)))
     }
     
     /// Returns a prepared statement that is ready to be executed.
@@ -22,7 +22,7 @@ public struct FetchRequest<T> {
         return statement
     }
     
-    init(_ query: _SQLQuery) {
+    init(_ query: _SQLSelectQuery) {
         self.query = query
     }
 }
@@ -49,7 +49,7 @@ extension FetchRequest {
     /// Returns a new FetchRequest with a new net of selected columns.
     @warn_unused_result
     public func select(sql sql: String) -> FetchRequest<T> {
-        return select(SQLLiteral(sql))
+        return select(_SQLLiteral(sql))
     }
     
     /// Returns a new FetchRequest which returns distinct rows.
@@ -65,9 +65,9 @@ extension FetchRequest {
     public func filter(predicate: _SQLExpressionType) -> FetchRequest<T> {
         var query = self.query
         if let whereExpression = query.whereExpression {
-            query.whereExpression = .InfixOperator("AND", whereExpression, predicate.SQLExpression)
+            query.whereExpression = .InfixOperator("AND", whereExpression, predicate.sqlExpression)
         } else {
-            query.whereExpression = predicate.SQLExpression
+            query.whereExpression = predicate.sqlExpression
         }
         return FetchRequest(query)
     }
@@ -76,7 +76,7 @@ extension FetchRequest {
     /// eventual set of already applied predicates.
     @warn_unused_result
     public func filter(sql sql: String) -> FetchRequest<T> {
-        return filter(SQLLiteral(sql))
+        return filter(_SQLLiteral(sql))
     }
     
     /// Returns a new FetchRequest grouped according to *expressions*.
@@ -89,14 +89,14 @@ extension FetchRequest {
     @warn_unused_result
     public func group(expressions: [_SQLExpressionType]) -> FetchRequest<T> {
         var query = self.query
-        query.groupByExpressions = expressions.map { $0.SQLExpression }
+        query.groupByExpressions = expressions.map { $0.sqlExpression }
         return FetchRequest(query)
     }
     
     /// Returns a new FetchRequest with a new grouping.
     @warn_unused_result
     public func group(sql sql: String) -> FetchRequest<T> {
-        return group(SQLLiteral(sql))
+        return group(_SQLLiteral(sql))
     }
     
     /// Returns a new FetchRequest with the provided *predicate* added to the
@@ -105,9 +105,9 @@ extension FetchRequest {
     public func having(predicate: _SQLExpressionType) -> FetchRequest<T> {
         var query = self.query
         if let havingExpression = query.havingExpression {
-            query.havingExpression = (havingExpression && predicate).SQLExpression
+            query.havingExpression = (havingExpression && predicate).sqlExpression
         } else {
-            query.havingExpression = predicate.SQLExpression
+            query.havingExpression = predicate.sqlExpression
         }
         return FetchRequest(query)
     }
@@ -116,7 +116,7 @@ extension FetchRequest {
     /// the eventual set of already applied predicates.
     @warn_unused_result
     public func having(sql sql: String) -> FetchRequest<T> {
-        return having(SQLLiteral(sql))
+        return having(_SQLLiteral(sql))
     }
     
     /// Returns a new FetchRequest with the provided *sortDescriptors* added to
@@ -139,7 +139,7 @@ extension FetchRequest {
     /// eventual set of already applied sort descriptors.
     @warn_unused_result
     public func order(sql sql: String) -> FetchRequest<T> {
-        return order([SQLLiteral(sql)])
+        return order([_SQLLiteral(sql)])
     }
     
     /// Returns a new FetchRequest sorted in reversed order.
@@ -180,7 +180,7 @@ extension FetchRequest {
     /// Returns an SQL expression that checks the inclusion of a value in
     /// the results of another request.
     public func contains(element: _SQLExpressionType) -> _SQLExpression {
-        return .InSubQuery(query, element.SQLExpression)
+        return .InSubQuery(query, element.sqlExpression)
     }
     
     /// Returns an SQL expression that checks whether the receiver, as a

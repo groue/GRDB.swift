@@ -1,12 +1,12 @@
 
 
-// MARK: - _SQLQuery
+// MARK: - _SQLSelectQuery
 
 /// This type is an implementation detail of the query interface.
 /// Do not use it directly.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
-public struct _SQLQuery {
+public struct _SQLSelectQuery {
     var selection: [_SQLSelectable]
     var distinct: Bool
     var source: _SQLSource?
@@ -95,7 +95,7 @@ public struct _SQLQuery {
 
 indirect enum _SQLSource {
     case Table(name: String, alias: String?)
-    case Query(_SQLQuery, alias: String)
+    case Query(_SQLSelectQuery, alias: String)
     case Join(_SQLSource, _SQLExpression, _SQLSource)
     
     // a JOIN b ON ab JOIN c ON abc
@@ -197,7 +197,7 @@ public protocol _SQLExpressionType {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    var SQLExpression: _SQLExpression { get }
+    var sqlExpression: _SQLExpression { get }
 }
 
 // Conformance to _SQLExpressionType
@@ -207,7 +207,7 @@ extension DatabaseValueConvertible {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var SQLExpression: _SQLExpression {
+    public var sqlExpression: _SQLExpression {
         return .Value(self)
     }
 }
@@ -216,18 +216,18 @@ extension DatabaseValueConvertible {
 /// Do not use it directly.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
-public protocol _DerivedSQLExpressionType : _SQLExpressionType, _SQLSortDescriptorType, _SQLSelectable {
+public protocol _SQLDerivedExpressionType : _SQLExpressionType, _SQLSortDescriptorType, _SQLSelectable {
 }
 
 // Conformance to _SQLSortDescriptorType
-extension _DerivedSQLExpressionType {
+extension _SQLDerivedExpressionType {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var reversedSortDescriptor: _SQLSortDescriptor {
-        return .Desc(SQLExpression)
+        return .Desc(sqlExpression)
     }
     
     /// This method is an implementation detail of the query interface.
@@ -235,19 +235,19 @@ extension _DerivedSQLExpressionType {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public func orderingSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
-        return try SQLExpression.sql(db, &bindings)
+        return try sqlExpression.sql(db, &bindings)
     }
 }
 
 // Conformance to _SQLSelectable
-extension _DerivedSQLExpressionType {
+extension _SQLDerivedExpressionType {
     
     /// This method is an implementation detail of the query interface.
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public func resultColumnSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
-        return try SQLExpression.sql(db, &bindings)
+        return try sqlExpression.sql(db, &bindings)
     }
     
     /// This method is an implementation detail of the query interface.
@@ -255,31 +255,31 @@ extension _DerivedSQLExpressionType {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public func countedSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
-        return try SQLExpression.sql(db, &bindings)
+        return try sqlExpression.sql(db, &bindings)
     }
 }
 
-extension _DerivedSQLExpressionType {
+extension _SQLDerivedExpressionType {
     
     /// Returns a value that can be used as an argument to FetchRequest.order()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var asc: _SQLSortDescriptorType {
-        return _SQLSortDescriptor.Asc(SQLExpression)
+    public var asc: _SQLSortDescriptor {
+        return .Asc(sqlExpression)
     }
     
     /// Returns a value that can be used as an argument to FetchRequest.order()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var desc: _SQLSortDescriptorType {
-        return _SQLSortDescriptor.Desc(SQLExpression)
+    public var desc: _SQLSortDescriptor {
+        return .Desc(sqlExpression)
     }
     
     /// Returns a value that can be used as an argument to FetchRequest.select()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public func aliased(alias: String) -> _SQLSelectable {
-        return _SQLResultColumn.Expression(SQLExpression, alias)
+        return _SQLResultColumn.Expression(sqlExpression, alias)
     }
 }
 
@@ -326,10 +326,10 @@ public indirect enum _SQLExpression {
     case In([_SQLExpression], _SQLExpression)
     
     /// For example `id IN (SELECT ...)`
-    case InSubQuery(_SQLQuery, _SQLExpression)
+    case InSubQuery(_SQLSelectQuery, _SQLExpression)
     
     /// For example `EXISTS (SELECT ...)`
-    case Exists(_SQLQuery)
+    case Exists(_SQLSelectQuery)
     
     /// For example: `age BETWEEN 1 AND 2`
     case Between(value: _SQLExpression, min: _SQLExpression, max: _SQLExpression)
@@ -485,13 +485,13 @@ public indirect enum _SQLExpression {
     }
 }
 
-extension _SQLExpression : _DerivedSQLExpressionType {
+extension _SQLExpression : _SQLDerivedExpressionType {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var SQLExpression: _SQLExpression {
+    public var sqlExpression: _SQLExpression {
         return self
     }
 }
@@ -539,17 +539,17 @@ extension _SQLResultColumn : _SQLSelectable {
 }
 
 
-// MARK: SQLLiteral
+// MARK: _SQLLiteral
 
-struct SQLLiteral {
+struct _SQLLiteral {
     let sql: String
     init(_ sql: String) {
         self.sql = sql
     }
 }
 
-extension SQLLiteral : _DerivedSQLExpressionType {
-    var SQLExpression: _SQLExpression {
+extension _SQLLiteral : _SQLDerivedExpressionType {
+    var sqlExpression: _SQLExpression {
         return .Literal(sql)
     }
 }
@@ -578,13 +578,13 @@ public struct SQLColumn {
     }
 }
 
-extension SQLColumn : _DerivedSQLExpressionType {
+extension SQLColumn : _SQLDerivedExpressionType {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var SQLExpression: _SQLExpression {
+    public var sqlExpression: _SQLExpression {
         return .Identifier(identifier: name, sourceName: sourceName)
     }
 }

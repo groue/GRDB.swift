@@ -30,9 +30,7 @@ public final class Database {
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
-    private var primaryKeyCache: [String: PrimaryKey] = [:]
-    private var updateStatementCache: [String: UpdateStatement] = [:]
-    private var selectStatementCache: [String: SelectStatement] = [:]
+    private var schemaCache = DatabaseSchemaCache()
     
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
     private var transactionState: TransactionState = .WaitForTransactionCompletion
@@ -206,12 +204,12 @@ extension Database {
     
     @warn_unused_result
     func cachedSelectStatement(sql: String) throws -> SelectStatement {
-        if let statement = selectStatementCache[sql] {
+        if let statement = schemaCache.selectStatement[sql] {
             return statement
         }
         
         let statement = try selectStatement(sql)
-        selectStatementCache[sql] = statement
+        schemaCache.selectStatement[sql] = statement
         return statement
     }
     
@@ -233,12 +231,12 @@ extension Database {
     
     @warn_unused_result
     func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        if let statement = updateStatementCache[sql] {
+        if let statement = schemaCache.updateStatement[sql] {
             return statement
         }
         
         let statement = try updateStatement(sql)
-        updateStatementCache[sql] = statement
+        schemaCache.updateStatement[sql] = statement
         return statement
     }
     
@@ -585,6 +583,26 @@ public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
 // =========================================================================
 // MARK: - Database Schema
 
+private struct DatabaseSchemaCache {
+    /// Table name -> Primary key
+    var primaryKey: [String: PrimaryKey] = [:]
+    
+    // SQL -> Statement
+    var updateStatement: [String: UpdateStatement] = [:]
+    var selectStatement: [String: SelectStatement] = [:]
+    
+    mutating func clear() {
+        primaryKey = [:]
+        
+        // We do clear updateStatementCache and selectStatementCache despite
+        // the automatic statement recompilation (see https://www.sqlite.org/c3ref/prepare.html)
+        // because the automatic statement recompilation only happens a
+        // limited number of times.
+        updateStatement = [:]
+        selectStatement = [:]
+    }
+}
+
 extension Database {
     
     /// Clears the database schema cache.
@@ -593,14 +611,7 @@ extension Database {
     /// modified by another connection.
     public func clearSchemaCache() {
         preconditionValidQueue()
-        primaryKeyCache = [:]
-        
-        // We do clear updateStatementCache and selectStatementCache despite
-        // the automatic statement recompilation (see https://www.sqlite.org/c3ref/prepare.html)
-        // because the automatic statement recompilation only happens a
-        // limited number of times.
-        updateStatementCache = [:]
-        selectStatementCache = [:]
+        schemaCache.clear()
     }
     
     /// Returns whether a table exists.
@@ -618,7 +629,7 @@ extension Database {
     ///
     /// This method is not thread-safe.
     func primaryKey(tableName: String) throws -> PrimaryKey {
-        if let primaryKey = primaryKeyCache[tableName] {
+        if let primaryKey = schemaCache.primaryKey[tableName] {
             return primaryKey
         }
         
@@ -694,7 +705,7 @@ extension Database {
             primaryKey = .Regular(pkColumnInfos.map { $0.name })
         }
         
-        primaryKeyCache[tableName] = primaryKey
+        schemaCache.primaryKey[tableName] = primaryKey
         return primaryKey
     }
     
