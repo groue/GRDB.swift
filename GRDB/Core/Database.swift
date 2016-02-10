@@ -49,7 +49,7 @@ public final class Database {
         self.configuration = configuration
         
         // See https://www.sqlite.org/c3ref/open.html
-        var sqliteConnection = SQLiteConnection()
+        var sqliteConnection: SQLiteConnection = nil
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
         self.sqliteConnection = sqliteConnection
         guard code == SQLITE_OK else {

@@ -147,7 +147,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     private func generatePersistentChangedValues() -> AnyGenerator<(column: String, old: DatabaseValue?)> {
         let oldRow = referenceRow
         var newValueGenerator = persistentDictionary.generate()
-        return anyGenerator {
+        return AnyGenerator {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueGenerator.next() {
                 let new = newValue?.databaseValue ?? .Null
