@@ -774,7 +774,7 @@ While NSNumber deserves no special discussion, NSDecimalNumber does.
 
 ```sql
 CREATE TABLE transfers (
-    amount DECIMAL(10,5) // will store integer or double, actually
+    amount DECIMAL(10,5) -- will store integer or double, actually
 )
 ```
 
