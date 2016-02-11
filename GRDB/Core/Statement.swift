@@ -1,3 +1,5 @@
+import Foundation
+
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = COpaquePointer
 
