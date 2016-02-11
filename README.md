@@ -40,7 +40,10 @@ try dbQueue.inDatabase { db in
     for row in Row.fetch(db, "SELECT * FROM pointOfInterests") {
         let title: String = row.value(named: "title")
         let favorite: Bool = row.value(named: "favorite")
-        print(title, favorite)
+        let coordinate = CLLocationCoordinate2DMake(
+            row.value(named: "latitude"),
+            row.value(named: "longitude"))
+        print(title, favorite, coordinate)
     }
 }
 ```
