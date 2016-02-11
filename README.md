@@ -185,6 +185,7 @@ try dbQueue.inDatabase { db in
 - [Values](#values)
     - [NSData](#nsdata-and-memory-savings)
     - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
+    - [NSNumber and NSDecimalNumber](#nsnumber-and-nsdecimalnumber)
     - [Swift enums](#swift-enums)
 - [String Comparison](#string-comparison)
 - [Transactions](#transactions)
