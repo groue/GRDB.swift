@@ -1,6 +1,16 @@
 Release Notes
 =============
 
+
+## 0.45.1
+
+Released February 11, 2016
+
+**Fixed**
+
+- [iOS7 demo application](https://github.com/groue/GRDB.swift/tree/master/DemoApps/GRDBDemoiOS7) builds again.
+
+
 ## 0.45.0
 
 Released February 9, 2016
