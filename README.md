@@ -1799,11 +1799,7 @@ So don't miss the [SQL API](#fetch-queries).
 Everything starts from **a type** that adopts the `TableMapping` protocol, such as a `Record` subclass (see [Records](#records)):
 
 ```swift
-class Person: Record {
-    static func databaseTableName() -> String {
-        return "persons"
-    }
-}
+class Person: Record { ... }
 ```
 
 Declare the table **columns** that you want to use for filtering, or sorting:
