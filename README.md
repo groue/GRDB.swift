@@ -595,9 +595,9 @@ dbQueue.inDatabase { db in
 
 GRDB ships with built-in support for the following value types:
 
-- **Swift Standard Library**: Bool, Float, Double, Int, Int32, Int64, String, [Swift enums](#swift-enums).
+- **Swift Standard Library**: Bool, Double, Float, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
-- **Foundation**: [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, NSNumber, NSString, NSURL.
+- **Foundation**: [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, NSURL.
     
 - **CoreGraphics**: CGFloat.
 
@@ -762,6 +762,49 @@ let row = Row.fetchOne(db, "SELECT birthDate ...")!
 let dbComponents: DatabaseDateComponents = row.value(named: "birthDate")
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // NSDateComponents
+```
+
+
+### NSNumber and NSDecimalNumber
+
+While NSNumber deserves no special discussion, NSDecimalNumber does.
+
+**SQLite has no support for decimal numbers.** Given the table below, SQLite will actually store integers or doubles:
+
+```sql
+CREATE TABLE transfers (
+    amount DECIMAL(10,5) // will store integer or double, actually
+)
+```
+
+This means that computations will not be exact:
+
+```swift
+try db.execute("INSERT INTO transfers (amount) VALUES (0.1)")
+try db.execute("INSERT INTO transfers (amount) VALUES (0.2)")
+let sum = NSDecimalNumber.fetchOne(db, "SELECT SUM(amount) FROM transfers")!
+
+// Yikes! 0.3000000000000000512
+print(sum)
+```
+
+Don't blame SQLite or GRDB, and instead store your decimal numbers differently.
+
+A classic technique is to store *integers* instead, since SQLite performs exact computations of integers. For example, don't store Euros, but store cents instead:
+
+```swift
+// Store
+let amount = NSDecimalNumber(string: "0.1")
+let integerAmount = amount
+    .decimalNumberByMultiplyingByPowerOf10(2)
+    .longLongValue
+// INSERT INTO transfers (amount) VALUES (100)
+try db.execute("INSERT INTO transfers (amount) VALUES (?)", arguments: [integerAmount])
+
+// Read
+let integerAmount = Int64.fetchOne(db, "SELECT SUM(amount) FROM transfers")!
+let amount = NSDecimalNumber(longLong: integerAmount)
+    .decimalNumberByMultiplyingByPowerOf10(-2)
 ```
 
 
