@@ -115,7 +115,7 @@ You can use GRDB in a project targetting iOS7. See [GRDBDemoiOS7](DemoApps/GRDBD
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
 
-To use GRDB with Cocoapods, specify in your Podfile:
+To use GRDB with CocoaPods, specify in your Podfile:
 
 ```ruby
 source 'https://github.com/CocoaPods/Specs.git'
