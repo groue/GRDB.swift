@@ -222,6 +222,8 @@
 		56FC78691BBAEB8C00CA1285 /* ManagedDataControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FC78651BBAEB8C00CA1285 /* ManagedDataControllerTests.swift */; };
 		56FDECE21BB32DFD009AD709 /* MetalRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FDECE11BB32DFD009AD709 /* MetalRowTests.swift */; };
 		56FDECE31BB32DFD009AD709 /* MetalRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FDECE11BB32DFD009AD709 /* MetalRowTests.swift */; };
+		B854B53B1C761B220076AD47 /* GRDBOSX.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B854B5391C761B220076AD47 /* GRDBOSX.xcconfig */; };
+		B854B53C1C761B5B0076AD47 /* GRDBIOS.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = B854B5381C761B220076AD47 /* GRDBIOS.xcconfig */; };
 		DC2393C81ABE35F8003FF113 /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC3773F919C8CBB3004FCF85 /* GRDB.h in Headers */ = {isa = PBXBuildFile; fileRef = DC3773F819C8CBB3004FCF85 /* GRDB.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC70AC991AC2331000371524 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DC37744219C8DC91004FCF85 /* libsqlite3.dylib */; };
@@ -385,8 +387,7 @@
 		56B7F4291BE14A1900E39BBF /* CGFloatTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloatTests.swift; sourceTree = "<group>"; };
 		56B7F4361BE4C11200E39BBF /* DatabaseCoderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCoderTests.swift; sourceTree = "<group>"; };
 		56B7F4391BEB42D500E39BBF /* Migration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
-		56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDB.xcconfig; sourceTree = "<group>"; };
-		56B8F49B1B4E2F3600C24296 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		56B8F49B1B4E2F3600C24296 /* moduleOSX.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = moduleOSX.modulemap; sourceTree = "<group>"; };
 		56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceTests.sqlite; sourceTree = "<group>"; };
 		56BB86121BA9886D001F9168 /* InsertRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordTests.swift; sourceTree = "<group>"; };
 		56BB86181BA988F2001F9168 /* FMDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabase.h; sourceTree = "<group>"; };
@@ -430,6 +431,9 @@
 		56FC78641BBAEB8C00CA1285 /* MappingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MappingTests.swift; sourceTree = "<group>"; };
 		56FC78651BBAEB8C00CA1285 /* ManagedDataControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ManagedDataControllerTests.swift; sourceTree = "<group>"; };
 		56FDECE11BB32DFD009AD709 /* MetalRowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetalRowTests.swift; sourceTree = "<group>"; };
+		B82384D61C76194800019018 /* moduleiOS.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = moduleiOS.modulemap; sourceTree = "<group>"; };
+		B854B5381C761B220076AD47 /* GRDBIOS.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = GRDBIOS.xcconfig; sourceTree = "<group>"; };
+		B854B5391C761B220076AD47 /* GRDBOSX.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = GRDBOSX.xcconfig; sourceTree = "<group>"; };
 		DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "GRDB-Bridging.h"; path = "../GRDB/GRDB-Bridging.h"; sourceTree = "<group>"; };
 		DC3773F319C8CBB3004FCF85 /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC3773F719C8CBB3004FCF85 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -964,8 +968,10 @@
 		DC37743319C8CFCE004FCF85 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */,
-				56B8F49B1B4E2F3600C24296 /* module.modulemap */,
+				B854B5381C761B220076AD47 /* GRDBIOS.xcconfig */,
+				B854B5391C761B220076AD47 /* GRDBOSX.xcconfig */,
+				B82384D61C76194800019018 /* moduleiOS.modulemap */,
+				56B8F49B1B4E2F3600C24296 /* moduleOSX.modulemap */,
 				56E5D7BF1B4D3DC900430942 /* GRDBiOS */,
 				56E5D7C11B4D3DC900430942 /* GRDBOSX */,
 				DC3773F819C8CBB3004FCF85 /* GRDB.h */,
@@ -1215,6 +1221,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B854B53C1C761B5B0076AD47 /* GRDBIOS.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1236,6 +1243,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B854B53B1C761B220076AD47 /* GRDBOSX.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1585,7 +1593,6 @@
 		};
 		56E5D7DC1B4D3FEE00430942 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -1599,6 +1606,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MODULEMAP_FILE = "$(SRCROOT)/Support/moduleiOS.modulemap";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.github.groue.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = GRDB;
 				SDKROOT = iphoneos;
@@ -1609,7 +1617,6 @@
 		};
 		56E5D7DD1B4D3FEE00430942 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -1624,6 +1631,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MODULEMAP_FILE = "$(SRCROOT)/Support/moduleiOS.modulemap";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.github.groue.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = GRDB;
 				SDKROOT = iphoneos;
@@ -1775,7 +1783,6 @@
 		};
 		DC37740A19C8CBB3004FCF85 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
@@ -1788,6 +1795,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MODULEMAP_FILE = "$(SRCROOT)/Support/moduleOSX.modulemap";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.github.groue.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = GRDB;
 				SKIP_INSTALL = YES;
@@ -1796,7 +1804,6 @@
 		};
 		DC37740B19C8CBB3004FCF85 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
@@ -1809,6 +1816,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MODULEMAP_FILE = "$(SRCROOT)/Support/moduleOSX.modulemap";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.github.groue.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = GRDB;
 				SKIP_INSTALL = YES;
