@@ -826,11 +826,11 @@ enum Grape : String {
 }
 ```
 
-Add conformance to a protocol, and the enum type can be stored and fetched from the database just like other [value types](#values):
+Add conformance to the `DatabaseRawRepresentable` protocol, and the enum type can be stored and fetched from the database just like other [value types](#values):
 
 ```swift
-extension Color : DatabaseIntRepresentable { } // DatabaseInt32Representable for Int32, DatabaseInt64Representable for Int64
-extension Grape : DatabaseStringRepresentable { }
+extension Color : DatabaseRawRepresentable { }
+extension Grape : DatabaseRawRepresentable { }
 
 // Store
 try db.execute("INSERT INTO wines (grape, color) VALUES (?, ?)",
