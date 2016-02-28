@@ -25,10 +25,10 @@ enum Grape : String {
     case Riesling
 }
 
-extension Color32 : DatabaseRawRepresentable { }
-extension Color64 : DatabaseRawRepresentable { }
-extension Color : DatabaseRawRepresentable { }
-extension Grape : DatabaseRawRepresentable { }
+extension Color32 : DatabaseValueConvertible { }
+extension Color64 : DatabaseValueConvertible { }
+extension Color : DatabaseValueConvertible { }
+extension Grape : DatabaseValueConvertible { }
 
 class RawRepresentableTests: GRDBTestCase {
     
