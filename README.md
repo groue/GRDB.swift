@@ -2367,6 +2367,30 @@ FAQ
     
     You do not explicitely close a database connection: a connection is open when a [database queue](#database-queues) is created, and closed when there is no longer any reference to that database queue, and it gets deallocated. This principle is known as [RAII](http://c2.com/cgi/wiki?ResourceAcquisitionIsInitialization).
 
+- **How do I open a database stored as a resource of my application?**
+    
+    If your application does not need to modify the database, then open a [database queue](#database-queues) to your resource, making sure the connection is read-only:
+    
+    ```swift
+    let dbURL = NSBundle.mainBundle().URLForResource("db", withExtension: "sqlite")
+    var configuration = Configuration()
+    configuration.readonly = true
+    let dbQueue = DatabaseQueue(dbURL.path, configuration: configuration)
+    ```
+    
+    If the application should modify the database, then you need to copy it to a place where it can be modified. For example, in the Documents folder:
+    
+    ```swift
+    let fm = NSFileManager.defaultManager()
+    let documentsURL = try! fm.URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: true)
+    let dbResourceURL = NSBundle.mainBundle().URLForResource("db", withExtension: "sqlite")
+    let dbURL = documentsURL.URLByAppendingPathComponent(dbResourceURL.lastPathComponent!)
+    if !fm.fileExistsAtPath(dbURL.path) {
+        try! fm.copyItemAtURL(dbResourceURL, toURL: dbURL)
+    }
+    let dbQueue = DatabaseQueue(dbURL.path)
+    ```
+
 
 Sample Code
 ===========
