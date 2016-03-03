@@ -2374,21 +2374,21 @@ FAQ
     ```swift
     var configuration = Configuration()
     configuration.readonly = true
-    let dbPath = NSBundle.mainBundle().URLForResource("db", withExtension: "sqlite")!.path!
-    let dbQueue = DatabaseQueue(path: dbPath, configuration: configuration)
+    let dbPath = NSBundle.mainBundle().pathForResource("db", ofType: "sqlite")!
+    let dbQueue = try! DatabaseQueue(path: dbPath, configuration: configuration)
     ```
     
     If the application should modify the database, then you need to copy it to a place where it can be modified. For example, in the Documents folder:
     
     ```swift
     let fm = NSFileManager.defaultManager()
-    let documentsURL = try! fm.URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: true)
-    let dbResourceURL = NSBundle.mainBundle().URLForResource("db", withExtension: "sqlite")!
-    let dbURL = documentsURL.URLByAppendingPathComponent(dbResourceURL.lastPathComponent!)
-    if !fm.fileExistsAtPath(dbURL.path!) {
-        try! fm.copyItemAtURL(dbResourceURL, toURL: dbURL)
+    let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0]
+    let dbPath = (documentsPath as NSString).stringByAppendingPathComponent("db.sqlite")
+    if !fm.fileExistsAtPath(dbPath) {
+        let dbResourcePath = NSBundle.mainBundle().pathForResource("db", ofType: "sqlite")!
+        try! fm.copyItemAtPath(dbResourcePath, toPath: dbPath)
     }
-    let dbQueue = DatabaseQueue(path: dbURL.path!)
+    let dbQueue = DatabaseQueue(path: dbPath)
     ```
 
 
