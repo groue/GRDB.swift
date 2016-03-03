@@ -2372,10 +2372,10 @@ FAQ
     If your application does not need to modify the database, then open a [database queue](#database-queues) to your resource, making sure the connection is read-only:
     
     ```swift
-    let dbURL = NSBundle.mainBundle().URLForResource("db", withExtension: "sqlite")
     var configuration = Configuration()
     configuration.readonly = true
-    let dbQueue = DatabaseQueue(dbURL.path, configuration: configuration)
+    let dbPath = NSBundle.mainBundle().URLForResource("db", withExtension: "sqlite")!.path!
+    let dbQueue = DatabaseQueue(path: dbPath, configuration: configuration)
     ```
     
     If the application should modify the database, then you need to copy it to a place where it can be modified. For example, in the Documents folder:
