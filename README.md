@@ -2383,12 +2383,12 @@ FAQ
     ```swift
     let fm = NSFileManager.defaultManager()
     let documentsURL = try! fm.URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: true)
-    let dbResourceURL = NSBundle.mainBundle().URLForResource("db", withExtension: "sqlite")
+    let dbResourceURL = NSBundle.mainBundle().URLForResource("db", withExtension: "sqlite")!
     let dbURL = documentsURL.URLByAppendingPathComponent(dbResourceURL.lastPathComponent!)
-    if !fm.fileExistsAtPath(dbURL.path) {
+    if !fm.fileExistsAtPath(dbURL.path!) {
         try! fm.copyItemAtURL(dbResourceURL, toURL: dbURL)
     }
-    let dbQueue = DatabaseQueue(dbURL.path)
+    let dbQueue = DatabaseQueue(path: dbURL.path!)
     ```
 
 
