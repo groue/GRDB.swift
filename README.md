@@ -101,6 +101,7 @@ dbQueue.inDatabase { db in
 - [Query Interface](#the-query-interface): A swift way to generate SQL.
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
+- [FAQ](#faq)
 - [Sample Code](#sample-code)
 
 
@@ -2357,6 +2358,14 @@ do {
 > :point_up: **Note**: The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 Check [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd) for a transaction observer that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+
+
+FAQ
+===
+
+- **How do I close a database connection?**
+    
+    You do not explicitely close a database connection: a connection is open when a [database queue](#database-queues) is created, and closed when there is no longer any reference to that database queue, and it gets deallocated. This principle is known as [RAII](http://c2.com/cgi/wiki?ResourceAcquisitionIsInitialization).
 
 
 Sample Code
