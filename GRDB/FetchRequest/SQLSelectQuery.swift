@@ -257,6 +257,14 @@ extension _SQLDerivedExpressionType {
     public func countedSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
         return try sqlExpression.sql(db, &bindings)
     }
+    
+    /// This method is an implementation detail of the query interface.
+    /// Do not use it directly.
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public func isStar(tableName tableName: String) -> Bool {
+        return false
+    }
 }
 
 extension _SQLDerivedExpressionType {
@@ -506,6 +514,7 @@ extension _SQLExpression : _SQLDerivedExpressionType {
 public protocol _SQLSelectable {
     func resultColumnSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
     func countedSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
+    func isStar(tableName tableName: String) -> Bool
 }
 
 enum _SQLResultColumn {
@@ -534,6 +543,19 @@ extension _SQLResultColumn : _SQLSelectable {
             return "*"
         case .Expression(let expression, _):
             return try expression.sql(db, &bindings)
+        }
+    }
+    
+    func isStar(tableName tableName: String) -> Bool {
+        switch self {
+        case .Star(let sourceName):
+            if let sourceName = sourceName {
+                return sourceName == tableName
+            } else {
+                return true
+            }
+        case .Expression:
+            return false
         }
     }
 }

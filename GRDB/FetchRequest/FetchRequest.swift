@@ -168,7 +168,25 @@ extension FetchRequest {
     /// Returns the number of rows matched by the request.
     @warn_unused_result
     public func fetchCount(db: Database) -> Int {
+        guard !query.distinct else {
+            fatalError("Counting distinct fetch requests is not implemented yet.")
+        }
+        guard query.hasSingleTableSourceAndSelectsAllColumns else {
+            fatalError("Counting fetch requests with custom selection is not implemented yet.")
+        }
         return Int.fetchOne(db, select([_SQLExpression.Count(_SQLResultColumn.Star(nil))]))!
+    }
+}
+
+
+extension _SQLSelectQuery {
+    /// Support for FetchRequest.fetchCount()
+    private var hasSingleTableSourceAndSelectsAllColumns: Bool {
+        guard let source = source else { return false }
+        guard case .Table(name: let tableName, alias: _) = source else { return false }
+        guard selection.count == 1 else { return false }
+        guard selection[0].isStar(tableName: tableName) else { return false }
+        return true
     }
 }
 

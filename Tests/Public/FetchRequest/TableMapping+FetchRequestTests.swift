@@ -60,19 +60,7 @@ class TableMappingFetchRequestTests: GRDBTestCase {
         }
     }
     
-    func testFetchCountWithCustomSelect() {
-        dbQueue.inDatabase { db in
-            XCTAssertEqual(Reader.select(Col.name).fetchCount(db), 0)
-            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(\"name\") FROM \"readers\"")
-        }
-    }
-    
-    func testFetchCountDistinctWithCustomSelect() {
-        dbQueue.inDatabase { db in
-            XCTAssertEqual(Reader.select(Col.name).distinct.fetchCount(db), 0)
-            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
-        }
-    }
+    // TODO: import counting tests from FetchRequestTests
     
     
     // MARK: - Select
