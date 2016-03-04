@@ -6,7 +6,7 @@ Release Notes
 
 **Breaking Changes**
 
-- `DatabaseIntRepresentable`, `DatabaseInt32Representable`, `DatabaseInt64Representable` and `DatabaseStringRepresentable` have been replaced by the single protocol `DatabaseValueConvertible` ([documentation](https://github.com/groue/GRDB.swift#swift-enums))
+- Swift enums that behave like other database values now need to declare `DatabaseValueConvertible` conformance. The `DatabaseIntRepresentable`, `DatabaseInt32Representable`, `DatabaseInt64Representable` and `DatabaseStringRepresentable` have been removed ([documentation](https://github.com/groue/GRDB.swift#swift-enums))
 
 
 ## 0.45.1
