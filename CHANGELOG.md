@@ -8,7 +8,7 @@ Released March 5, 2016
 
 **New**
 
-- Improved counting support in the query interface ([documentation](#fetching-aggregated-values))
+- Improved counting support in the query interface ([documentation](https://github.com/groue/GRDB.swift#fetching-aggregated-values))
 
 **Breaking Changes**
 
