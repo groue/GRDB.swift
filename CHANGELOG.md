@@ -2,11 +2,13 @@ Release Notes
 =============
 
 
-## Next Version
+## 0.46.0
+
+Released March 5, 2016
 
 **New**
 
-- Better counting support in the query interface ([documentation](#fetching-aggregated-values))
+- Improved counting support in the query interface ([documentation](#fetching-aggregated-values))
 
 **Breaking Changes**
 
