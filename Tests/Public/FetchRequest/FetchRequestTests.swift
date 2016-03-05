@@ -81,52 +81,47 @@ class FetchRequestTests: GRDBTestCase {
     // MARK: - Count
     
     func testFetchCount() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                XCTAssertEqual(tableRequest.fetchCount(db), 0)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-                
-                let readers: [(String, Int?)] = [
-                    ("Arthur", 42),
-                    ("Barbara", 36),
-                    ("Craig", 42),
-                    ("Craig", 42),
-                    ("Daniel", nil)]
-                for (name, age) in readers {
-                    try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: [name, age])
-                }
-                
-                XCTAssertEqual(tableRequest.fetchCount(db), 5)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-                
-                XCTAssertEqual(tableRequest.filter(Col.age == 42).fetchCount(db), 3)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
-            }
+        dbQueue.inDatabase { db in
+            XCTAssertEqual(tableRequest.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(tableRequest.reverse().fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(tableRequest.order(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(tableRequest.limit(10).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
+            
+            XCTAssertEqual(tableRequest.filter(Col.age == 42).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
+            
+            XCTAssertEqual(tableRequest.distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
+            
+            XCTAssertEqual(tableRequest.select(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(tableRequest.select(Col.name).distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
+            
+            XCTAssertEqual(tableRequest.select(Col.age * 2).distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            
+            XCTAssertEqual(tableRequest.select((Col.age * 2).aliased("ignored")).distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            
+            XCTAssertEqual(tableRequest.select(Col.name, Col.age).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(tableRequest.select(Col.name, Col.age).distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
+            
+            XCTAssertEqual(tableRequest.select(max(Col.age)).group(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
         }
     }
-    
-//    func testFetchCountWithCustomSelect() {
-//        dbQueue.inDatabase { db in
-//            XCTAssertEqual(tableRequest.select(Col.name).fetchCount(db), 0)
-//            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(\"name\") FROM \"readers\"")
-//            
-//            XCTAssertEqual(tableRequest.select(Col.name).distinct.fetchCount(db), 0)
-//            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
-//            
-//            XCTAssertEqual(tableRequest.select(Col.age * 2).distinct.fetchCount(db), 0)
-//            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
-//            
-//            XCTAssertEqual(tableRequest.select((Col.age * 2).aliased("ignored")).distinct.fetchCount(db), 0)
-//            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
-//        }
-//    }
-//    
-//    func testFetchCountWithDistinct() {
-//        dbQueue.inDatabase { db in
-//            XCTAssertEqual(tableRequest.distinct.fetchCount(db), 0)
-//            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
-//        }
-//    }
     
     
     // MARK: - Select

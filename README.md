@@ -2192,7 +2192,7 @@ Country.fetchAll(db, keys: ["FR", "US"])!
 
 ### Fetching Aggregated Values
 
-**Requests can count:**
+**Requests can count.** The `fetchCount()` method returns the number of rows that would be returned by a fetch request:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -2200,11 +2200,18 @@ dbQueue.inDatabase { db in
     let count = Person.fetchCount(db) // Int
     
     // SELECT COUNT(*) FROM "persons" WHERE "email" IS NOT NULL
-    let count = Person.filter(Col.email != nil).fetchCount(db) // Int
+    let count = Person.filter(Col.email != nil).fetchCount(db)
+    
+    // SELECT COUNT(DISTINCT "name") FROM "persons"
+    let count = Person.select(Col.name).distinct.fetchCount(db)
+    
+    // SELECT COUNT(*) FROM (SELECT DISTINCT "name", "age" FROM "persons")
+    let count = Person.select(Col.name, Col.age).distinct.fetchCount(db)
 }
 ```
 
-Other aggregated values can also be selected and fetched (see [SQL Functions](#sql-functions)):
+
+**Other aggregated values** can also be selected and fetched (see [SQL Functions](#sql-functions)):
 
 ```swift
 dbQueue.inDatabase { db in
