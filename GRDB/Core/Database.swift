@@ -628,6 +628,8 @@ extension Database {
     /// Throws if table does not exist.
     ///
     /// This method is not thread-safe.
+    ///
+    /// - throws: A DatabaseError if table does not exist.
     func primaryKey(tableName: String) throws -> PrimaryKey {
         if let primaryKey = schemaCache.primaryKey[tableName] {
             return primaryKey
