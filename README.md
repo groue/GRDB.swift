@@ -73,21 +73,22 @@ try dbQueue.inDatabase { db in
     
     // Fetch from SQL
     let pois = PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
-}
 ```
 
 Turn Swift into SQL with the [query interface](#the-query-interface):
 
 ```swift
-let title = SQLColumn("title")
-let favorite = SQLColumn("favorite")
+    let title = SQLColumn("title")
+    let favorite = SQLColumn("favorite")
 
-dbQueue.inDatabase { db in
     // SELECT * FROM "pointOfInterests" WHERE "title" = 'Paris'
     let paris = PointOfInterest.filter(title == "Paris").fetchOne(db)
     
     // SELECT * FROM "pointOfInterests" WHERE "favorite" ORDER BY "title"
     let favoritePois = PointOfInterest.filter(favorite).order(title).fetchAll(db)
+    
+    // SELECT COUNT(*) FROM "pointOfInterests" WHERE "favorite"
+    let favoritePoiCount = PointOfInterest.filter(favorite).fetchCount(db)
 }
 ```
   
@@ -215,7 +216,7 @@ let inMemoryDBQueue = DatabaseQueue()
 
 SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
 
-**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed:
+**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed, and safely serialize the database accesses:
 
 ```swift
 // Execute database statements:
@@ -351,12 +352,12 @@ dbQueue.inDatabase { db in
 
 ### Fetching Methods
 
-**Throughout GRDB**, values can always be fetched as a *sequence*, as an *array*, or as a *single value*:
+**Throughout GRDB**, you can always fetch *sequences*, *arrays*, or *single values*:
 
 ```swift
-Value.fetch(...)    // DatabaseSequence<Value>
-Value.fetchAll(...) // [Value]
-Value.fetchOne(...) // Value?
+Type.fetch(...)    // DatabaseSequence<Type>
+Type.fetchAll(...) // [Type]
+Type.fetchOne(...) // Type?
 ```
 
 - `fetch` returns a sequence that is memory efficient, but must be consumed in the database queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
@@ -429,6 +430,7 @@ The `value` function returns the type you ask for. See [Values](#values) for mor
 let bookCount: Int     = row.value(named: "bookCount")
 let bookCount64: Int64 = row.value(named: "bookCount")
 let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
+
 let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.123"
 let date: NSDate       = row.value(named: "date")       // NSDate
 self.date = row.value(named: "date") // Depends on the type of the property.
@@ -453,11 +455,11 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 
 - **Successful conversions include:**
     
-    - Numeric (integer and real) SQLite values to Swift Int, Int32, Int64, Double and Bool (zero is the only false boolean).
+    - All numeric (integer and real) SQLite values to Swift Int, Int32, Int64, Double and Bool (zero is the only false boolean).
     - Text SQLite values to Swift String.
     - Blob SQLite values to NSData.
     
-    See [Values](#values) for more information on supported types (NSDate, Swift enums, etc.).
+    See [Values](#values) for more information on supported types (Bool, Int, String, NSDate, Swift enums, etc.)
 
 - **Invalid conversions return nil.**
 
@@ -586,7 +588,7 @@ dbQueue.inDatabase { db in
     let urls: [NSURL] = NSURL.fetchAll(db, "SELECT url FROM links")
     
     // The emails of people who own at least two pets:
-    let emails: [String?] = Optional<String>.fetchAll(db,
+    let emails: [String] = String.fetchAll(db,
         "SELECT persons.email " +
         "FROM persons " +
         "JOIN pets ON pets.masterId = persons.id " +
@@ -606,7 +608,7 @@ GRDB ships with built-in support for the following value types:
     
 - **CoreGraphics**: CGFloat.
 
-All types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol are supported.
+- Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
 
 Values can be used as [statement arguments](#executing-updates):
 
@@ -657,7 +659,6 @@ Use values in the [query interface](#the-query-interface):
 ```swift
 let url = NSURL(string: "http://example.com")!
 let link = Link.filter(Col.url == url).fetchOne(db)
-let urlCount = Int.fetchOne(db, Link.select(count(distinct: Col.url)))!
 ```
 
 
@@ -827,7 +828,7 @@ enum Grape : String {
 }
 ```
 
-Add conformance to the `DatabaseValueConvertible` protocol, and the enum type can be stored and fetched from the database just like other [value types](#values):
+Declare adoption of the `DatabaseValueConvertible` protocol, and the enum type can be stored and fetched from the database just like other [value types](#values):
 
 ```swift
 extension Color : DatabaseValueConvertible { }
@@ -1001,7 +1002,7 @@ It has many opportunities to fail:
 - The arguments dictionary may contain unsuitable values.
 - The arguments dictionary may miss values required by the statement.
 
-Compare with the safe version:
+The safe version of the code above goes down a level in GRDB API, in order to expose each failure point:
 
 ```swift
 // Dictionary arguments may contain invalid values:
@@ -1063,10 +1064,7 @@ try dbQueue.inDatabase { db in
 The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type StatementArguments, which happens to adopt the ArrayLiteralConvertible and DictionaryLiteralConvertible protocols).
 
 ```swift
-// INSERT INTO persons (name, age) VALUES (:name, :age)
 updateStatement.arguments = ["name": "Arthur", "age": 41]
-
-// SELECT * FROM persons WHERE name = ?
 selectStatement.arguments = ["Arthur"]
 ```
 
@@ -1076,38 +1074,21 @@ After arguments are set, you can execute the prepared statement:
 let changes = try updateStatement.execute()
 changes.changedRowCount // The number of rows changed by the statement.
 changes.insertedRowID   // For INSERT statements, the inserted Row ID.
+```
 
+Select statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):
+
+```swift
 for row in Row.fetch(selectStatement) { ... }
-for person in Person.fetch(selectStatement) { ... }
+let persons = Person.fetchAll(selectStatement)
+let person = Person.fetchOne(selectStatement)
 ```
 
-It is possible to set the arguments at the moment of the statement execution:
+You can set the arguments at the moment of the statement execution:
 
 ```swift
-// INSERT INTO persons (name, age) VALUES (:name, :age)
-try statement.execute(arguments: ["name": "Arthur", "age": 41])
-
-// SELECT * FROM persons WHERE name = ?
+try updateStatement.execute(arguments: ["name": "Arthur", "age": 41])
 let person = Person.fetchOne(selectStatement, arguments: ["Arthur"])
-```
-
-Select statements can be used wherever a raw SQL query would fit (see [fetch queries](#fetch-queries)):
-
-```swift
-Row.fetch(statement, arguments: ...)        // DatabaseSequence<Row>
-Row.fetchAll(statement, arguments: ...)     // [Row]
-Row.fetchOne(statement, arguments: ...)     // Row?
-
-String.fetch(statement, arguments: ...)     // DatabaseSequence<String>
-String.fetchAll(statement, arguments: ...)  // [String]
-String.fetchOne(statement, arguments: ...)  // String?
-
-Optional<String>.fetch(statement, arguments: ...)    // DatabaseSequence<String?>
-Optional<String>.fetchAll(statement, arguments: ...) // [String?]
-
-Person.fetch(statement, arguments: ...)     // DatabaseSequence<Person>
-Person.fetchAll(statement, arguments: ...)  // [Person]
-Person.fetchOne(statement, arguments: ...)  // Person?
 ```
 
 See [row queries](#row-queries), [value queries](#value-queries), and [Records](#records) for more information.
@@ -1680,7 +1661,7 @@ class PointOfInterest : Record {
     }
     
     /// Update record ID after a successful insertion
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         id = rowID
     }
 }
