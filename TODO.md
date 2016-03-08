@@ -21,7 +21,6 @@ Not sure:
 
 Require changes in the Swift language:
 
-- [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into StatementColumnConvertible when Swift allows for it.
 - [ ] Specific and optimized Optional<StatementColumnConvertible>.fetch... methods when http://openradar.appspot.com/22852669 is fixed.
 
 
