@@ -15,19 +15,23 @@ public class Statement {
     /// The SQL query
     public let sql: String
     
+    let readOnly: Bool
+    
     /// The database
     unowned let database: Database
     
-    init(database: Database, sql: String, sqliteStatement: SQLiteStatement) {
+    init(database: Database, sql: String, sqliteStatement: SQLiteStatement, readOnly: Bool) {
         self.database = database
         self.sql = sql
         self.sqliteStatement = sqliteStatement
+        self.readOnly = readOnly
     }
     
-    init(database: Database, sql: String) throws {
+    private init(database: Database, sql: String, observer: StatementCompilationObserver) throws {
         database.preconditionValidQueue()
         
-        // See https://www.sqlite.org/c3ref/prepare.html
+        observer.start()
+        defer { observer.stop() }
         
         let sqlCodeUnits = sql.nulTerminatedUTF8
         var sqliteStatement: SQLiteStatement = nil
@@ -44,6 +48,7 @@ public class Statement {
         self.database = database
         self.sql = sql
         self.sqliteStatement = sqliteStatement
+        self.readOnly = observer.readOnly
         
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
@@ -268,18 +273,11 @@ public final class SelectStatement : Statement {
     /// The tables this statement feeds on.
     var sourceTables: Set<String>
     
-    override init(database: Database, sql: String) throws {
+    init(database: Database, sql: String) throws {
         self.sourceTables = []
         
-        // During the execution of sqlite3_prepare_v2 by super.init, the
-        // observer listens to authorization callbacks in order to grab the
-        // list of source tables.
-        let observer = SourceTableObserver(database)
-        observer.start()
-        defer { observer.stop() }
-        
-        try super.init(database: database, sql: sql)
-        
+        let observer = StatementCompilationObserver(database)
+        try super.init(database: database, sql: sql, observer: observer)
         self.sourceTables = observer.sourceTables
     }
     
@@ -374,6 +372,8 @@ public struct DatabaseSequence<T>: SequenceType {
 /// A generator of elements fetched from the database.
 public struct DatabaseGenerator<T>: GeneratorType {
     private let element: () throws -> T?
+    
+    @warn_unused_result
     public func next() -> T? {
         return try! element()
     }
@@ -397,23 +397,16 @@ public final class UpdateStatement : Statement {
     /// is executed.
     var invalidatesDatabaseSchemaCache: Bool
     
-    init(database: Database, sql: String, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool) {
+    init(database: Database, sql: String, sqliteStatement: SQLiteStatement, readOnly: Bool, invalidatesDatabaseSchemaCache: Bool) {
         self.invalidatesDatabaseSchemaCache = invalidatesDatabaseSchemaCache
-        super.init(database: database, sql: sql, sqliteStatement: sqliteStatement)
+        super.init(database: database, sql: sql, sqliteStatement: sqliteStatement, readOnly: readOnly)
     }
     
-    override init(database: Database, sql: String) throws {
+    init(database: Database, sql: String) throws {
         self.invalidatesDatabaseSchemaCache = false
         
-        // During the execution of sqlite3_prepare_v2 by super.init, the
-        // observer listens to authorization callbacks in order to observe
-        // schema changes.
-        let observer = SchemaChangeObserver(database)
-        observer.start()
-        defer { observer.stop() }
-        
-        try super.init(database: database, sql: sql)
-        
+        let observer = StatementCompilationObserver(database)
+        try super.init(database: database, sql: sql, observer: observer)
         self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
     }
     
