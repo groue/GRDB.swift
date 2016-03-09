@@ -280,7 +280,7 @@ import GRDB
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
 
-Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), pools grant you with multiple readers, and one writer. The writer only is allowed to modify the database. Readers can run in parallel with other readers, and with the writer.
+Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), pools grant you with multiple readers, and one writer. Only the writer is allowed to modify the database. Readers can run in parallel with other readers, and with the writer.
 
 > :point_up: **Note**: your application should have a unique instance of DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
 >
