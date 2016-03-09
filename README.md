@@ -317,14 +317,19 @@ let wineCount = dbPool.read { db in
 print(wineCount)
 ```
 
-For extra security, GRDB wraps all reads in a transaction so that the writer can not pull the rug out from under the readers between two fetches:
+**Readers are isolated from the writer.** The modifications performed by the writer are not visible inside a `read`:
 
 ```swift
 dbPool.read { db in
-    // Those two values are equal, even if the writer has modified the wines
-    // table between the two requests:
+    // Those two values are guaranteed to be equal, even if the writer modifies
+    // the wines table between the two requests:
     let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
     let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
+}
+
+dbPool.read { db in
+    // Now this one may be different:
+    let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
 }
 ```
 
