@@ -13,7 +13,7 @@
 - [ ] DatabasePool
     - [ ] Tests :-)
     - [ ] Allow only readOnly statement in readers
-        - [ ] Remove Statement.readOnly since a readOnly database refuses to execute modification statements. We need tests for this assertion.
+        - [ ] Remove Statement.readOnly since a readOnly database refuses to execute modification statements.
     - [ ] Forbid transactions and save points in readers
     - [ ] Database schema cache should be shared accross connections in a pool.
     - [ ] DatabasePool.checkpoint() https://www.sqlite.org/c3ref/wal_checkpoint_v2.html
