@@ -13,7 +13,7 @@
 - [ ] DatabasePool
     - [ ] Tests :-)
     - [ ] Allow only readOnly statement in readers
-    - [ ] Frobid transactions and save points in readers
+    - [ ] Forbid transactions and save points in readers
 
 Not sure:
 

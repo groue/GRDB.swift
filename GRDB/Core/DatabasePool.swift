@@ -60,13 +60,13 @@ public class DatabasePool {
 }
 
 private class Pool<T> {
-    let queue: dispatch_queue_t
-    let semaphore: dispatch_semaphore_t
-    let builder: () -> T
+    let makeElement: () -> T
     var availableElements: [T] = []
+    let queue: dispatch_queue_t         // protects availableElements
+    let semaphore: dispatch_semaphore_t // limits the number of elements
     
-    init(size: Int, builder: () -> T) {
-        self.builder = builder
+    init(size: Int, makeElement: () -> T) {
+        self.makeElement = makeElement
         self.queue = dispatch_queue_create("com.github.groue.GRDB.Pool", nil)
         self.semaphore = dispatch_semaphore_create(size)
     }
@@ -82,7 +82,7 @@ private class Pool<T> {
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
         dispatch_sync(queue) {
             if self.availableElements.isEmpty {
-                element = self.builder()
+                element = self.makeElement()
             } else {
                 element = self.availableElements.removeLast()
             }
