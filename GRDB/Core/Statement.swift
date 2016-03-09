@@ -42,6 +42,8 @@ public class Statement {
             remainingSQL = String(data: remainingData, encoding: NSUTF8StringEncoding)!.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet())
         }
         
+        database.preconditionValidStatement(observer)
+        
         self.database = database
         self.sql = sql
         self.sqliteStatement = sqliteStatement
@@ -412,6 +414,8 @@ public final class UpdateStatement : Statement {
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
+        database.preconditionValidQueue()
+        
         // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
         try! prepareWithArguments(arguments)
         try! reset()

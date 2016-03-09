@@ -45,9 +45,13 @@ public final class Database {
     /// See preconditionValidQueue.
     var databaseQueueID: UnsafeMutablePointer<Void> = nil
     
-    init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
+    /// False for DatabasePool readers
+    let allowsTransaction: Bool
+    
+    init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType, allowsTransaction: Bool) throws {
         self.configuration = configuration
         self.schemaCache = schemaCache
+        self.allowsTransaction = allowsTransaction
         
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection = SQLiteConnection()
@@ -328,7 +332,7 @@ extension Database {
             let sqlEnd = sqlStart + sqlCodeUnits.count
             var statementStart = sqlStart
             while statementStart < sqlEnd - 1 {
-                observer.invalidatesDatabaseSchemaCache = false
+                observer.reset()
                 var statementEnd: UnsafePointer<Int8> = nil
                 var sqliteStatement: SQLiteStatement = nil
                 let code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
@@ -336,6 +340,8 @@ extension Database {
                     error = DatabaseError(code: code, message: lastErrorMessage, sql: sql)
                     break
                 }
+                
+                self.preconditionValidStatement(observer)
                 
                 let sqlData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd - statementStart, freeWhenDone: false)
                 let sql = String(data: sqlData, encoding: NSUTF8StringEncoding)!.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet())
@@ -368,6 +374,10 @@ extension Database {
         let lastInsertedRowID = sqlite3_last_insert_rowid(sqliteConnection)
         let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
         return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: insertedRowID)
+    }
+    
+    func preconditionValidStatement(observer: StatementCompilationObserver) {
+        precondition(allowsTransaction || (!observer.transaction && !observer.savePoint), "DatabasePool readers can not start transactions or savepoints.")
     }
 }
 
@@ -785,7 +795,9 @@ enum PrimaryKey {
 final class StatementCompilationObserver {
     let database: Database
     var sourceTables: Set<String> = []
-    var invalidatesDatabaseSchemaCache: Bool = false
+    var invalidatesDatabaseSchemaCache = false
+    var transaction = false
+    var savePoint = false
     
     init(_ database: Database) {
         self.database = database
@@ -801,6 +813,12 @@ final class StatementCompilationObserver {
             case SQLITE_READ:
                 let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
                 observer.sourceTables.insert(String.fromCString(CString1)!)
+            case SQLITE_TRANSACTION:
+                let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
+                observer.transaction = true
+            case SQLITE_SAVEPOINT:
+                let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
+                observer.savePoint = true
             default:
                 break
             }
@@ -810,6 +828,13 @@ final class StatementCompilationObserver {
     
     func stop() {
         sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
+    }
+    
+    func reset() {
+        sourceTables = []
+        invalidatesDatabaseSchemaCache = false
+        transaction = false
+        savePoint = false
     }
 }
 

@@ -9,18 +9,28 @@ public final class DatabasePool {
         var readConfig = configuration
         readConfig.readonly = true
         let readerPool = Pool(maximumCount: maximumReaderCount) {
-            try! SerializedDatabase(path: path, configuration: readConfig, schemaCache: schemaCache)
+            try! SerializedDatabase(
+                path: path,
+                configuration: readConfig,
+                schemaCache: schemaCache,
+                allowsTransaction: false)
         }
         
         // Writer
         var writeConfig = configuration
         writeConfig.readonly = false
-        let writer = try SerializedDatabase(path: path, configuration: writeConfig, schemaCache: schemaCache)
+        let writer = try SerializedDatabase(
+            path: path,
+            configuration: writeConfig,
+            schemaCache: schemaCache,
+            allowsTransaction: true)
         
         // Activate WAL Mode
-        writer.inDatabase { db in
-            let mode = String.fetchOne(db, "PRAGMA journal_mode=WAL")
-            precondition(mode == "wal", "Could not open the database in WAL Mode.")
+        let mode = writer.inDatabase { db in
+            String.fetchOne(db, "PRAGMA journal_mode=WAL")
+        }
+        guard mode == "wal" else {
+            throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
         }
         
         self.init(readerPool: readerPool, writer: writer)
