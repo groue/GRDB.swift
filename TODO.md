@@ -11,13 +11,7 @@
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] DatabasePool
-    - [ ] Tests :-)
     - [ ] Forbid transactions and save points in readers
-    - [ ] DatabasePool.checkpoint() https://www.sqlite.org/c3ref/wal_checkpoint_v2.html
-    - [ ] Concurrency tests:
-        - [ ] Iterate rows concurrently.
-        - [ ] Iterate rows, and concurrently, update the database rows. Is the selection modified?
-        - [ ] Iterate rows, and concurrently, update the database rows and then checkpoint. Is the selection modified?
 
 Not sure:
 

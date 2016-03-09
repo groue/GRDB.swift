@@ -165,11 +165,11 @@ final class Pool<T> {
     private let queue: dispatch_queue_t         // protects availableElements
     private let semaphore: dispatch_semaphore_t // limits the number of elements
     
-    init(size: Int, makeElement: () -> T) {
-        precondition(size > 0, "Pool size must be at least 1")
+    init(maximumCount: Int, makeElement: () -> T) {
+        precondition(maximumCount > 0, "Pool size must be at least 1")
         self.makeElement = makeElement
         self.queue = dispatch_queue_create("com.github.groue.GRDB.Pool", nil)
-        self.semaphore = dispatch_semaphore_create(size)
+        self.semaphore = dispatch_semaphore_create(maximumCount)
     }
     
     func get<U>(@noescape block: (T) throws -> U) rethrows -> U {
