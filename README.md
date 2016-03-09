@@ -278,7 +278,7 @@ See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.46.0/Structs/Confi
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
 
-Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), pools grant you with multiple readers, and one writer. The writer only is allowed to modify the database.
+Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), pools grant you with multiple readers, and one writer. The writer only is allowed to modify the database. A reader can run in parallel with other readers, as well as with the writer.
 
 **A database pool can be used from any thread.** The `write` and `writeInTransaction` methods block the current thread until your database statements are executed, and safely serialize the database accesses:
 
