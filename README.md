@@ -221,6 +221,9 @@ let inMemoryDBQueue = DatabaseQueue()
 
 SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
 
+> :point_up: **Note**: your application should have a unique instance of DatabaseQueue connected to a database file. You may experience concurrency trouble if you do otherwise.
+
+
 **A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed, and safely serialize the database accesses:
 
 ```swift
@@ -246,8 +249,6 @@ let wineCount = dbQueue.inDatabase { db in
 }
 print(wineCount)
 ```
-
-> :point_up: **Note**: Your application should have a unique instance of DatabaseQueue connected to a database file. You may experience concurrency trouble if you do otherwise.
 
 
 **You can configure database queues:**
@@ -281,6 +282,9 @@ let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 
 Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), pools grant you with multiple readers, and one writer. The writer only is allowed to modify the database. A reader can run in parallel with other readers, as well as with the writer.
 
+> :point_up: **Note**: your application should have a unique instance of DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
+
+
 **A database pool can be used from any thread.** The `write` and `writeInTransaction` methods block the current thread until your database statements are executed, and safely serialize the database accesses:
 
 ```swift
@@ -295,7 +299,7 @@ try dbPool.writeInTransaction { db in
 }
 ```
 
-The `read` method also blocks the current thread until your database fetches are done. Database modifications are not allowed. Opening transactions is not allowed. Basically, a reader can only... read:
+The `read` method also blocks the current thread until your database fetches are done. Database modifications are not allowed: a reader can only... read:
 
 ```swift
 try dbPool.read { db in
@@ -313,9 +317,18 @@ let wineCount = dbPool.read { db in
 print(wineCount)
 ```
 
-The number of concurrent readers is limited. When all readers are busy, the `read` method blocks until a reader turns available.
+For extra security, GRDB wraps all reads in a transaction so that the writer can not pull the rug out from under the readers between two fetches:
 
-> :point_up: **Note**: Your application should have a unique instance of DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
+```swift
+dbPool.read { db in
+    // Those two values are equal, even if the writer has modified the wines
+    // table between the two requests:
+    let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
+    let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
+}
+```
+
+The number of concurrent readers is limited. When all readers are busy, the `read` method blocks until a reader turns available.
 
 
 **You can configure database pools:**
@@ -332,6 +345,8 @@ let dbPool = try DatabasePool(
 ```
 
 See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.46.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+
+> :warning: **Warning**: database pools, although well tested, are still experimental. In particular, unused readers are not released. The memory pressure of multiple database connections is unknown. The best number of readers is unknown. Please share the results of your experiments!
 
 
 ## Executing Updates
@@ -747,7 +762,7 @@ for row in Row.fetch(db, "SELECT data, ...") {
 }
 ```
 
-> :point_up: **Note**: The non-copied data does not live longer than the iteration step: make sure that you do not use it past this point.
+> :point_up: **Note**: the non-copied data does not live longer than the iteration step: make sure that you do not use it past this point.
 
 Compare with the **anti-patterns** below:
 
@@ -1174,7 +1189,7 @@ GRDB ships with support for two concurrency modes:
 
 A GRDB database queue or pool is intented to avoid all concurrency troubles, *granted there is no other connection to your database*.
 
-> :point_up: **Note**: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
+> :point_up: **Note**: your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
 
 Documents of interest include:
 
@@ -1480,7 +1495,7 @@ extension PointOfInterest : RowConvertible {
 
 See [column values](#column-values) for more information about the `row.value()` method.
 
-> :point_up: **Note**: For performance reasons, the same row argument to `init(_:Row)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+> :point_up: **Note**: for performance reasons, the same row argument to `init(_:Row)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 RowConvertible allows adopting types to be fetched from SQL queries:
 
@@ -1673,9 +1688,9 @@ struct Link : Persistable {
 }
 ```
 
-> :point_up: **Note**: The special methods `performInsert`, `performUpdate`, etc. are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
+> :point_up: **Note**: the special methods `performInsert`, `performUpdate`, etc. are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
 >
-> :point_up: **Note**: It is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
+> :point_up: **Note**: it is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
 
 
 ### Record Class
@@ -2415,9 +2430,9 @@ do {
 }
 ```
 
-> :point_up: **Note**: All callbacks are called on the database queue.
+> :point_up: **Note**: all callbacks are called on the database queue.
 >
-> :point_up: **Note**: The databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
+> :point_up: **Note**: the databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 Check [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd) for a transaction observer that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
 
