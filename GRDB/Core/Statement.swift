@@ -15,16 +15,13 @@ public class Statement {
     /// The SQL query
     public let sql: String
     
-    let readOnly: Bool
-    
     /// The database
     unowned let database: Database
     
-    init(database: Database, sql: String, sqliteStatement: SQLiteStatement, readOnly: Bool) {
+    init(database: Database, sql: String, sqliteStatement: SQLiteStatement) {
         self.database = database
         self.sql = sql
         self.sqliteStatement = sqliteStatement
-        self.readOnly = readOnly
     }
     
     private init(database: Database, sql: String, observer: StatementCompilationObserver) throws {
@@ -48,7 +45,6 @@ public class Statement {
         self.database = database
         self.sql = sql
         self.sqliteStatement = sqliteStatement
-        self.readOnly = observer.readOnly
         
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
@@ -397,9 +393,9 @@ public final class UpdateStatement : Statement {
     /// is executed.
     var invalidatesDatabaseSchemaCache: Bool
     
-    init(database: Database, sql: String, sqliteStatement: SQLiteStatement, readOnly: Bool, invalidatesDatabaseSchemaCache: Bool) {
+    init(database: Database, sql: String, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool) {
         self.invalidatesDatabaseSchemaCache = invalidatesDatabaseSchemaCache
-        super.init(database: database, sql: sql, sqliteStatement: sqliteStatement, readOnly: readOnly)
+        super.init(database: database, sql: sql, sqliteStatement: sqliteStatement)
     }
     
     init(database: Database, sql: String) throws {

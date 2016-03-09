@@ -16,46 +16,6 @@ class StatementInformationTests : GRDBTestCase {
         }
     }
     
-    func testUpdateStatementReadOnly() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                do {
-                    let statement = try db.updateStatement("CREATE TABLE foo (id INTEGER)")
-                    XCTAssertFalse(statement.readOnly)
-                    try statement.execute()
-                }
-                do {
-                    let statement = try db.updateStatement("INSERT INTO foo (id) VALUES (1)")
-                    XCTAssertFalse(statement.readOnly)
-                }
-                do {
-                    let statement = try db.updateStatement("SELECT * FROM foo")
-                    XCTAssertTrue(statement.readOnly)
-                }
-            }
-        }
-    }
-    
-    func testSelectStatementReadOnly() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                do {
-                    let statement = try db.selectStatement("CREATE TABLE foo (id INTEGER)")
-                    XCTAssertFalse(statement.readOnly)
-                    _ = Row.fetch(statement).generate().next()
-                }
-                do {
-                    let statement = try db.selectStatement("INSERT INTO foo (id) VALUES (1)")
-                    XCTAssertFalse(statement.readOnly)
-                }
-                do {
-                    let statement = try db.selectStatement("SELECT * FROM foo")
-                    XCTAssertTrue(statement.readOnly)
-                }
-            }
-        }
-    }
-    
     func testUpdateStatementInvalidatesDatabaseSchemaCache() {
         assertNoError {
             try dbQueue.inDatabase { db in

@@ -328,7 +328,6 @@ extension Database {
             var statementStart = sqlStart
             while statementStart < sqlEnd - 1 {
                 observer.invalidatesDatabaseSchemaCache = false
-                observer.readOnly = true
                 var statementEnd: UnsafePointer<Int8> = nil
                 var sqliteStatement: SQLiteStatement = nil
                 let code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
@@ -344,7 +343,7 @@ extension Database {
                 }
                 
                 do {
-                    let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement, readOnly: observer.readOnly, invalidatesDatabaseSchemaCache: observer.invalidatesDatabaseSchemaCache)
+                    let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement, invalidatesDatabaseSchemaCache: observer.invalidatesDatabaseSchemaCache)
                     try statement.execute(arguments: consumeArguments(statement))
                 } catch let statementError {
                     error = statementError
@@ -793,7 +792,6 @@ final class StatementCompilationObserver {
     let database: Database
     var sourceTables: Set<String> = []
     var invalidatesDatabaseSchemaCache: Bool = false
-    var readOnly: Bool = true
     
     init(_ database: Database) {
         self.database = database
@@ -806,10 +804,6 @@ final class StatementCompilationObserver {
             case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE:
                 let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
                 observer.invalidatesDatabaseSchemaCache = true
-                observer.readOnly = false
-            case SQLITE_CREATE_INDEX, SQLITE_CREATE_TABLE, SQLITE_CREATE_TEMP_INDEX, SQLITE_CREATE_TEMP_TABLE, SQLITE_CREATE_TEMP_TRIGGER, SQLITE_CREATE_TEMP_VIEW, SQLITE_CREATE_TRIGGER, SQLITE_CREATE_VIEW, SQLITE_DELETE, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX, SQLITE_DROP_TEMP_TRIGGER, SQLITE_DROP_TRIGGER, SQLITE_INSERT, SQLITE_PRAGMA, SQLITE_UPDATE, SQLITE_REINDEX, SQLITE_CREATE_VTABLE:
-                let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
-                observer.readOnly = false
             case SQLITE_READ:
                 let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
                 observer.sourceTables.insert(String.fromCString(CString1)!)
