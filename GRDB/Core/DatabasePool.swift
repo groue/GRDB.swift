@@ -47,6 +47,17 @@ public final class DatabasePool {
         }
     }
     
+    public func checkpoint() throws {
+        try writer.inDatabase { db in
+            // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
+            // check whether we need a busy handler on writer and/or readers.
+            let code = sqlite3_wal_checkpoint_v2(db.sqliteConnection, nil, SQLITE_CHECKPOINT_TRUNCATE, nil, nil)
+            guard code == SQLITE_OK else {
+                throw DatabaseError(code: code, message: db.lastErrorMessage, sql: nil)
+            }
+        }
+    }
+    
     private let writer: SerializedDatabase
     private let readerPool: Pool<SerializedDatabase>
     
