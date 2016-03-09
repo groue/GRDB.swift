@@ -30,7 +30,7 @@ public final class Database {
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
-    private var schemaCache: DatabaseSchemaCacheType
+    var schemaCache: DatabaseSchemaCacheType    // internal so that it can be tested
     
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
     private var transactionState: TransactionState = .WaitForTransactionCompletion

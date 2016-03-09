@@ -117,6 +117,10 @@
 		5695310F1C9067DC00CF1A2B /* StatementCrashTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569531011C9067CC00CF1A2B /* StatementCrashTests.swift */; };
 		5695311F1C907A8C00CF1A2B /* DatabaseSchemaCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5695311E1C907A8C00CF1A2B /* DatabaseSchemaCache.swift */; };
 		569531201C907A8C00CF1A2B /* DatabaseSchemaCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5695311E1C907A8C00CF1A2B /* DatabaseSchemaCache.swift */; };
+		569531261C9087B600CF1A2B /* DatabaseQueueSchemaCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569531231C90878D00CF1A2B /* DatabaseQueueSchemaCacheTests.swift */; };
+		569531271C9087B700CF1A2B /* DatabaseQueueSchemaCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569531231C90878D00CF1A2B /* DatabaseQueueSchemaCacheTests.swift */; };
+		569531291C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569531281C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift */; };
+		5695312A1C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569531281C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift */; };
 		56A238371B9C74A90082EB20 /* DatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238131B9C74A90082EB20 /* DatabaseTests.swift */; };
 		56A238381B9C74A90082EB20 /* DatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238131B9C74A90082EB20 /* DatabaseTests.swift */; };
 		56A238391B9C74A90082EB20 /* InMemoryDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238141B9C74A90082EB20 /* InMemoryDatabaseTests.swift */; };
@@ -369,6 +373,8 @@
 		569531001C9067CC00CF1A2B /* StatementColumnConvertibleCrashTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementColumnConvertibleCrashTests.swift; sourceTree = "<group>"; };
 		569531011C9067CC00CF1A2B /* StatementCrashTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementCrashTests.swift; sourceTree = "<group>"; };
 		5695311E1C907A8C00CF1A2B /* DatabaseSchemaCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSchemaCache.swift; sourceTree = "<group>"; };
+		569531231C90878D00CF1A2B /* DatabaseQueueSchemaCacheTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueSchemaCacheTests.swift; sourceTree = "<group>"; };
+		569531281C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabasePoolSchemaCacheTests.swift; sourceTree = "<group>"; };
 		56A238131B9C74A90082EB20 /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
 		56A238141B9C74A90082EB20 /* InMemoryDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InMemoryDatabaseTests.swift; sourceTree = "<group>"; };
 		56A238161B9C74A90082EB20 /* DatabaseErrorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseErrorTests.swift; sourceTree = "<group>"; };
@@ -658,6 +664,8 @@
 		569978D31B539038005EBEED /* Private */ = {
 			isa = PBXGroup;
 			children = (
+				569531231C90878D00CF1A2B /* DatabaseQueueSchemaCacheTests.swift */,
+				569531281C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift */,
 				56EB0AB11BCD787300A3DC55 /* NSDataMemoryTests.swift */,
 				5605F1861C69111300235C62 /* StatementInformationTests.swift */,
 			);
@@ -1394,6 +1402,7 @@
 				56A238661B9C74A90082EB20 /* RecordFetchTests.swift in Sources */,
 				56EE573E1BB317B7007A6A95 /* SQLiteStatementConversionTests.swift in Sources */,
 				56A238481B9C74A90082EB20 /* DetachedRowTests.swift in Sources */,
+				569531271C9087B700CF1A2B /* DatabaseQueueSchemaCacheTests.swift in Sources */,
 				56A238541B9C74A90082EB20 /* PrimaryKeyMultipleTests.swift in Sources */,
 				56FDECE31BB32DFD009AD709 /* MetalRowTests.swift in Sources */,
 				56DE7B121C3D93ED00861EB8 /* StatementArgumentsTests.swift in Sources */,
@@ -1415,6 +1424,7 @@
 				56E8CE0E1BB4FA5600828BEC /* DatabaseValueConvertibleFetchTests.swift in Sources */,
 				56A238581B9C74A90082EB20 /* PrimaryKeyRowIDTests.swift in Sources */,
 				56A238621B9C74A90082EB20 /* RecordEditedTests.swift in Sources */,
+				5695312A1C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift in Sources */,
 				56A2385C1B9C74A90082EB20 /* PrimaryKeySingleWithReplaceConflictResolutionTests.swift in Sources */,
 				56A238401B9C74A90082EB20 /* DatabaseValueConvertibleSubclassTests.swift in Sources */,
 				56A2383C1B9C74A90082EB20 /* DatabaseErrorTests.swift in Sources */,
@@ -1459,6 +1469,7 @@
 				56EE573D1BB317B7007A6A95 /* SQLiteStatementConversionTests.swift in Sources */,
 				56A238651B9C74A90082EB20 /* RecordFetchTests.swift in Sources */,
 				56A238471B9C74A90082EB20 /* DetachedRowTests.swift in Sources */,
+				569531261C9087B600CF1A2B /* DatabaseQueueSchemaCacheTests.swift in Sources */,
 				56FDECE21BB32DFD009AD709 /* MetalRowTests.swift in Sources */,
 				56A238531B9C74A90082EB20 /* PrimaryKeyMultipleTests.swift in Sources */,
 				56DE7B111C3D93ED00861EB8 /* StatementArgumentsTests.swift in Sources */,
@@ -1480,6 +1491,7 @@
 				56A2385B1B9C74A90082EB20 /* PrimaryKeySingleWithReplaceConflictResolutionTests.swift in Sources */,
 				565B0FEF1BBC7D980098DE03 /* RowConvertibleTests.swift in Sources */,
 				56A2383F1B9C74A90082EB20 /* DatabaseValueConvertibleSubclassTests.swift in Sources */,
+				569531291C908A5B00CF1A2B /* DatabasePoolSchemaCacheTests.swift in Sources */,
 				56E8CE0D1BB4FA5600828BEC /* DatabaseValueConvertibleFetchTests.swift in Sources */,
 				56A2383B1B9C74A90082EB20 /* DatabaseErrorTests.swift in Sources */,
 				56E8CE101BB4FE5B00828BEC /* SQLiteStatementConvertibleFetchTests.swift in Sources */,

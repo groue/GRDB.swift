@@ -2,36 +2,75 @@ import XCTest
 import GRDB
 
 class GRDBTestCase: XCTestCase {
-    var databasePath: String!
-    var dbQueue: DatabaseQueue!
+    var dbConfiguration = Configuration()
+    
+    var dbQueuePath: String = {
+        let dbQueueFileName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        return (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbQueueFileName)
+    }()
+    var _dbQueue: DatabaseQueue?
+    var dbQueue: DatabaseQueue {
+        get {
+            if let _dbQueue = _dbQueue {
+                return _dbQueue
+            } else {
+                _dbQueue = try! DatabaseQueue(path: dbQueuePath, configuration: dbConfiguration)
+                return _dbQueue!
+            }
+        }
+        set {
+            _dbQueue = newValue
+        }
+    }
+    
+    var dbPoolDirectoryPath: String = {
+        let dbPoolDirectoryName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString)"
+        return (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbPoolDirectoryName)
+    }()
+    var _dbPool: DatabasePool?
+    var dbPool: DatabasePool {
+        get {
+            if let _dbPool = _dbPool {
+                return _dbPool
+            } else {
+                try! NSFileManager.defaultManager().createDirectoryAtPath(dbPoolDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+                let dbPoolPath = (dbPoolDirectoryPath as NSString).stringByAppendingPathComponent("db.sqlite")
+                _dbPool = try! DatabasePool(path: dbPoolPath, configuration: dbConfiguration)
+                return _dbPool!
+            }
+        }
+        set {
+            _dbPool = newValue
+        }
+    }
+    
+    
     var sqlQueries: [String]!
     var lastSQLQuery: String!
-    var dbConfiguration: Configuration {
-        var dbConfiguration = Configuration()
+    
+    override func setUp() {
+        super.setUp()
+        
         dbConfiguration.trace = { (sql) in
             self.sqlQueries.append(sql)
             self.lastSQLQuery = sql
             // LogSQL(sql) // Uncomment for verbose tests
         }
-        return dbConfiguration
-    }
-    
-    override func setUp() {
-        super.setUp()
-        
         sqlQueries = []
+        lastSQLQuery = nil
         
-        let databaseFileName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
-        do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
-        dbQueue = try! DatabaseQueue(path: databasePath, configuration: dbConfiguration)
+        do { try NSFileManager.defaultManager().removeItemAtPath(dbQueuePath) } catch { }
+        do { try NSFileManager.defaultManager().removeItemAtPath(dbPoolDirectoryPath) } catch { }
     }
     
     override func tearDown() {
         super.tearDown()
         
-        dbQueue = nil
-        try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        _dbQueue = nil
+        _dbPool = nil
+                
+        do { try NSFileManager.defaultManager().removeItemAtPath(dbQueuePath) } catch { }
+        do { try NSFileManager.defaultManager().removeItemAtPath(dbPoolDirectoryPath) } catch { }
     }
     
     func assertNoError(@noescape test: (Void) throws -> Void) {

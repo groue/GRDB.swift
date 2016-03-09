@@ -307,7 +307,7 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             var configuration = Configuration()
             configuration.readonly = true
-            dbQueue = try DatabaseQueue(path: databasePath, configuration: configuration)
+            dbQueue = try DatabaseQueue(path: dbQueuePath, configuration: configuration)
             let statement = try dbQueue.inDatabase { db in
                 try db.updateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
