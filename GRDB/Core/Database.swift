@@ -852,7 +852,7 @@ extension Database {
     ///     - block: A block that executes SQL statements and return either
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
-    public func inTransaction(kind: TransactionKind? = nil, block: () throws -> TransactionCompletion) throws {
+    public func inTransaction(kind: TransactionKind? = nil, _ block: () throws -> TransactionCompletion) throws {
         preconditionValidQueue()
         
         var completion: TransactionCompletion = .Rollback

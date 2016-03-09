@@ -28,7 +28,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_des
 
 /// A function declared as rethrows that synchronously executes a throwing
 /// block in a dispatch_queue.
-func dispatchSync<T>(queue: dispatch_queue_t, block: () throws -> T) rethrows -> T {
+func dispatchSync<T>(queue: dispatch_queue_t, _ block: () throws -> T) rethrows -> T {
     func dispatchSyncImpl(queue: dispatch_queue_t, block: () throws -> T, block2: (ErrorType) throws -> Void) rethrows -> T {
         var result: T? = nil
         var blockError: ErrorType? = nil

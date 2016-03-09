@@ -10,6 +10,10 @@
     - [ ] MATCH https://www.sqlite.org/lang_expr.html
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
+- [ ] DatabasePool
+    - [ ] Tests :-)
+    - [ ] Allow only readOnly statement in readers
+    - [ ] Frobid transactions and save points in readers
 
 Not sure:
 
