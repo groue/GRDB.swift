@@ -1,4 +1,18 @@
 public final class DatabasePool {
+    
+    // MARK: - Initializers
+    
+    /// Opens the SQLite database at path *path*.
+    ///
+    ///     let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
+    ///
+    /// Database connections get closed when the database pool gets deallocated.
+    ///
+    /// - parameters:
+    ///     - path: The path to the database file.
+    ///     - configuration: A configuration.
+    ///     - maximumReaderCount: The maximum number of readers. Default is 5.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public convenience init(path: String, configuration: Configuration = Configuration(), maximumReaderCount: Int = 5) throws {
         precondition(maximumReaderCount > 1, "maximumReaderCount must be at least 1")
         

@@ -12,6 +12,8 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] DatabasePool
     - [ ] Documentation
+    - [ ] TransactionObserverType
+    - [ ] Move maximumReaderCount into Configuration?
 
 Not sure:
 

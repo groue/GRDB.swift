@@ -3,7 +3,7 @@ GRDB.swift
 
 GRDB.swift is an SQLite toolkit for Swift 2.
 
-It provides an SQL API and application tools.
+It provides an SQL API and application tools, and notably support for **custom record types**, efficient concurrency based on **[WAL Mode](https://www.sqlite.org/wal.html)**, and a Swift **query interface**.
 
 **March 5, 2016: GRDB.swift 0.46.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
@@ -187,6 +187,7 @@ try dbQueue.inDatabase { db in
 ```
 
 - [Database Queues](#database-queues)
+- [Database Pools](#database-pools)
 - [Executing Updates](#executing-updates)
 - [Fetch Queries](#fetch-queries)
     - [Row Queries](#row-queries)
@@ -209,7 +210,7 @@ try dbQueue.inDatabase { db in
 
 ## Database Queues
 
-You access SQLite databases through **database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
+The simplest way to access SQLite databases are **database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
 
 ```swift
 import GRDB
@@ -246,8 +247,10 @@ let wineCount = dbQueue.inDatabase { db in
 print(wineCount)
 ```
 
+> :point_up: **Note**: Your application should have a unique instance of DatabaseQueue connected to a database file. You may experience concurrency trouble if you do otherwise.
 
-**You can configure databases:**
+
+**You can configure database queues:**
 
 ```swift
 var config = Configuration()
@@ -263,6 +266,71 @@ let dbQueue = try DatabaseQueue(
 See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.46.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 > :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a GRDB database.
+
+
+## Database Pools
+
+[Database Queues](#database-queues) are simple, but they prevent concurrent accesses: at every moment, there is no more than a single thread that is using the database.
+
+**Database Pools can improve your application performance because they allow concurrent reads.**
+
+```swift
+let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
+```
+
+Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), pools grant you with multiple readers, and one writer. The writer only is allowed to modify the database.
+
+**A database pool can be used from any thread.** The `write` and `writeInTransaction` methods block the current thread until your database statements are executed, and safely serialize the database accesses:
+
+```swift
+try dbPool.write { db in
+    try db.execute("CREATE TABLE (...)")
+}
+
+try dbPool.writeInTransaction { db in
+    try db.execute("INSERT ...")
+    try db.execute("DELETE FROM ...")
+    return .Commit
+}
+```
+
+The `read` method also blocks the current thread until your database fetches are done. Database modifications are not allowed. Opening transactions is not allowed. Basically, a reader can only... read:
+
+```swift
+try dbPool.read { db in
+    for row in Row.fetch(db, "SELECT * FROM wines") {
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
+    }
+}
+
+// Extract values from the database:
+let wineCount = dbPool.read { db in
+    Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+}
+print(wineCount)
+```
+
+The number of concurrent readers is limited. When all readers are busy, the `read` method blocks until a reader turns available.
+
+> :point_up: **Note**: Your application should have a unique instance of DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
+
+
+**You can configure database pools:**
+
+```swift
+var config = Configuration()
+config.foreignKeysEnabled = true // The default is already true
+config.trace = { print($0) }     // Prints all SQL statements
+
+let dbPool = try DatabasePool(
+    path: "/path/to/database.sqlite",
+    configuration: config,
+    maximumReaderCount: 10)      // The default is 5
+```
+
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.46.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 
 ## Executing Updates
@@ -1100,20 +1168,23 @@ See [row queries](#row-queries), [value queries](#value-queries), and [Records](
 
 ## Concurrency
 
-**When your application has a single DatabaseQueue connected to the database file, it has no concurrency issue.** That is because all your database statements are executed in a single serial dispatch queue that is connected alone to the database.
+GRDB ships with support for two concurrency modes:
 
-**Things turn more complex as soon as there are several connections to a database file.**
+- [Database queues](#database-queues) serialize all database accesses.
+- [Database pools](#database-pools) serialize writes, and allows concurrent reads.
 
-SQLite concurrency management is fragmented. Documents of interest include:
+A GRDB database queue or pool is intented to avoid all concurrency troubles, *granted there is no other connection to your database*.
+
+> :point_up: **Note**: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
+
+Documents of interest include:
 
 - General discussion about isolation in SQLite: https://www.sqlite.org/isolation.html
 - Types of locks and transactions: https://www.sqlite.org/lang_transaction.html
 - WAL journal mode: https://www.sqlite.org/wal.html
 - Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
 
-By default, GRDB opens database in the **default journal mode**, uses **IMMEDIATE transactions**, and registers **no busy handler** of any kind.
-
-See [Configuration](GRDB/Core/Configuration.swift) type and [DatabaseQueue.inTransaction()](GRDB/Core/DatabaseQueue.swift) method for more precise handling of transactions and eventual SQLITE_BUSY errors.
+See [Transactions](#transactions) method for more precise handling of transactions, and [Configuration](GRDB/Core/Configuration.swift) for more precise handling of eventual SQLITE_BUSY errors.
 
 
 ## Custom SQL Functions

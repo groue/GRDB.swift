@@ -39,11 +39,7 @@ public final class DatabaseQueue {
     ///
     /// - parameter configuration: A configuration.
     public convenience init(configuration: Configuration = Configuration()) {
-        try! self.init(serializedDatabase: SerializedDatabase(
-            path: ":memory:",
-            configuration: configuration,
-            schemaCache: DatabaseSchemaCache(),
-            allowsTransaction: true))
+        try! self.init(path: ":memory:", configuration: configuration)
     }
     
     
