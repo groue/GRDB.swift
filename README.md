@@ -983,7 +983,7 @@ See the [query interface](#the-query-interface) for more information.
 
 ## Transactions
 
-The `DatabaseQueue.inTransaction()` method opens an SQLite transaction:
+The `DatabaseQueue.inTransaction()` and `DatabasePool.writeInTransaction()` methods open an SQLite transaction:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -994,8 +994,6 @@ try dbQueue.inTransaction { db in
 ```
 
 A ROLLBACK statement is issued if an error is thrown within the transaction block.
-
-Otherwise, transactions are guaranteed to succeed, *provided there is a single DatabaseQueue connected to the database file*. See [Concurrency](#concurrency) for more information about concurrent database access.
 
 If you want to insert a transaction between other database statements, and group those in a single block of code protected by the database queue, you can use the Database.inTransaction() function:
 
