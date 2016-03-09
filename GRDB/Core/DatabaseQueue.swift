@@ -24,7 +24,7 @@ public final class DatabaseQueue {
     ///     - configuration: A configuration.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public convenience init(path: String, configuration: Configuration = Configuration()) throws {
-        try self.init(serializedDatabase: SerializedDatabase(path: path, configuration: configuration))
+        try self.init(serializedDatabase: SerializedDatabase(path: path, configuration: configuration, schemaCache: DatabaseSchemaCache()))
     }
     
     /// Opens an in-memory SQLite database.
@@ -35,7 +35,7 @@ public final class DatabaseQueue {
     ///
     /// - parameter configuration: A configuration.
     public convenience init(configuration: Configuration = Configuration()) {
-        try! self.init(serializedDatabase: SerializedDatabase(path: ":memory:", configuration: configuration))
+        try! self.init(serializedDatabase: SerializedDatabase(path: ":memory:", configuration: configuration, schemaCache: DatabaseSchemaCache()))
     }
     
     

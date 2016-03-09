@@ -82,3 +82,119 @@ extension SequenceType where Generator.Element: Equatable {
         return filter { element in !removedElements.contains(element) }
     }
 }
+
+/// A ReadWriteBox protects a value with a pthread_rwlock_t (single writer, several readers)
+final class ReadWriteBox<T> {
+    var value: T {
+        get {
+            pthread_rwlock_rdlock(&rwLock)
+            defer { pthread_rwlock_unlock(&rwLock) }
+            return _value
+        }
+        set {
+            pthread_rwlock_wrlock(&rwLock)
+            defer { pthread_rwlock_unlock(&rwLock) }
+            _value = newValue
+        }
+    }
+    
+    init(_ value: T) {
+        self._value = value
+        pthread_rwlock_init(&rwLock, nil)
+    }
+    
+    deinit {
+        pthread_rwlock_destroy(&rwLock)
+    }
+    
+    func read<U>(block: (T) -> U) -> U {
+        pthread_rwlock_rdlock(&rwLock)
+        defer { pthread_rwlock_unlock(&rwLock) }
+        return block(_value)
+    }
+    
+    func write(block: (T) -> Void) {
+        pthread_rwlock_wrlock(&rwLock)
+        defer { pthread_rwlock_unlock(&rwLock) }
+        block(_value)
+    }
+
+    private var _value: T
+    private var rwLock = pthread_rwlock_t()
+}
+
+/// A Pool maintains a set of elements that are built them on demand. A pool has
+/// a maximum number of elements.
+///
+///     // A pool of 3 integers
+///     var number = 0
+///     let pool = Pool<Int>(size: 3, makeElement: {
+///         number = number + 1
+///         return number
+///     })
+///
+/// The function get() dequeues an available element and gives this element to
+/// the block argument. During the block execution, the element is not
+/// available. When the block is ended, the element is available again.
+///
+///     // got 1
+///     pool.get { n in
+///         print("got \(n)")
+///     }
+///
+/// If there is no available element, the pool builds a new element, unless the
+/// maximum number of elements is reached. In this case, the get() method
+/// blocks the current thread, until an element eventually turns available again.
+///
+///     let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+///     dispatch_apply(6, queue) { _ in
+///         pool.get { n in
+///             print("got \(n)")
+///         }
+///     }
+///
+///     got 1
+///     got 2
+///     got 3
+///     got 2
+///     got 1
+///     got 3
+final class Pool<T> {
+    private let makeElement: () -> T
+    private var availableElements: [T] = []
+    private let queue: dispatch_queue_t         // protects availableElements
+    private let semaphore: dispatch_semaphore_t // limits the number of elements
+    
+    init(size: Int, makeElement: () -> T) {
+        precondition(size > 0, "Pool size must be at least 1")
+        self.makeElement = makeElement
+        self.queue = dispatch_queue_create("com.github.groue.GRDB.Pool", nil)
+        self.semaphore = dispatch_semaphore_create(size)
+    }
+    
+    func get<U>(@noescape block: (T) throws -> U) rethrows -> U {
+        let element = dequeue()
+        defer { enqueue(element) }
+        return try block(element)
+    }
+    
+    private func dequeue() -> T {
+        var element: T! = nil
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+        dispatch_sync(queue) {
+            if self.availableElements.isEmpty {
+                element = self.makeElement()
+            } else {
+                element = self.availableElements.removeLast()
+            }
+        }
+        return element
+    }
+    
+    private func enqueue(element: T) {
+        dispatch_sync(queue) {
+            self.availableElements.append(element)
+        }
+        dispatch_semaphore_signal(semaphore)
+    }
+}

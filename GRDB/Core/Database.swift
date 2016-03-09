@@ -30,7 +30,7 @@ public final class Database {
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
-    private var schemaCache = DatabaseSchemaCache()
+    private var schemaCache: DatabaseSchemaCacheType
     
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
     private var transactionState: TransactionState = .WaitForTransactionCompletion
@@ -45,8 +45,9 @@ public final class Database {
     /// See preconditionValidQueue.
     var databaseQueueID: UnsafeMutablePointer<Void> = nil
     
-    init(path: String, configuration: Configuration) throws {
+    init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
         self.configuration = configuration
+        self.schemaCache = schemaCache
         
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection = SQLiteConnection()
@@ -209,12 +210,12 @@ extension Database {
     
     @warn_unused_result
     func cachedSelectStatement(sql: String) throws -> SelectStatement {
-        if let statement = schemaCache.selectStatement[sql] {
+        if let statement = schemaCache.selectStatement(sql: sql) {
             return statement
         }
         
         let statement = try selectStatement(sql)
-        schemaCache.selectStatement[sql] = statement
+        schemaCache.setSelectStatement(statement, forSQL: sql)
         return statement
     }
     
@@ -236,12 +237,12 @@ extension Database {
     
     @warn_unused_result
     func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        if let statement = schemaCache.updateStatement[sql] {
+        if let statement = schemaCache.updateStatement(sql: sql) {
             return statement
         }
         
         let statement = try updateStatement(sql)
-        schemaCache.updateStatement[sql] = statement
+        schemaCache.setUpdateStatement(statement, forSQL: sql)
         return statement
     }
     
@@ -588,24 +589,17 @@ public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
 // =========================================================================
 // MARK: - Database Schema
 
-private struct DatabaseSchemaCache {
-    /// Table name -> Primary key
-    var primaryKey: [String: PrimaryKey] = [:]
+protocol DatabaseSchemaCacheType {
+    mutating func clear()
     
-    // SQL -> Statement
-    var updateStatement: [String: UpdateStatement] = [:]
-    var selectStatement: [String: SelectStatement] = [:]
+    func primaryKey(tableName tableName: String) -> PrimaryKey?
+    mutating func setPrimaryKey(primaryKey: PrimaryKey, forTableName tableName: String)
+
+    func updateStatement(sql sql: String) -> UpdateStatement?
+    mutating func setUpdateStatement(statement: UpdateStatement, forSQL sql: String)
     
-    mutating func clear() {
-        primaryKey = [:]
-        
-        // We do clear updateStatementCache and selectStatementCache despite
-        // the automatic statement recompilation (see https://www.sqlite.org/c3ref/prepare.html)
-        // because the automatic statement recompilation only happens a
-        // limited number of times.
-        updateStatement = [:]
-        selectStatement = [:]
-    }
+    func selectStatement(sql sql: String) -> SelectStatement?
+    mutating func setSelectStatement(statement: SelectStatement, forSQL sql: String)
 }
 
 extension Database {
@@ -636,7 +630,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError if table does not exist.
     func primaryKey(tableName: String) throws -> PrimaryKey {
-        if let primaryKey = schemaCache.primaryKey[tableName] {
+        if let primaryKey = schemaCache.primaryKey(tableName: tableName) {
             return primaryKey
         }
         
@@ -712,7 +706,7 @@ extension Database {
             primaryKey = .Regular(pkColumnInfos.map { $0.name })
         }
         
-        schemaCache.primaryKey[tableName] = primaryKey
+        schemaCache.setPrimaryKey(primaryKey, forTableName: tableName)
         return primaryKey
     }
     

@@ -13,7 +13,6 @@
 - [ ] DatabasePool
     - [ ] Tests :-)
     - [ ] Forbid transactions and save points in readers
-    - [ ] Database schema cache should be shared accross connections in a pool.
     - [ ] DatabasePool.checkpoint() https://www.sqlite.org/c3ref/wal_checkpoint_v2.html
     - [ ] Concurrency tests:
         - [ ] Iterate rows concurrently.
