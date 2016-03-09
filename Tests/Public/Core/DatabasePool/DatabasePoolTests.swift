@@ -163,4 +163,45 @@ class DatabasePoolTests: GRDBTestCase {
             }
         }
     }
+    
+    func testTwoReadsWithMiddleWrite() {
+        assertNoError {
+            try dbPool.write { db in
+                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            }
+            
+            // Block 1                      Block 2
+            // SELECT COUNT(*) FROM items
+            // >
+            let s1 = dispatch_semaphore_create(0)
+            //                              INSERT INTO items (id) VALUES (NULL)
+            //                              <
+            let s2 = dispatch_semaphore_create(0)
+            // SELECT COUNT(*) FROM items
+            
+            let block1 = { () in
+                self.dbPool.read { db in
+                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    dispatch_semaphore_signal(s1)
+                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                }
+            }
+            let block2 = { () in
+                do {
+                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    defer { dispatch_semaphore_signal(s2) }
+                    try self.dbPool.write { db in
+                        try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                    }
+                } catch {
+                    XCTFail("error: \(error)")
+                }
+            }
+            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            dispatch_apply(2, queue) { index in
+                [block1, block2][index]()
+            }
+        }
+    }
 }

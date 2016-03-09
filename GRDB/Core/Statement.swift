@@ -42,8 +42,6 @@ public class Statement {
             remainingSQL = String(data: remainingData, encoding: NSUTF8StringEncoding)!.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet())
         }
         
-        database.preconditionValidStatement(observer)
-        
         self.database = database
         self.sql = sql
         self.sqliteStatement = sqliteStatement

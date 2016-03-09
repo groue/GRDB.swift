@@ -22,12 +22,12 @@ public final class DatabasePool {
         // Readers
         var readConfig = configuration
         readConfig.readonly = true
+        readConfig.defaultTransactionKind = .Deferred
         let readerPool = Pool(maximumCount: maximumReaderCount) {
             try! SerializedDatabase(
                 path: path,
                 configuration: readConfig,
-                schemaCache: schemaCache,
-                allowsTransaction: false)
+                schemaCache: schemaCache)
         }
         
         // Writer
@@ -36,8 +36,7 @@ public final class DatabasePool {
         let writer = try SerializedDatabase(
             path: path,
             configuration: writeConfig,
-            schemaCache: schemaCache,
-            allowsTransaction: true)
+            schemaCache: schemaCache)
         
         // Activate WAL Mode
         let mode = writer.inDatabase { db in
@@ -50,15 +49,36 @@ public final class DatabasePool {
         self.init(readerPool: readerPool, writer: writer)
     }
     
-    public func read(block: (db: Database) throws -> Void) rethrows {
-        try readerPool.get { serializedDatabase in
-            try serializedDatabase.inDatabase(block)
-        }
-    }
-    
     public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+        // Wrap the read in a DEFERRED transaction.
+        //
+        // This prevents the writer to sneak in between two selects:
+        //
+        //      Thread 1                            Thread 2
+        //      BEGIN DEFERRED TRANSACTION
+        //      SELECT COUNT(*) FROM items -> 0
+        //                                          INSERT INTO items...
+        //      SELECT COUNT(*) FROM items -> 0 (invisible insert)
+        //      COMMIT
+        //
+        // Without the transaction, we would get:
+        //
+        //      Thread 1                            Thread 2
+        //      SELECT COUNT(*) FROM items -> 0
+        //                                          INSERT INTO items...
+        //      SELECT COUNT(*) FROM items -> 1 (visible insert)
+        //
+        // See DatabasePoolTests.testTwoReadsWithMiddleWrite().
+        
         return try readerPool.get { serializedDatabase in
-            try serializedDatabase.inDatabase(block)
+            try serializedDatabase.inDatabase { db in
+                var result: T? = nil
+                try db.inTransaction(.Deferred) {
+                    result = try block(db: db)
+                    return .Commit
+                }
+                return result!
+            }
         }
     }
     

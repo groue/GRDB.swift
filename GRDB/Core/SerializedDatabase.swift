@@ -11,7 +11,7 @@ final class SerializedDatabase {
     /// The dispatch queue
     private let queue: dispatch_queue_t
     
-    convenience init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCacheType, allowsTransaction: Bool) throws {
+    convenience init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCacheType) throws {
         // According to https://www.sqlite.org/threadsafe.html
         //
         // > SQLite support three different threading modes:
@@ -32,7 +32,7 @@ final class SerializedDatabase {
         var config = configuration
         config.threadingMode = .MultiThread
         
-        let database = try Database(path: path, configuration: config, schemaCache: schemaCache, allowsTransaction: allowsTransaction)
+        let database = try Database(path: path, configuration: config, schemaCache: schemaCache)
         self.init(database: database)
     }
     

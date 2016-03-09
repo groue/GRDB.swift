@@ -27,8 +27,7 @@ public final class DatabaseQueue {
         try self.init(serializedDatabase: SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: DatabaseSchemaCache(),
-            allowsTransaction: true))
+            schemaCache: DatabaseSchemaCache()))
     }
     
     /// Opens an in-memory SQLite database.
@@ -44,20 +43,6 @@ public final class DatabaseQueue {
     
     
     // MARK: - Database access
-    
-    /// Synchronously executes a block in the database queue.
-    ///
-    ///     dbQueue.inDatabase { db in
-    ///         db.fetch(...)
-    ///     }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
-    public func inDatabase(block: (db: Database) throws -> Void) rethrows {
-        try serializedDatabase.inDatabase(block)
-    }
     
     /// Synchronously executes a block in the database queue, and returns
     /// its result.
