@@ -41,6 +41,12 @@ class DatabaseMigratorTests : GRDBTestCase {
                 XCTAssertTrue(db.tableExists("persons"))
                 XCTAssertFalse(db.tableExists("pets"))
             }
+            
+            try migrator.migrate(dbPool)
+            dbPool.read { db in
+                XCTAssertTrue(db.tableExists("persons"))
+                XCTAssertFalse(db.tableExists("pets"))
+            }
         }
     }
     
