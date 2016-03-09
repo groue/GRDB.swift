@@ -14,6 +14,7 @@
     - [ ] Tests :-)
     - [ ] Allow only readOnly statement in readers
     - [ ] Forbid transactions and save points in readers
+    - [ ] Remove Statement.readOnly since a readOnly database refuses to execute modification statements. We need tests for this assertion.
 
 Not sure:
 
