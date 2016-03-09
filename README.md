@@ -275,6 +275,7 @@ See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.46.0/Structs/Confi
 **Database Pools can improve your application performance because they allow concurrent reads.**
 
 ```swift
+import GRDB
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
 
