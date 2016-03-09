@@ -301,7 +301,7 @@ try dbPool.writeInTransaction { db in
 }
 ```
 
-The `read` method also blocks the current thread until your database fetches are done. Database modifications are not allowed: a reader can only read:
+The `read` method also blocks the current thread until your database fetches are done. Database modifications are not allowed:
 
 ```swift
 dbPool.read { db in
