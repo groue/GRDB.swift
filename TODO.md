@@ -14,7 +14,6 @@
     - [ ] Documentation
     - [ ] TransactionObserverType
     - [ ] Move maximumReaderCount into Configuration?
-    - [ ] Can a deferred transaction prevent a writer to sneak in between two selects performed by a reader?
 
 Not sure:
 
