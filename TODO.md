@@ -13,8 +13,14 @@
 - [ ] DatabasePool
     - [ ] Tests :-)
     - [ ] Allow only readOnly statement in readers
+        - [ ] Remove Statement.readOnly since a readOnly database refuses to execute modification statements. We need tests for this assertion.
     - [ ] Forbid transactions and save points in readers
-    - [ ] Remove Statement.readOnly since a readOnly database refuses to execute modification statements. We need tests for this assertion.
+    - [ ] Database schema cache should be shared accross connections in a pool.
+    - [ ] DatabasePool.checkpoint() https://www.sqlite.org/c3ref/wal_checkpoint_v2.html
+    - [ ] Concurrency tests:
+        - [ ] Iterate rows concurrently.
+        - [ ] Iterate rows, and concurrently, update the database rows. Is the selection modified?
+        - [ ] Iterate rows, and concurrently, update the database rows and then checkpoint. Is the selection modified?
 
 Not sure:
 
