@@ -1,4 +1,4 @@
-public class DatabasePool {
+public final class DatabasePool {
     public convenience init(path: String, configuration: Configuration = Configuration(), maxReaderCount: Int = 5) throws {
         precondition(maxReaderCount > 1, "maxReaderCount must be at least 1")
         
@@ -47,9 +47,6 @@ public class DatabasePool {
         }
     }
     
-    
-    // MARK: - Not public
-    
     private let writer: SerializedDatabase
     private let readerPool: Pool<SerializedDatabase>
     
@@ -59,7 +56,7 @@ public class DatabasePool {
     }
 }
 
-private class Pool<T> {
+private final class Pool<T> {
     let makeElement: () -> T
     var availableElements: [T] = []
     let queue: dispatch_queue_t         // protects availableElements
