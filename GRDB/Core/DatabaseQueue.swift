@@ -7,7 +7,7 @@ public final class DatabaseQueue {
     
     /// The database configuration
     public var configuration: Configuration {
-        return database.configuration
+        return serializedDatabase.configuration
     }
     
     
@@ -23,24 +23,8 @@ public final class DatabaseQueue {
     ///     - path: The path to the database file.
     ///     - configuration: A configuration.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public convenience init(path: String, var configuration: Configuration = Configuration()) throws {
-        // IMPLEMENTATION NOTE
-        //
-        // According to https://www.sqlite.org/threadsafe.html:
-        //
-        // > Multi-thread. In this mode, SQLite can be safely used by multiple
-        // > threads provided that no single database connection is used
-        // > simultaneously in two or more threads.
-        // >
-        // > Serialized. In serialized mode, SQLite can be safely used by
-        // > multiple threads with no restriction.
-        // >
-        // > The default mode is serialized.
-        //
-        // Since our database connection is only used via our serial dispatch
-        // queue, there is no purpose using the default serialized mode.
-        configuration.threadingMode = .MultiThread
-        try self.init(database: Database(path: path, configuration: configuration))
+    public convenience init(path: String, configuration: Configuration = Configuration()) throws {
+        try self.init(serializedDatabase: SerializedDatabase(path: path, configuration: configuration))
     }
     
     /// Opens an in-memory SQLite database.
@@ -50,9 +34,8 @@ public final class DatabaseQueue {
     /// Database memory is released when the database queue gets deallocated.
     ///
     /// - parameter configuration: A configuration.
-    public convenience init(var configuration: Configuration = Configuration()) {
-        configuration.threadingMode = .MultiThread  // See IMPLEMENTATION NOTE in init(_:configuration:)
-        self.init(database: Database(configuration: configuration))
+    public convenience init(configuration: Configuration = Configuration()) {
+        try! self.init(serializedDatabase: SerializedDatabase(path: ":memory:", configuration: configuration))
     }
     
     
@@ -69,9 +52,7 @@ public final class DatabaseQueue {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func inDatabase(block: (db: Database) throws -> Void) rethrows {
-        try inQueue {
-            try block(db: self.database)
-        }
+        try serializedDatabase.inDatabase(block)
     }
     
     /// Synchronously executes a block in the database queue, and returns
@@ -86,9 +67,7 @@ public final class DatabaseQueue {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func inDatabase<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try inQueue {
-            try block(db: self.database)
-        }
+        return try serializedDatabase.inDatabase(block)
     }
     
     /// Synchronously executes a block in the database queue, wrapped inside a
@@ -113,9 +92,9 @@ public final class DatabaseQueue {
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(kind: TransactionKind? = nil, block: (db: Database) throws -> TransactionCompletion) throws {
-        try inQueue {
-            try self.database.inTransaction(kind) {
-                try block(db: self.database)
+        try serializedDatabase.inDatabase { db in
+            try db.inTransaction(kind) {
+                try block(db: db)
             }
         }
     }
@@ -123,29 +102,10 @@ public final class DatabaseQueue {
     
     // MARK: - Not public
     
-    /// The Database
-    private var database: Database
+    /// The serialized database
+    private var serializedDatabase: SerializedDatabase
     
-    /// The dispatch queue
-    private let queue: dispatch_queue_t
-    
-    /// The key for the dispatch queue specific that holds the DatabaseQueue
-    /// identity. See databaseQueueID.
-    static let databaseQueueIDKey = unsafeBitCast(DatabaseQueue.self, UnsafePointer<Void>.self)     // some unique pointer
-    
-    /// The value for the dispatch queue specific that holds the DatabaseQueue
-    /// identity.
-    ///
-    /// It helps:
-    /// - warning the user when he wraps calls to inDatabase() or
-    ///   inTransaction(), which would create a deadlock
-    /// - warning the user the he uses a statement outside of the database
-    ///   queue.
-    private lazy var databaseQueueID: DatabaseQueueID = {
-        unsafeBitCast(self, DatabaseQueueID.self)   // pointer to self
-    }()
-    
-    init(database: Database) {
+    init(serializedDatabase: SerializedDatabase) {
         // IMPLEMENTATION NOTE
         //
         // https://www.sqlite.org/isolation.html
@@ -164,44 +124,7 @@ public final class DatabaseQueue {
         // > see the changes made by the UPDATE or not? The answer is that this
         // > behavior is undefined.
         //
-        // This is why we use a serial queue: to avoid UPDATE to fuck up SELECT.
-        self.database = database
-        queue = dispatch_queue_create("com.github.groue.GRDB", nil)
-        dispatch_queue_set_specific(queue, DatabaseQueue.databaseQueueIDKey, databaseQueueID, nil)
-        database.databaseQueueID = databaseQueueID
-    }
-    
-    private func inQueue<T>(block: () throws -> T) rethrows -> T {
-        // IMPLEMENTATION NOTE
-        //
-        // DatabaseQueue.inDatabase() and DatabaseQueue.inTransaction() are not
-        // reentrant.
-        //
-        // Avoiding dispatch_sync and calling block() right away if the specific
-        // is currently self.databaseQueueID looks like a promising solution:
-        //
-        //     dbQueue.inDatabase { db in
-        //         dbQueue.inDatabase { db in
-        //             // Look, ma! I'm reentrant!
-        //         }
-        //     }
-        //
-        // However it does not survive this code, which deadlocks:
-        //
-        //     let queue = dispatch_queue_create("...", nil)
-        //     dbQueue.inDatabase { db in
-        //         dispatch_sync(queue) {
-        //             dbQueue.inDatabase { db in
-        //                 // Never run
-        //             }
-        //         }
-        //     }
-        //
-        // I try not to ship half-baked solutions, so until a complete solution
-        // is found to this problem, I prefer totally disabling reentrancy.
-        precondition(databaseQueueID != dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "DatabaseQueue.inDatabase(_:) or DatabaseQueue.inTransaction(_:) was called reentrantly, which would lead to a deadlock.")
-        return try dispatchSync(queue, block: block)
+        // This is why we use a serialized database:
+        self.serializedDatabase = serializedDatabase
     }
 }
-
-typealias DatabaseQueueID = UnsafeMutablePointer<Void>

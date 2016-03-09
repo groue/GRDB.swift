@@ -112,7 +112,7 @@ class CrashTests: GRDBTestCase {
     // MARK: - Queue
     
     func testInDatabaseIsNotReentrant() {
-        assertCrash("DatabaseQueue.inDatabase(_:) or DatabaseQueue.inTransaction(_:) was called reentrantly, which would lead to a deadlock.") {
+        assertCrash("Database methods are not reentrant.") {
             dbQueue.inDatabase { db in
                 self.dbQueue.inDatabase { db in
                 }
@@ -121,7 +121,7 @@ class CrashTests: GRDBTestCase {
     }
     
     func testInTransactionInsideInDatabaseIsNotReentrant() {
-        assertCrash("DatabaseQueue.inDatabase(_:) or DatabaseQueue.inTransaction(_:) was called reentrantly, which would lead to a deadlock.") {
+        assertCrash("Database methods are not reentrant.") {
             try dbQueue.inDatabase { db in
                 try self.dbQueue.inTransaction { db in
                     return .Commit
@@ -131,7 +131,7 @@ class CrashTests: GRDBTestCase {
     }
 
     func testInTransactionIsNotReentrant() {
-        assertCrash("DatabaseQueue.inDatabase(_:) or DatabaseQueue.inTransaction(_:) was called reentrantly, which would lead to a deadlock.") {
+        assertCrash("Database methods are not reentrant.") {
             try dbQueue.inTransaction { db in
                 try self.dbQueue.inTransaction { db in
                     return .Commit

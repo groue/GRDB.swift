@@ -41,9 +41,9 @@ public final class Database {
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
     
-    /// The queue from which the database can be used.
-    /// See preconditionValidQueue().
-    var databaseQueueID: DatabaseQueueID = nil
+    /// The value for the dispatch queue specific that holds the Database identity.
+    /// See preconditionValidQueue.
+    var databaseQueueID: UnsafeMutablePointer<Void> = nil
     
     init(path: String, configuration: Configuration) throws {
         self.configuration = configuration
@@ -63,19 +63,10 @@ public final class Database {
         setupBusyMode()
     }
     
-    // Initializes an in-memory database
-    convenience init(configuration: Configuration) {
-        try! self.init(path: ":memory:", configuration: configuration)
-    }
-    
     deinit {
         if sqliteConnection != nil {
             sqlite3_close(sqliteConnection)
         }
-    }
-    
-    func preconditionValidQueue() {
-        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
     }
     
     private func setupForeignKeys() throws {
@@ -119,7 +110,6 @@ public final class Database {
         }
     }
 }
-
 
 /// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
 enum ThreadingMode {
@@ -180,6 +170,21 @@ public enum BusyMode {
     /// A custom callback that is called when a database is locked.
     /// See https://www.sqlite.org/c3ref/busy_handler.html
     case Callback(BusyCallback)
+}
+
+
+// =========================================================================
+// MARK: - SerializedDatabase Support
+
+extension Database {
+    
+    /// The key for the dispatch queue specific that holds the Database identity.
+    /// See preconditionValidQueue.
+    static let databaseQueueIDKey = unsafeBitCast(Database.self, UnsafePointer<Void>.self)     // some unique pointer
+    
+    func preconditionValidQueue() {
+        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(Database.databaseQueueIDKey), "Database was not used on the correct thread. If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
+    }
 }
 
 
