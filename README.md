@@ -287,7 +287,7 @@ Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), pools grant you wit
 > :warning: **Warning**: the WAL mode does not fit all situations. Please look at the disadvantages before rushing in: https://www.sqlite.org/wal.html
 
 
-**A database pool can be used from any thread.** The `write` and `writeInTransaction` methods block the current thread until your database statements are executed, and safely serialize the database accesses:
+**A database pool can be used from any thread.** The `write` and `writeInTransaction` methods block the current thread until your database statements are executed, and safely serialize the database updates:
 
 ```swift
 try dbPool.write { db in
