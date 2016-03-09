@@ -335,7 +335,7 @@ dbPool.read { db in
 }
 ```
 
-The number of concurrent readers is limited. When all readers are busy, the `read` method blocks until a reader turns available.
+The total number of concurrent readers is limited. When all readers are busy, the `read` method blocks until a reader turns available.
 
 
 **You can configure database pools:**
