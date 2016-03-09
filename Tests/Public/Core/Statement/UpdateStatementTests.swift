@@ -258,7 +258,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testDatabaseErrorThrownByUpdateStatementContainSQL() {
         dbQueue.inDatabase { db in
             do {
-                let _ = try db.updateStatement("UPDATE blah SET id = 12")
+                _ = try db.updateStatement("UPDATE blah SET id = 12")
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 1)
@@ -275,7 +275,7 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 do {
-                    let _ = try db.updateStatement("UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
+                    _ = try db.updateStatement("UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 21)  // SQLITE_MISUSE
@@ -291,7 +291,7 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 do {
-                    let _ = try db.updateStatement("UPDATE persons SET age = 1;x")
+                    _ = try db.updateStatement("UPDATE persons SET age = 1;x")
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 21)  // SQLITE_MISUSE

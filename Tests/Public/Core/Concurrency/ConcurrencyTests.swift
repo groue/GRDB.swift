@@ -391,7 +391,7 @@ class ConcurrencyTests: XCTestCase {
             do {
                 dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                 try self.dbQueue2.inTransaction(.Deferred) { db in
-                    let _ = Row.fetchAll(db, "SELECT * FROM stuffs")
+                    _ = Row.fetchAll(db, "SELECT * FROM stuffs")
                     dispatch_semaphore_signal(s2)
                     usleep(100_000) // 0.1s
                     return .Commit

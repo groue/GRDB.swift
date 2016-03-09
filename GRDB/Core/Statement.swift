@@ -101,7 +101,7 @@ public class Statement {
     /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
     /// statement arguments.
     public func validateArguments(arguments: StatementArguments) throws {
-        let _ = try validatedBindings(arguments)
+        _ = try validatedBindings(arguments)
     }
     
     /// Set arguments without any validation. Trades safety for performance.

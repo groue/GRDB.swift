@@ -44,7 +44,7 @@ class GRDBTestCase: XCTestCase {
     
     func sql<T>(request: FetchRequest<T>) -> String {
         return dbQueue.inDatabase { db in
-            let _ = Row.fetchOne(db, request)
+            _ = Row.fetchOne(db, request)
             return self.lastSQLQuery
         }
     }
