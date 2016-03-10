@@ -182,18 +182,17 @@ try dbQueue.inDatabase { db in
         arguments: [Color.Red, "Pomerol"]).insertedRowID
     print("Inserted wine id: \(wineId)")
     
-    // Fetch rows
+    // Iterate results
     for row in Row.fetch(db, "SELECT * FROM wines") {
         let name: String = row.value(named: "name")
         let color: Color = row.value(named: "color")
         print(name, color)
     }
-    
-    // Fetch values
-    let redWineCount = Int.fetchOne(db,
-        "SELECT COUNT(*) FROM wines WHERE color = ?",
-        arguments: [Color.Red])!
 }
+
+// Fetch values
+let wines = Wine.fetchAll(dbQueue, "SELECT * FROM wines")
+let redWineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
 ```
 
 - [Database Queues](#database-queues)
@@ -240,6 +239,7 @@ SQLite creates the database file if it does not already exist. The connection is
 ```swift
 // Execute database statements:
 dbQueue.inDatabase { db in
+    try db.execute("INSERT ...")
     for row in Row.fetch(db, "SELECT * FROM wines") {
         let name: String = row.value(named: "name")
         let color: Color = row.value(named: "color")
@@ -249,16 +249,19 @@ dbQueue.inDatabase { db in
 
 // Wrap database statements in a transaction:
 try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...")
-    try db.execute("DELETE FROM ...")
+    try db.execute("UPDATE ...")
+    try db.execute("DELETE ...")
     return .Commit
 }
 
-// Extract values from the database:
-let wineCount = dbQueue.inDatabase { db in
-    Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+// Extract values and collections from the database:
+dbQueue.inDatabase { db in
+    let wineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    let wines = Wine.fetchAll(db, "SELECT * FROM wines")
 }
-print(wineCount)
+
+// Without braces:
+let wineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
 ```
 
 

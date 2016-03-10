@@ -51,34 +51,31 @@ public final class DatabasePool {
     /// its result.
     ///
     ///     let persons = dbPool.read { db in
-    ///         Person.fetch(...)
+    ///         Person.fetchAll(...)
     ///     }
     ///
     /// This method is *not* reentrant.
     ///
+    /// The block is completely isolated. Eventual database updates are *not
+    /// visible* inside the block:
+    ///
+    ///     dbPool.read { db in
+    ///         // Those two values are guaranteed to be equal, even if the `wines`
+    ///         // tables is modified between the two requests:
+    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
+    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
+    ///     }
+    ///
+    ///     dbPool.read { db in
+    ///         // Now this value may be different:
+    ///         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
+    ///     }
+    ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
-        // Wrap the read in a DEFERRED transaction.
-        //
-        // This prevents the writer to sneak in between two selects:
-        //
-        //      Thread 1                            Thread 2
-        //      BEGIN DEFERRED TRANSACTION
-        //      SELECT COUNT(*) FROM items -> 0
-        //                                          INSERT INTO items...
-        //      SELECT COUNT(*) FROM items -> 0 (invisible insert)
-        //      COMMIT
-        //
-        // Without the transaction, we would get:
-        //
-        //      Thread 1                            Thread 2
-        //      SELECT COUNT(*) FROM items -> 0
-        //                                          INSERT INTO items...
-        //      SELECT COUNT(*) FROM items -> 1 (visible insert)
-        //
-        // See DatabasePoolTests.testReaderIsolation().
-        
+        // The block isolation comes from the DEFERRED transaction.
+        // See DatabasePoolTests.testReadMethodIsolationOfBlock().
         return try readerPool.get { reader in
             try reader.inDatabase { db in
                 var result: T? = nil
@@ -87,6 +84,45 @@ public final class DatabasePool {
                     return .Commit
                 }
                 return result!
+            }
+        }
+    }
+    
+    /// Synchronously executes a read-only block in the database, and returns
+    /// its result.
+    ///
+    ///     let persons = dbPool.nonIsolatedRead { db in
+    ///         Person.fetchAll(...)
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// Unlike the `read` method, which provides full isolation, the
+    /// `nonIsolatedRead` method lets concurrent updates alter consecutive
+    /// statements:
+    ///
+    ///     dbPool.nonIsolatedRead { db in
+    ///         // Those two values may be different:
+    ///         let count1 = Person.fetchCount(db)
+    ///         let count2 = Person.fetchCount(db)
+    ///     }
+    ///
+    /// Yet all statements are individually isolated from concurrent updates:
+    ///
+    ///     dbPool.nonIsolatedRead { db in
+    ///         // No update can alter this iteration during the loop:
+    ///         for person in Person.fetch(db) { ...}
+    ///
+    ///         // But now it may iterate a different set of results:
+    ///         for person in Person.fetch(db) { ... }
+    ///     }
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
+    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try readerPool.get { reader in
+            try reader.inDatabase { db in
+                try block(db: db)
             }
         }
     }

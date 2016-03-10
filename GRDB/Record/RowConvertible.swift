@@ -134,13 +134,13 @@ extension RowConvertible {
     ///     let persons = Person.fetchAll(db, "SELECT * FROM persons") // [Person]
     ///
     /// - parameters:
-    ///     - db: A Database.
+    ///     - reader: A DatabaseReader.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An array of records.
     @warn_unused_result
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchAll(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
+        return reader.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -148,12 +148,12 @@ extension RowConvertible {
     ///     let person = Person.fetchOne(db, "SELECT * FROM persons") // Person?
     ///
     /// - parameters:
-    ///     - db: A Database.
+    ///     - reader: A DatabaseReader.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An optional record.
     @warn_unused_result
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchOne(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
+        return reader.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
     }
 }
