@@ -47,6 +47,8 @@ try dbQueue.inDatabase { db in
             row.value(named: "longitude"))
         print(title, favorite, coordinate)
     }
+    
+    let poiCount = Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")!
 }
 ```
 
