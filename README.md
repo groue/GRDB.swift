@@ -3,9 +3,11 @@ GRDB.swift
 
 GRDB.swift is an SQLite toolkit for Swift 2.
 
-It provides an SQL API and application tools, and notably support for **custom record types**, efficient concurrency based on **[WAL Mode](https://www.sqlite.org/wal.html)**, and a Swift **query interface**.
+It notably supports **custom record types**, efficient concurrency based on **WAL Mode**, a Swift **query interface**, as well as the best **SQL API** in town.
 
-**March 5, 2016: GRDB.swift 0.46.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+---
+
+**March 10, 2016: GRDB.swift 0.47.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -99,7 +101,9 @@ Turn Swift into SQL with the [query interface](#the-query-interface):
 
 ### Documentation
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.46.0/index.html) (on cocoadocs.org)
+**GRDB runs on top of SQLite**: you should get familiar with the [SQLite FAQ](http://www.sqlite.org/faq.html). For general and detailed information, jump to the [SQLite Documentation](http://www.sqlite.org/docs.html).
+
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.47.0/index.html) (on cocoadocs.org)
 - [Installation](#installation)
 - [SQLite API](#sqlite-api): SQL & SQLite
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
@@ -127,7 +131,7 @@ To use GRDB with CocoaPods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '~> 0.46.0'
+pod 'GRDB.swift', '~> 0.47.0'
 ```
 
 
@@ -138,7 +142,7 @@ pod 'GRDB.swift', '~> 0.46.0'
 To use GRDB with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" ~> 0.46.0
+github "groue/GRDB.swift" ~> 0.47.0
 ```
 
 
@@ -264,7 +268,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.46.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.47.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 > :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a GRDB database.
 
@@ -351,7 +355,7 @@ let dbPool = try DatabasePool(
     maximumReaderCount: 10)      // The default is 5
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.46.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.47.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 > :warning: **Warning**: database pools, although well tested, are still experimental. In particular, unused readers are not released. The memory pressure of multiple database connections is unknown. The best number of readers is unknown. Please share the results of your experiments!
 

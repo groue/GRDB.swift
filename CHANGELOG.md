@@ -1,11 +1,14 @@
 Release Notes
 =============
 
-## Next Release
+## 0.47.0
+
+Released March 10, 2016
 
 **New**
 
-- Support for the SQLite [WAL Mode](https://www.sqlite.org/wal.html), which allows concurrent database accesses. ([documentation](https://github.com/groue/GRDB.swift#database-pools))
+- Support for concurrent accesses to the database, using the SQLite [WAL Mode](https://www.sqlite.org/wal.html). ([documentation](https://github.com/groue/GRDB.swift#database-pools))
+
 
 ## 0.46.0
 
