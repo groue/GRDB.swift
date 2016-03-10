@@ -1,3 +1,5 @@
+import Foundation
+
 /// A class that serializes accesses to a database.
 final class SerializedDatabase {
     /// The database
