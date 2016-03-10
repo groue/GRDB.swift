@@ -1,6 +1,12 @@
 Release Notes
 =============
 
+## Next release
+
+**New**
+
+- `DatabaseQueue.releaseMemory()` and `DatabasePool.releaseMemory()` claim non-essential memory ([documentation](https://github.com/groue/GRDB.swift#memory-management))
+
 ## 0.47.0
 
 Released March 10, 2016
