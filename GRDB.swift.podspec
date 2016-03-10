@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
 	s.name     = 'GRDB.swift'
 	s.version  = '0.47.0'
 	s.license  = { :type => 'MIT', :file => 'LICENSE' }
-	s.summary  = 'Versatile SQLite toolkit for Swift.'
+	s.summary  = 'A versatile SQLite toolkit for Swift, with WAL mode support.'
 	s.homepage = 'https://github.com/groue/GRDB.swift'
 	s.author   = { 'Gwendal Roué' => 'gr@pierlis.com' }
 	s.source   = { :git => 'https://github.com/groue/GRDB.swift.git', :tag => "v#{s.version}" }
