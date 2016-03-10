@@ -1,6 +1,6 @@
 import Foundation
 
-/// A Database Queue serializes access to an SQLite database.
+/// A DatabaseQueue serializes access to an SQLite database.
 public final class DatabaseQueue {
     
     // MARK: - Configuration
@@ -44,11 +44,10 @@ public final class DatabaseQueue {
     
     // MARK: - Database access
     
-    /// Synchronously executes a block in the database queue, and returns
-    /// its result.
+    /// Synchronously executes a block in the database, and returns its result.
     ///
-    ///     let rows = dbQueue.inDatabase { db in
-    ///         db.fetch(...)
+    ///     let persons = dbQueue.inDatabase { db in
+    ///         Person.fetchAll(...)
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -59,7 +58,7 @@ public final class DatabaseQueue {
         return try serializedDatabase.inDatabase(block)
     }
     
-    /// Synchronously executes a block in the database queue, wrapped inside a
+    /// Synchronously executes a block in the database, wrapped inside a
     /// transaction.
     ///
     /// If the block throws an error, the transaction is rollbacked and the

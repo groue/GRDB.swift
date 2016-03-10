@@ -1,3 +1,4 @@
+/// A DatabasePool grants concurrent accesses to an SQLite database.
 public final class DatabasePool {
     
     // MARK: - Initializers
@@ -49,6 +50,20 @@ public final class DatabasePool {
         self.init(readerPool: readerPool, writer: writer)
     }
     
+    
+    // MARK: - Database access
+    
+    /// Synchronously executes a read-only block in the database, and returns
+    /// its result.
+    ///
+    ///     let persons = dbPool.read { db in
+    ///         Person.fetch(...)
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
     public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
         // Wrap the read in a DEFERRED transaction.
         //
@@ -82,10 +97,42 @@ public final class DatabasePool {
         }
     }
     
+    /// Synchronously executes an update block in the database, and returns
+    /// its result.
+    ///
+    ///     dbPool.read { db in
+    ///         db.execute(...)
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
     public func write(block: (db: Database) throws -> Void) rethrows {
         try writer.inDatabase(block)
     }
     
+    /// Synchronously executes a block in the database, wrapped inside a
+    /// transaction.
+    ///
+    /// If the block throws an error, the transaction is rollbacked and the
+    /// error is rethrown.
+    ///
+    ///     try dbPool.writeInTransaction { db in
+    ///         db.execute(...)
+    ///         return .Commit
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameters:
+    ///     - kind: The transaction type (default nil). If nil, the transaction
+    ///       type is configuration.defaultTransactionKind, which itself
+    ///       defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+    ///       for more information.
+    ///     - block: A block that executes SQL statements and return either
+    ///       .Commit or .Rollback.
+    /// - throws: The error thrown by the block.
     public func writeInTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) rethrows {
         try writer.inDatabase { db in
             try db.inTransaction(kind) {
@@ -94,7 +141,14 @@ public final class DatabasePool {
         }
     }
     
-    public func checkpoint(kind: CheckpointKind = .Passive) throws {
+    /// Runs a WAL checkpoint
+    ///
+    /// See https://www.sqlite.org/wal.html and
+    /// https://www.sqlite.org/c3ref/wal_checkpoint_v2.html) for
+    /// more information.
+    ///
+    /// - parameter kind: The checkpoint mode (default passive)
+    public func checkpoint(kind: CheckpointMode = .Passive) throws {
         try writer.inDatabase { db in
             // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
             // check whether we need a busy handler on writer and/or readers.
@@ -114,8 +168,8 @@ public final class DatabasePool {
     }
 }
 
-// See https://www.sqlite.org/c3ref/wal_checkpoint_v2.html
-public enum CheckpointKind: Int32 {
+// The available [checkppint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
+public enum CheckpointMode: Int32 {
     case Passive = 0    // SQLITE_CHECKPOINT_PASSIVE
     case Full = 1       // SQLITE_CHECKPOINT_FULL
     case Restart = 2    // SQLITE_CHECKPOINT_RESTART
