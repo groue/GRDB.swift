@@ -1,5 +1,4 @@
-- [ ] How to have robust single writer/several readers?
-- [ ] protocol DatabaseEquatable, with default implementation for MutablePersistable
+- [ ] document releaseMemory() and closeReaderConnections()
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
