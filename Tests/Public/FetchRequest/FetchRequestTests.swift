@@ -20,9 +20,7 @@ class FetchRequestTests: GRDBTestCase {
         collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
             return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
         }
-        dbQueue.inDatabase { db in
-            db.addCollation(self.collation)
-        }
+        dbQueue.addCollation(collation)
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in

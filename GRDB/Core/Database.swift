@@ -394,7 +394,7 @@ extension Database {
     ///     }
     ///     db.addFunction(fn)
     ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
-    public func addFunction(function: DatabaseFunction) {
+    func addFunction(function: DatabaseFunction) {
         functions.remove(function)
         functions.insert(function)
         let functionPointer = unsafeBitCast(function, UnsafeMutablePointer<Void>.self)
@@ -436,7 +436,7 @@ extension Database {
     }
     
     /// Remove an SQL function.
-    public func removeFunction(function: DatabaseFunction) {
+    func removeFunction(function: DatabaseFunction) {
         functions.remove(function)
         let code = sqlite3_create_function_v2(
             sqliteConnection,
@@ -520,7 +520,7 @@ extension Database {
     ///     }
     ///     db.addCollation(collation)
     ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
-    public func addCollation(collation: DatabaseCollation) {
+    func addCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         collations.insert(collation)
         let collationPointer = unsafeBitCast(collation, UnsafeMutablePointer<Void>.self)
@@ -539,7 +539,7 @@ extension Database {
     }
     
     /// Remove a collation.
-    public func removeCollation(collation: DatabaseCollation) {
+    func removeCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         sqlite3_create_collation_v2(
             sqliteConnection,

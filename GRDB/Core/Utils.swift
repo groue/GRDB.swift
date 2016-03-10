@@ -160,12 +160,12 @@ final class ReadWriteBox<T> {
 ///     got 1
 ///     got 3
 final class Pool<T> {
-    private let makeElement: () -> T
+    var makeElement: (() -> T)?
     private var items: [PoolItem<T>] = []
     private let queue: dispatch_queue_t         // protects items
     private let semaphore: dispatch_semaphore_t // limits the number of elements
     
-    init(maximumCount: Int, makeElement: () -> T) {
+    init(maximumCount: Int, makeElement: (() -> T)? = nil) {
         precondition(maximumCount > 0, "Pool size must be at least 1")
         self.makeElement = makeElement
         self.queue = dispatch_queue_create("com.github.groue.GRDB.Pool", nil)
@@ -212,7 +212,7 @@ final class Pool<T> {
                 item = self.items[index]
                 item.available = false
             } else {
-                item = PoolItem(element: self.makeElement(), available: false)
+                item = PoolItem(element: self.makeElement!(), available: false)
                 self.items.append(item)
             }
         }

@@ -980,10 +980,7 @@ The comparison result comes from a *collating function*, or *collation*. SQLite 
 let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
     return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
 }
-
-dbQueue.inDatabase { db in
-    db.addCollation(collation)
-}
+dbQueue.addCollation(collation) // Or dbPool.addCollation(...)
 ```
 
 Once defined, the custom collation can be applied to a table column. All comparisons involving this column will automatically trigger your comparison function:
@@ -1281,19 +1278,19 @@ See [Transactions](#transactions) method for more precise handling of transactio
 You can for example use the Unicode support of Swift strings, and go beyond the ASCII limitations of the built-in SQLite `upper()` function:
 
 ```swift
+let unicodeUpper = DatabaseFunction(
+    "unicodeUpper",   // The name of the function
+    argumentCount: 1, // Number of arguments
+    pure: true,       // True means that the result only depends on input
+    function: { (databaseValues: [DatabaseValue]) in
+        guard let string: String = databaseValues[0].value() else {
+            return nil
+        }
+        return string.uppercaseString
+    })
+dbQueue.addFunction(unicodeUpper)   // Or dbPool.addFunction(...)
+
 dbQueue.inDatabase { db in
-    let unicodeUpper = DatabaseFunction(
-        "unicodeUpper",   // The name of the function
-        argumentCount: 1, // Number of arguments
-        pure: true,       // True means that the result only depends on input
-        function: { (databaseValues: [DatabaseValue]) in
-            guard let string: String = databaseValues[0].value() else {
-                return nil
-            }
-            return string.uppercaseString })
-    
-    db.addFunction(unicodeUpper)
-    
     // "JÉRÔME"
     String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["Jérôme"])!
     
@@ -1312,13 +1309,13 @@ SQLite has the opportunity to perform additional optimizations when functions ar
 When you don't provide any explicit *argumentCount*, the function can take any number of arguments:
 
 ```swift
+let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [DatabaseValue]) in
+    let doubles: [Double] = databaseValues.flatMap { $0.value() }
+    return doubles.reduce(0, combine: +) / Double(doubles.count)
+}
+dbQueue.addFunction(averageOf)
+
 dbQueue.inDatabase { db in
-    let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [DatabaseValue]) in
-        let doubles: [Double] = databaseValues.flatMap { $0.value() }
-        return doubles.reduce(0, combine: +) / Double(doubles.count)
-    }
-    db.addFunction(averageOf)
-    
     // 2.0
     Double.fetchOne(db, "SELECT averageOf(1, 2, 3)")!
 }
@@ -1328,19 +1325,19 @@ dbQueue.inDatabase { db in
 **Functions can throw:**
 
 ```swift
-dbQueue.inDatabase { db in
-    let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
-        let dbv = databaseValues[0]
-        guard let double: Double = dbv.value() else {
-            return nil
-        }
-        guard double >= 0.0 else {
-            throw DatabaseError(message: "Invalid negative value in function sqrt()")
-        }
-        return sqrt(double)
+let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
+    let dbv = databaseValues[0]
+    guard let double: Double = dbv.value() else {
+        return nil
     }
-    db.addFunction(sqrt)
-    
+    guard double >= 0.0 else {
+        throw DatabaseError(message: "Invalid negative value in function sqrt()")
+    }
+    return sqrt(double)
+}
+dbQueue.addFunction(sqrt)
+
+dbQueue.inDatabase { db in
     // fatal error: SQLite error 1 with statement `SELECT sqrt(-1)`:
     // Invalid negative value in function sqrt()
     Double.fetchOne(db, "SELECT sqrt(-1)")

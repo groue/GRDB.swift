@@ -18,26 +18,15 @@ public final class DatabasePool {
         precondition(maximumReaderCount > 1, "maximumReaderCount must be at least 1")
         
         // Shared database schema cache
-        let schemaCache = SharedDatabaseSchemaCache()
-        
-        // Readers
-        var readConfig = configuration
-        readConfig.readonly = true
-        readConfig.defaultTransactionKind = .Deferred
-        let readerPool = Pool(maximumCount: maximumReaderCount) {
-            try! SerializedDatabase(
-                path: path,
-                configuration: readConfig,
-                schemaCache: schemaCache)
-        }
+        let databaseSchemaCache = SharedDatabaseSchemaCache()
         
         // Writer
-        var writeConfig = configuration
-        writeConfig.readonly = false
+        var writerConfig = configuration
+        writerConfig.readonly = false
         let writer = try SerializedDatabase(
             path: path,
-            configuration: writeConfig,
-            schemaCache: schemaCache)
+            configuration: writerConfig,
+            schemaCache: databaseSchemaCache)
         
         // Activate WAL Mode
         let mode = writer.inDatabase { db in
@@ -47,7 +36,12 @@ public final class DatabasePool {
             throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
         }
         
-        self.init(readerPool: readerPool, writer: writer)
+        // Readers
+        var readerConfig = configuration
+        readerConfig.readonly = true
+        readerConfig.defaultTransactionKind = .Deferred
+
+        self.init(path: path, readerConfiguration: readerConfig, maximumReaderCount: maximumReaderCount, databaseSchemaCache: databaseSchemaCache, writer: writer)
     }
     
     
@@ -83,7 +77,7 @@ public final class DatabasePool {
         //                                          INSERT INTO items...
         //      SELECT COUNT(*) FROM items -> 1 (visible insert)
         //
-        // See DatabasePoolTests.testTwoReadsWithMiddleWrite().
+        // See DatabasePoolTests.testReaderIsolation().
         
         return try readerPool.get { reader in
             try reader.inDatabase { db in
@@ -189,9 +183,30 @@ public final class DatabasePool {
     private let writer: SerializedDatabase
     private let readerPool: Pool<SerializedDatabase>
     
-    private init(readerPool: Pool<SerializedDatabase>, writer: SerializedDatabase) {
-        self.readerPool = readerPool
+    private var functions = Set<DatabaseFunction>()
+    private var collations = Set<DatabaseCollation>()
+    
+    private init(path: String, readerConfiguration: Configuration = Configuration(), maximumReaderCount: Int, databaseSchemaCache: DatabaseSchemaCacheType, writer: SerializedDatabase) {
         self.writer = writer
+        self.readerPool = Pool<SerializedDatabase>(maximumCount: maximumReaderCount)
+        
+        readerPool.makeElement = { [unowned self] in
+            let serializedDatabase = try! SerializedDatabase(
+                path: path,
+                configuration: readerConfiguration,
+                schemaCache: databaseSchemaCache)
+            
+            serializedDatabase.inDatabase { db in
+                for function in self.functions {
+                    db.addFunction(function)
+                }
+                for collation in self.collations {
+                    db.addCollation(collation)
+                }
+            }
+            
+            return serializedDatabase
+        }
     }
 }
 
@@ -201,4 +216,100 @@ public enum CheckpointMode: Int32 {
     case Full = 1       // SQLITE_CHECKPOINT_FULL
     case Restart = 2    // SQLITE_CHECKPOINT_RESTART
     case Truncate = 3   // SQLITE_CHECKPOINT_TRUNCATE
+}
+
+
+// =========================================================================
+// MARK: - Functions
+
+extension DatabasePool {
+    
+    /// Add or redefine an SQL function.
+    ///
+    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
+    ///         let dbv = databaseValues.first!
+    ///         guard let int = dbv.value() as Int? else {
+    ///             return nil
+    ///         }
+    ///         return int + 1
+    ///     }
+    ///     dbPool.addFunction(fn)
+    ///     dbPool.read { db in
+    ///         Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///     }
+    public func addFunction(function: DatabaseFunction) {
+        functions.remove(function)
+        functions.insert(function)
+        
+        writer.inDatabase { db in
+            db.addFunction(function)
+        }
+        
+        readerPool.forEach { reader in
+            reader.inDatabase { db in
+                db.addFunction(function)
+            }
+        }
+    }
+    
+    /// Remove an SQL function.
+    public func removeFunction(function: DatabaseFunction) {
+        functions.remove(function)
+        
+        writer.inDatabase { db in
+            db.removeFunction(function)
+        }
+        
+        readerPool.forEach { reader in
+            reader.inDatabase { db in
+                db.removeFunction(function)
+            }
+        }
+    }
+}
+
+
+// =========================================================================
+// MARK: - Collations
+
+extension DatabasePool {
+    
+    /// Add or redefine a collation.
+    ///
+    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
+    ///         return (string1 as NSString).localizedStandardCompare(string2)
+    ///     }
+    ///     dbPool.addCollation(collation)
+    ///     dbPool.write { db in
+    ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///     }
+    public func addCollation(collation: DatabaseCollation) {
+        collations.remove(collation)
+        collations.insert(collation)
+        
+        writer.inDatabase { db in
+            db.addCollation(collation)
+        }
+        
+        readerPool.forEach { reader in
+            reader.inDatabase { db in
+                db.addCollation(collation)
+            }
+        }
+    }
+    
+    /// Remove a collation.
+    public func removeCollation(collation: DatabaseCollation) {
+        collations.remove(collation)
+        
+        writer.inDatabase { db in
+            db.removeCollation(collation)
+        }
+        
+        readerPool.forEach { reader in
+            reader.inDatabase { db in
+                db.removeCollation(collation)
+            }
+        }
+    }
 }

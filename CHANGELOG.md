@@ -7,6 +7,11 @@ Release Notes
 
 - `DatabaseQueue.releaseMemory()` and `DatabasePool.releaseMemory()` claim non-essential memory ([documentation](https://github.com/groue/GRDB.swift#memory-management))
 
+**Breaking Changes**
+
+- Custom [functions](https://github.com/groue/GRDB.swift#custom-sql-functions) and [collations](https://github.com/groue/GRDB.swift#string-comparison) are no longer added to Database instances, but to DatabaseQueue and DatabasePool.
+
+
 ## 0.47.0
 
 Released March 10, 2016

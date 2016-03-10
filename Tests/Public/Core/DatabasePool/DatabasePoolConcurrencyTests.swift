@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class DatabasePoolTests: GRDBTestCase {
+class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testBasicWriteRead() {
         assertNoError {
@@ -152,7 +152,7 @@ class DatabasePoolTests: GRDBTestCase {
                     try self.dbPool.write { db in
                         try db.execute("DELETE FROM items")
                     }
-                    try self.dbPool.checkpoint()    // Default checkpoint should not fail if there is a reader (block1)
+                    try self.dbPool.checkpoint()
                 } catch {
                     XCTFail("error: \(error)")
                 }
@@ -164,7 +164,7 @@ class DatabasePoolTests: GRDBTestCase {
         }
     }
     
-    func testTwoReadsWithMiddleWrite() {
+    func testReaderIsolation() {
         assertNoError {
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
@@ -175,6 +175,7 @@ class DatabasePoolTests: GRDBTestCase {
             // >
             let s1 = dispatch_semaphore_create(0)
             //                              INSERT INTO items (id) VALUES (NULL)
+            //                              Checkpoint
             //                              <
             let s2 = dispatch_semaphore_create(0)
             // SELECT COUNT(*) FROM items
@@ -194,6 +195,7 @@ class DatabasePoolTests: GRDBTestCase {
                     try self.dbPool.write { db in
                         try db.execute("INSERT INTO items (id) VALUES (NULL)")
                     }
+                    try self.dbPool.checkpoint()
                 } catch {
                     XCTFail("error: \(error)")
                 }

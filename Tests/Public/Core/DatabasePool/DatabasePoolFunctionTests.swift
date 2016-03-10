@@ -1,0 +1,32 @@
+import XCTest
+import GRDB
+
+class DatabasePoolFunctionTests: GRDBTestCase {
+    
+    func testFunctionIsSharedBetweenWriterAndReaders() {
+        assertNoError {
+            let function1 = DatabaseFunction("function1", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
+                return databaseValues[0]
+            }
+            
+            dbPool.addFunction(function1)
+            
+            try dbPool.write { db in
+                try db.execute("CREATE TABLE items (text TEXT)")
+                try db.execute("INSERT INTO items (text) VALUES (function1('a'))")
+            }
+            dbPool.read { db in
+                XCTAssertEqual(String.fetchOne(db, "SELECT function1(text) FROM items")!, "a")
+            }
+            
+            let function2 = DatabaseFunction("function2", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
+                return "foo"
+            }
+            dbPool.addFunction(function2)
+            
+            dbPool.read { db in
+                XCTAssertTrue(String.fetchOne(db, "SELECT function2(text) FROM items") == "foo")
+            }
+        }
+    }
+}

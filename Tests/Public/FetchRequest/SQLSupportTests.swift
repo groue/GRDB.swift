@@ -21,17 +21,13 @@ class SQLSupportTests: GRDBTestCase {
         collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
             return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
         }
-        dbQueue.inDatabase { db in
-            db.addCollation(self.collation)
-        }
+        dbQueue.addCollation(collation)
         
         customFunction = DatabaseFunction("avgOf", pure: true) { databaseValues in
             let sum = databaseValues.flatMap { $0.value() as Int? }.reduce(0, combine: +)
             return Double(sum) / Double(databaseValues.count)
         }
-        dbQueue.inDatabase { db in
-            db.addFunction(self.customFunction)
-        }
+        dbQueue.addFunction(self.customFunction)
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in

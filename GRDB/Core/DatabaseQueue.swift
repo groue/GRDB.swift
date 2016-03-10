@@ -128,3 +128,65 @@ public final class DatabaseQueue {
         self.serializedDatabase = serializedDatabase
     }
 }
+
+
+// =========================================================================
+// MARK: - Functions
+
+extension DatabaseQueue {
+    
+    /// Add or redefine an SQL function.
+    ///
+    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { databaseValues in
+    ///         let dbv = databaseValues.first!
+    ///         guard let int = dbv.value() as Int? else {
+    ///             return nil
+    ///         }
+    ///         return int + 1
+    ///     }
+    ///     dbQueue.addFunction(fn)
+    ///     dbQueue.inDatabase { db in
+    ///         Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///     }
+    public func addFunction(function: DatabaseFunction) {
+        serializedDatabase.inDatabase { db in
+            db.addFunction(function)
+        }
+    }
+    
+    /// Remove an SQL function.
+    public func removeFunction(function: DatabaseFunction) {
+        serializedDatabase.inDatabase { db in
+            db.removeFunction(function)
+        }
+    }
+}
+
+
+// =========================================================================
+// MARK: - Collations
+
+extension DatabaseQueue {
+    
+    /// Add or redefine a collation.
+    ///
+    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
+    ///         return (string1 as NSString).localizedStandardCompare(string2)
+    ///     }
+    ///     dbQueue.addCollation(collation)
+    ///     try dbQueue.inDatabase { db in
+    ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///     }
+    public func addCollation(collation: DatabaseCollation) {
+        serializedDatabase.inDatabase { db in
+            db.addCollation(collation)
+        }
+    }
+    
+    /// Remove a collation.
+    public func removeCollation(collation: DatabaseCollation) {
+        serializedDatabase.inDatabase { db in
+            db.removeCollation(collation)
+        }
+    }
+}

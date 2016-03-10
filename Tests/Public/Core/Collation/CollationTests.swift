@@ -5,19 +5,20 @@ class CollationTests: GRDBTestCase {
     
     func testCollation() {
         assertNoError {
-            try dbQueue.inDatabase { db in
-                let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-                    let length1 = string1.utf8.count
-                    let length2 = string2.utf8.count
-                    if length1 == length2 {
-                        return (string1 as NSString).compare(string2)
-                    } else if length1 < length2 {
-                        return .OrderedAscending
-                    } else {
-                        return .OrderedDescending
-                    }
+            let collation = DatabaseCollation("localized_standard") { (string1, string2) in
+                let length1 = string1.utf8.count
+                let length2 = string2.utf8.count
+                if length1 == length2 {
+                    return (string1 as NSString).compare(string2)
+                } else if length1 < length2 {
+                    return .OrderedAscending
+                } else {
+                    return .OrderedDescending
                 }
-                db.addCollation(collation)
+            }
+            dbQueue.addCollation(collation)
+            
+            try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT COLLATE LOCALIZED_STANDARD)")
                 try db.execute("INSERT INTO strings VALUES (1, 'a')")
                 try db.execute("INSERT INTO strings VALUES (2, 'aa')")
