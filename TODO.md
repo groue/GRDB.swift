@@ -1,4 +1,4 @@
-- [ ] document releaseMemory() and closeReaderConnections()
+- [ ] document releaseMemory()
 - [ ] Rewrite DatabasePool documentation without the "reader" and "writer" words.
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
@@ -10,6 +10,9 @@
     - [ ] MATCH https://www.sqlite.org/lang_expr.html
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
+- [ ] DatabasePool
+    - [ ] functions
+    - [ ] collations
 
 Not sure:
 
