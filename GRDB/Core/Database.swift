@@ -9,7 +9,8 @@ typealias SQLiteValue = COpaquePointer
 
 /// A Database connection.
 ///
-/// You don't create a database directly. Instead, you use a DatabaseQueue:
+/// You don't create a database directly. Instead, you use a DatabaseQueue, or
+/// a DatabasePool:
 ///
 ///     let dbQueue = DatabaseQueue(...)
 ///
