@@ -91,6 +91,8 @@ public final class DatabaseQueue {
     // MARK: - Memory management
     
     /// Free as much memory as possible.
+    ///
+    /// This method blocks the current thread until all database accesses are completed.
     public func releaseMemory() {
         serializedDatabase.inDatabase { db in
             db.releaseMemory()

@@ -206,6 +206,7 @@ try dbQueue.inDatabase { db in
 - [String Comparison](#string-comparison)
 - [Transactions](#transactions)
 - [Error Handling](#error-handling)
+- [Memory Management](#memory-management)
 - Advanced topics:
     - [Custom Value Types](#custom-value-types)
     - [Prepared Statements](#prepared-statements)
@@ -286,7 +287,7 @@ import GRDB
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
 
-Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), pools grant you with multiple readers, and one writer. Only the writer is allowed to modify the database. Readers can run in parallel with other readers, and with the writer.
+Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), a database pool allows concurrent reading and writing. Writes are serialized, so that there is no conflict. Reads are isolated, which means that you can perform several fetch requests in a row without being affected by eventual concurrent writes.
 
 > :point_up: **Note**: your application should have a unique instance of DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
 >
@@ -307,7 +308,7 @@ try dbPool.writeInTransaction { db in
 }
 ```
 
-The `read` method also blocks the current thread until your database fetches are done. Database modifications are not allowed:
+The `read` method also blocks the current thread until your database fetches are done. Your application threads can perform concurrent reads. Database modifications are not allowed:
 
 ```swift
 dbPool.read { db in
@@ -325,23 +326,23 @@ let wineCount = dbPool.read { db in
 print(wineCount)
 ```
 
-**Readers are isolated from the writer.** The modifications performed by the writer are not visible inside a `read`:
+**Reads are isolated from writes:** database updates are not visible inside a `read` block:
 
 ```swift
 dbPool.read { db in
-    // Those two values are guaranteed to be equal, even if the writer modifies
-    // the wines table between the two requests:
+    // Those two values are guaranteed to be equal, even if the `wines`
+    // tables is modified between the two requests:
     let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
     let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
 }
 
 dbPool.read { db in
-    // Now this one may be different:
+    // Now this value may be different:
     let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
 }
 ```
 
-The total number of concurrent readers is limited. When all readers are busy, the `read` method blocks until a reader turns available.
+**The total number of concurrent reads is limited.** When the maximum number has been reached, the `read` method blocks until another read has completed.
 
 
 **You can configure database pools:**
@@ -359,7 +360,10 @@ let dbPool = try DatabasePool(
 
 See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.47.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
-> :warning: **Warning**: database pools, although well tested, are still experimental. In particular, unused readers are not released. The memory pressure of multiple database connections is unknown. The best number of readers is unknown. Please share the results of your experiments!
+
+Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
+
+> :warning: **Warning**: database pools, although well tested, are still experimental. In particular, the best number of concurrent reads is unknown. Please share the results of your experiments!
 
 
 ## Executing Updates
@@ -1142,6 +1146,58 @@ The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swi
 The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
 
 As an example, see [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift): it shows how to store dates as timestamps, unlike the built-in [NSDate](#nsdate-and-nsdatecomponents).
+
+
+## Memory Management
+
+**You can reclaim memory used by GRDB.**
+
+The most obvious way is to release your [database queues](#database-queues) and [pools](#database-pools):
+
+```swift
+// Eventually release all memory, after all database accesses are completed:
+dbQueue = nil
+dbPool = nil
+```
+
+Yet both SQLite and GRDB use non-essential memory that help them perform better. You can claim this memory with the `releaseMemory` method:
+
+```swift
+// Release as much memory as possible.
+dbQueue.releaseMemory()
+dbPool.releaseMemory()
+```
+
+This method blocks the current thread until all current database accesses are completed, and the memory collected.
+
+
+### Memory Management on iOS
+
+**The iOS operating system likes applications that do not consume much memory.**
+
+You should call the `releaseMemory` method when your application receives a memory warning, and when it enters background. Since `releaseMemory` is blocking, make sure you dispatch it to some background queue.
+
+For example, assuming a global `dbQueue`:
+
+```swift
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+    
+    func applicationDidReceiveMemoryWarning(application: UIApplication) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+            dbQueue.releaseMemory()
+        }
+    }
+    
+    func applicationDidEnterBackground(application: UIApplication) {
+        let task = application.beginBackgroundTaskWithExpirationHandler(nil)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+            dbQueue.releaseMemory()
+            application.endBackgroundTask(task)
+        }
+    }
+}
+```
 
 
 ## Prepared Statements

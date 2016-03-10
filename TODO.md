@@ -1,5 +1,3 @@
-- [ ] document releaseMemory()
-- [ ] Rewrite DatabasePool documentation without the "reader" and "writer" words.
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions

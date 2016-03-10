@@ -85,8 +85,8 @@ public final class DatabasePool {
         //
         // See DatabasePoolTests.testTwoReadsWithMiddleWrite().
         
-        return try readerPool.get { serializedDatabase in
-            try serializedDatabase.inDatabase { db in
+        return try readerPool.get { reader in
+            try reader.inDatabase { db in
                 var result: T? = nil
                 try db.inTransaction(.Deferred) {
                     result = try block(db: db)
@@ -162,29 +162,25 @@ public final class DatabasePool {
         }
     }
     
-    /// Eventually closes all reader connections.
-    ///
-    /// Unused reader connections are immediately closed. Currently used reader
-    /// connections will not be reused, and will eventually be closed.
-    public func closeReaderConnections() {
-        readerPool.clear()
-    }
-    
     
     // MARK: - Memory management
     
     /// Free as much memory as possible.
     ///
-    /// See also closeReaderConnections()
+    /// This method blocks the current thread until all database accesses are completed.
+    /// (TODO: test this assertion, and also that all readers connections are closed).
     public func releaseMemory() {
         writer.inDatabase { db in
             db.releaseMemory()
         }
-        readerPool.forEach { serialiazedDatabase in
-            serialiazedDatabase.inDatabase { db in
+        
+        readerPool.forEach { reader in
+            reader.inDatabase { db in
                 db.releaseMemory()
             }
         }
+        
+        readerPool.clear()
     }
     
     
