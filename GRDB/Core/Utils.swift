@@ -128,7 +128,7 @@ final class ReadWriteBox<T> {
 ///
 ///     // A pool of 3 integers
 ///     var number = 0
-///     let pool = Pool<Int>(size: 3, makeElement: {
+///     let pool = Pool<Int>(maximumCount: 3, makeElement: {
 ///         number = number + 1
 ///         return number
 ///     })
@@ -161,8 +161,8 @@ final class ReadWriteBox<T> {
 ///     got 3
 final class Pool<T> {
     private let makeElement: () -> T
-    private var availableElements: [T] = []
-    private let queue: dispatch_queue_t         // protects availableElements
+    private var items: [PoolItem<T>] = []
+    private let queue: dispatch_queue_t         // protects items
     private let semaphore: dispatch_semaphore_t // limits the number of elements
     
     init(maximumCount: Int, makeElement: () -> T) {
@@ -172,29 +172,67 @@ final class Pool<T> {
         self.semaphore = dispatch_semaphore_create(maximumCount)
     }
     
+    /// Returns a tuple (element, releaseElement())
+    /// Client MUST call releaseElement() after the element has been used.
+    func get() -> (T, () -> ()) {
+        let item = lockItem()
+        return (item.element, { self.unlockItem(item) })
+    }
+    
+    /// Performs a synchronous block with an element. The element turns
+    /// available after the block has executed.
     func get<U>(@noescape block: (T) throws -> U) rethrows -> U {
-        let element = dequeue()
-        defer { enqueue(element) }
+        let (element, release) = get()
+        defer { release() }
         return try block(element)
     }
     
-    private func dequeue() -> T {
-        var element: T! = nil
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+    /// Performs a block on each pool element, available or not.
+    /// The block is run is some arbitrary queue.
+    func forEach(block: (T) -> ()) {
         dispatch_sync(queue) {
-            if self.availableElements.isEmpty {
-                element = self.makeElement()
-            } else {
-                element = self.availableElements.removeLast()
+            for item in self.items {
+                block(item.element)
             }
         }
-        return element
     }
     
-    private func enqueue(element: T) {
+    /// Empty the pool. Currently used items won't be reused.
+    func clear() {
         dispatch_sync(queue) {
-            self.availableElements.append(element)
+            self.items = []
+        }
+    }
+    
+    private func lockItem() -> PoolItem<T> {
+        var item: PoolItem<T>! = nil
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+        dispatch_sync(queue) {
+            if let index = self.items.indexOf({ $0.available }) {
+                item = self.items[index]
+                item.available = false
+            } else {
+                item = PoolItem(element: self.makeElement(), available: false)
+                self.items.append(item)
+            }
+        }
+        return item
+    }
+    
+    private func unlockItem(item: PoolItem<T>) {
+        dispatch_sync(queue) {
+            item.available = true
         }
         dispatch_semaphore_signal(semaphore)
+    }
+}
+
+private class PoolItem<T> {
+    let element: T
+    var available: Bool
+    
+    init(element: T, available: Bool) {
+        self.element = element
+        self.available = available
     }
 }

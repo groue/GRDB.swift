@@ -88,6 +88,16 @@ public final class DatabaseQueue {
     }
     
     
+    // MARK: - Memory management
+    
+    /// Free as much memory as possible.
+    public func releaseMemory() {
+        serializedDatabase.inDatabase { db in
+            db.releaseMemory()
+        }
+    }
+    
+    
     // MARK: - Not public
     
     /// The serialized database

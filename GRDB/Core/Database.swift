@@ -71,6 +71,11 @@ public final class Database {
         }
     }
     
+    func releaseMemory() {
+        sqlite3_db_release_memory(sqliteConnection)
+        schemaCache.clear()
+    }
+    
     private func setupForeignKeys() throws {
         if configuration.foreignKeysEnabled {
             try execute("PRAGMA foreign_keys = ON")

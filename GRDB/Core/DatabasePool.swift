@@ -141,6 +141,9 @@ public final class DatabasePool {
         }
     }
     
+    
+    // MARK: - WAL Management
+    
     /// Runs a WAL checkpoint
     ///
     /// See https://www.sqlite.org/wal.html and
@@ -158,6 +161,34 @@ public final class DatabasePool {
             }
         }
     }
+    
+    /// Eventually closes all reader connections.
+    ///
+    /// Unused reader connections are immediately closed. Currently used reader
+    /// connections will not be reused, and will eventually be closed.
+    public func closeReaderConnections() {
+        readerPool.clear()
+    }
+    
+    
+    // MARK: - Memory management
+    
+    /// Free as much memory as possible.
+    ///
+    /// See also closeReaderConnections()
+    public func releaseMemory() {
+        writer.inDatabase { db in
+            db.releaseMemory()
+        }
+        readerPool.forEach { serialiazedDatabase in
+            serialiazedDatabase.inDatabase { db in
+                db.releaseMemory()
+            }
+        }
+    }
+    
+    
+    // MARK: - Not public
     
     private let writer: SerializedDatabase
     private let readerPool: Pool<SerializedDatabase>
