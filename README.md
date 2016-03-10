@@ -3,7 +3,7 @@ GRDB.swift
 
 GRDB.swift is a serious SQLite library for Swift 2.
 
-It ships with the most versatile SQL API in town, protocols that turn your custom types in ORM-like objects, efficient and safe concurrent accesses to the database (that's pretty unique), and a Swift query interface which let SQL-allergic developers avoid their most dreaded language.
+It ships with the most versatile SQL API in town, protocols that turn your custom types in ORM-like objects, efficient and safe concurrent accesses to the database (that's pretty unique), and a Swift query interface which lets SQL-allergic developers avoid their most dreaded language.
 
 And it's well-documented, and tested.
 
