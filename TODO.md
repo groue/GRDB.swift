@@ -1,3 +1,7 @@
+- [ ] Person.fetchOne(dbQueue, ...)
+      Person.fetchOne(dbPool, ...)
+      Person.fetchOne(db, ...)
+      dbPool.nonIsolatedRead { ... }
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
