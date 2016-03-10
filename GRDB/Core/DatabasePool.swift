@@ -100,7 +100,7 @@ public final class DatabasePool {
     /// Synchronously executes an update block in the database, and returns
     /// its result.
     ///
-    ///     dbPool.read { db in
+    ///     dbPool.write { db in
     ///         db.execute(...)
     ///     }
     ///
