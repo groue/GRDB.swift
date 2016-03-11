@@ -164,6 +164,32 @@ extension DatabaseQueue {
 
 
 // =========================================================================
+// MARK: - Transaction Observers
+
+extension DatabaseQueue {
+    
+    /// Add a transaction observer, so that it gets notified of all
+    /// database changes.
+    ///
+    /// Database holds weak references to its transaction observers: they are
+    /// not retained, and stop getting notifications after they are deallocated.
+    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+        serializedDatabase.inDatabase { db in
+            db.addTransactionObserver(transactionObserver)
+        }
+    }
+    
+    /// Remove a transaction observer.
+    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
+        serializedDatabase.inDatabase { db in
+            db.removeTransactionObserver(transactionObserver)
+        }
+    }
+    
+}
+
+
+// =========================================================================
 // MARK: - Collations
 
 extension DatabaseQueue {

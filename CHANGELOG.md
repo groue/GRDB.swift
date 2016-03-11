@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking Changes**
+
+- [Transaction observers](https://github.com/groue/GRDB.swift#database-changes-observation) are no longer added to Database instances, but to DatabaseQueue and DatabasePool.
+
+
 ## 0.48.0
 
 Released March 10, 2016

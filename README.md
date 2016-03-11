@@ -1088,7 +1088,7 @@ try dbQueue.inTransaction { db in
 
 A ROLLBACK statement is issued if an error is thrown within the transaction block.
 
-If you want to insert a transaction between other database statements, and group those in a single block of code protected by a database dispatch queue, you can use the Database.inTransaction() function:
+If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -2479,13 +2479,11 @@ public protocol TransactionObserverType : class {
 }
 ```
 
-To activate a transaction observer, add it to the database:
+To activate a transaction observer, add it to the database queue or pool:
 
 ```swift
 let observer = MyObserver()
-dbQueue.inDatabase { db in
-    db.addTransactionObserver(observer)
-}
+dbQueue.addTransactionObserver(observer)
 ```
 
 Database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated.
@@ -2530,7 +2528,7 @@ do {
 }
 ```
 
-> :point_up: **Note**: all callbacks are called on the database queue.
+> :point_up: **Note**: all callbacks are called on a protected dispatch queue.
 >
 > :point_up: **Note**: the databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
@@ -2542,7 +2540,17 @@ FAQ
 
 - **How do I close a database connection?**
     
-    You do not explicitely close a database connection: a connection is open when a [database queue](#database-queues) is created, and closed when there is no longer any reference to that database queue, and it gets deallocated. This principle is known as [RAII](http://c2.com/cgi/wiki?ResourceAcquisitionIsInitialization).
+    The short answer is:
+    
+    ```swift
+    dbQueue = nil
+    dbPool = nil
+    ```
+    
+    You do not explicitely close a database connection: it is managed by a [database queue](#database-queues) or [pool](#database-pools). The connection is closed when there is no longer any reference to that database queue or pool, and it gets deallocated. This principle is known as [RAII](http://c2.com/cgi/wiki?ResourceAcquisitionIsInitialization).
+    
+    The `releaseMemory` method of DatabasePool ([documentation](#memory-management)) will actually close some connections, but it will open another one as soon as you access the database again.
+
 
 - **How do I open a database stored as a resource of my application?**
     

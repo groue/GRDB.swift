@@ -929,7 +929,7 @@ extension Database {
     ///
     /// Database holds weak references to its transaction observers: they are
     /// not retained, and stop getting notifications after they are deallocated.
-    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+    func addTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
         transactionObservers.append(WeakTransactionObserver(transactionObserver))
         if transactionObservers.count == 1 {
@@ -938,7 +938,7 @@ extension Database {
     }
     
     /// Remove a transaction observer.
-    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
+    func removeTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
         transactionObservers.removeFirst { $0.observer === transactionObserver }
         if transactionObservers.isEmpty {

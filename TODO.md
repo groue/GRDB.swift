@@ -2,8 +2,8 @@
       Person.fetchOne(dbPool, ...)
       Person.fetchOne(db, ...)
 - [X] Read-only DatabasePool
-- [ ] Move TransactionObserverType to dbQueue/Pool
-    - [ ] Update TransactionObserver.storyboard
+- [X] Move TransactionObserverType to dbQueue/Pool
+    - [X] Update TransactionObserver.storyboard
 - [ ] Update UserDefaults.storyboard
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
