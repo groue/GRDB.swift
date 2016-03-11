@@ -285,13 +285,14 @@ public class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func delete(db: Database) throws -> Bool {
-        let deleted = try performDelete(db)
-        // Future calls to update() will throw NotFound. Make the user
-        // a favor and make sure this error is thrown even if she checks the
-        // hasPersistentChangedValues flag:
-        hasPersistentChangedValues = true
-        return deleted
+    public func delete(writer: DatabaseWriter) throws -> Bool {
+        defer {
+            // Future calls to update() will throw NotFound. Make the user
+            // a favor and make sure this error is thrown even if she checks the
+            // hasPersistentChangedValues flag:
+            hasPersistentChangedValues = true
+        }
+        return try performDelete(writer)
     }
 }
 

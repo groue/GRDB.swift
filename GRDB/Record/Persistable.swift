@@ -146,7 +146,7 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    func delete(db: Database) throws -> Bool
+    func delete(writer: DatabaseWriter) throws -> Bool
     
     /// Returns true if and only if the primary key matches a row in
     /// the database.
@@ -194,8 +194,8 @@ public extension MutablePersistable {
     /// Executes a DELETE statement.
     ///
     /// The default implementation for delete() invokes performDelete().
-    func delete(db: Database) throws -> Bool {
-        return try performDelete(db)
+    func delete(writer: DatabaseWriter) throws -> Bool {
+        return try performDelete(writer)
     }
     
     /// Returns true if and only if the primary key matches a row in
@@ -292,8 +292,10 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performDelete() in
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
-    func performDelete(db: Database) throws -> Bool {
-        return try DataMapper(db, self).deleteStatement().execute().changedRowCount > 0
+    func performDelete(writer: DatabaseWriter) throws -> Bool {
+        return try writer._write { db in
+            try DataMapper(db, self).deleteStatement().execute().changedRowCount > 0
+        }
     }
     
     /// Don't invoke this method directly: it is an internal method for types

@@ -83,9 +83,9 @@ struct PersistableCustomizedCountry : Persistable {
         try performSave(writer)
     }
     
-    func delete(db: Database) throws {
+    func delete(writer: DatabaseWriter) throws {
         willDelete()
-        try performDelete(db)
+        try performDelete(writer)
     }
     
     func exists(db: Database) -> Bool {
