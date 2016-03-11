@@ -229,3 +229,15 @@ extension DatabaseQueue : DatabaseReader {
     }
 }
 
+
+// =========================================================================
+// MARK: - DatabaseWriter
+
+extension DatabaseQueue : DatabaseWriter {
+    
+    /// This method is an implementation detail: do not use it directly.
+    public func _write<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try inDatabase(block)
+    }
+}
+

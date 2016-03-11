@@ -341,12 +341,27 @@ extension DatabasePool {
 // MARK: - DatabaseReader
 
 extension DatabasePool : DatabaseReader {
+    
     /// This method is an implementation detail: do not use it directly.
     public func _readWithSingleStatementIsolation<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try readerPool.get { reader in
             try reader.inDatabase { db in
                 try block(db: db)
             }
+        }
+    }
+}
+
+
+// =========================================================================
+// MARK: - DatabaseWriter
+
+extension DatabasePool : DatabaseWriter {
+    
+    /// This method is an implementation detail: do not use it directly.
+    public func _write<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try writer.inDatabase { db in
+            try block(db: db)
         }
     }
 }
