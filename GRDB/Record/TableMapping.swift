@@ -47,7 +47,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(reader: DatabaseReader, keys: Sequence) -> [Self] {
-        return reader._readSingleStatement { db in
+        return reader._readWithSingleStatementIsolation { db in
             guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
                 return []
             }
@@ -65,7 +65,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(reader: DatabaseReader, key: PrimaryKeyType?) -> Self? {
-        return reader._readSingleStatement { db in
+        return reader._readWithSingleStatementIsolation { db in
             guard let key = key else {
                 return nil
             }
@@ -141,7 +141,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll(reader: DatabaseReader, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
-        return reader._readSingleStatement { db in
+        return reader._readWithSingleStatementIsolation { db in
             guard let statement = fetchByKeyStatement(db, keys: keys) else {
                 return []
             }
@@ -159,7 +159,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne(reader: DatabaseReader, key: [String: DatabaseValueConvertible?]) -> Self? {
-        return reader._readSingleStatement { db in fetchOne(fetchByKeyStatement(db, keys: [key])!) }
+        return reader._readWithSingleStatementIsolation { db in fetchOne(fetchByKeyStatement(db, keys: [key])!) }
     }
     
     // Returns "SELECT * FROM table WHERE (a = ? AND b = ?) OR (a = ? AND b = ?) ...

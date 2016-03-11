@@ -298,7 +298,7 @@ public extension MutablePersistable {
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
     func performExists(reader: DatabaseReader) -> Bool {
-        return reader._readSingleStatement { db in
+        return reader._readWithSingleStatementIsolation { db in
             (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
         }
     }

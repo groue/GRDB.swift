@@ -1169,12 +1169,20 @@ public struct DatabaseEvent {
 ///     }
 public protocol DatabaseReader : class {
     /// This method is an implementation detail: do not use it directly.
-    func _readSingleStatement<T>(block: (db: Database) throws -> T) rethrows -> T
+    ///
+    /// A single statement executed in the block argument can be fully executed
+    /// in isolation of eventual concurrent updates:
+    ///
+    ///     reader._readWithSingleStatementIsolation { db in
+    ///         // no external update can mess with this iteration:
+    ///         for row in Row.fetch(db, ...) { }
+    ///     }
+    func _readWithSingleStatementIsolation<T>(block: (db: Database) throws -> T) rethrows -> T
 }
 
 extension Database : DatabaseReader {
     /// This method is an implementation detail: do not use it directly.
-    public func _readSingleStatement<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func _readWithSingleStatementIsolation<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try block(db: self)
     }
 }
