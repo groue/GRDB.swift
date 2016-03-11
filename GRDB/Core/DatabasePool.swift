@@ -349,3 +349,19 @@ extension DatabasePool {
         }
     }
 }
+
+
+// =========================================================================
+// MARK: - DatabaseReader
+
+extension DatabasePool : DatabaseReader {
+    /// This method is an implementation detail: do not use it directly.
+    public func _readSingleStatement<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try readerPool.get { reader in
+            try reader.inDatabase { db in
+                try block(db: db)
+            }
+        }
+    }
+}
+

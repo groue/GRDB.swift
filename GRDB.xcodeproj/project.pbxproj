@@ -828,6 +828,7 @@
 				56A238731B9C75030082EB20 /* DatabaseError.swift */,
 				560A37A31C8F625000949E71 /* DatabasePool.swift */,
 				56A238741B9C75030082EB20 /* DatabaseQueue.swift */,
+				56EA868C1C91D988002BB4DF /* DatabaseReader.swift */,
 				5695311E1C907A8C00CF1A2B /* DatabaseSchemaCache.swift */,
 				56A238751B9C75030082EB20 /* DatabaseValue.swift */,
 				560D923E1C672C3E00F4F92B /* DatabaseValueConvertible.swift */,
@@ -837,7 +838,6 @@
 				560D923F1C672C3E00F4F92B /* StatementColumnConvertible.swift */,
 				563445041C4A7FD7003D3DC6 /* Utils.swift */,
 				5605F1471C672E4000235C62 /* Support */,
-				56EA868C1C91D988002BB4DF /* DatabaseReader.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";

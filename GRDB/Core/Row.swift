@@ -525,7 +525,7 @@ extension Row {
     /// - returns: An array of rows.
     @warn_unused_result
     public static func fetchAll(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
-        return reader.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
+        return reader._readSingleStatement { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -539,7 +539,7 @@ extension Row {
     /// - returns: An optional row.
     @warn_unused_result
     public static func fetchOne(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
-        return reader.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
+        return reader._readSingleStatement { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
     }
 }
 

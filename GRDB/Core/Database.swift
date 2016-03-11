@@ -1150,3 +1150,14 @@ public struct DatabaseEvent {
     /// The rowID of the changed row.
     public let rowID: Int64
 }
+
+
+// =========================================================================
+// MARK: - DatabaseReader
+
+extension Database : DatabaseReader {
+    /// This method is an implementation detail: do not use it directly.
+    public func _readSingleStatement<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try block(db: self)
+    }
+}

@@ -1,23 +1,16 @@
-/// A protocol for all types that can fetch values from a database.
+/// The protocol for all types that can fetch values from a database.
+///
+/// It is adopted by DatabaseQueue, and DatabasePool, and Database.
+///
+/// You don't use the protocol directly. Instead, you provide a DatabaseReader
+/// to fetching methods:
+/// 
+///     let persons = Person.fetchAll(dbQueue)
+///     let persons = Person.fetchAll(dbPool)
+///     dbQueue.inDatabase { db in
+///         let persons = Person.fetchAll(db)
+///     }
 public protocol DatabaseReader {
-    func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T
-}
-
-extension DatabaseQueue : DatabaseReader {
-    
-    /// Synonym for DatabaseQueue.inDatabase()
-    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try inDatabase(block)
-    }
-}
-
-extension DatabasePool : DatabaseReader {
-}
-
-extension Database : DatabaseReader {
-    /// Conformance to the DatabaseReader protocol.
-    /// Don't use this method directly.
-    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try block(db: self)
-    }
+    /// This method is an implementation detail: do not use it directly.
+    func _readSingleStatement<T>(block: (db: Database) throws -> T) rethrows -> T
 }

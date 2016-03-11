@@ -143,7 +143,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - returns: An array of values.
     @warn_unused_result
     public static func fetchAll(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return reader.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
+        return reader._readSingleStatement { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -157,6 +157,6 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return reader.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
+        return reader._readSingleStatement { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
     }
 }

@@ -190,3 +190,16 @@ extension DatabaseQueue {
         }
     }
 }
+
+
+// =========================================================================
+// MARK: - DatabaseReader
+
+extension DatabaseQueue : DatabaseReader {
+    
+    /// This method is an implementation detail: do not use it directly.
+    public func _readSingleStatement<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try inDatabase(block)
+    }
+}
+
