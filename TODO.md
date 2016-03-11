@@ -15,6 +15,7 @@
 - [ ] DatabasePool
     - [ ] functions
     - [ ] collations
+- [ ] Check that dbQueue = nil waits for current operations to complete before closing the connection.
 
 Not sure:
 
