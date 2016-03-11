@@ -440,11 +440,10 @@ You can fetch database rows, plain values, and custom models aka "records".
 **Rows** are the raw results of SQL queries:
 
 ```swift
-dbQueue.inDatabase { db in
-    for row in Row.fetch(db, "SELECT * FROM wines") {
-        let name: String = row.value(named: "name")
-        let color: Color = row.value(named: "color")
-    }
+for row in Row.fetchAll(dbQueue, "SELECT * FROM wines") {
+    let name: String = row.value(named: "name")
+    let color: Color = row.value(named: "color")
+    print(name, color)
 }
 ```
 
