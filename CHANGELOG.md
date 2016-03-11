@@ -3,6 +3,21 @@ Release Notes
 
 ## Next Release
 
+**New**
+
+- Read-only database pools grant you with concurrent reads on a database, without activating the WAL mode.
+- All fetchable types can now be fetched directly from database queues and pools:
+    
+    ```swift
+    // Before:
+    let persons = dbQueue.inDatabase { db in
+        Person.fetchAll(db)
+    }
+    
+    // New:
+    let persons = Person.fetchAll(dbQueue)
+    ```
+
 **Breaking Changes**
 
 - [Transaction observers](https://github.com/groue/GRDB.swift#database-changes-observation) are no longer added to Database instances, but to DatabaseQueue and DatabasePool.
