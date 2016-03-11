@@ -37,9 +37,9 @@ class PersonWithOverrides : Person {
         try super.insert(writer)
     }
     
-    override func update(db: Database) throws {
+    override func update(writer: DatabaseWriter) throws {
         lastSavingMethod = .Update
-        try super.update(db)
+        try super.update(writer)
     }
 }
 

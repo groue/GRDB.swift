@@ -73,9 +73,9 @@ struct PersistableCustomizedCountry : Persistable {
         try performInsert(writer)
     }
     
-    func update(db: Database) throws {
+    func update(writer: DatabaseWriter) throws {
         willUpdate()
-        try performUpdate(db)
+        try performUpdate(writer)
     }
     
     func save(db: Database) throws {

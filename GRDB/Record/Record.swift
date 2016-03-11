@@ -234,10 +234,10 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
-    public func update(db: Database) throws {
+    public func update(writer: DatabaseWriter) throws {
         // The simplest code would be:
         //
-        //     try performUpdate(db)
+        //     try performUpdate(writer)
         //     hasPersistentChangedValues = false
         //
         // But this triggers two calls to persistentDictionary, and this is both
@@ -246,15 +246,16 @@ public class Record : RowConvertible, TableMapping, Persistable {
         //
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both update, and change tracking.
-        
-        let dataMapper = DataMapper(db, self)
-        let changes = try dataMapper.updateStatement().execute()
-        if changes.changedRowCount == 0 {
-            throw PersistenceError.NotFound(self)
+        try writer._write { db in
+            let dataMapper = DataMapper(db, self)
+            let changes = try dataMapper.updateStatement().execute()
+            if changes.changedRowCount == 0 {
+                throw PersistenceError.NotFound(self)
+            }
+            
+            // Set hasPersistentChangedValues to false
+            self.referenceRow = Row(dataMapper.persistentDictionary)
         }
-        
-        // Set hasPersistentChangedValues to false
-        referenceRow = Row(dataMapper.persistentDictionary)
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
