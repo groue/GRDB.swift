@@ -100,9 +100,10 @@ let favorite = SQLColumn("favorite")
 
 let paris = PointOfInterest.fetchOne(dbQueue, key: 1)                    // PointOfInterest?
 let berlin = PointOfInterest.filter(title == "Berlin").fetchOne(dbQueue) // PointOfInterest?
+
 let request = PointOfInterest.filter(favorite).order(title)
-let favoritePois = request.fetchAll(dbQueue)                             // [PointOfInterest]
-let favoritePoiCount = request.fetchCount(dbQueue)                       // Int
+let favs = request.fetchAll(dbQueue)                                     // [PointOfInterest]
+let favCount = request.fetchCount(dbQueue)                               // Int
 ```
   
 
