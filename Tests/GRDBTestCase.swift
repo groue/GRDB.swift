@@ -9,7 +9,7 @@ class GRDBTestCase: XCTestCase {
         return (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbQueueFileName)
     }()
     var _dbQueue: DatabaseQueue?
-    var dbQueue: DatabaseQueue {
+    var dbQueue: DatabaseQueue! {
         get {
             if let _dbQueue = _dbQueue {
                 return _dbQueue
@@ -28,7 +28,7 @@ class GRDBTestCase: XCTestCase {
         return (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbPoolDirectoryName)
     }()
     var _dbPool: DatabasePool?
-    var dbPool: DatabasePool {
+    var dbPool: DatabasePool! {
         get {
             if let _dbPool = _dbPool {
                 return _dbPool
