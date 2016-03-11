@@ -3,6 +3,8 @@
       Person.fetchOne(db, ...)
 - [X] Read-only DatabasePool
 - [ ] Move TransactionObserverType to dbQueue/Pool
+    - [ ] Update TransactionObserver.storyboard
+- [ ] Update UserDefaults.storyboard
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
@@ -13,9 +15,6 @@
     - [ ] MATCH https://www.sqlite.org/lang_expr.html
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
-- [ ] DatabasePool
-    - [ ] functions
-    - [ ] collations
 - [ ] Check that dbQueue = nil waits for current operations to complete before closing the connection.
 
 Not sure:
