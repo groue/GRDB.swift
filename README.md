@@ -243,15 +243,11 @@ SQLite creates the database file if it does not already exist. The connection is
 ```swift
 // Execute database statements:
 dbQueue.inDatabase { db in
-    try db.execute("INSERT ...")
-    for row in Row.fetch(db, "SELECT * FROM wines") {
-        let name: String = row.value(named: "name")
-        let color: Color = row.value(named: "color")
-        print(name, color)
-    }
+    try db.execute("UPDATE ...")
+    try db.execute("DELETE ...")
 }
 
-// Wrap database statements in a transaction:
+// Wrap database statements in transactions:
 try dbQueue.inTransaction { db in
     try db.execute("UPDATE ...")
     try db.execute("DELETE ...")
@@ -263,6 +259,15 @@ let rows = Row.fetchAll(dbQueue, "SELECT * FROM wines")
 let wineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
 ```
 
+Use the `inDatabase` method to iterate sequences:
+
+```swift
+dbQueue.inDatabase { db in
+    for row in Row.fetch(db, "SELECT * FROM wines") {
+        ...
+    }
+}
+```
 
 **You can configure database queues:**
 
