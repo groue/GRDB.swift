@@ -45,7 +45,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-Fetch database rows and values:
+Fetch [database rows](#row-queries) and [values](#value-queries):
 
 ```swift
 for row in Row.fetchAll(dbQueue, "SELECT * FROM pointOfInterests") {
@@ -74,12 +74,13 @@ struct PointOfInterest {
 // snip: turn PointOfInterest into a "record" by adopting the protocols that
 // provide fetching and persistence methods.
 
+var berlin = PointOfInterest(
+    id: nil,
+    title: "Berlin",
+    favorite: false,
+    coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
+
 try dbQueue.inDatabase { db in
-    var berlin = PointOfInterest(
-        id: nil,
-        title: "Berlin",
-        favorite: false,
-        coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
     try berlin.insert(db)
     print(berlin.id) // some value
     
