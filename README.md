@@ -57,8 +57,8 @@ for row in Row.fetchAll(dbQueue, "SELECT * FROM pointOfInterests") {
     print(title, favorite, coordinate)
 }
 
-let poiCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM pointOfInterests")!
-let poiTitles = String.fetchAll(dbQueue, "SELECT title FROM pointOfInterests")
+let poiCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM pointOfInterests")! // Int
+let poiTitles = String.fetchAll(dbQueue, "SELECT title FROM pointOfInterests") // [String]
 ```
 
 Insert and fetch [Records](#records):
@@ -88,7 +88,7 @@ try dbQueue.inDatabase { db in
 }
     
 // Fetch from SQL
-let pois = PointOfInterest.fetchAll(dbQueue, "SELECT * FROM pointOfInterests")
+let pois = PointOfInterest.fetchAll(dbQueue, "SELECT * FROM pointOfInterests") // [PointOfInterest]
 ```
 
 Avoid SQL with the [query interface](#the-query-interface):
@@ -97,11 +97,11 @@ Avoid SQL with the [query interface](#the-query-interface):
 let title = SQLColumn("title")
 let favorite = SQLColumn("favorite")
 
-let paris = PointOfInterest.fetchOne(dbQueue, key: 1)
-let berlin = PointOfInterest.filter(title == "Berlin").fetchOne(dbQueue)
+let paris = PointOfInterest.fetchOne(dbQueue, key: 1)                    // PointOfInterest?
+let berlin = PointOfInterest.filter(title == "Berlin").fetchOne(dbQueue) // PointOfInterest?
 let request = PointOfInterest.filter(favorite).order(title)
-let favoritePois = request.fetchAll(dbQueue)
-let favoritePoiCount = request.fetchCount(dbQueue)
+let favoritePois = request.fetchAll(dbQueue)                             // [PointOfInterest]
+let favoritePoiCount = request.fetchCount(dbQueue)                       // Int
 ```
   
 
