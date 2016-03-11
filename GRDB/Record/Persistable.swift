@@ -157,7 +157,7 @@ public protocol MutablePersistable : TableMapping {
     /// that they invoke the performExists() method.
     ///
     /// - returns: Whether the primary key matches a row in the database.
-    func exists(db: Database) -> Bool
+    func exists(reader: DatabaseReader) -> Bool
 }
 
 public extension MutablePersistable {
@@ -202,8 +202,8 @@ public extension MutablePersistable {
     /// the database.
     ///
     /// The default implementation for exists() invokes performExists().
-    func exists(db: Database) -> Bool {
-        return performExists(db)
+    func exists(reader: DatabaseReader) -> Bool {
+        return performExists(reader)
     }
     
     
@@ -297,8 +297,10 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performExists() in
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
-    func performExists(db: Database) -> Bool {
-        return (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
+    func performExists(reader: DatabaseReader) -> Bool {
+        return reader._readSingleStatement { db in
+            (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
+        }
     }
     
 }

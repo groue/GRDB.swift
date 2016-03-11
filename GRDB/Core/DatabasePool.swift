@@ -88,45 +88,6 @@ public final class DatabasePool {
         }
     }
     
-    /// Synchronously executes a read-only block in the database, and returns
-    /// its result.
-    ///
-    ///     let persons = dbPool.nonIsolatedRead { db in
-    ///         Person.fetchAll(...)
-    ///     }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// Unlike the `read` method, which provides full isolation, the
-    /// `nonIsolatedRead` method lets concurrent updates alter consecutive
-    /// statements:
-    ///
-    ///     dbPool.nonIsolatedRead { db in
-    ///         // Those two values may be different:
-    ///         let count1 = Person.fetchCount(db)
-    ///         let count2 = Person.fetchCount(db)
-    ///     }
-    ///
-    /// Yet all statements are individually isolated from concurrent updates:
-    ///
-    ///     dbPool.nonIsolatedRead { db in
-    ///         // No update can alter this iteration during the loop:
-    ///         for person in Person.fetch(db) { ...}
-    ///
-    ///         // But now it may iterate a different set of results:
-    ///         for person in Person.fetch(db) { ... }
-    ///     }
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
-    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try readerPool.get { reader in
-            try reader.inDatabase { db in
-                try block(db: db)
-            }
-        }
-    }
-    
     /// Synchronously executes an update block in the database, and returns
     /// its result.
     ///
