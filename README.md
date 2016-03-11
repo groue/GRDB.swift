@@ -521,7 +521,7 @@ Type.fetchAll(...) // [Type]
 Type.fetchOne(...) // Type?
 ```
 
-The `Type` above is any fetchable type: database [row](#row-queries), [value](#value-queries), or custom [record](#records).
+(Replace `Type` above with any fetchable type: database [row](#row-queries), [value](#value-queries), or custom [record](#records))
 
 - `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected database thread (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
     
