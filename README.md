@@ -498,7 +498,7 @@ let urls = NSURL.fetchAll(dbQueue, "SELECT url FROM wines")          // [NSURL]
 
 ```swift
 let wines = Wine.fetchAll(dbQueue, "SELECT * FROM wines")            // [Wine]
-let favoriteWine = Wine.fetchOne(dbQueue, key: favoriteWineID)       // Wine?
+let anyWine = Wine.fetchOne(dbQueue, "SELECT * FROM wines LIMIT 1")  // Wine?
 ```
 
 - [Fetching Methods](#fetching-methods)
@@ -534,10 +534,15 @@ dbQueue.inDatabase { db in
 `fetchAll` and `fetchOne` can be used with database [queues](#database-queues), [pools](#database-pools), or raw connections:
 
 ```swift
-let persons = Person.fetchAll(dbQueue)  // DatabaseQueue
-let persons = Person.fetchAll(dbPool)   // DatabasePool
+let rows = Row.fetchAll(dbQueue, "SELECT ...")  // DatabaseQueue
+let rows = Row.fetchAll(dbPool, "SELECT ...")   // DatabasePool
+
 dbQueue.inDatabase { db in
-    let persons = Person.fetchAll(db)   // Database
+    let rows = Row.fetchAll(db, "SELECT ...")   // Database
+}
+
+dbPool.read { db in
+    let rows = Row.fetchAll(db, "SELECT ...")   // Database
 }
 ```
 
@@ -755,21 +760,8 @@ dbQueue.inDatabase { db in
 There are many supported value types (Bool, Int, String, NSDate, Swift enums, etc.). See [Values](#values) for more information:
 
 ```swift
-// The number of persons with an email ending in @example.com:
-let count: Int = Int.fetchOne(dbQueue,
-    "SELECT COUNT(*) FROM persons WHERE email LIKE ?",
-    arguments: ["%@example.com"])!
-
-// All URLs:
-let urls: [NSURL] = NSURL.fetchAll(dbQueue, "SELECT url FROM links")
-
-// The emails of people who own at least two pets:
-let emails: [String] = String.fetchAll(dbQueue,
-    "SELECT persons.email " +
-    "FROM persons " +
-    "JOIN pets ON pets.masterId = persons.id " +
-    "GROUP BY persons.id " +
-    "HAVING COUNT(pets.id) >= 2")
+let count = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM persons")! // Int
+let urls = NSURL.fetchAll(dbQueue, "SELECT url FROM links")        // [NSURL]
 ```
 
 
