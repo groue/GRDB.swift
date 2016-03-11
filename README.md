@@ -355,6 +355,7 @@ dbPool.read { db in
 
 ```swift
 var config = Configuration()
+config.readonly = true
 config.foreignKeysEnabled = true // The default is already true
 config.trace = { print($0) }     // Prints all SQL statements
 
