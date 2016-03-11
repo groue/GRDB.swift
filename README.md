@@ -241,7 +241,7 @@ dbQueue.inDatabase { db in
 ```
 
 
-In a multithreaded application, **reads are isolated from writes:** when a `inDatabase` or `inTransaction` block is executing, other database accesses are postponed until the end of the block:
+In a multithreaded application, the `inDatabase` or `inTransaction` methods run their closure argument in **isolation**. When one closure is executing, other database accesses are postponed:
 
 ```swift
 // Those two values may be different because some other thread may have inserted
