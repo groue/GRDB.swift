@@ -2,6 +2,7 @@
       Person.fetchOne(dbPool, ...)
       Person.fetchOne(db, ...)
 - [X] Read-only DatabasePool
+- [ ] Move TransactionObserverType to dbQueue/Pool
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions

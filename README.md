@@ -1575,9 +1575,7 @@ try dbQueue.inDatabase { db in
 [Record](#record-class) subclasses and types that adopt the [TableMapping](#tablemapping-protocol) protocol can be counted:
 
 ```swift
-let personWithEmailCount = dbQueue.inDatabase { db in
-    Person.filter(email != nil).fetchCount(db)  // Int
-}
+let personWithEmailCount = Person.filter(email != nil).fetchCount(dbQueue)  // Int
 ```
 
 
@@ -1663,9 +1661,7 @@ extension PointOfInterest : TableMapping {
 Adopting types can be fetched using the [query interface](#the-query-interface):
 
 ```swift
-let paris = dbQueue.inDatabase { db in
-    PointOfInterest.filter(name == "Paris").fetchOne(db)?
-}
+let paris = PointOfInterest.filter(name == "Paris").fetchOne(db)
 ```
 
 You can also fetch records according to their primary key (see [fetching methods](#fetching-methods)):
@@ -1759,11 +1755,13 @@ try dbQueue.inDatabase { db in
 [Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
 
 ```swift
-try object.insert(db) // INSERT
-try object.update(db) // UPDATE
-try object.save(db)   // Inserts or updates
-try object.delete(db) // DELETE
-object.exists(db)     // Bool
+try dbQueue.inDatabase { db in
+    try object.insert(db) // INSERT
+    try object.update(db) // UPDATE
+    try object.save(db)   // Inserts or updates
+    try object.delete(db) // DELETE
+    object.exists(db)     // Bool
+}
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
@@ -1902,16 +1900,14 @@ try dbQueue.inDatabase { db in
 **Fetch records** (see [RowConvertible](#rowconvertible-protocol) and the [query interface](#the-query-interface)):
 
 ```swift
-dbQueue.inDatabase { db in
-    // Using the query interface
-    let pois = PointOfInterest.order(title).fetchAll(db)
-    
-    // By key
-    let poi = PointOfInterest.fetchOne(db, key: 1)
-    
-    // Using SQL
-    let pois = PointOfInterest.fetchAll(db, "SELECT ...", arguments: ...)
-}
+// Using the query interface
+let pois = PointOfInterest.order(title).fetchAll(dbQueue)
+
+// By key
+let poi = PointOfInterest.fetchOne(dbQueue, key: 1)
+
+// Using SQL
+let pois = PointOfInterest.fetchAll(dbQueue, "SELECT ...", arguments: ...)
 ```
 
 
@@ -2312,15 +2308,13 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 Once you have a request, you can fetch the records at the origin of the request:
 
 ```swift
-dbQueue.inDatabase { db in
-    // Some request based on `Person`
-    let request = Person.filter(...)...
-    
-    // Fetch persons:
-    request.fetch(db)    // DatabaseSequence<Person>
-    request.fetchAll(db) // [Person]
-    request.fetchOne(db) // Person?
-}
+// Some request based on `Person`
+let request = Person.filter(...)...
+
+// Fetch persons:
+request.fetch(db)    // DatabaseSequence<Person>
+request.fetchAll(db) // [Person]
+request.fetchOne(db) // Person?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods.
@@ -2328,49 +2322,33 @@ See [fetching methods](#fetching-methods) for information about the `fetch`, `fe
 For example:
 
 ```swift
-for person in Person.filter(Col.name != nil).fetch(db) {
-    print(person)
-}
-let allPersons = Person.fetchAll(db)                            // [Person]
-let arthur = Person.filter(Col.name == "Arthur").fetchOne(db)   // Person?
+let allPersons = Person.fetchAll(db)                          // [Person]
+let arthur = Person.filter(Col.name == "Arthur").fetchOne(db) // Person?
 ```
 
 
 **When the selected columns don't fit the source type**, you just have to change your target: any other type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, plain [database rows](#column-values), and even [values](#values):
 
 ```swift
-dbQueue.inDatabase { db in
-    let request = Person....
-    
-    // Alternative records:
-    Other.fetch(db, request)    // DatabaseSequence<Other>
-    Other.fetchAll(db, request) // [Other]
-    Other.fetchOne(db, request) // Other?
-    
-    // Rows:
-    Row.fetch(db, request)      // DatabaseSequence<Row>
-    Row.fetchAll(db, request)   // [Row]
-    Row.fetchOne(db, request)   // Row?
-    
-    // Values:
-    Int.fetch(db, request)      // DatabaseSequence<Int>
-    Int.fetchAll(db, request)   // [Int]
-    Int.fetchOne(db, request)   // Int?
-}
+let request = Person....
+
+Other.fetch(db, request) // Alternative records
+Row.fetch(db, request)   // Rows
+Int.fetch(db, request)   // Values
 ```
 
 For example:
 
 ```swift
-// Int
+// Double
 let request = Person.select(min(Col.height))
-let minHeight = Int.fetchOne(db, request)!
+let minHeight = Double.fetchOne(db, request)!
 
 // Row
 let request = Person.select(min(Col.height), max(Col.height))
 let row = Row.fetchOne(db, request)!
-let minHeight = row.value(atIndex: 0) as Int
-let maxHeight = row.value(atIndex: 1) as Int
+let minHeight = row.value(atIndex: 0) as Double
+let maxHeight = row.value(atIndex: 1) as Double
 ```
 
 See [column values](#column-values) for more information about the `row.value()` method.
@@ -2397,36 +2375,32 @@ Country.fetchAll(db, keys: ["FR", "US"])!
 **Requests can count.** The `fetchCount()` method returns the number of rows that would be returned by a fetch request:
 
 ```swift
-dbQueue.inDatabase { db in
-    // SELECT COUNT(*) FROM "persons"
-    let count = Person.fetchCount(db) // Int
-    
-    // SELECT COUNT(*) FROM "persons" WHERE "email" IS NOT NULL
-    let count = Person.filter(Col.email != nil).fetchCount(db)
-    
-    // SELECT COUNT(DISTINCT "name") FROM "persons"
-    let count = Person.select(Col.name).distinct.fetchCount(db)
-    
-    // SELECT COUNT(*) FROM (SELECT DISTINCT "name", "age" FROM "persons")
-    let count = Person.select(Col.name, Col.age).distinct.fetchCount(db)
-}
+// SELECT COUNT(*) FROM "persons"
+let count = Person.fetchCount(db) // Int
+
+// SELECT COUNT(*) FROM "persons" WHERE "email" IS NOT NULL
+let count = Person.filter(Col.email != nil).fetchCount(db)
+
+// SELECT COUNT(DISTINCT "name") FROM "persons"
+let count = Person.select(Col.name).distinct.fetchCount(db)
+
+// SELECT COUNT(*) FROM (SELECT DISTINCT "name", "age" FROM "persons")
+let count = Person.select(Col.name, Col.age).distinct.fetchCount(db)
 ```
 
 
 **Other aggregated values** can also be selected and fetched (see [SQL Functions](#sql-functions)):
 
 ```swift
-dbQueue.inDatabase { db in
-    // SELECT MIN("age") FROM "persons"
-    let request = Person.select(min(Col.age))
-    let minAge = Int.fetchOne(db, request)  // Int?
-    
-    // SELECT MIN("height"), MAX("height") FROM "persons"
-    let request = Person.select(min(Col.height), max(Col.height))
-    let row = Row.fetchOne(db, request)!
-    let minHeight = row.value(atIndex: 0) as Int?
-    let maxHeight = row.value(atIndex: 1) as Int?
-}
+// SELECT MIN("age") FROM "persons"
+let request = Person.select(min(Col.height))
+let minHeight = Double.fetchOne(db, request)  // Int?
+
+// SELECT MIN("height"), MAX("height") FROM "persons"
+let request = Person.select(min(Col.height), max(Col.height))
+let row = Row.fetchOne(db, request)!
+let minHeight = row.value(atIndex: 0) as Double?
+let maxHeight = row.value(atIndex: 1) as Double?
 ```
 
 
@@ -2460,7 +2434,7 @@ migrator.registerMigration("AddBirthDateToPersons") { db in
 //         "ALTER TABLE books ADD COLUMN year INT")
 // }
 
-try migrator.migrate(dbQueue)
+try migrator.migrate(dbQueue) // or dbPool
 ```
 
 **Each migration runs in a separate transaction.** Should one throw an error, its transaction is rollbacked, subsequent migrations do not run, and the error is eventually thrown by `migrator.migrate(dbQueue)`.
