@@ -1086,7 +1086,7 @@ try dbQueue.inTransaction { db in
 
 A ROLLBACK statement is issued if an error is thrown within the transaction block.
 
-If you want to insert a transaction between other database statements, and group those in a single block of code protected by the database queue, you can use the Database.inTransaction() function:
+If you want to insert a transaction between other database statements, and group those in a single block of code protected by a database dispatch queue, you can use the Database.inTransaction() function:
 
 ```swift
 try dbQueue.inDatabase { db in
@@ -1167,7 +1167,7 @@ It has many opportunities to fail:
 The safe version of the code above goes down a level in GRDB API, in order to expose each failure point:
 
 ```swift
-// Grab a `Database` object:
+// Grab a database connection:
 dbQueue.inDatabase { db in
     
     // Dictionary arguments may contain invalid values:
@@ -1238,7 +1238,7 @@ This method blocks the current thread until all current database accesses are co
 
 **The iOS operating system likes applications that do not consume much memory.**
 
-You should call the `releaseMemory` method when your application receives a memory warning, and when it enters background. Since `releaseMemory` is blocking, make sure you dispatch it to some background queue.
+You should call the `releaseMemory` method when your application receives a memory warning, and when it enters background. Since `releaseMemory` is blocking, dispatch it to some background queue so that you avoid freezing your user interface.
 
 For example, assuming a global `dbQueue`:
 
@@ -1317,7 +1317,7 @@ See [row queries](#row-queries), [value queries](#value-queries), and [Records](
 GRDB ships with support for two concurrency modes:
 
 - [Database queues](#database-queues) serialize all database accesses.
-- [Database pools](#database-pools) serialize writes, and allows concurrent reads.
+- [Database pools](#database-pools) serialize writes, and allow concurrent reads.
 
 A GRDB database queue or pool is intented to avoid all concurrency troubles, *granted there is no other connection to your database*.
 
@@ -1459,6 +1459,8 @@ Before jumping in the low-level wagon, here is a reminder of SQLite APIs support
     - [sqlite3_update_hook](https://www.sqlite.org/c3ref/update_hook.html)
     - [sqlite3_commit_hook](https://www.sqlite.org/c3ref/commit_hook.html)
     - [sqlite3_rollback_hook](https://www.sqlite.org/c3ref/commit_hook.html)
+- Authorizations callbacks are *reserved* by GRDB:
+    - [sqlite3_set_authorizer](https://www.sqlite.org/c3ref/set_authorizer.html)
 
 
 Application Tools
@@ -1502,16 +1504,14 @@ Of course, you need to open a [database connection](#database-queues), and [crea
 ```swift
 class Person : Record { ... }
 
-dbQueue.inDatabase { db in
-    // Using the query interface
-    let persons = Person.filter(email != nil).order(name).fetchAll(db)
-    
-    // By key
-    let person = Person.fetchOne(db, key: 1)
-    
-    // Using SQL
-    let persons = Person.fetchAll(db, "SELECT ...", arguments: ...)
-}
+// Using the query interface
+let persons = Person.filter(email != nil).order(name).fetchAll(dbQueue)
+
+// By key
+let person = Person.fetchOne(dbQueue, key: 1)
+
+// Using SQL
+let persons = Person.fetchAll(dbQueue, "SELECT ...", arguments: ...)
 ```
 
 To learn more about querying records, check the [query interface](#the-query-interface).
