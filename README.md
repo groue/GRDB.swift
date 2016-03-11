@@ -58,6 +58,7 @@ for row in Row.fetchAll(dbQueue, "SELECT * FROM pointOfInterests") {
 }
 
 let poiCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM pointOfInterests")!
+let poiTitles = String.fetchAll(dbQueue, "SELECT title FROM pointOfInterests")
 ```
 
 Insert and fetch [Records](#records):
@@ -74,7 +75,6 @@ struct PointOfInterest {
 // provide fetching and persistence methods.
 
 try dbQueue.inDatabase { db in
-    // INSERT INTO "pointOfInterests" ...
     var berlin = PointOfInterest(
         id: nil,
         title: "Berlin",
@@ -83,29 +83,25 @@ try dbQueue.inDatabase { db in
     try berlin.insert(db)
     print(berlin.id) // some value
     
-    // UPDATE "pointOfInterests" ...
     berlin.favorite = true
     try berlin.update(db)
 }
     
-// Fetch from SQL
+// Fetch from SQL and primary key
 let pois = PointOfInterest.fetchAll(dbQueue, "SELECT * FROM pointOfInterests")
+let paris = PointOfInterest.fetchOne(dbQueue, key: 1)
 ```
 
-Turn Swift into SQL with the [query interface](#the-query-interface):
+Avoid SQL with the [query interface](#the-query-interface):
 
 ```swift
 let title = SQLColumn("title")
 let favorite = SQLColumn("favorite")
 
-// SELECT * FROM "pointOfInterests" WHERE "title" = 'Paris'
 let paris = PointOfInterest.filter(title == "Paris").fetchOne(dbQueue)
-
-// SELECT * FROM "pointOfInterests" WHERE "favorite" ORDER BY "title"
-let favoritePois = PointOfInterest.filter(favorite).order(title).fetchAll(dbQueue)
-
-// SELECT COUNT(*) FROM "pointOfInterests" WHERE "favorite"
-let favoritePoiCount = PointOfInterest.filter(favorite).fetchCount(dbQueue)
+let request = PointOfInterest.filter(favorite).order(title)
+let favoritePois = request.fetchAll(dbQueue)
+let favoritePoiCount = request.fetchCount(dbQueue)
 ```
   
 
@@ -115,7 +111,8 @@ let favoritePoiCount = PointOfInterest.filter(favorite).fetchCount(dbQueue)
 
 - [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/index.html) (on cocoadocs.org)
 - [Installation](#installation)
-- [SQLite API](#sqlite-api): SQL & SQLite
+- [Databases](#databases): Connect to SQLite databases
+- [SQLite API](#sqlite-api): Low-level API
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
 - [Query Interface](#the-query-interface): A swift way to generate SQL.
 - [Migrations](#migrations): Transform your database as your application evolves.
@@ -164,6 +161,101 @@ github "groue/GRDB.swift" ~> 0.48.0
 4. Add `GRDB.framework` to the **Embedded Binaries** section of the **General**  tab of your target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
+
+
+Databases
+=========
+
+GRDB provides two classes for accessing SQLite databases: `DatabaseQueue` and `DatabasePool`.
+
+Both grant safe database access from any thread of your application.
+
+Both grant isolation, which means that when you perform several fetch requests in a row, they are not affected by eventual database updates spawned from other threads of your application.
+
+```swift
+import GRDB
+
+// Pick one:
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
+```
+
+The differences are:
+
+- Only database pools allow concurrent database accesses (this can improve your application performance).
+- Unless read-only, database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html).
+- Only database queues can open an in-memory database.
+
+> :point_up: **Note**: your application should have a unique instance of DatabaseQueue or DatabasePool connected to a given database file. You may experience concurrency trouble if you do otherwise.
+
+
+## Database Queues
+
+**Open a database queues** with the path to a database file:
+
+```swift
+import GRDB
+
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+let inMemoryDBQueue = DatabaseQueue()
+```
+
+SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
+
+
+**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed, and safely serialize the database accesses:
+
+```swift
+// Execute database statements:
+dbQueue.inDatabase { db in
+    try db.execute("CREATE TABLE pointOfInterests (...)")
+    try PointOfInterest(...).insert(db)
+}
+
+// Wrap database statements in transactions:
+try dbQueue.inTransaction { db in
+    let paris = PointOfInterest.fetchOne(db, key: parisId)
+    try paris.delete(db)
+    return .Commit
+}
+```
+
+You can fetch arrays and single values directly from the queue:
+
+```swift
+let pois = PointOfInterest.fetchAll(dbQueue)
+let poiCount = PointOfInterest.fetchCount(dbQueue)
+```
+
+Use the `inDatabase` method to iterate sequences:
+
+```swift
+dbQueue.inDatabase { db in
+    for row in Row.fetch(db, "SELECT * FROM wines") {
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
+    }
+}
+```
+
+**You can configure database queues:**
+
+```swift
+var config = Configuration()
+config.readonly = true
+config.foreignKeysEnabled = true // The default is already true
+config.trace = { print($0) }     // Prints all SQL statements
+
+let dbQueue = try DatabaseQueue(
+    path: "/path/to/database.sqlite",
+    configuration: config)
+```
+
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+
+> :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a GRDB database.
+
 
 
 SQLite API

@@ -1,7 +1,7 @@
 - [ ] Person.fetchOne(dbQueue, ...)
       Person.fetchOne(dbPool, ...)
       Person.fetchOne(db, ...)
-- [ ] Allows read-only DatabasePool
+- [ ] Read-only DatabasePool
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
