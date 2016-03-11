@@ -232,7 +232,7 @@ let pois = PointOfInterest.fetchAll(dbQueue)
 let poiCount = PointOfInterest.fetchCount(dbQueue)
 ```
 
-Use the `inDatabase` method to iterate sequences (they consume less memory than arrays):
+When you can, iterate sequences instead of arrays, because they consume less memory (see [fetching methods](#fetching-methods)):
 
 ```swift
 dbQueue.inDatabase { db in
@@ -322,7 +322,7 @@ let pois = PointOfInterest.fetchAll(dbPool)
 let poiCount = PointOfInterest.fetchCount(dbPool)
 ```
 
-Use the `read` method to iterate sequences (they consume less memory than arrays):
+When you can, iterate sequences instead of arrays, because they consume less memory (see [fetching methods](#fetching-methods)):
 
 ```swift
 dbPool.read { db in
@@ -521,34 +521,28 @@ Type.fetchAll(...) // [Type]
 Type.fetchOne(...) // Type?
 ```
 
-`Type` is any fetchable type: database [row](#row-queries), [value](#value-queries), or custom [record](#records).
+The `Type` above is any fetchable type: database [row](#row-queries), [value](#value-queries), or custom [record](#records).
 
-- `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected database thread. The sequence fetches a new set of results each time it is iterated.
+- `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected database thread (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
+    
+    ```swift
+    dbQueue.inDatabase { db in
+        for row in Row.fetch(db, "SELECT ...") { ... }
+    }
+    ```
+    
 - `fetchAll` returns an **array** that can be fetched and iterated on any thread. It can take a lot of memory.
-- `fetchOne` returns a **single value**, if any is available, and consumes a single database row
 
-A sequence must be fetched from a `Database` object, and its elements must be iterated in a protected database thread (you'll get a fatal error if you do otherwise):
+    ```swift
+    let urls = NSURL.fetchAll(dbQueue, "SELECT url FROM links") // DatabaseQueue
+    let urls = NSURL.fetchAll(dbPool, "SELECT url FROM links")  // DatabasePool
+    ```
 
-```swift
-dbQueue.inDatabase { db in
-    for element in Type.fetch(db, ...) { ... }
-}
-```
-
-`fetchAll` and `fetchOne` can be used with database [queues](#database-queues), [pools](#database-pools), or raw connections:
-
-```swift
-let elements = Type.fetchAll(dbQueue, "SELECT ...")  // DatabaseQueue
-let elements = Type.fetchAll(dbPool, "SELECT ...")   // DatabasePool
-
-dbQueue.inDatabase { db in
-    let elements = Type.fetchAll(db, "SELECT ...")   // Database
-}
-
-dbPool.read { db in
-    let elements = Type.fetchAll(db, "SELECT ...")   // Database
-}
-```
+- `fetchOne` returns a **single value**, if any is available, and consumes a single database row.
+    
+    ```swift
+    let count = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM pointOfInterests")!
+    ```
 
 
 ### Row Queries
