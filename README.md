@@ -188,6 +188,9 @@ The differences are:
 
 > :point_up: **Note**: your application should have a unique instance of DatabaseQueue or DatabasePool connected to a given database file. You may experience concurrency trouble if you do otherwise.
 
+- [Database Queues](#database-queues)
+- [Database Pools](#database-pools)
+
 
 ## Database Queues
 
@@ -203,7 +206,7 @@ let inMemoryDBQueue = DatabaseQueue()
 SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
 
 
-**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed, and safely serialize the database accesses:
+**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database accesses:
 
 ```swift
 // Execute database statements:
@@ -227,17 +230,34 @@ let pois = PointOfInterest.fetchAll(dbQueue)
 let poiCount = PointOfInterest.fetchCount(dbQueue)
 ```
 
-Use the `inDatabase` method to iterate sequences:
+Use the `inDatabase` method to iterate sequences (they consume less memory than arrays):
 
 ```swift
 dbQueue.inDatabase { db in
-    for row in Row.fetch(db, "SELECT * FROM wines") {
-        let name: String = row.value(named: "name")
-        let color: Color = row.value(named: "color")
-        print(name, color)
-    }
+    for poi in PointOfInterest.fetch(db) { ... }
 }
 ```
+
+
+**Reads are isolated from writes:** concurrent database updates are not possible inside a `inDatabase` or `inTransaction` block:
+
+```swift
+// Those two values may be different:
+let count1 = Wine.fetchCount(dbQueue)
+let count2 = Wine.fetchCount(dbQueue)
+
+dbQueue.inDatabase { db in
+    // Those two values are guaranteed to be equal:
+    let count1 = Wine.fetchCount(db)
+    let count2 = Wine.fetchCount(db)
+}
+
+dbQueue.inDatabase { db in
+    // Now this value may be different:
+    let count = Wine.fetchCount(db)
+}
+```
+
 
 **You can configure database queues:**
 
@@ -254,7 +274,102 @@ let dbQueue = try DatabaseQueue(
 
 See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
-> :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a GRDB database.
+> :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a database queue.
+
+
+## Database Pools
+
+[Database Queues](#database-queues) are simple, but they prevent concurrent accesses: at every moment, there is no more than a single thread that is using the database.
+
+**Database Pools can improve your application performance because they allow concurrent database accesses.**
+
+```swift
+import GRDB
+let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
+```
+
+A database pool allows concurrent reading and writing. Writes are serialized, so that there is no conflict. Reads are isolated, which means that you can perform several fetch requests in a row without being affected by eventual concurrent writes.
+
+> :point_up: **Note**: unless read-only, a database pool opens your database in the SQLite "WAL mode". The WAL mode does not fit all situations. Please have a look at https://www.sqlite.org/wal.html.
+
+
+**A database pool can be used from any thread.** The `write` and `writeInTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database updates:
+
+```swift
+// Execute database statements:
+try dbPool.write { db in
+    try db.execute("CREATE TABLE pointOfInterests (...)")
+    try PointOfInterest(...).insert(db)
+}
+
+// Wrap database statements in transactions:
+try dbPool.writeInTransaction { db in
+    let paris = PointOfInterest.fetchOne(db, key: parisId)
+    try paris.delete(db)
+    return .Commit
+}
+```
+
+You can fetch arrays and single values directly from the pool:
+
+```swift
+let rows = Row.fetchAll(dbPool, "SELECT * FROM wines")
+let wineCount = Int.fetchOne(dbPool, "SELECT COUNT(*) FROM wines")!
+```
+
+Use the `read` method to iterate sequences (they consume less memory than arrays):
+
+```swift
+dbPool.read { db in
+    for poi in PointOfInterest.fetch(db) { ... }
+}
+```
+
+
+**Reads are isolated from writes:** database updates are not visible inside a `read` block:
+
+```swift
+// Those two values may be different:
+let count1 = Wine.fetchCount(dbPool)
+let count2 = Wine.fetchCount(dbPool)
+
+dbPool.read { db in
+    // Those two values are guaranteed to be equal, even if the `wines`
+    // tables is concurrently modified between the two requests:
+    let count1 = Wine.fetchCount(db)
+    let count2 = Wine.fetchCount(db)
+}
+
+dbPool.read { db in
+    // Now this value may be different:
+    let count = Wine.fetchCount(db)
+}
+```
+
+**The total number of concurrent reads is limited.** When the maximum number has been reached, reads block until another read has completed.
+
+
+**You can configure database pools:**
+
+```swift
+var config = Configuration()
+config.foreignKeysEnabled = true // The default is already true
+config.trace = { print($0) }     // Prints all SQL statements
+
+let dbPool = try DatabasePool(
+    path: "/path/to/database.sqlite",
+    configuration: config,
+    maximumReaderCount: 10)      // The default is 5
+```
+
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+
+
+Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
+
+> :warning: **Warning**: database pools, although well tested, are still experimental. In particular, the best number of concurrent reads is unknown. Please share the results of your experiments!
+
+
 
 
 
@@ -291,8 +406,6 @@ let rows = Row.fetchAll(dbQueue, "SELECT * FROM wines")
 let redWineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
 ```
 
-- [Database Queues](#database-queues)
-- [Database Pools](#database-pools)
 - [Executing Updates](#executing-updates)
 - [Fetch Queries](#fetch-queries)
     - [Row Queries](#row-queries)
@@ -312,171 +425,6 @@ let redWineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
     - [Concurrency](#concurrency)
     - [Custom SQL Functions](#custom-sql-functions)
     - [Raw SQLite Pointers](#raw-sqlite-pointers)
-
-
-## Database Queues
-
-The simplest way to access SQLite databases are **database queues** (inspired by [ccgus/fmdb](https://github.com/ccgus/fmdb)):
-
-```swift
-import GRDB
-
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-let inMemoryDBQueue = DatabaseQueue()
-```
-
-SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
-
-> :point_up: **Note**: your application should have a unique instance of DatabaseQueue connected to a database file. You may experience concurrency trouble if you do otherwise.
-
-
-**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed, and safely serialize the database accesses:
-
-```swift
-// Execute database statements:
-dbQueue.inDatabase { db in
-    try db.execute("UPDATE ...")
-    try db.execute("DELETE ...")
-}
-
-// Wrap database statements in transactions:
-try dbQueue.inTransaction { db in
-    try db.execute("UPDATE ...")
-    try db.execute("DELETE ...")
-    return .Commit
-}
-```
-
-Fetch arrays and single values:
-
-```swift
-let rows = Row.fetchAll(dbQueue, "SELECT * FROM wines")
-let wineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
-```
-
-Use the `inDatabase` method to iterate sequences:
-
-```swift
-dbQueue.inDatabase { db in
-    for row in Row.fetch(db, "SELECT * FROM wines") {
-        let name: String = row.value(named: "name")
-        let color: Color = row.value(named: "color")
-        print(name, color)
-    }
-}
-```
-
-**You can configure database queues:**
-
-```swift
-var config = Configuration()
-config.readonly = true
-config.foreignKeysEnabled = true // The default is already true
-config.trace = { print($0) }     // Prints all SQL statements
-
-let dbQueue = try DatabaseQueue(
-    path: "/path/to/database.sqlite",
-    configuration: config)
-```
-
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
-
-> :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a GRDB database.
-
-
-## Database Pools
-
-[Database Queues](#database-queues) are simple, but they prevent concurrent accesses: at every moment, there is no more than a single thread that is using the database.
-
-**Database Pools can improve your application performance because they allow concurrent database accesses.**
-
-```swift
-import GRDB
-let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
-```
-
-Based on [SQLite WAL Mode](https://www.sqlite.org/wal.html), a database pool allows concurrent reading and writing. Writes are serialized, so that there is no conflict. Reads are isolated, which means that you can perform several fetch requests in a row without being affected by eventual concurrent writes.
-
-> :point_up: **Note**: your application should have a unique instance of DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
->
-> :warning: **Warning**: the WAL mode does not fit all situations. Please look at the disadvantages before rushing in: https://www.sqlite.org/wal.html
-
-
-**A database pool can be used from any thread.** The `write` and `writeInTransaction` methods block the current thread until your database statements are executed, and safely serialize the database updates:
-
-```swift
-try dbPool.write { db in
-    try db.execute("CREATE TABLE (...)")
-}
-
-try dbPool.writeInTransaction { db in
-    try db.execute("INSERT ...")
-    try db.execute("DELETE FROM ...")
-    return .Commit
-}
-```
-
-Fetch arrays and single values:
-
-```swift
-let rows = Row.fetchAll(dbQueue, "SELECT * FROM wines")
-let wineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
-```
-
-Use the `read` method to iterate sequences:
-
-```swift
-dbPool.read { db in
-    for row in Row.fetch(db, "SELECT * FROM wines") {
-        let name: String = row.value(named: "name")
-        let color: Color = row.value(named: "color")
-        print(name, color)
-    }
-}
-```
-
-**Reads are isolated from writes:** database updates are not visible inside a `read` block:
-
-```swift
-dbPool.read { db in
-    // Those two values are guaranteed to be equal, even if the `wines`
-    // tables is modified between the two requests:
-    let count1 = Wine.fetchCount(db)
-    let count2 = Wine.fetchCount(db)
-}
-
-dbPool.read { db in
-    // Now this value may be different:
-    let count = Wine.fetchCount(db)
-}
-
-// Those two values may be different:
-let count1 = Wine.fetchCount(dbPool)
-let count2 = Wine.fetchCount(dbPool)
-```
-
-**The total number of concurrent reads is limited.** When the maximum number has been reached, reads block until another read has completed.
-
-
-**You can configure database pools:**
-
-```swift
-var config = Configuration()
-config.foreignKeysEnabled = true // The default is already true
-config.trace = { print($0) }     // Prints all SQL statements
-
-let dbPool = try DatabasePool(
-    path: "/path/to/database.sqlite",
-    configuration: config,
-    maximumReaderCount: 10)      // The default is 5
-```
-
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
-
-
-Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
-
-> :warning: **Warning**: database pools, although well tested, are still experimental. In particular, the best number of concurrent reads is unknown. Please share the results of your experiments!
 
 
 ## Executing Updates
