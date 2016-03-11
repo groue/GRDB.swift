@@ -87,9 +87,8 @@ try dbQueue.inDatabase { db in
     try berlin.update(db)
 }
     
-// Fetch from SQL and primary key
+// Fetch from SQL
 let pois = PointOfInterest.fetchAll(dbQueue, "SELECT * FROM pointOfInterests")
-let paris = PointOfInterest.fetchOne(dbQueue, key: 1)
 ```
 
 Avoid SQL with the [query interface](#the-query-interface):
@@ -98,7 +97,8 @@ Avoid SQL with the [query interface](#the-query-interface):
 let title = SQLColumn("title")
 let favorite = SQLColumn("favorite")
 
-let paris = PointOfInterest.filter(title == "Paris").fetchOne(dbQueue)
+let paris = PointOfInterest.fetchOne(dbQueue, key: 1)
+let berlin = PointOfInterest.filter(title == "Berlin").fetchOne(dbQueue)
 let request = PointOfInterest.filter(favorite).order(title)
 let favoritePois = request.fetchAll(dbQueue)
 let favoritePoiCount = request.fetchCount(dbQueue)
