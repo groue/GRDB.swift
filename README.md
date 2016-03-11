@@ -519,32 +519,32 @@ Type.fetchAll(...) // [Type]
 Type.fetchOne(...) // Type?
 ```
 
+`Type` is any fetchable type: database [row](#row-queries), [value](#value-queries), or custom [record](#records).
+
 - `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected database thread. The sequence fetches a new set of results each time it is iterated.
 - `fetchAll` returns an **array** that can be fetched and iterated on any thread. It can take a lot of memory.
 - `fetchOne` returns a **single value**, if any is available, and consumes a single database row
 
-A sequence must be fetched from a `Database` object, and its result must be iterated in a protected database thread (you'll get a fatal error if you do otherwise):
+A sequence must be fetched from a `Database` object, and its elements must be iterated in a protected database thread (you'll get a fatal error if you do otherwise):
 
 ```swift
 dbQueue.inDatabase { db in
-    for row in Row.fetch(db, "SELECT ...") {
-        ...
-    }
+    for element in Type.fetch(db, ...) { ... }
 }
 ```
 
 `fetchAll` and `fetchOne` can be used with database [queues](#database-queues), [pools](#database-pools), or raw connections:
 
 ```swift
-let rows = Row.fetchAll(dbQueue, "SELECT ...")  // DatabaseQueue
-let rows = Row.fetchAll(dbPool, "SELECT ...")   // DatabasePool
+let elements = Type.fetchAll(dbQueue, "SELECT ...")  // DatabaseQueue
+let elements = Type.fetchAll(dbPool, "SELECT ...")   // DatabasePool
 
 dbQueue.inDatabase { db in
-    let rows = Row.fetchAll(db, "SELECT ...")   // Database
+    let elements = Type.fetchAll(db, "SELECT ...")   // Database
 }
 
 dbPool.read { db in
-    let rows = Row.fetchAll(db, "SELECT ...")   // Database
+    let elements = Type.fetchAll(db, "SELECT ...")   // Database
 }
 ```
 
@@ -1496,7 +1496,7 @@ try dbQueue.inDatabase { db in
 }
 ```
 
-Of course, you need to open a [database connection](#database-queues), and [create a database table](#executing-updates) first.
+Of course, you need to open a [database connection](#database-connections), and [create a database table](#executing-updates) first.
 
 
 #### Fetching Records
@@ -1615,7 +1615,7 @@ struct PointOfInterest {
 }
 
 extension PointOfInterest : RowConvertible {
-    init(_ row: Row){
+    init(_ row: Row) {
         id = row.value(named: "id")
         title = row.value(named: "title")
         coordinate = CLLocationCoordinate2DMake(
@@ -1677,14 +1677,17 @@ PointOfInterest.fetchOne(db, key: ...)  // PointOfInterest?
 Any single-column primary key is OK:
 
 ```swift
-// SELECT * FROM pointOfInterests WHERE id IN (1, 2, 3)
-PointOfInterest.fetchAll(db, keys: [1, 2, 3])
+// SELECT * FROM persons WHERE id = 1
+Person.fetchOne(db, key: 1)!
 
-// SELECT * FROM pointOfInterests WHERE id = 1
-PointOfInterest.fetchOne(db, key: 1)
+// SELECT * FROM persons WHERE id IN (1, 2, 3)
+Person.fetchAll(db, keys: [1, 2, 3])!
 
-// SELECT * FROM countries WHERE isoCode = 'FR'
-Country.fetchOne(db, key: "FR")
+// SELECT * FROM persons WHERE isoCode = 'FR'
+Country.fetchOne(db, key: "FR")!
+
+// SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
+Country.fetchAll(db, keys: ["FR", "US"])!
 ```
 
 
@@ -2329,17 +2332,7 @@ let arthur = Person.filter(Col.name == "Arthur").fetchOne(db) // Person?
 ```
 
 
-**When the selected columns don't fit the source type**, you just have to change your target: any other type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, plain [database rows](#column-values), and even [values](#values):
-
-```swift
-let request = Person....
-
-Other.fetch(db, request) // Alternative records
-Row.fetch(db, request)   // Rows
-Int.fetch(db, request)   // Values
-```
-
-For example:
+**When the selected columns don't fit the source type**, change your target: any other type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, plain [database rows](#fetching-rows), and even [values](#values):
 
 ```swift
 // Double
@@ -2353,7 +2346,8 @@ let minHeight = row.value(atIndex: 0) as Double
 let maxHeight = row.value(atIndex: 1) as Double
 ```
 
-See [column values](#column-values) for more information about the `row.value()` method.
+
+### Fetching By Primary Key
 
 **Fetching records according to their primary key** is a very common task. It has a shortcut which accepts any single-column primary key:
 
@@ -2394,11 +2388,9 @@ let count = Person.select(Col.name, Col.age).distinct.fetchCount(db)
 **Other aggregated values** can also be selected and fetched (see [SQL Functions](#sql-functions)):
 
 ```swift
-// SELECT MIN("age") FROM "persons"
 let request = Person.select(min(Col.height))
 let minHeight = Double.fetchOne(db, request)  // Int?
 
-// SELECT MIN("height"), MAX("height") FROM "persons"
 let request = Person.select(min(Col.height), max(Col.height))
 let row = Row.fetchOne(db, request)!
 let minHeight = row.value(atIndex: 0) as Double?
