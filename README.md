@@ -11,7 +11,7 @@ You should give it a try.
 
 ---
 
-**March 10, 2016: GRDB.swift 0.48.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**March 11, 2016: GRDB.swift 0.49.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -111,7 +111,7 @@ let favCount = request.fetchCount(dbQueue)                               // Int
 
 **GRDB runs on top of SQLite**: you should get familiar with the [SQLite FAQ](http://www.sqlite.org/faq.html). For general and detailed information, jump to the [SQLite Documentation](http://www.sqlite.org/docs.html).
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/index.html) (on cocoadocs.org)
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.49.0/index.html) (on cocoadocs.org)
 - [Installation](#installation)
 - [Database Connections](#database-connections): Connect to SQLite databases
 - [SQLite API](#sqlite-api): Low-level API
@@ -140,7 +140,7 @@ To use GRDB with CocoaPods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '~> 0.48.0'
+pod 'GRDB.swift', '~> 0.49.0'
 ```
 
 
@@ -151,7 +151,7 @@ pod 'GRDB.swift', '~> 0.48.0'
 To use GRDB with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" ~> 0.48.0
+github "groue/GRDB.swift" ~> 0.49.0
 ```
 
 
@@ -275,7 +275,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.49.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 > :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a database queue.
 
@@ -369,7 +369,7 @@ let dbPool = try DatabasePool(
     maximumReaderCount: 10)      // The default is 5
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.49.0/Structs/Configuration.html) and [Concurrency](#concurrency) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
