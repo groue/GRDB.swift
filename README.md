@@ -184,6 +184,8 @@ The differences are:
 - Unless read-only, database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html).
 - Only database queues can open an in-memory database (without database file).
 
+**If you are not sure, choose DatabaseQueue.** You will always be able to switch to DatabasePool later. The opposite in not true: the [WAL mode](https://www.sqlite.org/wal.html) activated by DatabasePool is not compatible with DatabaseQueue.
+
 > :point_up: **Note**: your application should have a unique instance of DatabaseQueue or DatabasePool connected to a given database file. You may experience concurrency trouble if you do otherwise.
 
 - [Database Queues](#database-queues)
