@@ -235,6 +235,13 @@ extension DatabaseQueue : DatabaseReader {
 
 extension DatabaseQueue : DatabaseWriter {
     
+    /// TODO
+    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
+        return try serializedDatabase.inDatabase { db in
+            try db.execute(sql, arguments: arguments)
+        }
+    }
+    
     /// This method is an implementation detail: do not use it directly.
     public func _write<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try inDatabase(block)

@@ -28,21 +28,19 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 Execute [SQL queries](#executing-updates):
 
 ```swift
-try dbQueue.inDatabase { db in
-    try db.execute(
-        "CREATE TABLE pointOfInterests (" +
-            "id INTEGER PRIMARY KEY, " +
-            "title TEXT, " +
-            "favorite BOOLEAN NOT NULL, " +
-            "latitude DOUBLE NOT NULL, " +
-            "longitude DOUBLE NOT NULL" +
-        ")")
-    
-    let parisId = try db.execute(
-        "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
-        "VALUES (?, ?, ?, ?)",
-        arguments: ["Paris", true, 48.85341, 2.3488]).insertedRowID
-}
+try dbQueue.execute(
+    "CREATE TABLE pointOfInterests (" +
+        "id INTEGER PRIMARY KEY, " +
+        "title TEXT, " +
+        "favorite BOOLEAN NOT NULL, " +
+        "latitude DOUBLE NOT NULL, " +
+        "longitude DOUBLE NOT NULL" +
+    ")")
+
+let parisId = try dbQueue.execute(
+    "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
+    "VALUES (?, ?, ?, ?)",
+    arguments: ["Paris", true, 48.85341, 2.3488]).insertedRowID
 ```
 
 Fetch [database rows](#row-queries) and [values](#value-queries):
@@ -80,13 +78,11 @@ var berlin = PointOfInterest(
     favorite: false,
     coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
 
-try dbQueue.inDatabase { db in
-    try berlin.insert(db)
-    print(berlin.id) // some value
-    
-    berlin.favorite = true
-    try berlin.update(db)
-}
+try berlin.insert(dbQueue)
+print(berlin.id) // some value
+
+berlin.favorite = true
+try berlin.update(dbQueue)
     
 // Fetch from SQL
 let pois = PointOfInterest.fetchAll(dbQueue, "SELECT * FROM pointOfInterests") // [PointOfInterest]
@@ -212,9 +208,13 @@ SQLite creates the database file if it does not already exist. The connection is
 
 ```swift
 // Execute database statements:
+try dbQueue.execute("CREATE TABLE pointOfInterests (...)")
+try PointOfInterest(...).insert(db)
+
+// Isolate consecutive statements:
 try dbQueue.inDatabase { db in
-    try db.execute("CREATE TABLE pointOfInterests (...)")
-    try PointOfInterest(...).insert(db)
+    try country.save(db)
+    try poi.save(db)
 }
 
 // Wrap database statements in transactions:
@@ -302,9 +302,13 @@ A database pool allows concurrent reading and writing. Writes are serialized, so
 
 ```swift
 // Execute database statements:
+try dbPool.execute("CREATE TABLE pointOfInterests (...)")
+try PointOfInterest(...).insert(dbPool)
+
+// Isolate consecutive statements:
 try dbPool.write { db in
-    try db.execute("CREATE TABLE pointOfInterests (...)")
-    try PointOfInterest(...).insert(db)
+    try country.save(db)
+    try poi.save(db)
 }
 
 // Wrap database statements in transactions:
@@ -386,26 +390,26 @@ SQLite API
 Once granted with a [database connection](#database-connections), you can perform SQL requests:
 
 ```swift
+// Create tables:
+try dbQueue.execute("CREATE TABLE wines (...)")
+
+// Insert:
+let wineId = try dbQueue.execute("INSERT INTO wines (color, name) VALUES (?, ?)",
+    arguments: [Color.Red, "Pomerol"]).insertedRowID
+print("Inserted wine id: \(wineId)")
+    
+// Fetch arrays and single values:
+let rows = Row.fetchAll(dbQueue, "SELECT * FROM wines")
+let redWineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
+
+// Iterate sequences:
 try dbQueue.inDatabase { db in
-    // Create tables:
-    try db.execute("CREATE TABLE wines (...)")
-    
-    // Insert:
-    let wineId = try db.execute("INSERT INTO wines (color, name) VALUES (?, ?)",
-        arguments: [Color.Red, "Pomerol"]).insertedRowID
-    print("Inserted wine id: \(wineId)")
-    
-    // Iterate sequences:
     for row in Row.fetch(db, "SELECT * FROM wines") {
         let name: String = row.value(named: "name")
         let color: Color = row.value(named: "color")
         print(name, color)
     }
 }
-
-// Fetch arrays and single values:
-let rows = Row.fetchAll(dbQueue, "SELECT * FROM wines")
-let redWineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
 ```
 
 - [Executing Updates](#executing-updates)
@@ -431,29 +435,27 @@ let redWineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
 
 ## Executing Updates
 
-The `Database.execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
+The `execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
 
 For example:
 
 ```swift
-try dbQueue.inDatabase { db in
-    try db.execute(
-        "CREATE TABLE persons (" +
-            "id INTEGER PRIMARY KEY," +
-            "name TEXT NOT NULL," +
-            "age INT" +
-        ")")
-    
-    try db.execute(
-        "INSERT INTO persons (name, age) VALUES (:name, :age)",
-        arguments: ["name": "Barbara", "age": 39])
-    
-    // Join multiple statements with a semicolon:
-    try db.execute(
-        "INSERT INTO persons (name, age) VALUES (?, ?); " +
-        "INSERT INTO persons (name, age) VALUES (?, ?)",
-        arguments: ["Arthur", 36, "Barbara", 39])
-}
+try db.execute(
+    "CREATE TABLE persons (" +
+        "id INTEGER PRIMARY KEY," +
+        "name TEXT NOT NULL," +
+        "age INT" +
+    ")")
+
+try db.execute(
+    "INSERT INTO persons (name, age) VALUES (:name, :age)",
+    arguments: ["name": "Barbara", "age": 39])
+
+// Join multiple statements with a semicolon:
+try db.execute(
+    "INSERT INTO persons (name, age) VALUES (?, ?); " +
+    "INSERT INTO persons (name, age) VALUES (?, ?)",
+    arguments: ["Arthur", 36, "Barbara", 39])
 ```
 
 The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments in with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
@@ -482,7 +484,7 @@ You can fetch database rows, plain values, and custom models aka "records".
 **Rows** are the raw results of SQL queries:
 
 ```swift
-for row in Row.fetchAll(dbQueue, "SELECT * FROM wines") {
+for row in Row.fetchAll(db, "SELECT * FROM wines") {
     let name: String = row.value(named: "name")
     let color: Color = row.value(named: "color")
     print(name, color)
@@ -493,16 +495,16 @@ for row in Row.fetchAll(dbQueue, "SELECT * FROM wines") {
 **Values** are the Bool, Int, String, NSDate, Swift enums, etc. stored in row columns:
 
 ```swift
-let wineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")! // Int
-let urls = NSURL.fetchAll(dbQueue, "SELECT url FROM wines")          // [NSURL]
+let wineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")! // Int
+let urls = NSURL.fetchAll(db, "SELECT url FROM wines")          // [NSURL]
 ```
 
 
 **Records** are your application objects that can initialize themselves from rows:
 
 ```swift
-let wines = Wine.fetchAll(dbQueue, "SELECT * FROM wines")            // [Wine]
-let anyWine = Wine.fetchOne(dbQueue, "SELECT * FROM wines LIMIT 1")  // Wine?
+let wines = Wine.fetchAll(db, "SELECT * FROM wines")            // [Wine]
+let anyWine = Wine.fetchOne(db, "SELECT * FROM wines LIMIT 1")  // Wine?
 ```
 
 - [Fetching Methods](#fetching-methods)
@@ -564,27 +566,25 @@ Type.fetchOne(...) // Type?
 Fetch **sequences** of rows, **arrays**, or **single** rows (see [fetching methods](#fetching-methods)):
 
 ```swift
-dbQueue.inDatabase { db in
-    Row.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Row>
-    Row.fetchAll(db, "SELECT ...", arguments: ...)  // [Row]
-    Row.fetchOne(db, "SELECT ...", arguments: ...)  // Row?
-    
-    for row in Row.fetch(db, "SELECT * FROM wines") {
-        let name: String = row.value(named: "name")
-        let color: Color = row.value(named: "color")
-        print(name, color)
-    }
+Row.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Row>
+Row.fetchAll(db, "SELECT ...", arguments: ...)  // [Row]
+Row.fetchOne(db, "SELECT ...", arguments: ...)  // Row?
+
+for row in Row.fetch(db, "SELECT * FROM wines") {
+    let name: String = row.value(named: "name")
+    let color: Color = row.value(named: "color")
+    print(name, color)
 }
 ```
 
 Arguments are optional arrays or dictionaries that fill the positional `?` and colon-prefixed keys like `:name` in the query:
 
 ```swift
-let rows = Row.fetchAll(dbQueue,
+let rows = Row.fetchAll(db,
     "SELECT * FROM persons WHERE name = ?",
     arguments: ["Arthur"])
 
-let rows = Row.fetchAll(dbQueue,
+let rows = Row.fetchAll(db,
     "SELECT * FROM persons WHERE name = :name",
     arguments: ["name": "Arthur"])
 ```
@@ -749,15 +749,13 @@ for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **sequences**, **arrays**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
-dbQueue.inDatabase { db in
-    Int.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Int>
-    Int.fetchAll(db, "SELECT ...", arguments: ...)  // [Int]
-    Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
+Int.fetch(db, "SELECT ...", arguments: ...)     // DatabaseSequence<Int>
+Int.fetchAll(db, "SELECT ...", arguments: ...)  // [Int]
+Int.fetchOne(db, "SELECT ...", arguments: ...)  // Int?
 
-    // When database may contain NULL:
-    Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
-    Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
-}
+// When database may contain NULL:
+Optional<Int>.fetch(db, "SELECT ...", arguments: ...)    // DatabaseSequence<Int?>
+Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
 ```
 
 `fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
@@ -765,8 +763,8 @@ dbQueue.inDatabase { db in
 There are many supported value types (Bool, Int, String, NSDate, Swift enums, etc.). See [Values](#values) for more information:
 
 ```swift
-let count = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM persons")! // Int
-let urls = NSURL.fetchAll(dbQueue, "SELECT url FROM links")        // [NSURL]
+let count = Int.fetchOne(db, "SELECT COUNT(*) FROM persons")! // Int
+let urls = NSURL.fetchAll(db, "SELECT url FROM links")        // [NSURL]
 ```
 
 
@@ -1049,13 +1047,11 @@ dbQueue.addCollation(collation) // Or dbPool.addCollation(...)
 Once defined, the custom collation can be applied to a table column. All comparisons involving this column will automatically trigger your comparison function:
     
 ```swift
-dbQueue.inDatabase { db in
-    // Apply the custom collation to the `name` column
-    try db.execute(
-        "CREATE TABLE persons (" +
-            "name TEXT COLLATE localized_case_insensitive" + // The name of the collation
-        ")")
-}
+// Apply the custom collation to the `name` column
+try dbQueue.execute(
+    "CREATE TABLE persons (" +
+        "name TEXT COLLATE localized_case_insensitive" + // The name of the collation
+    ")")
 
 // Persons are sorted as expected:
 let persons = Person.order(name).fetchAll(dbQueue)
@@ -1357,13 +1353,11 @@ let unicodeUpper = DatabaseFunction(
     })
 dbQueue.addFunction(unicodeUpper)   // Or dbPool.addFunction(...)
 
-dbQueue.inDatabase { db in
-    // "JÉRÔME"
-    String.fetchOne(db, "SELECT unicodeUpper(?)", arguments: ["Jérôme"])!
-    
-    // "JéRôME"
-    String.fetchOne(db, "SELECT upper(?)", arguments: ["Jérôme"])!
-}
+// "JÉRÔME"
+String.fetchOne(dbQueue, "SELECT unicodeUpper(?)", arguments: ["Jérôme"])!
+
+// "JéRôME"
+String.fetchOne(dbQueue, "SELECT upper(?)", arguments: ["Jérôme"])!
 ```
 
 The *function* argument takes an array of [DatabaseValue](#rows-as-dictionaries), and returns any valid [value](#values) (Bool, Int, String, NSDate, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
@@ -1382,10 +1376,8 @@ let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [Da
 }
 dbQueue.addFunction(averageOf)
 
-dbQueue.inDatabase { db in
-    // 2.0
-    Double.fetchOne(db, "SELECT averageOf(1, 2, 3)")!
-}
+// 2.0
+Double.fetchOne(dbQueue, "SELECT averageOf(1, 2, 3)")!
 ```
 
 
@@ -1404,11 +1396,9 @@ let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (databaseVal
 }
 dbQueue.addFunction(sqrt)
 
-dbQueue.inDatabase { db in
-    // fatal error: SQLite error 1 with statement `SELECT sqrt(-1)`:
-    // Invalid negative value in function sqrt()
-    Double.fetchOne(db, "SELECT sqrt(-1)")
-}
+// fatal error: SQLite error 1 with statement `SELECT sqrt(-1)`:
+// Invalid negative value in function sqrt()
+Double.fetchOne(dbQueue, "SELECT sqrt(-1)")
 ```
 
 See [error handling](#error-handling) for more information on database errors.
@@ -1494,9 +1484,7 @@ To insert a record in the database, subclass the [Record](#record-class) class o
 class Person : Record { ... }
 
 let person = Person(name: "Arthur", email: "arthur@example.com")
-try dbQueue.inDatabase { db in
-    try person.insert(db)
-}
+try person.insert(db)
 ```
 
 Of course, you need to open a [database connection](#database-connections), and [create a database table](#executing-updates) first.
@@ -1510,13 +1498,13 @@ Of course, you need to open a [database connection](#database-connections), and 
 class Person : Record { ... }
 
 // Using the query interface
-let persons = Person.filter(email != nil).order(name).fetchAll(dbQueue)
+let persons = Person.filter(email != nil).order(name).fetchAll(db)
 
 // By key
-let person = Person.fetchOne(dbQueue, key: 1)
+let person = Person.fetchOne(db, key: 1)
 
 // Using SQL
-let persons = Person.fetchAll(dbQueue, "SELECT ...", arguments: ...)
+let persons = Person.fetchAll(db, "SELECT ...", arguments: ...)
 ```
 
 To learn more about querying records, check the [query interface](#the-query-interface).
@@ -1527,31 +1515,25 @@ To learn more about querying records, check the [query interface](#the-query-int
 [Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be updated in the database:
 
 ```swift
-try dbQueue.inDatabase { db in
-    let person = Person.fetchOne(db, key: 1)!
-    person.name = "Arthur"
-    try person.update(db)
-}
+let person = Person.fetchOne(db, key: 1)!
+person.name = "Arthur"
+try person.update(db)
 ```
 
 [Record](#record-class) subclasses track changes:
 
 ```swift
-try dbQueue.inDatabase { db in
-    let person = Person.fetchOne(db, key: 1)!
-    person.name = "Arthur"
-    if person.hasPersistentChangedValues {
-        try person.update(db)
-    }
+let person = Person.fetchOne(db, key: 1)!
+person.name = "Arthur"
+if person.hasPersistentChangedValues {
+    try person.update(db)
 }
 ```
 
 For batch updates, you have to execute an [SQL query](#executing-updates):
 
 ```swift
-try dbQueue.inDatabase { db in
-    try db.execute("UPDATE persons SET synchronized = 1")
-}
+try db.execute("UPDATE persons SET synchronized = 1")
 ```
 
 
@@ -1560,18 +1542,14 @@ try dbQueue.inDatabase { db in
 [Record](#record-class) subclasses and types that adopt the [Persistable](#persistable-protocol) protocol can be deleted from the database:
 
 ```swift
-try dbQueue.inDatabase { db in
-    let person = Person.fetchOne(db, key: 1)!
-    try person.delete(db)
-}
+let person = Person.fetchOne(db, key: 1)!
+try person.delete(db)
 ```
 
 For batch deletions, you have to execute an [SQL query](#executing-updates):
 
 ```swift
-try dbQueue.inDatabase { db in
-    try db.execute("DELETE FROM persons")
-}
+try db.execute("DELETE FROM persons")
 ```
 
 
@@ -1580,7 +1558,7 @@ try dbQueue.inDatabase { db in
 [Record](#record-class) subclasses and types that adopt the [TableMapping](#tablemapping-protocol) protocol can be counted:
 
 ```swift
-let personWithEmailCount = Person.filter(email != nil).fetchCount(dbQueue)  // Int
+let personWithEmailCount = Person.filter(email != nil).fetchCount(db)  // Int
 ```
 
 
@@ -1751,10 +1729,8 @@ var paris = PointOfInterest(
     title: "Paris",
     coordinate: CLLocationCoordinate2DMake(48.8534100, 2.3488000))
 
-try dbQueue.inDatabase { db in
-    try paris.insert(db)
-    paris.id   // some value
-}
+try paris.insert(db)
+paris.id   // some value
 ```
 
 
@@ -1763,13 +1739,11 @@ try dbQueue.inDatabase { db in
 [Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
 
 ```swift
-try dbQueue.inDatabase { db in
-    try object.insert(db) // INSERT
-    try object.update(db) // UPDATE
-    try object.save(db)   // Inserts or updates
-    try object.delete(db) // DELETE
-    object.exists(db)     // Bool
-}
+try object.insert(db) // INSERT
+try object.update(db) // UPDATE
+try object.save(db)   // Inserts or updates
+try object.delete(db) // DELETE
+object.exists(db)     // Bool
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
@@ -1899,9 +1873,7 @@ class PointOfInterest : Record {
 
 ```swift
 let poi = PointOfInterest(...)
-try dbQueue.inDatabase { db in
-    try poi.insert(db)
-}
+try poi.insert(db)
 ```
 
 
@@ -1909,34 +1881,30 @@ try dbQueue.inDatabase { db in
 
 ```swift
 // Using the query interface
-let pois = PointOfInterest.order(title).fetchAll(dbQueue)
+let pois = PointOfInterest.order(title).fetchAll(db)
 
 // By key
-let poi = PointOfInterest.fetchOne(dbQueue, key: 1)
+let poi = PointOfInterest.fetchOne(db, key: 1)
 
 // Using SQL
-let pois = PointOfInterest.fetchAll(dbQueue, "SELECT ...", arguments: ...)
+let pois = PointOfInterest.fetchAll(db, "SELECT ...", arguments: ...)
 ```
 
 
 **Update records** (see [persistence methods](#persistence-methods)):
 
 ```swift
-try dbQueue.inDatabase { db in
-    let poi = PointOfInterest.fetchOne(db, key: 1)!
-    poi.coordinate = ...
-    try poi.update(db)
-}
+let poi = PointOfInterest.fetchOne(db, key: 1)!
+poi.coordinate = ...
+try poi.update(db)
 ```
 
 
 **Delete records** (see [persistence methods](#persistence-methods)):
 
 ```swift
-try dbQueue.inDatabase { db in
-    let poi = PointOfInterest.fetchOne(db, key: 1)!
-    try poi.delete(db)
-}
+let poi = PointOfInterest.fetchOne(db, key: 1)!
+try poi.delete(db)
 ```
 
 
@@ -2512,10 +2480,8 @@ try dbQueue.inTransaction { db in
 Database statements that are executed outside of an explicit transaction do not drop off the radar:
 
 ```swift
-try dbQueue.inDatabase { db in
-    try db.execute("INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
-    try db.execute("UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
-}
+try db.execute("INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
+try db.execute("UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
 ```
 
 **Eventual errors** thrown from `databaseWillCommit` are exposed to the application code:

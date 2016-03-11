@@ -1192,6 +1192,10 @@ extension Database : DatabaseReader {
 // MARK: - DatabaseWriter
 
 public protocol DatabaseWriter {
+    /// TODO
+    func execute(sql: String, arguments: StatementArguments?) throws -> DatabaseChanges
+    
+    /// TODO
     func _write<T>(block: (db: Database) throws -> T) rethrows -> T
 }
 

@@ -358,6 +358,13 @@ extension DatabasePool : DatabaseReader {
 
 extension DatabasePool : DatabaseWriter {
     
+    /// TODO
+    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
+        return try writer.inDatabase { db in
+            try db.execute(sql, arguments: arguments)
+        }
+    }
+    
     /// This method is an implementation detail: do not use it directly.
     public func _write<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try writer.inDatabase { db in

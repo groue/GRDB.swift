@@ -4,6 +4,9 @@
 - [X] Read-only DatabasePool
 - [X] Move TransactionObserverType to dbQueue/Pool
     - [X] Update TransactionObserver.storyboard
+- [ ] Test dbPool.execute(...)
+- [ ] Test dbQueue.execute(...)
+- [ ] Move DatabaseMigrator to DatabaseWriter
 - [ ] Update UserDefaults.storyboard
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
