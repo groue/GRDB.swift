@@ -521,7 +521,7 @@ Type.fetchAll(...) // [Type]
 Type.fetchOne(...) // Type?
 ```
 
-(Replace `Type` above with any fetchable type: database [row](#row-queries), [value](#value-queries), or custom [record](#records))
+(Replace `Type` above with any fetchable type: database [row](#row-queries), [value](#value-queries), or custom [record](#records).)
 
 - `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected database thread (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
     
@@ -532,16 +532,23 @@ Type.fetchOne(...) // Type?
     ```
     
 - `fetchAll` returns an **array** that can be fetched and iterated on any thread. It can take a lot of memory.
-
+    
+    Load arrays from database [queues](#database-queues), [pools](#database-pools), or raw databases:
+    
     ```swift
     let urls = NSURL.fetchAll(dbQueue, "SELECT url FROM links") // DatabaseQueue
     let urls = NSURL.fetchAll(dbPool, "SELECT url FROM links")  // DatabasePool
+    dbQueue.inDatabase { db in
+        let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // Database
+    }
     ```
 
 - `fetchOne` returns a **single value**, if any is available, and consumes a single database row.
     
+    Like arrays, you can load values from database [queues](#database-queues), [pools](#database-pools), or raw databases:
+    
     ```swift
-    let count = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM pointOfInterests")!
+    let count = Int.fetchOne(dbPool, "SELECT COUNT(*) FROM pointOfInterests")!
     ```
 
 
