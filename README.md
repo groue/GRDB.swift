@@ -287,6 +287,8 @@ import GRDB
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
 
+SQLite creates the database file if it does not already exist. The connection is closed when the database pool gets deallocated.
+
 A database pool allows concurrent reading and writing. Writes are serialized, so that there is no conflict. Reads are isolated, which means that you can perform several fetch requests in a row without being affected by eventual concurrent writes.
 
 > :point_up: **Note**: unless read-only, a database pool opens your database in the SQLite "WAL mode". The WAL mode does not fit all situations. Please have a look at https://www.sqlite.org/wal.html.
