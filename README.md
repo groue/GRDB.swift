@@ -209,7 +209,7 @@ SQLite creates the database file if it does not already exist. The connection is
 ```swift
 // Execute database statements:
 try dbQueue.execute("CREATE TABLE pointOfInterests (...)")
-try PointOfInterest(...).insert(db)
+try PointOfInterest(...).insert(dbQueue)
 
 // Isolate consecutive statements:
 try dbQueue.inDatabase { db in
