@@ -135,7 +135,7 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    mutating func save(db: Database) throws
+    mutating func save(writer: DatabaseWriter) throws
     
     /// Executes a DELETE statement.
     ///
@@ -187,8 +187,8 @@ public extension MutablePersistable {
     /// the database.
     ///
     /// The default implementation for save() invokes performSave().
-    mutating func save(db: Database) throws {
-        try performSave(db)
+    mutating func save(writer: DatabaseWriter) throws {
+        try performSave(writer)
     }
     
     /// Executes a DELETE statement.
@@ -263,23 +263,25 @@ public extension MutablePersistable {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    mutating func performSave(db: Database) throws {
-        // Make sure we call self.insert and self.update so that classes that
-        // override insert or save have opportunity to perform their custom job.
-        
-        if !canUpdateInDatabase(db) {
-            try insert(db)
-            return
-        }
-        
-        do {
-            try update(db)
-        } catch PersistenceError.NotFound {
-            // TODO: check that the not persisted objet is self
-            //
-            // Why? Adopting types could override update() and update another
-            // object which may be the one throwing this error.
-            try insert(db)
+    mutating func performSave(writer: DatabaseWriter) throws {
+        try writer._write { db in
+            // Make sure we call self.insert and self.update so that classes
+            // that override insert or save have opportunity to perform their
+            // custom job.
+            
+            if self.canUpdateInDatabase(db) {
+                do {
+                    try self.update(db)
+                } catch PersistenceError.NotFound {
+                    // TODO: check that the not persisted objet is self
+                    //
+                    // Why? Adopting types could override update() and update
+                    // another object which may be the one throwing this error.
+                    try self.insert(db)
+                }
+            } else {
+                try self.insert(db)
+            }
         }
     }
     
@@ -416,7 +418,7 @@ public protocol Persistable : MutablePersistable {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    func save(db: Database) throws
+    func save(writer: DatabaseWriter) throws
 }
 
 public extension Persistable {
@@ -438,8 +440,8 @@ public extension Persistable {
     /// the database.
     ///
     /// The default implementation for save() invokes performSave().
-    func save(db: Database) throws {
-        try performSave(db)
+    func save(writer: DatabaseWriter) throws {
+        try performSave(writer)
     }
     
     
@@ -471,23 +473,24 @@ public extension Persistable {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    func performSave(db: Database) throws {
-        // Make sure we call self.insert and self.update so that classes that
-        // override insert or save have opportunity to perform their custom job.
-        
-        if !canUpdateInDatabase(db) {
-            try insert(db)
-            return
-        }
-        
-        do {
-            try update(db)
-        } catch PersistenceError.NotFound {
-            // TODO: check that the not persisted objet is self
-            //
-            // Why? Adopting types could override update() and update another
-            // object which may be the one throwing this error.
-            try insert(db)
+    func performSave(writer: DatabaseWriter) throws {
+        try writer._write { db in
+            // Make sure we call self.insert and self.update so that classes that
+            // override insert or save have opportunity to perform their custom job.
+            
+            if self.canUpdateInDatabase(db) {
+                do {
+                    try self.update(db)
+                } catch PersistenceError.NotFound {
+                    // TODO: check that the not persisted objet is self
+                    //
+                    // Why? Adopting types could override update() and update another
+                    // object which may be the one throwing this error.
+                    try self.insert(db)
+                }
+            } else {
+                try self.insert(db)
+            }
         }
     }
     

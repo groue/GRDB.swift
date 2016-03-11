@@ -274,8 +274,8 @@ public class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    final public func save(db: Database) throws {
-        try performSave(db)
+    final public func save(writer: DatabaseWriter) throws {
+        try performSave(writer)
     }
     
     /// Executes a DELETE statement.
