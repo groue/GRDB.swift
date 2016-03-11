@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-struct PersistablePerson : Persistable {
+private struct PersistablePerson : Persistable {
     var name: String?
     var age: Int?
     
@@ -14,7 +14,7 @@ struct PersistablePerson : Persistable {
     }
 }
 
-class PersistablePersonClass : Persistable {
+private class PersistablePersonClass : Persistable {
     var id: Int64?
     var name: String?
     var age: Int?
@@ -38,7 +38,7 @@ class PersistablePersonClass : Persistable {
     }
 }
 
-struct PersistableCountry : Persistable {
+private struct PersistableCountry : Persistable {
     var isoCode: String
     var name: String
     
@@ -51,7 +51,7 @@ struct PersistableCountry : Persistable {
     }
 }
 
-struct PersistableCustomizedCountry : Persistable {
+private struct PersistableCustomizedCountry : Persistable {
     var isoCode: String
     var name: String
     let willInsert: Void -> Void
@@ -88,13 +88,13 @@ struct PersistableCustomizedCountry : Persistable {
         try performDelete(writer)
     }
     
-    func exists(db: Database) -> Bool {
+    func exists(reader: DatabaseReader) -> Bool {
         willExists()
-        return performExists(db)
+        return performExists(reader)
     }
 }
 
-class PersistableTests: GRDBTestCase {
+class DatabasePersistableTests: GRDBTestCase {
     
     override func setUp() {
         super.setUp()
