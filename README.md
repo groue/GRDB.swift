@@ -536,10 +536,10 @@ Type.fetchOne(...) // Type?
     Load arrays from database [queues](#database-queues), [pools](#database-pools), or raw databases:
     
     ```swift
-    let urls = NSURL.fetchAll(dbQueue, "SELECT url FROM links") // DatabaseQueue
-    let urls = NSURL.fetchAll(dbPool, "SELECT url FROM links")  // DatabasePool
+    let urls = NSURL.fetchAll(dbQueue, "SELECT ...") // DatabaseQueue
+    let urls = NSURL.fetchAll(dbPool, "SELECT ...")  // DatabasePool
     dbQueue.inDatabase { db in
-        let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // Database
+        let urls = NSURL.fetchAll(db, "SELECT ...")  // Database
     }
     ```
 
@@ -548,7 +548,7 @@ Type.fetchOne(...) // Type?
     Like arrays, you can load values from database [queues](#database-queues), [pools](#database-pools), or raw databases:
     
     ```swift
-    let count = Int.fetchOne(dbPool, "SELECT COUNT(*) FROM pointOfInterests")!
+    let person = Person.fetchOne(dbPool, key: 1)
     ```
 
 
