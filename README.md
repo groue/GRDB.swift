@@ -194,7 +194,7 @@ The differences are:
 
 ## Database Queues
 
-**Open a database queues** with the path to a database file:
+**Open a database queue** with the path to a database file:
 
 ```swift
 import GRDB
@@ -282,7 +282,7 @@ See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/Structs/Confi
 
 [Database Queues](#database-queues) are simple, but they prevent concurrent accesses: at every moment, there is no more than a single thread that is using the database.
 
-**Database Pools can improve your application performance because they allow concurrent database accesses.**
+**A Database Pool can improve your application performance because it allows concurrent database accesses.**
 
 ```swift
 import GRDB
