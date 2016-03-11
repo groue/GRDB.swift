@@ -99,18 +99,16 @@ try dbQueue.inDatabase { db in
 
 //: ## Fetching Records
 
-dbQueue.inDatabase { db in
 //: Fetch records from the database:
-    let allPersons = Person.fetchAll(db)
-    
+let allPersons = Person.fetchAll(dbQueue)
+
 //: Fetch record by primary key:
-    let person = Person.fetchOne(db, key: arthur.id)!
-    person.fullName
+let person = Person.fetchOne(dbQueue, key: arthur.id)!
+person.fullName
 
 //: Fetch persons with an SQL query:
-    let millers = Person.fetchAll(db, "SELECT * FROM persons WHERE lastName = ?", arguments: ["Miller"])
-    millers.first!.fullName
-}
+let millers = Person.fetchAll(dbQueue, "SELECT * FROM persons WHERE lastName = ?", arguments: ["Miller"])
+millers.first!.fullName
 
 
 //: To fetch persons using the query interface, you need some colums that can filter or sort:
@@ -120,11 +118,8 @@ struct Col {
     static let lastName = SQLColumn("lastName")
 }
 
-dbQueue.inDatabase { db in
-
 //: Sort
-    let personsSortedByName = Person.order(Col.firstName, Col.lastName).fetchAll(db)
-    
+let personsSortedByName = Person.order(Col.firstName, Col.lastName).fetchAll(dbQueue)
+
 //: Filter
-    let millers = Person.filter(Col.lastName == "Miller").fetchAll(db)
-}
+let streisands = Person.filter(Col.lastName == "Streisand").fetchAll(dbQueue)
