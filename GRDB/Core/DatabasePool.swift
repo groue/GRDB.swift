@@ -21,27 +21,22 @@ public final class DatabasePool {
         let databaseSchemaCache = SharedDatabaseSchemaCache()
         
         // Writer
-        var writerConfig = configuration
-        writerConfig.readonly = false
         let writer = try SerializedDatabase(
             path: path,
-            configuration: writerConfig,
+            configuration: configuration,
             schemaCache: databaseSchemaCache)
         
-        // Activate WAL Mode
-        let mode = writer.inDatabase { db in
-            String.fetchOne(db, "PRAGMA journal_mode=WAL")
-        }
-        guard mode == "wal" else {
-            throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
+        // Activate WAL Mode unless readonly
+        if !configuration.readonly {
+            let mode = writer.inDatabase { db in
+                String.fetchOne(db, "PRAGMA journal_mode=WAL")
+            }
+            guard mode == "wal" else {
+                throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
+            }
         }
         
-        // Readers
-        var readerConfig = configuration
-        readerConfig.readonly = true
-        readerConfig.defaultTransactionKind = .Deferred
-
-        self.init(path: path, readerConfiguration: readerConfig, maximumReaderCount: maximumReaderCount, databaseSchemaCache: databaseSchemaCache, writer: writer)
+        self.init(path: path, configuration: configuration, maximumReaderCount: maximumReaderCount, databaseSchemaCache: databaseSchemaCache, writer: writer)
     }
     
     
@@ -183,14 +178,18 @@ public final class DatabasePool {
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
-    private init(path: String, readerConfiguration: Configuration = Configuration(), maximumReaderCount: Int, databaseSchemaCache: DatabaseSchemaCacheType, writer: SerializedDatabase) {
+    private init(path: String, configuration: Configuration, maximumReaderCount: Int, databaseSchemaCache: DatabaseSchemaCacheType, writer: SerializedDatabase) {
         self.writer = writer
         self.readerPool = Pool<SerializedDatabase>(maximumCount: maximumReaderCount)
+        
+        var readerConfig = configuration
+        readerConfig.readonly = true
+        readerConfig.defaultTransactionKind = .Deferred // Make it the default. Other transaction kinds are forbidden by SQLite in read-only connections.
         
         readerPool.makeElement = { [unowned self] in
             let serializedDatabase = try! SerializedDatabase(
                 path: path,
-                configuration: readerConfiguration,
+                configuration: readerConfig,
                 schemaCache: databaseSchemaCache)
             
             serializedDatabase.inDatabase { db in
