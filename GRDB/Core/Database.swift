@@ -1167,7 +1167,7 @@ public struct DatabaseEvent {
 ///     dbQueue.inDatabase { db in
 ///         let persons = Person.fetchAll(db)
 ///     }
-public protocol DatabaseReader {
+public protocol DatabaseReader : class {
     /// This method is an implementation detail: do not use it directly.
     func _readSingleStatement<T>(block: (db: Database) throws -> T) rethrows -> T
 }
