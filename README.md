@@ -253,8 +253,11 @@ try dbQueue.inTransaction { db in
     try db.execute("DELETE ...")
     return .Commit
 }
+```
 
-// Fetch arrays and single values:
+Fetch arrays and single values:
+
+```swift
 let rows = Row.fetchAll(dbQueue, "SELECT * FROM wines")
 let wineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
 ```
@@ -264,7 +267,9 @@ Use the `inDatabase` method to iterate sequences:
 ```swift
 dbQueue.inDatabase { db in
     for row in Row.fetch(db, "SELECT * FROM wines") {
-        ...
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
     }
 }
 ```
@@ -331,7 +336,9 @@ Use the `read` method to iterate sequences:
 ```swift
 dbPool.read { db in
     for row in Row.fetch(db, "SELECT * FROM wines") {
-        ...
+        let name: String = row.value(named: "name")
+        let color: Color = row.value(named: "color")
+        print(name, color)
     }
 }
 ```
