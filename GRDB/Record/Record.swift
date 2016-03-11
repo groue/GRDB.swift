@@ -182,10 +182,10 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// before the insertion.
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func insert(db: Database) throws {
+    public func insert(writer: DatabaseWriter) throws {
         // The simplest code would be:
         //
-        //     try performInsert(db)
+        //     try performInsert(writer)
         //     hasPersistentChangedValues = false
         //
         // But this triggers two calls to persistentDictionary, and this is both
@@ -195,30 +195,32 @@ public class Record : RowConvertible, TableMapping, Persistable {
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both insertion, and change tracking.
         
-        let dataMapper = DataMapper(db, self)
-        var persistentDictionary = dataMapper.persistentDictionary
-        let changes = try dataMapper.insertStatement().execute()
-        if let rowID = changes.insertedRowID {
-            let rowIDColumn = dataMapper.primaryKey.rowIDColumn
-            didInsertWithRowID(rowID, forColumn: rowIDColumn)
-            
-            // Update persistentDictionary with inserted id, so that we can
-            // set hasPersistentChangedValues to false:
-            if let rowIDColumn = rowIDColumn {
-                if persistentDictionary[rowIDColumn] != nil {
-                    persistentDictionary[rowIDColumn] = rowID
-                } else {
-                    let rowIDColumn = rowIDColumn.lowercaseString
-                    for column in persistentDictionary.keys where column.lowercaseString == rowIDColumn {
-                        persistentDictionary[column] = rowID
-                        break
+        try writer._write { db in
+            let dataMapper = DataMapper(db, self)
+            var persistentDictionary = dataMapper.persistentDictionary
+            let changes = try dataMapper.insertStatement().execute()
+            if let rowID = changes.insertedRowID {
+                let rowIDColumn = dataMapper.primaryKey.rowIDColumn
+                self.didInsertWithRowID(rowID, forColumn: rowIDColumn)
+                
+                // Update persistentDictionary with inserted id, so that we can
+                // set hasPersistentChangedValues to false:
+                if let rowIDColumn = rowIDColumn {
+                    if persistentDictionary[rowIDColumn] != nil {
+                        persistentDictionary[rowIDColumn] = rowID
+                    } else {
+                        let rowIDColumn = rowIDColumn.lowercaseString
+                        for column in persistentDictionary.keys where column.lowercaseString == rowIDColumn {
+                            persistentDictionary[column] = rowID
+                            break
+                        }
                     }
                 }
             }
+            
+            // Set hasPersistentChangedValues to false
+            self.referenceRow = Row(persistentDictionary)
         }
-        
-        // Set hasPersistentChangedValues to false
-        referenceRow = Row(persistentDictionary)
     }
     
     /// Executes an UPDATE statement.

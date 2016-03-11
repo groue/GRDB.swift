@@ -1167,7 +1167,7 @@ public struct DatabaseEvent {
 ///     dbQueue.inDatabase { db in
 ///         let persons = Person.fetchAll(db)
 ///     }
-public protocol DatabaseReader : class {
+public protocol DatabaseReader {
     /// This method is an implementation detail: do not use it directly.
     ///
     /// A single statement executed in the block argument can be fully executed
@@ -1183,6 +1183,21 @@ public protocol DatabaseReader : class {
 extension Database : DatabaseReader {
     /// This method is an implementation detail: do not use it directly.
     public func _readWithSingleStatementIsolation<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try block(db: self)
+    }
+}
+
+
+// =========================================================================
+// MARK: - DatabaseWriter
+
+public protocol DatabaseWriter {
+    func _write<T>(block: (db: Database) throws -> T) rethrows -> T
+}
+
+extension Database : DatabaseWriter {
+    /// This method is an implementation detail: do not use it directly.
+    public func _write<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try block(db: self)
     }
 }

@@ -58,9 +58,9 @@ struct MutablePersistableCustomizedCountry : MutablePersistable {
         self.rowID = rowID
     }
     
-    mutating func insert(db: Database) throws {
+    mutating func insert(writer: DatabaseWriter) throws {
         willInsert()
-        try performInsert(db)
+        try performInsert(writer)
     }
     
     func update(db: Database) throws {

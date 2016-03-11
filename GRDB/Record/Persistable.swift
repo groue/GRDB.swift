@@ -100,7 +100,7 @@ public protocol MutablePersistable : TableMapping {
     /// that they invoke the performInsert() method.
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    mutating func insert(db: Database) throws
+    mutating func insert(writer: DatabaseWriter) throws
     
     /// Executes an UPDATE statement.
     ///
@@ -172,8 +172,8 @@ public extension MutablePersistable {
     /// Executes an INSERT statement.
     ///
     /// The default implementation for insert() invokes performInsert().
-    mutating func insert(db: Database) throws {
-        try performInsert(db)
+    mutating func insert(writer: DatabaseWriter) throws {
+        try performInsert(writer)
     }
     
     /// Executes an UPDATE statement.
@@ -228,11 +228,13 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    mutating func performInsert(db: Database) throws {
-        let dataMapper = DataMapper(db, self)
-        let changes = try dataMapper.insertStatement().execute()
-        if let rowID = changes.insertedRowID {
-            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
+    mutating func performInsert(writer: DatabaseWriter) throws {
+        try writer._write { db in
+            let dataMapper = DataMapper(db, self)
+            let changes = try dataMapper.insertStatement().execute()
+            if let rowID = changes.insertedRowID {
+                self.didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
+            }
         }
     }
     
@@ -392,7 +394,7 @@ public protocol Persistable : MutablePersistable {
     /// that they invoke the performInsert() method.
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    func insert(db: Database) throws
+    func insert(writer: DatabaseWriter) throws
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
@@ -426,8 +428,8 @@ public extension Persistable {
     /// Executes an INSERT statement.
     ///
     /// The default implementation for insert() invokes performInsert().
-    func insert(db: Database) throws {
-        try performInsert(db)
+    func insert(writer: DatabaseWriter) throws {
+        try performInsert(writer)
     }
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -448,11 +450,13 @@ public extension Persistable {
     /// that adopt Persistable can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    func performInsert(db: Database) throws {
-        let dataMapper = DataMapper(db, self)
-        let changes = try dataMapper.insertStatement().execute()
-        if let rowID = changes.insertedRowID {
-            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
+    func performInsert(writer: DatabaseWriter) throws {
+        try writer._write { db in
+            let dataMapper = DataMapper(db, self)
+            let changes = try dataMapper.insertStatement().execute()
+            if let rowID = changes.insertedRowID {
+                self.didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
+            }
         }
     }
     

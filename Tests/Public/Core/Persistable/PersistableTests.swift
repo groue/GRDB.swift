@@ -68,9 +68,9 @@ struct PersistableCustomizedCountry : Persistable {
         return ["isoCode": isoCode, "name": name]
     }
     
-    func insert(db: Database) throws {
+    func insert(writer: DatabaseWriter) throws {
         willInsert()
-        try performInsert(db)
+        try performInsert(writer)
     }
     
     func update(db: Database) throws {
