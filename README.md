@@ -111,7 +111,7 @@ let favoritePoiCount = request.fetchCount(dbQueue)
 
 - [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.48.0/index.html) (on cocoadocs.org)
 - [Installation](#installation)
-- [Databases](#databases): Connect to SQLite databases
+- [Database Connections](#database-connections): Connect to SQLite databases
 - [SQLite API](#sqlite-api): Low-level API
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
 - [Query Interface](#the-query-interface): A swift way to generate SQL.
@@ -163,14 +163,12 @@ github "groue/GRDB.swift" ~> 0.48.0
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 
 
-Databases
-=========
+Database Connections
+====================
 
 GRDB provides two classes for accessing SQLite databases: `DatabaseQueue` and `DatabasePool`.
 
 Both grant safe database access from any thread of your application.
-
-Both grant isolation, which means that when you perform several fetch requests in a row, they are not affected by eventual database updates spawned from other threads of your application.
 
 ```swift
 import GRDB
@@ -239,22 +237,23 @@ dbQueue.inDatabase { db in
 ```
 
 
-**Reads are isolated from writes:** concurrent database updates are not possible inside a `inDatabase` or `inTransaction` block:
+In a multithreaded application, **reads are isolated from writes:** when a `inDatabase` or `inTransaction` block is executing, database updates are postponed until the end of the block:
 
 ```swift
-// Those two values may be different:
-let count1 = Wine.fetchCount(dbQueue)
-let count2 = Wine.fetchCount(dbQueue)
+// Those two values may be different because some other thread may have inserted
+// or deleted a point of interest between the two requests:
+let count1 = PointOfInterest.fetchCount(dbQueue)
+let count2 = PointOfInterest.fetchCount(dbQueue)
 
 dbQueue.inDatabase { db in
     // Those two values are guaranteed to be equal:
-    let count1 = Wine.fetchCount(db)
-    let count2 = Wine.fetchCount(db)
+    let count1 = PointOfInterest.fetchCount(db)
+    let count2 = PointOfInterest.fetchCount(db)
 }
 
 dbQueue.inDatabase { db in
     // Now this value may be different:
-    let count = Wine.fetchCount(db)
+    let count = PointOfInterest.fetchCount(db)
 }
 ```
 
@@ -313,8 +312,8 @@ try dbPool.writeInTransaction { db in
 You can fetch arrays and single values directly from the pool:
 
 ```swift
-let rows = Row.fetchAll(dbPool, "SELECT * FROM wines")
-let wineCount = Int.fetchOne(dbPool, "SELECT COUNT(*) FROM wines")!
+let pois = PointOfInterest.fetchAll(dbPool)
+let poiCount = PointOfInterest.fetchCount(dbPool)
 ```
 
 Use the `read` method to iterate sequences (they consume less memory than arrays):
@@ -329,24 +328,25 @@ dbPool.read { db in
 **Reads are isolated from writes:** database updates are not visible inside a `read` block:
 
 ```swift
-// Those two values may be different:
-let count1 = Wine.fetchCount(dbPool)
-let count2 = Wine.fetchCount(dbPool)
+// Those two values may be different because some other thread may have inserted
+// or deleted a point of interest between the two requests:
+let count1 = PointOfInterest.fetchCount(dbPool)
+let count2 = PointOfInterest.fetchCount(dbPool)
 
 dbPool.read { db in
     // Those two values are guaranteed to be equal, even if the `wines`
     // tables is concurrently modified between the two requests:
-    let count1 = Wine.fetchCount(db)
-    let count2 = Wine.fetchCount(db)
+    let count1 = PointOfInterest.fetchCount(db)
+    let count2 = PointOfInterest.fetchCount(db)
 }
 
 dbPool.read { db in
     // Now this value may be different:
-    let count = Wine.fetchCount(db)
+    let count = PointOfInterest.fetchCount(db)
 }
 ```
 
-**The total number of concurrent reads is limited.** When the maximum number has been reached, reads block until another read has completed.
+**The total number of concurrent reads is limited.** When the maximum number has been reached, a read waits for another read to complete.
 
 
 **You can configure database pools:**
@@ -371,19 +371,14 @@ Database pools are more memory-hungry than database queues. See [Memory Manageme
 
 
 
-
-
 SQLite API
 ==========
 
-**Overview**
+**In this section of the documentation, we will talk SQL only.**
+
+Once granted with a [database connection](#database-connections), you can perform SQL requests:
 
 ```swift
-import GRDB
-
-// Open connection to database
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-
 try dbQueue.inDatabase { db in
     // Create tables:
     try db.execute("CREATE TABLE wines (...)")
