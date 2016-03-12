@@ -1483,16 +1483,16 @@ Any single-column primary key is OK:
 
 ```swift
 // SELECT * FROM persons WHERE id = 1
-Person.fetchOne(db, key: 1)!
+Person.fetchOne(db, key: 1)              // Person?
 
 // SELECT * FROM persons WHERE id IN (1, 2, 3)
-Person.fetchAll(db, keys: [1, 2, 3])!
+Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
 
 // SELECT * FROM persons WHERE isoCode = 'FR'
-Country.fetchOne(db, key: "FR")!
+Country.fetchOne(db, key: "FR")          // Country?
 
 // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
-Country.fetchAll(db, keys: ["FR", "US"])!
+Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 ```
 
 
@@ -2154,16 +2154,16 @@ let maxHeight = row.value(atIndex: 1) as Double
 
 ```swift
 // SELECT * FROM persons WHERE id = 1
-Person.fetchOne(db, key: 1)!
+Person.fetchOne(db, key: 1)              // Person?
 
 // SELECT * FROM persons WHERE id IN (1, 2, 3)
-Person.fetchAll(db, keys: [1, 2, 3])!
+Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
 
 // SELECT * FROM persons WHERE isoCode = 'FR'
-Country.fetchOne(db, key: "FR")!
+Country.fetchOne(db, key: "FR")          // Country?
 
 // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
-Country.fetchAll(db, keys: ["FR", "US"])!
+Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 ```
 
 
