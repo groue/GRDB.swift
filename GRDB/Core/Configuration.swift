@@ -1,6 +1,6 @@
 import Foundation
 
-/// Configure a DatabaseQueue
+/// Configuration for a DatabaseQueue or DatabasePool.
 public struct Configuration {
     
     // MARK: - Misc options
@@ -38,7 +38,6 @@ public struct Configuration {
     /// - readonly: false
     /// - trace: nil
     /// - defaultTransactionKind: .Immediate
-    /// - transactionObserver: nil
     /// - busyMode: .ImmediateError
     public init() { }
     

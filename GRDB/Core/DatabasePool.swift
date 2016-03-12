@@ -119,7 +119,7 @@ public final class DatabasePool {
     }
 }
 
-// The available [checkppint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
+/// The available [checkpoint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
 public enum CheckpointMode: Int32 {
     case Passive = 0    // SQLITE_CHECKPOINT_PASSIVE
     case Full = 1       // SQLITE_CHECKPOINT_FULL

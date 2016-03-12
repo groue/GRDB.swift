@@ -197,7 +197,8 @@ extension FetchRequest where T: RowConvertible {
     
     /// Returns a sequence of values.
     ///
-    ///     let request = Person.order(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.order(nameColumn)
     ///     let persons = request.fetch(db) // DatabaseSequence<Person>
     ///
     /// The returned sequence can be consumed several times, but it may yield
@@ -218,7 +219,8 @@ extension FetchRequest where T: RowConvertible {
     
     /// Returns an array of values fetched from a fetch request.
     ///
-    ///     let request = Person.order(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.order(nameColumn)
     ///     let persons = request.fetchAll(db) // [Person]
     @warn_unused_result
     public func fetchAll(reader: DatabaseReader) -> [T] {
@@ -227,7 +229,8 @@ extension FetchRequest where T: RowConvertible {
     
     /// Returns a single value fetched from a fetch request.
     ///
-    ///     let request = Person.order(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.order(nameColumn)
     ///     let person = request.fetchOne(db) // Person?
     @warn_unused_result
     public func fetchOne(reader: DatabaseReader) -> T? {
@@ -323,7 +326,8 @@ extension DatabaseValueConvertible {
     
     /// Returns a sequence of values fetched from a fetch request.
     ///
-    ///     let request = Person.select(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
     ///     let names = String.fetch(db, request) // DatabaseSequence<String>
     ///
     /// The returned sequence can be consumed several times, but it may yield
@@ -344,7 +348,8 @@ extension DatabaseValueConvertible {
     
     /// Returns an array of values fetched from a fetch request.
     ///
-    ///     let request = Person.select(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
     ///     let names = String.fetchAll(db, request)  // [String]
     @warn_unused_result
     public static func fetchAll<T>(reader: DatabaseReader, _ request: FetchRequest<T>) -> [Self] {
@@ -356,7 +361,8 @@ extension DatabaseValueConvertible {
     /// The result is nil if the query returns no row, or if no value can be
     /// extracted from the first row.
     ///
-    ///     let request = Person.select(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
     ///     let name = String.fetchOne(db, request)   // String?
     @warn_unused_result
     public static func fetchOne<T>(reader: DatabaseReader, _ request: FetchRequest<T>) -> Self? {
@@ -371,7 +377,8 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     /// Returns a sequence of optional values fetched from a fetch request.
     ///
-    ///     let request = Person.select(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
     ///     let names = Optional<String>.fetch(db, request) // DatabaseSequence<String?>
     ///
     /// The returned sequence can be consumed several times, but it may yield
@@ -392,7 +399,8 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     /// Returns an array of optional values fetched from a fetch request.
     ///
-    ///     let request = Person.select(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
     ///     let names = Optional<String>.fetchAll(db, request)  // [String?]
     @warn_unused_result
     public static func fetchAll<T>(reader: DatabaseReader, _ request: FetchRequest<T>) -> [Wrapped?] {
@@ -407,7 +415,8 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     /// Returns a sequence of values fetched from a fetch request.
     ///
-    ///     let request = Person.select(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
     ///     let names = String.fetch(db, request) // DatabaseSequence<String>
     ///
     /// The returned sequence can be consumed several times, but it may yield
@@ -428,7 +437,8 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     /// Returns an array of values fetched from a fetch request.
     ///
-    ///     let request = Person.select(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
     ///     let names = String.fetchAll(db, request)  // [String]
     @warn_unused_result
     public static func fetchAll<T>(reader: DatabaseReader, _ request: FetchRequest<T>) -> [Self] {
@@ -440,7 +450,8 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// The result is nil if the query returns no row, or if no value can be
     /// extracted from the first row.
     ///
-    ///     let request = Person.select(name)
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
     ///     let name = String.fetchOne(db, request)   // String?
     @warn_unused_result
     public static func fetchOne<T>(reader: DatabaseReader, _ request: FetchRequest<T>) -> Self? {
@@ -455,17 +466,18 @@ extension RowConvertible {
     
     /// Returns a sequence of records fetched from a fetch request.
     ///
-    ///     let request = Person.order(name)
-    ///     let persons = Person.fetch(db, request) // DatabaseSequence<Person>
+    ///     let nameColumn = SQLColumn("firstName")
+    ///     let request = Person.order(nameColumn)
+    ///     let identities = Identity.fetch(db, request) // DatabaseSequence<Identity>
     ///
     /// The returned sequence can be consumed several times, but it may yield
     /// different results, should database changes have occurred between two
     /// generations:
     ///
-    ///     let persons = Person.fetch(db, request)
-    ///     Array(persons).count // 3
+    ///     let identities = Identity.fetch(db, request)
+    ///     Array(identities).count // 3
     ///     db.execute("DELETE ...")
-    ///     Array(persons).count // 2
+    ///     Array(identities).count // 2
     ///
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
@@ -476,8 +488,9 @@ extension RowConvertible {
     
     /// Returns an array of records fetched from a fetch request.
     ///
-    ///     let request = Person.order(name)
-    ///     let persons = Person.fetchAll(db, request) // [Person]
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.order(nameColumn)
+    ///     let identities = Identity.fetchAll(db, request) // [Identity]
     @warn_unused_result
     public static func fetchAll<T>(reader: DatabaseReader, _ request: FetchRequest<T>) -> [Self] {
         return reader.nonIsolatedRead { db in try! fetchAll(request.selectStatement(db)) }
@@ -485,8 +498,9 @@ extension RowConvertible {
     
     /// Returns a single record fetched from a fetch request.
     ///
-    ///     let request = Person.order(name)
-    ///     let person = Person.fetchOne(db, request) // Person?
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.order(nameColumn)
+    ///     let identity = Identity.fetchOne(db, request) // Identity?
     @warn_unused_result
     public static func fetchOne<T>(reader: DatabaseReader, _ request: FetchRequest<T>) -> Self? {
         return reader.nonIsolatedRead { db in try! fetchOne(request.selectStatement(db)) }
@@ -541,7 +555,9 @@ extension Row {
     
     /// Returns a sequence of rows fetched from a fetch request.
     ///
-    ///     let request = Person.select(id, name)
+    ///     let idColumn = SQLColumn("id")
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(idColumn, nameColumn)
     ///     for row in Row.fetch(db, request) {
     ///         let id: Int64 = row.value(atIndex: 0)
     ///         let name: String = row.value(atIndex: 1)
@@ -573,7 +589,9 @@ extension Row {
     
     /// Returns an array of rows fetched from a fetch request.
     ///
-    ///     let statement = db.selectStatement("SELECT ...")
+    ///     let idColumn = SQLColumn("id")
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(idColumn, nameColumn)
     ///     let rows = Row.fetchAll(db, request)
     @warn_unused_result
     public static func fetchAll<T>(reader: DatabaseReader, _ request: FetchRequest<T>) -> [Row] {
@@ -582,7 +600,9 @@ extension Row {
     
     /// Returns a single row fetched from a fetch request.
     ///
-    ///     let statement = db.selectStatement("SELECT ...")
+    ///     let idColumn = SQLColumn("id")
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(idColumn, nameColumn)
     ///     let row = Row.fetchOne(db, request)
     @warn_unused_result
     public static func fetchOne<T>(reader: DatabaseReader, _ request: FetchRequest<T>) -> Row? {
