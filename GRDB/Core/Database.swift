@@ -1213,6 +1213,8 @@ extension Database : DatabaseWriter {
     ///
     /// This method is part of the DatabaseWriter protocol adoption.
     public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
+        // The isolation guarantees required by DatabaseWriter.write are
+        // inherited from our wrapping DatabaseQueue or DatabasePool.
         return try block(db: self)
     }
 }
