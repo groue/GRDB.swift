@@ -25,7 +25,7 @@ import GRDB
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 ```
 
-[Execute SQL queries](#executing-updates):
+[Execute SQL statements](#executing-updates):
 
 ```swift
 try dbQueue.execute(
@@ -2449,11 +2449,11 @@ A database queue or pool avoids all concurrency troubles, granted there is no ot
 
 ### DatabaseQueue Concurrency
 
-As thread-safe as [DatabaseQueue](#database-queues) is, your multithreaded application should be well aware that two consecutive queries do not operate on a stable database state:
+As thread-safe as [DatabaseQueue](#database-queues) is, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
 
 ```swift
 // Those two values may be different because some other thread may have inserted
-// or deleted a point of interest between the two queries:
+// or deleted a point of interest between the two statements:
 let count1 = PointOfInterest.fetchCount(dbQueue)
 let count2 = PointOfInterest.fetchCount(dbQueue)
 ```
@@ -2495,11 +2495,11 @@ dbQueue.inDatabase { db in
 
 ### DatabasePool Concurrency
 
-As thread-safe as [DatabasePool](#database-pools) is, your multithreaded application should be well aware that two consecutive queries do not operate on a stable database state:
+As thread-safe as [DatabasePool](#database-pools) is, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
 
 ```swift
 // Those two values may be different because some other thread may have inserted
-// or deleted a point of interest between the two queries:
+// or deleted a point of interest between the two statements:
 let count1 = PointOfInterest.fetchCount(dbPool)
 let count2 = PointOfInterest.fetchCount(dbPool)
 ```
