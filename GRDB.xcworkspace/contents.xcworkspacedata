@@ -5,6 +5,12 @@
       location = "group:Playgrounds"
       name = "Playgrounds">
       <FileRef
+         location = "group:/Users/groue/Documents/git/groue/GRDB.swift/Playgrounds/Tour.playground">
+      </FileRef>
+      <FileRef
+         location = "group:DatabaseTimestamp.playground">
+      </FileRef>
+      <FileRef
          location = "group:JSONSynchronization.playground">
       </FileRef>
       <FileRef
@@ -12,9 +18,6 @@
       </FileRef>
       <FileRef
          location = "group:TransactionObserver.playground">
-      </FileRef>
-      <FileRef
-         location = "group:DatabaseTimestamp.playground">
       </FileRef>
       <FileRef
          location = "group:UserDefaults.playground">
