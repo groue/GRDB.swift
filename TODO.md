@@ -6,7 +6,7 @@
     - [X] Update TransactionObserver.storyboard
 - [ ] Test dbPool.execute(...)
 - [ ] Test dbQueue.execute(...)
-- [ ] Move DatabaseMigrator to DatabaseWriter
+- [X] Move DatabaseMigrator to DatabaseWriter
 - [ ] Document that awakeFromFetch and didInsertWithRowID are run from a protected dispatch queue.
 - [ ] Update UserDefaults.storyboard
 - [ ] Query builder
@@ -23,13 +23,6 @@
 
 Not sure:
 
-- [ ] Remove explicit DatabaseQueue and DatabasePool from DatabaseMigrator:
-        // before:
-        try migrator.migrate(dbQueue)   
-        try migrator.migrate(dbPool)
-        // after:
-        try dbQueue.inDatabase { db in try migrator.migrate(db) }
-        try dbPool.write { db in try migrator.migrate(db) }
 - [ ] Refactor errors in a single type?
 - [ ] Since Records' primary key are infered, no operation is possible on the primary key unless we have a Database instance. It's impossible to define the record.primaryKey property, or to provide a copy() function that does not clone the primary key: they miss the database that is the only object aware of the primary key. Should we change our mind, and have Record explicitly expose their primary key again?
 - [ ] Have Record adopt Hashable and Equatable, based on primary key. Problem: we can't do it know because we don't know the primary key until we have a database connection.

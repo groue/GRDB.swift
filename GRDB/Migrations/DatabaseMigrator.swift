@@ -79,23 +79,11 @@ public struct DatabaseMigrator {
     /// migration has not yet been applied, its block is executed in
     /// a transaction.
     ///
-    /// - parameter dbQueue: The DatabaseQueue where migrations should apply.
+    /// - parameter writer: A DatabaseQueue or DatabasePool where migrations
+    ///   should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    public func migrate(dbQueue: DatabaseQueue) throws {
-        try dbQueue.inDatabase { db in
-            try self.setupMigrations(db)
-            try self.runMigrations(db)
-        }
-    }
-    
-    /// Iterate migrations in the same order as they were registered. If a
-    /// migration has not yet been applied, its block is executed in
-    /// a transaction.
-    ///
-    /// - parameter dbPool: The DatabasePool where migrations should apply.
-    /// - throws: An eventual error thrown by the registered migration blocks.
-    public func migrate(dbPool: DatabasePool) throws {
-        try dbPool.write { db in
+    public func migrate(writer: DatabaseWriter) throws {
+        try writer.write { db in
             try self.setupMigrations(db)
             try self.runMigrations(db)
         }
