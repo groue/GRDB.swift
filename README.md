@@ -25,7 +25,7 @@ import GRDB
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 ```
 
-Execute [SQL queries](#executing-updates):
+[Execute SQL queries](#executing-updates):
 
 ```swift
 try dbQueue.execute(
@@ -43,7 +43,7 @@ let parisId = try dbQueue.execute(
     arguments: ["Paris", true, 48.85341, 2.3488]).insertedRowID
 ```
 
-Fetch [database rows](#row-queries) and [values](#value-queries):
+[Fetch database rows and values](#fetch-queries):
 
 ```swift
 for row in Row.fetchAll(dbQueue, "SELECT * FROM pointOfInterests") {
@@ -59,7 +59,7 @@ let poiCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM pointOfInterests")! /
 let poiTitles = String.fetchAll(dbQueue, "SELECT title FROM pointOfInterests") // [String]
 ```
 
-Insert and fetch [Records](#records):
+Insert and fetch [records](#records):
 
 ```swift
 struct PointOfInterest {
