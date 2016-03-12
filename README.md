@@ -236,16 +236,7 @@ let pois = PointOfInterest.fetchAll(dbQueue)
 let poi = PointOfInterest.fetchOne(dbQueue, key: 1)
 ```
 
-As thread-safe as DatabaseQueue is, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
-
-```swift
-// Those two values may be different because some other thread may have inserted
-// or deleted a point of interest between the two statements:
-let count1 = PointOfInterest.fetchCount(dbQueue)
-let count2 = PointOfInterest.fetchCount(dbQueue)
-```
-
-It is easy to safely isolate a group of database statements: see [Transactions](#transactions) and [DatabaseQueue Concurrency](#databasequeue-concurrency).
+If your application is multithreaded, you should be aware of [Transactions](#transactions) and [DatabaseQueue Concurrency](#databasequeue-concurrency).
 
 **You can configure database queues:**
 
@@ -294,16 +285,7 @@ let pois = PointOfInterest.fetchAll(dbPool)
 let poi = PointOfInterest.fetchOne(dbPool, key: 1)
 ```
 
-As thread-safe as DatabaseQueue is, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
-
-```swift
-// Those two values may be different because some other thread may have inserted
-// or deleted a point of interest between the two statements:
-let count1 = PointOfInterest.fetchCount(dbPool)
-let count2 = PointOfInterest.fetchCount(dbPool)
-```
-
-It is easy to safely isolate a group of database statements: see [Transactions](#transactions) and [DatabasePool Concurrency](#databasepool-concurrency).
+If your application is multithreaded, you should be aware of [Transactions](#transactions) and [DatabasePool Concurrency](#databasepool-concurrency).
 
 **The total number of concurrent reads is limited.** When the maximum number has been reached, a read waits for another read to complete.
 
