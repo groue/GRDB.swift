@@ -107,16 +107,35 @@ let favoritePois = PointOfInterest                                       // [Poi
 
 **GRDB runs on top of SQLite**: you should get familiar with the [SQLite FAQ](http://www.sqlite.org/faq.html). For general and detailed information, jump to the [SQLite Documentation](http://www.sqlite.org/docs.html).
 
+**Reference**
+
 - [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/index.html) (on cocoadocs.org)
+
+**Getting started**
+
 - [Installation](#installation)
 - [Database Connections](#database-connections): Connect to SQLite databases
-- [SQLite API](#sqlite-api): Low-level API
+
+**SQLite and SQL**
+
+- [SQLite API](#sqlite-api)
+
+**Application tools**
+
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
 - [Query Interface](#the-query-interface): A swift way to generate SQL.
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
-- [FAQ](#faq)
-- [Sample Code](#sample-code)
+
+**Good to know**
+
+- [Error Handling](#error-handling)
+- [String Comparison](#string-comparison)
+- [Memory Management](#memory-management)
+
+[FAQ](#faq)
+
+[Sample Code](#sample-code)
 
 
 ### Installation
@@ -424,16 +443,14 @@ try dbQueue.inDatabase { db in
     - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
     - [NSNumber and NSDecimalNumber](#nsnumber-and-nsdecimalnumber)
     - [Swift enums](#swift-enums)
-- [String Comparison](#string-comparison)
 - [Transactions](#transactions)
-- [Error Handling](#error-handling)
-- [Memory Management](#memory-management)
-- Advanced topics:
-    - [Custom Value Types](#custom-value-types)
-    - [Prepared Statements](#prepared-statements)
-    - [Concurrency](#concurrency)
-    - [Custom SQL Functions](#custom-sql-functions)
-    - [Raw SQLite Pointers](#raw-sqlite-pointers)
+
+Advanced topics:
+
+- [Custom Value Types](#custom-value-types)
+- [Prepared Statements](#prepared-statements)
+- [Custom SQL Functions](#custom-sql-functions)
+- [Raw SQLite Pointers](#raw-sqlite-pointers)
 
 
 ## Executing Updates
@@ -1026,54 +1043,6 @@ row.value(atIndex: 0) as Grape   // fatal error: could not convert "Syrah" to Gr
 ```
 
 
-## String Comparison
-
-SQLite compares strings in many occasions: when you sort rows according to a string column, or when you use a comparison operator such as `=` and `<=`.
-
-The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation):
-
-- `binary`, the default, which considers "Foo" and "foo" to be inequal, and "Jérôme" and "Jerome" to be inequal because it has no Unicode support.
-- `nocase`, which considers "Foo" and "foo" to be equal, but "Jérôme" and "Jerome" to be inequal because it has no Unicode support.
-- `rtrim`: the same as `binary`, except that trailing space characters are ignored.
-
-**You can define your own collations**, based on the rich set of Swift string comparisons:
-
-```swift
-let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
-    return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
-}
-dbQueue.addCollation(collation) // Or dbPool.addCollation(...)
-```
-
-Once defined, the custom collation can be applied to a table column. All comparisons involving this column will automatically trigger your comparison function:
-    
-```swift
-// Apply the custom collation to the `name` column
-try dbQueue.execute(
-    "CREATE TABLE persons (" +
-        "name TEXT COLLATE localized_case_insensitive" + // The name of the collation
-    ")")
-
-// Persons are sorted as expected:
-let persons = Person.order(name).fetchAll(dbQueue)
-
-// Matches "Jérôme", "jerome", etc.
-let persons = Person.filter(name == "Jérôme").fetchAll(dbQueue)
-```
-
-If you can't or don't want to define the comparison behavior of a column, you can still use an explicit collation on particular requests:
-
-```swift
-// SELECT * FROM "persons" WHERE ("name" = 'foo' COLLATE NOCASE)
-let persons = Person.filter(name.collating("NOCASE") == "foo").fetchAll(db)
-
-// SELECT * FROM "persons" WHERE ("name" = 'Jérôme' COLLATE localized_case_insensitive)
-let persons = Person.filter(name.collating(collation) == "Jérôme").fetchAll(db)
-```
-
-See the [query interface](#the-query-interface) for more information.
-
-
 ## Transactions
 
 The `DatabaseQueue.inTransaction()` and `DatabasePool.writeInTransaction()` methods open an SQLite transaction:
@@ -1118,78 +1087,6 @@ dbQueue.inTransaction(.Exclusive) { db in ... }
 ```
 
 
-## Error Handling
-
-**No SQLite error goes unnoticed.**
-
-When an [SQLite error](https://www.sqlite.org/rescode.html) happens, some GRDB functions throw a DatabaseError, and some crash with a fatal error:
-
-```swift
-// fatal error:
-// SQLite error 1 with statement `SELECT foo FROM bar`: no such table: bar
-Row.fetchAll(db, "SELECT foo FROM bar")
-
-do {
-    try db.execute(
-        "INSERT INTO pets (masterId, name) VALUES (?, ?)",
-        arguments: [1, "Bobby"])
-} catch let error as DatabaseError {
-    // SQLite error 19 with statement `INSERT INTO pets (masterId, name)
-    // VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed
-    error.description
-    
-    // The SQLite result code: 19 (SQLITE_CONSTRAINT)
-    error.code
-    
-    // The eventual SQLite message
-    // "FOREIGN KEY constraint failed"
-    error.message
-    
-    // The eventual erroneous SQL query
-    // "INSERT INTO pets (masterId, name) VALUES (?, ?)"
-    error.sql
-}
-```
-
-
-**Fatal errors can be avoided.** For example, let's consider the code below:
-
-```swift
-let sql = "..."
-let arguments: NSDictionary = ...
-let rows = Row.fetchAll(dbQueue, sql, arguments: StatementArguments(arguments))
-```
-
-It has many opportunities to fail:
-
-- The sql string may contain invalid sql, or refer to non-existing tables or columns.
-- The arguments dictionary may contain unsuitable values.
-- The arguments dictionary may miss values required by the statement.
-
-The safe version of the code above goes down a level in GRDB API, in order to expose each failure point:
-
-```swift
-// Grab a database connection:
-dbQueue.inDatabase { db in
-    
-    // Dictionary arguments may contain invalid values:
-    if let arguments = StatementArguments(arguments) {
-        
-        // SQL may be invalid
-        let statement = try db.selectStatement(sql)
-        
-        // Arguments may not fit the statement
-        try statement.validateArguments(arguments)
-        
-        // OK now
-        let rows = Row.fetchAll(statement, arguments: arguments)
-    }
-}
-```
-
-See [prepared statements](#prepared-statements) for more information.
-
-
 ## Custom Value Types
 
 Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
@@ -1211,58 +1108,6 @@ The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swi
 The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
 
 As an example, see [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift): it shows how to store dates as timestamps, unlike the built-in [NSDate](#nsdate-and-nsdatecomponents).
-
-
-## Memory Management
-
-**You can reclaim memory used by GRDB.**
-
-The most obvious way is to release your [database queues](#database-queues) and [pools](#database-pools):
-
-```swift
-// Eventually release all memory, after all database accesses are completed:
-dbQueue = nil
-dbPool = nil
-```
-
-Yet both SQLite and GRDB use non-essential memory that help them perform better. You can claim this memory with the `releaseMemory` method:
-
-```swift
-// Release as much memory as possible.
-dbQueue.releaseMemory()
-dbPool.releaseMemory()
-```
-
-This method blocks the current thread until all current database accesses are completed, and the memory collected.
-
-
-### Memory Management on iOS
-
-**The iOS operating system likes applications that do not consume much memory.**
-
-You should call the `releaseMemory` method when your application receives a memory warning, and when it enters background. Since `releaseMemory` is blocking, dispatch it to some background queue so that you avoid freezing your user interface.
-
-For example, assuming a global `dbQueue`:
-
-```swift
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    
-    func applicationDidReceiveMemoryWarning(application: UIApplication) {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
-            dbQueue.releaseMemory()
-        }
-    }
-    
-    func applicationDidEnterBackground(application: UIApplication) {
-        let task = application.beginBackgroundTaskWithExpirationHandler(nil)
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-            dbQueue.releaseMemory()
-            application.endBackgroundTask(task)
-        }
-    }
-}
-```
 
 
 ## Prepared Statements
@@ -1312,27 +1157,6 @@ let person = Person.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
 See [row queries](#row-queries), [value queries](#value-queries), and [Records](#records) for more information.
-
-
-## Concurrency
-
-GRDB ships with support for two concurrency modes:
-
-- [Database queues](#database-queues) serialize all database accesses.
-- [Database pools](#database-pools) serialize writes, and allow concurrent reads.
-
-A GRDB database queue or pool is intented to avoid all concurrency troubles, *granted there is no other connection to your database*.
-
-> :point_up: **Note**: your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
-
-Documents of interest include:
-
-- General discussion about isolation in SQLite: https://www.sqlite.org/isolation.html
-- Types of locks and transactions: https://www.sqlite.org/lang_transaction.html
-- WAL journal mode: https://www.sqlite.org/wal.html
-- Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
-
-See [Transactions](#transactions) method for more precise handling of transactions, and [Configuration](GRDB/Core/Configuration.swift) for more precise handling of eventual SQLITE_BUSY errors.
 
 
 ## Custom SQL Functions
@@ -2504,6 +2328,209 @@ do {
 > :point_up: **Note**: the databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 Check [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd) for a transaction observer that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+
+
+Good To Know
+============
+
+This chapter covers general topics that you should be aware of.
+
+- [Error Handling](#error-handling)
+- [String Comparison](#string-comparison)
+- [Memory Management](#memory-management)
+
+
+## Error Handling
+
+**No SQLite error goes unnoticed.**
+
+When an [SQLite error](https://www.sqlite.org/rescode.html) happens, some GRDB functions throw a DatabaseError, and some crash with a fatal error:
+
+```swift
+// fatal error:
+// SQLite error 1 with statement `SELECT * FROM bar`: no such table: bar
+Row.fetchAll(db, "SELECT * FROM bar")
+
+do {
+    try db.execute(
+        "INSERT INTO pets (masterId, name) VALUES (?, ?)",
+        arguments: [1, "Bobby"])
+} catch let error as DatabaseError {
+    // SQLite error 19 with statement `INSERT INTO pets (masterId, name)
+    // VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed
+    error.description
+    
+    // The SQLite result code: 19 (SQLITE_CONSTRAINT)
+    error.code
+    
+    // The eventual SQLite message
+    // "FOREIGN KEY constraint failed"
+    error.message
+    
+    // The eventual erroneous SQL query
+    // "INSERT INTO pets (masterId, name) VALUES (?, ?)"
+    error.sql
+}
+```
+
+
+**Fatal errors can be avoided.** For example, let's consider the code below:
+
+```swift
+let sql = "SELECT ..."
+let arguments: NSDictionary = ...
+let rows = Row.fetchAll(dbQueue, sql, arguments: StatementArguments(arguments))
+```
+
+It has many opportunities to fail:
+
+- The sql string may contain invalid sql, or refer to non-existing tables or columns.
+- The arguments NSDictionary may contain unsuitable values.
+- The arguments NSDictionary may miss values required by the statement.
+
+The safe version of the code above goes down a level in GRDB API, in order to expose each failure point:
+
+```swift
+// Grab a database connection:
+dbQueue.inDatabase { db in
+    
+    // Dictionary arguments may contain invalid values:
+    if let arguments = StatementArguments(arguments) {
+        
+        // SQL may be invalid
+        let statement = try db.selectStatement(sql)
+        
+        // Arguments may not fit the statement
+        try statement.validateArguments(arguments)
+        
+        // OK now
+        let rows = Row.fetchAll(statement, arguments: arguments)
+    }
+}
+```
+
+See [prepared statements](#prepared-statements) for more information.
+
+
+## String Comparison
+
+SQLite compares strings in many occasions: when you sort rows according to a string column, or when you use a comparison operator such as `=` and `<=`.
+
+The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation):
+
+- `binary`, the default, which considers "Foo" and "foo" to be inequal, and "Jérôme" and "Jerome" to be inequal because it has no Unicode support.
+- `nocase`, which considers "Foo" and "foo" to be equal, but "Jérôme" and "Jerome" to be inequal because it has no Unicode support.
+- `rtrim`: the same as `binary`, except that trailing space characters are ignored.
+
+**You can define your own collations**, based on the rich set of Swift string comparisons:
+
+```swift
+let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
+    return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
+}
+dbQueue.addCollation(collation) // Or dbPool.addCollation(...)
+```
+
+Once defined, the custom collation can be applied to a table column. All comparisons involving this column will automatically trigger your comparison function:
+    
+```swift
+// Apply the custom collation to the `name` column
+try dbQueue.execute(
+    "CREATE TABLE persons (" +
+        "name TEXT COLLATE localized_case_insensitive" + // The name of the collation
+    ")")
+
+// Persons are sorted as expected:
+let persons = Person.order(name).fetchAll(dbQueue)
+
+// Matches "Jérôme", "jerome", etc.
+let persons = Person.filter(name == "Jérôme").fetchAll(dbQueue)
+```
+
+If you can't or don't want to define the comparison behavior of a column, you can still use an explicit collation on particular requests:
+
+```swift
+// SELECT * FROM "persons" WHERE ("name" = 'foo' COLLATE NOCASE)
+let persons = Person.filter(name.collating("NOCASE") == "foo").fetchAll(db)
+
+// SELECT * FROM "persons" WHERE ("name" = 'Jérôme' COLLATE localized_case_insensitive)
+let persons = Person.filter(name.collating(collation) == "Jérôme").fetchAll(db)
+```
+
+See the [query interface](#the-query-interface) for more information.
+
+
+## Memory Management
+
+**You can reclaim memory used by GRDB.**
+
+The most obvious way is to release your [database queues](#database-queues) and [pools](#database-pools):
+
+```swift
+// Eventually release all memory, after all database accesses are completed:
+dbQueue = nil
+dbPool = nil
+```
+
+Yet both SQLite and GRDB use non-essential memory that help them perform better. You can claim this memory with the `releaseMemory` method:
+
+```swift
+// Release as much memory as possible.
+dbQueue.releaseMemory()
+dbPool.releaseMemory()
+```
+
+This method blocks the current thread until all current database accesses are completed, and the memory collected.
+
+
+### Memory Management on iOS
+
+**The iOS operating system likes applications that do not consume much memory.**
+
+You should call the `releaseMemory` method when your application receives a memory warning, and when it enters background. Since `releaseMemory` is blocking, dispatch it to some background queue so that you avoid freezing your user interface.
+
+For example, assuming a global `dbQueue`:
+
+```swift
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+    
+    func applicationDidReceiveMemoryWarning(application: UIApplication) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+            dbQueue.releaseMemory()
+        }
+    }
+    
+    func applicationDidEnterBackground(application: UIApplication) {
+        let task = application.beginBackgroundTaskWithExpirationHandler(nil)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+            dbQueue.releaseMemory()
+            application.endBackgroundTask(task)
+        }
+    }
+}
+```
+
+
+## Concurrency
+
+GRDB ships with support for two concurrency modes:
+
+- [Database queues](#database-queues) serialize all database accesses.
+- [Database pools](#database-pools) serialize writes, and allow concurrent reads and writes.
+
+A GRDB database queue or pool avoids all concurrency troubles, *granted there is no other connection to your database*.
+
+Your application should have a **unique instance** of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
+
+Documents of interest include:
+
+- General discussion about isolation in SQLite: https://www.sqlite.org/isolation.html
+- Types of locks and transactions: https://www.sqlite.org/lang_transaction.html
+- WAL journal mode: https://www.sqlite.org/wal.html
+- Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
+
+See [Transactions](#transactions) method for more precise handling of transactions, and [Configuration](GRDB/Core/Configuration.swift) for more precise handling of eventual SQLITE_BUSY errors.
 
 
 FAQ
