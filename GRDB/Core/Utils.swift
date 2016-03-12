@@ -29,7 +29,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_des
 /// A function declared as rethrows that synchronously executes a throwing
 /// block in a dispatch_queue.
 func dispatchSync<T>(queue: dispatch_queue_t, _ block: () throws -> T) rethrows -> T {
-    func dispatchSyncImpl(queue: dispatch_queue_t, block: () throws -> T, block2: (ErrorType) throws -> Void) rethrows -> T {
+    func impl(queue: dispatch_queue_t, block: () throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
         var result: T? = nil
         var blockError: ErrorType? = nil
         dispatch_sync(queue) {
@@ -40,11 +40,11 @@ func dispatchSync<T>(queue: dispatch_queue_t, _ block: () throws -> T) rethrows 
             }
         }
         if let blockError = blockError {
-            try block2(blockError)
+            try onError(blockError)
         }
         return result!
     }
-    return try dispatchSyncImpl(queue, block: block, block2: { throw $0 })
+    return try impl(queue, block: block, onError: { throw $0 })
 }
 
 extension Array {
