@@ -8,7 +8,7 @@
 - [X] Test dbQueue.execute(...)
 - [X] Move DatabaseMigrator to DatabaseWriter
 - [X] Document that awakeFromFetch and didInsertWithRowID are run from a protected dispatch queue.
-- [ ] Update UserDefaults.storyboard
+- [X] Update UserDefaults.storyboard
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
