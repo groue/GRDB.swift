@@ -43,16 +43,16 @@ final class SerializedDatabase {
         self.queue = dispatch_queue_create("com.github.groue.GRDB", nil)
         
         // Activate database.preconditionValidQueue()
-        let databaseQueueID = unsafeBitCast(database, UnsafeMutablePointer<Void>.self)
-        dispatch_queue_set_specific(queue, Database.databaseQueueIDKey, databaseQueueID, nil)
-        database.databaseQueueID = databaseQueueID
+        let dispatchQueueID = unsafeBitCast(database, UnsafeMutablePointer<Void>.self)
+        dispatch_queue_set_specific(queue, Database.dispatchQueueIDKey, dispatchQueueID, nil)
+        database.dispatchQueueID = dispatchQueueID
     }
     
     func inDatabase<T>(block: (db: Database) throws -> T) rethrows -> T {
         // This method is NOT reentrant.
         //
         // Avoiding dispatch_sync and calling block() right away if the specific
-        // is currently self.databaseQueueID looks like a promising solution:
+        // is currently self.dispatchQueueID looks like a promising solution:
         //
         //     serializedDatabase.inDatabase { db in
         //         serializedDatabase.inDatabase { db in
@@ -73,7 +73,7 @@ final class SerializedDatabase {
         //
         // I try not to ship half-baked solutions, so until a complete solution
         // is found to this problem, I prefer discouraging reentrancy.
-        precondition(database.databaseQueueID != dispatch_get_specific(Database.databaseQueueIDKey), "Database methods are not reentrant.")
+        precondition(database.dispatchQueueID != dispatch_get_specific(Database.dispatchQueueIDKey), "Database methods are not reentrant.")
         return try dispatchSync(queue) {
             try block(db: self.database)
         }

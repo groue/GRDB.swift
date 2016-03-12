@@ -44,7 +44,7 @@ public final class Database {
     
     /// The value for the dispatch queue specific that holds the Database identity.
     /// See preconditionValidQueue.
-    var databaseQueueID: UnsafeMutablePointer<Void> = nil
+    var dispatchQueueID: UnsafeMutablePointer<Void> = nil
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
         self.configuration = configuration
@@ -187,10 +187,10 @@ extension Database {
     
     /// The key for the dispatch queue specific that holds the Database identity.
     /// See preconditionValidQueue.
-    static let databaseQueueIDKey = unsafeBitCast(Database.self, UnsafePointer<Void>.self)     // some unique pointer
+    static let dispatchQueueIDKey = unsafeBitCast(Database.self, UnsafePointer<Void>.self)     // some unique pointer
     
     func preconditionValidQueue() {
-        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(Database.databaseQueueIDKey), "Database was not used on the correct thread. If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
+        precondition(dispatchQueueID == nil || dispatchQueueID == dispatch_get_specific(Database.dispatchQueueIDKey), "Database was not used on the correct thread. If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
     }
 }
 
@@ -1157,7 +1157,7 @@ public struct DatabaseEvent {
 
 /// The protocol for all types that can fetch values from a database.
 ///
-/// It is adopted by DatabaseQueue, and DatabasePool, and Database.
+/// It is adopted by DatabaseQueue, DatabasePool, and Database.
 ///
 /// You don't use the protocol directly. Instead, you provide a DatabaseReader
 /// to fetching methods:
