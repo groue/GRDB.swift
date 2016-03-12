@@ -303,7 +303,7 @@ let dbPool = try DatabasePool(
     maximumReaderCount: 10)      // The default is 5
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Structs/Configuration.html).
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
