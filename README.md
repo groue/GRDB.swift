@@ -18,7 +18,7 @@ You should give it a try.
 
 ### Usage
 
-Open a connection to the [database](#database-connections):
+Open a [connection](#database-connections) to the database:
 
 ```swift
 import GRDB
