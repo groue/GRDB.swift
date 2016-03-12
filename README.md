@@ -1785,7 +1785,7 @@ let wines = Wine.fetchAll(db,
     arguments: ["Burgundy"])
 ```
 
-So don't miss the [SQL API](#fetch-queries).
+So don't miss the [SQL API](#sqlite-api).
 
 - [Requests](#requests)
 - [Expressions](#expressions)
