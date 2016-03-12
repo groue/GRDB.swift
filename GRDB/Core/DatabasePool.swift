@@ -136,7 +136,7 @@ extension DatabasePool : DatabaseReader {
     // MARK: - Read From Database
     
     /// Synchronously executes a read-only block in a protected dispatch queue,
-    /// and returns its result.
+    /// and returns its result. The block is wrapped in a transaction.
     ///
     ///     let persons = dbPool.read { db in
     ///         Person.fetchAll(...)
