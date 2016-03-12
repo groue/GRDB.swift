@@ -516,15 +516,13 @@ let anyWine = Wine.fetchOne(db, "SELECT * FROM wines LIMIT 1")  // Wine?
 
 ### Fetching Methods
 
-**Throughout GRDB**, you can always fetch *sequences*, *arrays*, or *single values*:
+**Throughout GRDB**, you can always fetch *sequences*, *arrays*, or *single values* of any fetchable type (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
 
 ```swift
 Type.fetch(...)    // DatabaseSequence<Type>
 Type.fetchAll(...) // [Type]
 Type.fetchOne(...) // Type?
 ```
-
-(Replace `Type` above with any fetchable type: database [row](#row-queries), [value](#value-queries), or custom [record](#records).)
 
 - `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
     
