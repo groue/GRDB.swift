@@ -1473,12 +1473,22 @@ paris.id   // some value
 [Record](#record-class) subclasses and types that adopt [Persistable](#persistable-protocol) are given default implementations for methods that insert, update, and delete:
 
 ```swift
-try object.insert(db) // INSERT
-try object.update(db) // UPDATE
-try object.save(db)   // Inserts or updates
-try object.delete(db) // DELETE
-object.exists(db)     // Bool
+try pointOfInterest.insert(db) // INSERT
+try pointOfInterest.update(db) // UPDATE
+try pointOfInterest.save(db)   // Inserts or updates
+try pointOfInterest.delete(db) // DELETE
+pointOfInterest.exists(db)     // Bool
 ```
+
+- The argument of persistence methods is any object able to write in a database:
+
+    ```swift
+    pointOfInterest.insert(dbQueue) // DatabaseQueue
+    pointOfInterest.insert(dbPool)  // DatabasePool
+    dbQueue.inDatabase { db in
+        pointOfInterest.insert(db)  // Database
+    }
+    ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
 
