@@ -2523,9 +2523,9 @@ GRDB ships with support for two concurrency modes:
 - [Database queues](#database-queues) serialize all database accesses.
 - [Database pools](#database-pools) serialize writes, and allow concurrent reads and writes.
 
-A GRDB database queue or pool avoids all concurrency troubles, *granted there is no other connection to your database*.
+A GRDB database queue or pool avoids all concurrency troubles, granted there is no other connection to your database.
 
-Your application should have a **unique instance** of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
+**As a consequence, your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file.** You may experience concurrency trouble if you do otherwise.
 
 Documents of interest include:
 
