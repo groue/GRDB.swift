@@ -2558,12 +2558,12 @@ FAQ
     
     You do not explicitely close a database connection: it is managed by a [database queue](#database-queues) or [pool](#database-pools). The connection is closed when there is no longer any reference to that database queue or pool, and it gets deallocated. This principle is known as [RAII](http://c2.com/cgi/wiki?ResourceAcquisitionIsInitialization).
     
-    The `releaseMemory` method of DatabasePool ([documentation](#memory-management)) will actually close some connections, but it will open another one as soon as you access the database again.
+    The `releaseMemory` method of DatabasePool ([documentation](#memory-management)) will actually close some connections, but the pool will open another connection as soon as you access the database again.
 
 
 - **How do I open a database stored as a resource of my application?**
     
-    If your application does not need to modify the database, then open a [database queue](#database-queues) to your resource, making sure the connection is read-only:
+    If your application does not need to modify the database, open a read-only [connection](#database-connections) to your resource:
     
     ```swift
     var configuration = Configuration()
@@ -2572,7 +2572,7 @@ FAQ
     let dbQueue = try! DatabaseQueue(path: dbPath, configuration: configuration)
     ```
     
-    If the application should modify the database, then you need to copy it to a place where it can be modified. For example, in the Documents folder:
+    If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the Documents folder. Only then, open a [connection](#database-connections):
     
     ```swift
     let fm = NSFileManager.defaultManager()
