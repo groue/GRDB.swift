@@ -1774,12 +1774,16 @@ For an efficient algorithm which synchronizes the content of a database table wi
 **The query interface lets you write pure Swift instead of SQL:**
 
 ```swift
+let redWineCount = Wine.filter(color == .Red).fetchCount(db)
 let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
 ```
 
-Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL:
+Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK:
 
 ```swift
+let redWineCount = Int.fetchOne(db,
+    "SELECT COUNT(*) FROM wines WHERE color = ?",
+    arguments [Color.Red])!
 let wines = Wine.fetchAll(db,
     "SELECT * FROM wines WHERE origin = ? ORDER BY price",
     arguments: ["Burgundy"])
