@@ -1497,11 +1497,10 @@ Of course, you need to open a [database connection](#database-connections), and 
 
 ```swift
 class Person : Record { ... }
-
 let persons = Person.fetchAll(db, "SELECT ...", arguments: ...)
 ```
 
-Add [TableMapping](#tablemapping-protocol) and you can stop writing SQL:
+Add the [TableMapping](#tablemapping-protocol) protocol and you can stop writing SQL:
 
 ```swift
 let persons = Person.filter(email != nil).order(name).fetchAll(db)
