@@ -232,7 +232,7 @@ let pois = PointOfInterest.fetchAll(dbQueue)
 let poiCount = PointOfInterest.fetchCount(dbQueue)
 ```
 
-When you can, iterate sequences instead of arrays, because they consume less memory (see [fetching methods](#fetching-methods)):
+Use the `inDatabase` method to perform iteration of memory-efficient sequences (see [fetching methods](#fetching-methods)):
 
 ```swift
 dbQueue.inDatabase { db in
@@ -326,14 +326,13 @@ let pois = PointOfInterest.fetchAll(dbPool)
 let poiCount = PointOfInterest.fetchCount(dbPool)
 ```
 
-When you can, iterate sequences instead of arrays, because they consume less memory (see [fetching methods](#fetching-methods)):
+Use the `read` method to perform iteration of memory-efficient sequences (see [fetching methods](#fetching-methods)):
 
 ```swift
 dbPool.read { db in
     for poi in PointOfInterest.fetch(db) { ... }
 }
 ```
-
 
 **Reads are isolated from writes:** database updates are not visible inside a `read` block:
 
@@ -355,6 +354,8 @@ dbPool.read { db in
     let count = PointOfInterest.fetchCount(db)
 }
 ```
+
+> :point_up: **Note**: grouping requests with `DatabasePool.read` gives you the same isolation guarantees as grouping them with `DatabaseQueue.inDatabase`.
 
 **The total number of concurrent reads is limited.** When the maximum number has been reached, a read waits for another read to complete.
 
