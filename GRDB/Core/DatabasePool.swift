@@ -40,94 +40,6 @@ public final class DatabasePool {
     }
     
     
-    // MARK: - Database access
-    
-    /// Synchronously executes a read-only block in a protected dispatch queue,
-    /// and returns its result.
-    ///
-    ///     let persons = dbPool.read { db in
-    ///         Person.fetchAll(...)
-    ///     }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// The block is completely isolated. Eventual database updates are *not
-    /// visible* inside the block:
-    ///
-    ///     dbPool.read { db in
-    ///         // Those two values are guaranteed to be equal, even if the `wines`
-    ///         // tables is modified between the two requests:
-    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///     }
-    ///
-    ///     dbPool.read { db in
-    ///         // Now this value may be different:
-    ///         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///     }
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
-    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
-        // The block isolation comes from the DEFERRED transaction.
-        // See DatabasePoolTests.testReadMethodIsolationOfBlock().
-        return try readerPool.get { reader in
-            try reader.inDatabase { db in
-                var result: T? = nil
-                try db.inTransaction(.Deferred) {
-                    result = try block(db: db)
-                    return .Commit
-                }
-                return result!
-            }
-        }
-    }
-    
-    /// Synchronously executes an update block in a protected dispatch queue,
-    /// and returns its result.
-    ///
-    ///     dbPool.write { db in
-    ///         db.execute(...)
-    ///     }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
-    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try writer.inDatabase(block)
-    }
-    
-    /// Synchronously executes a block in a protected dispatch queue, wrapped
-    /// inside a transaction.
-    ///
-    /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown.
-    ///
-    ///     try dbPool.writeInTransaction { db in
-    ///         db.execute(...)
-    ///         return .Commit
-    ///     }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameters:
-    ///     - kind: The transaction type (default nil). If nil, the transaction
-    ///       type is configuration.defaultTransactionKind, which itself
-    ///       defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
-    ///       for more information.
-    ///     - block: A block that executes SQL statements and return either
-    ///       .Commit or .Rollback.
-    /// - throws: The error thrown by the block.
-    public func writeInTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) rethrows {
-        try writer.inDatabase { db in
-            try db.inTransaction(kind) {
-                try block(db: db)
-            }
-        }
-    }
-    
-    
     // MARK: - WAL Management
     
     /// Runs a WAL checkpoint
@@ -217,9 +129,83 @@ public enum CheckpointMode: Int32 {
 
 
 // =========================================================================
-// MARK: - Functions
+// MARK: - DatabaseReader
 
-extension DatabasePool {
+extension DatabasePool : DatabaseReader {
+    
+    // MARK: - Read From Database
+    
+    /// Synchronously executes a read-only block in a protected dispatch queue,
+    /// and returns its result.
+    ///
+    ///     let persons = dbPool.read { db in
+    ///         Person.fetchAll(...)
+    ///     }
+    ///
+    /// The block is completely isolated. Eventual concurrent database updates
+    /// are *not visible* inside the block:
+    ///
+    ///     dbPool.read { db in
+    ///         // Those two values are guaranteed to be equal, even if the
+    ///         // `wines` table is modified between the two requests:
+    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///     }
+    ///
+    ///     dbPool.read { db in
+    ///         // Now this value may be different:
+    ///         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
+    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+        // The block isolation comes from the DEFERRED transaction.
+        // See DatabasePoolTests.testReadMethodIsolationOfBlock().
+        return try readerPool.get { reader in
+            try reader.inDatabase { db in
+                var result: T? = nil
+                try db.inTransaction(.Deferred) {
+                    result = try block(db: db)
+                    return .Commit
+                }
+                return result!
+            }
+        }
+    }
+    
+    /// Synchronously executes a read-only block in a protected dispatch queue,
+    /// and returns its result.
+    ///
+    ///     let persons = dbPool.nonIsolatedRead { db in
+    ///         Person.fetchAll(...)
+    ///     }
+    ///
+    /// The block is not isolated from eventual concurrent database updates:
+    ///
+    ///     dbPool.nonIsolatedRead { db in
+    ///         // Those two values may be different because some other thread
+    ///         // may have inserted or deleted a wine between the two requests:
+    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
+    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try readerPool.get { reader in
+            try reader.inDatabase { db in
+                try block(db: db)
+            }
+        }
+    }
+    
+    
+    // MARK: - Functions
     
     /// Add or redefine an SQL function.
     ///
@@ -263,13 +249,9 @@ extension DatabasePool {
             }
         }
     }
-}
-
-
-// =========================================================================
-// MARK: - Collations
-
-extension DatabasePool {
+    
+    
+    // MARK: - Collations
     
     /// Add or redefine a collation.
     ///
@@ -313,94 +295,53 @@ extension DatabasePool {
 
 
 // =========================================================================
-// MARK: - Transaction Observers
+// MARK: - DatabaseWriter
 
-extension DatabasePool {
+extension DatabasePool : DatabaseWriter {
     
-    /// Add a transaction observer, so that it gets notified of all
-    /// database changes.
-    ///
-    /// Database holds weak references to its transaction observers: they are
-    /// not retained, and stop getting notifications after they are deallocated.
-    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
-        writer.inDatabase { db in
-            db.addTransactionObserver(transactionObserver)
-        }
-    }
+    // MARK: - Writing in Database
     
-    /// Remove a transaction observer.
-    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
-        writer.inDatabase { db in
-            db.removeTransactionObserver(transactionObserver)
-        }
-    }
-
-}
-
-
-// =========================================================================
-// MARK: - DatabaseReader
-
-extension DatabasePool : DatabaseReader {
-    
-    /// Synchronously executes a read-only block in a protected dispatch queue,
+    /// Synchronously executes an update block in a protected dispatch queue,
     /// and returns its result.
     ///
-    ///     let persons = dbPool.nonIsolatedRead { db in
-    ///         Person.fetchAll(...)
+    ///     dbPool.write { db in
+    ///         db.execute(...)
     ///     }
     ///
     /// This method is *not* reentrant.
     ///
-    /// The block is not isolated from eventual concurrent database updates:
-    ///
-    ///     dbPool.nonIsolatedRead { db in
-    ///         // Those two values may be different because some other thread
-    ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///     }
-    ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try readerPool.get { reader in
-            try reader.inDatabase { db in
+    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try writer.inDatabase(block)
+    }
+    
+    /// Synchronously executes a block in a protected dispatch queue, wrapped
+    /// inside a transaction.
+    ///
+    /// If the block throws an error, the transaction is rollbacked and the
+    /// error is rethrown.
+    ///
+    ///     try dbPool.writeInTransaction { db in
+    ///         db.execute(...)
+    ///         return .Commit
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameters:
+    ///     - kind: The transaction type (default nil). If nil, the transaction
+    ///       type is configuration.defaultTransactionKind, which itself
+    ///       defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+    ///       for more information.
+    ///     - block: A block that executes SQL statements and return either
+    ///       .Commit or .Rollback.
+    /// - throws: The error thrown by the block.
+    public func writeInTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) rethrows {
+        try writer.inDatabase { db in
+            try db.inTransaction(kind) {
                 try block(db: db)
             }
         }
     }
 }
-
-
-// =========================================================================
-// MARK: - DatabaseWriter
-
-extension DatabasePool : DatabaseWriter {
-    
-    /// Executes one or several SQL statements, separated by semi-colons.
-    ///
-    ///     try dbPool.execute(
-    ///         "INSERT INTO persons (name) VALUES (:name)",
-    ///         arguments: ["name": "Arthur"])
-    ///
-    ///     try dbPool.execute(
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);",
-    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
-    ///
-    /// This method may throw a DatabaseError.
-    ///
-    /// - parameters:
-    ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
-    /// - returns: A DatabaseChanges.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
-        return try writer.inDatabase { db in
-            try db.execute(sql, arguments: arguments)
-        }
-    }
-}
-

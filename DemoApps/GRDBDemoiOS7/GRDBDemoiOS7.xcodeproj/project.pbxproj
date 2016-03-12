@@ -53,6 +53,8 @@
 		562FF9EC1BCE903D00759400 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 562FF9EB1BCE903D00759400 /* libsqlite3.tbd */; };
 		562FF9EF1BCE912C00759400 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562FF9EE1BCE912C00759400 /* PersonEditionViewController.swift */; };
 		562FF9F21BCE914E00759400 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562FF9F11BCE914E00759400 /* Person.swift */; };
+		563363C81C942CAE000BE133 /* DatabaseReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363C71C942CAE000BE133 /* DatabaseReader.swift */; };
+		563363CA1C942CB4000BE133 /* DatabaseWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363C91C942CB4000BE133 /* DatabaseWriter.swift */; };
 		566A20F31C58A4B300C5A218 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20F21C58A4B300C5A218 /* AppDatabase.swift */; };
 /* End PBXBuildFile section */
 
@@ -106,6 +108,8 @@
 		562FF9EE1BCE912C00759400 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
 		562FF9F11BCE914E00759400 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		562FF9F41BCE930C00759400 /* GRDBDemoiOS7-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBDemoiOS7-Bridging-Header.h"; sourceTree = "<group>"; };
+		563363C71C942CAE000BE133 /* DatabaseReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseReader.swift; sourceTree = "<group>"; };
+		563363C91C942CB4000BE133 /* DatabaseWriter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseWriter.swift; sourceTree = "<group>"; };
 		566A20F21C58A4B300C5A218 /* AppDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -129,9 +133,11 @@
 				560A37B51C91391800949E71 /* DatabaseError.swift */,
 				560A37B61C91391800949E71 /* DatabasePool.swift */,
 				560A37B71C91391800949E71 /* DatabaseQueue.swift */,
+				563363C71C942CAE000BE133 /* DatabaseReader.swift */,
 				560A37B81C91391800949E71 /* DatabaseSchemaCache.swift */,
 				560A37B91C91391800949E71 /* DatabaseValue.swift */,
 				560A37BA1C91391800949E71 /* DatabaseValueConvertible.swift */,
+				563363C91C942CB4000BE133 /* DatabaseWriter.swift */,
 				560A37BB1C91391800949E71 /* Row.swift */,
 				560A37BC1C91391800949E71 /* SerializedDatabase.swift */,
 				560A37BD1C91391800949E71 /* Statement.swift */,
@@ -243,7 +249,7 @@
 				562FF9F01BCE913900759400 /* Controllers */,
 				562FF9F31BCE915B00759400 /* Models */,
 				562FF9A61BCE8FB000759400 /* Resources */,
-				562FF9ED1BCE904D00759400 /* Libraries */,
+				562FF9ED1BCE904D00759400 /* GRDB */,
 				562FF9A71BCE8FB600759400 /* Supporting Files */,
 			);
 			path = GRDBDemoiOS7;
@@ -268,13 +274,13 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		562FF9ED1BCE904D00759400 /* Libraries */ = {
+		562FF9ED1BCE904D00759400 /* GRDB */ = {
 			isa = PBXGroup;
 			children = (
 				562FF9EB1BCE903D00759400 /* libsqlite3.tbd */,
 				566A20F41C58A54F00C5A218 /* GRDB */,
 			);
-			name = Libraries;
+			name = GRDB;
 			sourceTree = "<group>";
 		};
 		562FF9F01BCE913900759400 /* Controllers */ = {
@@ -405,6 +411,7 @@
 				560A37E21C91391800949E71 /* DatabaseError.swift in Sources */,
 				560A38041C91391800949E71 /* RowConvertible.swift in Sources */,
 				560A37F91C91391800949E71 /* StandardLibrary.swift in Sources */,
+				563363CA1C942CB4000BE133 /* DatabaseWriter.swift in Sources */,
 				560A37FA1C91391800949E71 /* Utils.swift in Sources */,
 				560A37F61C91391800949E71 /* Row+Foundation.swift in Sources */,
 				560A37FD1C91391800949E71 /* SQLFunction.swift in Sources */,
@@ -419,6 +426,7 @@
 				566A20F31C58A4B300C5A218 /* AppDatabase.swift in Sources */,
 				560A37EA1C91391800949E71 /* Statement.swift in Sources */,
 				560A38031C91391800949E71 /* Record.swift in Sources */,
+				563363C81C942CAE000BE133 /* DatabaseReader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

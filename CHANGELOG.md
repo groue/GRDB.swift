@@ -21,6 +21,9 @@ Release Notes
     try person.insert(dbQueue)
     ```
 
+- DatabaseQueue and DatabasePool both adopt the new [DatabaseReader](https://github.com/groue/GRDB.swift/tree/master/GRDB/Core/DatabaseReader.swift) and [DatabaseWriter](https://github.com/groue/GRDB.swift/tree/master/GRDB/Core/DatabaseWriter.swift) protocols.
+
+
 **Breaking Changes**
 
 - The following methods have changed their signatures:

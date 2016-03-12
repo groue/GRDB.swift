@@ -394,7 +394,7 @@ extension Database {
     ///     }
     ///     db.addFunction(fn)
     ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
-    func addFunction(function: DatabaseFunction) {
+    public func addFunction(function: DatabaseFunction) {
         functions.remove(function)
         functions.insert(function)
         let functionPointer = unsafeBitCast(function, UnsafeMutablePointer<Void>.self)
@@ -436,7 +436,7 @@ extension Database {
     }
     
     /// Remove an SQL function.
-    func removeFunction(function: DatabaseFunction) {
+    public func removeFunction(function: DatabaseFunction) {
         functions.remove(function)
         let code = sqlite3_create_function_v2(
             sqliteConnection,
@@ -519,8 +519,8 @@ extension Database {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     db.addCollation(collation)
-    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
-    func addCollation(collation: DatabaseCollation) {
+    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE localized_standard")
+    public func addCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         collations.insert(collation)
         let collationPointer = unsafeBitCast(collation, UnsafeMutablePointer<Void>.self)
@@ -539,7 +539,7 @@ extension Database {
     }
     
     /// Remove a collation.
-    func removeCollation(collation: DatabaseCollation) {
+    public func removeCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         sqlite3_create_collation_v2(
             sqliteConnection,
@@ -560,7 +560,7 @@ public final class DatabaseCollation {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     db.addCollation(collation)
-    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE localized_standard")
     ///
     /// - parameters:
     ///     - name: The function name.
@@ -927,9 +927,9 @@ extension Database {
     /// Add a transaction observer, so that it gets notified of all
     /// database changes.
     ///
-    /// Database holds weak references to its transaction observers: they are
-    /// not retained, and stop getting notifications after they are deallocated.
-    func addTransactionObserver(transactionObserver: TransactionObserverType) {
+    /// The transaction observer is weakly referenced: it is not retained, and
+    /// stops getting notifications after it is deallocated.
+    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
         transactionObservers.append(WeakTransactionObserver(transactionObserver))
         if transactionObservers.count == 1 {
@@ -938,7 +938,7 @@ extension Database {
     }
     
     /// Remove a transaction observer.
-    func removeTransactionObserver(transactionObserver: TransactionObserverType) {
+    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
         transactionObservers.removeFirst { $0.observer === transactionObserver }
         if transactionObservers.isEmpty {
@@ -1155,48 +1155,20 @@ public struct DatabaseEvent {
 // =========================================================================
 // MARK: - DatabaseReader
 
-/// The protocol for all types that can fetch values from a database.
-///
-/// It is adopted by DatabaseQueue, DatabasePool, and Database.
-///
-/// You typically provide a DatabaseReader to fetching methods:
-///
-///     let persons = Person.fetchAll(dbQueue)
-///     let persons = Person.fetchAll(dbPool)
-///     dbQueue.inDatabase { db in
-///         let persons = Person.fetchAll(db)
-///     }
-public protocol DatabaseReader {
-    
-    /// Executes a block that takes a database connection, and returns
-    /// its result.
-    ///
-    /// All statements executed in the block argument can be fully executed
-    /// in isolation of eventual concurrent updates:
-    ///
-    ///     reader.nonIsolatedRead { db in
-    ///         // no external update can mess with this iteration:
-    ///         for row in Row.fetch(db, ...) { }
-    ///     }
-    ///
-    /// However, there is no guarantee that consecutive statements have the
-    /// same results:
-    ///
-    ///     reader.nonIsolatedRead { db in
-    ///         // Those two ints may be different
-    ///         let sql = "SELECT ..."
-    ///         let int1 = Int.fetchOne(db, sql)
-    ///         let int2 = Int.fetchOne(db, sql)
-    ///     }
-    ///
-    /// Adopting types can provide stronger guarantees.
-    func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T
-}
-
 extension Database : DatabaseReader {
-    /// This method is part of the DatabaseReader protocol adoption.
+    
+    // MARK: - Read From Database
+    
+    /// Evalutes the *block* argument and returns its result.
     ///
-    /// It evaluates the *block* argument and returns its result.
+    /// This method is part of the DatabaseReader protocol adoption.
+    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try block(db: self)
+    }
+    
+    /// Evalutes the *block* argument and returns its result.
+    ///
+    /// This method is part of the DatabaseReader protocol adoption.
     public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try block(db: self)
     }
@@ -1206,51 +1178,13 @@ extension Database : DatabaseReader {
 // =========================================================================
 // MARK: - DatabaseWriter
 
-/// The protocol for all types that can update a database.
-///
-/// It is adopted by DatabaseQueue, DatabasePool, and Database.
-///
-///     let person = Person(...)
-///     try person.insert(dbQueue)
-///     try person.insert(dbPool)
-///     try dbQueue.inDatabase { db in
-///         try person.insert(db)
-///     }
-public protocol DatabaseWriter {
-    
-    /// Executes one or several SQL statements, separated by semi-colons.
-    ///
-    ///     try db.execute(
-    ///         "INSERT INTO persons (name) VALUES (:name)",
-    ///         arguments: ["name": "Arthur"])
-    ///
-    ///     try db.execute(
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);",
-    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
-    ///
-    /// This method may throw a DatabaseError.
-    ///
-    /// - parameters:
-    ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
-    /// - returns: A DatabaseChanges.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    func execute(sql: String, arguments: StatementArguments?) throws -> DatabaseChanges
-    
-    /// Executes a block that takes a database connection, and returns
-    /// its result.
-    ///
-    /// The block argument can be fully executed in isolation of eventual
-    /// concurrent updates.
-    func write<T>(block: (db: Database) throws -> T) rethrows -> T
-}
-
 extension Database : DatabaseWriter {
-    /// This method is part of the DatabaseWriter protocol adoption.
+    
+    // MARK: - Writing in Database
+    
+    /// Evalutes the *block* argument and returns its result.
     ///
-    /// It evaluates the *block* argument and returns its result.
+    /// This method is part of the DatabaseWriter protocol adoption.
     public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try block(db: self)
     }

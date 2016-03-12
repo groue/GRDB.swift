@@ -44,7 +44,7 @@ public class UserDefaults {
     private func createTableIfNeeded() {
         guard needsTable else { return }
         needsTable = false
-        try! db.execute("CREATE TABLE IF NOT EXISTS \(UserDefaultsItemTableName) (key TEXT NOT NULL PRIMARY KEY, value BLOB)", arguments: nil)
+        try! db.execute("CREATE TABLE IF NOT EXISTS \(UserDefaultsItemTableName) (key TEXT NOT NULL PRIMARY KEY, value BLOB)")
     }
     
     

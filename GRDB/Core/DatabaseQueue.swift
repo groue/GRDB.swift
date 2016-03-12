@@ -132,9 +132,29 @@ public final class DatabaseQueue {
 
 
 // =========================================================================
-// MARK: - Functions
+// MARK: - DatabaseReader
 
-extension DatabaseQueue {
+extension DatabaseQueue : DatabaseReader {
+    
+    
+    // MARK: - Read From Database
+    
+    /// Alias for inDatabase
+    ///
+    /// This method is part of the DatabaseReader protocol adoption.
+    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try inDatabase(block)
+    }
+    
+    /// Alias for inDatabase
+    ///
+    /// This method is part of the DatabaseReader protocol adoption.
+    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try inDatabase(block)
+    }
+    
+    
+    // MARK: - Functions
     
     /// Add or redefine an SQL function.
     ///
@@ -150,50 +170,20 @@ extension DatabaseQueue {
     ///         Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func addFunction(function: DatabaseFunction) {
-        serializedDatabase.inDatabase { db in
+        inDatabase { db in
             db.addFunction(function)
         }
     }
     
     /// Remove an SQL function.
     public func removeFunction(function: DatabaseFunction) {
-        serializedDatabase.inDatabase { db in
+        inDatabase { db in
             db.removeFunction(function)
         }
     }
-}
-
-
-// =========================================================================
-// MARK: - Transaction Observers
-
-extension DatabaseQueue {
     
-    /// Add a transaction observer, so that it gets notified of all
-    /// database changes.
-    ///
-    /// Database holds weak references to its transaction observers: they are
-    /// not retained, and stop getting notifications after they are deallocated.
-    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
-        serializedDatabase.inDatabase { db in
-            db.addTransactionObserver(transactionObserver)
-        }
-    }
     
-    /// Remove a transaction observer.
-    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
-        serializedDatabase.inDatabase { db in
-            db.removeTransactionObserver(transactionObserver)
-        }
-    }
-    
-}
-
-
-// =========================================================================
-// MARK: - Collations
-
-extension DatabaseQueue {
+    // MARK: - Collations
     
     /// Add or redefine a collation.
     ///
@@ -205,28 +195,16 @@ extension DatabaseQueue {
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func addCollation(collation: DatabaseCollation) {
-        serializedDatabase.inDatabase { db in
+        inDatabase { db in
             db.addCollation(collation)
         }
     }
     
     /// Remove a collation.
     public func removeCollation(collation: DatabaseCollation) {
-        serializedDatabase.inDatabase { db in
+        inDatabase { db in
             db.removeCollation(collation)
         }
-    }
-}
-
-
-// =========================================================================
-// MARK: - DatabaseReader
-
-extension DatabaseQueue : DatabaseReader {
-    
-    /// Alias for inDatabase
-    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try inDatabase(block)
     }
 }
 
@@ -236,32 +214,11 @@ extension DatabaseQueue : DatabaseReader {
 
 extension DatabaseQueue : DatabaseWriter {
     
-    /// Executes one or several SQL statements, separated by semi-colons.
-    ///
-    ///     try dbQueue.execute(
-    ///         "INSERT INTO persons (name) VALUES (:name)",
-    ///         arguments: ["name": "Arthur"])
-    ///
-    ///     try dbQueue.execute(
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);",
-    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
-    ///
-    /// This method may throw a DatabaseError.
-    ///
-    /// - parameters:
-    ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
-    /// - returns: A DatabaseChanges.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
-        return try serializedDatabase.inDatabase { db in
-            try db.execute(sql, arguments: arguments)
-        }
-    }
+    // MARK: - Writing in Database
     
     /// Alias for inDatabase
+    ///
+    /// This method is part of the DatabaseWriter protocol adoption.
     public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try inDatabase(block)
     }
