@@ -205,7 +205,7 @@ The differences are:
 
 > :point_up: **Note**: your application should have a unique instance of DatabaseQueue or DatabasePool connected to a given database file. You may experience concurrency trouble if you do otherwise.
 
-Finally, DatabaseQueue and DatabasePool adopt the [DatabaseReader](GRDB/Core/DatabaseReader.swift) and [DatabaseWriter](GRDB/Core/DatabaseWriter.swift) protocols, so that you write code that accepts both classes.
+Finally, DatabaseQueue and DatabasePool adopt the [DatabaseReader](GRDB/Core/DatabaseReader.swift) and [DatabaseWriter](GRDB/Core/DatabaseWriter.swift) protocols, so that you can write code that accepts both classes.
 
 - [Database Queues](#database-queues)
 - [Database Pools](#database-pools)
