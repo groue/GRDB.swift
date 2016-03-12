@@ -2527,10 +2527,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 GRDB ships with support for two concurrency modes:
 
-- [Database queues](#database-queues) serialize all database accesses.
-- [Database pools](#database-pools) serialize writes, and allow concurrent reads and writes.
+- [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
+- [DatabasePool](#database-pools) manages a pool of several database connections, serializes writes, and allows concurrent reads and writes.
 
-A GRDB database queue or pool avoids all concurrency troubles, granted there is no other connection to your database.
+A database queue or pool avoids all concurrency troubles, granted there is no other connection to your database.
 
 **As a consequence, your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file.** You may experience concurrency trouble if you do otherwise.
 
