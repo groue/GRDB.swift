@@ -236,14 +236,6 @@ let pois = PointOfInterest.fetchAll(dbQueue)
 let poi = PointOfInterest.fetchOne(dbQueue, key: 1)
 ```
 
-Use the `inDatabase` method to perform safe iteration of memory-efficient [sequences](#fetching-methods) in a protected dispatch queue. `inDatabase` blocks the current thread during the execution of the closure argument:
-
-```swift
-dbQueue.inDatabase { db in
-    for poi in PointOfInterest.fetch(db) { ... }
-}
-```
-
 As thread-safe as DatabaseQueue is, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
 
 ```swift
@@ -300,14 +292,6 @@ try dbPool.execute("CREATE TABLE pointOfInterests (...)")
 try PointOfInterest(...).insert(dbPool)
 let pois = PointOfInterest.fetchAll(dbPool)
 let poi = PointOfInterest.fetchOne(dbPool, key: 1)
-```
-
-Use the `read` method to perform safe iteration of memory-efficient [sequences](#fetching-methods) in a protected dispatch queue. `read` blocks the current thread during the execution of the closure argument:
-
-```swift
-dbPool.read { db in
-    for poi in PointOfInterest.fetch(db) { ... }
-}
 ```
 
 As thread-safe as DatabaseQueue is, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
