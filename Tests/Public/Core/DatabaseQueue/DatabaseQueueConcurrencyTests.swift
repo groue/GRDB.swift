@@ -53,6 +53,32 @@ class ConcurrencyTests: XCTestCase {
         dbQueue2 = nil
         try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
     }
+    
+    func testUnwrappedReadWrite() {
+        do {
+            try dbQueue1.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try dbQueue1.execute("INSERT INTO items (id) VALUES (NULL)")
+            let id = Int.fetchOne(dbQueue1, "SELECT id FROM items")!
+            XCTAssertEqual(id, 1)
+        } catch {
+            XCTFail("error: \(error)")
+        }
+    }
+    
+    func testWrappedReadWrite() {
+        do {
+            try dbQueue1.inDatabase { db in
+                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try db.execute("INSERT INTO items (id) VALUES (NULL)")
+            }
+            let id = dbQueue1.inDatabase { db in
+                Int.fetchOne(db, "SELECT id FROM items")!
+            }
+            XCTAssertEqual(id, 1)
+        } catch {
+            XCTFail("error: \(error)")
+        }
+    }
 
     func testDeferredTransactionConcurrency() {
         // Queue 1                              Queue 2

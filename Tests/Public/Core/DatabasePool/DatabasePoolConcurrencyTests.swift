@@ -3,7 +3,16 @@ import GRDB
 
 class DatabasePoolConcurrencyTests: GRDBTestCase {
     
-    func testBasicWriteRead() {
+    func testUnwrappedReadWrite() {
+        assertNoError {
+            try dbPool.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try dbPool.execute("INSERT INTO items (id) VALUES (NULL)")
+            let id = Int.fetchOne(dbPool, "SELECT id FROM items")!
+            XCTAssertEqual(id, 1)
+        }
+    }
+    
+    func testWrappedReadWrite() {
         assertNoError {
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
