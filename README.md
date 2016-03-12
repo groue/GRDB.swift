@@ -2506,7 +2506,7 @@ For example, assuming a global `dbQueue`:
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func applicationDidReceiveMemoryWarning(application: UIApplication) {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             dbQueue.releaseMemory()
         }
     }
