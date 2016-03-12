@@ -1,3 +1,4 @@
+- [ ] File flags
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
