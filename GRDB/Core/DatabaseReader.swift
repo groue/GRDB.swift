@@ -9,6 +9,18 @@
 ///     dbQueue.inDatabase { db in
 ///         let persons = Person.fetchAll(db)
 ///     }
+///
+/// The protocol comes with isolation guarantees that describe the behavior of
+/// adopting types in a multithreaded application.
+///
+/// Types that adopt the protocol can provide stronger guarantees in practice.
+/// For example, DatabaseQueue provides a stronger isolation level
+/// than DatabasePool.
+///
+/// **Warning**: Isolation guarantees stand as long as there is no external
+/// connection to the database. Should you have to cope with external
+/// connections, protect yourself with transactions, and be ready to setup a
+/// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
 public protocol DatabaseReader {
     
     // MARK: - Read From Database
@@ -16,8 +28,8 @@ public protocol DatabaseReader {
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
     ///
-    /// The block is completely isolated. Eventual concurrent database updates
-    /// are *not visible* inside the block:
+    /// The *block* argument is completely isolated. Eventual concurrent
+    /// database updates are *not visible* inside the block:
     ///
     ///     reader.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
@@ -38,25 +50,23 @@ public protocol DatabaseReader {
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
     ///
-    /// All statements executed in the block argument can be fully executed
-    /// in isolation of eventual concurrent updates:
+    /// Individual statements executed in the *block* argument are executed
+    /// in isolation from eventual concurrent updates:
     ///
     ///     reader.nonIsolatedRead { db in
     ///         // no external update can mess with this iteration:
-    ///         for row in Row.fetch(db, ...) { }
+    ///         for row in Row.fetch(db, ...) { ... }
     ///     }
     ///
     /// However, there is no guarantee that consecutive statements have the
     /// same results:
     ///
     ///     reader.nonIsolatedRead { db in
-    ///         // Those two ints may be different
+    ///         // Those two ints may be different:
     ///         let sql = "SELECT ..."
     ///         let int1 = Int.fetchOne(db, sql)
     ///         let int2 = Int.fetchOne(db, sql)
     ///     }
-    ///
-    /// Adopting types can provide stronger guarantees.
     func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T
     
     
