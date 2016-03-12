@@ -2582,7 +2582,7 @@ SQLite concurrency is a wiiide topic.
 
 First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Classes/DatabaseQueue.html), [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Classes/DatabasePool.html), and the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Protocols/DatabaseWriter.html) protocols.
 
-If the built-in queues and pools still do not fit your need, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
+If the built-in queues and pools still do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
 - General discussion about isolation in SQLite: https://www.sqlite.org/isolation.html
 - Types of locks and transactions: https://www.sqlite.org/lang_transaction.html
@@ -2600,11 +2600,14 @@ FAQ
     The short answer is:
     
     ```swift
+    // Eventually close all database connections
     dbQueue = nil
     dbPool = nil
     ```
     
-    You do not explicitely close a database connection: it is managed by a [database queue](#database-queues) or [pool](#database-pools). The connection is closed when there is no longer any reference to that database queue or pool, and it gets deallocated. This principle is known as [RAII](http://c2.com/cgi/wiki?ResourceAcquisitionIsInitialization).
+    You do not explicitely close a database connection: it is managed by a [database queue](#database-queues) or [pool](#database-pools). The connection is closed when all usages of this connection are completed, and when its database queue or pool gets deallocated.
+    
+    Database accesses that run in background threads postpone the closing of connections.
     
     The `releaseMemory` method of DatabasePool ([documentation](#memory-management)) will actually close some connections, but the pool will open another connection as soon as you access the database again.
 
