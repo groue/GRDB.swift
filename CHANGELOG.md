@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.50.1
+
+Released March 12, 2016
+
+**Fixed**
+
+- A database connection won't close as long as there is a database sequence being iterated.
+
+
 ## 0.50.0
 
 Released March 12, 2016

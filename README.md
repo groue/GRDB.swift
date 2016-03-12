@@ -11,7 +11,7 @@ You should give it a try.
 
 ---
 
-**March 12, 2016: GRDB.swift 0.50.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**March 12, 2016: GRDB.swift 0.50.1 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -109,7 +109,7 @@ let favoritePois = PointOfInterest                                       // [Poi
 
 **Reference**
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/index.html) (on cocoadocs.org)
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/index.html) (on cocoadocs.org)
 
 **Getting started**
 
@@ -155,7 +155,7 @@ To use GRDB with CocoaPods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '~> 0.50.0'
+pod 'GRDB.swift', '~> 0.50.1'
 ```
 
 
@@ -166,7 +166,7 @@ pod 'GRDB.swift', '~> 0.50.0'
 To use GRDB with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" ~> 0.50.0
+github "groue/GRDB.swift" ~> 0.50.1
 ```
 
 
@@ -205,7 +205,7 @@ The differences are:
 
 > :point_up: **Note**: your application should have a unique instance of DatabaseQueue or DatabasePool connected to a given database file. You may experience concurrency trouble if you do otherwise.
 
-Finally, DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that accepts both classes.
+Finally, DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseWriter.html) protocols, so that you can write code that accepts both classes.
 
 - [Database Queues](#database-queues)
 - [Database Pools](#database-pools)
@@ -268,7 +268,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Structs/Configuration.html) for more details.
 
 > :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a database queue.
 
@@ -337,7 +337,7 @@ let dbPool = try DatabasePool(
     maximumReaderCount: 10)      // The default is 5
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Structs/Configuration.html).
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Structs/Configuration.html).
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -2580,7 +2580,7 @@ dbPool.read { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Classes/DatabaseQueue.html), [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Classes/DatabasePool.html), and the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.50.0/Protocols/DatabaseWriter.html) protocols.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabaseQueue.html), [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabasePool.html), and the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseWriter.html) protocols.
 
 If the built-in queues and pools still do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
