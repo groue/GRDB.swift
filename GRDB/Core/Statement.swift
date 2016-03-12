@@ -56,9 +56,7 @@ public class Statement {
     }
     
     deinit {
-        if sqliteStatement != nil {
-            sqlite3_finalize(sqliteStatement)
-        }
+        sqlite3_finalize(sqliteStatement)
     }
     
     final func reset() throws {

@@ -21,7 +21,13 @@ public struct Configuration {
     // MARK: - Concurrency
     
     public var busyMode: BusyMode = .ImmediateError
+    
+    
+    // MARK: - Internal
+    
     var threadingMode: ThreadingMode = .Default
+    var SQLiteConnectionDidOpen: (() -> ())?
+    var SQLiteConnectionDidClose: (() -> ())?
     
     
     // MARK: - Factory Configuration

@@ -58,6 +58,8 @@ public final class Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
+        configuration.SQLiteConnectionDidOpen?()
+        
         // Setup trace first, so that all queries, including initialization queries, are traced.
         setupTrace()
         
@@ -66,9 +68,8 @@ public final class Database {
     }
     
     deinit {
-        if sqliteConnection != nil {
-            sqlite3_close(sqliteConnection)
-        }
+        configuration.SQLiteConnectionDidClose?()
+        sqlite3_close(sqliteConnection)
     }
     
     func releaseMemory() {

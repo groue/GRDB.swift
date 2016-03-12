@@ -1,5 +1,6 @@
-- [ ] Test that dbQueue/Pool.releaseMemory() blocks the current thread until all database accesses are completed.
+- [ ] Test that dbPool.releaseMemory() closes all reader connections
 - [ ] Check that dbQueue/Pool = nil waits for current operations to complete before closing the connection.
+- [ ] Check that statements retain the database until they are completed.
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
