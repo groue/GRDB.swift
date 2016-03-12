@@ -48,6 +48,13 @@ final class SerializedDatabase {
         database.dispatchQueueID = dispatchQueueID
     }
     
+    /// Synchronously executes a block a serialized dispatch queue, and returns
+    /// its result.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
     func inDatabase<T>(block: (db: Database) throws -> T) rethrows -> T {
         // This method is NOT reentrant.
         //
