@@ -9,7 +9,6 @@
 - [X] Move DatabaseMigrator to DatabaseWriter
 - [X] Document that awakeFromFetch and didInsertWithRowID are run from a protected dispatch queue.
 - [X] Update UserDefaults.storyboard
-- [ ] Fix UserDefaults.registerDefaults (defaults registered on a dbQueue are not visible on a db)
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
