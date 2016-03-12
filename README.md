@@ -130,7 +130,7 @@ let favoritePois = PointOfInterest                                       // [Poi
 **Good to know**
 
 - [Error Handling](#error-handling)
-- [String Comparison](#string-comparison)
+- [Unicode](#unicode)
 - [Memory Management](#memory-management)
 
 [FAQ](#faq)
@@ -2340,7 +2340,7 @@ Good To Know
 This chapter covers general topics that you should be aware of.
 
 - [Error Handling](#error-handling)
-- [String Comparison](#string-comparison)
+- [Unicode](#unicode)
 - [Memory Management](#memory-management)
 
 
@@ -2416,17 +2416,23 @@ dbQueue.inDatabase { db in
 See [prepared statements](#prepared-statements) for more information.
 
 
-## String Comparison
+## Unicode
+
+SQLite lets you store unicode strings in the database.
+
+However, SQLite does not provide any unicode-aware string transformations or comparisons.
+
+### Unicode functions
+
+The `upper` and `lower` SQLite functions are not unicode-aware. See [SQL Functions](#sql-functions) to learn how you can introduce custom string functions.
+
+### String Comparison
 
 SQLite compares strings in many occasions: when you sort rows according to a string column, or when you use a comparison operator such as `=` and `<=`.
 
-The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation):
+The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation) that do not support Unicode. For SQLite, "Jérôme" and "jerome" will never match.
 
-- `binary`, the default, which considers "Foo" and "foo" to be inequal, and "Jérôme" and "Jerome" to be inequal because it has no Unicode support.
-- `nocase`, which considers "Foo" and "foo" to be equal, but "Jérôme" and "Jerome" to be inequal because it has no Unicode support.
-- `rtrim`: the same as `binary`, except that trailing space characters are ignored.
-
-**You can define your own collations**, based on the rich set of Swift string comparisons:
+Fortunately, **you can define your own collations**, based on the rich set of Swift string comparisons:
 
 ```swift
 let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
