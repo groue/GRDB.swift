@@ -407,7 +407,7 @@ Database pools are more memory-hungry than database queues. See [Memory Manageme
 SQLite API
 ==========
 
-**In this section of the documentation, we will talk SQL only.**
+**In this section of the documentation, we will talk SQL only.** Jump to the [query interface](#the-query-interface) if SQL if not your cup of tea.
 
 Once granted with a [database connection](#database-connections), you can perform SQL requests:
 
