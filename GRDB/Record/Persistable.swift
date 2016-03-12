@@ -62,7 +62,9 @@ public protocol MutablePersistable : TableMapping {
     ///     }
     var persistentDictionary: [String: DatabaseValueConvertible?] { get }
     
-    /// Don't call this method directly: it is called upon successful insertion,
+    /// Do not call this method directly.
+    ///
+    /// It is called upon successful insertion, in a protected dispatch queue,
     /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
     /// column name.
     ///
@@ -371,7 +373,9 @@ extension MutablePersistable {
 /// mutating methods.
 public protocol Persistable : MutablePersistable {
     
-    /// Don't call this method directly: it is called upon successful insertion,
+    /// Do not call this method directly.
+    ///
+    /// It is called upon successful insertion, in a protected dispatch queue,
     /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
     /// column name.
     ///

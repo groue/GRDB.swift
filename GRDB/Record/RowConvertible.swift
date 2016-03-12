@@ -27,6 +27,9 @@ public protocol RowConvertible {
     
     /// Do not call this method directly.
     ///
+    /// This method is called in a protected dispatch queue, after a record has
+    /// been fetched from the database.
+    ///
     /// Types that adopt RowConvertible have an opportunity to complete their
     /// initialization.
     mutating func awakeFromFetch(row row: Row, database: Database)

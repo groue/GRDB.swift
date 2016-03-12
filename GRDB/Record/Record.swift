@@ -22,8 +22,12 @@ public class Record : RowConvertible, TableMapping, Persistable {
     required public init(_ row: Row) {
     }
     
-    /// Don't call this method directly. It is called after a Record has been
-    /// fetched.
+    /// Do not call this method directly.
+    ///
+    /// This method is called in a protected dispatch queue, after a record has
+    /// been fetched from the database.
+    ///
+    /// Record subclasses have an opportunity to complete their initialization.
     ///
     /// *Important*: subclasses must invoke super's implementation.
     public func awakeFromFetch(row row: Row, database: Database) {
@@ -77,11 +81,22 @@ public class Record : RowConvertible, TableMapping, Persistable {
         return [:]
     }
     
-    /// Don't call this method directly: it is called upon successful insertion,
+    /// Do not call this method directly.
+    ///
+    /// It is called upon successful insertion, in a protected dispatch queue,
     /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
     /// column name.
     ///
-    /// The default implementation does nothing.
+    /// The implementation of the base Record class does nothing.
+    ///
+    ///     class Person : Record {
+    ///         var id: Int64?
+    ///         var name: String?
+    ///
+    ///         func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    ///             id = rowID
+    ///         }
+    ///     }
     ///
     /// - parameters:
     ///     - rowID: The inserted rowID.

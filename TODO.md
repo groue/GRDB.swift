@@ -4,10 +4,10 @@
 - [X] Read-only DatabasePool
 - [X] Move TransactionObserverType to dbQueue/Pool
     - [X] Update TransactionObserver.storyboard
-- [ ] Test dbPool.execute(...)
-- [ ] Test dbQueue.execute(...)
+- [X] Test dbPool.execute(...)
+- [X] Test dbQueue.execute(...)
 - [X] Move DatabaseMigrator to DatabaseWriter
-- [ ] Document that awakeFromFetch and didInsertWithRowID are run from a protected dispatch queue.
+- [X] Document that awakeFromFetch and didInsertWithRowID are run from a protected dispatch queue.
 - [ ] Update UserDefaults.storyboard
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
