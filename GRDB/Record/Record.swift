@@ -195,7 +195,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both insertion, and change tracking.
         
-        try writer._write { db in
+        try writer.write { db in
             let dataMapper = DataMapper(db, self)
             var persistentDictionary = dataMapper.persistentDictionary
             let changes = try dataMapper.insertStatement().execute()
@@ -246,7 +246,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
         //
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both update, and change tracking.
-        try writer._write { db in
+        try writer.write { db in
             let dataMapper = DataMapper(db, self)
             let changes = try dataMapper.updateStatement().execute()
             if changes.changedRowCount == 0 {

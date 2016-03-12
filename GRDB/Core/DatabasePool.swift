@@ -42,8 +42,8 @@ public final class DatabasePool {
     
     // MARK: - Database access
     
-    /// Synchronously executes a read-only block in the database, and returns
-    /// its result.
+    /// Synchronously executes a read-only block in a protected dispatch queue,
+    /// and returns its result.
     ///
     ///     let persons = dbPool.read { db in
     ///         Person.fetchAll(...)
@@ -57,13 +57,13 @@ public final class DatabasePool {
     ///     dbPool.read { db in
     ///         // Those two values are guaranteed to be equal, even if the `wines`
     ///         // tables is modified between the two requests:
-    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
-    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
+    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
     ///     dbPool.read { db in
     ///         // Now this value may be different:
-    ///         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")
+    ///         let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
     ///     }
     ///
     /// - parameter block: A block that accesses the database.
@@ -83,8 +83,8 @@ public final class DatabasePool {
         }
     }
     
-    /// Synchronously executes an update block in the database, and returns
-    /// its result.
+    /// Synchronously executes an update block in a protected dispatch queue,
+    /// and returns its result.
     ///
     ///     dbPool.write { db in
     ///         db.execute(...)
@@ -94,12 +94,12 @@ public final class DatabasePool {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func write(block: (db: Database) throws -> Void) rethrows {
-        try writer.inDatabase(block)
+    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try writer.inDatabase(block)
     }
     
-    /// Synchronously executes a block in the database, wrapped inside a
-    /// transaction.
+    /// Synchronously executes a block in a protected dispatch queue, wrapped
+    /// inside a transaction.
     ///
     /// If the block throws an error, the transaction is rollbacked and the
     /// error is rethrown.
@@ -140,7 +140,8 @@ public final class DatabasePool {
     public func checkpoint(kind: CheckpointMode = .Passive) throws {
         try writer.inDatabase { db in
             // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
-            // check whether we need a busy handler on writer and/or readers.
+            // check whether we need a busy handler on writer and/or readers
+            // when kind is not .Passive.
             let code = sqlite3_wal_checkpoint_v2(db.sqliteConnection, nil, kind.rawValue, nil, nil)
             guard code == SQLITE_OK else {
                 throw DatabaseError(code: code, message: db.lastErrorMessage, sql: nil)
@@ -154,8 +155,8 @@ public final class DatabasePool {
     /// Free as much memory as possible.
     ///
     /// This method blocks the current thread until all database accesses are completed.
-    /// (TODO: test this assertion, and also that all readers connections are closed).
     public func releaseMemory() {
+        // TODO: test that this method blocks the current thread until all database accesses are completed.
         writer.inDatabase { db in
             db.releaseMemory()
         }
@@ -342,8 +343,27 @@ extension DatabasePool {
 
 extension DatabasePool : DatabaseReader {
     
-    /// This method is an implementation detail: do not use it directly.
-    public func _readWithSingleStatementIsolation<T>(block: (db: Database) throws -> T) rethrows -> T {
+    /// Synchronously executes a read-only block in a protected dispatch queue,
+    /// and returns its result.
+    ///
+    ///     let persons = dbPool.nonIsolatedRead { db in
+    ///         Person.fetchAll(...)
+    ///     }
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// The block is not isolated from eventual concurrent database updates:
+    ///
+    ///     dbPool.nonIsolatedRead { db in
+    ///         // Those two values may be different because some other thread
+    ///         // may have inserted or deleted a wine between the two requests:
+    ///         let count1 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count2 = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///     }
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// - throws: The error thrown by the block.
+    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try readerPool.get { reader in
             try reader.inDatabase { db in
                 try block(db: db)
@@ -358,17 +378,28 @@ extension DatabasePool : DatabaseReader {
 
 extension DatabasePool : DatabaseWriter {
     
-    /// TODO
+    /// Executes one or several SQL statements, separated by semi-colons.
+    ///
+    ///     try dbPool.execute(
+    ///         "INSERT INTO persons (name) VALUES (:name)",
+    ///         arguments: ["name": "Arthur"])
+    ///
+    ///     try dbPool.execute(
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);",
+    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
+    ///
+    /// This method may throw a DatabaseError.
+    ///
+    /// - parameters:
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    /// - returns: A DatabaseChanges.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         return try writer.inDatabase { db in
             try db.execute(sql, arguments: arguments)
-        }
-    }
-    
-    /// This method is an implementation detail: do not use it directly.
-    public func _write<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try writer.inDatabase { db in
-            try block(db: db)
         }
     }
 }

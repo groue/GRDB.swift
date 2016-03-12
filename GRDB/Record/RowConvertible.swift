@@ -140,7 +140,7 @@ extension RowConvertible {
     /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return reader._readWithSingleStatementIsolation { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
+        return reader.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -154,6 +154,6 @@ extension RowConvertible {
     /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return reader._readWithSingleStatementIsolation { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
+        return reader.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
     }
 }

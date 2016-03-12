@@ -207,9 +207,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
-    // TODO: The _readWithSingleStatementIsolation method is public but its use is
-    // discouraged. This test should move to the Private folder.
-    func testReadWithSingleStatementIsolationMethodIsolationOfStatement() {
+    func testNonIsolatedReadMethodIsolationOfStatement() {
         assertNoError {
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
@@ -228,15 +226,17 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             let s2 = dispatch_semaphore_create(0)
             // step
             // end
+            // SELECT COUNT(*) FROM items -> 0
             
             let block1 = { () in
-                self.dbPool._readWithSingleStatementIsolation { db in
+                self.dbPool.nonIsolatedRead { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                     XCTAssertTrue(generator.next() != nil)
                     XCTAssertTrue(generator.next() == nil)
+                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                 }
             }
             let block2 = { () in
@@ -257,9 +257,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
-    // TODO: The _readWithSingleStatementIsolation method is public but its use is
-    // discouraged. This test should move to the Private folder.
-    func testReadWithSingleStatementIsolationMethodIsolationOfStatementWithCheckpoint() {
+    func testNonIsolatedReadMethodIsolationOfStatementWithCheckpoint() {
         assertNoError {
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
@@ -281,7 +279,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // end
             
             let block1 = { () in
-                self.dbPool._readWithSingleStatementIsolation { db in
+                self.dbPool.nonIsolatedRead { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s1)
@@ -309,9 +307,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
-    // TODO: The _readWithSingleStatementIsolation method is public but its use is
-    // discouraged. This test should move to the Private folder.
-    func testReadWithSingleStatementIsolationMethodIsolationOfBlock() {
+    func testNonIsolatedReadMethodIsolationOfBlock() {
         assertNoError {
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
@@ -328,7 +324,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT COUNT(*) FROM items
             
             let block1 = { () in
-                self.dbPool._readWithSingleStatementIsolation { db in
+                self.dbPool.nonIsolatedRead { db in
                     XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)

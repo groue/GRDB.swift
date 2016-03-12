@@ -262,7 +262,7 @@ extension Database {
     ///         "INSERT INTO persons (name) VALUES (?);" +
     ///         "INSERT INTO persons (name) VALUES (?);" +
     ///         "INSERT INTO persons (name) VALUES (?);",
-    ///         arguments; ['Harry', 'Ron', 'Hermione'])
+    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
     ///
     /// This method may throw a DatabaseError.
     ///
@@ -1159,8 +1159,7 @@ public struct DatabaseEvent {
 ///
 /// It is adopted by DatabaseQueue, DatabasePool, and Database.
 ///
-/// You don't use the protocol directly. Instead, you provide a DatabaseReader
-/// to fetching methods:
+/// You typically provide a DatabaseReader to fetching methods:
 ///
 ///     let persons = Person.fetchAll(dbQueue)
 ///     let persons = Person.fetchAll(dbPool)
@@ -1168,21 +1167,37 @@ public struct DatabaseEvent {
 ///         let persons = Person.fetchAll(db)
 ///     }
 public protocol DatabaseReader {
-    /// This method is an implementation detail: do not use it directly.
+    
+    /// Executes a block that takes a database connection, and returns
+    /// its result.
     ///
-    /// A single statement executed in the block argument can be fully executed
+    /// All statements executed in the block argument can be fully executed
     /// in isolation of eventual concurrent updates:
     ///
-    ///     reader._readWithSingleStatementIsolation { db in
+    ///     reader.nonIsolatedRead { db in
     ///         // no external update can mess with this iteration:
     ///         for row in Row.fetch(db, ...) { }
     ///     }
-    func _readWithSingleStatementIsolation<T>(block: (db: Database) throws -> T) rethrows -> T
+    ///
+    /// However, there is no guarantee that consecutive statements have the
+    /// same results:
+    ///
+    ///     reader.nonIsolatedRead { db in
+    ///         // Those two ints may be different
+    ///         let sql = "SELECT ..."
+    ///         let int1 = Int.fetchOne(db, sql)
+    ///         let int2 = Int.fetchOne(db, sql)
+    ///     }
+    ///
+    /// Adopting types can provide stronger guarantees.
+    func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T
 }
 
 extension Database : DatabaseReader {
-    /// This method is an implementation detail: do not use it directly.
-    public func _readWithSingleStatementIsolation<T>(block: (db: Database) throws -> T) rethrows -> T {
+    /// This method is part of the DatabaseReader protocol adoption.
+    ///
+    /// It evaluates the *block* argument and returns its result.
+    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try block(db: self)
     }
 }
@@ -1191,17 +1206,52 @@ extension Database : DatabaseReader {
 // =========================================================================
 // MARK: - DatabaseWriter
 
+/// The protocol for all types that can update a database.
+///
+/// It is adopted by DatabaseQueue, DatabasePool, and Database.
+///
+///     let person = Person(...)
+///     try person.insert(dbQueue)
+///     try person.insert(dbPool)
+///     try dbQueue.inDatabase { db in
+///         try person.insert(db)
+///     }
 public protocol DatabaseWriter {
-    /// TODO
+    
+    /// Executes one or several SQL statements, separated by semi-colons.
+    ///
+    ///     try db.execute(
+    ///         "INSERT INTO persons (name) VALUES (:name)",
+    ///         arguments: ["name": "Arthur"])
+    ///
+    ///     try db.execute(
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);",
+    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
+    ///
+    /// This method may throw a DatabaseError.
+    ///
+    /// - parameters:
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    /// - returns: A DatabaseChanges.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     func execute(sql: String, arguments: StatementArguments?) throws -> DatabaseChanges
     
-    /// TODO
-    func _write<T>(block: (db: Database) throws -> T) rethrows -> T
+    /// Executes a block that takes a database connection, and returns
+    /// its result.
+    ///
+    /// The block argument can be fully executed in isolation of eventual
+    /// concurrent updates.
+    func write<T>(block: (db: Database) throws -> T) rethrows -> T
 }
 
 extension Database : DatabaseWriter {
-    /// This method is an implementation detail: do not use it directly.
-    public func _write<T>(block: (db: Database) throws -> T) rethrows -> T {
+    /// This method is part of the DatabaseWriter protocol adoption.
+    ///
+    /// It evaluates the *block* argument and returns its result.
+    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try block(db: self)
     }
 }

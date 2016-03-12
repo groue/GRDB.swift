@@ -229,7 +229,7 @@ public extension MutablePersistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     mutating func performInsert(writer: DatabaseWriter) throws {
-        try writer._write { db in
+        try writer.write { db in
             let dataMapper = DataMapper(db, self)
             let changes = try dataMapper.insertStatement().execute()
             if let rowID = changes.insertedRowID {
@@ -246,7 +246,7 @@ public extension MutablePersistable {
     /// implementation of update(). They should not provide their own
     /// implementation of performUpdate().
     func performUpdate(writer: DatabaseWriter) throws {
-        try writer._write { db in
+        try writer.write { db in
             let changes = try DataMapper(db, self).updateStatement().execute()
             if changes.changedRowCount == 0 {
                 throw PersistenceError.NotFound(self)
@@ -264,7 +264,7 @@ public extension MutablePersistable {
     ///
     /// This default implementation forwards the job to `update` or `insert`.
     mutating func performSave(writer: DatabaseWriter) throws {
-        try writer._write { db in
+        try writer.write { db in
             // Make sure we call self.insert and self.update so that classes
             // that override insert or save have opportunity to perform their
             // custom job.
@@ -293,7 +293,7 @@ public extension MutablePersistable {
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
     func performDelete(writer: DatabaseWriter) throws -> Bool {
-        return try writer._write { db in
+        return try writer.write { db in
             try DataMapper(db, self).deleteStatement().execute().changedRowCount > 0
         }
     }
@@ -306,7 +306,7 @@ public extension MutablePersistable {
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
     func performExists(reader: DatabaseReader) -> Bool {
-        return reader._readWithSingleStatementIsolation { db in
+        return reader.nonIsolatedRead { db in
             (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
         }
     }
@@ -457,7 +457,7 @@ public extension Persistable {
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
     func performInsert(writer: DatabaseWriter) throws {
-        try writer._write { db in
+        try writer.write { db in
             let dataMapper = DataMapper(db, self)
             let changes = try dataMapper.insertStatement().execute()
             if let rowID = changes.insertedRowID {
@@ -476,7 +476,7 @@ public extension Persistable {
     ///
     /// This default implementation forwards the job to `update` or `insert`.
     func performSave(writer: DatabaseWriter) throws {
-        try writer._write { db in
+        try writer.write { db in
             // Make sure we call self.insert and self.update so that classes that
             // override insert or save have opportunity to perform their custom job.
             

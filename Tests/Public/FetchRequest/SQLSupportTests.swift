@@ -145,8 +145,6 @@ class SQLSupportTests: GRDBTestCase {
     }
     
     func testGreaterThan() {
-        // TODO: test compound expressions such as `average(Col.age) + 10 > 20`
-        
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age > 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" > 10)")
@@ -172,6 +170,10 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name > Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" > \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 > 20)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) > 20)")
     }
     
     func testGreaterThanWithCollation() {
@@ -184,8 +186,6 @@ class SQLSupportTests: GRDBTestCase {
     }
     
     func testGreaterThanOrEqual() {
-        // TODO: test compound expressions such as `average(Col.age) + 10 > 20`
-        
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age >= 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" >= 10)")
@@ -211,6 +211,10 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name >= Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" >= \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 >= 20)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) >= 20)")
     }
     
     func testGreaterThanOrEqualWithCollation() {
@@ -223,8 +227,6 @@ class SQLSupportTests: GRDBTestCase {
     }
     
     func testLessThan() {
-        // TODO: test compound expressions such as `average(Col.age) + 10 > 20`
-        
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age < 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" < 10)")
@@ -250,6 +252,10 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name < Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" < \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 < 20)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) < 20)")
     }
     
     func testLessThanWithCollation() {
@@ -262,8 +268,6 @@ class SQLSupportTests: GRDBTestCase {
     }
     
     func testLessThanOrEqual() {
-        // TODO: test compound expressions such as `average(Col.age) + 10 > 20`
-        
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age <= 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" <= 10)")
@@ -289,6 +293,10 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name <= Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" <= \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 <= 20)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) <= 20)")
     }
     
     func testLessThanOrEqualWithCollation() {

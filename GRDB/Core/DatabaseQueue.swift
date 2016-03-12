@@ -44,7 +44,8 @@ public final class DatabaseQueue {
     
     // MARK: - Database access
     
-    /// Synchronously executes a block in the database, and returns its result.
+    /// Synchronously executes a block a protected dispatch queue, and returns
+    /// its result.
     ///
     ///     let persons = dbQueue.inDatabase { db in
     ///         Person.fetchAll(...)
@@ -58,8 +59,8 @@ public final class DatabaseQueue {
         return try serializedDatabase.inDatabase(block)
     }
     
-    /// Synchronously executes a block in the database, wrapped inside a
-    /// transaction.
+    /// Synchronously executes a block in a protected dispatch queue, wrapped
+    /// inside a transaction.
     ///
     /// If the block throws an error, the transaction is rollbacked and the
     /// error is rethrown.
@@ -223,8 +224,8 @@ extension DatabaseQueue {
 
 extension DatabaseQueue : DatabaseReader {
     
-    /// This method is an implementation detail: do not use it directly.
-    public func _readWithSingleStatementIsolation<T>(block: (db: Database) throws -> T) rethrows -> T {
+    /// Alias for inDatabase
+    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try inDatabase(block)
     }
 }
@@ -235,16 +236,33 @@ extension DatabaseQueue : DatabaseReader {
 
 extension DatabaseQueue : DatabaseWriter {
     
-    /// TODO
+    /// Executes one or several SQL statements, separated by semi-colons.
+    ///
+    ///     try dbQueue.execute(
+    ///         "INSERT INTO persons (name) VALUES (:name)",
+    ///         arguments: ["name": "Arthur"])
+    ///
+    ///     try dbQueue.execute(
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);" +
+    ///         "INSERT INTO persons (name) VALUES (?);",
+    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
+    ///
+    /// This method may throw a DatabaseError.
+    ///
+    /// - parameters:
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    /// - returns: A DatabaseChanges.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
         return try serializedDatabase.inDatabase { db in
             try db.execute(sql, arguments: arguments)
         }
     }
     
-    /// This method is an implementation detail: do not use it directly.
-    public func _write<T>(block: (db: Database) throws -> T) rethrows -> T {
+    /// Alias for inDatabase
+    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try inDatabase(block)
     }
 }
-
