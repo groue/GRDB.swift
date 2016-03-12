@@ -400,8 +400,8 @@ let wineId = try dbQueue.execute("INSERT INTO wines (color, name) VALUES (?, ?)"
 print("Inserted wine id: \(wineId)")
     
 // Fetch arrays and single values:
-let rows = Row.fetchAll(dbQueue, "SELECT * FROM wines")
-let redWineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")!
+let rows = Row.fetchAll(dbQueue, "SELECT * FROM wines")                 // [Row]
+let redWineCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM wines")! // Int
 
 // Iterate sequences:
 try dbQueue.inDatabase { db in
@@ -526,7 +526,7 @@ Type.fetchOne(...) // Type?
 
 (Replace `Type` above with any fetchable type: database [row](#row-queries), [value](#value-queries), or custom [record](#records).)
 
-- `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected database thread (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
+- `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
     
     ```swift
     dbQueue.inDatabase { db in
@@ -551,7 +551,7 @@ Type.fetchOne(...) // Type?
     Like arrays, you can load values from database [queues](#database-queues), [pools](#database-pools), or raw databases:
     
     ```swift
-    let person = Person.fetchOne(dbPool, key: 1)
+    let person = Person.fetchOne(dbPool, key: 1)     // Person?
     ```
 
 
@@ -1498,14 +1498,14 @@ Of course, you need to open a [database connection](#database-connections), and 
 ```swift
 class Person : Record { ... }
 
-// Using the query interface
-let persons = Person.filter(email != nil).order(name).fetchAll(db)
-
-// By key
-let person = Person.fetchOne(db, key: 1)
-
-// Using SQL
 let persons = Person.fetchAll(db, "SELECT ...", arguments: ...)
+```
+
+Add [TableMapping](#tablemapping-protocol) and you can stop writing SQL:
+
+```swift
+let persons = Person.filter(email != nil).order(name).fetchAll(db)
+let person = Person.fetchOne(db, key: 1)
 ```
 
 To learn more about querying records, check the [query interface](#the-query-interface).
