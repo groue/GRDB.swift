@@ -2396,7 +2396,7 @@ The safe version of the code above goes down a level in GRDB API, in order to ex
 
 ```swift
 // Grab a database connection:
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
     
     // Dictionary arguments may contain invalid values:
     if let arguments = StatementArguments(arguments) {
