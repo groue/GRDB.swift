@@ -2499,11 +2499,12 @@ This method blocks the current thread until all current database accesses are co
 
 You should call the `releaseMemory` method when your application receives a memory warning, and when it enters background. Since `releaseMemory` is blocking, dispatch it to some background queue so that you avoid freezing your user interface.
 
-For example, assuming a global `dbQueue`:
+For example:
 
 ```swift
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    var dbQueue: DatabaseQueue!
     
     func applicationDidReceiveMemoryWarning(application: UIApplication) {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
