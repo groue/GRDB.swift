@@ -1,6 +1,54 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- Database updates no longer need to be executed in a closure:
+    
+    ```swift
+    // Before:
+    try dbQueue.inDatabase { db in
+        try db.execute("CREATE TABLE ...")
+        let person = Person(...)
+        try person.insert(db)
+    }
+    
+    // New:
+    try dbQueue.execute("CREATE TABLE ...")
+    let person = Person(...)
+    try person.insert(dbQueue)
+    ```
+
+**Breaking Changes**
+
+- The following methods have changed their signatures:
+    
+    ```swift
+    protocol MutablePersistable {
+        mutating func insert(writer: DatabaseWriter) throws
+        func update(writer: DatabaseWriter) throws
+        mutating func save(writer: DatabaseWriter) throws
+        func delete(writer: DatabaseWriter) throws -> Bool
+        func exists(reader: DatabaseReader) -> Bool
+    }
+    
+    protocol Persistable {
+        func insert(writer: DatabaseWriter) throws
+        func save(writer: DatabaseWriter) throws
+    }
+    
+    class Record {
+        func insert(writer: DatabaseWriter) throws
+        func update(writer: DatabaseWriter) throws
+        func save(writer: DatabaseWriter) throws
+        func delete(writer: DatabaseWriter) throws -> Bool
+        func exists(reader: DatabaseReader) -> Bool
+    }
+    ```
+
+
 ## 0.49.0
 
 Released March 11, 2016
