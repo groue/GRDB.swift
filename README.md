@@ -2508,14 +2508,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func applicationDidReceiveMemoryWarning(application: UIApplication) {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-            dbQueue.releaseMemory()
+            self.dbQueue.releaseMemory()
         }
     }
     
     func applicationDidEnterBackground(application: UIApplication) {
         let task = application.beginBackgroundTaskWithExpirationHandler(nil)
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-            dbQueue.releaseMemory()
+            self.dbQueue.releaseMemory()
             application.endBackgroundTask(task)
         }
     }
