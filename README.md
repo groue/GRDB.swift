@@ -225,20 +225,32 @@ let inMemoryDBQueue = DatabaseQueue()
 SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
 
 
-**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database accesses:
+**A database queue can be used from any thread.**
+
+Execute [database updates](#executing-updates):
 
 ```swift
-// Execute database statements:
 try dbQueue.execute("CREATE TABLE pointOfInterests (...)")
 try PointOfInterest(...).insert(dbQueue)
+```
 
+[Fetch](#fetch-queries) arrays and single values:
+
+```swift
+let pois = PointOfInterest.fetchAll(dbQueue)
+let poiCount = PointOfInterest.fetchCount(dbQueue)
+```
+
+The `inDatabase` and `inTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database accesses:
+
+```swift
 // Isolate consecutive statements:
 try dbQueue.inDatabase { db in
     try country.save(db)
     try poi.save(db)
 }
 
-// Wrap database statements in transactions:
+// Wrap database statements in a transaction:
 try dbQueue.inTransaction { db in
     let paris = PointOfInterest.fetchOne(db, key: parisId)
     try paris.delete(db)
@@ -246,21 +258,13 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-You can fetch arrays and single values directly from the queue:
-
-```swift
-let pois = PointOfInterest.fetchAll(dbQueue)
-let poiCount = PointOfInterest.fetchCount(dbQueue)
-```
-
-Use the `inDatabase` method to perform iteration of memory-efficient sequences (see [fetching methods](#fetching-methods)):
+Use the `inDatabase` method to perform iteration of memory-efficient [sequences](#fetching-methods):
 
 ```swift
 dbQueue.inDatabase { db in
     for poi in PointOfInterest.fetch(db) { ... }
 }
 ```
-
 
 In a multithreaded application, the `inDatabase` or `inTransaction` methods run their closure argument in **isolation**. When one closure is executing, other database accesses are postponed:
 
@@ -281,7 +285,6 @@ dbQueue.inDatabase { db in
     let count = PointOfInterest.fetchCount(db)
 }
 ```
-
 
 **You can configure database queues:**
 
@@ -319,13 +322,25 @@ A database pool allows concurrent reading and writing. Writes are serialized, so
 > :point_up: **Note**: unless read-only, a database pool opens your database in the SQLite "WAL mode". The WAL mode does not fit all situations. Please have a look at https://www.sqlite.org/wal.html.
 
 
-**A database pool can be used from any thread.** The `write` and `writeInTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database updates:
+**A database pool can be used from any thread.**
+
+Execute [database updates](#executing-updates):
 
 ```swift
-// Execute database statements:
 try dbPool.execute("CREATE TABLE pointOfInterests (...)")
 try PointOfInterest(...).insert(dbPool)
+```
 
+[Fetch](#fetch-queries) arrays and single values:
+
+```swift
+let pois = PointOfInterest.fetchAll(dbPool)
+let poiCount = PointOfInterest.fetchCount(dbPool)
+```
+
+The `write` and `writeInTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database updates:
+
+```swift
 // Isolate consecutive statements:
 try dbPool.write { db in
     try country.save(db)
@@ -340,14 +355,7 @@ try dbPool.writeInTransaction { db in
 }
 ```
 
-You can fetch arrays and single values directly from the pool:
-
-```swift
-let pois = PointOfInterest.fetchAll(dbPool)
-let poiCount = PointOfInterest.fetchCount(dbPool)
-```
-
-Use the `read` method to perform iteration of memory-efficient sequences (see [fetching methods](#fetching-methods)):
+Use the `read` method to perform iteration of memory-efficient [sequences](#fetching-methods):
 
 ```swift
 dbPool.read { db in
