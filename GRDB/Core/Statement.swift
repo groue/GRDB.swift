@@ -320,7 +320,7 @@ public struct DatabaseSequence<T>: SequenceType {
             // DatabaseSequence can be restarted
             try statement.reset()
             
-            return DatabaseGenerator {
+            return DatabaseGenerator(database: statement.database) {
                 // Check that generator is used on a valid queue.
                 preconditionValidQueue()
                 
@@ -344,7 +344,7 @@ public struct DatabaseSequence<T>: SequenceType {
         return DatabaseSequence() {
             // Check that generator is built on a valid queue.
             preconditionValidQueue()
-            return DatabaseGenerator {
+            return DatabaseGenerator(database: database) {
                 // Check that generator is used on a valid queue.
                 preconditionValidQueue()
                 return nil
@@ -365,6 +365,7 @@ public struct DatabaseSequence<T>: SequenceType {
 
 /// A generator of elements fetched from the database.
 public struct DatabaseGenerator<T>: GeneratorType {
+    private let database: Database  // Generators retain the database
     private let element: () throws -> T?
     
     @warn_unused_result
