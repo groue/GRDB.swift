@@ -1,14 +1,5 @@
-- [X] Person.fetchOne(dbQueue, ...)
-      Person.fetchOne(dbPool, ...)
-      Person.fetchOne(db, ...)
-- [X] Read-only DatabasePool
-- [X] Move TransactionObserverType to dbQueue/Pool
-    - [X] Update TransactionObserver.storyboard
-- [X] Test dbPool.execute(...)
-- [X] Test dbQueue.execute(...)
-- [X] Move DatabaseMigrator to DatabaseWriter
-- [X] Document that awakeFromFetch and didInsertWithRowID are run from a protected dispatch queue.
-- [X] Update UserDefaults.storyboard
+- [ ] Test that dbQueue/Pool.releaseMemory() blocks the current thread until all database accesses are completed.
+- [ ] Check that dbQueue/Pool = nil waits for current operations to complete before closing the connection.
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
@@ -19,7 +10,6 @@
     - [ ] MATCH https://www.sqlite.org/lang_expr.html
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
-- [ ] Check that dbQueue = nil waits for current operations to complete before closing the connection.
 
 Not sure:
 
