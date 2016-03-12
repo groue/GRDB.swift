@@ -236,7 +236,7 @@ let pois = PointOfInterest.fetchAll(dbQueue)
 let poi = PointOfInterest.fetchOne(dbQueue, key: 1)
 ```
 
-Use the `inDatabase` method to perform iteration of memory-efficient [sequences](#fetching-methods) in a protected dispatch queue:
+Use the `inDatabase` method to perform safe iteration of memory-efficient [sequences](#fetching-methods) in a protected dispatch queue. `inDatabase` blocks the current thread during the execution of the closure argument:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -253,7 +253,7 @@ let count1 = PointOfInterest.fetchCount(dbQueue)
 let count2 = PointOfInterest.fetchCount(dbQueue)
 ```
 
-It is easy to safely isolate a group of database statements: see [DatabaseQueue Concurrency](#databasequeue-concurrency).
+It is easy to safely isolate a group of database statements: see [Transactions](#transactions) and [DatabaseQueue Concurrency](#databasequeue-concurrency).
 
 **You can configure database queues:**
 
@@ -302,7 +302,7 @@ let pois = PointOfInterest.fetchAll(dbPool)
 let poi = PointOfInterest.fetchOne(dbPool, key: 1)
 ```
 
-Use the `read` method to perform iteration of memory-efficient [sequences](#fetching-methods) in a protected dispatch queue:
+Use the `read` method to perform safe iteration of memory-efficient [sequences](#fetching-methods) in a protected dispatch queue. `read` blocks the current thread during the execution of the closure argument:
 
 ```swift
 dbPool.read { db in
@@ -319,7 +319,7 @@ let count1 = PointOfInterest.fetchCount(dbPool)
 let count2 = PointOfInterest.fetchCount(dbPool)
 ```
 
-It is easy to safely isolate a group of database statements: see [DatabasePool Concurrency](#databasepool-concurrency).
+It is easy to safely isolate a group of database statements: see [Transactions](#transactions) and [DatabasePool Concurrency](#databasepool-concurrency).
 
 **The total number of concurrent reads is limited.** When the maximum number has been reached, a read waits for another read to complete.
 
@@ -987,7 +987,7 @@ row.value(atIndex: 0) as Grape   // fatal error: could not convert "Syrah" to Gr
 
 ## Transactions
 
-The `DatabaseQueue.inTransaction()` and `DatabasePool.writeInTransaction()` methods open an SQLite transaction:
+The `DatabaseQueue.inTransaction()` and `DatabasePool.writeInTransaction()` methods open an SQLite transaction and run their closure argument in a protected dispatch queue. They block the current thread until your database statements are executed:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -1002,7 +1002,7 @@ A ROLLBACK statement is issued if an error is thrown within the transaction bloc
 If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function:
 
 ```swift
-try dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in  // or dbPool.write { db in
     ...
     try db.inTransaction {
         ...
