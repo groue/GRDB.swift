@@ -2458,7 +2458,7 @@ let count1 = PointOfInterest.fetchCount(dbQueue)
 let count2 = PointOfInterest.fetchCount(dbQueue)
 ```
 
-It is easy to avoid nasty surprises:
+It is easy to avoid surprises:
 
 The `inDatabase` and `inTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database accesses:
 
@@ -2504,7 +2504,7 @@ let count1 = PointOfInterest.fetchCount(dbPool)
 let count2 = PointOfInterest.fetchCount(dbPool)
 ```
 
-It is easy to avoid nasty surprises:
+It is easy to avoid surprises:
 
 The `write` and `writeInTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database updates:
 
