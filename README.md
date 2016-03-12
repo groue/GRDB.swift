@@ -393,7 +393,7 @@ The `?` and colon-prefixed keys like `:name` in the SQL query are the **statemen
 ```swift
 let personID = try db.execute(
     "INSERT INTO persons (name, age) VALUES (?, ?)",
-    arguments: ["Arthur", 36]).insertedRowID
+    arguments: ["Arthur", 36]).insertedRowID!
 ```
 
 Don't miss [Records](#records), that provide classic **persistence methods**:
