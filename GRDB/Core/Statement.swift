@@ -259,7 +259,7 @@ public class Statement {
 /// You create SelectStatement with the Database.selectStatement() method:
 ///
 ///     dbQueue.inDatabase { db in
-///         let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
+///         let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
 ///         let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
 ///     }
