@@ -236,7 +236,7 @@ let poi = PointOfInterest.fetchOne(dbQueue, key: 1)
 
 You can group statements in [transactions](#transactions). If your application is multithreaded, you should read [Concurrency](#concurrency).
 
-**You can configure database queues:**
+**Configure database queues:**
 
 ```swift
 var config = Configuration()
@@ -283,9 +283,9 @@ let poi = PointOfInterest.fetchOne(dbPool, key: 1)
 
 You can group statements in [transactions](#transactions). If your application is multithreaded, you should read [Concurrency](#concurrency).
 
-**The total number of concurrent reads is limited.** When the maximum number has been reached, a read waits for another read to complete.
+The total number of concurrent reads is limited. When the maximum number has been reached, a read waits for another read to complete.
 
-**You can configure database pools:**
+**Configure database pools:**
 
 ```swift
 var config = Configuration()
