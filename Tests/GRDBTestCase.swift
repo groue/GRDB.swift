@@ -27,6 +27,9 @@ class GRDBTestCase: XCTestCase {
         let dbPoolDirectoryName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString)"
         return (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbPoolDirectoryName)
     }()
+    var dbPoolPath: String {
+        return (dbPoolDirectoryPath as NSString).stringByAppendingPathComponent("db.sqlite")
+    }
     var _dbPool: DatabasePool?
     var dbPool: DatabasePool! {
         get {
@@ -34,7 +37,6 @@ class GRDBTestCase: XCTestCase {
                 return _dbPool
             } else {
                 try! NSFileManager.defaultManager().createDirectoryAtPath(dbPoolDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-                let dbPoolPath = (dbPoolDirectoryPath as NSString).stringByAppendingPathComponent("db.sqlite")
                 _dbPool = try! DatabasePool(path: dbPoolPath, configuration: dbConfiguration)
                 return _dbPool!
             }

@@ -24,10 +24,19 @@ public final class DatabaseQueue {
     ///     - configuration: A configuration.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public convenience init(path: String, configuration: Configuration = Configuration()) throws {
-        try self.init(serializedDatabase: SerializedDatabase(
+        // Database Store
+        let store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
+        
+        // Database
+        let serializedDatabase = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: DatabaseSchemaCache()))
+            schemaCache: DatabaseSchemaCache())
+        
+        // Wait for store to have applied file attributes
+        store.sync()
+        
+        self.init(serializedDatabase: serializedDatabase, store: store)
     }
     
     /// Opens an in-memory SQLite database.
@@ -38,7 +47,12 @@ public final class DatabaseQueue {
     ///
     /// - parameter configuration: A configuration.
     public convenience init(configuration: Configuration = Configuration()) {
-        try! self.init(path: ":memory:", configuration: configuration)
+        let serializedDatabase = try! SerializedDatabase(
+            path: ":memory:",
+            configuration: configuration,
+            schemaCache: DatabaseSchemaCache())
+        
+        self.init(serializedDatabase: serializedDatabase, store: nil)
     }
     
     
@@ -103,29 +117,29 @@ public final class DatabaseQueue {
     
     // MARK: - Not public
     
-    /// The serialized database
+    private let store: DatabaseStore?
+
+    // https://www.sqlite.org/isolation.html
+    //
+    // > Within a single database connection X, a SELECT statement always
+    // > sees all changes to the database that are completed prior to the
+    // > start of the SELECT statement, whether committed or uncommitted.
+    // > And the SELECT statement obviously does not see any changes that
+    // > occur after the SELECT statement completes. But what about changes
+    // > that occur while the SELECT statement is running? What if a SELECT
+    // > statement is started and the sqlite3_step() interface steps through
+    // > roughly half of its output, then some UPDATE statements are run by
+    // > the application that modify the table that the SELECT statement is
+    // > reading, then more calls to sqlite3_step() are made to finish out
+    // > the SELECT statement? Will the later steps of the SELECT statement
+    // > see the changes made by the UPDATE or not? The answer is that this
+    // > behavior is undefined.
+    //
+    // This is why we use a serialized database:
     private var serializedDatabase: SerializedDatabase
     
-    init(serializedDatabase: SerializedDatabase) {
-        // IMPLEMENTATION NOTE
-        //
-        // https://www.sqlite.org/isolation.html
-        //
-        // > Within a single database connection X, a SELECT statement always
-        // > sees all changes to the database that are completed prior to the
-        // > start of the SELECT statement, whether committed or uncommitted.
-        // > And the SELECT statement obviously does not see any changes that
-        // > occur after the SELECT statement completes. But what about changes
-        // > that occur while the SELECT statement is running? What if a SELECT
-        // > statement is started and the sqlite3_step() interface steps through
-        // > roughly half of its output, then some UPDATE statements are run by
-        // > the application that modify the table that the SELECT statement is
-        // > reading, then more calls to sqlite3_step() are made to finish out
-        // > the SELECT statement? Will the later steps of the SELECT statement
-        // > see the changes made by the UPDATE or not? The answer is that this
-        // > behavior is undefined.
-        //
-        // This is why we use a serialized database:
+    init(serializedDatabase: SerializedDatabase, store: DatabaseStore?) {
+        self.store = store
         self.serializedDatabase = serializedDatabase
     }
 }

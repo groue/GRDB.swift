@@ -12,6 +12,14 @@ public struct Configuration {
     public var trace: TraceFunction?
     
     
+    // MARK: - File Attributes
+    
+    /// The file attributes that should be applied to the database file(s).
+    ///
+    /// See NSFileMnager.setAttributes(_,ofItemAtPath:)
+    public var fileAttributes: [String: AnyObject]? = nil
+    
+    
     // MARK: - Transactions
     
     /// The default kind of transaction.
@@ -34,8 +42,9 @@ public struct Configuration {
     
     /// Returns a factory configuration:
     ///
-    /// - foreignKeysEnabled: true
     /// - readonly: false
+    /// - fileAttributes: nil
+    /// - foreignKeysEnabled: true
     /// - trace: nil
     /// - defaultTransactionKind: .Immediate
     /// - busyMode: .ImmediateError

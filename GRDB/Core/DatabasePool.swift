@@ -17,6 +17,9 @@ public final class DatabasePool {
     public convenience init(path: String, configuration: Configuration = Configuration(), maximumReaderCount: Int = 5) throws {
         precondition(maximumReaderCount > 1, "maximumReaderCount must be at least 1")
         
+        // Database Store
+        let store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
+        
         // Shared database schema cache
         let databaseSchemaCache = SharedDatabaseSchemaCache()
         
@@ -25,6 +28,9 @@ public final class DatabasePool {
             path: path,
             configuration: configuration,
             schemaCache: databaseSchemaCache)
+        
+        // Wait for store to have applied file attributes
+        store.sync()
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
@@ -36,7 +42,7 @@ public final class DatabasePool {
             }
         }
         
-        self.init(path: path, configuration: configuration, maximumReaderCount: maximumReaderCount, databaseSchemaCache: databaseSchemaCache, writer: writer)
+        self.init(path: path, configuration: configuration, maximumReaderCount: maximumReaderCount, databaseSchemaCache: databaseSchemaCache, writer: writer, store: store)
     }
     
     
@@ -85,13 +91,15 @@ public final class DatabasePool {
     
     // MARK: - Not public
     
+    let store: DatabaseStore    // Not private for tests that require syncing with the store
     private let writer: SerializedDatabase
     private let readerPool: Pool<SerializedDatabase>
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
-    private init(path: String, configuration: Configuration, maximumReaderCount: Int, databaseSchemaCache: DatabaseSchemaCacheType, writer: SerializedDatabase) {
+    private init(path: String, configuration: Configuration, maximumReaderCount: Int, databaseSchemaCache: DatabaseSchemaCacheType, writer: SerializedDatabase, store: DatabaseStore) {
+        self.store = store
         self.writer = writer
         self.readerPool = Pool<SerializedDatabase>(maximumCount: maximumReaderCount)
         

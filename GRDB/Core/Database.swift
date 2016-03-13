@@ -852,7 +852,7 @@ extension Database {
     ///     - block: A block that executes SQL statements and return either
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
-    public func inTransaction(kind: TransactionKind? = nil, _ block: () throws -> TransactionCompletion) throws {
+    public func inTransaction(kind: TransactionKind? = nil, @noescape _ block: () throws -> TransactionCompletion) throws {
         preconditionValidQueue()
         
         var completion: TransactionCompletion = .Rollback
@@ -1176,7 +1176,7 @@ extension Database : DatabaseReader {
         // Instead we assume that read-only deferred transaction always
         // succeeds: let's turn our throwing inTransaction() into a rethrowing
         // function with this little trick:
-        func impl(block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+        func impl(@noescape block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
             var result: T? = nil
             do {
                 try inTransaction(.Deferred) {
