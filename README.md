@@ -2459,13 +2459,13 @@ let count2 = PointOfInterest.fetchCount(dbQueueOrPool)
 
 Now it is easy to avoid surprises, and isolate a bunch or related statements together:
 
-- [DatabaseQueue Concurrency](#databasequeue-concurrency)
-- [DatabasePool Concurrency](#databasepool-concurrency)
+- [Isolation with DatabaseQueue](#isolation-with-databasequeue)
+- [Isolation with DatabasePool](#isolation-with-databasepool)
 
 
-### DatabaseQueue Concurrency
+### Isolation with DatabaseQueue
 
-The `inDatabase` and `inTransaction` methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database accesses are serialized, which means that no two threads can execute such a closure in parallel:
+The `inDatabase` and `inTransaction` DatabaseQueue methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database accesses are serialized, which means that no two threads can execute such a closure in parallel:
 
 ```swift
 // Isolate consecutive statements:
@@ -2498,9 +2498,9 @@ dbQueue.inDatabase { db in
 ```
 
 
-### DatabasePool Concurrency
+### Isolation with DatabasePool
 
-The `write` and `writeInTransaction` methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database writes are serialized, which means that no two threads can execute such a closure in parallel:
+The `write` and `writeInTransaction` DatabasePool methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database writes are serialized, which means that no two threads can execute such a closure in parallel:
 
 ```swift
 // Isolate consecutive statements:
