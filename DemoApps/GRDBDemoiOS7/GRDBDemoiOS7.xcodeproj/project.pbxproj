@@ -55,6 +55,7 @@
 		562FF9F21BCE914E00759400 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562FF9F11BCE914E00759400 /* Person.swift */; };
 		563363C81C942CAE000BE133 /* DatabaseReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363C71C942CAE000BE133 /* DatabaseReader.swift */; };
 		563363CA1C942CB4000BE133 /* DatabaseWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363C91C942CB4000BE133 /* DatabaseWriter.swift */; };
+		563363F01C95A41B000BE133 /* DatabaseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363EF1C95A41B000BE133 /* DatabaseStore.swift */; };
 		566A20F31C58A4B300C5A218 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A20F21C58A4B300C5A218 /* AppDatabase.swift */; };
 /* End PBXBuildFile section */
 
@@ -110,6 +111,7 @@
 		562FF9F41BCE930C00759400 /* GRDBDemoiOS7-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBDemoiOS7-Bridging-Header.h"; sourceTree = "<group>"; };
 		563363C71C942CAE000BE133 /* DatabaseReader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseReader.swift; sourceTree = "<group>"; };
 		563363C91C942CB4000BE133 /* DatabaseWriter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseWriter.swift; sourceTree = "<group>"; };
+		563363EF1C95A41B000BE133 /* DatabaseStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseStore.swift; sourceTree = "<group>"; };
 		566A20F21C58A4B300C5A218 /* AppDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -135,6 +137,7 @@
 				560A37B71C91391800949E71 /* DatabaseQueue.swift */,
 				563363C71C942CAE000BE133 /* DatabaseReader.swift */,
 				560A37B81C91391800949E71 /* DatabaseSchemaCache.swift */,
+				563363EF1C95A41B000BE133 /* DatabaseStore.swift */,
 				560A37B91C91391800949E71 /* DatabaseValue.swift */,
 				560A37BA1C91391800949E71 /* DatabaseValueConvertible.swift */,
 				563363C91C942CB4000BE133 /* DatabaseWriter.swift */,
@@ -390,6 +393,7 @@
 				560A37E01C91391800949E71 /* Configuration.swift in Sources */,
 				560A37E91C91391800949E71 /* SerializedDatabase.swift in Sources */,
 				562FF9EF1BCE912C00759400 /* PersonEditionViewController.swift in Sources */,
+				563363F01C95A41B000BE133 /* DatabaseStore.swift in Sources */,
 				560A38051C91391800949E71 /* TableMapping.swift in Sources */,
 				560A37E71C91391800949E71 /* DatabaseValueConvertible.swift in Sources */,
 				560A37E31C91391800949E71 /* DatabasePool.swift in Sources */,
