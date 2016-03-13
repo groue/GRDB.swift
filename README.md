@@ -232,7 +232,7 @@ let pois = PointOfInterest.fetchAll(dbQueue)
 let poi = PointOfInterest.fetchOne(dbQueue, key: 1)
 ```
 
-If your application is multithreaded, you should be aware of [Transactions](#transactions) and [DatabaseQueue Concurrency](#databasequeue-concurrency).
+If your application is multithreaded, you should be aware of [Transactions](#transactions) and [Concurrency](#concurrency).
 
 **You can configure database queues:**
 
@@ -281,7 +281,7 @@ let pois = PointOfInterest.fetchAll(dbPool)
 let poi = PointOfInterest.fetchOne(dbPool, key: 1)
 ```
 
-If your application is multithreaded, you should be aware of [Transactions](#transactions) and [DatabasePool Concurrency](#databasepool-concurrency).
+If your application is multithreaded, you should be aware of [Transactions](#transactions) and [Concurrency](#concurrency).
 
 **The total number of concurrent reads is limited.** When the maximum number has been reached, a read waits for another read to complete.
 
@@ -2448,25 +2448,24 @@ A database queue or pool avoids all concurrency troubles, granted there is no ot
 
 **As a consequence, your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file.** You may experience concurrency trouble if you do otherwise.
 
-- [DatabaseQueue Concurrency](#databasequeue-concurrency)
-- [DatabasePool Concurrency](#databasepool-concurrency)
-- [Advanced Concurrency](#advanced-concurrency)
-
-
-### DatabaseQueue Concurrency
-
-As thread-safe as [DatabaseQueue](#database-queues) is, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
+Now, as thread-safe as DatabaseQueue and DatabasePool are, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
 
 ```swift
 // Those two values may be different because some other thread may have inserted
 // or deleted a point of interest between the two statements:
-let count1 = PointOfInterest.fetchCount(dbQueue)
-let count2 = PointOfInterest.fetchCount(dbQueue)
+let count1 = PointOfInterest.fetchCount(dbQueueOrPool)
+let count2 = PointOfInterest.fetchCount(dbQueueOrPool)
 ```
 
-It is easy to avoid surprises:
+Now it is easy to avoid surprises, and isolate a bunch or related statements together:
 
-The `inDatabase` and `inTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database accesses:
+- [DatabaseQueue Concurrency](#databasequeue-concurrency)
+- [DatabasePool Concurrency](#databasepool-concurrency)
+
+
+### DatabaseQueue Concurrency
+
+The `inDatabase` and `inTransaction` methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database accesses are serialized, which means that no two threads can execute such a closure in parallel:
 
 ```swift
 // Isolate consecutive statements:
@@ -2483,7 +2482,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-In a multithreaded application, the `inDatabase` and `inTransaction` methods run their closure argument in **isolation**. When one closure is executing, other database accesses are postponed:
+In a multithreaded application, the isolation provided by DatabaseQueue guarantees the consistence of sequential statements:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -2501,18 +2500,7 @@ dbQueue.inDatabase { db in
 
 ### DatabasePool Concurrency
 
-As thread-safe as [DatabasePool](#database-pools) is, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
-
-```swift
-// Those two values may be different because some other thread may have inserted
-// or deleted a point of interest between the two statements:
-let count1 = PointOfInterest.fetchCount(dbPool)
-let count2 = PointOfInterest.fetchCount(dbPool)
-```
-
-It is easy to avoid surprises:
-
-The `write` and `writeInTransaction` methods run their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. They safely serialize the database updates:
+The `write` and `writeInTransaction` methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database writes are serialized, which means that no two threads can execute such a closure in parallel:
 
 ```swift
 // Isolate consecutive statements:
@@ -2529,7 +2517,7 @@ try dbPool.writeInTransaction { db in
 }
 ```
 
-**Reads are isolated from writes:** database updates are not visible inside a `read` block:
+To isolate a bunch of read-only statements, use the `read` method. It also executes its closure argument in a protected dispatch queue, and blocks the current thread until your database statements are executed. Eventual concurrent updates are not visible inside a `read` closure:
 
 ```swift
 dbPool.read { db in
@@ -2552,7 +2540,7 @@ dbPool.read { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabaseQueue.html), [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabasePool.html), and the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseWriter.html) protocols.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabaseQueue.html), [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseWriter.html) protocols.
 
 If the built-in queues and pools still do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
