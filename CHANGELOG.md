@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## 0.51.1
+
+Released March 13, 2016
+
+Nothing new, but performance improvements
+
+
 ## 0.51.0
 
 Released March 13, 2016
