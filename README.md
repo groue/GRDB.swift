@@ -2482,7 +2482,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-In a multithreaded application, the isolation provided by DatabaseQueue guarantees the consistence of sequential statements:
+In a multithreaded application, the isolation provided by DatabaseQueue guarantees the consistence of consecutive statements:
 
 ```swift
 dbQueue.inDatabase { db in
