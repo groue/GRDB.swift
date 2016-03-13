@@ -21,7 +21,7 @@
 /// connection to the database. Should you have to cope with external
 /// connections, protect yourself with transactions, and be ready to setup a
 /// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
-public protocol DatabaseReader {
+public protocol DatabaseReader : class {
     
     // MARK: - Read From Database
     
