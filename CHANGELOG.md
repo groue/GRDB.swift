@@ -1,6 +1,23 @@
 Release Notes
 =============
 
+## 0.51.0
+
+Released March 13, 2016
+
+**New**
+
+- Support for file attributes
+    
+    ```swift
+    var config = Configuration()
+    config.fileAttributes = [NSFileProtectionKey: NSFileProtectionComplete]
+    let dbPool = DatabasePool(path: ".../db.sqlite", configuration: config)
+    ```
+    
+    GRDB will take care of applying them to the database file and all its derivatives (`-wal` and `-shm` files created by the [WAL mode](https://www.sqlite.org/wal.html), as well as [temporary files](https://www.sqlite.org/tempfiles.html)).
+
+
 ## 0.50.1
 
 Released March 12, 2016
