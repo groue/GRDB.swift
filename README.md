@@ -132,6 +132,7 @@ let favoritePois = PointOfInterest                                       // [Poi
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
+- [Concurrency](#concurrency)
 
 [FAQ](#faq)
 
