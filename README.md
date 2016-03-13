@@ -234,7 +234,7 @@ let pois = PointOfInterest.fetchAll(dbQueue)
 let poi = PointOfInterest.fetchOne(dbQueue, key: 1)
 ```
 
-If your application is multithreaded, you should be aware of [Transactions](#transactions) and [Concurrency](#concurrency).
+You can group statements in [transactions](#transactions). If your application is multithreaded, you should read [Concurrency](#concurrency).
 
 **You can configure database queues:**
 
@@ -281,7 +281,7 @@ let pois = PointOfInterest.fetchAll(dbPool)
 let poi = PointOfInterest.fetchOne(dbPool, key: 1)
 ```
 
-If your application is multithreaded, you should be aware of [Transactions](#transactions) and [Concurrency](#concurrency).
+You can group statements in [transactions](#transactions). If your application is multithreaded, you should read [Concurrency](#concurrency).
 
 **The total number of concurrent reads is limited.** When the maximum number has been reached, a read waits for another read to complete.
 
