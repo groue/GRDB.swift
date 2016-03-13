@@ -243,6 +243,7 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // The default is already true
 config.trace = { print($0) }     // Prints all SQL statements
+config.fileAttributes = [NSFileProtectionKey: ...]  // Configure database protection
 
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
@@ -292,6 +293,7 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // The default is already true
 config.trace = { print($0) }     // Prints all SQL statements
+config.fileAttributes = [NSFileProtectionKey: ...]  // Configure database protection
 
 let dbPool = try DatabasePool(
     path: "/path/to/database.sqlite",
