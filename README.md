@@ -458,7 +458,7 @@ Type.fetchOne(...) // Type?
     }
     ```
     
-    Don't modify the database during the sequence iteration:
+    Don't modify the database during a sequence iteration:
     
     ```swift
     try dbQueue.inDatabase { db in
@@ -473,22 +473,26 @@ Type.fetchOne(...) // Type?
     
 - `fetchAll` returns an **array** that can be fetched and iterated on any thread. It contains copies of database values, and can take a lot of memory.
     
-    Load arrays from database [queues](#database-queues), [pools](#database-pools), or raw databases:
+    Load arrays from database [queues](#database-queues), [pools](#database-pools), or raw databases connections:
     
     ```swift
-    let urls = NSURL.fetchAll(dbQueue, "SELECT ...") // DatabaseQueue
-    let urls = NSURL.fetchAll(dbPool, "SELECT ...")  // DatabasePool
+    let persons = Person.fetchAll(dbQueue, "SELECT ...") // DatabaseQueue
+    let persons = Person.fetchAll(dbPool, "SELECT ...")  // DatabasePool
     dbQueue.inDatabase { db in
-        let urls = NSURL.fetchAll(db, "SELECT ...")  // Database
+        let persons = Person.fetchAll(db, "SELECT ...")  // Database
     }
     ```
 
-- `fetchOne` returns a **single value**, if any is available, and consumes a single database row.
+- `fetchOne` returns a **single optional value**, and consumes a single database row (if any).
     
-    Like arrays, you can load values from database [queues](#database-queues), [pools](#database-pools), or raw databases:
+    Like arrays, you can load single values from database [queues](#database-queues), [pools](#database-pools), or raw databases connections:
     
     ```swift
-    let person = Person.fetchOne(dbPool, key: 1)     // Person?
+    let count = Int.fetchOne(dbQueue, "SELECT COUNT(*) ...") // DatabaseQueue
+    let count = Int.fetchOne(dbPool, "SELECT COUNT(*) ...")  // DatabasePool
+    dbQueue.inDatabase { db in
+        let count = Int.fetchOne(db, "SELECT COUNT(*) ...")  // Database
+    }
     ```
 
 
