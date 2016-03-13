@@ -447,15 +447,31 @@ Type.fetchAll(...) // [Type]
 Type.fetchOne(...) // Type?
 ```
 
-- `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise). The sequence fetches a new set of results each time it is iterated.
+- `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise).
     
     ```swift
     dbQueue.inDatabase { db in
         for row in Row.fetch(db, "SELECT ...") { ... }
     }
+    dbPool.read { db in
+        for row in Row.fetch(db, "SELECT ...") { ... }
+    }
     ```
     
-- `fetchAll` returns an **array** that can be fetched and iterated on any thread. It can take a lot of memory.
+    Don't modify the database during the sequence iteration:
+    
+    ```swift
+    try dbQueue.inDatabase { db in
+        // Undefined behavior
+        for row in Row.fetch(db, "SELECT * FROM persons") {
+            try db.execute("DELETE FROM persons ...")
+        }
+    }
+    ```
+    
+    A sequence fetches a new set of results each time it is iterated.
+    
+- `fetchAll` returns an **array** that can be fetched and iterated on any thread. It contains copies of database values, and can take a lot of memory.
     
     Load arrays from database [queues](#database-queues), [pools](#database-pools), or raw databases:
     
