@@ -7,12 +7,14 @@ public final class Row {
     
     /// Builds an empty row.
     public init() {
+        statementRef = nil
         sqliteStatement = nil
         impl = EmptyRowImpl()
     }
     
     /// Builds a row from a dictionary of values.
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
+        statementRef = nil
         sqliteStatement = nil
         impl = DictionaryRowImpl(dictionary: dictionary)
     }
@@ -27,10 +29,15 @@ public final class Row {
         return impl.copy(self)
     }
     
+    deinit {
+        statementRef?.release()
+    }
+    
     
     // MARK: - Not Public
     
     let impl: RowImpl
+    let statementRef: Unmanaged<SelectStatement>?
     let sqliteStatement: SQLiteStatement
     
     /// Builds a row from the an SQLite statement.
@@ -39,8 +46,10 @@ public final class Row {
     /// access to the SQLite statement. Iteration of the statement does modify
     /// the row.
     init(statement: SelectStatement) {
+        let statementRef = Unmanaged.passRetained(statement)
+        self.statementRef = statementRef
         self.sqliteStatement = statement.sqliteStatement
-        self.impl = StatementRowImpl(statement: statement)
+        self.impl = StatementRowImpl(statementRef: statementRef, sqliteStatement: statement.sqliteStatement)
     }
     
     /// Builds a row from the *current state* of the SQLite statement.
@@ -48,9 +57,10 @@ public final class Row {
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
     /// the values from the SQLite statement so that further iteration of the
     /// statement does not modify the row.
-    init(copiedFromStatement statement: SelectStatement) {
+    init(copiedFromStatementRef statementRef: Unmanaged<SelectStatement>, sqliteStatement: SQLiteStatement) {
+        self.statementRef = nil
         self.sqliteStatement = nil
-        self.impl = StatementCopyRowImpl(statement: statement)
+        self.impl = StatementCopyRowImpl(statementRef: statementRef, sqliteStatement: sqliteStatement)
     }
 }
 
@@ -437,7 +447,9 @@ extension Row {
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(statement: statement)
-        return statement.fetchSequence(arguments: arguments) { row }
+        return statement.fetchSequence(arguments: arguments, retaining: row) { rowRef in
+            return Unmanaged<Row>.fromOpaque(unsafeUnwrap(rowRef).toOpaque()).takeUnretainedValue()
+        }
     }
     
     /// Returns an array of rows fetched from a prepared statement.
@@ -451,8 +463,10 @@ extension Row {
     /// - returns: An array of rows.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
+        let sqliteStatement = statement.sqliteStatement
+        let statementRef = Unmanaged.passUnretained(statement)
         let sequence = statement.fetchSequence(arguments: arguments) {
-            Row(copiedFromStatement: statement)
+            Row(copiedFromStatementRef: statementRef, sqliteStatement: sqliteStatement)
         }
         return Array(sequence)
     }
@@ -468,8 +482,10 @@ extension Row {
     /// - returns: An optional row.
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
+        let sqliteStatement = statement.sqliteStatement
+        let statementRef = Unmanaged.passUnretained(statement)
         let sequence = statement.fetchSequence(arguments: arguments) {
-            Row(copiedFromStatement: statement)
+            Row(copiedFromStatementRef: statementRef, sqliteStatement: sqliteStatement)
         }
         return sequence.generate().next()
     }
@@ -682,15 +698,15 @@ private struct DictionaryRowImpl : RowImpl {
 }
 
 
-/// See Row.init(copiedFromStatement:)
+/// See Row.init(copiedFromStatementRef:sqliteStatement:)
 private struct StatementCopyRowImpl : RowImpl {
     let databaseValues: [DatabaseValue]
     let columnNames: [String]
     
-    init(statement: SelectStatement) {
-        let sqliteStatement = statement.sqliteStatement
-        self.databaseValues = (0..<Int32(statement.columnCount)).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) }
-        self.columnNames = statement.columnNames
+    init(statementRef: Unmanaged<SelectStatement>, sqliteStatement: SQLiteStatement) {
+        let sqliteStatement = sqliteStatement
+        self.databaseValues = (0..<sqlite3_column_count(sqliteStatement)).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) }
+        self.columnNames = statementRef.takeUnretainedValue().columnNames
     }
     
     var count: Int {
@@ -724,12 +740,15 @@ private struct StatementCopyRowImpl : RowImpl {
 
 /// See Row.init(statement:)
 private struct StatementRowImpl : RowImpl {
-    let statement: SelectStatement
+    let statementRef: Unmanaged<SelectStatement>
     let sqliteStatement: SQLiteStatement
+    let lowercaseColumnIndexes: [String: Int]
     
-    init(statement: SelectStatement) {
-        self.statement = statement
-        self.sqliteStatement = statement.sqliteStatement
+    init(statementRef: Unmanaged<SelectStatement>, sqliteStatement: SQLiteStatement) {
+        self.statementRef = statementRef
+        self.sqliteStatement = sqliteStatement
+        let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement)).map { String.fromCString(sqlite3_column_name(sqliteStatement, Int32($0)))!.lowercaseString }
+        self.lowercaseColumnIndexes = Dictionary(lowercaseColumnNames.enumerate().map { ($1, $0) }.reverse())
     }
     
     var count: Int {
@@ -750,17 +769,20 @@ private struct StatementRowImpl : RowImpl {
     }
     
     func columnName(atIndex index: Int) -> String {
-        return statement.columnNames[index]
+        return statementRef.takeUnretainedValue().columnNames[index]
     }
     
     // This method MUST be case-insensitive, and returns the index of the
     // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int? {
-        return statement.indexOfColumn(named: name)
+        if let index = lowercaseColumnIndexes[name] {
+            return index
+        }
+        return lowercaseColumnIndexes[name.lowercaseString]
     }
     
     func copy(row: Row) -> Row {
-        return Row(copiedFromStatement: statement)
+        return Row(copiedFromStatementRef: statementRef, sqliteStatement: sqliteStatement)
     }
 }
 

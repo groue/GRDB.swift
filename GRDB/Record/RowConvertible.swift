@@ -68,7 +68,8 @@ extension RowConvertible {
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let row = Row(statement: statement)
         let database = statement.database
-        return statement.fetchSequence(arguments: arguments) {
+        return statement.fetchSequence(arguments: arguments, retaining: row) { rowRef in
+            let row = Unmanaged<Row>.fromOpaque(unsafeUnwrap(rowRef).toOpaque()).takeUnretainedValue()
             var value = self.init(row)
             value.awakeFromFetch(row: row, database: database)
             return value
