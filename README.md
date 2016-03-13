@@ -2533,8 +2533,6 @@ dbPool.read { db in
 }
 ```
 
-> :point_up: **Note**: grouping requests with `DatabasePool.read` gives you the same isolation guarantees as grouping them with `DatabaseQueue.inDatabase`.
-
 
 ### Advanced Concurrency
 
