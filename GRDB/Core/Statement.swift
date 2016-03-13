@@ -311,26 +311,23 @@ public struct DatabaseSequence<T>: SequenceType {
     
     // Statement sequence
     private init(statement: SelectStatement, element: () -> T) {
-        let preconditionValidQueue = statement.database.preconditionValidQueue
-        let sqliteStatement = statement.sqliteStatement
-        generateImpl = {
+        self.generateImpl = {
             // Check that generator is built on a valid queue.
-            preconditionValidQueue()
+            statement.database.preconditionValidQueue()
             
-            // DatabaseSequence can be restarted
+            // Support multiple sequence iterations
             try statement.reset()
             
-            return DatabaseGenerator(database: statement.database) {
-                // Check that generator is used on a valid queue.
-                preconditionValidQueue()
-                
+            return DatabaseGenerator(statementRef: Unmanaged.passRetained(statement)) { (sqliteStatement: SQLiteStatement, statementRef: Unmanaged<SelectStatement>) -> T? in
                 switch sqlite3_step(sqliteStatement) {
                 case SQLITE_DONE:
                     return nil
                 case SQLITE_ROW:
                     return element()
                 case let errorCode:
-                    throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+                    let statement = statementRef.takeUnretainedValue()
+                    try! { throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments) }()
+                    preconditionFailure()
                 }
             }
         }
@@ -340,15 +337,10 @@ public struct DatabaseSequence<T>: SequenceType {
     static func emptySequence(database: Database) -> DatabaseSequence {
         // Empty sequence is just as strict as statement sequence, and requires
         // to be used on the database queue.
-        let preconditionValidQueue = database.preconditionValidQueue
         return DatabaseSequence() {
             // Check that generator is built on a valid queue.
-            preconditionValidQueue()
-            return DatabaseGenerator(database: database) {
-                // Check that generator is used on a valid queue.
-                preconditionValidQueue()
-                return nil
-            }
+            database.preconditionValidQueue()
+            return DatabaseGenerator()
         }
     }
     
@@ -364,13 +356,33 @@ public struct DatabaseSequence<T>: SequenceType {
 }
 
 /// A generator of elements fetched from the database.
-public struct DatabaseGenerator<T>: GeneratorType {
-    private let database: Database  // Generators retain the database
-    private let element: () throws -> T?
+public class DatabaseGenerator<Element>: GeneratorType {
+    private let statementRef: Unmanaged<SelectStatement>?
+    private let sqliteStatement: SQLiteStatement
+    private let element: ((SQLiteStatement, Unmanaged<SelectStatement>) -> Element?)?
+    
+    init(statementRef: Unmanaged<SelectStatement>, element: (SQLiteStatement, Unmanaged<SelectStatement>) -> Element?) {
+        self.statementRef = statementRef
+        self.sqliteStatement = statementRef.takeUnretainedValue().sqliteStatement
+        self.element = element
+    }
+    
+    init() {
+        self.statementRef = nil
+        self.sqliteStatement = nil
+        self.element = nil
+    }
+    
+    deinit {
+        statementRef?.release()
+    }
     
     @warn_unused_result
-    public func next() -> T? {
-        return try! element()
+    public func next() -> Element? {
+        guard let element = element else {
+            return nil
+        }
+        return element(sqliteStatement, unsafeUnwrap(statementRef))
     }
 }
 

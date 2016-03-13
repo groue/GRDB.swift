@@ -549,7 +549,11 @@ extension Row : CollectionType {
     
     /// The number of columns in the row.
     public var count: Int {
-        return impl.count
+        let sqliteStatement = self.sqliteStatement
+        guard sqliteStatement != nil else {
+            return impl.count
+        }
+        return Int(sqlite3_column_count(sqliteStatement))
     }
     
     /// Returns a *generator* over (ColumnName, DatabaseValue) pairs, from left
