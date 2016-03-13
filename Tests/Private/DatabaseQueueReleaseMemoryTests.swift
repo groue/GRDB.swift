@@ -11,7 +11,6 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidOpen = {
                 dispatch_sync(countQueue) {
-                    print("open")
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
@@ -19,7 +18,6 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidClose = {
                 dispatch_sync(countQueue) {
-                    print("close")
                     openConnectionCount -= 1
                 }
             }
@@ -46,7 +44,6 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidOpen = {
                 dispatch_sync(countQueue) {
-                    print("open")
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
@@ -54,7 +51,6 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidClose = {
                 dispatch_sync(countQueue) {
-                    print("close")
                     openConnectionCount -= 1
                 }
             }
@@ -113,7 +109,6 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidOpen = {
                 dispatch_sync(countQueue) {
-                    print("open")
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
@@ -121,7 +116,6 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidClose = {
                 dispatch_sync(countQueue) {
-                    print("close")
                     openConnectionCount -= 1
                 }
             }
@@ -139,7 +133,8 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             // dbQueue = nil
             // >
             let s2 = dispatch_semaphore_create(0)
-            //                              release generator
+            //                              step
+            //                              end
             //                          }
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
@@ -167,8 +162,8 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                     do {
                         XCTAssertTrue(dbQueue == nil)
-                        XCTAssertTrue(connection != nil)
-                        XCTAssertTrue(generator != nil)
+                        XCTAssertTrue(generator!.next() != nil)
+                        XCTAssertTrue(generator!.next() == nil)
                         generator = nil
                         XCTAssertTrue(connection == nil)
                     }

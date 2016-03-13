@@ -11,7 +11,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidOpen = {
                 dispatch_sync(countQueue) {
-                    print("open")
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
@@ -19,7 +18,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidClose = {
                 dispatch_sync(countQueue) {
-                    print("close")
                     openConnectionCount -= 1
                 }
             }
@@ -51,7 +49,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidOpen = {
                 dispatch_sync(countQueue) {
-                    print("open")
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
@@ -59,7 +56,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidClose = {
                 dispatch_sync(countQueue) {
-                    print("close")
                     openConnectionCount -= 1
                 }
             }
@@ -129,7 +125,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidOpen = {
                 dispatch_sync(countQueue) {
-                    print("open")
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
@@ -137,7 +132,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidClose = {
                 dispatch_sync(countQueue) {
-                    print("close")
                     openConnectionCount -= 1
                 }
             }
@@ -196,7 +190,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidOpen = {
                 dispatch_sync(countQueue) {
-                    print("open")
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
@@ -204,7 +197,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             dbConfiguration.SQLiteConnectionDidClose = {
                 dispatch_sync(countQueue) {
-                    print("close")
                     openConnectionCount -= 1
                 }
             }
@@ -222,7 +214,8 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             // dbPool = nil
             // >
             let s2 = dispatch_semaphore_create(0)
-            //                              release generator
+            //                              step
+            //                              end
             //                          }
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
@@ -250,8 +243,8 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                     do {
                         XCTAssertTrue(dbPool == nil)
-                        XCTAssertTrue(connection != nil)
-                        XCTAssertTrue(generator != nil)
+                        XCTAssertTrue(generator!.next() != nil)
+                        XCTAssertTrue(generator!.next() == nil)
                         generator = nil
                         XCTAssertTrue(connection == nil)
                     }
