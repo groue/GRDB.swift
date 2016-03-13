@@ -119,6 +119,11 @@
 		563363DD1C95891E000BE133 /* DatabaseQueueFileAttributesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363DB1C95891E000BE133 /* DatabaseQueueFileAttributesTests.swift */; };
 		563363DF1C959295000BE133 /* DatabasePoolFileAttributesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363DE1C959295000BE133 /* DatabasePoolFileAttributesTests.swift */; };
 		563363E01C959295000BE133 /* DatabasePoolFileAttributesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363DE1C959295000BE133 /* DatabasePoolFileAttributesTests.swift */; };
+		563363F21C95F654000BE133 /* RealmSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563363F11C95F654000BE133 /* RealmSwift.framework */; };
+		563363F41C95F6EB000BE133 /* Realm.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 563363F31C95F6EB000BE133 /* Realm.framework */; };
+		563363F61C96052E000BE133 /* Realm.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563363F31C95F6EB000BE133 /* Realm.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		563363F71C96052E000BE133 /* RealmSwift.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 563363F11C95F654000BE133 /* RealmSwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		563363F91C960711000BE133 /* PerformanceRealmTests.realm in Resources */ = {isa = PBXBuildFile; fileRef = 563363F81C960711000BE133 /* PerformanceRealmTests.realm */; };
 		563445051C4A7FD7003D3DC6 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563445041C4A7FD7003D3DC6 /* Utils.swift */; };
 		563445061C4A7FD7003D3DC6 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563445041C4A7FD7003D3DC6 /* Utils.swift */; };
 		564A50C71BFF4B7F00B3A3A2 /* CollationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */; };
@@ -349,6 +354,20 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		563363F51C960513000BE133 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				563363F61C96052E000BE133 /* Realm.framework in CopyFiles */,
+				563363F71C96052E000BE133 /* RealmSwift.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		5605F1491C672E4000235C62 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
 		5605F14B1C672E4000235C62 /* DatabaseCoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCoder.swift; sourceTree = "<group>"; };
@@ -402,6 +421,9 @@
 		563363D71C95787F000BE133 /* DatabaseStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseStore.swift; sourceTree = "<group>"; };
 		563363DB1C95891E000BE133 /* DatabaseQueueFileAttributesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueFileAttributesTests.swift; sourceTree = "<group>"; };
 		563363DE1C959295000BE133 /* DatabasePoolFileAttributesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabasePoolFileAttributesTests.swift; sourceTree = "<group>"; };
+		563363F11C95F654000BE133 /* RealmSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealmSwift.framework; path = Realm/RealmSwift.framework; sourceTree = "<group>"; };
+		563363F31C95F6EB000BE133 /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = Realm/Realm.framework; sourceTree = "<group>"; };
+		563363F81C960711000BE133 /* PerformanceRealmTests.realm */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceRealmTests.realm; sourceTree = "<group>"; };
 		563445041C4A7FD7003D3DC6 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollationTests.swift; sourceTree = "<group>"; };
 		56553C181C3E906C00522B5C /* GRDBOSXCrashTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXCrashTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -525,6 +547,8 @@
 				560C98121C0E22D300BF8471 /* SQLite.framework in Frameworks */,
 				560C98131C0E22D300BF8471 /* libsqlite3.tbd in Frameworks */,
 				560C98141C0E22D300BF8471 /* GRDB.framework in Frameworks */,
+				563363F41C95F6EB000BE133 /* Realm.framework in Frameworks */,
+				563363F21C95F654000BE133 /* RealmSwift.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -928,6 +952,7 @@
 				56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */,
 				56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */,
 				56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */,
+				563363F81C960711000BE133 /* PerformanceRealmTests.realm */,
 				56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */,
 				56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */,
 				56DE7B2B1C41311900861EB8 /* FetchRecordTests.swift */,
@@ -936,6 +961,8 @@
 				56BB86121BA9886D001F9168 /* InsertRecordTests.swift */,
 				56CA22211BB41565009A04C5 /* PerformanceTests.swift */,
 				56DE7B341C42B37E00861EB8 /* CoreData.framework */,
+				563363F31C95F6EB000BE133 /* Realm.framework */,
+				563363F11C95F654000BE133 /* RealmSwift.framework */,
 				56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */,
 				56BB86171BA988F2001F9168 /* fmdb */,
 			);
@@ -1136,6 +1163,7 @@
 				560C97D41C0E22D300BF8471 /* Sources */,
 				560C98111C0E22D300BF8471 /* Frameworks */,
 				560C98151C0E22D300BF8471 /* Resources */,
+				563363F51C960513000BE133 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -1328,6 +1356,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				563363F91C960711000BE133 /* PerformanceRealmTests.realm in Resources */,
 				560C98161C0E22D300BF8471 /* PerformanceTests.sqlite in Resources */,
 				56DE7B371C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite in Resources */,
 			);
@@ -1702,6 +1731,10 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Tests/Performance/Realm",
+				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
@@ -1719,6 +1752,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Tests/Performance/Realm",
+				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";

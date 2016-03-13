@@ -1,6 +1,7 @@
 import XCTest
 import GRDB
 import CoreData
+import RealmSwift
 
 private let insertedRowCount = 20_000
 
@@ -66,6 +67,22 @@ class InsertRecordTests: XCTestCase {
             try! moc.save()
             try! psc.removePersistentStore(store)
             try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        }
+    }
+    
+    func testRealm() {
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).realm"
+        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
+        
+        measureBlock {
+            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            let realm = try! Realm(path: databasePath)
+            
+            try! realm.write {
+                for i in 0..<insertedRowCount {
+                    realm.add(RealmItem(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i))
+                }
+            }
         }
     }
 }
