@@ -447,8 +447,8 @@ extension Row {
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = Row(statement: statement)
-        return statement.fetchSequence(arguments: arguments, retaining: row) { rowRef in
-            return Unmanaged<Row>.fromOpaque(unsafeUnwrap(rowRef).toOpaque()).takeUnretainedValue()
+        return statement.fetchSequence(arguments: arguments) {
+            return row
         }
     }
     

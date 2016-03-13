@@ -302,15 +302,7 @@ public final class SelectStatement : Statement {
     func fetchSequence<Element>(arguments arguments: StatementArguments?, element: () -> Element) -> DatabaseSequence<Element> {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepareWithArguments(arguments)
-        return DatabaseSequence(statement: self, retainedRource: nil) { _ in element() }
-    }
-    
-    /// Creates a DatabaseSequence
-    @warn_unused_result
-    func fetchSequence<Element>(arguments arguments: StatementArguments?, retaining resource: AnyObject, element: (Unmanaged<AnyObject>?) -> Element) -> DatabaseSequence<Element> {
-        // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
-        try! prepareWithArguments(arguments)
-        return DatabaseSequence(statement: self, retainedRource: resource, element: element)
+        return DatabaseSequence(statement: self, element: element)
     }
 }
 
@@ -319,7 +311,7 @@ public struct DatabaseSequence<Element>: SequenceType {
     private let generateImpl: () throws -> DatabaseGenerator<Element>
     
     // Statement sequence
-    private init(statement: SelectStatement, retainedRource: AnyObject?, element: (Unmanaged<AnyObject>?) -> Element) {
+    private init(statement: SelectStatement, element: () -> Element) {
         self.generateImpl = {
             // Check that generator is built on a valid queue.
             statement.database.preconditionValidQueue()
@@ -328,13 +320,12 @@ public struct DatabaseSequence<Element>: SequenceType {
             try statement.reset()
             
             let statementRef = Unmanaged.passRetained(statement)
-            let resourceRef = retainedRource.flatMap { Unmanaged.passRetained($0) }
-            return DatabaseGenerator(statementRef: statementRef, resourceRef: resourceRef) { (sqliteStatement, statementRef, resourceRef) in
+            return DatabaseGenerator(statementRef: statementRef) { (sqliteStatement, statementRef) in
                 switch sqlite3_step(sqliteStatement) {
                 case SQLITE_DONE:
                     return nil
                 case SQLITE_ROW:
-                    return element(resourceRef)
+                    return element()
                 case let errorCode:
                     let statement = statementRef.takeUnretainedValue()
                     try! { throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments) }()
@@ -369,27 +360,24 @@ public struct DatabaseSequence<Element>: SequenceType {
 /// A generator of elements fetched from the database.
 public class DatabaseGenerator<Element>: GeneratorType {
     private let statementRef: Unmanaged<SelectStatement>?
-    private let resourceRef: Unmanaged<AnyObject>?
     private let sqliteStatement: SQLiteStatement
-    private let element: ((SQLiteStatement, Unmanaged<SelectStatement>, Unmanaged<AnyObject>?) -> Element?)?
+    private let element: ((SQLiteStatement, Unmanaged<SelectStatement>) -> Element?)?
     
-    init(statementRef: Unmanaged<SelectStatement>, resourceRef: Unmanaged<AnyObject>?, element: (SQLiteStatement, Unmanaged<SelectStatement>, Unmanaged<AnyObject>?) -> Element?) {
+    // Generator takes ownership of statementRef
+    init(statementRef: Unmanaged<SelectStatement>, element: (SQLiteStatement, Unmanaged<SelectStatement>) -> Element?) {
         self.statementRef = statementRef
-        self.resourceRef = resourceRef
         self.sqliteStatement = statementRef.takeUnretainedValue().sqliteStatement
         self.element = element
     }
     
     init() {
         self.statementRef = nil
-        self.resourceRef = nil
         self.sqliteStatement = nil
         self.element = nil
     }
     
     deinit {
         statementRef?.release()
-        resourceRef?.release()
     }
     
     @warn_unused_result
@@ -397,7 +385,7 @@ public class DatabaseGenerator<Element>: GeneratorType {
         guard let element = element else {
             return nil
         }
-        return element(sqliteStatement, unsafeUnwrap(statementRef), resourceRef)
+        return element(sqliteStatement, unsafeUnwrap(statementRef))
     }
 }
 
