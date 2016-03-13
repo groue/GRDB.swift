@@ -2517,7 +2517,7 @@ try dbPool.writeInTransaction { db in
 }
 ```
 
-To isolate a bunch of read-only statements, use the `read` method. It also executes its closure argument in a protected dispatch queue, and blocks the current thread until your database statements are executed. Eventual concurrent updates are not visible inside a `read` closure:
+To isolate a bunch of read-only statements, use the `read` method. It also executes its closure argument in a protected dispatch queue, and blocks the current thread until your database statements are executed. Eventual concurrent updates may happen, but they are not visible inside a `read` closure:
 
 ```swift
 dbPool.read { db in
