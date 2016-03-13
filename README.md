@@ -2444,7 +2444,7 @@ GRDB ships with support for two concurrency modes:
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
 - [DatabasePool](#database-pools) manages a pool of several database connections, serializes writes, and allows concurrent reads and writes.
 
-A database queue or pool avoids all concurrency troubles, granted there is no other connection to your database.
+A database queue or pool prevents all concurrency troubles, granted there is no other connection to your database.
 
 **As a consequence, your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file.** You may experience concurrency trouble if you do otherwise.
 
@@ -2538,9 +2538,9 @@ dbPool.read { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabaseQueue.html), [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseWriter.html) protocols.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.50.1/Protocols/DatabaseWriter.html) protocols.
 
-If the built-in queues and pools still do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
+If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
 - General discussion about isolation in SQLite: https://www.sqlite.org/isolation.html
 - Types of locks and transactions: https://www.sqlite.org/lang_transaction.html
