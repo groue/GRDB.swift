@@ -29,10 +29,6 @@ public final class Row {
         return impl.copy(self)
     }
     
-    deinit {
-        statementRef?.release()
-    }
-    
     
     // MARK: - Not Public
     
@@ -51,13 +47,17 @@ public final class Row {
     let statementRef: Unmanaged<SelectStatement>?
     let sqliteStatement: SQLiteStatement
     
+    deinit {
+        statementRef?.release()
+    }
+    
     /// Builds a row from the an SQLite statement.
     ///
     /// The row is implemented on top of StatementRowImpl, which grants *direct*
     /// access to the SQLite statement. Iteration of the statement does modify
     /// the row.
     init(statement: SelectStatement) {
-        let statementRef = Unmanaged.passRetained(statement) // released in init
+        let statementRef = Unmanaged.passRetained(statement) // released in deinit
         self.statementRef = statementRef
         self.sqliteStatement = statement.sqliteStatement
         self.impl = StatementRowImpl(statementRef: statementRef, sqliteStatement: statement.sqliteStatement)
