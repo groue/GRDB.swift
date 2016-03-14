@@ -11,7 +11,7 @@ You should give it a try.
 
 ---
 
-**March 13, 2016: GRDB.swift 0.51.1 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**March 14, 2016: GRDB.swift 0.51.2 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7+
 
@@ -110,7 +110,7 @@ Documentation
 
 **Reference**
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.51.1/index.html) (on cocoadocs.org)
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.51.2/index.html) (on cocoadocs.org)
 
 **Getting started**
 
@@ -157,7 +157,7 @@ To use GRDB with CocoaPods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '~> 0.51.1'
+pod 'GRDB.swift', '~> 0.51.2'
 ```
 
 
@@ -168,7 +168,7 @@ pod 'GRDB.swift', '~> 0.51.1'
 To use GRDB with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" ~> 0.51.1
+github "groue/GRDB.swift" ~> 0.51.2
 ```
 
 
@@ -250,7 +250,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.51.1/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.51.2/Structs/Configuration.html) for more details.
 
 > :bowtie: **Tip**: see [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that sets up a database queue.
 
@@ -301,7 +301,7 @@ let dbPool = try DatabasePool(
     maximumReaderCount: 10)      // The default is 5
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.51.1/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.51.2/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -2487,24 +2487,7 @@ Now it is easy to avoid surprises, and isolate a bunch or related statements tog
 
 ### Isolation with DatabaseQueue
 
-The `inDatabase` and `inTransaction` DatabaseQueue methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database accesses are serialized, which means that no two threads can execute such a closure in parallel:
-
-```swift
-// Isolate consecutive statements:
-try dbQueue.inDatabase { db in
-    try country.save(db)
-    try poi.save(db)
-}
-
-// Wrap database statements in a transaction:
-try dbQueue.inTransaction { db in
-    let paris = PointOfInterest.fetchOne(db, key: parisId)
-    try paris.delete(db)
-    return .Commit
-}
-```
-
-In a multithreaded application, the isolation provided by DatabaseQueue guarantees the consistency of consecutive statements:
+In a multithreaded application, use `inDatabase` or `inTransaction` to isolate consecutive statements, and make sure they are not disturbed by parallel database updates:
 
 ```swift
 dbQueue.inDatabase { db in
@@ -2517,29 +2500,23 @@ dbQueue.inDatabase { db in
     // Now this value may be different:
     let count = PointOfInterest.fetchCount(db)
 }
-```
 
-
-### Isolation with DatabasePool
-
-The `write` and `writeInTransaction` DatabasePool methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database writes are serialized, which means that no two threads can execute such a closure in parallel:
-
-```swift
-// Isolate consecutive statements:
-try dbPool.write { db in
-    try country.save(db)
-    try poi.save(db)
-}
-
-// Wrap database statements in transactions:
-try dbPool.writeInTransaction { db in
+// Wrap statements in a transaction:
+try dbQueue.inTransaction { db in
     let paris = PointOfInterest.fetchOne(db, key: parisId)
     try paris.delete(db)
     return .Commit
 }
 ```
 
-To isolate a bunch of read-only statements, use the `read` method. It also executes its closure argument in a protected dispatch queue, and blocks the current thread until your database statements are executed. Eventual concurrent updates may happen, but they are not visible inside a `read` closure:
+The `inDatabase` and `inTransaction` methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database accesses are serialized, which means that no two threads can execute such a closure in parallel.
+
+See [Transactions](#transactions) for more information.
+
+
+### Isolation with DatabasePool
+
+In a multithreaded application, use `read` to isolate consecutive fetch statements, and make sure they are not disturbed by parallel database updates:
 
 ```swift
 dbPool.read { db in
@@ -2555,12 +2532,32 @@ dbPool.read { db in
 }
 ```
 
+`read` executes its closure argument in a protected dispatch queue, and blocks the current thread until your database statements are executed. Eventual concurrent updates may happen, but they are not visible inside a `read` closure.
+
+For isolated updates, use `write` or `writeInTransaction`. They also execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database writes are serialized, which means that no two threads can execute such a closure in parallel:
+
+```swift
+try dbPool.write { db in
+    try country.save(db)
+    try poi.save(db)
+}
+
+// Wrap statements in a transaction:
+try dbPool.writeInTransaction { db in
+    let paris = PointOfInterest.fetchOne(db, key: parisId)
+    try paris.delete(db)
+    return .Commit
+}
+```
+
+See [Transactions](#transactions) for more information.
+
 
 ### Advanced Concurrency
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.51.1/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.51.1/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.51.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.51.1/Protocols/DatabaseWriter.html) protocols.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.51.2/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.51.2/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.51.2/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.51.2/Protocols/DatabaseWriter.html) protocols.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 

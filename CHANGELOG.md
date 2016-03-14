@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.51.2
+
+Released March 14, 2016
+
+**Fixed**
+
+- A race condition that could prevent `Configuration.fileAttributes` to apply to some database files.
+
+
 ## 0.51.1
 
 Released March 13, 2016
