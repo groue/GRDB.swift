@@ -2503,8 +2503,9 @@ dbQueue.inDatabase { db in
 
 // Wrap statements in a transaction:
 try dbQueue.inTransaction { db in
-    let paris = PointOfInterest.fetchOne(db, key: parisId)
-    try paris.delete(db)
+    if let paris = PointOfInterest.fetchOne(db, key: parisId) {
+        try paris.delete(db)
+    }
     return .Commit
 }
 ```
@@ -2544,8 +2545,9 @@ try dbPool.write { db in
 
 // Wrap statements in a transaction:
 try dbPool.writeInTransaction { db in
-    let paris = PointOfInterest.fetchOne(db, key: parisId)
-    try paris.delete(db)
+    if let paris = PointOfInterest.fetchOne(db, key: parisId) {
+        try paris.delete(db)
+    }
     return .Commit
 }
 ```
