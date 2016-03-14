@@ -37,6 +37,17 @@ public final class Row {
     // MARK: - Not Public
     
     let impl: RowImpl
+    
+    /// Unless we are producing a row array, we use a single row when iterating a
+    /// statement:
+    ///
+    ///     for row in Row.fetch(db, "SELECT ...") { ... }
+    ///     for person in Person.fetch(db, "SELECT ...") { ... }
+    ///
+    /// This row keeps an unmanaged reference to the statement, and a handle to
+    /// the sqlite statement, so that we avoid many retain/release invocations.
+    ///
+    /// The statementRef is released in deinit.
     let statementRef: Unmanaged<SelectStatement>?
     let sqliteStatement: SQLiteStatement
     
@@ -46,7 +57,7 @@ public final class Row {
     /// access to the SQLite statement. Iteration of the statement does modify
     /// the row.
     init(statement: SelectStatement) {
-        let statementRef = Unmanaged.passRetained(statement)
+        let statementRef = Unmanaged.passRetained(statement) // released in init
         self.statementRef = statementRef
         self.sqliteStatement = statement.sqliteStatement
         self.impl = StatementRowImpl(statementRef: statementRef, sqliteStatement: statement.sqliteStatement)
@@ -747,6 +758,7 @@ private struct StatementRowImpl : RowImpl {
     init(statementRef: Unmanaged<SelectStatement>, sqliteStatement: SQLiteStatement) {
         self.statementRef = statementRef
         self.sqliteStatement = sqliteStatement
+        // Optimize row.value(named: "...")
         let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement)).map { String.fromCString(sqlite3_column_name(sqliteStatement, Int32($0)))!.lowercaseString }
         self.lowercaseColumnIndexes = Dictionary(lowercaseColumnNames.enumerate().map { ($1, $0) }.reverse())
     }
