@@ -32,13 +32,6 @@ class DatabaseStore {
         self.init(directoryPath: directoryPath, databaseFileName: databaseFileName, directoryDescriptor: directoryDescriptor, attributes: attributes)
     }
     
-    /// Block the current thread until all pending file operations are completed.
-    func sync() {
-        if let queue = queue {
-            dispatch_sync(queue) { }
-        }
-    }
-    
     private init() {
         self.queue = nil
         self.source = nil
@@ -47,7 +40,6 @@ class DatabaseStore {
     private init(directoryPath: String, databaseFileName: String, directoryDescriptor: CInt, attributes: [String: AnyObject]) {
         let queue = dispatch_queue_create("com.groue.GRDB.DatabaseStore", nil)
         let source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, UInt(directoryDescriptor), DISPATCH_VNODE_WRITE, queue)
-        var processedFileNames: Set<String> = []
         
         // Configure dispatch source
         dispatch_source_set_event_handler(source) {
@@ -55,8 +47,7 @@ class DatabaseStore {
             DatabaseStore.setFileAttributes(
                 directoryPath: directoryPath,
                 databaseFileName: databaseFileName,
-                attributes: attributes,
-                processedFileNames: &processedFileNames)
+                attributes: attributes)
         }
         dispatch_source_set_cancel_handler(source) {
             close(directoryDescriptor)
@@ -69,8 +60,7 @@ class DatabaseStore {
         DatabaseStore.setFileAttributes(
             directoryPath: directoryPath,
             databaseFileName: databaseFileName,
-            attributes: attributes,
-            processedFileNames: &processedFileNames)
+            attributes: attributes)
         
         // Wait for directory modifications
         dispatch_resume(source)
@@ -82,10 +72,10 @@ class DatabaseStore {
         }
     }
     
-    private static func setFileAttributes(directoryPath directoryPath: String, databaseFileName: String, attributes: [String: AnyObject], inout processedFileNames: Set<String>) {
+    private static func setFileAttributes(directoryPath directoryPath: String, databaseFileName: String, attributes: [String: AnyObject]) {
         let fm = NSFileManager.defaultManager()
-        let fileNames = try! Set(fm.contentsOfDirectoryAtPath(directoryPath).filter { $0.hasPrefix(databaseFileName) })
-        for fileName in fileNames.subtract(processedFileNames) {
+        let fileNames = try! fm.contentsOfDirectoryAtPath(directoryPath).filter({ $0.hasPrefix(databaseFileName) })
+        for fileName in fileNames {
             do {
                 try fm.setAttributes(attributes, ofItemAtPath: (directoryPath as NSString).stringByAppendingPathComponent(fileName))
             } catch let error as NSError {
@@ -95,6 +85,5 @@ class DatabaseStore {
                 }
             }
         }
-        processedFileNames = fileNames
     }
 }

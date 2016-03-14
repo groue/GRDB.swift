@@ -29,9 +29,6 @@ public final class DatabasePool {
             configuration: configuration,
             schemaCache: databaseSchemaCache)
         
-        // Wait for store to have applied file attributes
-        store.sync()
-        
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
             let mode = writer.inDatabase { db in

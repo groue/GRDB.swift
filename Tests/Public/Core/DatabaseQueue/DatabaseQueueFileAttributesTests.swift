@@ -35,6 +35,9 @@ class DatabaseQueueFileAttributesTests: GRDBTestCase {
             
             dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
             _ = dbQueue
+            // TODO: this test is fragile: we have to wait until the database
+            // store has been notified of file creation.
+            NSThread.sleepForTimeInterval(0.1)
             var attributes = try fm.attributesOfItemAtPath(dbQueuePath)
             XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
         }

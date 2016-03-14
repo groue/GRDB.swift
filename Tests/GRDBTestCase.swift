@@ -4,10 +4,7 @@ import GRDB
 class GRDBTestCase: XCTestCase {
     var dbConfiguration = Configuration()
     
-    var dbQueuePath: String = {
-        let dbQueueFileName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        return (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbQueueFileName)
-    }()
+    var dbQueuePath: String!
     var _dbQueue: DatabaseQueue?
     var dbQueue: DatabaseQueue! {
         get {
@@ -23,10 +20,7 @@ class GRDBTestCase: XCTestCase {
         }
     }
     
-    var dbPoolDirectoryPath: String = {
-        let dbPoolDirectoryName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString)"
-        return (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbPoolDirectoryName)
-    }()
+    var dbPoolDirectoryPath: String!
     var dbPoolPath: String {
         return (dbPoolDirectoryPath as NSString).stringByAppendingPathComponent("db.sqlite")
     }
@@ -52,6 +46,12 @@ class GRDBTestCase: XCTestCase {
     
     override func setUp() {
         super.setUp()
+        
+        let dbQueueFileName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        dbQueuePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbQueueFileName)
+
+        let dbPoolDirectoryName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString)"
+        dbPoolDirectoryPath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbPoolDirectoryName)
         
         dbConfiguration.trace = { (sql) in
             self.sqlQueries.append(sql)

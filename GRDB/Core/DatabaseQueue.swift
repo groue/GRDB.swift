@@ -33,9 +33,6 @@ public final class DatabaseQueue {
             configuration: configuration,
             schemaCache: DatabaseSchemaCache())
         
-        // Wait for store to have applied file attributes
-        store.sync()
-        
         self.init(serializedDatabase: serializedDatabase, store: store)
     }
     

@@ -1,5 +1,5 @@
 import XCTest
-@testable import GRDB   // This is a public test where we use the dbPool.store.sync() private API :-/
+import GRDB
 
 class DatabasePoolFileAttributesTests: GRDBTestCase {
     
@@ -8,7 +8,6 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
             let fm = NSFileManager.defaultManager()
             
             try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
-            dbPool.store.sync() // Private API
             var attributes = try fm.attributesOfItemAtPath(dbPoolPath)
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
             attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-wal")
@@ -23,7 +22,6 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
             let fm = NSFileManager.defaultManager()
             
             try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
-            dbPool.store.sync() // Private API
             dbPool = nil
             var attributes = try fm.attributesOfItemAtPath(dbPoolPath)
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
@@ -49,7 +47,9 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
             
             dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
             try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
-            dbPool.store.sync() // Private API
+            // TODO: this test is fragile: we have to wait until the database
+            // store has been notified of file creation.
+            NSThread.sleepForTimeInterval(0.1)
             var attributes = try fm.attributesOfItemAtPath(dbPoolPath)
             XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
             attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-wal")
