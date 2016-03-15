@@ -77,7 +77,8 @@ public class FetchedResultsController<T: FetchedResult> {
     
     /// Returns the indexPath of a given object.
     public func indexPathForResult(result: T) -> NSIndexPath? {
-        return nil
+        // TODO
+        fatalError("Not implemented")
     }
 
     public func changesAreEquivalent(change: ResultChange<T>, otherChange: ResultChange<T>) -> Bool {
