@@ -1,3 +1,4 @@
+- [ ] Read https://sqlite.org/sharedcache.html
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
