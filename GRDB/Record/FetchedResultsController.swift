@@ -10,13 +10,13 @@ import UIKit
 public typealias FetchedResult = protocol<RowConvertible, TableMapping, Equatable>
 
 private enum Source<T: FetchedResult> {
-    case SQL(String)
+    case SQL(String, StatementArguments?)
     case FetchRequest(GRDB.FetchRequest<T>)
 
     func fetchAll(db: DatabaseReader) -> [T] {
         switch self {
-        case .SQL(let sql):
-            return T.fetchAll(db, sql)
+        case .SQL(let sql, let arguments):
+            return T.fetchAll(db, sql, arguments: arguments)
         case .FetchRequest(let fetchRequest):
             return fetchRequest.fetchAll(db)
         }
@@ -26,8 +26,8 @@ private enum Source<T: FetchedResult> {
 public class FetchedResultsController<T: FetchedResult> {
     
     // MARK: - Initialization
-    public convenience init(database: DatabaseWriter, sql: String) {
-        let source: Source<T> = .SQL(sql)
+    public convenience init(database: DatabaseWriter, sql: String, arguments: StatementArguments? = nil) {
+        let source: Source<T> = .SQL(sql, arguments)
         self.init(database: database, source: source)
     }
     
