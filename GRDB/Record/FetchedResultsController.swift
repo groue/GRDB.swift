@@ -9,19 +9,31 @@ import UIKit
 
 public typealias FetchedResult = protocol<RowConvertible, TableMapping, Equatable>
 
+private enum Source<T: FetchedResult> {
+    case SQL(String)
+    case FetchRequest(GRDB.FetchRequest<T>)
+
+    func fetchAll(db: DatabaseReader) -> [T] {
+        switch self {
+        case .SQL(let sql):
+            return T.fetchAll(db, sql)
+        case .FetchRequest(let fetchRequest):
+            return fetchRequest.fetchAll(db)
+        }
+    }
+}
+
 public class FetchedResultsController<T: FetchedResult> {
     
     // MARK: - Initialization
     public init(database: DatabaseWriter, sql: String) {
-        self.sql = sql
-        self.fetchRequest = nil
+        self.source = .SQL(sql)
         self.database = database
         database.addTransactionObserver(self)
     }
     
     public init(database: DatabaseWriter, fetchRequest: FetchRequest<T>) {
-        self.sql = nil
-        self.fetchRequest = fetchRequest
+        self.source = .FetchRequest(fetchRequest)
         self.database = database
         database.addTransactionObserver(self)
     }
@@ -32,12 +44,9 @@ public class FetchedResultsController<T: FetchedResult> {
     
     
     // MARK: - Configuration
-
-    /// The SQL query
-    public let sql: String?
     
-    /// The FetchRequest
-    public let fetchRequest: FetchRequest<T>?
+    /// The source
+    private let source: Source<T>
 
     /// The databaseWriter
     public let database: DatabaseWriter
@@ -79,17 +88,7 @@ public class FetchedResultsController<T: FetchedResult> {
     // MARK: - Not public
     
     func fetch() -> [T] {
-        return database.read { db in self.fetchInDatabase(db) }
-    }
-    
-    func fetchInDatabase(db: Database) -> [T] {
-        if let fetchRequest = self.fetchRequest {
-            return fetchRequest.fetchAll(db)
-        } else if let sql = self.sql {
-            return T.fetchAll(db, sql)
-        } else {
-            fatalError("Can't fetch without sql or fetchRequest")
-        }
+        return source.fetchAll(database)
     }
     
     static func computeChanges(fromRows s: [T], toRows t: [T]) -> [ResultChange<T>] {
@@ -236,7 +235,7 @@ extension FetchedResultsController : TransactionObserverType {
     public func databaseWillCommit() throws { }
     public func databaseDidRollback(db: Database) { }
     public func databaseDidCommit(db: Database) {
-        let newResults = self.fetchInDatabase(db)
+        let newResults = source.fetchAll(db)
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             let oldResults = self.fetchedResults
 
