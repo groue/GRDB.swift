@@ -16,26 +16,17 @@ public class FetchedResultsController<T: FetchedResult> {
         self.sql = sql
         self.fetchRequest = nil
         self.database = database
+        database.addTransactionObserver(self)
     }
     
     public init(database: DatabaseWriter, fetchRequest: FetchRequest<T>) {
         self.sql = nil
         self.fetchRequest = fetchRequest
         self.database = database
-    }
-    
-    deinit {
-        // TODO! : What if it is called in dbQueue ?
-        // Remove for observation
-        database.removeTransactionObserver(self)
+        database.addTransactionObserver(self)
     }
     
     public func performFetch() {
-        
-        // TODO! : This can be called several times
-        // Install for observation
-        database.addTransactionObserver(self)
-        
         fetchedResults = self.fetch()
     }
     
