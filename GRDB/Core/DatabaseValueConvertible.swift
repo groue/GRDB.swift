@@ -141,13 +141,13 @@ public extension DatabaseValueConvertible {
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///
     /// - parameters:
-    ///     - reader: A DatabaseReader.
+    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An array.
     @warn_unused_result
-    public static func fetchAll(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return reader.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
+    public static func fetchAll(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
+        return db.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -158,13 +158,13 @@ public extension DatabaseValueConvertible {
     ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     ///
     /// - parameters:
-    ///     - reader: A DatabaseReader.
+    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
-    public static func fetchOne(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return reader.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
+    public static func fetchOne(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
+        return db.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
     }
 }
 
@@ -248,7 +248,7 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// remaining elements are undefined.
     ///
     /// - parameters:
-    ///     - reader: A DatabaseReader.
+    ///     - db: A Database.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of optional values.
@@ -262,12 +262,12 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String?]
     ///
     /// - parameters:
-    ///     - reader: A DatabaseReader.
+    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
     ///     - sql: An SQL query.
     ///     - parameter arguments: Optional statement arguments.
     /// - returns: An array of optional values.
     @warn_unused_result
-    public static func fetchAll(reader: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Wrapped?] {
-        return reader.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
+    public static func fetchAll(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Wrapped?] {
+        return db.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
     }
 }

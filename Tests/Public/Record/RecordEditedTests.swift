@@ -58,13 +58,13 @@ class PersonWithModifiedCaseColumns: Record {
         ]
     }
     
-    override func insert(writer: DatabaseWriter) throws {
+    override func insert(db: DatabaseWriter) throws {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = NSDate()
         }
         
-        try super.insert(writer)
+        try super.insert(db)
     }
     
     override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
