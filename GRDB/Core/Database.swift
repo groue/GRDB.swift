@@ -9,7 +9,8 @@ typealias SQLiteValue = COpaquePointer
 
 /// A Database connection.
 ///
-/// You don't create a database directly. Instead, you use a DatabaseQueue:
+/// You don't create a database directly. Instead, you use a DatabaseQueue, or
+/// a DatabasePool:
 ///
 ///     let dbQueue = DatabaseQueue(...)
 ///
@@ -30,25 +31,24 @@ public final class Database {
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     
-    private var primaryKeyCache: [String: PrimaryKey] = [:]
-    private var updateStatementCache: [String: UpdateStatement] = [:]
-    private var selectStatementCache: [String: SelectStatement] = [:]
+    var schemaCache: DatabaseSchemaCacheType    // internal so that it can be tested
     
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
     private var transactionState: TransactionState = .WaitForTransactionCompletion
     
     /// The transaction observers
-    private var transactionObservers = [TransactionObserverType]()
+    private var transactionObservers = [WeakTransactionObserver]()
     
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
     
-    /// The queue from which the database can be used.
-    /// See preconditionValidQueue().
-    var databaseQueueID: DatabaseQueueID = nil
+    /// The value for the dispatch queue specific that holds the Database identity.
+    /// See preconditionValidQueue.
+    var dispatchQueueID: UnsafeMutablePointer<Void> = nil
     
-    init(path: String, configuration: Configuration) throws {
+    init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
         self.configuration = configuration
+        self.schemaCache = schemaCache
         
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection = SQLiteConnection()
@@ -58,6 +58,8 @@ public final class Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
+        configuration.SQLiteConnectionDidOpen?()
+        
         // Setup trace first, so that all queries, including initialization queries, are traced.
         setupTrace()
         
@@ -65,19 +67,14 @@ public final class Database {
         setupBusyMode()
     }
     
-    // Initializes an in-memory database
-    convenience init(configuration: Configuration) {
-        try! self.init(path: ":memory:", configuration: configuration)
-    }
-    
     deinit {
-        if sqliteConnection != nil {
-            sqlite3_close(sqliteConnection)
-        }
+        configuration.SQLiteConnectionDidClose?()
+        sqlite3_close(sqliteConnection)
     }
     
-    func preconditionValidQueue() {
-        precondition(databaseQueueID == nil || databaseQueueID == dispatch_get_specific(DatabaseQueue.databaseQueueIDKey), "Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
+    func releaseMemory() {
+        sqlite3_db_release_memory(sqliteConnection)
+        schemaCache.clear()
     }
     
     private func setupForeignKeys() throws {
@@ -121,7 +118,6 @@ public final class Database {
         }
     }
 }
-
 
 /// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
 enum ThreadingMode {
@@ -186,13 +182,28 @@ public enum BusyMode {
 
 
 // =========================================================================
+// MARK: - SerializedDatabase Support
+
+extension Database {
+    
+    /// The key for the dispatch queue specific that holds the Database identity.
+    /// See preconditionValidQueue.
+    static let dispatchQueueIDKey = unsafeBitCast(Database.self, UnsafePointer<Void>.self)     // some unique pointer
+    
+    func preconditionValidQueue() {
+        precondition(dispatchQueueID == nil || dispatchQueueID == dispatch_get_specific(Database.dispatchQueueIDKey), "Database was not used on the correct thread. If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
+    }
+}
+
+
+// =========================================================================
 // MARK: - Statements
 
 extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.selectStatement("SELECT * FROM persons WHERE age > ?")
+    ///     let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
     ///     let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
     ///
@@ -206,12 +217,12 @@ extension Database {
     
     @warn_unused_result
     func cachedSelectStatement(sql: String) throws -> SelectStatement {
-        if let statement = selectStatementCache[sql] {
+        if let statement = schemaCache.selectStatement(sql: sql) {
             return statement
         }
         
         let statement = try selectStatement(sql)
-        selectStatementCache[sql] = statement
+        schemaCache.setSelectStatement(statement, forSQL: sql)
         return statement
     }
     
@@ -233,12 +244,12 @@ extension Database {
     
     @warn_unused_result
     func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        if let statement = updateStatementCache[sql] {
+        if let statement = schemaCache.updateStatement(sql: sql) {
             return statement
         }
         
         let statement = try updateStatement(sql)
-        updateStatementCache[sql] = statement
+        schemaCache.setUpdateStatement(statement, forSQL: sql)
         return statement
     }
     
@@ -252,7 +263,7 @@ extension Database {
     ///         "INSERT INTO persons (name) VALUES (?);" +
     ///         "INSERT INTO persons (name) VALUES (?);" +
     ///         "INSERT INTO persons (name) VALUES (?);",
-    ///         arguments; ['Harry', 'Ron', 'Hermione'])
+    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
     ///
     /// This method may throw a DatabaseError.
     ///
@@ -316,14 +327,15 @@ extension Database {
         
         // During the execution of sqlite3_prepare_v2, the observer listens to
         // authorization callbacks in order to observe schema changes.
-        let schemaChangeObserver = SchemaChangeObserver(self)
-        schemaChangeObserver.start()
+        let observer = StatementCompilationObserver(self)
+        observer.start()
         
         sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)
             let sqlEnd = sqlStart + sqlCodeUnits.count
             var statementStart = sqlStart
             while statementStart < sqlEnd - 1 {
+                observer.reset()
                 var statementEnd: UnsafePointer<Int8> = nil
                 var sqliteStatement: SQLiteStatement = nil
                 let code = sqlite3_prepare_v2(sqliteConnection, statementStart, -1, &sqliteStatement, &statementEnd)
@@ -339,7 +351,7 @@ extension Database {
                 }
                 
                 do {
-                    let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement)
+                    let statement = UpdateStatement(database: self, sql: sql, sqliteStatement: sqliteStatement, invalidatesDatabaseSchemaCache: observer.invalidatesDatabaseSchemaCache)
                     try statement.execute(arguments: consumeArguments(statement))
                 } catch let statementError {
                     error = statementError
@@ -350,10 +362,7 @@ extension Database {
             }
         }
         
-        schemaChangeObserver.stop()
-        if schemaChangeObserver.schemaChanged {
-            clearSchemaCache()
-        }
+        observer.stop()
         
         if let error = error {
             throw error
@@ -511,7 +520,7 @@ extension Database {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     db.addCollation(collation)
-    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE localized_standard")
     public func addCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         collations.insert(collation)
@@ -552,7 +561,7 @@ public final class DatabaseCollation {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     db.addCollation(collation)
-    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE localized_standard")
     ///
     /// - parameters:
     ///     - name: The function name.
@@ -587,6 +596,19 @@ public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
 // =========================================================================
 // MARK: - Database Schema
 
+protocol DatabaseSchemaCacheType {
+    mutating func clear()
+    
+    func primaryKey(tableName tableName: String) -> PrimaryKey?
+    mutating func setPrimaryKey(primaryKey: PrimaryKey, forTableName tableName: String)
+
+    func updateStatement(sql sql: String) -> UpdateStatement?
+    mutating func setUpdateStatement(statement: UpdateStatement, forSQL sql: String)
+    
+    func selectStatement(sql sql: String) -> SelectStatement?
+    mutating func setSelectStatement(statement: SelectStatement, forSQL sql: String)
+}
+
 extension Database {
     
     /// Clears the database schema cache.
@@ -595,14 +617,7 @@ extension Database {
     /// modified by another connection.
     public func clearSchemaCache() {
         preconditionValidQueue()
-        primaryKeyCache = [:]
-        
-        // We do clear updateStatementCache and selectStatementCache despite
-        // the automatic statement recompilation (see https://www.sqlite.org/c3ref/prepare.html)
-        // because the automatic statement recompilation only happens a
-        // limited number of times.
-        updateStatementCache = [:]
-        selectStatementCache = [:]
+        schemaCache.clear()
     }
     
     /// Returns whether a table exists.
@@ -619,8 +634,10 @@ extension Database {
     /// Throws if table does not exist.
     ///
     /// This method is not thread-safe.
+    ///
+    /// - throws: A DatabaseError if table does not exist.
     func primaryKey(tableName: String) throws -> PrimaryKey {
-        if let primaryKey = primaryKeyCache[tableName] {
+        if let primaryKey = schemaCache.primaryKey(tableName: tableName) {
             return primaryKey
         }
         
@@ -696,7 +713,7 @@ extension Database {
             primaryKey = .Regular(pkColumnInfos.map { $0.name })
         }
         
-        primaryKeyCache[tableName] = primaryKey
+        schemaCache.setPrimaryKey(primaryKey, forTableName: tableName)
         return primaryKey
     }
     
@@ -767,58 +784,44 @@ enum PrimaryKey {
     }
 }
 
-// A class that uses sqlite3_set_authorizer to fetch the list of tables
-// used by a select statement.
-final class SourceTableObserver {
-    var sourceTables: Set<String> = []
-    let database: Database
-    
-    init(_ database: Database) {
-        self.database = database
-    }
-    
-    func start() {
-        let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-        sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
-            if actionCode == SQLITE_READ {
-                let sniffer = unsafeBitCast(snifferPointer, SourceTableObserver.self)
-                sniffer.sourceTables.insert(String.fromCString(CString1)!)
-            }
-            return SQLITE_OK
-            }, snifferPointer)
-    }
-    
-    func stop() {
-        sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
-    }
-}
 
-// A class that uses sqlite3_set_authorizer to check if the database schema
-// changes.
-final class SchemaChangeObserver {
-    var schemaChanged: Bool = false
+// =========================================================================
+// MARK: - StatementCompilationObserver
+
+// A class that uses sqlite3_set_authorizer to fetch information about a statement.
+final class StatementCompilationObserver {
     let database: Database
+    var sourceTables: Set<String> = []
+    var invalidatesDatabaseSchemaCache = false
     
     init(_ database: Database) {
         self.database = database
     }
     
     func start() {
-        let snifferPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
-        sqlite3_set_authorizer(database.sqliteConnection, { (snifferPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
+        let observerPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
+        sqlite3_set_authorizer(database.sqliteConnection, { (observerPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
             switch actionCode {
             case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE:
-                let sniffer = unsafeBitCast(snifferPointer, SchemaChangeObserver.self)
-                sniffer.schemaChanged = true
+                let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
+                observer.invalidatesDatabaseSchemaCache = true
+            case SQLITE_READ:
+                let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
+                observer.sourceTables.insert(String.fromCString(CString1)!)
             default:
                 break
             }
             return SQLITE_OK
-            }, snifferPointer)
+            }, observerPointer)
     }
     
     func stop() {
         sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
+    }
+    
+    func reset() {
+        sourceTables = []
+        invalidatesDatabaseSchemaCache = false
     }
 }
 
@@ -849,7 +852,7 @@ extension Database {
     ///     - block: A block that executes SQL statements and return either
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
-    public func inTransaction(kind: TransactionKind? = nil, block: () throws -> TransactionCompletion) throws {
+    public func inTransaction(kind: TransactionKind? = nil, @noescape _ block: () throws -> TransactionCompletion) throws {
         preconditionValidQueue()
         
         var completion: TransactionCompletion = .Rollback
@@ -922,17 +925,30 @@ extension Database {
         try execute("COMMIT TRANSACTION")
     }
     
+    /// Add a transaction observer, so that it gets notified of all
+    /// database changes.
+    ///
+    /// The transaction observer is weakly referenced: it is not retained, and
+    /// stops getting notifications after it is deallocated.
     public func addTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
-        transactionObservers.append(transactionObserver)
+        transactionObservers.append(WeakTransactionObserver(transactionObserver))
         if transactionObservers.count == 1 {
             installTransactionObserverHooks()
         }
     }
     
+    /// Remove a transaction observer.
     public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
         preconditionValidQueue()
-        transactionObservers.removeFirst { $0 === transactionObserver }
+        transactionObservers.removeFirst { $0.observer === transactionObserver }
+        if transactionObservers.isEmpty {
+            uninstallTransactionObserverHooks()
+        }
+    }
+    
+    private func cleanupTransactionObservers() {
+        transactionObservers = transactionObservers.filter { $0.observer != nil }
         if transactionObservers.isEmpty {
             uninstallTransactionObserverHooks()
         }
@@ -970,27 +986,29 @@ extension Database {
     }
     
     private func willCommit() throws {
-        for observer in transactionObservers {
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             try observer.databaseWillCommit()
         }
     }
     
     private func didChangeWithEvent(event: DatabaseEvent) {
-        for observer in transactionObservers {
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidChangeWithEvent(event)
         }
     }
     
     private func didCommit() {
-        for observer in transactionObservers {
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidCommit(self)
         }
+        cleanupTransactionObservers()
     }
     
     private func didRollback() {
-        for observer in transactionObservers {
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidRollback(self)
         }
+        cleanupTransactionObservers()
     }
     
     private func installTransactionObserverHooks() {
@@ -1102,6 +1120,13 @@ public protocol TransactionObserverType : class {
     func databaseDidRollback(db: Database)
 }
 
+class WeakTransactionObserver {
+    weak var observer: TransactionObserverType?
+    init(_ observer: TransactionObserverType) {
+        self.observer = observer
+    }
+}
+
 
 /// A database event, notified to TransactionObserverType.
 ///
@@ -1125,4 +1150,71 @@ public struct DatabaseEvent {
     
     /// The rowID of the changed row.
     public let rowID: Int64
+}
+
+
+// =========================================================================
+// MARK: - DatabaseReader
+
+extension Database : DatabaseReader {
+    
+    // MARK: - Read From Database
+    
+    /// Evalutes the *block* argument in a deferred transaction, and returns
+    /// its result.
+    ///
+    /// This method is part of the DatabaseReader protocol adoption.
+    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+        // The isolation guarantees required by DatabaseReader.read require that
+        // we run the block in a transaction.
+        //
+        // Problem is, our inTransaction() method is declared as a `throws`
+        // function, not a `rethrows` function.
+        //
+        // We could update DatabaseReader and make the read() method `throws`.
+        //
+        // Instead we assume that read-only deferred transaction always
+        // succeeds: let's turn our throwing inTransaction() into a rethrowing
+        // function with this little trick:
+        func impl(@noescape block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+            var result: T? = nil
+            do {
+                try inTransaction(.Deferred) {
+                    result = try block(db: self)
+                    return .Commit
+                }
+            } catch {
+                try onError(error)
+            }
+            return result!
+        }
+        return try impl(block, onError: { throw $0 })
+    }
+    
+    /// Evalutes the *block* argument and returns its result.
+    ///
+    /// This method is part of the DatabaseReader protocol adoption.
+    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
+        // The isolation guarantees required by DatabaseReader.nonIsolatedRead
+        // are inherited from our wrapping DatabaseQueue or DatabasePool.
+        return try block(db: self)
+    }
+}
+
+
+// =========================================================================
+// MARK: - DatabaseWriter
+
+extension Database : DatabaseWriter {
+    
+    // MARK: - Writing in Database
+    
+    /// Evalutes the *block* argument and returns its result.
+    ///
+    /// This method is part of the DatabaseWriter protocol adoption.
+    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
+        // The isolation guarantees required by DatabaseWriter.write are
+        // inherited from our wrapping DatabaseQueue or DatabasePool.
+        return try block(db: self)
+    }
 }

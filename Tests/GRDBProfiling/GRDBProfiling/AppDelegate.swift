@@ -78,10 +78,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func fetchRecords() {
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
-        
-        let items = dbQueue.inDatabase { db in
-            Item.fetchAll(db, "SELECT * FROM items")
-        }
+        let items = Item.fetchAll(dbQueue)
         assert(items.count == expectedRowCount)
         assert(items[0].i0 == 0)
         assert(items[1].i1 == 1)
@@ -101,7 +98,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
         }
         
-        let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
         
         let dbQueue = try! DatabaseQueue(path: databasePath)
         try! dbQueue.inDatabase { db in
@@ -130,7 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
         }
         
-        let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
         
         let dbQueue = try! DatabaseQueue(path: databasePath)
         try! dbQueue.inDatabase { db in
@@ -149,7 +146,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func insertRecords() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
-        let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -160,7 +157,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
         }
         
-        let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
         
         let dbQueue = try! DatabaseQueue(path: databasePath)
         try! dbQueue.inDatabase { db in

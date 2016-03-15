@@ -16,11 +16,11 @@ This application runs an universal (iPhone + iPad) application that displays an 
 
 **To see usage of GRDB, check the following files:**
 
-- [AppDelegate.swift](GRDBDemoiOS/AppDelegate.swift)
-
-    AppDelegate sets up a global dbQueue that is accessible in the whole application.
+- [Database.swift](GRDBDemoiOS/Database.swift)
     
-    It uses migrations to initialize the database.
+    The setupDatabase() function sets up a global dbQueue that is accessible in the whole application. It is called by the [AppDelegate](GRDBDemoiOS/AppDelegate.swift) when application starts up.
+    
+    It uses [migrations](https://github.com/groue/GRDB.swift#migrations) to initialize the database, and [custom string comparison](https://github.com/groue/GRDB.swift#string-comparison) in order to let the database perform the localized sorting of persons by name.
 
 - [MasterViewController.swift](GRDBDemoiOS/MasterViewController.swift)
     
@@ -28,7 +28,7 @@ This application runs an universal (iPhone + iPad) application that displays an 
 
 - [Person.swift](GRDBDemoiOS/Person.swift)
     
-    Person is a simple Record subclass.
+    Person is a simple [Record](https://github.com/groue/GRDB.swift#records) subclass.
 
 - [DetailViewController.swift](GRDBDemoiOS/DetailViewController.swift) and [PersonEditionViewController.swift](GRDBDemoiOS/PersonEditionViewController.swift)
     

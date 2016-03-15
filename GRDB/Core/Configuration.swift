@@ -1,6 +1,6 @@
 import Foundation
 
-/// Configure a DatabaseQueue
+/// Configuration for a DatabaseQueue or DatabasePool.
 public struct Configuration {
     
     // MARK: - Misc options
@@ -12,6 +12,21 @@ public struct Configuration {
     public var trace: TraceFunction?
     
     
+    // MARK: - File Attributes
+    
+    /// The file attributes that should be applied to the database files (see
+    /// `NSFileMnager.setAttributes(_,ofItemAtPath:)`).
+    ///
+    /// SQLite will create [temporary files](https://www.sqlite.org/tempfiles.html)
+    /// when it needs them.
+    ///
+    /// In WAL mode (see DatabasePool), SQLite will also eventually create
+    /// `-shm` and `-wal` files.
+    ///
+    /// GRDB will apply file attributes to all those files.
+    public var fileAttributes: [String: AnyObject]? = nil
+    
+    
     // MARK: - Transactions
     
     /// The default kind of transaction.
@@ -21,18 +36,24 @@ public struct Configuration {
     // MARK: - Concurrency
     
     public var busyMode: BusyMode = .ImmediateError
+    
+    
+    // MARK: - Internal
+    
     var threadingMode: ThreadingMode = .Default
+    var SQLiteConnectionDidOpen: (() -> ())?
+    var SQLiteConnectionDidClose: (() -> ())?
     
     
     // MARK: - Factory Configuration
     
     /// Returns a factory configuration:
     ///
-    /// - foreignKeysEnabled: true
     /// - readonly: false
+    /// - fileAttributes: nil
+    /// - foreignKeysEnabled: true
     /// - trace: nil
     /// - defaultTransactionKind: .Immediate
-    /// - transactionObserver: nil
     /// - busyMode: .ImmediateError
     public init() { }
     

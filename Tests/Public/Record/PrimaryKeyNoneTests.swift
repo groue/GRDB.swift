@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // Item has no primary key.
-class Item : Record {
+private class Item : Record {
     var name: String?
     
     init(name: String? = nil) {

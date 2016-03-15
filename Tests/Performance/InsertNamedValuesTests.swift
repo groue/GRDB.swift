@@ -21,7 +21,7 @@ class InsertNamedValuesTests: XCTestCase {
         }
         
         measureBlock {
-            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
             
             let dbQueue = FMDatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -51,7 +51,7 @@ class InsertNamedValuesTests: XCTestCase {
         }
         
         measureBlock {
-            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
@@ -82,7 +82,7 @@ class InsertNamedValuesTests: XCTestCase {
         }
         
         measureBlock {
-            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
             
             let db = try! Connection(databasePath)
             try! db.run(itemsTable.create { t in

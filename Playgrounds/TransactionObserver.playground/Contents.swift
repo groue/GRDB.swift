@@ -53,9 +53,8 @@ class TableChangeObserver : NSObject, TransactionObserverType {
 
 // Register observer
 
-dbQueue.inDatabase { db in
-    db.addTransactionObserver(TableChangeObserver())
-}
+let observer = TableChangeObserver()
+dbQueue.addTransactionObserver(observer)
 
 
 //

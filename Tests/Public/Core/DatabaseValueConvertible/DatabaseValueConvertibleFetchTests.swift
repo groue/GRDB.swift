@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // A type that adopts DatabaseValueConvertible but does not adopt StatementColumnConvertible
-struct WrappedInt: DatabaseValueConvertible {
+private struct WrappedInt: DatabaseValueConvertible {
     let int: Int
     init(int: Int) {
         self.int = int

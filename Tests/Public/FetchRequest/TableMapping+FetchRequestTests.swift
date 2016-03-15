@@ -36,27 +36,45 @@ class TableMappingFetchRequestTests: GRDBTestCase {
     // MARK: - Count
     
     func testFetchCount() {
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                XCTAssertEqual(Reader.fetchCount(db), 0)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-                
-                let readers: [(String, Int?)] = [
-                    ("Arthur", 42),
-                    ("Barbara", 36),
-                    ("Craig", 42),
-                    ("Craig", 42),
-                    ("Daniel", nil)]
-                for (name, age) in readers {
-                    try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: [name, age])
-                }
-                
-                XCTAssertEqual(Reader.fetchCount(db), 5)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
-                
-                XCTAssertEqual(Reader.filter(Col.age == 42).fetchCount(db), 3)
-                XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
-            }
+        dbQueue.inDatabase { db in
+            XCTAssertEqual(Reader.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(Reader.all().reverse().fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(Reader.order(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(Reader.limit(10).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
+            
+            XCTAssertEqual(Reader.filter(Col.age == 42).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
+            
+            XCTAssertEqual(Reader.all().distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
+            
+            XCTAssertEqual(Reader.select(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(Reader.select(Col.name).distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
+            
+            XCTAssertEqual(Reader.select(Col.age * 2).distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            
+            XCTAssertEqual(Reader.select((Col.age * 2).aliased("ignored")).distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            
+            XCTAssertEqual(Reader.select(Col.name, Col.age).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
+            
+            XCTAssertEqual(Reader.select(Col.name, Col.age).distinct.fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
+            
+            XCTAssertEqual(Reader.select(max(Col.age)).group(Col.name).fetchCount(db), 0)
+            XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
         }
     }
     
@@ -157,15 +175,6 @@ class TableMappingFetchRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(Reader.order(Col.age).order(Col.name)),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\"")
-    }
-    
-    
-    // MARK: - Reverse
-    
-    func testReverse() {
-        XCTAssertEqual(
-            sql(Reader.reverse()),
-            "SELECT * FROM \"readers\" ORDER BY \"id\" DESC")
     }
     
     

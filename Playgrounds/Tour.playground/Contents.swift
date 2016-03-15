@@ -1,0 +1,123 @@
+//: To run this playground, select and build the GRDBOSX scheme.
+//:
+//: Tour
+//: ======
+//:
+//: This playground is a tour of GRDB.
+
+import GRDB
+import CoreLocation
+
+
+//: Open a connection to the database
+
+// Open an in-memory database that logs all SQL statements
+var configuration = Configuration()
+configuration.trace = { print($0) }
+let dbQueue = DatabaseQueue(configuration: configuration)
+
+
+//: Execute SQL queries
+
+try dbQueue.execute(
+    "CREATE TABLE pointOfInterests (" +
+        "id INTEGER PRIMARY KEY, " +
+        "title TEXT, " +
+        "favorite BOOLEAN NOT NULL, " +
+        "latitude DOUBLE NOT NULL, " +
+        "longitude DOUBLE NOT NULL" +
+    ")")
+
+let parisId = try dbQueue.execute(
+    "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
+    "VALUES (?, ?, ?, ?)",
+    arguments: ["Paris", true, 48.85341, 2.3488]).insertedRowID!
+
+
+//: Fetch database rows and values
+
+for row in Row.fetchAll(dbQueue, "SELECT * FROM pointOfInterests") {
+    let title: String = row.value(named: "title")
+    let favorite: Bool = row.value(named: "favorite")
+    let coordinate = CLLocationCoordinate2DMake(
+        row.value(named: "latitude"),
+        row.value(named: "longitude"))
+    print("Fetched", title, favorite, coordinate)
+}
+
+let poiCount = Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM pointOfInterests")! // Int
+let poiTitles = String.fetchAll(dbQueue, "SELECT title FROM pointOfInterests") // [String]
+
+
+//: Insert and fetch records
+
+struct PointOfInterest {
+    var id: Int64?
+    var title: String?
+    var favorite: Bool
+    var coordinate: CLLocationCoordinate2D
+}
+
+// Adopt RowConvertible
+extension PointOfInterest : RowConvertible {
+    init(_ row: Row) {
+        id = row.value(named: "id")
+        title = row.value(named: "title")
+        favorite = row.value(named: "favorite")
+        coordinate = CLLocationCoordinate2DMake(
+            row.value(named: "latitude"),
+            row.value(named: "longitude"))
+    }
+}
+
+// Adopt TableMapping
+extension PointOfInterest : TableMapping {
+    static func databaseTableName() -> String {
+        return "pointOfInterests"
+    }
+}
+
+// Adopt MutablePersistable
+extension PointOfInterest : MutablePersistable {
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return [
+            "id": id,
+            "title": title,
+            "favorite": favorite,
+            "latitude": coordinate.latitude,
+            "longitude": coordinate.longitude
+        ]
+    }
+    
+    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        id = rowID
+    }
+}
+
+var berlin = PointOfInterest(
+    id: nil,
+    title: "Berlin",
+    favorite: false,
+    coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
+
+try berlin.insert(dbQueue)
+berlin.id // some value
+
+berlin.favorite = true
+try berlin.update(dbQueue)
+
+// Fetch from SQL
+let pois = PointOfInterest.fetchAll(dbQueue, "SELECT * FROM pointOfInterests") // [PointOfInterest]
+
+
+//: Avoid SQL with the query interface:
+
+let title = SQLColumn("title")
+let favorite = SQLColumn("favorite")
+
+berlin = PointOfInterest.filter(title == "Berlin").fetchOne(dbQueue)!   // PointOfInterest
+let paris = PointOfInterest.fetchOne(dbQueue, key: 1)                   // PointOfInterest?
+let favoritePois = PointOfInterest                                      // [PointOfInterest]
+    .filter(favorite)
+    .order(title)
+    .fetchAll(dbQueue)

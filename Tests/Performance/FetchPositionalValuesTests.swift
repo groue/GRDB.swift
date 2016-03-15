@@ -22,16 +22,16 @@ class FetchPositionalValuesTests: XCTestCase {
                 case 101 /*SQLITE_DONE*/:
                     break loop
                 case 100 /*SQLITE_ROW*/:
-                    let _ = sqlite3_column_int64(statement, 0)
-                    let _ = sqlite3_column_int64(statement, 1)
-                    let _ = sqlite3_column_int64(statement, 2)
-                    let _ = sqlite3_column_int64(statement, 3)
-                    let _ = sqlite3_column_int64(statement, 4)
-                    let _ = sqlite3_column_int64(statement, 5)
-                    let _ = sqlite3_column_int64(statement, 6)
-                    let _ = sqlite3_column_int64(statement, 7)
-                    let _ = sqlite3_column_int64(statement, 8)
-                    let _ = sqlite3_column_int64(statement, 9)
+                    _ = sqlite3_column_int64(statement, 0)
+                    _ = sqlite3_column_int64(statement, 1)
+                    _ = sqlite3_column_int64(statement, 2)
+                    _ = sqlite3_column_int64(statement, 3)
+                    _ = sqlite3_column_int64(statement, 4)
+                    _ = sqlite3_column_int64(statement, 5)
+                    _ = sqlite3_column_int64(statement, 6)
+                    _ = sqlite3_column_int64(statement, 7)
+                    _ = sqlite3_column_int64(statement, 8)
+                    _ = sqlite3_column_int64(statement, 9)
                     break
                 default:
                     XCTFail()
@@ -58,16 +58,16 @@ class FetchPositionalValuesTests: XCTestCase {
             dbQueue.inDatabase { db in
                 if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
                     while rs.next() {
-                        let _ = rs.longForColumnIndex(0)
-                        let _ = rs.longForColumnIndex(1)
-                        let _ = rs.longForColumnIndex(2)
-                        let _ = rs.longForColumnIndex(3)
-                        let _ = rs.longForColumnIndex(4)
-                        let _ = rs.longForColumnIndex(5)
-                        let _ = rs.longForColumnIndex(6)
-                        let _ = rs.longForColumnIndex(7)
-                        let _ = rs.longForColumnIndex(8)
-                        let _ = rs.longForColumnIndex(9)
+                        _ = rs.longForColumnIndex(0)
+                        _ = rs.longForColumnIndex(1)
+                        _ = rs.longForColumnIndex(2)
+                        _ = rs.longForColumnIndex(3)
+                        _ = rs.longForColumnIndex(4)
+                        _ = rs.longForColumnIndex(5)
+                        _ = rs.longForColumnIndex(6)
+                        _ = rs.longForColumnIndex(7)
+                        _ = rs.longForColumnIndex(8)
+                        _ = rs.longForColumnIndex(9)
                         
                         count += 1
                     }
@@ -87,16 +87,16 @@ class FetchPositionalValuesTests: XCTestCase {
             
             dbQueue.inDatabase { db in
                 for row in Row.fetch(db, "SELECT * FROM items") {
-                    let _: Int = row.value(atIndex: 0)
-                    let _: Int = row.value(atIndex: 1)
-                    let _: Int = row.value(atIndex: 2)
-                    let _: Int = row.value(atIndex: 3)
-                    let _: Int = row.value(atIndex: 4)
-                    let _: Int = row.value(atIndex: 5)
-                    let _: Int = row.value(atIndex: 6)
-                    let _: Int = row.value(atIndex: 7)
-                    let _: Int = row.value(atIndex: 8)
-                    let _: Int = row.value(atIndex: 9)
+                    _ = row.value(atIndex: 0) as Int
+                    _ = row.value(atIndex: 1) as Int
+                    _ = row.value(atIndex: 2) as Int
+                    _ = row.value(atIndex: 3) as Int
+                    _ = row.value(atIndex: 4) as Int
+                    _ = row.value(atIndex: 5) as Int
+                    _ = row.value(atIndex: 6) as Int
+                    _ = row.value(atIndex: 7) as Int
+                    _ = row.value(atIndex: 8) as Int
+                    _ = row.value(atIndex: 9) as Int
                     
                     count += 1
                 }
@@ -115,16 +115,16 @@ class FetchPositionalValuesTests: XCTestCase {
             
             for row in try! db.prepare("SELECT * FROM items") {
                 // Direct Int extraction is not supported.
-                let _ = Int(row[0] as! Int64)
-                let _ = Int(row[1] as! Int64)
-                let _ = Int(row[2] as! Int64)
-                let _ = Int(row[3] as! Int64)
-                let _ = Int(row[4] as! Int64)
-                let _ = Int(row[5] as! Int64)
-                let _ = Int(row[6] as! Int64)
-                let _ = Int(row[7] as! Int64)
-                let _ = Int(row[8] as! Int64)
-                let _ = Int(row[9] as! Int64)
+                _ = Int(row[0] as! Int64)
+                _ = Int(row[1] as! Int64)
+                _ = Int(row[2] as! Int64)
+                _ = Int(row[3] as! Int64)
+                _ = Int(row[4] as! Int64)
+                _ = Int(row[5] as! Int64)
+                _ = Int(row[6] as! Int64)
+                _ = Int(row[7] as! Int64)
+                _ = Int(row[8] as! Int64)
+                _ = Int(row[9] as! Int64)
                 
                 count += 1
             }
