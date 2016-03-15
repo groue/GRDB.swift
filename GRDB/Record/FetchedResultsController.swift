@@ -12,13 +12,17 @@ public typealias FetchedResult = protocol<RowConvertible, TableMapping, Equatabl
 private enum Source<T: FetchedResult> {
     case SQL(String, StatementArguments?)
     case FetchRequest(GRDB.FetchRequest<T>)
-
-    func fetchAll(db: DatabaseReader) -> [T] {
+    
+    func selectStatement(db: Database) throws -> SelectStatement {
         switch self {
         case .SQL(let sql, let arguments):
-            return T.fetchAll(db, sql, arguments: arguments)
+            let statement = try db.selectStatement(sql)
+            if let arguments = arguments {
+                statement.arguments = arguments
+            }
+            return statement
         case .FetchRequest(let fetchRequest):
-            return fetchRequest.fetchAll(db)
+            return try fetchRequest.selectStatement(db)
         }
     }
 }
@@ -43,7 +47,11 @@ public class FetchedResultsController<T: FetchedResult> {
     }
     
     public func performFetch() {
-        fetchedResults = self.fetch()
+        try! database.read { db in
+            let statement = try self.source.selectStatement(db)
+            self.observedTables = statement.sourceTables
+            self.fetchedResults = T.fetchAll(statement)
+        }
     }
     
     
@@ -51,6 +59,12 @@ public class FetchedResultsController<T: FetchedResult> {
     
     /// The source
     private let source: Source<T>
+    
+    /// The observed tables. Set in performFetch()
+    private var observedTables: Set<String>? = nil
+    
+    /// True if databaseDidCommit(db) should compute changes
+    private var fetchedResultsDidChange = false
 
     /// The databaseWriter
     public let database: DatabaseWriter
@@ -91,10 +105,6 @@ public class FetchedResultsController<T: FetchedResult> {
     }
 
     // MARK: - Not public
-    
-    func fetch() -> [T] {
-        return source.fetchAll(database)
-    }
     
     private static func computeChanges(fromRows s: [T], toRows t: [T]) -> [ResultChange<T>] {
         
@@ -236,11 +246,25 @@ public class FetchedResultsController<T: FetchedResult> {
 
 // MARK: - <TransactionObserverType>
 extension FetchedResultsController : TransactionObserverType {
-    public func databaseDidChangeWithEvent(event: DatabaseEvent) { }
+    public func databaseDidChangeWithEvent(event: DatabaseEvent) {
+        if let observedTables = observedTables where observedTables.contains(event.tableName) {
+            fetchedResultsDidChange = true
+        }
+    }
+    
     public func databaseWillCommit() throws { }
-    public func databaseDidRollback(db: Database) { }
+    
+    public func databaseDidRollback(db: Database) {
+        fetchedResultsDidChange = false
+    }
+    
     public func databaseDidCommit(db: Database) {
-        let newResults = source.fetchAll(db)
+        guard fetchedResultsDidChange else {
+            return
+        }
+        
+        let statement = try! source.selectStatement(db)
+        let newResults = T.fetchAll(statement)
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             let oldResults = self.fetchedResults!
