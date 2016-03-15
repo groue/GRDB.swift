@@ -81,7 +81,7 @@ public class FetchedResultsController<T: FetchedResult> {
         fatalError("Not implemented")
     }
 
-    public func changesAreEquivalent(change: ResultChange<T>, otherChange: ResultChange<T>) -> Bool {
+    private func changesAreEquivalent(change: ResultChange<T>, otherChange: ResultChange<T>) -> Bool {
         switch (change, otherChange) {
         case (.Move(let item1, let from1, let to1), .Move(let item2, let from2, let to2)):
             return (from1 == to2 && to1 == from2 && item1 == resultAtIndexPath(from2) && item2 == resultAtIndexPath(from1))
@@ -96,7 +96,7 @@ public class FetchedResultsController<T: FetchedResult> {
         return source.fetchAll(database)
     }
     
-    static func computeChanges(fromRows s: [T], toRows t: [T]) -> [ResultChange<T>] {
+    private static func computeChanges(fromRows s: [T], toRows t: [T]) -> [ResultChange<T>] {
         
         let m = s.count
         let n = t.count
@@ -241,8 +241,10 @@ extension FetchedResultsController : TransactionObserverType {
     public func databaseDidRollback(db: Database) { }
     public func databaseDidCommit(db: Database) {
         let newResults = source.fetchAll(db)
+        
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-            let oldResults = self.fetchedResults
+            let oldResults = self.fetchedResults!
+            let changes = FetchedResultsController.computeChanges(fromRows: oldResults, toRows: newResults)
 
             dispatch_async(dispatch_get_main_queue()) {
                 self.delegate?.controllerWillUpdate(self)
@@ -251,7 +253,7 @@ extension FetchedResultsController : TransactionObserverType {
                 self.fetchedResults = newResults
                 
                 // notify all updates
-                for update in FetchedResultsController.computeChanges(fromRows: oldResults!, toRows: newResults) {
+                for update in changes {
                     self.delegate?.controllerUpdate(self, update: update)
                 }
                 
