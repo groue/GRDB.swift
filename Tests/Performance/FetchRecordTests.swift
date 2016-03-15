@@ -93,9 +93,7 @@ class FetchRecordTests: XCTestCase {
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         measureBlock {
-            let items = dbQueue.inDatabase { db in
-                Item.fetchAll(db, "SELECT * FROM items")
-            }
+            let items = Item.fetchAll(dbQueue, "SELECT * FROM items")
             XCTAssertEqual(items.count, expectedRowCount)
             XCTAssertEqual(items[0].i0, 0)
             XCTAssertEqual(items[1].i1, 1)
