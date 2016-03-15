@@ -26,14 +26,18 @@ private enum Source<T: FetchedResult> {
 public class FetchedResultsController<T: FetchedResult> {
     
     // MARK: - Initialization
-    public init(database: DatabaseWriter, sql: String) {
-        self.source = .SQL(sql)
-        self.database = database
-        database.addTransactionObserver(self)
+    public convenience init(database: DatabaseWriter, sql: String) {
+        let source: Source<T> = .SQL(sql)
+        self.init(database: database, source: source)
     }
     
-    public init(database: DatabaseWriter, fetchRequest: FetchRequest<T>) {
-        self.source = .FetchRequest(fetchRequest)
+    public convenience init(database: DatabaseWriter, fetchRequest: FetchRequest<T>) {
+        let source: Source<T> = .FetchRequest(fetchRequest)
+        self.init(database: database, source: source)
+    }
+    
+    private init(database: DatabaseWriter, source: Source<T>) {
+        self.source = source
         self.database = database
         database.addTransactionObserver(self)
     }
