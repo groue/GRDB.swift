@@ -7,7 +7,7 @@
 //
 import UIKit
 
-public typealias FetchedResult = protocol<RowConvertible, TableMapping, Equatable>
+public typealias FetchedResult = protocol<RowConvertible, Equatable>
 
 private enum Source<T: FetchedResult> {
     case SQL(String, StatementArguments?)
