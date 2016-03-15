@@ -1732,6 +1732,7 @@ So don't miss the [SQL API](#sqlite-api).
     - [SQL Operators](#sql-operators)
     - [SQL Functions](#sql-functions)
 - [Fetching from Requests](#fetching-from-requests)
+- [Fetching by Primary Key](#fetching-by-primary-key)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 
 
