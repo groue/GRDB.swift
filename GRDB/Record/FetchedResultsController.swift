@@ -12,33 +12,29 @@ public typealias FetchedResult = protocol<RowConvertible, TableMapping, Equatabl
 public class FetchedResultsController<T: FetchedResult> {
     
     // MARK: - Initialization
-    public init(sql: String, databaseQueue: DatabaseQueue) {
+    public init(database: DatabaseWriter, sql: String) {
         self.sql = sql
         self.fetchRequest = nil
-        self.databaseQueue = databaseQueue
+        self.database = database
     }
     
-    public init(fetchRequest: FetchRequest<T>, databaseQueue: DatabaseQueue) {
+    public init(database: DatabaseWriter, fetchRequest: FetchRequest<T>) {
         self.sql = nil
         self.fetchRequest = fetchRequest
-        self.databaseQueue = databaseQueue
+        self.database = database
     }
     
     deinit {
         // TODO! : What if it is called in dbQueue ?
         // Remove for observation
-        databaseQueue.inDatabase { db in
-            db.removeTransactionObserver(self)
-        }
+        database.removeTransactionObserver(self)
     }
     
     public func performFetch() {
         
         // TODO! : This can be called several times
         // Install for observation
-        databaseQueue.inDatabase { db in
-            db.addTransactionObserver(self)
-        }
+        database.addTransactionObserver(self)
         
         fetchedResults = self.fetch()
     }
@@ -52,8 +48,8 @@ public class FetchedResultsController<T: FetchedResult> {
     /// The FetchRequest
     public let fetchRequest: FetchRequest<T>?
 
-    /// The databaseQueue
-    public let databaseQueue: DatabaseQueue
+    /// The databaseWriter
+    public let database: DatabaseWriter
     
     /// Delegate that is notified when the resultss set changes.
     weak public var delegate: FetchedResultsControllerDelegate?
@@ -92,7 +88,7 @@ public class FetchedResultsController<T: FetchedResult> {
     // MARK: - Not public
     
     func fetch() -> [T] {
-        return databaseQueue.inDatabase { db in self.fetchInDatabase(db) }
+        return database.read { db in self.fetchInDatabase(db) }
     }
     
     func fetchInDatabase(db: Database) -> [T] {

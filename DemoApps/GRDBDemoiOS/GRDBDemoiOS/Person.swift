@@ -46,7 +46,7 @@ class Person : Record {
         id = rowID
     }
     
-    override func insert(db: Database) throws {
+    override func insert(db: DatabaseWriter) throws {
         
         // Basic Ordering
         if self.position == 0 {
