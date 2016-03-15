@@ -58,29 +58,29 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
         self.rowID = rowID
     }
     
-    mutating func insert(writer: DatabaseWriter) throws {
+    mutating func insert(db: DatabaseWriter) throws {
         willInsert()
-        try performInsert(writer)
+        try performInsert(db)
     }
     
-    func update(writer: DatabaseWriter) throws {
+    func update(db: DatabaseWriter) throws {
         willUpdate()
-        try performUpdate(writer)
+        try performUpdate(db)
     }
     
-    mutating func save(writer: DatabaseWriter) throws {
+    mutating func save(db: DatabaseWriter) throws {
         willSave()
-        try performSave(writer)
+        try performSave(db)
     }
     
-    func delete(writer: DatabaseWriter) throws {
+    func delete(db: DatabaseWriter) throws {
         willDelete()
-        try performDelete(writer)
+        try performDelete(db)
     }
     
-    func exists(reader: DatabaseReader) -> Bool {
+    func exists(db: DatabaseReader) -> Bool {
         willExists()
-        return performExists(reader)
+        return performExists(db)
     }
 }
 

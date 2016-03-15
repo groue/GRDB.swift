@@ -196,11 +196,13 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// their id automatically set after successful insertion, if it was nil
     /// before the insertion.
     ///
+    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
+    ///   Database).
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func insert(writer: DatabaseWriter) throws {
+    public func insert(db: DatabaseWriter) throws {
         // The simplest code would be:
         //
-        //     try performInsert(writer)
+        //     try performInsert(db)
         //     hasPersistentChangedValues = false
         //
         // But this triggers two calls to persistentDictionary, and this is both
@@ -210,7 +212,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both insertion, and change tracking.
         
-        try writer.write { db in
+        try db.write { db in
             let dataMapper = DataMapper(db, self)
             var persistentDictionary = dataMapper.persistentDictionary
             let changes = try dataMapper.insertStatement().execute()
@@ -246,13 +248,15 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// This method is guaranteed to have updated a row in the database if it
     /// returns without error.
     ///
+    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
+    ///   Database).
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not match
     ///   any row in the database and record could not be updated.
-    public func update(writer: DatabaseWriter) throws {
+    public func update(db: DatabaseWriter) throws {
         // The simplest code would be:
         //
-        //     try performUpdate(writer)
+        //     try performUpdate(db)
         //     hasPersistentChangedValues = false
         //
         // But this triggers two calls to persistentDictionary, and this is both
@@ -261,7 +265,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
         //
         // So let's provide our custom implementation of insert, which uses the
         // same persistentDictionary for both update, and change tracking.
-        try writer.write { db in
+        try db.write { db in
             let dataMapper = DataMapper(db, self)
             let changes = try dataMapper.updateStatement().execute()
             if changes.changedRowCount == 0 {
@@ -287,10 +291,12 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// This method is guaranteed to have inserted or updated a row in the
     /// database if it returns without error.
     ///
+    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
+    ///   Database).
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    final public func save(writer: DatabaseWriter) throws {
-        try performSave(writer)
+    final public func save(db: DatabaseWriter) throws {
+        try performSave(db)
     }
     
     /// Executes a DELETE statement.
@@ -298,16 +304,18 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// On success, this method sets the *hasPersistentChangedValues* flag
     /// to true.
     ///
+    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
+    ///   Database).
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func delete(writer: DatabaseWriter) throws -> Bool {
+    public func delete(db: DatabaseWriter) throws -> Bool {
         defer {
             // Future calls to update() will throw NotFound. Make the user
             // a favor and make sure this error is thrown even if she checks the
             // hasPersistentChangedValues flag:
             hasPersistentChangedValues = true
         }
-        return try performDelete(writer)
+        return try performDelete(db)
     }
 }
 

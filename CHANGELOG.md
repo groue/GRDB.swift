@@ -74,24 +74,24 @@ Released March 12, 2016
     
     ```swift
     protocol MutablePersistable {
-        mutating func insert(writer: DatabaseWriter) throws
-        func update(writer: DatabaseWriter) throws
-        mutating func save(writer: DatabaseWriter) throws
-        func delete(writer: DatabaseWriter) throws -> Bool
-        func exists(reader: DatabaseReader) -> Bool
+        mutating func insert(db: DatabaseWriter) throws
+        func update(db: DatabaseWriter) throws
+        mutating func save(db: DatabaseWriter) throws
+        func delete(db: DatabaseWriter) throws -> Bool
+        func exists(db: DatabaseReader) -> Bool
     }
     
     protocol Persistable {
-        func insert(writer: DatabaseWriter) throws
-        func save(writer: DatabaseWriter) throws
+        func insert(db: DatabaseWriter) throws
+        func save(db: DatabaseWriter) throws
     }
     
     class Record {
-        func insert(writer: DatabaseWriter) throws
-        func update(writer: DatabaseWriter) throws
-        func save(writer: DatabaseWriter) throws
-        func delete(writer: DatabaseWriter) throws -> Bool
-        func exists(reader: DatabaseReader) -> Bool
+        func insert(db: DatabaseWriter) throws
+        func update(db: DatabaseWriter) throws
+        func save(db: DatabaseWriter) throws
+        func delete(db: DatabaseWriter) throws -> Bool
+        func exists(db: DatabaseReader) -> Bool
     }
     ```
 
