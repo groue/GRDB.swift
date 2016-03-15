@@ -60,7 +60,7 @@ public final class Row {
         let statementRef = Unmanaged.passRetained(statement) // released in deinit
         self.statementRef = statementRef
         self.sqliteStatement = statement.sqliteStatement
-        self.impl = StatementRowImpl(statementRef: statementRef, sqliteStatement: statement.sqliteStatement)
+        self.impl = StatementRowImpl(sqliteStatement: statement.sqliteStatement, statementRef: statementRef)
     }
     
     /// Builds a row from the *current state* of the SQLite statement.
@@ -68,10 +68,21 @@ public final class Row {
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
     /// the values from the SQLite statement so that further iteration of the
     /// statement does not modify the row.
-    init(copiedFromStatementRef statementRef: Unmanaged<SelectStatement>, sqliteStatement: SQLiteStatement) {
+    init(copiedFromSQLiteStatement sqliteStatement: SQLiteStatement, statementRef: Unmanaged<SelectStatement>) {
         self.statementRef = nil
         self.sqliteStatement = nil
-        self.impl = StatementCopyRowImpl(statementRef: statementRef, sqliteStatement: sqliteStatement)
+        self.impl = StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: statementRef.takeUnretainedValue().columnNames)
+    }
+    
+    /// Builds a row from the *current state* of the SQLite statement.
+    ///
+    /// The row is implemented on top of StatementCopyRowImpl, which *copies*
+    /// the values from the SQLite statement so that further iteration of the
+    /// statement does not modify the row.
+    init(copiedFromSQLiteStatement sqliteStatement: SQLiteStatement, columnNames: [String]) {
+        self.statementRef = nil
+        self.sqliteStatement = nil
+        self.impl = StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: columnNames)
     }
 }
 
@@ -475,9 +486,9 @@ extension Row {
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
         let sqliteStatement = statement.sqliteStatement
-        let statementRef = Unmanaged.passUnretained(statement)
+        let columnNames = statement.columnNames
         let sequence = statement.fetchSequence(arguments: arguments) {
-            Row(copiedFromStatementRef: statementRef, sqliteStatement: sqliteStatement)
+            Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames)
         }
         return Array(sequence)
     }
@@ -494,9 +505,9 @@ extension Row {
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
         let sqliteStatement = statement.sqliteStatement
-        let statementRef = Unmanaged.passUnretained(statement)
+        let columnNames = statement.columnNames
         let sequence = statement.fetchSequence(arguments: arguments) {
-            Row(copiedFromStatementRef: statementRef, sqliteStatement: sqliteStatement)
+            Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames)
         }
         return sequence.generate().next()
     }
@@ -711,13 +722,14 @@ private struct DictionaryRowImpl : RowImpl {
 
 /// See Row.init(copiedFromStatementRef:sqliteStatement:)
 private struct StatementCopyRowImpl : RowImpl {
-    let databaseValues: [DatabaseValue]
+    let databaseValues: ContiguousArray<DatabaseValue>
     let columnNames: [String]
     
-    init(statementRef: Unmanaged<SelectStatement>, sqliteStatement: SQLiteStatement) {
+    init(sqliteStatement: SQLiteStatement, columnNames: [String]) {
+        assert(sqliteStatement != nil)
         let sqliteStatement = sqliteStatement
-        self.databaseValues = (0..<sqlite3_column_count(sqliteStatement)).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) }
-        self.columnNames = statementRef.takeUnretainedValue().columnNames
+        self.databaseValues = ContiguousArray((0..<sqlite3_column_count(sqliteStatement)).lazy.map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) })
+        self.columnNames = columnNames
     }
     
     var count: Int {
@@ -755,7 +767,8 @@ private struct StatementRowImpl : RowImpl {
     let sqliteStatement: SQLiteStatement
     let lowercaseColumnIndexes: [String: Int]
     
-    init(statementRef: Unmanaged<SelectStatement>, sqliteStatement: SQLiteStatement) {
+    init(sqliteStatement: SQLiteStatement, statementRef: Unmanaged<SelectStatement>) {
+        assert(sqliteStatement != nil)
         self.statementRef = statementRef
         self.sqliteStatement = sqliteStatement
         // Optimize row.value(named: "...")
@@ -794,7 +807,7 @@ private struct StatementRowImpl : RowImpl {
     }
     
     func copy(row: Row) -> Row {
-        return Row(copiedFromStatementRef: statementRef, sqliteStatement: sqliteStatement)
+        return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
     }
 }
 
