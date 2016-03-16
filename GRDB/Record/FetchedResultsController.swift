@@ -201,10 +201,12 @@ public class FetchedResultsController<T: RowConvertible> {
             tx = tx.advancedBy(1)
         }
         
+        /// Returns the changes between two rows
+        /// Precondition: both rows have the same columns
         func changedValues(from referenceRow: Row, to newRow: Row) -> [String: DatabaseValue] {
             var changedValues: [String: DatabaseValue] = [:]
             for (column, newValue) in newRow {
-                let oldValue = referenceRow[column]!    // A column in newRow ought to be in referenceRow
+                let oldValue = referenceRow[column]!
                 if newValue != oldValue {
                     changedValues[column] = oldValue
                 }
@@ -219,32 +221,25 @@ public class FetchedResultsController<T: RowConvertible> {
             /// Returns a potential .Move `ResultChange` based on an array of `ResultChange` elements and a `ResultChange` to match up against.
             /// If `deletionOrInsertion` is a deletion or an insertion, and there is a matching inverse insertion/deletion with the same value in the array, a corresponding `.Move` update is returned.
             /// As a convenience, the index of the matched `ResultChange` into `changes` is returned as well.
-            func mergedChangeFromChanges(changes: [ResultChange<FetchedItem<T>>], deletionOrInsertion change: ResultChange<FetchedItem<T>>) -> (move: ResultChange<FetchedItem<T>>, index: Int)? {
-                if let inverseIndex = changes.indexOf({ (earlierChange) -> Bool in return earlierChange.isMoveCounterpart(change, identityComparator: { (lhs, rhs) in return identityComparator(lhs.result, rhs.result) }) }) {
-                    switch changes[inverseIndex] {
-                    case .Deletion(let deletedItem, let from):
-                        switch change {
-                        case .Insertion(let insertedItem, let to):
-                            let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row)
-                            if from == to {
-                                return (ResultChange.Update(item: insertedItem, at: from, changes: rowChanges), inverseIndex)
-                            } else {
-                                return (ResultChange.Move(item: insertedItem, from: from, to: to, changes: rowChanges), inverseIndex)
-                            }
-                        default:
-                            break
+            func mergedChangeFromChanges(changes: [ResultChange<FetchedItem<T>>], deletionOrInsertion change: ResultChange<FetchedItem<T>>) -> (mergedChange: ResultChange<FetchedItem<T>>, obsoleteIndex: Int)? {
+                let obsoleteIndex = changes.indexOf { earlierChange in
+                    return earlierChange.isMoveCounterpart(change, identityComparator: { (lhs, rhs) in return identityComparator(lhs.result, rhs.result) })
+                }
+                if let obsoleteIndex = obsoleteIndex {
+                    switch (changes[obsoleteIndex], change) {
+                    case (.Deletion(let deletedItem, let from), .Insertion(let insertedItem, let to)):
+                        let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row)
+                        if from == to {
+                            return (ResultChange.Update(item: insertedItem, at: from, changes: rowChanges), obsoleteIndex)
+                        } else {
+                            return (ResultChange.Move(item: insertedItem, from: from, to: to, changes: rowChanges), obsoleteIndex)
                         }
-                    case .Insertion(let insertedItem, let to):
-                        switch change {
-                        case .Deletion(let deletedItem, let from):
-                            let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row)
-                            if from == to {
-                                return (ResultChange.Update(item: insertedItem, at: from, changes: rowChanges), inverseIndex)
-                            } else {
-                                return (ResultChange.Move(item: insertedItem, from: from, to: to, changes: rowChanges), inverseIndex)
-                            }
-                        default:
-                            break
+                    case (.Insertion(let insertedItem, let to), .Deletion(let deletedItem, let from)):
+                        let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row)
+                        if from == to {
+                            return (ResultChange.Update(item: insertedItem, at: from, changes: rowChanges), obsoleteIndex)
+                        } else {
+                            return (ResultChange.Move(item: insertedItem, from: from, to: to, changes: rowChanges), obsoleteIndex)
                         }
                     default:
                         break
