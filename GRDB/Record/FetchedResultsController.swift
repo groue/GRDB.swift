@@ -131,16 +131,16 @@ public class FetchedResultsController<T: RowConvertible> {
     
     // MARK: - Not public
     
-    private static func computeChanges<U>(fromRows s: [U], toRows t: [U], identityComparator: (U, U) -> Bool) -> [ResultChange<U>] {
+    private static func computeChanges(fromRows s: [FetchedItem<T>], toRows t: [FetchedItem<T>], identityComparator: ((T, T) -> Bool)) -> [ResultChange<FetchedItem<T>>] {
         
         let m = s.count
         let n = t.count
         
         // Fill first row and column of insertions and deletions.
         
-        var d: [[[ResultChange<U>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
+        var d: [[[ResultChange<FetchedItem<T>>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
         
-        var changes = [ResultChange<U>]()
+        var changes = [ResultChange<FetchedItem<T>>]()
         for (row, item) in s.enumerate() {
             let deletion = ResultChange.Deletion(item: item, at: NSIndexPath(forRow: row, inSection: 0))
             changes.append(deletion)
@@ -166,7 +166,7 @@ public class FetchedResultsController<T: RowConvertible> {
             sx = s.startIndex
             
             for i in 1...m {
-                if identityComparator(s[sx], t[tx]) {
+                if s[sx] == t[tx] {
                     // TODO: compute changes
                     d[i][j] = d[i - 1][j - 1] // no operation
                 } else {
@@ -201,26 +201,48 @@ public class FetchedResultsController<T: RowConvertible> {
             tx = tx.advancedBy(1)
         }
         
+        func changedValues(from referenceRow: Row, to newRow: Row) -> [String: DatabaseValue] {
+            var changedValues: [String: DatabaseValue] = [:]
+            for (column, newValue) in newRow {
+                let oldValue = referenceRow[column]!    // A column in newRow ought to be in referenceRow
+                if newValue != oldValue {
+                    changedValues[column] = oldValue
+                }
+            }
+            return changedValues
+        }
+
+        
         /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
-        func standardizeChanges(changes: [ResultChange<U>]) -> [ResultChange<U>] {
+        func standardizeChanges(changes: [ResultChange<FetchedItem<T>>]) -> [ResultChange<FetchedItem<T>>] {
             
             /// Returns a potential .Move `ResultChange` based on an array of `ResultChange` elements and a `ResultChange` to match up against.
             /// If `deletionOrInsertion` is a deletion or an insertion, and there is a matching inverse insertion/deletion with the same value in the array, a corresponding `.Move` update is returned.
             /// As a convenience, the index of the matched `ResultChange` into `changes` is returned as well.
-            func moveFromChanges(changes: [ResultChange<U>], deletionOrInsertion change: ResultChange<U>) -> (move: ResultChange<U>, index: Int)? {
-                if let inverseIndex = changes.indexOf({ (earlierChange) -> Bool in return earlierChange.isMoveCounterpart(change, identityComparator: identityComparator) }) {
+            func moveFromChanges(changes: [ResultChange<FetchedItem<T>>], deletionOrInsertion change: ResultChange<FetchedItem<T>>) -> (move: ResultChange<FetchedItem<T>>, index: Int)? {
+                if let inverseIndex = changes.indexOf({ (earlierChange) -> Bool in return earlierChange.isMoveCounterpart(change, identityComparator: { (lhs, rhs) in return identityComparator(lhs.result, rhs.result) }) }) {
                     switch changes[inverseIndex] {
-                    case .Deletion(_, let from):
+                    case .Deletion(let deletedItem, let from):
                         switch change {
                         case .Insertion(let insertedItem, let to):
-                            return (ResultChange.Move(item: insertedItem, from: from, to: to), inverseIndex)
+                            let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row) // maybe to be reversed
+                            if from == to {
+                                return (ResultChange.Update(item: insertedItem, at: from, changes: rowChanges), inverseIndex)
+                            } else {
+                                return (ResultChange.Move(item: insertedItem, from: from, to: to, changes: rowChanges), inverseIndex)
+                            }
                         default:
                             break
                         }
                     case .Insertion(let insertedItem, let to):
                         switch change {
-                        case .Deletion(_, let from):
-                            return (ResultChange.Move(item: insertedItem, from: from, to: to), inverseIndex)
+                        case .Deletion(let deletedItem, let from):
+                            let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row) // maybe to be reversed
+                            if from == to {
+                                return (ResultChange.Update(item: insertedItem, at: from, changes: rowChanges), inverseIndex)
+                            } else {
+                                return (ResultChange.Move(item: insertedItem, from: from, to: to, changes: rowChanges), inverseIndex)
+                            }
                         default:
                             break
                         }
@@ -231,7 +253,7 @@ public class FetchedResultsController<T: RowConvertible> {
                 return nil
             }
             
-            return changes.reduce([ResultChange<U>]()) { (var reducedChanges, update) in
+            return changes.reduce([ResultChange<FetchedItem<T>>]()) { (var reducedChanges, update) in
                 if let (move, index) = moveFromChanges(reducedChanges, deletionOrInsertion: update) {
                     reducedChanges.removeAtIndex(index)
                     reducedChanges.append(move)
@@ -294,7 +316,7 @@ extension FetchedResultsController : TransactionObserverType {
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             let oldItems = self.fetchedItems!
-            let changes = FetchedResultsController.computeChanges(fromRows: oldItems, toRows: newItems, identityComparator: { (lhs, rhs) in return self.identityComparator(lhs.result, rhs.result) })
+            let changes = FetchedResultsController.computeChanges(fromRows: oldItems, toRows: newItems, identityComparator: self.identityComparator)
 
             dispatch_async(dispatch_get_main_queue()) {
                 self.delegate?.controllerWillUpdate(self)
@@ -333,8 +355,8 @@ public enum ResultChange<T> {
     case Insertion(item:T, at: NSIndexPath)
     case Deletion(item:T, at: NSIndexPath)
     // TODO: A Move can come with changes
-    case Move(item:T, from: NSIndexPath, to: NSIndexPath)
-    case Update(item:T, at: NSIndexPath, changes: [String: DatabaseValue?]?)
+    case Move(item:T, from: NSIndexPath, to: NSIndexPath, changes: [String: DatabaseValue])
+    case Update(item:T, at: NSIndexPath, changes: [String: DatabaseValue])
 }
 
 extension ResultChange {
@@ -344,8 +366,8 @@ extension ResultChange {
             return try .Insertion(item: transform(item), at: indexPath)
         case .Deletion(item: let item, at: let indexPath):
             return try .Deletion(item: transform(item), at: indexPath)
-        case .Move(item: let item, from: let from, to: let to):
-            return try .Move(item: transform(item), from: from, to: to)
+        case .Move(item: let item, from: let from, to: let to, changes: let changes):
+            return try .Move(item: transform(item), from: from, to: to, changes: changes)
         case .Update(item: let item, at: let indexPath, changes: let changes):
             return try .Update(item: transform(item), at: indexPath, changes: changes)
         }
@@ -374,21 +396,21 @@ extension ResultChange: CustomStringConvertible {
         case .Deletion(let item, let at):
             return "DELETED \(item) FROM index \(at.row)"
             
-        case .Move(let item, let from, let to):
-            return "MOVED \(item) FROM index \(from.row) TO index \(to.row)"
+        case .Move(let item, let from, let to, changes: let changes):
+            return "MOVED \(item) FROM index \(from.row) TO index \(to.row) WITH CHANGES: \(changes)"
             
         case .Update(let item, let at, let changes):
-            return "UPDATED \(changes) OF \(item) AT index \(at.row)"
+            return "UPDATED \(item) AT index \(at.row) WITH CHANGES: \(changes)"
         }
     }
 }
 
-public func ==<T: Equatable>(lhs: ResultChange<T>, rhs: ResultChange<T>) -> Bool {
-    switch (lhs, rhs) {
-    case (.Insertion(let lhsResult, let lhsIndexPath), .Insertion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
-    case (.Deletion(let lhsResult, let lhsIndexPath), .Deletion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
-    case (.Move(let lhsResult, let lhsFromIndexPath, let lhsToIndexPath), .Move(let rhsResult, let rhsFromIndexPath, let rhsToIndexPath)) where lhsResult == rhsResult && lhsFromIndexPath == rhsFromIndexPath && lhsToIndexPath == rhsToIndexPath : return true
-    case (.Update(let lhsResult, let lhsIndexPath, _), .Update(let rhsResult, let rhsIndexPath, _)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
-    default: return false
-    }
-}
+//public func ==<T: Equatable>(lhs: ResultChange<T>, rhs: ResultChange<T>) -> Bool {
+//    switch (lhs, rhs) {
+//    case (.Insertion(let lhsResult, let lhsIndexPath), .Insertion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
+//    case (.Deletion(let lhsResult, let lhsIndexPath), .Deletion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
+//    case (.Move(let lhsResult, let lhsFromIndexPath, let lhsToIndexPath), .Move(let rhsResult, let rhsFromIndexPath, let rhsToIndexPath)) where lhsResult == rhsResult && lhsFromIndexPath == rhsFromIndexPath && lhsToIndexPath == rhsToIndexPath : return true
+//    case (.Update(let lhsResult, let lhsIndexPath, _), .Update(let rhsResult, let rhsIndexPath, _)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
+//    default: return false
+//    }
+//}

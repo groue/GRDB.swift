@@ -15,6 +15,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         
         toolbarItems = [
             UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(title: "Debug1", style: UIBarButtonItemStyle.Done, target: self, action: "Debug1"),
             UIBarButtonItem(title: "Shuffle", style: UIBarButtonItemStyle.Done, target: self, action: "shufflePersons"),
             UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil)
         ]
@@ -29,6 +30,12 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
     override func viewWillAppear(animated: Bool) {
         self.clearsSelectionOnViewWillAppear = self.splitViewController!.collapsed
         super.viewWillAppear(animated)
+    }
+    
+    func Debug1() {
+        let person = Person.filter(Col.visible).fetchOne(dbQueue)!
+        person.lastName! += "rrr"
+        try! person.save(dbQueue)
     }
     
     func shufflePersons() {
@@ -88,10 +95,13 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
-
+        configureCell(cell, atIndexPath: indexPath)
+        return cell
+    }
+    
+    private func configureCell(cell: UITableViewCell, atIndexPath indexPath:NSIndexPath) {
         let person = fetchedResultsController.resultAtIndexPath(indexPath)!
         cell.textLabel!.text = person.fullName
-        return cell
     }
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
@@ -118,20 +128,19 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         case .Deletion(_, let from):
             tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Fade)
             
-        case .Move(_, let from, let to):
-            tableView.moveRowAtIndexPath(from, toIndexPath: to)
+        case .Move(_, let fromIndexPath, let toIndexPath, let changes):
+            if let cell = tableView.cellForRowAtIndexPath(fromIndexPath) {
+                configureCell(cell, atIndexPath: fromIndexPath)
+            }
+            tableView.moveRowAtIndexPath(fromIndexPath, toIndexPath: toIndexPath)
             
         case .Update(_, let at, let changes):
-            if let changes = changes {
-                let columns = ["firstName", "lastName"]
-                for (key, _) in changes {
-                    if columns.contains(key) {
-                        tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Fade)
-                        break
-                    }
+            let columns = ["firstName", "lastName"]
+            for (key, _) in changes {
+                if columns.contains(key) {
+                    tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Fade)
+                    break
                 }
-            } else {
-                tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Fade)
             }
         }
     }
