@@ -1,3 +1,4 @@
+- [ ] Write an app like http://www.appcoda.com/swiftydb/ ?
 - [ ] Read https://sqlite.org/sharedcache.html
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
