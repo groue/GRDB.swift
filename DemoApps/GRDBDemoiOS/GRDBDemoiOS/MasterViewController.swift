@@ -15,7 +15,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         
         toolbarItems = [
             UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(title: "Debug1", style: UIBarButtonItemStyle.Done, target: self, action: "Debug1"),
+            UIBarButtonItem(title: "Swap Names", style: UIBarButtonItemStyle.Done, target: self, action: "swapNames"),
             UIBarButtonItem(title: "Shuffle", style: UIBarButtonItemStyle.Done, target: self, action: "shufflePersons"),
             UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil)
         ]
@@ -32,9 +32,9 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         super.viewWillAppear(animated)
     }
     
-    func Debug1() {
-        let person = Person.filter(Col.visible).fetchOne(dbQueue)!
-        person.lastName! += "rrr"
+    func swapNames() {
+        let person = Person.filter(Col.visible).order(sql: "RANDOM()").fetchOne(dbQueue)!
+        (person.lastName, person.firstName) = (person.firstName, person.lastName)
         try! person.save(dbQueue)
     }
     
@@ -129,18 +129,14 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
             tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Fade)
             
         case .Move(_, let fromIndexPath, let toIndexPath, let changes):
-            if let cell = tableView.cellForRowAtIndexPath(fromIndexPath) {
-                configureCell(cell, atIndexPath: fromIndexPath)
-            }
             tableView.moveRowAtIndexPath(fromIndexPath, toIndexPath: toIndexPath)
+            if !changes.isEmpty, let cell = tableView.cellForRowAtIndexPath(toIndexPath) {
+                configureCell(cell, atIndexPath: toIndexPath)
+            }
             
         case .Update(_, let at, let changes):
-            let columns = ["firstName", "lastName"]
-            for (key, _) in changes {
-                if columns.contains(key) {
-                    tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Fade)
-                    break
-                }
+            if !Set(["firstName", "lastName"]).isDisjointWith(changes.keys) {
+                tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Fade)
             }
         }
     }
