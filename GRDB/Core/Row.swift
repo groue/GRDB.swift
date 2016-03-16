@@ -619,8 +619,33 @@ extension Row : CollectionType {
     }
 }
 
+extension Row : Equatable { }
 
-// MARK: - CustomStringConvertible
+/// Returns true if and only if both rows have the same columns and values, in
+/// the same order. Columns are compared in a case-sensitive way.
+public func ==(lhs: Row, rhs: Row) -> Bool {
+    if lhs === rhs {
+        return true
+    }
+    
+    guard lhs.count == rhs.count else {
+        return false
+    }
+    
+    var lgen = lhs.generate()
+    var rgen = rhs.generate()
+    
+    while let (lcol, lval) = lgen.next(), let (rcol, rval) = rgen.next() {
+        guard lcol == rcol else {
+            return false
+        }
+        guard lval == rval else {
+            return false
+        }
+    }
+    
+    return false
+}
 
 /// Row adopts CustomStringConvertible.
 extension Row: CustomStringConvertible {
