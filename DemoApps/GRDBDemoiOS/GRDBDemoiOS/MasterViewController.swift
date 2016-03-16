@@ -21,7 +21,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         self.navigationController?.toolbarHidden = false
         
         let fetchRequest = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
-        fetchedResultsController = FetchedResultsController(database: dbQueue, fetchRequest: fetchRequest, identityComparator: { (lhs, rhs) in return lhs.id == rhs.id })
+        fetchedResultsController = FetchedResultsController(dbQueue, fetchRequest, identityComparator: { (lhs, rhs) in return lhs.id == rhs.id })
         fetchedResultsController.delegate = self
         fetchedResultsController.performFetch()
     }

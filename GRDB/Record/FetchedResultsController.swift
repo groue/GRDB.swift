@@ -20,8 +20,8 @@ private enum Source<T> {
                 statement.unsafeSetArguments(arguments)
             }
             return statement
-        case .FetchRequest(let fetchRequest):
-            return try fetchRequest.selectStatement(db)
+        case .FetchRequest(let request):
+            return try request.selectStatement(db)
         }
     }
 }
@@ -49,13 +49,13 @@ private func ==<T>(lhs: FetchedItem<T>, rhs: FetchedItem<T>) -> Bool {
 public class FetchedResultsController<T: RowConvertible> {
     
     // MARK: - Initialization
-    public convenience init(database: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, identityComparator: ((T, T) -> Bool)? = nil) {
+    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, identityComparator: ((T, T) -> Bool)? = nil) {
         let source: Source<T> = .SQL(sql, arguments)
         self.init(database: database, source: source, identityComparator: identityComparator)
     }
     
-    public convenience init(database: DatabaseWriter, fetchRequest: FetchRequest<T>, identityComparator: ((T, T) -> Bool)? = nil) {
-        let source: Source<T> = .FetchRequest(fetchRequest)
+    public convenience init(_ database: DatabaseWriter, _ request: FetchRequest<T>, identityComparator: ((T, T) -> Bool)? = nil) {
+        let source: Source<T> = .FetchRequest(request)
         self.init(database: database, source: source, identityComparator: identityComparator)
     }
     
