@@ -115,8 +115,8 @@ public class FetchedResultsController<T: RowConvertible> {
     
     /// Returns the fetched object at a given indexPath.
     public func resultAtIndexPath(indexPath: NSIndexPath) -> T? {
-        if let result = fetchedResults?[indexPath.indexAtPosition(1)] {
-            return result
+        if let item = fetchedItems?[indexPath.indexAtPosition(1)] {
+            return item.result
         } else {
             return nil
         }
