@@ -317,6 +317,9 @@ extension FetchedResultsController : TransactionObserverType {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             let oldItems = self.fetchedItems!
             let changes = FetchedResultsController.computeChanges(fromRows: oldItems, toRows: newItems, identityComparator: self.identityComparator)
+            guard !changes.isEmpty else {
+                return
+            }
 
             dispatch_async(dispatch_get_main_queue()) {
                 self.delegate?.controllerWillUpdate(self)
