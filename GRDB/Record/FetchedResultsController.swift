@@ -7,9 +7,7 @@
 //
 import UIKit
 
-public typealias FetchedResult = protocol<RowConvertible, Equatable>
-
-private enum Source<T: FetchedResult> {
+private enum Source<T> {
     case SQL(String, StatementArguments?)
     case FetchRequest(GRDB.FetchRequest<T>)
     
@@ -27,22 +25,47 @@ private enum Source<T: FetchedResult> {
     }
 }
 
-public class FetchedResultsController<T: FetchedResult> {
+private struct FetchedItem<T: RowConvertible> : RowConvertible, Equatable {
+    let row: Row
+    var result: T   // var because awakeFromFetch is mutating
+    
+    init(_ row: Row) {
+        self.row = row.copy()
+        self.result = T(row)
+    }
+    
+    mutating func awakeFromFetch(row row: Row, database: Database) {
+        // TOOD: If result is a Record, it will copy the row *again*. We should
+        // avoid creating two distinct copied instances.
+        result.awakeFromFetch(row: row, database: database)
+    }
+}
+
+private func ==<T>(lhs: FetchedItem<T>, rhs: FetchedItem<T>) -> Bool {
+    return lhs.row == rhs.row
+}
+
+public class FetchedResultsController<T: RowConvertible> {
     
     // MARK: - Initialization
-    public convenience init(database: DatabaseWriter, sql: String, arguments: StatementArguments? = nil) {
+    public convenience init(database: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, identityComparator: ((T, T) -> Bool)? = nil) {
         let source: Source<T> = .SQL(sql, arguments)
-        self.init(database: database, source: source)
+        self.init(database: database, source: source, identityComparator: identityComparator)
     }
     
-    public convenience init(database: DatabaseWriter, fetchRequest: FetchRequest<T>) {
+    public convenience init(database: DatabaseWriter, fetchRequest: FetchRequest<T>, identityComparator: ((T, T) -> Bool)? = nil) {
         let source: Source<T> = .FetchRequest(fetchRequest)
-        self.init(database: database, source: source)
+        self.init(database: database, source: source, identityComparator: identityComparator)
     }
     
-    private init(database: DatabaseWriter, source: Source<T>) {
+    private init(database: DatabaseWriter, source: Source<T>, identityComparator: ((T, T) -> Bool)?) {
         self.source = source
         self.database = database
+        if let identityComparator = identityComparator {
+            self.identityComparator = identityComparator
+        } else {
+            self.identityComparator = { _ in false }
+        }
         database.addTransactionObserver(self)
     }
     
@@ -50,7 +73,7 @@ public class FetchedResultsController<T: FetchedResult> {
         try! database.read { db in
             let statement = try self.source.selectStatement(db)
             self.observedTables = statement.sourceTables
-            self.fetchedResults = T.fetchAll(statement)
+            self.fetchedItems = FetchedItem<T>.fetchAll(statement)
         }
     }
     
@@ -60,11 +83,15 @@ public class FetchedResultsController<T: FetchedResult> {
     /// The source
     private let source: Source<T>
     
+    private let identityComparator: (T, T) -> Bool
+    
     /// The observed tables. Set in performFetch()
     private var observedTables: Set<String>? = nil
     
     /// True if databaseDidCommit(db) should compute changes
-    private var fetchedResultsDidChange = false
+    private var fetchedItemsDidChange = false
+    
+    private var fetchedItems: [FetchedItem<T>]?
 
     /// The databaseWriter
     public let database: DatabaseWriter
@@ -77,7 +104,12 @@ public class FetchedResultsController<T: FetchedResult> {
 
     /// Returns the results of the query.
     /// Returns nil if the performQuery: hasn't been called.
-    public private(set) var fetchedResults: [T]?
+    public var fetchedResults: [T]? {
+        if let fetchedItems = fetchedItems {
+            return fetchedItems.map { $0.result }
+        }
+        return nil
+    }
 
     
     /// Returns the fetched object at a given indexPath.
@@ -94,28 +126,20 @@ public class FetchedResultsController<T: FetchedResult> {
         // TODO
         fatalError("Not implemented")
     }
-
-    private func changesAreEquivalent(change: ResultChange<T>, otherChange: ResultChange<T>) -> Bool {
-        switch (change, otherChange) {
-        case (.Move(let item1, let from1, let to1), .Move(let item2, let from2, let to2)):
-            return (from1 == to2 && to1 == from2 && item1 == resultAtIndexPath(from2) && item2 == resultAtIndexPath(from1))
-        default:
-            return false
-        }
-    }
-
+    
+    
     // MARK: - Not public
     
-    private static func computeChanges(fromRows s: [T], toRows t: [T]) -> [ResultChange<T>] {
+    private static func computeChanges<U>(fromRows s: [U], toRows t: [U], identityComparator: (U, U) -> Bool) -> [ResultChange<U>] {
         
         let m = s.count
         let n = t.count
         
         // Fill first row and column of insertions and deletions.
         
-        var d: [[[ResultChange<T>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
+        var d: [[[ResultChange<U>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
         
-        var changes = [ResultChange<T>]()
+        var changes = [ResultChange<U>]()
         for (row, item) in s.enumerate() {
             let deletion = ResultChange.Deletion(item: item, at: NSIndexPath(forRow: row, inSection: 0))
             changes.append(deletion)
@@ -141,7 +165,8 @@ public class FetchedResultsController<T: FetchedResult> {
             sx = s.startIndex
             
             for i in 1...m {
-                if s[sx] == t[tx] {
+                if identityComparator(s[sx], t[tx]) {
+                    // TODO: compute changes
                     d[i][j] = d[i - 1][j - 1] // no operation
                 } else {
                     
@@ -176,13 +201,13 @@ public class FetchedResultsController<T: FetchedResult> {
         }
         
         /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
-        func standardizeChanges(changes: [ResultChange<T>]) -> [ResultChange<T>] {
+        func standardizeChanges(changes: [ResultChange<U>]) -> [ResultChange<U>] {
             
             /// Returns a potential .Move `ResultChange` based on an array of `ResultChange` elements and a `ResultChange` to match up against.
             /// If `deletionOrInsertion` is a deletion or an insertion, and there is a matching inverse insertion/deletion with the same value in the array, a corresponding `.Move` update is returned.
             /// As a convenience, the index of the matched `ResultChange` into `changes` is returned as well.
-            func moveFromChanges(changes: [ResultChange<T>], deletionOrInsertion change: ResultChange<T>) -> (move: ResultChange<T>, index: Int)? {
-                if let inverseIndex = changes.indexOf({ (earlierChange) -> Bool in return earlierChange.isMoveCounterpart(change) }) {
+            func moveFromChanges(changes: [ResultChange<U>], deletionOrInsertion change: ResultChange<U>) -> (move: ResultChange<U>, index: Int)? {
+                if let inverseIndex = changes.indexOf({ (earlierChange) -> Bool in return earlierChange.isMoveCounterpart(change, identityComparator: identityComparator) }) {
                     switch changes[inverseIndex] {
                     case .Deletion(_, let from):
                         switch change {
@@ -205,7 +230,7 @@ public class FetchedResultsController<T: FetchedResult> {
                 return nil
             }
             
-            return changes.reduce([ResultChange<T>]()) { (var reducedChanges, update) in
+            return changes.reduce([ResultChange<U>]()) { (var reducedChanges, update) in
                 if let (move, index) = moveFromChanges(reducedChanges, deletionOrInsertion: update) {
                     reducedChanges.removeAtIndex(index)
                     reducedChanges.append(move)
@@ -248,37 +273,37 @@ public class FetchedResultsController<T: FetchedResult> {
 extension FetchedResultsController : TransactionObserverType {
     public func databaseDidChangeWithEvent(event: DatabaseEvent) {
         if let observedTables = observedTables where observedTables.contains(event.tableName) {
-            fetchedResultsDidChange = true
+            fetchedItemsDidChange = true
         }
     }
     
     public func databaseWillCommit() throws { }
     
     public func databaseDidRollback(db: Database) {
-        fetchedResultsDidChange = false
+        fetchedItemsDidChange = false
     }
     
     public func databaseDidCommit(db: Database) {
-        guard fetchedResultsDidChange else {
+        guard fetchedItemsDidChange else {
             return
         }
         
         let statement = try! source.selectStatement(db)
-        let newResults = T.fetchAll(statement)
+        let newItems = FetchedItem<T>.fetchAll(statement)
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-            let oldResults = self.fetchedResults!
-            let changes = FetchedResultsController.computeChanges(fromRows: oldResults, toRows: newResults)
+            let oldItems = self.fetchedItems!
+            let changes = FetchedResultsController.computeChanges(fromRows: oldItems, toRows: newItems, identityComparator: { (lhs, rhs) in return self.identityComparator(lhs.result, rhs.result) })
 
             dispatch_async(dispatch_get_main_queue()) {
                 self.delegate?.controllerWillUpdate(self)
                 
-                // after controllerWillChangeContent
-                self.fetchedResults = newResults
+                // after controllerWillUpdate
+                self.fetchedItems = newItems
                 
                 // notify all updates
-                for update in changes {
-                    self.delegate?.controllerUpdate(self, update: update)
+                for update in changes { // TODO: use consistent name ("change" or "update", we need to choose)
+                    self.delegate?.controllerUpdate(self, update: update.map { $0.result })
                 }
                 
                 // done
@@ -303,53 +328,38 @@ public extension FetchedResultsControllerDelegate {
 }
 
 
-public enum ResultChange<T: FetchedResult> {
+public enum ResultChange<T> {
     case Insertion(item:T, at: NSIndexPath)
     case Deletion(item:T, at: NSIndexPath)
+    // TODO: A Move can come with changes
     case Move(item:T, from: NSIndexPath, to: NSIndexPath)
     case Update(item:T, at: NSIndexPath, changes: [String: DatabaseValue?]?)
-    
-    func isMoveCounterpart(otherChange: ResultChange<T>) -> Bool {
-        switch (self, otherChange) {
-        case (.Deletion(let deletedItem, _), .Insertion(let insertedItem, _)):
-            return (deletedItem == insertedItem)
-        case (.Insertion(let insertedItem, _), .Deletion(let deletedItem, _)):
-            return (deletedItem == insertedItem)
-        default:
-            return false
+}
+
+extension ResultChange {
+    func map<U>(@noescape transform: T throws -> U) rethrows -> ResultChange<U> {
+        switch self {
+        case .Insertion(item: let item, at: let indexPath):
+            return try .Insertion(item: transform(item), at: indexPath)
+        case .Deletion(item: let item, at: let indexPath):
+            return try .Deletion(item: transform(item), at: indexPath)
+        case .Move(item: let item, from: let from, to: let to):
+            return try .Move(item: transform(item), from: from, to: to)
+        case .Update(item: let item, at: let indexPath, changes: let changes):
+            return try .Update(item: transform(item), at: indexPath, changes: changes)
         }
     }
-    
-    func isRelativeToSameResult(otherChange: ResultChange<T>) -> Bool {
-        switch self {
-        case .Insertion(let item, _):
-            switch otherChange {
-            case .Insertion(let otherItem, _): return item == otherItem
-            case .Deletion(let otherItem, _): return item == otherItem
-            case .Move(let otherItem, _, _): return item == otherItem
-            case .Update(let otherItem, _, _): return item == otherItem
-            }
-        case .Deletion(let item, _):
-            switch otherChange {
-            case .Insertion(let otherItem, _): return item == otherItem
-            case .Deletion(let otherItem, _): return item == otherItem
-            case .Move(let otherItem, _, _): return item == otherItem
-            case .Update(let otherItem, _, _): return item == otherItem
-            }
-        case .Move(let item, _, _):
-            switch otherChange {
-            case .Insertion(let otherItem, _): return item == otherItem
-            case .Deletion(let otherItem, _): return item == otherItem
-            case .Move(let otherItem, _, _): return item == otherItem
-            case .Update(let otherItem, _, _): return item == otherItem
-            }
-        case .Update(let item, _, _):
-            switch otherChange {
-            case .Insertion(let otherItem, _): return item == otherItem
-            case .Deletion(let otherItem, _): return item == otherItem
-            case .Move(let otherItem, _, _): return item == otherItem
-            case .Update(let otherItem, _, _): return item == otherItem
-            }
+}
+
+extension ResultChange {
+    func isMoveCounterpart(otherChange: ResultChange<T>, identityComparator: (T, T) -> Bool) -> Bool {
+        switch (self, otherChange) {
+        case (.Deletion(let deletedItem, _), .Insertion(let insertedItem, _)):
+            return identityComparator(deletedItem, insertedItem)
+        case (.Insertion(let insertedItem, _), .Deletion(let deletedItem, _)):
+            return identityComparator(deletedItem, insertedItem)
+        default:
+            return false
         }
     }
 }
@@ -372,7 +382,7 @@ extension ResultChange: CustomStringConvertible {
     }
 }
 
-public func ==<T>(lhs: ResultChange<T>, rhs: ResultChange<T>) -> Bool {
+public func ==<T: Equatable>(lhs: ResultChange<T>, rhs: ResultChange<T>) -> Bool {
     switch (lhs, rhs) {
     case (.Insertion(let lhsResult, let lhsIndexPath), .Insertion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
     case (.Deletion(let lhsResult, let lhsIndexPath), .Deletion(let rhsResult, let rhsIndexPath)) where lhsResult == rhsResult && lhsIndexPath == rhsIndexPath : return true
