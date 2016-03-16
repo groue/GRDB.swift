@@ -16,7 +16,8 @@ private enum Source<T> {
         case .SQL(let sql, let arguments):
             let statement = try db.selectStatement(sql)
             if let arguments = arguments {
-                statement.arguments = arguments
+                try statement.validateArguments(arguments)
+                statement.unsafeSetArguments(arguments)
             }
             return statement
         case .FetchRequest(let fetchRequest):
