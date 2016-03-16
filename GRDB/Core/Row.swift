@@ -644,7 +644,7 @@ public func ==(lhs: Row, rhs: Row) -> Bool {
         }
     }
     
-    return false
+    return true
 }
 
 /// Row adopts CustomStringConvertible.
