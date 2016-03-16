@@ -101,7 +101,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
     
     private func configureCell(cell: UITableViewCell, atIndexPath indexPath:NSIndexPath) {
         let person = fetchedResultsController.resultAtIndexPath(indexPath)!
-        cell.textLabel!.text = person.fullName
+        cell.textLabel!.text = "\(person.position) - \(person.fullName)"
     }
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
@@ -128,15 +128,22 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         case .Deletion(_, let from):
             tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Fade)
             
-        case .Move(_, let fromIndexPath, let toIndexPath, let changes):
-            tableView.moveRowAtIndexPath(fromIndexPath, toIndexPath: toIndexPath)
-            if !changes.isEmpty, let cell = tableView.cellForRowAtIndexPath(toIndexPath) {
-                configureCell(cell, atIndexPath: toIndexPath)
+        case .Move(_, let indexPath, let newIndexPath, let changes):
+//            // technique 1
+//            tableView.deleteRowsAtIndexPaths([indexPath],
+//                withRowAnimation: UITableViewRowAnimation.Fade)
+//            tableView.insertRowsAtIndexPaths([newIndexPath],
+//                withRowAnimation: UITableViewRowAnimation.Fade)
+            // technique 2
+            let cell = tableView.cellForRowAtIndexPath(indexPath)
+            tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+            if !changes.isEmpty, let cell = cell {
+                configureCell(cell, atIndexPath: newIndexPath)
             }
             
-        case .Update(_, let at, let changes):
-            if !Set(["firstName", "lastName"]).isDisjointWith(changes.keys) {
-                tableView.reloadRowsAtIndexPaths([at], withRowAnimation: .Fade)
+        case .Update(_, let indexPath, let changes):
+            if let cell = tableView.cellForRowAtIndexPath(indexPath) {
+                configureCell(cell, atIndexPath: indexPath)
             }
         }
     }

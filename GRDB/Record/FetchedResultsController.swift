@@ -219,13 +219,13 @@ public class FetchedResultsController<T: RowConvertible> {
             /// Returns a potential .Move `ResultChange` based on an array of `ResultChange` elements and a `ResultChange` to match up against.
             /// If `deletionOrInsertion` is a deletion or an insertion, and there is a matching inverse insertion/deletion with the same value in the array, a corresponding `.Move` update is returned.
             /// As a convenience, the index of the matched `ResultChange` into `changes` is returned as well.
-            func moveFromChanges(changes: [ResultChange<FetchedItem<T>>], deletionOrInsertion change: ResultChange<FetchedItem<T>>) -> (move: ResultChange<FetchedItem<T>>, index: Int)? {
+            func mergedChangeFromChanges(changes: [ResultChange<FetchedItem<T>>], deletionOrInsertion change: ResultChange<FetchedItem<T>>) -> (move: ResultChange<FetchedItem<T>>, index: Int)? {
                 if let inverseIndex = changes.indexOf({ (earlierChange) -> Bool in return earlierChange.isMoveCounterpart(change, identityComparator: { (lhs, rhs) in return identityComparator(lhs.result, rhs.result) }) }) {
                     switch changes[inverseIndex] {
                     case .Deletion(let deletedItem, let from):
                         switch change {
                         case .Insertion(let insertedItem, let to):
-                            let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row) // maybe to be reversed
+                            let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row)
                             if from == to {
                                 return (ResultChange.Update(item: insertedItem, at: from, changes: rowChanges), inverseIndex)
                             } else {
@@ -237,7 +237,7 @@ public class FetchedResultsController<T: RowConvertible> {
                     case .Insertion(let insertedItem, let to):
                         switch change {
                         case .Deletion(let deletedItem, let from):
-                            let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row) // maybe to be reversed
+                            let rowChanges = changedValues(from: deletedItem.row, to: insertedItem.row)
                             if from == to {
                                 return (ResultChange.Update(item: insertedItem, at: from, changes: rowChanges), inverseIndex)
                             } else {
@@ -253,15 +253,23 @@ public class FetchedResultsController<T: RowConvertible> {
                 return nil
             }
             
-            return changes.reduce([ResultChange<FetchedItem<T>>]()) { (var reducedChanges, update) in
-                if let (move, index) = moveFromChanges(reducedChanges, deletionOrInsertion: update) {
-                    reducedChanges.removeAtIndex(index)
-                    reducedChanges.append(move)
+            // Updates must be pushed at the end
+            var mergedChanges: [ResultChange<FetchedItem<T>>] = []
+            var updateChanges: [ResultChange<FetchedItem<T>>] = []
+            for change in changes {
+                if let (mergedChange, obsoleteIndex) = mergedChangeFromChanges(mergedChanges, deletionOrInsertion: change) {
+                    mergedChanges.removeAtIndex(obsoleteIndex)
+                    switch mergedChange {
+                    case .Update:
+                        updateChanges.append(mergedChange)
+                    default:
+                        mergedChanges.append(mergedChange)
+                    }
                 } else {
-                    reducedChanges.append(update)
+                    mergedChanges.append(change)
                 }
-                return reducedChanges
             }
+            return mergedChanges + updateChanges
         }
         
         return standardizeChanges(d[m][n])
