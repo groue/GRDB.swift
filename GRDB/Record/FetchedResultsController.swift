@@ -154,51 +154,40 @@ public class FetchedResultsController<T: RowConvertible> {
             d[0][col + 1] = changes
         }
         
-        guard m > 0 && n > 0 else { return d[m][n] }
-        
-        // Indexes into the two collections.
-        var sx: Array<T>.Index
-        var tx = t.startIndex
+        if m == 0 || n == 0 {
+            // Pure deletions or insertions
+            return d[m][n]
+        }
         
         // Fill body of matrix.
-        
-        for j in 1...n {
-            sx = s.startIndex
-            
-            for i in 1...m {
+        for tx in 0..<n {
+            for sx in 0..<m {
                 if s[sx] == t[tx] {
-                    // TODO: compute changes
-                    d[i][j] = d[i - 1][j - 1] // no operation
+                    d[sx+1][tx+1] = d[sx][tx] // no operation
                 } else {
-                    
-                    var del = d[i - 1][j] // a deletion
-                    var ins = d[i][j - 1] // an insertion
-                    var sub = d[i - 1][j - 1] // a substitution
+                    var del = d[sx][tx+1]     // a deletion
+                    var ins = d[sx+1][tx]     // an insertion
+                    var sub = d[sx][tx]       // a substitution
                     
                     // Record operation.
-                    
                     let minimumCount = min(del.count, ins.count, sub.count)
                     if del.count == minimumCount {
-                        let deletion = ResultChange.Deletion(item: s[sx], at: NSIndexPath(forRow: i-1, inSection: 0))
+                        let deletion = ResultChange.Deletion(item: s[sx], at: NSIndexPath(forRow: sx, inSection: 0))
                         del.append(deletion)
-                        d[i][j] = del
+                        d[sx+1][tx+1] = del
                     } else if ins.count == minimumCount {
-                        let insertion = ResultChange.Insertion(item: t[tx], at: NSIndexPath(forRow: j-1, inSection: 0))
+                        let insertion = ResultChange.Insertion(item: t[tx], at: NSIndexPath(forRow: tx, inSection: 0))
                         ins.append(insertion)
-                        d[i][j] = ins
+                        d[sx+1][tx+1] = ins
                     } else {
-                        let deletion = ResultChange.Deletion(item: s[sx], at: NSIndexPath(forRow: i-1, inSection: 0))
-                        let insertion = ResultChange.Insertion(item: t[tx], at: NSIndexPath(forRow: j-1, inSection: 0))
+                        let deletion = ResultChange.Deletion(item: s[sx], at: NSIndexPath(forRow: sx, inSection: 0))
+                        let insertion = ResultChange.Insertion(item: t[tx], at: NSIndexPath(forRow: tx, inSection: 0))
                         sub.append(deletion)
                         sub.append(insertion)
-                        d[i][j] = sub
+                        d[sx+1][tx+1] = sub
                     }
                 }
-                
-                sx = sx.advancedBy(1)
             }
-            
-            tx = tx.advancedBy(1)
         }
         
         /// Returns the changes between two rows
@@ -218,10 +207,11 @@ public class FetchedResultsController<T: RowConvertible> {
         /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
         func standardizeChanges(changes: [ResultChange<FetchedItem<T>>]) -> [ResultChange<FetchedItem<T>>] {
             
-            /// Returns a potential .Move `ResultChange` based on an array of `ResultChange` elements and a `ResultChange` to match up against.
-            /// If `deletionOrInsertion` is a deletion or an insertion, and there is a matching inverse insertion/deletion with the same value in the array, a corresponding `.Move` update is returned.
-            /// As a convenience, the index of the matched `ResultChange` into `changes` is returned as well.
-            func mergedChangeFromChanges(changes: [ResultChange<FetchedItem<T>>], deletionOrInsertion change: ResultChange<FetchedItem<T>>) -> (mergedChange: ResultChange<FetchedItem<T>>, obsoleteIndex: Int)? {
+            /// Returns a potential .Move or .Update if *change* has a matching change in *changes*:
+            /// If *change* is a deletion or an insertion, and there is a matching inverse
+            /// insertion/deletion with the same value in *changes*, a corresponding .Move or .Update is returned.
+            /// As a convenience, the index of the matched change is returned as well.
+            func mergedChange(change: ResultChange<FetchedItem<T>>, inChanges changes: [ResultChange<FetchedItem<T>>]) -> (mergedChange: ResultChange<FetchedItem<T>>, obsoleteIndex: Int)? {
                 let obsoleteIndex = changes.indexOf { earlierChange in
                     return earlierChange.isMoveCounterpart(change, identityComparator: { (lhs, rhs) in return identityComparator(lhs.result, rhs.result) })
                 }
@@ -252,7 +242,7 @@ public class FetchedResultsController<T: RowConvertible> {
             var mergedChanges: [ResultChange<FetchedItem<T>>] = []
             var updateChanges: [ResultChange<FetchedItem<T>>] = []
             for change in changes {
-                if let (mergedChange, obsoleteIndex) = mergedChangeFromChanges(mergedChanges, deletionOrInsertion: change) {
+                if let (mergedChange, obsoleteIndex) = mergedChange(change, inChanges: mergedChanges) {
                     mergedChanges.removeAtIndex(obsoleteIndex)
                     switch mergedChange {
                     case .Update:
@@ -268,30 +258,6 @@ public class FetchedResultsController<T: RowConvertible> {
         }
         
         return standardizeChanges(d[m][n])
-        
-        // NSFetchResultsController sometimes add some extra notifications
-        // We'll see in the future if it is needed or not
-        //for (sIndex, sItem) in s.enumerate() {
-        //    if let tIndex = t.indexOf(sItem) as? Int where tIndex != sIndex {
-        //        var shouldAdd = true
-        //        for edit in reducedAndOrdoredEdits {
-        //            switch edit.operation {
-        //            case .Move:
-        //                if edit.value == sItem {
-        //                    shouldAdd = false
-        //                }
-        //            default: break
-        //            }
-        //        }
-        //
-        //        if shouldAdd {
-        //            // TODO! get value from destination array!!!!
-        //            let move = Edit(.Move(origin: sIndex), value: sItem, destination: tIndex)
-        //            print("Added extra \(move)")
-        //            reducedAndOrdoredEdits.append(move)
-        //        }
-        //    }
-        //}
     }
 }
 
