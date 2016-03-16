@@ -58,8 +58,3 @@ class Person : Record {
         try super.insert(db)
     }
 }
-
-extension Person : Equatable { }
-func ==(lhs: Person, rhs: Person) -> Bool {
-    return lhs.id == rhs.id
-}
