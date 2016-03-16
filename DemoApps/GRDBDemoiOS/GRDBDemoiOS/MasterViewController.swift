@@ -55,7 +55,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "showPerson" {
-            let person = fetchedResultsController.resultAtIndexPath(self.tableView.indexPathForSelectedRow!)
+            let person = fetchedResultsController.objectAtIndexPath(self.tableView.indexPathForSelectedRow!)
             let detailViewController = (segue.destinationViewController as! UINavigationController).topViewController as! DetailViewController
             detailViewController.person = person
             detailViewController.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem()
@@ -87,7 +87,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
     // MARK: - Table View
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if let persons = fetchedResultsController.fetchedResults {
+        if let persons = fetchedResultsController.fetchedObjects {
             return persons.count
         }
         return 0
@@ -100,13 +100,13 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
     }
     
     private func configureCell(cell: UITableViewCell, atIndexPath indexPath:NSIndexPath) {
-        let person = fetchedResultsController.resultAtIndexPath(indexPath)!
+        let person = fetchedResultsController.objectAtIndexPath(indexPath)!
         cell.textLabel!.text = "\(person.position) - \(person.fullName)"
     }
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
-        let person = fetchedResultsController.resultAtIndexPath(indexPath)!
+        let person = fetchedResultsController.objectAtIndexPath(indexPath)!
         try! dbQueue.inTransaction { db in
             try person.delete(db)
             return .Commit
@@ -119,16 +119,17 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         tableView.beginUpdates()
     }
     
-    func controllerUpdate<T>(controller: FetchedResultsController<T>, update: ResultChange<T>) {
-        print(update)
-        switch update {
-        case .Insertion(_, let at):
-            tableView.insertRowsAtIndexPaths([at], withRowAnimation: .Fade)
+    // TODO: we don't know that object is a Person
+    func controller<T>(controller: FetchedResultsController<T>, didChangeObject object: T, with change: ResultChange) {
+        print(change)
+        switch change {
+        case .Insertion(let indexPath):
+            tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
             
-        case .Deletion(_, let from):
-            tableView.deleteRowsAtIndexPaths([from], withRowAnimation: .Fade)
+        case .Deletion(let indexPath):
+            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
             
-        case .Move(_, let indexPath, let newIndexPath, let changes):
+        case .Move(let indexPath, let newIndexPath, let changes):
 //            // technique 1
 //            tableView.deleteRowsAtIndexPaths([indexPath],
 //                withRowAnimation: UITableViewRowAnimation.Fade)
@@ -141,7 +142,7 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
                 configureCell(cell, atIndexPath: newIndexPath)
             }
             
-        case .Update(_, let indexPath, let changes):
+        case .Update(let indexPath, _):
             if let cell = tableView.cellForRowAtIndexPath(indexPath) {
                 configureCell(cell, atIndexPath: indexPath)
             }
