@@ -145,8 +145,8 @@ class TransactionObserverTests: GRDBTestCase {
         observer = TransactionObserver()
         
         assertNoError {
+            dbQueue.addTransactionObserver(self.observer)
             try dbQueue.inDatabase { db in
-                db.addTransactionObserver(self.observer)
                 try Artist.setupInDatabase(db)
                 try Artwork.setupInDatabase(db)
             }
@@ -631,13 +631,13 @@ class TransactionObserverTests: GRDBTestCase {
     
     func testInsertEventIsNotifiedToAllObservers() {
         assertNoError {
+            let observer1 = TransactionObserver()
+            let observer2 = TransactionObserver()
+            
+            dbQueue.addTransactionObserver(observer1)
+            dbQueue.addTransactionObserver(observer2)
+            
             try dbQueue.inDatabase { db in
-                let observer1 = TransactionObserver()
-                let observer2 = TransactionObserver()
-                
-                db.addTransactionObserver(observer1)
-                db.addTransactionObserver(observer2)
-                
                 let artist = Artist(name: "Gerhard Richter")
                 
                 //
@@ -667,12 +667,13 @@ class TransactionObserverTests: GRDBTestCase {
             let observer2 = TransactionObserver()
             let observer3 = TransactionObserver()
             observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
+            
+            dbQueue.addTransactionObserver(observer1)
+            dbQueue.addTransactionObserver(observer2)
+            dbQueue.addTransactionObserver(observer3)
+            
             do {
                 try dbQueue.inTransaction { db in
-                    db.addTransactionObserver(observer1)
-                    db.addTransactionObserver(observer2)
-                    db.addTransactionObserver(observer3)
-                    
                     do {
                         try Artist(name: "Gerhard Richter").save(db)
                     } catch {
@@ -709,9 +710,7 @@ class TransactionObserverTests: GRDBTestCase {
             do {
                 let observer = TransactionObserver(deinitBlock: { observerReleased = true })
                 withExtendedLifetime(observer) {
-                    dbQueue.inDatabase { db in
-                        db.addTransactionObserver(observer)
-                    }
+                    dbQueue.addTransactionObserver(observer)
                     XCTAssertFalse(observerReleased)
                 }
             }

@@ -1,6 +1,169 @@
 Release Notes
 =============
 
+## 0.51.2
+
+Released March 14, 2016
+
+**Fixed**
+
+- A race condition that could prevent `Configuration.fileAttributes` to apply to some database files.
+
+
+## 0.51.1
+
+Released March 13, 2016
+
+Nothing new, but performance improvements
+
+
+## 0.51.0
+
+Released March 13, 2016
+
+**New**
+
+- Support for file attributes
+    
+    ```swift
+    var config = Configuration()
+    config.fileAttributes = [NSFileProtectionKey: NSFileProtectionComplete]
+    let dbPool = DatabasePool(path: ".../db.sqlite", configuration: config)
+    ```
+    
+    GRDB will take care of applying them to the database file and all its derivatives (`-wal` and `-shm` files created by the [WAL mode](https://www.sqlite.org/wal.html), as well as [temporary files](https://www.sqlite.org/tempfiles.html)).
+
+
+## 0.50.1
+
+Released March 12, 2016
+
+**Fixed**
+
+- A database connection won't close as long as there is a database sequence being iterated.
+
+
+## 0.50.0
+
+Released March 12, 2016
+
+**New**
+
+- Database updates no longer need to be executed in a closure:
+    
+    ```swift
+    // Before:
+    try dbQueue.inDatabase { db in
+        try db.execute("CREATE TABLE ...")
+        let person = Person(...)
+        try person.insert(db)
+    }
+    
+    // New:
+    try dbQueue.execute("CREATE TABLE ...")
+    let person = Person(...)
+    try person.insert(dbQueue)
+    ```
+
+- DatabaseQueue and DatabasePool both adopt the new [DatabaseReader](https://github.com/groue/GRDB.swift/tree/master/GRDB/Core/DatabaseReader.swift) and [DatabaseWriter](https://github.com/groue/GRDB.swift/tree/master/GRDB/Core/DatabaseWriter.swift) protocols.
+
+
+**Breaking Changes**
+
+- The following methods have changed their signatures:
+    
+    ```swift
+    protocol MutablePersistable {
+        mutating func insert(db: DatabaseWriter) throws
+        func update(db: DatabaseWriter) throws
+        mutating func save(db: DatabaseWriter) throws
+        func delete(db: DatabaseWriter) throws -> Bool
+        func exists(db: DatabaseReader) -> Bool
+    }
+    
+    protocol Persistable {
+        func insert(db: DatabaseWriter) throws
+        func save(db: DatabaseWriter) throws
+    }
+    
+    class Record {
+        func insert(db: DatabaseWriter) throws
+        func update(db: DatabaseWriter) throws
+        func save(db: DatabaseWriter) throws
+        func delete(db: DatabaseWriter) throws -> Bool
+        func exists(db: DatabaseReader) -> Bool
+    }
+    ```
+
+
+## 0.49.0
+
+Released March 11, 2016
+
+**New**
+
+- Read-only database pools grant you with concurrent reads on a database, without activating the WAL mode.
+- All fetchable types can now be fetched directly from database queues and pools:
+    
+    ```swift
+    // Before:
+    let persons = dbQueue.inDatabase { db in
+        Person.fetchAll(db)
+    }
+    
+    // New:
+    let persons = Person.fetchAll(dbQueue)
+    ```
+
+**Breaking Changes**
+
+- [Transaction observers](https://github.com/groue/GRDB.swift#database-changes-observation) are no longer added to Database instances, but to DatabaseQueue and DatabasePool.
+
+
+## 0.48.0
+
+Released March 10, 2016
+
+**New**
+
+- `DatabaseQueue.releaseMemory()` and `DatabasePool.releaseMemory()` claim non-essential memory ([documentation](https://github.com/groue/GRDB.swift#memory-management))
+
+**Breaking Changes**
+
+- Custom [functions](https://github.com/groue/GRDB.swift#custom-sql-functions) and [collations](https://github.com/groue/GRDB.swift#string-comparison) are no longer added to Database instances, but to DatabaseQueue and DatabasePool.
+
+
+## 0.47.0
+
+Released March 10, 2016
+
+**New**
+
+- Support for concurrent accesses to the database, using the SQLite [WAL Mode](https://www.sqlite.org/wal.html). ([documentation](https://github.com/groue/GRDB.swift#database-pools))
+
+
+## 0.46.0
+
+Released March 5, 2016
+
+**New**
+
+- Improved counting support in the query interface ([documentation](https://github.com/groue/GRDB.swift#fetching-aggregated-values))
+
+**Breaking Changes**
+
+- Swift enums that behave like other database values now need to declare `DatabaseValueConvertible` adoption. The `DatabaseIntRepresentable`, `DatabaseInt32Representable`, `DatabaseInt64Representable` and `DatabaseStringRepresentable` protocols have been removed ([documentation](https://github.com/groue/GRDB.swift#swift-enums))
+
+
+## 0.45.1
+
+Released February 11, 2016
+
+**Fixed**
+
+- [iOS7 demo application](https://github.com/groue/GRDB.swift/tree/master/DemoApps/GRDBDemoiOS7) builds again.
+
+
 ## 0.45.0
 
 Released February 9, 2016

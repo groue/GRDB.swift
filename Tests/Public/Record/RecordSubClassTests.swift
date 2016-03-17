@@ -32,12 +32,12 @@ class PersonWithOverrides : Person {
         super.init(row)
     }
     
-    override func insert(db: Database) throws {
+    override func insert(db: DatabaseWriter) throws {
         lastSavingMethod = .Insert
         try super.insert(db)
     }
     
-    override func update(db: Database) throws {
+    override func update(db: DatabaseWriter) throws {
         lastSavingMethod = .Update
         try super.update(db)
     }

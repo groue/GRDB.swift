@@ -258,7 +258,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testDatabaseErrorThrownByUpdateStatementContainSQL() {
         dbQueue.inDatabase { db in
             do {
-                let _ = try db.updateStatement("UPDATE blah SET id = 12")
+                _ = try db.updateStatement("UPDATE blah SET id = 12")
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 1)
@@ -275,7 +275,7 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 do {
-                    let _ = try db.updateStatement("UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
+                    _ = try db.updateStatement("UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 21)  // SQLITE_MISUSE
@@ -291,7 +291,7 @@ class UpdateStatementTests : GRDBTestCase {
         assertNoError {
             try dbQueue.inDatabase { db in
                 do {
-                    let _ = try db.updateStatement("UPDATE persons SET age = 1;x")
+                    _ = try db.updateStatement("UPDATE persons SET age = 1;x")
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 21)  // SQLITE_MISUSE
@@ -299,6 +299,28 @@ class UpdateStatementTests : GRDBTestCase {
                     XCTAssertEqual(error.sql!, "UPDATE persons SET age = 1;x")
                     XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1;x`: Multiple statements found. To execute multiple statements, use Database.execute() instead.")
                 }
+            }
+        }
+    }
+    
+    func testReadOnlyDatabaseCanNotBeModified() {
+        assertNoError {
+            var configuration = Configuration()
+            configuration.readonly = true
+            dbQueue = try DatabaseQueue(path: dbQueuePath, configuration: configuration)
+            let statement = try dbQueue.inDatabase { db in
+                try db.updateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            }
+            do {
+                try dbQueue.inDatabase { db in
+                    try statement.execute()
+                }
+                XCTFail()
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, 8)   // SQLITE_READONLY
+                XCTAssertEqual(error.message!, "attempt to write a readonly database")
+                XCTAssertEqual(error.sql!, "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                XCTAssertEqual(error.description, "SQLite error 8 with statement `CREATE TABLE items (id INTEGER PRIMARY KEY)`: attempt to write a readonly database")
             }
         }
     }

@@ -35,10 +35,7 @@ func setupDatabase() {
     let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
         return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
     }
-    
-    dbQueue.inDatabase { db in
-        db.addCollation(collation)
-    }
+    dbQueue.addCollation(collation)
     
     
     // Use DatabaseMigrator to setup the database

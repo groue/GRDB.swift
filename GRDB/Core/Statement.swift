@@ -1,3 +1,5 @@
+import Foundation
+
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = COpaquePointer
 
@@ -22,10 +24,11 @@ public class Statement {
         self.sqliteStatement = sqliteStatement
     }
     
-    init(database: Database, sql: String) throws {
+    private init(database: Database, sql: String, observer: StatementCompilationObserver) throws {
         database.preconditionValidQueue()
         
-        // See https://www.sqlite.org/c3ref/prepare.html
+        observer.start()
+        defer { observer.stop() }
         
         let sqlCodeUnits = sql.nulTerminatedUTF8
         var sqliteStatement: SQLiteStatement = nil
@@ -53,9 +56,7 @@ public class Statement {
     }
     
     deinit {
-        if sqliteStatement != nil {
-            sqlite3_finalize(sqliteStatement)
-        }
+        sqlite3_finalize(sqliteStatement)
     }
     
     final func reset() throws {
@@ -94,7 +95,7 @@ public class Statement {
     /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
     /// statement arguments.
     public func validateArguments(arguments: StatementArguments) throws {
-        let _ = try validatedBindings(arguments)
+        _ = try validatedBindings(arguments)
     }
     
     /// Set arguments without any validation. Trades safety for performance.
@@ -258,7 +259,7 @@ public class Statement {
 /// You create SelectStatement with the Database.selectStatement() method:
 ///
 ///     dbQueue.inDatabase { db in
-///         let statement = db.selectStatement("SELECT * FROM persons WHERE age > ?")
+///         let statement = db.selectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
 ///         let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
 ///     }
@@ -266,18 +267,11 @@ public final class SelectStatement : Statement {
     /// The tables this statement feeds on.
     var sourceTables: Set<String>
     
-    override init(database: Database, sql: String) throws {
+    init(database: Database, sql: String) throws {
         self.sourceTables = []
         
-        // During the execution of sqlite3_prepare_v2 by super.init, the
-        // observer listens to authorization callbacks in order to grab the
-        // list of source tables.
-        let observer = SourceTableObserver(database)
-        observer.start()
-        defer { observer.stop() }
-        
-        try super.init(database: database, sql: sql)
-        
+        let observer = StatementCompilationObserver(database)
+        try super.init(database: database, sql: sql, observer: observer)
         self.sourceTables = observer.sourceTables
     }
     
@@ -288,7 +282,8 @@ public final class SelectStatement : Statement {
     
     /// The column names, ordered from left to right.
     public lazy var columnNames: [String] = {
-        (0..<self.columnCount).map { String.fromCString(sqlite3_column_name(self.sqliteStatement, Int32($0)))! }
+        let sqliteStatement = self.sqliteStatement
+        return (0..<self.columnCount).map { String.fromCString(sqlite3_column_name(sqliteStatement, Int32($0)))! }
     }()
     
     /// Cache for indexOfColumn(). Keys are lowercase.
@@ -302,9 +297,9 @@ public final class SelectStatement : Statement {
         return columnIndexes[name.lowercaseString]
     }
     
-    /// The DatabaseSequence builder.
+    /// Creates a DatabaseSequence
     @warn_unused_result
-    func fetchSequence<T>(arguments arguments: StatementArguments?, element: () -> T) -> DatabaseSequence<T> {
+    func fetchSequence<Element>(arguments arguments: StatementArguments?, element: () -> Element) -> DatabaseSequence<Element> {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepareWithArguments(arguments)
         return DatabaseSequence(statement: self, element: element)
@@ -312,31 +307,29 @@ public final class SelectStatement : Statement {
 }
 
 /// A sequence of elements fetched from the database.
-public struct DatabaseSequence<T>: SequenceType {
-    private let generateImpl: () throws -> DatabaseGenerator<T>
+public struct DatabaseSequence<Element>: SequenceType {
+    private let generateImpl: () throws -> DatabaseGenerator<Element>
     
     // Statement sequence
-    private init(statement: SelectStatement, element: () -> T) {
-        let preconditionValidQueue = statement.database.preconditionValidQueue
-        let sqliteStatement = statement.sqliteStatement
-        generateImpl = {
+    private init(statement: SelectStatement, element: () -> Element) {
+        self.generateImpl = {
             // Check that generator is built on a valid queue.
-            preconditionValidQueue()
+            statement.database.preconditionValidQueue()
             
-            // DatabaseSequence can be restarted
+            // Support multiple sequence iterations
             try statement.reset()
             
-            return DatabaseGenerator {
-                // Check that generator is used on a valid queue.
-                preconditionValidQueue()
-                
+            let statementRef = Unmanaged.passRetained(statement)
+            return DatabaseGenerator(statementRef: statementRef) { (sqliteStatement, statementRef) in
                 switch sqlite3_step(sqliteStatement) {
                 case SQLITE_DONE:
                     return nil
                 case SQLITE_ROW:
                     return element()
                 case let errorCode:
-                    throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+                    let statement = statementRef.takeUnretainedValue()
+                    try! { throw DatabaseError(code: errorCode, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments) }()
+                    preconditionFailure()
                 }
             }
         }
@@ -346,34 +339,53 @@ public struct DatabaseSequence<T>: SequenceType {
     static func emptySequence(database: Database) -> DatabaseSequence {
         // Empty sequence is just as strict as statement sequence, and requires
         // to be used on the database queue.
-        let preconditionValidQueue = database.preconditionValidQueue
         return DatabaseSequence() {
             // Check that generator is built on a valid queue.
-            preconditionValidQueue()
-            return DatabaseGenerator {
-                // Check that generator is used on a valid queue.
-                preconditionValidQueue()
-                return nil
-            }
+            database.preconditionValidQueue()
+            return DatabaseGenerator()
         }
     }
     
-    private init(generateImpl: () throws -> DatabaseGenerator<T>) {
+    private init(generateImpl: () throws -> DatabaseGenerator<Element>) {
         self.generateImpl = generateImpl
     }
     
     /// Return a *generator* over the elements of this *sequence*.
     @warn_unused_result
-    public func generate() -> DatabaseGenerator<T> {
+    public func generate() -> DatabaseGenerator<Element> {
         return try! generateImpl()
     }
 }
 
 /// A generator of elements fetched from the database.
-public struct DatabaseGenerator<T>: GeneratorType {
-    private let element: () throws -> T?
-    public func next() -> T? {
-        return try! element()
+public class DatabaseGenerator<Element>: GeneratorType {
+    private let statementRef: Unmanaged<SelectStatement>?
+    private let sqliteStatement: SQLiteStatement
+    private let element: ((SQLiteStatement, Unmanaged<SelectStatement>) -> Element?)?
+    
+    // Generator takes ownership of statementRef
+    init(statementRef: Unmanaged<SelectStatement>, element: (SQLiteStatement, Unmanaged<SelectStatement>) -> Element?) {
+        self.statementRef = statementRef
+        self.sqliteStatement = statementRef.takeUnretainedValue().sqliteStatement
+        self.element = element
+    }
+    
+    init() {
+        self.statementRef = nil
+        self.sqliteStatement = nil
+        self.element = nil
+    }
+    
+    deinit {
+        statementRef?.release()
+    }
+    
+    @warn_unused_result
+    public func next() -> Element? {
+        guard let element = element else {
+            return nil
+        }
+        return element(sqliteStatement, unsafeUnwrap(statementRef))
     }
 }
 
@@ -400,18 +412,11 @@ public final class UpdateStatement : Statement {
         super.init(database: database, sql: sql, sqliteStatement: sqliteStatement)
     }
     
-    override init(database: Database, sql: String) throws {
+    init(database: Database, sql: String) throws {
         self.invalidatesDatabaseSchemaCache = false
         
-        // During the execution of sqlite3_prepare_v2 by super.init, the
-        // observer listens to authorization callbacks in order to observe
-        // schema changes.
-        let observer = SchemaChangeObserver(database)
-        observer.start()
-        defer { observer.stop() }
-        
-        try super.init(database: database, sql: sql)
-        
+        let observer = StatementCompilationObserver(database)
+        try super.init(database: database, sql: sql, observer: observer)
         self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
     }
     
@@ -421,6 +426,8 @@ public final class UpdateStatement : Statement {
     /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
+        database.preconditionValidQueue()
+        
         // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
         try! prepareWithArguments(arguments)
         try! reset()

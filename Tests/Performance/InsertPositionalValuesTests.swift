@@ -21,7 +21,7 @@ class InsertPositionalValuesTests: XCTestCase {
         }
         
         measureBlock {
-            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
             
             var connection: COpaquePointer = nil
             sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
@@ -66,7 +66,7 @@ class InsertPositionalValuesTests: XCTestCase {
             try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
         }
         measureBlock {
-            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
             
             let dbQueue = FMDatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -95,7 +95,7 @@ class InsertPositionalValuesTests: XCTestCase {
             try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
         }
         measureBlock {
-            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
@@ -125,7 +125,7 @@ class InsertPositionalValuesTests: XCTestCase {
             try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
         }
         measureBlock {
-            let _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
             
             let db = try! Connection(databasePath)
             try! db.run(itemsTable.create { t in

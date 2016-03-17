@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // A type that adopts DatabaseValueConvertible and StatementColumnConvertible
-struct FastWrappedInt: DatabaseValueConvertible, StatementColumnConvertible {
+private struct FastWrappedInt: DatabaseValueConvertible, StatementColumnConvertible {
     let int: Int
     let fast: Bool
     

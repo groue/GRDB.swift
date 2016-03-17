@@ -17,16 +17,16 @@ class FetchNamedValuesTests: XCTestCase {
             dbQueue.inDatabase { db in
                 if let rs = db.executeQuery("SELECT * FROM items", withArgumentsInArray: nil) {
                     while rs.next() {
-                        let _ = rs.longForColumn("i0")
-                        let _ = rs.longForColumn("i1")
-                        let _ = rs.longForColumn("i2")
-                        let _ = rs.longForColumn("i3")
-                        let _ = rs.longForColumn("i4")
-                        let _ = rs.longForColumn("i5")
-                        let _ = rs.longForColumn("i6")
-                        let _ = rs.longForColumn("i7")
-                        let _ = rs.longForColumn("i8")
-                        let _ = rs.longForColumn("i9")
+                        _ = rs.longForColumn("i0")
+                        _ = rs.longForColumn("i1")
+                        _ = rs.longForColumn("i2")
+                        _ = rs.longForColumn("i3")
+                        _ = rs.longForColumn("i4")
+                        _ = rs.longForColumn("i5")
+                        _ = rs.longForColumn("i6")
+                        _ = rs.longForColumn("i7")
+                        _ = rs.longForColumn("i8")
+                        _ = rs.longForColumn("i9")
                         
                         count += 1
                     }
@@ -46,16 +46,16 @@ class FetchNamedValuesTests: XCTestCase {
             
             dbQueue.inDatabase { db in
                 for row in Row.fetch(db, "SELECT * FROM items") {
-                    let _: Int = row.value(named: "i0")
-                    let _: Int = row.value(named: "i1")
-                    let _: Int = row.value(named: "i2")
-                    let _: Int = row.value(named: "i3")
-                    let _: Int = row.value(named: "i4")
-                    let _: Int = row.value(named: "i5")
-                    let _: Int = row.value(named: "i6")
-                    let _: Int = row.value(named: "i7")
-                    let _: Int = row.value(named: "i8")
-                    let _: Int = row.value(named: "i9")
+                    _ = row.value(named: "i0") as Int
+                    _ = row.value(named: "i1") as Int
+                    _ = row.value(named: "i2") as Int
+                    _ = row.value(named: "i3") as Int
+                    _ = row.value(named: "i4") as Int
+                    _ = row.value(named: "i5") as Int
+                    _ = row.value(named: "i6") as Int
+                    _ = row.value(named: "i7") as Int
+                    _ = row.value(named: "i8") as Int
+                    _ = row.value(named: "i9") as Int
                     
                     count += 1
                 }
@@ -73,16 +73,16 @@ class FetchNamedValuesTests: XCTestCase {
             var count = 0
             
             for item in try! db.prepare(itemsTable) {
-                let _ = item[i0Column]
-                let _ = item[i1Column]
-                let _ = item[i2Column]
-                let _ = item[i3Column]
-                let _ = item[i4Column]
-                let _ = item[i5Column]
-                let _ = item[i6Column]
-                let _ = item[i7Column]
-                let _ = item[i8Column]
-                let _ = item[i9Column]
+                _ = item[i0Column]
+                _ = item[i1Column]
+                _ = item[i2Column]
+                _ = item[i3Column]
+                _ = item[i4Column]
+                _ = item[i5Column]
+                _ = item[i6Column]
+                _ = item[i7Column]
+                _ = item[i8Column]
+                _ = item[i9Column]
                 
                 count += 1
             }

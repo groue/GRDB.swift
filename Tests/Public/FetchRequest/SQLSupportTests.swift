@@ -21,17 +21,13 @@ class SQLSupportTests: GRDBTestCase {
         collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
             return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
         }
-        dbQueue.inDatabase { db in
-            db.addCollation(self.collation)
-        }
+        dbQueue.addCollation(collation)
         
         customFunction = DatabaseFunction("avgOf", pure: true) { databaseValues in
             let sum = databaseValues.flatMap { $0.value() as Int? }.reduce(0, combine: +)
             return Double(sum) / Double(databaseValues.count)
         }
-        dbQueue.inDatabase { db in
-            db.addFunction(self.customFunction)
-        }
+        dbQueue.addFunction(self.customFunction)
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
@@ -149,8 +145,6 @@ class SQLSupportTests: GRDBTestCase {
     }
     
     func testGreaterThan() {
-        // TODO: test compound expressions such as `average(Col.age) + 10 > 20`
-        
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age > 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" > 10)")
@@ -176,6 +170,10 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name > Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" > \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 > 20)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) > 20)")
     }
     
     func testGreaterThanWithCollation() {
@@ -188,8 +186,6 @@ class SQLSupportTests: GRDBTestCase {
     }
     
     func testGreaterThanOrEqual() {
-        // TODO: test compound expressions such as `average(Col.age) + 10 > 20`
-        
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age >= 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" >= 10)")
@@ -215,6 +211,10 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name >= Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" >= \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 >= 20)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) >= 20)")
     }
     
     func testGreaterThanOrEqualWithCollation() {
@@ -227,8 +227,6 @@ class SQLSupportTests: GRDBTestCase {
     }
     
     func testLessThan() {
-        // TODO: test compound expressions such as `average(Col.age) + 10 > 20`
-        
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age < 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" < 10)")
@@ -254,6 +252,10 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name < Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" < \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 < 20)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) < 20)")
     }
     
     func testLessThanWithCollation() {
@@ -266,8 +268,6 @@ class SQLSupportTests: GRDBTestCase {
     }
     
     func testLessThanOrEqual() {
-        // TODO: test compound expressions such as `average(Col.age) + 10 > 20`
-        
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age <= 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" <= 10)")
@@ -293,6 +293,10 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name <= Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" <= \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 <= 20)),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) <= 20)")
     }
     
     func testLessThanOrEqualWithCollation() {

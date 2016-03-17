@@ -27,6 +27,9 @@ public protocol RowConvertible {
     
     /// Do not call this method directly.
     ///
+    /// This method is called in a protected dispatch queue, after a record has
+    /// been fetched from the database.
+    ///
     /// Types that adopt RowConvertible have an opportunity to complete their
     /// initialization.
     mutating func awakeFromFetch(row row: Row, database: Database)
@@ -134,13 +137,13 @@ extension RowConvertible {
     ///     let persons = Person.fetchAll(db, "SELECT * FROM persons") // [Person]
     ///
     /// - parameters:
-    ///     - db: A Database.
+    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An array of records.
     @warn_unused_result
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchAll(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
+        return db.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -148,12 +151,12 @@ extension RowConvertible {
     ///     let person = Person.fetchOne(db, "SELECT * FROM persons") // Person?
     ///
     /// - parameters:
-    ///     - db: A Database.
+    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An optional record.
     @warn_unused_result
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchOne(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
+        return db.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
     }
 }

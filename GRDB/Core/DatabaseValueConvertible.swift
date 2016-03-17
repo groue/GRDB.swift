@@ -141,13 +141,13 @@ public extension DatabaseValueConvertible {
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///
     /// - parameters:
-    ///     - db: A Database.
+    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An array.
     @warn_unused_result
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchAll(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
+        return db.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -158,13 +158,13 @@ public extension DatabaseValueConvertible {
     ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     ///
     /// - parameters:
-    ///     - db: A Database.
+    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchOne(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
+        return db.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
     }
 }
 
@@ -219,8 +219,9 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     ///     let statement = db.selectStatement("SELECT name FROM ...")
     ///     let names = Optional<String>.fetchAll(statement)  // [String?]
     ///
-    /// - parameter statement: The statement to run.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
     /// - returns: An array of optional values.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Wrapped?] {
@@ -246,9 +247,10 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A Database.
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of optional values.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Wrapped?> {
@@ -259,12 +261,13 @@ public extension Optional where Wrapped: DatabaseValueConvertible {
     ///
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String?]
     ///
-    /// - parameter db: A Database.
-    /// - parameter sql: An SQL query.
-    /// - parameter arguments: Optional statement arguments.
+    /// - parameters:
+    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    ///     - sql: An SQL query.
+    ///     - parameter arguments: Optional statement arguments.
     /// - returns: An array of optional values.
     @warn_unused_result
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Wrapped?] {
-        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchAll(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Wrapped?] {
+        return db.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
     }
 }

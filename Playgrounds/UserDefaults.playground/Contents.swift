@@ -2,25 +2,34 @@
 
 import GRDB
 
+// UserDefaults can work with both DatabaseQueue and DatabasePool
+public protocol UserDefaultsBackEnd: class, DatabaseReader, DatabaseWriter { }
+extension DatabaseQueue : UserDefaultsBackEnd { }
+extension DatabasePool : UserDefaultsBackEnd { }
+extension Database : UserDefaultsBackEnd { }
+
 /// UserDefaults is a class that behaves like NSUserDefaults.
 ///
 /// Usage:
 ///
 ///     let dbQueue = DatabaseQueue(...)
+///     let defaults = UserDefaults.inDatabase(db)
+///
+///     defaults.integerForKey("bar") // 0
+///     defaults.setInteger(12, forKey: "bar")
+///     defaults.integerForKey("bar") // 12
+///
 ///     dbQueue.inDatabase { db in
 ///         let defaults = UserDefaults.inDatabase(db)
-///         defaults.registerDefaults(["foo": "bar"])
-///         defaults.setInteger(12, forKey: "bar")
 ///         defaults.integerForKey("bar") // 12
 ///     }
 public class UserDefaults {
-    private weak var db: Database!
-    private var registrationDictionary: [String: AnyObject] = [:]
+    private weak var db: UserDefaultsBackEnd!
     private var needsTable: Bool = true
     private static var registeredDefaults: [UserDefaults] = []
     
     /// Returns the defaults for the database
-    public static func inDatabase(db: Database) -> UserDefaults {
+    public static func inDatabase(db: UserDefaultsBackEnd) -> UserDefaults {
         registeredDefaults = registeredDefaults.filter { $0.db != nil }
         for defaults in registeredDefaults where defaults.db === db { return defaults }
         let defaults = UserDefaults(db: db)
@@ -28,7 +37,7 @@ public class UserDefaults {
         return defaults
     }
     
-    private init(db: Database) {
+    private init(db: UserDefaultsBackEnd) {
         self.db = db
     }
     
@@ -36,15 +45,6 @@ public class UserDefaults {
         guard needsTable else { return }
         needsTable = false
         try! db.execute("CREATE TABLE IF NOT EXISTS \(UserDefaultsItemTableName) (key TEXT NOT NULL PRIMARY KEY, value BLOB)")
-    }
-    
-    
-    // MARK: - Registering Defaults
-    
-    public func registerDefaults(registrationDictionary: [String: AnyObject]) {
-        for (key, value) in registrationDictionary {
-            self.registrationDictionary[key] = value
-        }
     }
     
     
@@ -95,7 +95,7 @@ public class UserDefaults {
     
     public var dictionaryRepresentation: [String: AnyObject] {
         createTableIfNeeded()
-        var dic = registrationDictionary
+        var dic: [String: AnyObject] = [:]
         for item in UserDefaultsItem.fetchAll(db) {
             dic[item.key] = item.value
         }
@@ -132,10 +132,7 @@ public class UserDefaults {
     
     public func objectForKey(key: String) -> AnyObject? {
         createTableIfNeeded()
-        if let item = UserDefaultsItem.fetchOne(db, key: key) {
-            return item.value
-        }
-        return registrationDictionary[key]
+        return UserDefaultsItem.fetchOne(db, key: key)?.value
     }
     
     public func stringArrayForKey(key: String) -> [String]? {
@@ -181,13 +178,13 @@ private let UserDefaultsItemTableName = "grdb_UserDefaults"
 // ============================================================
 
 let dbQueue = DatabaseQueue()
+let defaults = UserDefaults.inDatabase(dbQueue)
+
+defaults.integerForKey("bar") // 0
+defaults.setInteger(12, forKey: "bar")
+defaults.integerForKey("bar") // 12
+
 dbQueue.inDatabase { db in
     let defaults = UserDefaults.inDatabase(db)
-    
-    defaults.registerDefaults(["foo": "qux"])
-    defaults.stringForKey("foo") // "qux"
-    
-    defaults.integerForKey("bar") // 0
-    defaults.setInteger(12, forKey: "bar")
     defaults.integerForKey("bar") // 12
 }

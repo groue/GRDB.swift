@@ -46,6 +46,7 @@ public struct _SQLSelectQuery {
             sql += " DISTINCT"
         }
         
+        assert(!selection.isEmpty)
         sql += try " " + selection.map { try $0.resultColumnSQL(db, &bindings) }.joinWithSeparator(", ")
         
         if let source = source {
@@ -88,6 +89,91 @@ public struct _SQLSelectQuery {
         
         return sql
     }
+    
+    /// Returns a query that counts the number of rows matched by self.
+    var countQuery: _SQLSelectQuery {
+        guard groupByExpressions.isEmpty && limit == nil else {
+            // SELECT ... GROUP BY ...
+            // SELECT ... LIMIT ...
+            return trivialCountQuery
+        }
+        
+        guard let source = source, case .Table(name: let tableName, alias: let alias) = source else {
+            // SELECT ... FROM (something which is not a table)
+            return trivialCountQuery
+        }
+        
+        assert(!selection.isEmpty)
+        if selection.count == 1 {
+            let selectable = self.selection[0]
+            switch selectable.sqlSelectableKind {
+            case .Star(sourceName: let sourceName):
+                guard !distinct else {
+                    return trivialCountQuery
+                }
+                
+                if let sourceName = sourceName {
+                    guard sourceName == tableName || sourceName == alias else {
+                        return trivialCountQuery
+                    }
+                }
+                
+                // SELECT * FROM tableName ...
+                // ->
+                // SELECT COUNT(*) FROM tableName ...
+                var countQuery = unorderedQuery
+                countQuery.selection = [_SQLExpression.Count(selectable)]
+                return countQuery
+                
+            case .Expression(let expression):
+                // SELECT [DISTINCT] expr FROM tableName ...
+                if distinct {
+                    // SELECT DISTINCT expr FROM tableName ...
+                    // ->
+                    // SELECT COUNT(DISTINCT expr) FROM tableName ...
+                    var countQuery = unorderedQuery
+                    countQuery.distinct = false
+                    countQuery.selection = [_SQLExpression.CountDistinct(expression)]
+                    return countQuery
+                } else {
+                    // SELECT expr FROM tableName ...
+                    // ->
+                    // SELECT COUNT(*) FROM tableName ...
+                    var countQuery = unorderedQuery
+                    countQuery.selection = [_SQLExpression.Count(_SQLResultColumn.Star(nil))]
+                    return countQuery
+                }
+            }
+        } else {
+            // SELECT [DISTINCT] expr1, expr2, ... FROM tableName ...
+            
+            guard !distinct else {
+                return trivialCountQuery
+            }
+
+            // SELECT expr1, expr2, ... FROM tableName ...
+            // ->
+            // SELECT COUNT(*) FROM tableName ...
+            var countQuery = unorderedQuery
+            countQuery.selection = [_SQLExpression.Count(_SQLResultColumn.Star(nil))]
+            return countQuery
+        }
+    }
+    
+    // SELECT COUNT(*) FROM (self)
+    private var trivialCountQuery: _SQLSelectQuery {
+        return _SQLSelectQuery(
+            select: [_SQLExpression.Count(_SQLResultColumn.Star(nil))],
+            from: .Query(query: unorderedQuery, alias: nil))
+    }
+    
+    /// Remove ordering
+    private var unorderedQuery: _SQLSelectQuery {
+        var query = self
+        query.reversed = false
+        query.sortDescriptors = []
+        return query
+    }
 }
 
 
@@ -95,11 +181,8 @@ public struct _SQLSelectQuery {
 
 indirect enum _SQLSource {
     case Table(name: String, alias: String?)
-    case Query(_SQLSelectQuery, alias: String)
-    case Join(_SQLSource, _SQLExpression, _SQLSource)
+    case Query(query: _SQLSelectQuery, alias: String?)
     
-    // a JOIN b ON ab JOIN c ON abc
-    // ((a,b,ab), c, abc)
     func sql(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
         switch self {
         case .Table(let table, let alias):
@@ -109,15 +192,11 @@ indirect enum _SQLSource {
                 return table.quotedDatabaseIdentifier
             }
         case .Query(let query, let alias):
-            return try "(" + query.sql(db, &bindings) + ") AS " + alias.quotedDatabaseIdentifier
-        case .Join(let first, let expression, let second):
-            switch second {
-            case .Join:
-                fatalError("WTF")
-            default:
-                break
+            if let alias = alias {
+                return try "(" + query.sql(db, &bindings) + ") AS " + alias.quotedDatabaseIdentifier
+            } else {
+                return try "(" + query.sql(db, &bindings) + ")"
             }
-            return try first.sql(db, &bindings) + " JOIN " + second.sql(db, &bindings) + " ON " + expression.sql(db, &bindings)
         }
     }
 }
@@ -257,6 +336,14 @@ extension _SQLDerivedExpressionType {
     public func countedSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
         return try sqlExpression.sql(db, &bindings)
     }
+    
+    /// This property is an implementation detail of the query interface.
+    /// Do not use it directly.
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public var sqlSelectableKind: _SQLSelectableKind {
+        return .Expression(sqlExpression)
+    }
 }
 
 extension _SQLDerivedExpressionType {
@@ -279,7 +366,7 @@ extension _SQLDerivedExpressionType {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public func aliased(alias: String) -> _SQLSelectable {
-        return _SQLResultColumn.Expression(sqlExpression, alias)
+        return _SQLResultColumn.Expression(expression: sqlExpression, alias: alias)
     }
 }
 
@@ -506,11 +593,21 @@ extension _SQLExpression : _SQLDerivedExpressionType {
 public protocol _SQLSelectable {
     func resultColumnSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
     func countedSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
+    var sqlSelectableKind: _SQLSelectableKind { get }
+}
+
+/// This type is an implementation detail of the query interface.
+/// Do not use it directly.
+///
+/// See https://github.com/groue/GRDB.swift/#the-query-interface
+public enum _SQLSelectableKind {
+    case Expression(_SQLExpression)
+    case Star(sourceName: String?)
 }
 
 enum _SQLResultColumn {
     case Star(String?)
-    case Expression(_SQLExpression, String)
+    case Expression(expression: _SQLExpression, alias: String)
 }
 
 extension _SQLResultColumn : _SQLSelectable {
@@ -523,8 +620,8 @@ extension _SQLResultColumn : _SQLSelectable {
             } else {
                 return "*"
             }
-        case .Expression(let expression, let identifier):
-            return try expression.sql(db, &bindings) + " AS " + identifier.quotedDatabaseIdentifier
+        case .Expression(expression: let expression, alias: let alias):
+            return try expression.sql(db, &bindings) + " AS " + alias.quotedDatabaseIdentifier
         }
     }
     
@@ -532,8 +629,17 @@ extension _SQLResultColumn : _SQLSelectable {
         switch self {
         case .Star:
             return "*"
-        case .Expression(let expression, _):
+        case .Expression(expression: let expression, alias: _):
             return try expression.sql(db, &bindings)
+        }
+    }
+    
+    var sqlSelectableKind: _SQLSelectableKind {
+        switch self {
+        case .Star(let sourceName):
+            return .Star(sourceName: sourceName)
+        case .Expression(expression: let expression, alias: _):
+            return .Expression(expression)
         }
     }
 }

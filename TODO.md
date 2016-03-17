@@ -1,5 +1,4 @@
-- [ ] How to have robust single writer/several readers?
-- [ ] protocol DatabaseEquatable, with default implementation for MutablePersistable
+- [ ] Read https://sqlite.org/sharedcache.html
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
@@ -10,11 +9,10 @@
     - [ ] MATCH https://www.sqlite.org/lang_expr.html
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
-    - [ ] EXISTS https://www.sqlite.org/lang_expr.html
-
 
 Not sure:
 
+- [ ] Build Swift string functions in, and have Person.select(name.uppercaseString) call a custom function named uppercaseString
 - [ ] Refactor errors in a single type?
 - [ ] Since Records' primary key are infered, no operation is possible on the primary key unless we have a Database instance. It's impossible to define the record.primaryKey property, or to provide a copy() function that does not clone the primary key: they miss the database that is the only object aware of the primary key. Should we change our mind, and have Record explicitly expose their primary key again?
 - [ ] Have Record adopt Hashable and Equatable, based on primary key. Problem: we can't do it know because we don't know the primary key until we have a database connection.
@@ -23,7 +21,6 @@ Not sure:
 
 Require changes in the Swift language:
 
-- [ ] Turn DatabaseIntRepresentable and DatabaseStringRepresentable into StatementColumnConvertible when Swift allows for it.
 - [ ] Specific and optimized Optional<StatementColumnConvertible>.fetch... methods when http://openradar.appspot.com/22852669 is fixed.
 
 
