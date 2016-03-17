@@ -1,1 +1,1 @@
-MODULEMAP_FILE = $(SRCROOT)/Support/module.modulemap
+MODULEMAP_FILE = $(SRCROOT)/Support/$(TARGET_NAME)/module.modulemap
