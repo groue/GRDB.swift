@@ -1,7 +1,7 @@
 import UIKit
 import GRDB
 
-class MasterViewController: UITableViewController, FetchedResultsControllerDelegate {
+class MasterViewController: UITableViewController {
     var detailViewController: DetailViewController? = nil
     var fetchedResultsController: FetchedResultsController<Person>!
 
@@ -21,9 +21,57 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
         ]
         self.navigationController?.toolbarHidden = false
         
+        // The fetched objects
         let fetchRequest = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
-        fetchedResultsController = FetchedResultsController(dbQueue, fetchRequest, identityComparator: { (lhs, rhs) in return lhs.id == rhs.id })
-        fetchedResultsController.delegate = self
+        
+        // Initialize the FetchedResultsController
+        fetchedResultsController = FetchedResultsController(dbQueue, fetchRequest)
+        
+        // Callback when changes are about to be applied
+        fetchedResultsController.willChange { [unowned self] in
+            self.tableView.beginUpdates()
+        }
+        
+        // Callback for each individual change
+        fetchedResultsController.onChange { [unowned self] (person, change) in
+            switch change {
+            case .Insertion(let indexPath):
+                self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+                
+            case .Deletion(let indexPath):
+                self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+                
+            case .Move(let indexPath, let newIndexPath, let changes):
+                //            // technique 1
+                //            tableView.deleteRowsAtIndexPaths([indexPath],
+                //                withRowAnimation: UITableViewRowAnimation.Fade)
+                //            tableView.insertRowsAtIndexPaths([newIndexPath],
+                //                withRowAnimation: UITableViewRowAnimation.Fade)
+                // technique 2
+                let cell = self.tableView.cellForRowAtIndexPath(indexPath)
+                self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+                if !changes.isEmpty, let cell = cell {
+                    self.configureCell(cell, atIndexPath: newIndexPath)
+                }
+                
+            case .Update(let indexPath, _):
+                if let cell = self.tableView.cellForRowAtIndexPath(indexPath) {
+                    self.configureCell(cell, atIndexPath: indexPath)
+                }
+            }
+        }
+        
+        // Callback when all changes have been applied
+        fetchedResultsController.didChange { [unowned self] in
+            self.tableView.endUpdates()
+        }
+        
+        // Compare two persons. Returns true if controller should emit a .Move or
+        // .Update event instead of a deletion/insertion.
+        fetchedResultsController.compare { (person1, person2) in
+            person1.id == person2.id
+        }
+        
         fetchedResultsController.performFetch()
     }
 
@@ -111,46 +159,6 @@ class MasterViewController: UITableViewController, FetchedResultsControllerDeleg
             try person.delete(db)
             return .Commit
         }
-    }
-    
-    // MARK: - FetchedResultsControllerDelegate
-    
-    func controllerWillUpdate<T>(controller: FetchedResultsController<T>) {
-        tableView.beginUpdates()
-    }
-    
-    // TODO: we don't know that object is a Person
-    func controller<T>(controller: FetchedResultsController<T>, didChangeObject object: T, with change: ResultChange) {
-        print(change)
-        switch change {
-        case .Insertion(let indexPath):
-            tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-            
-        case .Deletion(let indexPath):
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-            
-        case .Move(let indexPath, let newIndexPath, let changes):
-//            // technique 1
-//            tableView.deleteRowsAtIndexPaths([indexPath],
-//                withRowAnimation: UITableViewRowAnimation.Fade)
-//            tableView.insertRowsAtIndexPaths([newIndexPath],
-//                withRowAnimation: UITableViewRowAnimation.Fade)
-            // technique 2
-            let cell = tableView.cellForRowAtIndexPath(indexPath)
-            tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
-            if !changes.isEmpty, let cell = cell {
-                configureCell(cell, atIndexPath: newIndexPath)
-            }
-            
-        case .Update(let indexPath, _):
-            if let cell = tableView.cellForRowAtIndexPath(indexPath) {
-                configureCell(cell, atIndexPath: indexPath)
-            }
-        }
-    }
-    
-    func controllerDidFinishUpdates<T>(controller: FetchedResultsController<T>) {
-        tableView.endUpdates()
     }
 }
 

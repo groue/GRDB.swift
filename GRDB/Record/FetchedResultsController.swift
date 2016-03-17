@@ -49,24 +49,19 @@ private func ==<T>(lhs: FetchedItem<T>, rhs: FetchedItem<T>) -> Bool {
 public class FetchedResultsController<T: RowConvertible> {
     
     // MARK: - Initialization
-    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, identityComparator: ((T, T) -> Bool)? = nil) {
+    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil) {
         let source: Source<T> = .SQL(sql, arguments)
-        self.init(database: database, source: source, identityComparator: identityComparator)
+        self.init(database: database, source: source)
     }
     
-    public convenience init(_ database: DatabaseWriter, _ request: FetchRequest<T>, identityComparator: ((T, T) -> Bool)? = nil) {
+    public convenience init(_ database: DatabaseWriter, _ request: FetchRequest<T>) {
         let source: Source<T> = .FetchRequest(request)
-        self.init(database: database, source: source, identityComparator: identityComparator)
+        self.init(database: database, source: source)
     }
     
-    private init(database: DatabaseWriter, source: Source<T>, identityComparator: ((T, T) -> Bool)?) {
+    private init(database: DatabaseWriter, source: Source<T>) {
         self.source = source
         self.database = database
-        if let identityComparator = identityComparator {
-            self.identityComparator = identityComparator
-        } else {
-            self.identityComparator = { _ in false }
-        }
         database.addTransactionObserver(self)
     }
     
@@ -81,24 +76,40 @@ public class FetchedResultsController<T: RowConvertible> {
     
     // MARK: - Configuration
     
+    private var willChangeCallback: (() -> ())?
+    public func willChange(callback:() -> ()) {
+        willChangeCallback = callback
+    }
+    
+    private var didChangeCallback: (() -> ())?
+    public func didChange(callback:() -> ()) {
+        didChangeCallback = callback
+    }
+    
+    private var changeCallback: ((object: T, change: ResultChange) -> ())?
+    public func onChange(callback:(object: T, change: ResultChange) -> ()) {
+        changeCallback = callback
+    }
+    
+    private var equalObjects: (T, T) -> Bool = { _ in return false }
+    public func compare(equalObjects:(T, T) -> Bool) {
+        self.equalObjects = equalObjects
+    }
+    
+    
     /// The source
     private let source: Source<T>
-    
-    private let identityComparator: (T, T) -> Bool
     
     /// The observed tables. Set in performFetch()
     private var observedTables: Set<String>? = nil
     
     /// True if databaseDidCommit(db) should compute changes
-    private var fetchedItemsDidChange = false
+    private var needsComputeChanges = false
     
     private var fetchedItems: [FetchedItem<T>]?
 
     /// The databaseWriter
     public let database: DatabaseWriter
-    
-    /// Delegate that is notified when the resultss set changes.
-    weak public var delegate: FetchedResultsControllerDelegate?
     
     
     // MARK: - Accessing results
@@ -131,7 +142,7 @@ public class FetchedResultsController<T: RowConvertible> {
     
     // MARK: - Not public
     
-    private static func computeChanges(fromRows s: [FetchedItem<T>], toRows t: [FetchedItem<T>], identityComparator: ((T, T) -> Bool)) -> [ItemChange<T>] {
+    private static func computeChanges(fromRows s: [FetchedItem<T>], toRows t: [FetchedItem<T>], equalObjects: ((T, T) -> Bool)) -> [ItemChange<T>] {
         
         let m = s.count
         let n = t.count
@@ -213,7 +224,7 @@ public class FetchedResultsController<T: RowConvertible> {
             /// As a convenience, the index of the matched change is returned as well.
             func mergedChange(change: ItemChange<T>, inChanges changes: [ItemChange<T>]) -> (mergedChange: ItemChange<T>, obsoleteIndex: Int)? {
                 let obsoleteIndex = changes.indexOf { earlierChange in
-                    return earlierChange.isMoveCounterpart(change, identityComparator: identityComparator)
+                    return earlierChange.isMoveCounterpart(change, equalObjects: equalObjects)
                 }
                 if let obsoleteIndex = obsoleteIndex {
                     switch (changes[obsoleteIndex], change) {
@@ -265,61 +276,54 @@ public class FetchedResultsController<T: RowConvertible> {
 extension FetchedResultsController : TransactionObserverType {
     public func databaseDidChangeWithEvent(event: DatabaseEvent) {
         if let observedTables = observedTables where observedTables.contains(event.tableName) {
-            fetchedItemsDidChange = true
+            needsComputeChanges = true
         }
     }
     
     public func databaseWillCommit() throws { }
     
     public func databaseDidRollback(db: Database) {
-        fetchedItemsDidChange = false
+        needsComputeChanges = false
     }
     
     public func databaseDidCommit(db: Database) {
-        guard fetchedItemsDidChange else {
+        guard needsComputeChanges else {
             return
         }
+        needsComputeChanges = false
         
         let statement = try! source.selectStatement(db)
         let newItems = FetchedItem<T>.fetchAll(statement)
         
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-            let oldItems = self.fetchedItems!
-            let changes = FetchedResultsController.computeChanges(fromRows: oldItems, toRows: newItems, identityComparator: self.identityComparator)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) { [weak self] in
+            guard let strongSelf = self else { return }
+            
+            // FIXME: there is a race condition because self.fetchedItems
+            // will only be updated in the main queue, below.
+            //
+            // If two database transactions are committed before the main queue
+            // had the opportunity to update self.fetchedItems, we'll emit two
+            // incompatible changes sets.
+            let oldItems = strongSelf.fetchedItems!
+            let changes = FetchedResultsController.computeChanges(fromRows: oldItems, toRows: newItems, equalObjects: strongSelf.equalObjects)
             guard !changes.isEmpty else {
                 return
             }
 
             dispatch_async(dispatch_get_main_queue()) {
-                self.delegate?.controllerWillUpdate(self)
+                guard let strongSelf = self else { return }
                 
-                // after controllerWillUpdate
-                self.fetchedItems = newItems
-                
-                // notify all updates
-                for change in changes {
-                    self.delegate?.controller(self, didChangeObject: change.item.object, with: change.resultChange)
+                strongSelf.willChangeCallback?()
+                strongSelf.fetchedItems = newItems
+                if let changeCallback = strongSelf.changeCallback {
+                    for change in changes {
+                        changeCallback(object: change.item.object, change: change.resultChange)
+                    }
                 }
-                
-                // done
-                self.delegate?.controllerDidFinishUpdates(self)
+                strongSelf.didChangeCallback?()
             }
         }
     }
-}
-
-
-public protocol FetchedResultsControllerDelegate : class {
-    func controllerWillUpdate<T>(controller: FetchedResultsController<T>)
-    func controller<T>(controller: FetchedResultsController<T>, didChangeObject object:T, with change: ResultChange)
-    func controllerDidFinishUpdates<T>(controller: FetchedResultsController<T>)
-}
-
-
-public extension FetchedResultsControllerDelegate {
-    func controllerWillUpdate<T>(controller: FetchedResultsController<T>) {}
-    func controller<T>(controller: FetchedResultsController<T>, didChangeObject object:T, with change: ResultChange) {}
-    func controllerDidFinishUpdates<T>(controller: FetchedResultsController<T>) {}
 }
 
 
@@ -360,12 +364,12 @@ extension ItemChange {
 }
 
 extension ItemChange {
-    func isMoveCounterpart(otherChange: ItemChange<T>, identityComparator: (T, T) -> Bool) -> Bool {
+    func isMoveCounterpart(otherChange: ItemChange<T>, equalObjects: (T, T) -> Bool) -> Bool {
         switch (self, otherChange) {
         case (.Deletion(let deletedItem, _), .Insertion(let insertedItem, _)):
-            return identityComparator(deletedItem.object, insertedItem.object)
+            return equalObjects(deletedItem.object, insertedItem.object)
         case (.Insertion(let insertedItem, _), .Deletion(let deletedItem, _)):
-            return identityComparator(deletedItem.object, insertedItem.object)
+            return equalObjects(deletedItem.object, insertedItem.object)
         default:
             return false
         }
