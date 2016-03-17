@@ -59,9 +59,9 @@ extension Array {
 extension Dictionary {
     
     /// Create a dictionary with the keys and values in the given sequence.
-    init<Sequence: SequenceType where Sequence.Generator.Element == Generator.Element>(_ sequence: Sequence) {
-        self.init(minimumCapacity: sequence.underestimateCount())
-        for (key, value) in sequence {
+    init<Sequence: SequenceType where Sequence.Generator.Element == Generator.Element>(keyValueSequence: Sequence) {
+        self.init(minimumCapacity: keyValueSequence.underestimateCount())
+        for (key, value) in keyValueSequence {
             self[key] = value
         }
     }

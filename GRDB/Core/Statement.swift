@@ -288,7 +288,7 @@ public final class SelectStatement : Statement {
     
     /// Cache for indexOfColumn(). Keys are lowercase.
     private lazy var columnIndexes: [String: Int] = {
-        return Dictionary(self.columnNames.enumerate().map { ($1.lowercaseString, $0) }.reverse())
+        return Dictionary(keyValueSequence: self.columnNames.enumerate().map { ($1.lowercaseString, $0) }.reverse())
     }()
     
     // This method MUST be case-insensitive, and returns the index of the
@@ -573,7 +573,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init<Sequence: SequenceType where Sequence.Generator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
-        kind = .NamedValues(Dictionary(sequence))
+        kind = .NamedValues(Dictionary(keyValueSequence: sequence))
     }
     
     /// Initializes arguments from a sequence of (key, value) pairs, such as
@@ -585,7 +585,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init<Sequence: SequenceType, Value: DatabaseValueConvertible where Sequence.Generator.Element == (String, Value)>(_ sequence: Sequence) {
-        kind = .NamedValues(Dictionary(sequence.map { (key, value) in return (key, value as DatabaseValueConvertible?) }))
+        kind = .NamedValues(Dictionary(keyValueSequence: sequence.map { (key, value) in return (key, value as DatabaseValueConvertible?) }))
     }
     
     
