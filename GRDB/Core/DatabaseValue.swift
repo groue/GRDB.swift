@@ -1,5 +1,15 @@
 import Foundation
 
+#if os(OSX)
+    import SQLiteMacOSX
+#elseif os(iOS)
+#if (arch(i386) || arch(x86_64))
+    import SQLiteiPhoneSimulator
+    #else
+    import SQLiteiPhoneOS
+#endif
+#endif
+
 // MARK: - DatabaseValue
 
 /// DatabaseValue is the intermediate type between SQLite and your values.

@@ -1,3 +1,13 @@
+#if os(OSX)
+    import SQLiteMacOSX
+#elseif os(iOS)
+#if (arch(i386) || arch(x86_64))
+    import SQLiteiPhoneSimulator
+    #else
+    import SQLiteiPhoneOS
+#endif
+#endif
+
 /// An internal struct that defines a migration.
 struct Migration {
     let identifier: String
