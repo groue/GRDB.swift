@@ -48,7 +48,7 @@ public func sortedMerge<LeftSequence: SequenceType, RightSequence: SequenceType,
     return AnySequence { () -> AnyGenerator<MergeStep<LeftSequence.Generator.Element, RightSequence.Generator.Element>> in
         var (lGen, rGen) = (lSeq.generate(), rSeq.generate())
         var (lOpt, rOpt) = (lGen.next(), rGen.next())
-        return anyGenerator {
+        return AnyGenerator {
             switch (lOpt, rOpt) {
             case (let lElem?, let rElem?):
                 let (lKey, rKey) = (leftKey(lElem), rightKey(rElem))
