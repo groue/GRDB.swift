@@ -3,7 +3,7 @@ import GRDB
 
 class MasterViewController: UITableViewController {
     var detailViewController: DetailViewController? = nil
-    var fetchedResultsController: FetchedResultsController<Person>!
+    var fetchedRecordsController: FetchedRecordsController<Person>!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,17 +24,17 @@ class MasterViewController: UITableViewController {
         // The fetched objects
         let fetchRequest = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
         
-        // Initialize the FetchedResultsController
-        fetchedResultsController = FetchedResultsController(dbQueue, fetchRequest)
+        // Initialize the FetchedRecordsController
+        fetchedRecordsController = FetchedRecordsController(dbQueue, fetchRequest)
         
-        // Callback when changes are about to be applied
-        fetchedResultsController.willChange { [unowned self] in
+        // Callback when events are about to be applied
+        fetchedRecordsController.willChange { [unowned self] in
             self.tableView.beginUpdates()
         }
         
-        // Callback for each individual change
-        fetchedResultsController.onChange { [unowned self] (person, change) in
-            switch change {
+        // Callback for each individual event
+        fetchedRecordsController.onEvent { [unowned self] (person, event) in
+            switch event {
             case .Insertion(let indexPath):
                 self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
                 
@@ -61,18 +61,18 @@ class MasterViewController: UITableViewController {
             }
         }
         
-        // Callback when all changes have been applied
-        fetchedResultsController.didChange { [unowned self] in
+        // Callback when all events have been applied
+        fetchedRecordsController.didChange { [unowned self] in
             self.tableView.endUpdates()
         }
         
         // Compare two persons. Returns true if controller should emit a .Move or
         // .Update event instead of a deletion/insertion.
-        fetchedResultsController.compare { (person1, person2) in
+        fetchedRecordsController.compare { (person1, person2) in
             person1.id == person2.id
         }
         
-        fetchedResultsController.performFetch()
+        fetchedRecordsController.performFetch()
     }
 
     override func viewWillAppear(animated: Bool) {
@@ -103,7 +103,7 @@ class MasterViewController: UITableViewController {
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "showPerson" {
-            let person = fetchedResultsController.objectAtIndexPath(self.tableView.indexPathForSelectedRow!)
+            let person = fetchedRecordsController.recordAtIndexPath(self.tableView.indexPathForSelectedRow!)
             let detailViewController = (segue.destinationViewController as! UINavigationController).topViewController as! DetailViewController
             detailViewController.person = person
             detailViewController.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem()
@@ -135,7 +135,7 @@ class MasterViewController: UITableViewController {
     // MARK: - Table View
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if let persons = fetchedResultsController.fetchedObjects {
+        if let persons = fetchedRecordsController.fetchedRecords {
             return persons.count
         }
         return 0
@@ -148,13 +148,13 @@ class MasterViewController: UITableViewController {
     }
     
     private func configureCell(cell: UITableViewCell, atIndexPath indexPath:NSIndexPath) {
-        let person = fetchedResultsController.objectAtIndexPath(indexPath)!
+        let person = fetchedRecordsController.recordAtIndexPath(indexPath)!
         cell.textLabel!.text = "\(person.position) - \(person.fullName)"
     }
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
-        let person = fetchedResultsController.objectAtIndexPath(indexPath)!
+        let person = fetchedRecordsController.recordAtIndexPath(indexPath)!
         try! dbQueue.inTransaction { db in
             try person.delete(db)
             return .Commit

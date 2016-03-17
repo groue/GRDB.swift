@@ -1,5 +1,5 @@
 //
-//  FetchedResultsController.swift
+//  FetchedRecordsController.swift
 //  GRDB
 //
 //  Created by Pascal Edmond on 09/12/2015.
@@ -7,46 +7,7 @@
 //
 import UIKit
 
-private enum Source<T> {
-    case SQL(String, StatementArguments?)
-    case FetchRequest(GRDB.FetchRequest<T>)
-    
-    func selectStatement(db: Database) throws -> SelectStatement {
-        switch self {
-        case .SQL(let sql, let arguments):
-            let statement = try db.selectStatement(sql)
-            if let arguments = arguments {
-                try statement.validateArguments(arguments)
-                statement.unsafeSetArguments(arguments)
-            }
-            return statement
-        case .FetchRequest(let request):
-            return try request.selectStatement(db)
-        }
-    }
-}
-
-private struct FetchedItem<T: RowConvertible> : RowConvertible, Equatable {
-    let row: Row
-    var object: T   // var because awakeFromFetch is mutating
-    
-    init(_ row: Row) {
-        self.row = row.copy()
-        self.object = T(row)
-    }
-    
-    mutating func awakeFromFetch(row row: Row, database: Database) {
-        // TOOD: If object is a Record, it will copy the row *again*. We should
-        // avoid creating two distinct copied instances.
-        object.awakeFromFetch(row: row, database: database)
-    }
-}
-
-private func ==<T>(lhs: FetchedItem<T>, rhs: FetchedItem<T>) -> Bool {
-    return lhs.row == rhs.row
-}
-
-public class FetchedResultsController<T: RowConvertible> {
+public class FetchedRecordsController<T: RowConvertible> {
     
     // MARK: - Initialization
     public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil) {
@@ -69,32 +30,35 @@ public class FetchedResultsController<T: RowConvertible> {
         try! database.read { db in
             let statement = try self.source.selectStatement(db)
             self.observedTables = statement.sourceTables
-            self.fetchedItems = FetchedItem<T>.fetchAll(statement)
+            self.fetchedItems = Item<T>.fetchAll(statement)
         }
     }
     
     
     // MARK: - Configuration
     
-    private var willChangeCallback: (() -> ())?
+    /// The databaseWriter
+    public let database: DatabaseWriter
+    
     public func willChange(callback:() -> ()) {
         willChangeCallback = callback
     }
+    private var willChangeCallback: (() -> ())?
     
-    private var didChangeCallback: (() -> ())?
     public func didChange(callback:() -> ()) {
         didChangeCallback = callback
     }
+    private var didChangeCallback: (() -> ())?
     
-    private var changeCallback: ((object: T, change: ResultChange) -> ())?
-    public func onChange(callback:(object: T, change: ResultChange) -> ()) {
-        changeCallback = callback
+    public func onEvent(callback:(record: T, event: FetchedRecordsEvent) -> ()) {
+        eventCallback = callback
     }
+    private var eventCallback: ((record: T, event: FetchedRecordsEvent) -> ())?
     
-    private var equalObjects: (T, T) -> Bool = { _ in return false }
-    public func compare(equalObjects:(T, T) -> Bool) {
-        self.equalObjects = equalObjects
+    public func compare(equalRecords:(T, T) -> Bool) {
+        self.equalRecords = equalRecords
     }
+    private var equalRecords: (T, T) -> Bool = { _ in return false }
     
     
     /// The source
@@ -106,35 +70,32 @@ public class FetchedResultsController<T: RowConvertible> {
     /// True if databaseDidCommit(db) should compute changes
     private var needsComputeChanges = false
     
-    private var fetchedItems: [FetchedItem<T>]?
-
-    /// The databaseWriter
-    public let database: DatabaseWriter
+    private var fetchedItems: [Item<T>]?
     
     
-    // MARK: - Accessing results
+    // MARK: - Accessing records
 
-    /// Returns the results of the query.
+    /// Returns the records of the query.
     /// Returns nil if the performQuery: hasn't been called.
-    public var fetchedObjects: [T]? {
+    public var fetchedRecords: [T]? {
         if let fetchedItems = fetchedItems {
-            return fetchedItems.map { $0.object }
+            return fetchedItems.map { $0.record }
         }
         return nil
     }
 
     
-    /// Returns the fetched object at a given indexPath.
-    public func objectAtIndexPath(indexPath: NSIndexPath) -> T? {
+    /// Returns the fetched record at a given indexPath.
+    public func recordAtIndexPath(indexPath: NSIndexPath) -> T? {
         if let item = fetchedItems?[indexPath.indexAtPosition(1)] {
-            return item.object
+            return item.record
         } else {
             return nil
         }
     }
     
-    /// Returns the indexPath of a given object.
-    public func indexPathForResult(result: T) -> NSIndexPath? {
+    /// Returns the indexPath of a given record.
+    public func indexPathForRecord(record: T) -> NSIndexPath? {
         // TODO
         fatalError("Not implemented")
     }
@@ -142,7 +103,7 @@ public class FetchedResultsController<T: RowConvertible> {
     
     // MARK: - Not public
     
-    private static func computeChanges(fromRows s: [FetchedItem<T>], toRows t: [FetchedItem<T>], equalObjects: ((T, T) -> Bool)) -> [ItemChange<T>] {
+    private static func computeChanges(fromRows s: [Item<T>], toRows t: [Item<T>], equalRecords: ((T, T) -> Bool)) -> [ItemChange<T>] {
         
         let m = s.count
         let n = t.count
@@ -224,7 +185,7 @@ public class FetchedResultsController<T: RowConvertible> {
             /// As a convenience, the index of the matched change is returned as well.
             func mergedChange(change: ItemChange<T>, inChanges changes: [ItemChange<T>]) -> (mergedChange: ItemChange<T>, obsoleteIndex: Int)? {
                 let obsoleteIndex = changes.indexOf { earlierChange in
-                    return earlierChange.isMoveCounterpart(change, equalObjects: equalObjects)
+                    return earlierChange.isMoveCounterpart(change, equalRecords: equalRecords)
                 }
                 if let obsoleteIndex = obsoleteIndex {
                     switch (changes[obsoleteIndex], change) {
@@ -273,7 +234,8 @@ public class FetchedResultsController<T: RowConvertible> {
 }
 
 // MARK: - <TransactionObserverType>
-extension FetchedResultsController : TransactionObserverType {
+extension FetchedRecordsController : TransactionObserverType {
+    
     public func databaseDidChangeWithEvent(event: DatabaseEvent) {
         if let observedTables = observedTables where observedTables.contains(event.tableName) {
             needsComputeChanges = true
@@ -293,7 +255,7 @@ extension FetchedResultsController : TransactionObserverType {
         needsComputeChanges = false
         
         let statement = try! source.selectStatement(db)
-        let newItems = FetchedItem<T>.fetchAll(statement)
+        let newItems = Item<T>.fetchAll(statement)
         
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) { [weak self] in
             guard let strongSelf = self else { return }
@@ -305,7 +267,7 @@ extension FetchedResultsController : TransactionObserverType {
             // had the opportunity to update self.fetchedItems, we'll emit two
             // incompatible changes sets.
             let oldItems = strongSelf.fetchedItems!
-            let changes = FetchedResultsController.computeChanges(fromRows: oldItems, toRows: newItems, equalObjects: strongSelf.equalObjects)
+            let changes = FetchedRecordsController.computeChanges(fromRows: oldItems, toRows: newItems, equalRecords: strongSelf.equalRecords)
             guard !changes.isEmpty else {
                 return
             }
@@ -315,9 +277,9 @@ extension FetchedResultsController : TransactionObserverType {
                 
                 strongSelf.willChangeCallback?()
                 strongSelf.fetchedItems = newItems
-                if let changeCallback = strongSelf.changeCallback {
+                if let eventCallback = strongSelf.eventCallback {
                     for change in changes {
-                        changeCallback(object: change.item.object, change: change.resultChange)
+                        eventCallback(record: change.item.record, event: change.event)
                     }
                 }
                 strongSelf.didChangeCallback?()
@@ -327,16 +289,96 @@ extension FetchedResultsController : TransactionObserverType {
 }
 
 
+// =============================================================================
+// MARK: - FetchedRecordsEvent
+
+public enum FetchedRecordsEvent {
+    case Insertion(indexPath: NSIndexPath)
+    case Deletion(indexPath: NSIndexPath)
+    case Move(indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
+    case Update(indexPath: NSIndexPath, changes: [String: DatabaseValue])
+}
+
+// TODO: remove this debugging code
+extension FetchedRecordsEvent: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .Insertion(let indexPath):
+            return "INSERTED AT index \(indexPath.row)"
+            
+        case .Deletion(let indexPath):
+            return "DELETED FROM index \(indexPath.row)"
+            
+        case .Move(let indexPath, let newIndexPath, changes: let changes):
+            return "MOVED FROM index \(indexPath.row) TO index \(newIndexPath.row) WITH CHANGES: \(changes)"
+            
+        case .Update(let indexPath, let changes):
+            return "UPDATED AT index \(indexPath.row) WITH CHANGES: \(changes)"
+        }
+    }
+}
+
+
+// =============================================================================
+// MARK: - Source
+
+private enum Source<T> {
+    case SQL(String, StatementArguments?)
+    case FetchRequest(GRDB.FetchRequest<T>)
+    
+    func selectStatement(db: Database) throws -> SelectStatement {
+        switch self {
+        case .SQL(let sql, let arguments):
+            let statement = try db.selectStatement(sql)
+            if let arguments = arguments {
+                try statement.validateArguments(arguments)
+                statement.unsafeSetArguments(arguments)
+            }
+            return statement
+        case .FetchRequest(let request):
+            return try request.selectStatement(db)
+        }
+    }
+}
+
+
+// =============================================================================
+// MARK: - Item
+
+private struct Item<T: RowConvertible> : RowConvertible, Equatable {
+    let row: Row
+    var record: T   // var because awakeFromFetch is mutating
+    
+    init(_ row: Row) {
+        self.row = row.copy()
+        self.record = T(row)
+    }
+    
+    mutating func awakeFromFetch(row row: Row, database: Database) {
+        // TOOD: If record is a Record, it will copy the row *again*. We should
+        // avoid creating two distinct copied instances.
+        record.awakeFromFetch(row: row, database: database)
+    }
+}
+
+private func ==<T>(lhs: Item<T>, rhs: Item<T>) -> Bool {
+    return lhs.row == rhs.row
+}
+
+
+// =============================================================================
+// MARK: - ItemChange
+
 private enum ItemChange<T: RowConvertible> {
-    case Insertion(item: FetchedItem<T>, indexPath: NSIndexPath)
-    case Deletion(item: FetchedItem<T>, indexPath: NSIndexPath)
-    case Move(item: FetchedItem<T>, indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
-    case Update(item: FetchedItem<T>, indexPath: NSIndexPath, changes: [String: DatabaseValue])
+    case Insertion(item: Item<T>, indexPath: NSIndexPath)
+    case Deletion(item: Item<T>, indexPath: NSIndexPath)
+    case Move(item: Item<T>, indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
+    case Update(item: Item<T>, indexPath: NSIndexPath, changes: [String: DatabaseValue])
 }
 
 extension ItemChange {
 
-    var item: FetchedItem<T> {
+    var item: Item<T> {
         switch self {
         case .Insertion(item: let item, indexPath: _):
             return item
@@ -349,7 +391,7 @@ extension ItemChange {
         }
     }
     
-    var resultChange: ResultChange {
+    var event: FetchedRecordsEvent {
         switch self {
         case .Insertion(item: _, indexPath: let indexPath):
             return .Insertion(indexPath: indexPath)
@@ -364,12 +406,12 @@ extension ItemChange {
 }
 
 extension ItemChange {
-    func isMoveCounterpart(otherChange: ItemChange<T>, equalObjects: (T, T) -> Bool) -> Bool {
+    func isMoveCounterpart(otherChange: ItemChange<T>, equalRecords: (T, T) -> Bool) -> Bool {
         switch (self, otherChange) {
         case (.Deletion(let deletedItem, _), .Insertion(let insertedItem, _)):
-            return equalObjects(deletedItem.object, insertedItem.object)
+            return equalRecords(deletedItem.record, insertedItem.record)
         case (.Insertion(let insertedItem, _), .Deletion(let deletedItem, _)):
-            return equalObjects(deletedItem.object, insertedItem.object)
+            return equalRecords(deletedItem.record, insertedItem.record)
         default:
             return false
         }
@@ -390,32 +432,6 @@ extension ItemChange: CustomStringConvertible {
             
         case .Update(let item, let indexPath, let changes):
             return "UPDATED \(item) AT index \(indexPath.row) WITH CHANGES: \(changes)"
-        }
-    }
-}
-
-public enum ResultChange {
-    case Insertion(indexPath: NSIndexPath)
-    case Deletion(indexPath: NSIndexPath)
-    case Move(indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
-    case Update(indexPath: NSIndexPath, changes: [String: DatabaseValue])
-}
-
-
-extension ResultChange: CustomStringConvertible {
-    public var description: String {
-        switch self {
-        case .Insertion(let indexPath):
-            return "INSERTED AT index \(indexPath.row)"
-            
-        case .Deletion(let indexPath):
-            return "DELETED FROM index \(indexPath.row)"
-            
-        case .Move(let indexPath, let newIndexPath, changes: let changes):
-            return "MOVED FROM index \(indexPath.row) TO index \(newIndexPath.row) WITH CHANGES: \(changes)"
-            
-        case .Update(let indexPath, let changes):
-            return "UPDATED AT index \(indexPath.row) WITH CHANGES: \(changes)"
         }
     }
 }

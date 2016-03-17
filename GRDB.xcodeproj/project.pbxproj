@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		31A778841C6A4E0600F507F6 /* FetchedResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A7787C1C6A4DD600F507F6 /* FetchedResultsController.swift */; };
+		31A778841C6A4E0600F507F6 /* FetchedRecordsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */; };
 		5605F1591C672E4000235C62 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605F1491C672E4000235C62 /* CGFloat.swift */; };
 		5605F15A1C672E4000235C62 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605F1491C672E4000235C62 /* CGFloat.swift */; };
 		5605F15B1C672E4000235C62 /* DatabaseCoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605F14B1C672E4000235C62 /* DatabaseCoder.swift */; };
@@ -370,7 +370,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		31A7787C1C6A4DD600F507F6 /* FetchedResultsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedResultsController.swift; sourceTree = "<group>"; };
+		31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsController.swift; sourceTree = "<group>"; };
 		31A778801C6A4DE000F507F6 /* FetchedResultsControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedResultsControllerTests.swift; sourceTree = "<group>"; };
 		5605F1491C672E4000235C62 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
 		5605F14B1C672E4000235C62 /* DatabaseCoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCoder.swift; sourceTree = "<group>"; };
@@ -933,7 +933,7 @@
 		56A2389F1B9C753B0082EB20 /* Record */ = {
 			isa = PBXGroup;
 			children = (
-				31A7787C1C6A4DD600F507F6 /* FetchedResultsController.swift */,
+				31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */,
 				560D92441C672C4B00F4F92B /* Persistable.swift */,
 				56A238A11B9C753B0082EB20 /* Record.swift */,
 				560D92451C672C4B00F4F92B /* RowConvertible.swift */,
@@ -1485,7 +1485,7 @@
 				560D92481C672C4B00F4F92B /* Persistable.swift in Sources */,
 				560D92431C672C3E00F4F92B /* StatementColumnConvertible.swift in Sources */,
 				560D924A1C672C4B00F4F92B /* RowConvertible.swift in Sources */,
-				31A778841C6A4E0600F507F6 /* FetchedResultsController.swift in Sources */,
+				31A778841C6A4E0600F507F6 /* FetchedRecordsController.swift in Sources */,
 				56A238861B9C75030082EB20 /* DatabaseValue.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
