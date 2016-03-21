@@ -168,7 +168,7 @@ final class Pool<T> {
     init(maximumCount: Int, makeElement: (() -> T)? = nil) {
         precondition(maximumCount > 0, "Pool size must be at least 1")
         self.makeElement = makeElement
-        self.queue = dispatch_queue_create("com.github.groue.GRDB.Pool", nil)
+        self.queue = dispatch_queue_create("GRDB.Pool", nil)
         self.semaphore = dispatch_semaphore_create(maximumCount)
     }
     

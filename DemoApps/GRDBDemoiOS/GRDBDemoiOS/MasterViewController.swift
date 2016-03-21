@@ -44,53 +44,12 @@ class MasterViewController: UITableViewController {
                 
             case .Move(let indexPath, let newIndexPath, let changes):
 //                // Technique 1 (replace)
-//                //
-//                // TODO: fix crash
-//                //
-//                //      BEFORE [["id": 6, "position": 3], ["id": 5, "position": 5], ["id": 14, "position": 6], ["id": 1, "position": 9], ["id": 7, "position": 11], ["id": 9, "position": 15], ["id": 12, "position": 19], ["id": 4, "position": 22]]
-//                //      DELETED FROM index 1
-//                //      DELETED FROM index 3
-//                //      INSERTED AT index 3
-//                //      MOVED FROM index 6 TO index 1 WITH CHANGES: ["position": 10]
-//                //      DELETED FROM index 7
-//                //      DELETED FROM index 8
-//                //      DELETED FROM index 9
-//                //      DELETED FROM index 10
-//                //      DELETED FROM index 11
-//                //      DELETED FROM index 12
-//                //      MOVED FROM index 13 TO index 0 WITH CHANGES: ["position": 20]
-//                //      INSERTED AT index 5
-//                //      DELETED FROM index 14
-//                //      MOVED FROM index 2 TO index 6 WITH CHANGES: ["position": 4]
-//                //      DELETED FROM index 15
-//                //      MOVED FROM index 5 TO index 7 WITH CHANGES: ["position": 9]
-//                //      AFTER [["id": 19, "position": 0], ["id": 3, "position": 1], ["id": 2, "position": 2], ["id": 4, "position": 5], ["id": 1, "position": 7], ["id": 7, "position": 14], ["id": 13, "position": 15], ["id": 10, "position": 21]]
 //                self.tableView.deleteRowsAtIndexPaths([indexPath],
 //                    withRowAnimation: UITableViewRowAnimation.Fade)
 //                self.tableView.insertRowsAtIndexPaths([newIndexPath],
 //                    withRowAnimation: UITableViewRowAnimation.Fade)
                 
                 // Technique 2 (move & update)
-                //
-                // TODO: fix crash
-                //
-                //      BEFORE [["id": 16, "position": 2], ["id": 11, "position": 3], ["id": 9, "position": 6], ["id": 2, "position": 8], ["id": 21, "position": 9], ["id": 15, "position": 11], ["id": 22, "position": 12], ["id": 5, "position": 13], ["id": 1, "position": 17], ["id": 18, "position": 22]]
-                //      INSERTED AT index 1
-                //      INSERTED AT index 2
-                //      INSERTED AT index 3
-                //      DELETED FROM index 1
-                //      INSERTED AT index 4
-                //      DELETED FROM index 3
-                //      MOVED FROM index 0 TO index 6 WITH CHANGES: ["position": 1]
-                //      MOVED FROM index 4 TO index 0 WITH CHANGES: ["position": 13]
-                //      MOVED FROM index 2 TO index 7 WITH CHANGES: ["position": 6]
-                //      INSERTED AT index 8
-                //      DELETED FROM index 6
-                //      INSERTED AT index 9
-                //      DELETED FROM index 7
-                //      INSERTED AT index 10
-                //      UPDATED AT index 5 WITH CHANGES: ["position": 15]
-                //      AFTER [["id": 21, "position": 1], ["id": 2, "position": 5], ["id": 20, "position": 6], ["id": 6, "position": 9], ["id": 23, "position": 10], ["id": 13, "position": 12], ["id": 10, "position": 15], ["id": 7, "position": 16], ["id": 1, "position": 18], ["id": 3, "position": 19], ["id": 4, "position": 21]]
                 let cell = self.tableView.cellForRowAtIndexPath(indexPath)
                 self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
                 if !changes.isEmpty, let cell = cell {
@@ -109,40 +68,6 @@ class MasterViewController: UITableViewController {
             print("AFTER \(self.fetchedRecordsController.fetchedRecords!.map { ["id":$0.id, "position":$0.position] })")
             self.tableView.endUpdates()
         }
-        
-        // TODO: fix crash
-        //
-        // When we remove the comparison function below, the controller only
-        // emits deletes and inserts.
-        //
-        // This should work just as well.
-        //
-        // But sometimes it crashes:
-        //
-        //      POSITIONS BEFORE [0, 4, 6, 7, 9, 12, 15, 16, 18, 19]
-        //      INSERTED AT index 0
-        //      INSERTED AT index 1
-        //      DELETED FROM index 0
-        //      INSERTED AT index 2
-        //      DELETED FROM index 1
-        //      INSERTED AT index 3
-        //      DELETED FROM index 2
-        //      INSERTED AT index 4
-        //      DELETED FROM index 3
-        //      INSERTED AT index 5
-        //      DELETED FROM index 4
-        //      INSERTED AT index 6
-        //      DELETED FROM index 5
-        //      INSERTED AT index 7
-        //      DELETED FROM index 6
-        //      INSERTED AT index 8
-        //      DELETED FROM index 8
-        //      DELETED FROM index 9
-        //      INSERTED AT index 10
-        //      DELETED FROM index 10
-        //      INSERTED AT index 11
-        //      POSITIONS AFTER [1, 2, 3, 6, 7, 10, 11, 13, 15, 17, 18, 19]
-        //      endUpdates(): crash
         
         // Compare two persons. Returns true if controller should emit a .Move or
         // .Update event instead of a deletion/insertion.
@@ -165,7 +90,7 @@ class MasterViewController: UITableViewController {
     }
     
     func shufflePersons() {
-        try! dbQueue.inTransaction { (db) -> TransactionCompletion in
+        try! dbQueue.inTransaction { db in
             var persons = Person.fetchAll(db)
             persons.shuffleInPlace()
             for (i, p) in persons.enumerate() {

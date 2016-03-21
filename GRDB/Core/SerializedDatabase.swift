@@ -40,7 +40,7 @@ final class SerializedDatabase {
     
     private init(database: Database) {
         self.database = database
-        self.queue = dispatch_queue_create("com.github.groue.GRDB", nil)
+        self.queue = dispatch_queue_create("GRDB.SerializedDatabase", nil)
         
         // Activate database.preconditionValidQueue()
         let dispatchQueueID = unsafeBitCast(database, UnsafeMutablePointer<Void>.self)

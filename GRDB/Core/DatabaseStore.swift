@@ -38,7 +38,7 @@ class DatabaseStore {
     }
     
     private init(directoryPath: String, databaseFileName: String, directoryDescriptor: CInt, attributes: [String: AnyObject]) {
-        let queue = dispatch_queue_create("com.groue.GRDB.DatabaseStore", nil)
+        let queue = dispatch_queue_create("GRDB.DatabaseStore", nil)
         let source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, UInt(directoryDescriptor), DISPATCH_VNODE_WRITE, queue)
         
         // Configure dispatch source

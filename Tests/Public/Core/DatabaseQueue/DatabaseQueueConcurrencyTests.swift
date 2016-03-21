@@ -97,7 +97,7 @@ class ConcurrencyTests: XCTestCase {
             try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
         }
         
-        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
         let group = dispatch_group_create()
         
         // Queue 1
@@ -156,7 +156,7 @@ class ConcurrencyTests: XCTestCase {
         let s2 = dispatch_semaphore_create(0)
         // COMMIT
         
-        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
         let group = dispatch_group_create()
         
         // Queue 1
@@ -209,7 +209,7 @@ class ConcurrencyTests: XCTestCase {
         let s2 = dispatch_semaphore_create(0)
         // COMMIT
         
-        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
         let group = dispatch_group_create()
         
         // Queue 1
@@ -272,7 +272,7 @@ class ConcurrencyTests: XCTestCase {
             return true
         }
         
-        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
         let group = dispatch_group_create()
         
         // Queue 1
@@ -324,7 +324,7 @@ class ConcurrencyTests: XCTestCase {
             try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
         }
         
-        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
         let group = dispatch_group_create()
         
         // Queue 1
@@ -394,7 +394,7 @@ class ConcurrencyTests: XCTestCase {
             try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
         }
         
-        let queue = dispatch_queue_create("com.github.groue.GRDB", DISPATCH_QUEUE_CONCURRENT)
+        let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
         let group = dispatch_group_create()
         
         // Queue 1

@@ -23,14 +23,22 @@ public class FetchedRecordsController<T: RowConvertible> {
     private init(database: DatabaseWriter, source: Source<T>) {
         self.source = source
         self.database = database
+        self.diffQueue = dispatch_queue_create("GRDB.FetchedRecordsController.diff", nil)
         database.addTransactionObserver(self)
     }
     
     public func performFetch() {
-        try! database.read { db in
+        precondition(NSThread.isMainThread(), "Must be called on the main thread")
+        
+        // Use database.write, so that we are serialized with transaction
+        // callbacks, which happen on the writing queue.
+        try! database.write { db in
             let statement = try self.source.selectStatement(db)
             self.observedTables = statement.sourceTables
-            self.fetchedItems = Item<T>.fetchAll(statement)
+            self.mainItems = Item<T>.fetchAll(statement)
+        }
+        dispatch_sync(self.diffQueue) {
+            self.diffItems = self.mainItems
         }
     }
     
@@ -65,12 +73,17 @@ public class FetchedRecordsController<T: RowConvertible> {
     private let source: Source<T>
     
     /// The observed tables. Set in performFetch()
-    private var observedTables: Set<String>? = nil
+    private var observedTables: Set<String>? = nil  // protected by database writer queue
     
     /// True if databaseDidCommit(db) should compute changes
-    private var needsComputeChanges = false
+    private var needsComputeChanges = false         // protected by database writer queue
     
-    private var fetchedItems: [Item<T>]?
+    /// Dedicated to fetchedRecords, recordAtIndexPath
+    private var mainItems: [Item<T>]?               // protected by main thread
+    
+    /// Dedicated to change computation
+    private var diffItems: [Item<T>]?               // protected by diffQueue
+    private var diffQueue: dispatch_queue_t
     
     
     // MARK: - Accessing records
@@ -78,8 +91,9 @@ public class FetchedRecordsController<T: RowConvertible> {
     /// Returns the records of the query.
     /// Returns nil if the performQuery: hasn't been called.
     public var fetchedRecords: [T]? {
-        if let fetchedItems = fetchedItems {
-            return fetchedItems.map { $0.record }
+        precondition(NSThread.isMainThread(), "Must be called on the main thread")
+        if let mainItems = self.mainItems {
+            return mainItems.map { $0.record }
         }
         return nil
     }
@@ -87,11 +101,11 @@ public class FetchedRecordsController<T: RowConvertible> {
     
     /// Returns the fetched record at a given indexPath.
     public func recordAtIndexPath(indexPath: NSIndexPath) -> T? {
-        if let item = fetchedItems?[indexPath.indexAtPosition(1)] {
+        precondition(NSThread.isMainThread(), "Must be called on the main thread")
+        if let item = self.mainItems?[indexPath.indexAtPosition(1)] {
             return item.record
-        } else {
-            return nil
         }
+        return nil
     }
     
     /// Returns the indexPath of a given record.
@@ -249,39 +263,49 @@ extension FetchedRecordsController : TransactionObserverType {
     }
     
     public func databaseDidCommit(db: Database) {
+        // The databaseDidCommit callback is called in a serialized dispatch
+        // queue: It is guaranteed to process the last database transaction.
+        
         guard needsComputeChanges else {
             return
         }
         needsComputeChanges = false
         
+        guard diffItems != nil else {
+            // performFetch() has not been called yet
+            return
+        }
+        
         let statement = try! source.selectStatement(db)
         let newItems = Item<T>.fetchAll(statement)
         
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) { [weak self] in
-            guard let strongSelf = self else { return }
+        dispatch_async(diffQueue) {
+            // This code, submitted to the serial diffQueue, is guaranteed
+            // to process the last database transaction:
             
-            // FIXME: there is a race condition because self.fetchedItems
-            // will only be updated in the main queue, below.
-            //
-            // If two database transactions are committed before the main queue
-            // had the opportunity to update self.fetchedItems, we'll emit two
-            // incompatible changes sets.
-            let oldItems = strongSelf.fetchedItems!
-            let changes = FetchedRecordsController.computeChanges(fromRows: oldItems, toRows: newItems, equalRecords: strongSelf.equalRecords)
+            // Read/write diffItems in self.diffQueue
+            let changes = FetchedRecordsController.computeChanges(fromRows: self.diffItems!, toRows: newItems, equalRecords: self.equalRecords)
+            self.diffItems = newItems
+            
             guard !changes.isEmpty else {
                 return
             }
-
-            dispatch_async(dispatch_get_main_queue()) {
+            
+            dispatch_async(dispatch_get_main_queue()) { [weak self] in
+                // This code, submitted to the serial main queue, is guaranteed
+                // to process the last database transaction:
+                
                 guard let strongSelf = self else { return }
                 
                 strongSelf.willChangeCallback?()
-                strongSelf.fetchedItems = newItems
+                strongSelf.mainItems = newItems
+                
                 if let eventCallback = strongSelf.eventCallback {
                     for change in changes {
                         eventCallback(record: change.item.record, event: change.event)
                     }
                 }
+                
                 strongSelf.didChangeCallback?()
             }
         }
