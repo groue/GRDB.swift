@@ -395,7 +395,8 @@ public class DatabaseGenerator<Element>: GeneratorType {
         guard let element = element else {
             return nil
         }
-        return element(sqliteStatement, unsafeUnwrap(statementRef))
+        // TODO: use unsafeUnWrap(statementRef)
+        return element(sqliteStatement, statementRef!)
     }
 }
 
