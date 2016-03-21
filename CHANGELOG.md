@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next version
+
+**New**
+
+- `Row` adopts Equatable
+
+
 ## 0.51.2
 
 Released March 14, 2016
