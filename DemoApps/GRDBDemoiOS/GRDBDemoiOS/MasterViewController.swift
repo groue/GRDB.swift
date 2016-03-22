@@ -15,8 +15,8 @@ class MasterViewController: UITableViewController {
         
         toolbarItems = [
             UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(title: "Swap Names", style: UIBarButtonItemStyle.Done, target: self, action: "swapNames"),
-            UIBarButtonItem(title: "Shuffle", style: UIBarButtonItemStyle.Done, target: self, action: "shufflePersons"),
+            UIBarButtonItem(title: "Swap Names", style: UIBarButtonItemStyle.Done, target: self, action: #selector(MasterViewController.swapNames)),
+            UIBarButtonItem(title: "Shuffle", style: UIBarButtonItemStyle.Done, target: self, action: #selector(MasterViewController.shufflePersons)),
             UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil)
         ]
         self.navigationController?.toolbarHidden = false
