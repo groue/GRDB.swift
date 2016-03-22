@@ -199,9 +199,8 @@ let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 
 The differences are:
 
-- Only database pools allow concurrent database accesses (this can improve the performance of multithreaded applications).
+- Database pools allow concurrent database accesses (this can improve the performance of multithreaded applications).
 - Unless read-only, database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html).
-- Only database queues can open an in-memory database (without database file).
 
 **If you are not sure, choose DatabaseQueue.** You will always be able to switch to DatabasePool later.
 
@@ -223,18 +222,39 @@ let inMemoryDBQueue = DatabaseQueue()
 SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
 
 
-**A database queue can be used from any thread.**
-
-Execute [database updates](#executing-updates), and [fetch](#fetch-queries) arrays or single values:
+**A database queue can be used from any thread.** The `inDatabase` and `inTransaction` methods block the current thread until your database statements are executed in a protected dispatch queue. They safely serialize the database accesses:
 
 ```swift
-try dbQueue.execute("CREATE TABLE pointOfInterests (...)")
-try PointOfInterest(...).insert(dbQueue)
-let pois = PointOfInterest.fetchAll(dbQueue)
-let poi = PointOfInterest.fetchOne(dbQueue, key: 1)
+// Execute database statements:
+try dbQueue.inDatabase { db in
+    try db.execute("CREATE TABLE pointOfInterests (...)")
+    try PointOfInterest(...).insert(db)
+}
+
+// Wrap database statements in a transaction:
+try dbQueue.inTransaction { db in
+    if let poi = PointOfInterest.fetchOne(db, key: 1) {
+        try poi.delete(db)
+    }
+    return .Commit
+}
+
+// Extract values from the database:
+dbQueue.inDatabase { db in
+    let poiCount = PointOfInterest.fetchCount(db)
+    let pois = PointOfInterest.fetchAll(db)
+}
 ```
 
-You can group statements in [transactions](#transactions). In a multithreaded application, you can isolate a bunch or related statements from concurrent updates: read [Concurrency](#concurrency).
+*If you know what you are doing*, you can skip the protection of `inDatabase`, and use the queue directly, as below. In a multithreaded application, two consecutive statements could then potentially run on an unstable database state (see [Concurrency](#concurrency)):
+
+```swift
+// Direct access, for advanced users only:
+let pois = PointOfInterest.fetchAll(dbQueue)
+```
+
+See [Transactions](#transactions) and [Concurrency](#concurrency) for more information.
+
 
 **Configure database queues:**
 
@@ -271,20 +291,47 @@ SQLite creates the database file if it does not already exist. The connection is
 > :point_up: **Note**: unless read-only, a database pool opens your database in the SQLite "WAL mode". The WAL mode does not fit all situations. Please have a look at https://www.sqlite.org/wal.html.
 
 
-**A database pool can be used from any thread.**
-
-Execute [database updates](#executing-updates), and [fetch](#fetch-queries) arrays or single values:
+**A database pool can be used from any thread.** The `read`, `write` and `writeInTransaction` methods block the current thread until your database statements are executed in a protected dispatch queue. They safely isolate the database accesses:
 
 ```swift
-try dbPool.execute("CREATE TABLE pointOfInterests (...)")
-try PointOfInterest(...).insert(dbPool)
-let pois = PointOfInterest.fetchAll(dbPool)
-let poi = PointOfInterest.fetchOne(dbPool, key: 1)
+// Execute database statements:
+try dbPool.write { db in
+    try db.execute("CREATE TABLE pointOfInterests (...)")
+    try PointOfInterest(...).insert(db)
+}
+
+// Wrap database statements in a transaction:
+try dbPool.writeInTransaction { db in
+    if let poi = PointOfInterest.fetchOne(db, key: 1) {
+        try poi.delete(db)
+    }
+    return .Commit
+}
+
+// Extract values from the database:
+dbPool.read { db in
+    let poiCount = PointOfInterest.fetchCount(db)
+    let pois = PointOfInterest.fetchAll(db)
+}
 ```
 
-You can group statements in [transactions](#transactions). In a multithreaded application, you can isolate a bunch or related statements from concurrent updates: read [Concurrency](#concurrency).
+*If you know what you are doing*, you can skip the protection of `read`, `write` and `writeInTransaction`, and use the pool directly, as below. In a multithreaded application, two consecutive statements could then potentially run on an unstable database state (see [Concurrency](#concurrency)):
 
-The total number of concurrent reads is limited. When the maximum number has been reached, a read waits for another read to complete.
+```swift
+// Direct access, for advanced users only:
+let pois = PointOfInterest.fetchAll(dbPool)
+```
+
+**Database pools allows concurrent database accesses:**
+
+- When you don't need to modify the database, prefer the `read` method, because several threads can perform reads in parallel.
+
+- The total number of concurrent reads is limited. When the maximum number has been reached, a read waits for another read to complete. That maximum number can be configured (see below).
+
+- Conversely, writes are serialized. They still can happen in parallel with reads, but GRDB makes sure that those parallel writes are not visible inside a `read` closure.
+
+See [Transactions](#transactions) and [Concurrency](#concurrency) for more information.
+
 
 **Configure database pools:**
 
@@ -342,6 +389,7 @@ try dbQueue.inDatabase { db in
 
 - [Executing Updates](#executing-updates)
 - [Fetch Queries](#fetch-queries)
+    - [Fetching Methods](#fetching-methods)
     - [Row Queries](#row-queries)
     - [Value Queries](#value-queries)
 - [Values](#values)
@@ -452,10 +500,7 @@ Type.fetchOne(...) // Type?
 - `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise).
     
     ```swift
-    dbQueue.inDatabase { db in
-        for row in Row.fetch(db, "SELECT ...") { ... }
-    }
-    dbPool.read { db in
+    dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
         for row in Row.fetch(db, "SELECT ...") { ... }
     }
     ```
@@ -463,11 +508,9 @@ Type.fetchOne(...) // Type?
     Don't modify the database during a sequence iteration:
     
     ```swift
-    try dbQueue.inDatabase { db in
-        // Undefined behavior
-        for row in Row.fetch(db, "SELECT * FROM persons") {
-            try db.execute("DELETE FROM persons ...")
-        }
+    // Undefined behavior
+    for row in Row.fetch(db, "SELECT * FROM persons") {
+        try db.execute("DELETE FROM persons ...")
     }
     ```
     
@@ -2462,98 +2505,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 ## Concurrency
 
+**Concurrency with GRDB is easy: there are two rules to follow.**
+
 GRDB ships with support for two concurrency modes:
 
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
 - [DatabasePool](#database-pools) manages a pool of several database connections, serializes writes, and allows concurrent reads and writes.
 
-A database queue or pool prevents all concurrency troubles, granted there is no other connection to your database.
+**Rule 1: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.**
 
-**As a consequence, your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file.** You may experience concurrency trouble if you do otherwise.
+Now let's talk about the consistency of your data: you generally want to prevent you application threads to conflict.
 
-Now, as thread-safe as DatabaseQueue and DatabasePool are, your multithreaded application should be well aware that two consecutive statements do not operate on a stable database state:
-
-```swift
-// Those two values may be different because some other thread may have inserted
-// or deleted a point of interest between the two statements:
-let count1 = PointOfInterest.fetchCount(dbQueueOrPool)
-let count2 = PointOfInterest.fetchCount(dbQueueOrPool)
-```
-
-Now it is easy to avoid surprises, and isolate a bunch or related statements together:
-
-- [Isolation with DatabaseQueue](#isolation-with-databasequeue)
-- [Isolation with DatabasePool](#isolation-with-databasepool)
-
-
-### Isolation with DatabaseQueue
-
-In a multithreaded application, use `inDatabase` or `inTransaction` to isolate consecutive statements, and make sure they are not disturbed by parallel database updates:
+Since it is difficult to synchronize threads, both [DatabaseQueue](#database-queues) and [DatabasePool](#database-pools) offer methods that isolate your statements, and guarantee a stable database state regardless of parallel threads:
 
 ```swift
-dbQueue.inDatabase { db in
+dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
     // Those two values are guaranteed to be equal:
     let count1 = PointOfInterest.fetchCount(db)
     let count2 = PointOfInterest.fetchCount(db)
 }
 
-dbQueue.inDatabase { db in
-    // Now this value may be different:
-    let count = PointOfInterest.fetchCount(db)
-}
-
-// Wrap statements in a transaction:
-try dbQueue.inTransaction { db in
-    if let paris = PointOfInterest.fetchOne(db, key: parisId) {
-        try paris.delete(db)
-    }
-    return .Commit
-}
-```
-
-The `inDatabase` and `inTransaction` methods execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database accesses are serialized, which means that no two threads can execute such a closure in parallel.
-
-See [Transactions](#transactions) for more information.
-
-
-### Isolation with DatabasePool
-
-In a multithreaded application, use `read` to isolate consecutive fetch statements, and make sure they are not disturbed by parallel database updates:
-
-```swift
-dbPool.read { db in
-    // Those two values are guaranteed to be equal, even if the `wines`
-    // tables is concurrently modified between the two requests:
-    let count1 = PointOfInterest.fetchCount(db)
-    let count2 = PointOfInterest.fetchCount(db)
-}
-
-dbPool.read { db in
+dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
     // Now this value may be different:
     let count = PointOfInterest.fetchCount(db)
 }
 ```
 
-`read` executes its closure argument in a protected dispatch queue, and blocks the current thread until your database statements are executed. Eventual concurrent updates may happen, but they are not visible inside a `read` closure.
-
-For isolated updates, use `write` or `writeInTransaction`. They also execute their closure argument in a protected dispatch queue, and block the current thread until your database statements are executed. The database writes are serialized, which means that no two threads can execute such a closure in parallel:
+This is very different from the direct access to queue and pools. The two lines below are equivalent to two consecutive calls to `inDatabase`, with the opportunity for other threads to sneak in:
 
 ```swift
-try dbPool.write { db in
-    try country.save(db)
-    try poi.save(db)
-}
-
-// Wrap statements in a transaction:
-try dbPool.writeInTransaction { db in
-    if let paris = PointOfInterest.fetchOne(db, key: parisId) {
-        try paris.delete(db)
-    }
-    return .Commit
-}
+// Those two values may be different because some other thread may have inserted
+// or deleted a point of interest between the two statements:
+let count1 = PointOfInterest.fetchCount(dbQueue) // or dbPool
+let count2 = PointOfInterest.fetchCount(dbQueue) // or dbPool
 ```
 
-See [Transactions](#transactions) for more information.
+**Rule 2: Use the safe `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods unless you know what you are doing.**
 
 
 ### Advanced Concurrency
