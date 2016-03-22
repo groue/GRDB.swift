@@ -1,5 +1,6 @@
-- [ ] Write an app like http://www.appcoda.com/swiftydb/ ?
-- [ ] Since commit e6010e334abdf98eb9f62c1d6abbb2a9e8cd7d19, one can not use the raw SQLite API without importing the SQLite module for the platform. We need to document that.
+- [ ] DOC: Write an app like http://www.appcoda.com/swiftydb/ ?
+- [ ] DOC: present the safe inDatabase, read, and write methods before the unsafe direct access.
+- [ ] DOC: Since commit e6010e334abdf98eb9f62c1d6abbb2a9e8cd7d19, one can not use the raw SQLite API without importing the SQLite module for the platform. We need to document that.
 - [ ] Read https://sqlite.org/sharedcache.html
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
