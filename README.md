@@ -328,7 +328,7 @@ let pois = PointOfInterest.fetchAll(dbPool)
 
 - The total number of concurrent reads is limited. When the maximum number has been reached, a read waits for another read to complete. That maximum number can be configured (see below).
 
-- Conversely, like in [database queues](#database-queues), writes are serialized. They still can happen in parallel with reads, but GRDB makes sure that those parallel writes are not visible inside a `read` closure.
+- Conversely, writes are serialized. They still can happen in parallel with reads, but GRDB makes sure that those parallel writes are not visible inside a `read` closure.
 
 See [Transactions](#transactions) and [Concurrency](#concurrency) for more information.
 
