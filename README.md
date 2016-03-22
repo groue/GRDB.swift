@@ -500,10 +500,7 @@ Type.fetchOne(...) // Type?
 - `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise).
     
     ```swift
-    dbQueue.inDatabase { db in
-        for row in Row.fetch(db, "SELECT ...") { ... }
-    }
-    dbPool.read { db in
+    dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
         for row in Row.fetch(db, "SELECT ...") { ... }
     }
     ```
