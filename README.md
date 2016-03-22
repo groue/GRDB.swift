@@ -199,9 +199,8 @@ let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 
 The differences are:
 
-- Only database pools allow concurrent database accesses (this can improve the performance of multithreaded applications).
+- Database pools allow concurrent database accesses (this can improve the performance of multithreaded applications).
 - Unless read-only, database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html).
-- Only database queues can open an in-memory database (without database file).
 
 **If you are not sure, choose DatabaseQueue.** You will always be able to switch to DatabasePool later.
 
