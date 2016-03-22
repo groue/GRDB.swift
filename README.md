@@ -2516,7 +2516,7 @@ GRDB ships with support for two concurrency modes:
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
 - [DatabasePool](#database-pools) manages a pool of several database connections, serializes writes, and allows concurrent reads and writes.
 
-**Rule 1**: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.
+**Rule 1: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.**
 
 Now let's talk about the consistency of your data: you generally want to prevent you application threads to conflict.
 
@@ -2544,7 +2544,7 @@ let count1 = PointOfInterest.fetchCount(dbQueue) // or dbPool
 let count2 = PointOfInterest.fetchCount(dbQueue) // or dbPool
 ```
 
-**Rule 2**: Use the `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` safe methods unless you know what you are doing.
+**Rule 2: Use the safe `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods unless you know what you are doing.**
 
 
 ### Advanced Concurrency
