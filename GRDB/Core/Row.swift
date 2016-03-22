@@ -1,5 +1,15 @@
 import Foundation
 
+#if os(OSX)
+    import SQLiteMacOSX
+#elseif os(iOS)
+#if (arch(i386) || arch(x86_64))
+    import SQLiteiPhoneSimulator
+    #else
+    import SQLiteiPhoneOS
+#endif
+#endif
+
 /// A database row.
 public final class Row {
     
@@ -95,7 +105,7 @@ extension Row {
     /// Columns appear in the same order as they occur as the `.0` member
     /// of column-value pairs in `self`.
     public var columnNames: LazyMapCollection<Row, String> {
-        return LazyMapCollection(self) { $0.0 }
+        return lazy.map { $0.0 }
     }
     
     /// Returns true if and only if the row has that column.
@@ -424,7 +434,7 @@ extension Row {
     /// Values appear in the same order as they occur as the `.1` member
     /// of column-value pairs in `self`.
     public var databaseValues: LazyMapCollection<Row, DatabaseValue> {
-        return LazyMapCollection(self) { $0.1 }
+        return lazy.map { $0.1 }
     }
 }
 
@@ -798,7 +808,7 @@ private struct StatementRowImpl : RowImpl {
         self.sqliteStatement = sqliteStatement
         // Optimize row.value(named: "...")
         let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement)).map { String.fromCString(sqlite3_column_name(sqliteStatement, Int32($0)))!.lowercaseString }
-        self.lowercaseColumnIndexes = Dictionary(lowercaseColumnNames.enumerate().map { ($1, $0) }.reverse())
+        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: lowercaseColumnNames.enumerate().map { ($1, $0) }.reverse())
     }
     
     var count: Int {

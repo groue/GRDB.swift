@@ -23,17 +23,12 @@ public final class DatabaseQueue {
     ///     - path: The path to the database file.
     ///     - configuration: A configuration.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public convenience init(path: String, configuration: Configuration = Configuration()) throws {
-        // Database Store
-        let store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
-        
-        // Database
-        let serializedDatabase = try SerializedDatabase(
+    public init(path: String, configuration: Configuration = Configuration()) throws {
+        store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
+        serializedDatabase = try SerializedDatabase(
             path: path,
             configuration: configuration,
             schemaCache: DatabaseSchemaCache())
-        
-        self.init(serializedDatabase: serializedDatabase, store: store)
     }
     
     /// Opens an in-memory SQLite database.
@@ -43,13 +38,12 @@ public final class DatabaseQueue {
     /// Database memory is released when the database queue gets deallocated.
     ///
     /// - parameter configuration: A configuration.
-    public convenience init(configuration: Configuration = Configuration()) {
-        let serializedDatabase = try! SerializedDatabase(
+    public init(configuration: Configuration = Configuration()) {
+        store = nil
+        serializedDatabase = try! SerializedDatabase(
             path: ":memory:",
             configuration: configuration,
             schemaCache: DatabaseSchemaCache())
-        
-        self.init(serializedDatabase: serializedDatabase, store: nil)
     }
     
     
@@ -181,16 +175,12 @@ extension DatabaseQueue : DatabaseReader {
     ///         Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func addFunction(function: DatabaseFunction) {
-        inDatabase { db in
-            db.addFunction(function)
-        }
+        serializedDatabase.addFunction(function)
     }
     
     /// Remove an SQL function.
     public func removeFunction(function: DatabaseFunction) {
-        inDatabase { db in
-            db.removeFunction(function)
-        }
+        serializedDatabase.removeFunction(function)
     }
     
     
@@ -206,16 +196,12 @@ extension DatabaseQueue : DatabaseReader {
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func addCollation(collation: DatabaseCollation) {
-        inDatabase { db in
-            db.addCollation(collation)
-        }
+        serializedDatabase.addCollation(collation)
     }
     
     /// Remove a collation.
     public func removeCollation(collation: DatabaseCollation) {
-        inDatabase { db in
-            db.removeCollation(collation)
-        }
+        serializedDatabase.removeCollation(collation)
     }
 }
 

@@ -1,5 +1,15 @@
 import Foundation
 
+#if os(OSX)
+    import SQLiteMacOSX
+#elseif os(iOS)
+#if (arch(i386) || arch(x86_64))
+    import SQLiteiPhoneSimulator
+    #else
+    import SQLiteiPhoneOS
+#endif
+#endif
+
 /// A raw SQLite connection, suitable for the SQLite C API.
 public typealias SQLiteConnection = COpaquePointer
 
@@ -47,16 +57,16 @@ public final class Database {
     var dispatchQueueID: UnsafeMutablePointer<Void> = nil
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
-        self.configuration = configuration
-        self.schemaCache = schemaCache
-        
         // See https://www.sqlite.org/c3ref/open.html
-        var sqliteConnection = SQLiteConnection()
+        var sqliteConnection: SQLiteConnection = nil
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
-        self.sqliteConnection = sqliteConnection
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
+        
+        self.configuration = configuration
+        self.schemaCache = schemaCache
+        self.sqliteConnection = sqliteConnection
         
         configuration.SQLiteConnectionDidOpen?()
         

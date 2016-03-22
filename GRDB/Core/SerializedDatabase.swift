@@ -13,7 +13,7 @@ final class SerializedDatabase {
     /// The dispatch queue
     private let queue: dispatch_queue_t
     
-    convenience init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCacheType) throws {
+    init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCacheType) throws {
         // According to https://www.sqlite.org/threadsafe.html
         //
         // > SQLite support three different threading modes:
@@ -34,13 +34,8 @@ final class SerializedDatabase {
         var config = configuration
         config.threadingMode = .MultiThread
         
-        let database = try Database(path: path, configuration: config, schemaCache: schemaCache)
-        self.init(database: database)
-    }
-    
-    private init(database: Database) {
-        self.database = database
-        self.queue = dispatch_queue_create("GRDB.SerializedDatabase", nil)
+        database = try Database(path: path, configuration: config, schemaCache: schemaCache)
+        queue = dispatch_queue_create("GRDB.SerializedDatabase", nil)
         
         // Activate database.preconditionValidQueue()
         let dispatchQueueID = unsafeBitCast(database, UnsafeMutablePointer<Void>.self)
@@ -84,5 +79,37 @@ final class SerializedDatabase {
         return try dispatchSync(queue) {
             try block(db: self.database)
         }
+    }
+}
+
+extension SerializedDatabase : DatabaseReader {
+    func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try inDatabase { try $0.read(block) }
+    }
+    
+    func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try inDatabase { try $0.nonIsolatedRead(block) }
+    }
+    
+    func addFunction(function: DatabaseFunction) {
+        inDatabase { $0.addFunction(function) }
+    }
+    
+    func removeFunction(function: DatabaseFunction) {
+        inDatabase { $0.removeFunction(function) }
+    }
+    
+    func addCollation(collation: DatabaseCollation) {
+        inDatabase { $0.addCollation(collation) }
+    }
+    
+    func removeCollation(collation: DatabaseCollation) {
+        inDatabase { $0.removeCollation(collation) }
+    }
+}
+
+extension SerializedDatabase : DatabaseWriter {
+    func write<T>(block: (db: Database) throws -> T) rethrows -> T {
+        return try inDatabase { try $0.write(block) }
     }
 }

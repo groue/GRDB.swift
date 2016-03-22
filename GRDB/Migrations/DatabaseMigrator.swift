@@ -71,7 +71,7 @@ public struct DatabaseMigrator {
     ///       disabled foreign key checks.
     ///     - block: The migration block that performs SQL statements.
     /// - precondition: No migration with the same same as already been registered.
-    public mutating func registerMigration(identifier: String, withDisabledForeignKeyChecks disabledForeignKeyChecks: Bool = false, migrate: (db: Database) throws -> Void) {
+    public mutating func registerMigration(identifier: String, withDisabledForeignKeyChecks disabledForeignKeyChecks: Bool = false, migrate: (Database) throws -> Void) {
         registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: disabledForeignKeyChecks, migrate: migrate))
     }
     

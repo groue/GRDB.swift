@@ -7,14 +7,21 @@ class DatabaseStore {
     private let source: dispatch_source_t?
     private let queue: dispatch_queue_t?
     
-    convenience init(path: String, attributes: [String: AnyObject]?) throws {
+    init(path: String, attributes: [String: AnyObject]?) throws {
         guard let attributes = attributes else {
-            self.init()
+            self.queue = nil
+            self.source = nil
             return
         }
         
         let databaseFileName = (path as NSString).lastPathComponent
         let directoryPath = (path as NSString).stringByDeletingLastPathComponent
+        
+        // Apply file attributes on existing files
+        DatabaseStore.setFileAttributes(
+            directoryPath: directoryPath,
+            databaseFileName: databaseFileName,
+            attributes: attributes)
         
         // We use a dispatch_source to monitor the contents of the database file
         // parent directory, and apply file attributes.
@@ -28,8 +35,23 @@ class DatabaseStore {
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileReadUnknownError, userInfo: nil)
         }
         
-        // Call the non-throwing initializer
-        self.init(directoryPath: directoryPath, databaseFileName: databaseFileName, directoryDescriptor: directoryDescriptor, attributes: attributes)
+        let queue = dispatch_queue_create("com.groue.GRDB.DatabaseStore", nil)
+        let source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, UInt(directoryDescriptor), DISPATCH_VNODE_WRITE, queue)
+        self.queue = queue
+        self.source = source
+        
+        // Configure dispatch source
+        dispatch_source_set_event_handler(source) {
+            // Directory has been modified: apply file attributes on unprocessed files
+            DatabaseStore.setFileAttributes(
+                directoryPath: directoryPath,
+                databaseFileName: databaseFileName,
+                attributes: attributes)
+        }
+        dispatch_source_set_cancel_handler(source) {
+            close(directoryDescriptor)
+        }
+        dispatch_resume(source)
     }
     
     private init() {

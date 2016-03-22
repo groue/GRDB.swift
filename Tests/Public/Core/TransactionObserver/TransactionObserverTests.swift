@@ -30,25 +30,25 @@ class TransactionObserver : TransactionObserverType {
     }
     
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
-        didChangeCount++
+        didChangeCount += 1
         events.append(event)
     }
     
     func databaseWillCommit() throws {
-        willCommitCount++
+        willCommitCount += 1
         if let commitError = commitError {
             throw commitError
         }
     }
     
     func databaseDidCommit(db: Database) {
-        didCommitCount++
+        didCommitCount += 1
         lastCommittedEvents = events
         events = []
     }
     
     func databaseDidRollback(db: Database) {
-        didRollbackCount++
+        didRollbackCount += 1
         lastCommittedEvents = []
         events = []
     }

@@ -1,6 +1,16 @@
 Release Notes
 =============
 
+## 0.52.0
+
+Released March 21, 2016
+
+**New**
+
+- Swift 2.2, and Xcode 7.3
+- `Row` adopts Equatable
+
+
 ## 0.51.2
 
 Released March 14, 2016

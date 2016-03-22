@@ -487,7 +487,6 @@
 		56B7F4361BE4C11200E39BBF /* DatabaseCoderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCoderTests.swift; sourceTree = "<group>"; };
 		56B7F4391BEB42D500E39BBF /* Migration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
 		56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDB.xcconfig; sourceTree = "<group>"; };
-		56B8F49B1B4E2F3600C24296 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceTests.sqlite; sourceTree = "<group>"; };
 		56BB86121BA9886D001F9168 /* InsertRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordTests.swift; sourceTree = "<group>"; };
 		56BB86181BA988F2001F9168 /* FMDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabase.h; sourceTree = "<group>"; };
@@ -504,6 +503,7 @@
 		56BB862D1BA98933001F9168 /* GRDBPerformanceTests-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDBPerformanceTests-Bridging.h"; sourceTree = "<group>"; };
 		56BB862E1BA98AA9001F9168 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.0.sdk/usr/lib/libsqlite3.tbd; sourceTree = DEVELOPER_DIR; };
 		56BB86301BA98AB0001F9168 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		56C48E731C9A9923005DF1D9 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSDataTests.swift; sourceTree = "<group>"; };
 		56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
 		56CA22211BB41565009A04C5 /* PerformanceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
@@ -736,6 +736,22 @@
 				564A50C61BFF4B7F00B3A3A2 /* CollationTests.swift */,
 			);
 			path = Collation;
+			sourceTree = "<group>";
+		};
+		567D10621C9A911C00ACC500 /* GRDBiOS */ = {
+			isa = PBXGroup;
+			children = (
+				5683C2681B4D445E00296494 /* libsqlite3.dylib */,
+			);
+			path = GRDBiOS;
+			sourceTree = "<group>";
+		};
+		567D10641C9A911C00ACC500 /* GRDBOSX */ = {
+			isa = PBXGroup;
+			children = (
+				DC37744219C8DC91004FCF85 /* libsqlite3.dylib */,
+			);
+			path = GRDBOSX;
 			sourceTree = "<group>";
 		};
 		569530FA1C9067CC00CF1A2B /* Crash */ = {
@@ -1003,22 +1019,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		56E5D7BF1B4D3DC900430942 /* GRDBiOS */ = {
-			isa = PBXGroup;
-			children = (
-				5683C2681B4D445E00296494 /* libsqlite3.dylib */,
-			);
-			path = GRDBiOS;
-			sourceTree = "<group>";
-		};
-		56E5D7C11B4D3DC900430942 /* GRDBOSX */ = {
-			isa = PBXGroup;
-			children = (
-				DC37744219C8DC91004FCF85 /* libsqlite3.dylib */,
-			);
-			path = GRDBOSX;
-			sourceTree = "<group>";
-		};
 		56EA86921C91DFDA002BB4DF /* DatabaseReader */ = {
 			isa = PBXGroup;
 			children = (
@@ -1126,9 +1126,9 @@
 			isa = PBXGroup;
 			children = (
 				56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */,
-				56B8F49B1B4E2F3600C24296 /* module.modulemap */,
-				56E5D7BF1B4D3DC900430942 /* GRDBiOS */,
-				56E5D7C11B4D3DC900430942 /* GRDBOSX */,
+				56C48E731C9A9923005DF1D9 /* module.modulemap */,
+				567D10621C9A911C00ACC500 /* GRDBiOS */,
+				567D10641C9A911C00ACC500 /* GRDBOSX */,
 				DC3773F819C8CBB3004FCF85 /* GRDB.h */,
 				DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */,
 				DC3773F719C8CBB3004FCF85 /* Info.plist */,

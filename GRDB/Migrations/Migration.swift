@@ -1,3 +1,13 @@
+#if os(OSX)
+    import SQLiteMacOSX
+#elseif os(iOS)
+#if (arch(i386) || arch(x86_64))
+    import SQLiteiPhoneSimulator
+    #else
+    import SQLiteiPhoneOS
+#endif
+#endif
+
 /// An internal struct that defines a migration.
 struct Migration {
     let identifier: String
@@ -49,7 +59,7 @@ struct Migration {
                 //
                 // Let's turn any violation into an SQLITE_CONSTRAINT
                 // error, and rollback the transaction.
-                throw DatabaseError(code: SQLITE_CONSTRAINT, message: "FOREIGN KEY constraint failed", sql: "PRAGMA foreign_key_check", arguments: nil)
+                throw DatabaseError(code: SQLITE_CONSTRAINT, message: "FOREIGN KEY constraint failed", sql: nil, arguments: nil)
             }
             
             // > 11. Commit the transaction started in step 2.

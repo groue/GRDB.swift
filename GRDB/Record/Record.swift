@@ -154,7 +154,12 @@ public class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// See `hasPersistentChangedValues` for more information.
     public var persistentChangedValues: [String: DatabaseValue?] {
-        return Dictionary(generatePersistentChangedValues())
+        var persistentChangedValues: [String: DatabaseValue?] = [:]
+        
+        for (key, value) in generatePersistentChangedValues() {
+            persistentChangedValues[key] = value
+        }
+        return persistentChangedValues    
     }
     
     // A change generator that is used by both hasPersistentChangedValues and
@@ -162,7 +167,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     private func generatePersistentChangedValues() -> AnyGenerator<(column: String, old: DatabaseValue?)> {
         let oldRow = referenceRow
         var newValueGenerator = persistentDictionary.generate()
-        return anyGenerator {
+        return AnyGenerator {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueGenerator.next() {
                 let new = newValue?.databaseValue ?? .Null

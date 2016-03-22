@@ -110,20 +110,31 @@ class DatabaseMigratorTests : GRDBTestCase {
         do {
             try migrator.migrate(dbQueue)
             XCTFail("Expected error")
-        } catch {
+        } catch let error as DatabaseError {
             // Migration 1 and 2 should be committed.
             // Migration 3 should not be committed.
             
+            XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
+            XCTAssertEqual(error.message!, "FOREIGN KEY constraint failed")
+            XCTAssertTrue(error.sql == nil)
+            XCTAssertEqual(error.description, "SQLite error 19: FOREIGN KEY constraint failed")
+            
             // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
-            let rows = dbQueue.inDatabase { db in
-                Row.fetchAll(db, "SELECT * FROM persons")
-            }
+            var rows = Row.fetchAll(dbQueue, "SELECT * FROM persons")
             XCTAssertEqual(rows.count, 1)
-            let row = rows.first!
+            var row = rows.first!
             XCTAssertEqual(row.value(named: "name") as String, "Arthur")
             
             // persons table has no "tmp" column (migration 2)
             XCTAssertEqual(Array(row.columnNames), ["id", "name"])
+
+            // Bobby inserted (migration 1), not deleted by migration 2.
+            rows = Row.fetchAll(dbQueue, "SELECT * FROM pets")
+            XCTAssertEqual(rows.count, 1)
+            row = rows.first!
+            XCTAssertEqual(row.value(named: "name") as String, "Bobby")
+        } catch {
+            XCTFail("Error: \(error)")
         }
     }
 }
