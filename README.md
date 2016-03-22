@@ -246,9 +246,9 @@ dbQueue.inDatabase { db in
 }
 ```
 
-*If you know what you are doing*, you can skip the protection of `inDatabase`, and use the queue directly, as below. In a multithreaded application, two consecutive statements could then potentially run on an unstable database state (see [Concurrency]):
+*If you know what you are doing*, you can skip the protection of `inDatabase`, and use the queue directly, as below. In a multithreaded application, two consecutive statements could then potentially run on an unstable database state (see [Concurrency](#concurrency)):
 
-```
+```swift
 // Direct access, for advanced users only:
 let pois = PointOfInterest.fetchAll(dbQueue)
 ```
@@ -315,9 +315,9 @@ dbPool.read { db in
 }
 ```
 
-*If you know what you are doing*, you can skip the protection of `read`, `write` and `writeInTransaction`, and use the pool directly, as below. In a multithreaded application, two consecutive statements could then potentially run on an unstable database state (see [Concurrency]):
+*If you know what you are doing*, you can skip the protection of `read`, `write` and `writeInTransaction`, and use the pool directly, as below. In a multithreaded application, two consecutive statements could then potentially run on an unstable database state (see [Concurrency](#concurrency)):
 
-```
+```swift
 // Direct access, for advanced users only:
 let pois = PointOfInterest.fetchAll(dbPool)
 ```
