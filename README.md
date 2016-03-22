@@ -389,6 +389,7 @@ try dbQueue.inDatabase { db in
 
 - [Executing Updates](#executing-updates)
 - [Fetch Queries](#fetch-queries)
+    - [Fetching Methods](#fetching-methods)
     - [Row Queries](#row-queries)
     - [Value Queries](#value-queries)
 - [Values](#values)
