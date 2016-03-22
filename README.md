@@ -511,11 +511,9 @@ Type.fetchOne(...) // Type?
     Don't modify the database during a sequence iteration:
     
     ```swift
-    try dbQueue.inDatabase { db in
-        // Undefined behavior
-        for row in Row.fetch(db, "SELECT * FROM persons") {
-            try db.execute("DELETE FROM persons ...")
-        }
+    // Undefined behavior
+    for row in Row.fetch(db, "SELECT * FROM persons") {
+        try db.execute("DELETE FROM persons ...")
     }
     ```
     
