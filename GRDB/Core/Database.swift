@@ -57,16 +57,16 @@ public final class Database {
     var dispatchQueueID: UnsafeMutablePointer<Void> = nil
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
-        self.configuration = configuration
-        self.schemaCache = schemaCache
-        
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection: SQLiteConnection = nil
         let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
-        self.sqliteConnection = sqliteConnection
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
+        
+        self.configuration = configuration
+        self.schemaCache = schemaCache
+        self.sqliteConnection = sqliteConnection
         
         configuration.SQLiteConnectionDidOpen?()
         

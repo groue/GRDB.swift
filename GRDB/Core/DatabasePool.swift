@@ -24,32 +24,52 @@ public final class DatabasePool {
     ///     - configuration: A configuration.
     ///     - maximumReaderCount: The maximum number of readers. Default is 5.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public convenience init(path: String, configuration: Configuration = Configuration(), maximumReaderCount: Int = 5) throws {
+    public init(path: String, configuration: Configuration = Configuration(), maximumReaderCount: Int = 5) throws {
         precondition(maximumReaderCount > 1, "maximumReaderCount must be at least 1")
         
         // Database Store
-        let store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
+        store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
         
         // Shared database schema cache
         let databaseSchemaCache = SharedDatabaseSchemaCache()
         
         // Writer
-        let writer = try SerializedDatabase(
+        writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
             schemaCache: databaseSchemaCache)
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
-            let mode = writer.inDatabase { db in
-                String.fetchOne(db, "PRAGMA journal_mode=WAL")
-            }
-            guard mode == "wal" else {
+            let journalMode = String.fetchOne(writer, "PRAGMA journal_mode=WAL")
+            guard journalMode == "wal" else {
                 throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
             }
         }
         
-        self.init(path: path, configuration: configuration, maximumReaderCount: maximumReaderCount, databaseSchemaCache: databaseSchemaCache, writer: writer, store: store)
+        // Readers
+        var readerConfig = configuration
+        readerConfig.readonly = true
+        readerConfig.defaultTransactionKind = .Deferred // Make it the default. Other transaction kinds are forbidden by SQLite in read-only connections.
+        
+        readerPool = Pool<SerializedDatabase>(maximumCount: maximumReaderCount)
+        readerPool.makeElement = { [unowned self] in
+            let serializedDatabase = try! SerializedDatabase(
+                path: path,
+                configuration: readerConfig,
+                schemaCache: databaseSchemaCache)
+            
+            serializedDatabase.inDatabase { db in
+                for function in self.functions {
+                    db.addFunction(function)
+                }
+                for collation in self.collations {
+                    db.addCollation(collation)
+                }
+            }
+            
+            return serializedDatabase
+        }
     }
     
     
@@ -104,34 +124,6 @@ public final class DatabasePool {
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
-    
-    private init(path: String, configuration: Configuration, maximumReaderCount: Int, databaseSchemaCache: DatabaseSchemaCacheType, writer: SerializedDatabase, store: DatabaseStore) {
-        self.store = store
-        self.writer = writer
-        self.readerPool = Pool<SerializedDatabase>(maximumCount: maximumReaderCount)
-        
-        var readerConfig = configuration
-        readerConfig.readonly = true
-        readerConfig.defaultTransactionKind = .Deferred // Make it the default. Other transaction kinds are forbidden by SQLite in read-only connections.
-        
-        readerPool.makeElement = { [unowned self] in
-            let serializedDatabase = try! SerializedDatabase(
-                path: path,
-                configuration: readerConfig,
-                schemaCache: databaseSchemaCache)
-            
-            serializedDatabase.inDatabase { db in
-                for function in self.functions {
-                    db.addFunction(function)
-                }
-                for collation in self.collations {
-                    db.addCollation(collation)
-                }
-            }
-            
-            return serializedDatabase
-        }
-    }
 }
 
 /// The available [checkpoint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
@@ -238,31 +230,15 @@ extension DatabasePool : DatabaseReader {
     public func addFunction(function: DatabaseFunction) {
         functions.remove(function)
         functions.insert(function)
-        
-        writer.inDatabase { db in
-            db.addFunction(function)
-        }
-        
-        readerPool.forEach { reader in
-            reader.inDatabase { db in
-                db.addFunction(function)
-            }
-        }
+        writer.addFunction(function)
+        readerPool.forEach { $0.addFunction(function) }
     }
     
     /// Remove an SQL function.
     public func removeFunction(function: DatabaseFunction) {
         functions.remove(function)
-        
-        writer.inDatabase { db in
-            db.removeFunction(function)
-        }
-        
-        readerPool.forEach { reader in
-            reader.inDatabase { db in
-                db.removeFunction(function)
-            }
-        }
+        writer.removeFunction(function)
+        readerPool.forEach { $0.removeFunction(function) }
     }
     
     
@@ -280,31 +256,15 @@ extension DatabasePool : DatabaseReader {
     public func addCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         collations.insert(collation)
-        
-        writer.inDatabase { db in
-            db.addCollation(collation)
-        }
-        
-        readerPool.forEach { reader in
-            reader.inDatabase { db in
-                db.addCollation(collation)
-            }
-        }
+        writer.addCollation(collation)
+        readerPool.forEach { $0.addCollation(collation) }
     }
     
     /// Remove a collation.
     public func removeCollation(collation: DatabaseCollation) {
         collations.remove(collation)
-        
-        writer.inDatabase { db in
-            db.removeCollation(collation)
-        }
-        
-        readerPool.forEach { reader in
-            reader.inDatabase { db in
-                db.removeCollation(collation)
-            }
-        }
+        writer.removeCollation(collation)
+        readerPool.forEach { $0.removeCollation(collation) }
     }
 }
 
