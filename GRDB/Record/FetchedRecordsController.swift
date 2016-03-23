@@ -37,7 +37,7 @@ public class FetchedRecordsController<T: RowConvertible> {
         self.source = source
         self.database = database
         self.isSameRecordBuilder = isSameRecordBuilder
-        self.diffQueue = dispatch_queue_create("GRDB.FetchedRecordsController.diff", nil)
+        self.diffQueue = dispatch_queue_create("GRDB.FetchedRecordsController.diff", DISPATCH_QUEUE_SERIAL)
         self.mainQueue = queue
         database.addTransactionObserver(self)
     }
@@ -63,25 +63,27 @@ public class FetchedRecordsController<T: RowConvertible> {
     }
     private var eventCallback: ((record: T, event: FetchedRecordsEvent) -> ())?
     
-    private var isSameRecord: ((T, T) -> Bool)?
+    private var isSameRecord: ((T, T) -> Bool) = { _ in false }
     private let isSameRecordBuilder: (Database) -> (T, T) -> Bool
     
     
     /// The source
     private let source: Source<T>
     
+    private var isObserving: Bool = false           // protected by main queue
+    
     /// The observed tables. Set in performFetch()
-    private var observedTables: Set<String>? = nil  // protected by database writer queue
+    private var observedTables: Set<String> = []    // protected by database writer queue
     
     /// True if databaseDidCommit(db) should compute changes
     private var needsComputeChanges = false         // protected by database writer queue
     
     /// Dedicated to fetchedRecords, recordAtIndexPath
-    private var mainItems: [Item<T>]?               // protected by mainQueue
+    private var mainItems: [Item<T>] = []           // protected by mainQueue
     public private(set) var mainQueue: dispatch_queue_t
     
     /// Dedicated to change computation
-    private var diffItems: [Item<T>]?               // protected by diffQueue
+    private var diffItems: [Item<T>] = []           // protected by diffQueue
     private var diffQueue: dispatch_queue_t
     
     
@@ -93,12 +95,16 @@ public class FetchedRecordsController<T: RowConvertible> {
         // callbacks, which happen on the writing queue.
         database.write { db in
             let statement = try! self.source.selectStatement(db)
-            self.observedTables = statement.sourceTables
             self.mainItems = Item<T>.fetchAll(statement)
-            self.isSameRecord = self.isSameRecordBuilder(db)
-        }
-        dispatch_sync(self.diffQueue) {
-            self.diffItems = self.mainItems
+            if !self.isObserving {
+                self.isSameRecord = self.isSameRecordBuilder(db)
+                self.diffItems = self.mainItems
+                self.observedTables = statement.sourceTables
+                
+                // OK now we can start observing
+                db.addTransactionObserver(self)
+                self.isObserving = true
+            }
         }
     }
     
@@ -109,10 +115,7 @@ public class FetchedRecordsController<T: RowConvertible> {
     ///
     /// TODO: remove this method when support for section is done.
     public var numberOfFetchedRecords: Int {
-        if let mainItems = self.mainItems {
-            return mainItems.count
-        }
-        return 0
+        return mainItems.count
     }
     
     /// Returns the records of the query.
@@ -120,7 +123,7 @@ public class FetchedRecordsController<T: RowConvertible> {
     ///
     /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
     public var fetchedRecords: [T]? {
-        if let mainItems = self.mainItems {
+        if isObserving {
             return mainItems.map { $0.record }
         }
         return nil
@@ -131,7 +134,7 @@ public class FetchedRecordsController<T: RowConvertible> {
     ///
     /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
     public func recordAtIndexPath(indexPath: NSIndexPath) -> T {
-        return mainItems![indexPath.indexAtPosition(1)].record
+        return mainItems[indexPath.indexAtPosition(1)].record
     }
     
     /// Returns the indexPath of a given record.
@@ -293,7 +296,7 @@ extension FetchedRecordsController where T: MutablePersistable {
 extension FetchedRecordsController : TransactionObserverType {
     
     public func databaseDidChangeWithEvent(event: DatabaseEvent) {
-        if let observedTables = observedTables where observedTables.contains(event.tableName) {
+        if observedTables.contains(event.tableName) {
             needsComputeChanges = true
         }
     }
@@ -313,11 +316,6 @@ extension FetchedRecordsController : TransactionObserverType {
         }
         needsComputeChanges = false
         
-        guard let diffItems = diffItems, let isSameRecord = isSameRecord else {
-            // performFetch() has not been called yet
-            return
-        }
-        
         let statement = try! source.selectStatement(db)
         let newItems = Item<T>.fetchAll(statement)
         
@@ -326,7 +324,8 @@ extension FetchedRecordsController : TransactionObserverType {
             // to process the last database transaction:
             
             // Read/write diffItems in self.diffQueue
-            let changes = FetchedRecordsController.computeChanges(fromRows: diffItems, toRows: newItems, isSameRecord: isSameRecord)
+            let diffItems = self.diffItems
+            let changes = FetchedRecordsController.computeChanges(fromRows: diffItems, toRows: newItems, isSameRecord: self.isSameRecord)
             self.diffItems = newItems
             
             guard !changes.isEmpty else {

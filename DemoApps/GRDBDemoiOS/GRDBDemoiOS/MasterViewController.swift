@@ -66,9 +66,6 @@ class MasterViewController: UITableViewController {
         fetchedRecordsController.didChange { [unowned self] in
             // All events have been applied
 //            print("AFTER \(self.fetchedRecordsController.fetchedRecords!.map { ["id":$0.id, "position":$0.position] })")
-            // TODO: we still have crashes:
-            // 2016-03-23 13:49:33.379 GRDBDemoiOS[16738:382348] *** Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: 'Invalid update: invalid number of rows in section 0.  The number of rows contained in an existing section after the update (9) must be equal to the number of rows contained in that section before the update (15), plus or minus the number of rows inserted or deleted from that section (4 inserted, 6 deleted) and plus or minus the number of rows moved into or out of that section (0 moved in, 0 moved out).'
-
             self.tableView.endUpdates()
         }
         
