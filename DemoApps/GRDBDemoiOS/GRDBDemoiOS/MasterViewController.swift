@@ -143,13 +143,13 @@ class MasterViewController: UITableViewController {
     }
     
     private func configureCell(cell: UITableViewCell, atIndexPath indexPath:NSIndexPath) {
-        let person = fetchedRecordsController.recordAtIndexPath(indexPath)!
+        let person = fetchedRecordsController.recordAtIndexPath(indexPath)
         cell.textLabel!.text = "\(person.position) - \(person.fullName)"
     }
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
-        let person = fetchedRecordsController.recordAtIndexPath(indexPath)!
+        let person = fetchedRecordsController.recordAtIndexPath(indexPath)
         try! person.delete(dbQueue)
     }
 }

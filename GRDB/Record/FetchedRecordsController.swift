@@ -111,12 +111,9 @@ public class FetchedRecordsController<T: RowConvertible> {
 
     
     /// Returns the fetched record at a given indexPath.
-    public func recordAtIndexPath(indexPath: NSIndexPath) -> T? {
+    public func recordAtIndexPath(indexPath: NSIndexPath) -> T {
         precondition(NSThread.isMainThread(), "Must be called on the main thread")
-        if let item = self.mainItems?[indexPath.indexAtPosition(1)] {
-            return item.record
-        }
-        return nil
+        return self.mainItems![indexPath.indexAtPosition(1)].record
     }
     
     /// Returns the indexPath of a given record.
