@@ -10,19 +10,24 @@ import UIKit
 public class FetchedRecordsController<T: RowConvertible> {
     
     // MARK: - Initialization
-    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil) {
+    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, isSameRecord: ((T, T) -> Bool)? = nil) {
         let source: Source<T> = .SQL(sql, arguments)
-        self.init(database: database, source: source)
+        self.init(database: database, source: source, isSameRecord: isSameRecord)
     }
     
-    public convenience init(_ database: DatabaseWriter, _ request: FetchRequest<T>) {
+    public convenience init(_ database: DatabaseWriter, _ request: FetchRequest<T>, isSameRecord: ((T, T) -> Bool)? = nil) {
         let source: Source<T> = .FetchRequest(request)
-        self.init(database: database, source: source)
+        self.init(database: database, source: source, isSameRecord: isSameRecord)
     }
     
-    private init(database: DatabaseWriter, source: Source<T>) {
+    private init(database: DatabaseWriter, source: Source<T>, isSameRecord: ((T, T) -> Bool)?) {
         self.source = source
         self.database = database
+        if let isSameRecord = isSameRecord {
+            self.isSameRecord = isSameRecord
+        } else {
+            self.isSameRecord = { _ in return false }
+        }
         self.diffQueue = dispatch_queue_create("GRDB.FetchedRecordsController.diff", nil)
         database.addTransactionObserver(self)
     }
@@ -63,10 +68,7 @@ public class FetchedRecordsController<T: RowConvertible> {
     }
     private var eventCallback: ((record: T, event: FetchedRecordsEvent) -> ())?
     
-    public func compare(equalRecords:(T, T) -> Bool) {
-        self.equalRecords = equalRecords
-    }
-    private var equalRecords: (T, T) -> Bool = { _ in return false }
+    private let isSameRecord: (T, T) -> Bool
     
     
     /// The source
@@ -117,7 +119,7 @@ public class FetchedRecordsController<T: RowConvertible> {
     
     // MARK: - Not public
     
-    private static func computeChanges(fromRows s: [Item<T>], toRows t: [Item<T>], equalRecords: ((T, T) -> Bool)) -> [ItemChange<T>] {
+    private static func computeChanges(fromRows s: [Item<T>], toRows t: [Item<T>], isSameRecord: ((T, T) -> Bool)) -> [ItemChange<T>] {
         
         let m = s.count
         let n = t.count
@@ -199,7 +201,7 @@ public class FetchedRecordsController<T: RowConvertible> {
             /// As a convenience, the index of the matched change is returned as well.
             func mergedChange(change: ItemChange<T>, inChanges changes: [ItemChange<T>]) -> (mergedChange: ItemChange<T>, obsoleteIndex: Int)? {
                 let obsoleteIndex = changes.indexOf { earlierChange in
-                    return earlierChange.isMoveCounterpart(change, equalRecords: equalRecords)
+                    return earlierChange.isMoveCounterpart(change, isSameRecord: isSameRecord)
                 }
                 if let obsoleteIndex = obsoleteIndex {
                     switch (changes[obsoleteIndex], change) {
@@ -284,7 +286,7 @@ extension FetchedRecordsController : TransactionObserverType {
             // to process the last database transaction:
             
             // Read/write diffItems in self.diffQueue
-            let changes = FetchedRecordsController.computeChanges(fromRows: self.diffItems!, toRows: newItems, equalRecords: self.equalRecords)
+            let changes = FetchedRecordsController.computeChanges(fromRows: self.diffItems!, toRows: newItems, isSameRecord: self.isSameRecord)
             self.diffItems = newItems
             
             guard !changes.isEmpty else {
@@ -430,12 +432,12 @@ extension ItemChange {
 }
 
 extension ItemChange {
-    func isMoveCounterpart(otherChange: ItemChange<T>, equalRecords: (T, T) -> Bool) -> Bool {
+    func isMoveCounterpart(otherChange: ItemChange<T>, isSameRecord: (T, T) -> Bool) -> Bool {
         switch (self, otherChange) {
         case (.Deletion(let deletedItem, _), .Insertion(let insertedItem, _)):
-            return equalRecords(deletedItem.record, insertedItem.record)
+            return isSameRecord(deletedItem.record, insertedItem.record)
         case (.Insertion(let insertedItem, _), .Deletion(let deletedItem, _)):
-            return equalRecords(deletedItem.record, insertedItem.record)
+            return isSameRecord(deletedItem.record, insertedItem.record)
         default:
             return false
         }

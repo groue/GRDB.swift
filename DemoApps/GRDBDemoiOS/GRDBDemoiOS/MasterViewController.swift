@@ -23,7 +23,9 @@ class MasterViewController: UITableViewController {
         
         // The fetched objects
         let fetchRequest = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
-        fetchedRecordsController = FetchedRecordsController(dbQueue, fetchRequest)
+        fetchedRecordsController = FetchedRecordsController(dbQueue, fetchRequest, isSameRecord: { (person1, person2) in
+            person1.id == person2.id
+        })
         
         fetchedRecordsController.willChange { [unowned self] in
             // Events are about to be applied
@@ -67,12 +69,6 @@ class MasterViewController: UITableViewController {
             // All events have been applied
             print("AFTER \(self.fetchedRecordsController.fetchedRecords!.map { ["id":$0.id, "position":$0.position] })")
             self.tableView.endUpdates()
-        }
-        
-        // Compare two persons. Returns true if controller should emit a .Move or
-        // .Update event instead of a deletion/insertion.
-        fetchedRecordsController.compare { (person1, person2) in
-            person1.id == person2.id
         }
         
         fetchedRecordsController.performFetch()
