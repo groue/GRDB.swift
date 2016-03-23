@@ -10,6 +10,7 @@ import UIKit
 public class FetchedRecordsController<T: RowConvertible> {
     
     // MARK: - Initialization
+    
     public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, isSameRecord: ((T, T) -> Bool)? = nil) {
         let source: Source<T> = .SQL(sql, arguments)
         self.init(database: database, source: source, isSameRecord: isSameRecord)
@@ -20,31 +21,22 @@ public class FetchedRecordsController<T: RowConvertible> {
         self.init(database: database, source: source, isSameRecord: isSameRecord)
     }
     
-    private init(database: DatabaseWriter, source: Source<T>, isSameRecord: ((T, T) -> Bool)?) {
-        self.source = source
-        self.database = database
+    private convenience init(database: DatabaseWriter, source: Source<T>, isSameRecord: ((T, T) -> Bool)?) {
+        let isSameRecordBuilder: (Database) -> (T, T) -> Bool
         if let isSameRecord = isSameRecord {
-            self.isSameRecord = isSameRecord
+            isSameRecordBuilder = { _ in isSameRecord }
         } else {
-            self.isSameRecord = { _ in return false }
+            isSameRecordBuilder = { _ in { _ in return false } }
         }
-        self.diffQueue = dispatch_queue_create("GRDB.FetchedRecordsController.diff", nil)
-        database.addTransactionObserver(self)
+        self.init(database: database, source: source, isSameRecordBuilder: isSameRecordBuilder)
     }
     
-    public func performFetch() {
-        precondition(NSThread.isMainThread(), "Must be called on the main thread")
-        
-        // Use database.write, so that we are serialized with transaction
-        // callbacks, which happen on the writing queue.
-        try! database.write { db in
-            let statement = try self.source.selectStatement(db)
-            self.observedTables = statement.sourceTables
-            self.mainItems = Item<T>.fetchAll(statement)
-        }
-        dispatch_sync(self.diffQueue) {
-            self.diffItems = self.mainItems
-        }
+    private init(database: DatabaseWriter, source: Source<T>, isSameRecordBuilder: (Database) -> (T, T) -> Bool) {
+        self.source = source
+        self.database = database
+        self.isSameRecordBuilder = isSameRecordBuilder
+        self.diffQueue = dispatch_queue_create("GRDB.FetchedRecordsController.diff", nil)
+        database.addTransactionObserver(self)
     }
     
     
@@ -68,7 +60,8 @@ public class FetchedRecordsController<T: RowConvertible> {
     }
     private var eventCallback: ((record: T, event: FetchedRecordsEvent) -> ())?
     
-    private let isSameRecord: (T, T) -> Bool
+    private var isSameRecord: ((T, T) -> Bool)?
+    private let isSameRecordBuilder: (Database) -> (T, T) -> Bool
     
     
     /// The source
@@ -89,6 +82,22 @@ public class FetchedRecordsController<T: RowConvertible> {
     
     
     // MARK: - Accessing records
+    
+    public func performFetch() {
+        precondition(NSThread.isMainThread(), "Must be called on the main thread")
+        
+        // Use database.write, so that we are serialized with transaction
+        // callbacks, which happen on the writing queue.
+        database.write { db in
+            let statement = try! self.source.selectStatement(db)
+            self.observedTables = statement.sourceTables
+            self.mainItems = Item<T>.fetchAll(statement)
+            self.isSameRecord = self.isSameRecordBuilder(db)
+        }
+        dispatch_sync(self.diffQueue) {
+            self.diffItems = self.mainItems
+        }
+    }
 
     /// Returns the records of the query.
     /// Returns nil if the performQuery: hasn't been called.
@@ -249,6 +258,19 @@ public class FetchedRecordsController<T: RowConvertible> {
     }
 }
 
+extension FetchedRecordsController where T: MutablePersistable {
+    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, compareRecordsByPrimaryKey: Bool) {
+        let source: Source<T> = .SQL(sql, arguments)
+        self.init(database: database, source: source, isSameRecordBuilder: { db in try! T.primaryKeyComparator(db) })
+    }
+
+    public convenience init(_ database: DatabaseWriter, _ request: FetchRequest<T>, compareRecordsByPrimaryKey: Bool) {
+        let source: Source<T> = .FetchRequest(request)
+        self.init(database: database, source: source, isSameRecordBuilder: { db in try! T.primaryKeyComparator(db) })
+    }
+}
+
+
 // MARK: - <TransactionObserverType>
 extension FetchedRecordsController : TransactionObserverType {
     
@@ -273,7 +295,7 @@ extension FetchedRecordsController : TransactionObserverType {
         }
         needsComputeChanges = false
         
-        guard diffItems != nil else {
+        guard let diffItems = diffItems, let isSameRecord = isSameRecord else {
             // performFetch() has not been called yet
             return
         }
@@ -286,7 +308,7 @@ extension FetchedRecordsController : TransactionObserverType {
             // to process the last database transaction:
             
             // Read/write diffItems in self.diffQueue
-            let changes = FetchedRecordsController.computeChanges(fromRows: self.diffItems!, toRows: newItems, isSameRecord: self.isSameRecord)
+            let changes = FetchedRecordsController.computeChanges(fromRows: diffItems, toRows: newItems, isSameRecord: isSameRecord)
             self.diffItems = newItems
             
             guard !changes.isEmpty else {

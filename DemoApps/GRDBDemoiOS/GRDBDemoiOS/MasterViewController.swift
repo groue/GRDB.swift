@@ -23,9 +23,7 @@ class MasterViewController: UITableViewController {
         
         // The fetched objects
         let fetchRequest = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
-        fetchedRecordsController = FetchedRecordsController(dbQueue, fetchRequest, isSameRecord: { (person1, person2) in
-            person1.id == person2.id
-        })
+        fetchedRecordsController = FetchedRecordsController(dbQueue, fetchRequest, compareRecordsByPrimaryKey: true)
         
         fetchedRecordsController.willChange { [unowned self] in
             // Events are about to be applied
