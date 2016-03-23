@@ -27,18 +27,18 @@ public protocol RowConvertible {
     
     /// Do not call this method directly.
     ///
-    /// This method is called in a protected dispatch queue, after a record has
-    /// been fetched from the database.
+    /// This method is called in an arbitrary dispatch queue, after a record
+    /// has been fetched from the database.
     ///
     /// Types that adopt RowConvertible have an opportunity to complete their
     /// initialization.
-    mutating func awakeFromFetch(row row: Row, database: Database)
+    mutating func awakeFromFetch(row row: Row)
 }
 
 extension RowConvertible {
     
     /// Default implementation, which does nothing.
-    public func awakeFromFetch(row row: Row, database: Database) { }
+    public func awakeFromFetch(row row: Row) { }
 
     
     // MARK: - Fetching From SelectStatement
@@ -67,10 +67,9 @@ extension RowConvertible {
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
         let row = Row(statement: statement)
-        let database = statement.database
         return statement.fetchSequence(arguments: arguments) {
             var value = self.init(row)
-            value.awakeFromFetch(row: row, database: database)
+            value.awakeFromFetch(row: row)
             return value
         }
     }

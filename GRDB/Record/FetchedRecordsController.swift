@@ -101,9 +101,22 @@ public class FetchedRecordsController<T: RowConvertible> {
             self.diffItems = self.mainItems
         }
     }
-
+    
+    /// Returns the number of records.
+    /// Returns 0 if performQuery() hasn't been called.
+    ///
+    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
+    ///
+    /// TODO: remove this method when support for section is done.
+    public var numberOfFetchedRecords: Int {
+        if let mainItems = self.mainItems {
+            return mainItems.count
+        }
+        return 0
+    }
+    
     /// Returns the records of the query.
-    /// Returns nil if the performQuery: hasn't been called.
+    /// Returns nil if performQuery() hasn't been called.
     ///
     /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
     public var fetchedRecords: [T]? {
@@ -398,19 +411,16 @@ private enum Source<T> {
 // =============================================================================
 // MARK: - Item
 
-private struct Item<T: RowConvertible> : RowConvertible, Equatable {
+private final class Item<T: RowConvertible> : RowConvertible, Equatable {
     let row: Row
-    var record: T   // var because awakeFromFetch is mutating
+    lazy var record: T = {
+        var record = T(self.row)
+        record.awakeFromFetch(row: self.row)
+        return record
+    }()
     
     init(_ row: Row) {
         self.row = row.copy()
-        self.record = T(row)
-    }
-    
-    mutating func awakeFromFetch(row row: Row, database: Database) {
-        // TOOD: If record is a Record, it will copy the row *again*. We should
-        // avoid creating two distinct copied instances.
-        record.awakeFromFetch(row: row, database: database)
     }
 }
 

@@ -27,14 +27,14 @@ class MasterViewController: UITableViewController {
         
         fetchedRecordsController.willChange { [unowned self] in
             // Events are about to be applied
-            print("-----------------------------------------------------------")
-            print("BEFORE \(self.fetchedRecordsController.fetchedRecords!.map { ["id":$0.id, "position":$0.position] })")
+//            print("-----------------------------------------------------------")
+//            print("BEFORE \(self.fetchedRecordsController.fetchedRecords!.map { ["id":$0.id, "position":$0.position] })")
             self.tableView.beginUpdates()
         }
         
         fetchedRecordsController.onEvent { [unowned self] (person, event) in
             // Apply individual event
-            print(event)
+//            print(event)
             switch event {
             case .Insertion(let indexPath):
                 self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
@@ -65,7 +65,7 @@ class MasterViewController: UITableViewController {
         
         fetchedRecordsController.didChange { [unowned self] in
             // All events have been applied
-            print("AFTER \(self.fetchedRecordsController.fetchedRecords!.map { ["id":$0.id, "position":$0.position] })")
+//            print("AFTER \(self.fetchedRecordsController.fetchedRecords!.map { ["id":$0.id, "position":$0.position] })")
             self.tableView.endUpdates()
         }
         
@@ -130,10 +130,7 @@ class MasterViewController: UITableViewController {
     // MARK: - Table View
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if let persons = fetchedRecordsController.fetchedRecords {
-            return persons.count
-        }
-        return 0
+        return fetchedRecordsController.numberOfFetchedRecords
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {

@@ -14,7 +14,7 @@ extension SimpleRowConvertible : RowConvertible {
         fetched = false
     }
     
-    mutating func awakeFromFetch(row row: Row, database: Database) {
+    mutating func awakeFromFetch(row row: Row) {
         fetched = true
     }
 }

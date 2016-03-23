@@ -1377,7 +1377,7 @@ public protocol RowConvertible {
     
     /// Optional method which gives adopting types an opportunity to complete
     /// their initialization after being fetched. Do not call it directly.
-    mutating func awakeFromFetch(row row: Row, database: Database)
+    mutating func awakeFromFetch(row row: Row)
 }
 ```
 

@@ -18,19 +18,19 @@ public class Record : RowConvertible, TableMapping, Persistable {
     ///
     /// The input row may not come straight from the database. When you want to
     /// complete your initialization after being fetched, override
-    /// awakeFromFetch(row:database:).
+    /// awakeFromFetch(row:).
     required public init(_ row: Row) {
     }
     
     /// Do not call this method directly.
     ///
-    /// This method is called in a protected dispatch queue, after a record has
-    /// been fetched from the database.
+    /// This method is called in an arbitrary dispatch queue, after a record
+    /// has been fetched from the database.
     ///
     /// Record subclasses have an opportunity to complete their initialization.
     ///
     /// *Important*: subclasses must invoke super's implementation.
-    public func awakeFromFetch(row row: Row, database: Database) {
+    public func awakeFromFetch(row row: Row) {
         // Take care of the hasPersistentChangedValues flag. If the row does not
         /// contain all needed columns, the record turns edited.
         //
