@@ -23,9 +23,7 @@ class MasterViewController: UITableViewController {
     }
     
     func reloadPersons() {
-        persons = dbQueue.inDatabase { db in
-            Person.order(Col.firstName, Col.lastName).fetchAll(db)
-        }
+        persons = Person.order(Col.firstName, Col.lastName).fetchAll(dbQueue)
     }
     
     
@@ -55,9 +53,7 @@ class MasterViewController: UITableViewController {
         }
         
         // Save person
-        try! dbQueue.inDatabase { db in
-            try person.save(db)
-        }
+        try! person.save(dbQueue)
         
         // Reload persons, and insert a cell.
         reloadPersons()
@@ -83,10 +79,7 @@ class MasterViewController: UITableViewController {
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
         let person = persons[indexPath.row]
-        try! dbQueue.inTransaction { db in
-            try person.delete(db)
-            return .Commit
-        }
+        try! person.delete(dbQueue)
         persons.removeAtIndex(indexPath.row)
         tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
     }
