@@ -2545,6 +2545,7 @@ let count2 = PointOfInterest.fetchCount(dbQueue) // or dbPool
 That being said, unprotected access can do everything but iterate the memory-efficient [database sequences](#fetching-methods):
 
 ```swift
+// Unprotected access, for advanced users only:
 try dbQueue.execute("INSERT ...")
 let rows = Row.fetchAll(dbQueue, "SELECT ...")
 try PointOfInterest(...).insert(dbQueue)
