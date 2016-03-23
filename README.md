@@ -2533,7 +2533,7 @@ dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
 }
 ```
 
-*The unprotected access to queue and pools is very different.* The two lines below are equivalent to two consecutive calls to `dbQueue.inDatabase` or `dbPool.read`, with the opportunity for other threads to sneak in the middle:
+*However, isolation is lost when you access database queues and pools in an unprotected fashion.* The two lines below are equivalent to two consecutive calls to `dbQueue.inDatabase` or `dbPool.read`, with the opportunity for other threads to sneak in between:
 
 ```swift
 // Those two values may be different because some other thread may have inserted
