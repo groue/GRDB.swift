@@ -237,7 +237,6 @@
 		56BB862F1BA98AA9001F9168 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 56BB862E1BA98AA9001F9168 /* libsqlite3.tbd */; };
 		56CA21BA1BB3FCF7009A04C5 /* NSDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */; };
 		56CA21BB1BB3FCF7009A04C5 /* NSDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA21B91BB3FCF7009A04C5 /* NSDataTests.swift */; };
-		56CA22291BB41663009A04C5 /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56CA220B1BB414FE009A04C5 /* SQLite.framework */; };
 		56DE7B111C3D93ED00861EB8 /* StatementArgumentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B101C3D93ED00861EB8 /* StatementArgumentsTests.swift */; };
 		56DE7B121C3D93ED00861EB8 /* StatementArgumentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B101C3D93ED00861EB8 /* StatementArgumentsTests.swift */; };
 		56DE7B241C412F7E00861EB8 /* InsertPositionalValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */; };
@@ -316,13 +315,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = DC7253AC1B52ADEB009B38B1;
 			remoteInfo = "SQLite Mac";
-		};
-		56CA22271BB4165C009A04C5 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = EE247AD21C3F04ED00AE3E12;
-			remoteInfo = "SQLite iOS";
 		};
 		56E5D7D51B4D3FEE00430942 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -573,7 +565,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56CA22291BB41663009A04C5 /* SQLite.framework in Frameworks */,
 				56BB862F1BA98AA9001F9168 /* libsqlite3.tbd in Frameworks */,
 				56E5D7D41B4D3FEE00430942 /* GRDB.framework in Frameworks */,
 			);
@@ -1223,7 +1214,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				56CA22281BB4165C009A04C5 /* PBXTargetDependency */,
 				56E5D7D61B4D3FEE00430942 /* PBXTargetDependency */,
 			);
 			name = GRDBiOSTests;
@@ -1708,11 +1698,6 @@
 			target = DC3773F219C8CBB3004FCF85 /* GRDBOSX */;
 			targetProxy = 56553BDC1C3E906C00522B5C /* PBXContainerItemProxy */;
 		};
-		56CA22281BB4165C009A04C5 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "SQLite iOS";
-			targetProxy = 56CA22271BB4165C009A04C5 /* PBXContainerItemProxy */;
-		};
 		56E5D7D61B4D3FEE00430942 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 56E5D7C91B4D3FED00430942 /* GRDBiOS */;
@@ -1851,7 +1836,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
 				PRODUCT_NAME = GRDBTests;
@@ -1867,7 +1852,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
 				PRODUCT_NAME = GRDBTests;
