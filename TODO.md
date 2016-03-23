@@ -1,6 +1,5 @@
 - [ ] DOC: Write an app like http://www.appcoda.com/swiftydb/ ?
 - [ ] DOC: Since commit e6010e334abdf98eb9f62c1d6abbb2a9e8cd7d19, one can not use the raw SQLite API without importing the SQLite module for the platform. We need to document that.
-- [ ] Read https://sqlite.org/sharedcache.html
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
@@ -40,3 +39,4 @@ Reading list:
 - http://www.sqlite.org/intern-v-extern-blob.html
 - List of documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
 - https://www.zetetic.net/sqlcipher/
+- https://sqlite.org/sharedcache.html

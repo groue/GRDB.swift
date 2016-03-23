@@ -129,9 +129,7 @@ class MasterViewController: UITableViewController {
         }
         
         // Save person
-        try! dbQueue.inDatabase { db in
-            try person.save(db)
-        }
+        try! person.save(dbQueue)
     }
     
     
@@ -158,10 +156,7 @@ class MasterViewController: UITableViewController {
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
         let person = fetchedRecordsController.recordAtIndexPath(indexPath)!
-        try! dbQueue.inTransaction { db in
-            try person.delete(db)
-            return .Commit
-        }
+        try! person.delete(dbQueue)
     }
 }
 

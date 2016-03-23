@@ -249,7 +249,8 @@ dbQueue.inDatabase { db in
 *If you know what you are doing*, you can skip the protection of `inDatabase`, and use the queue directly, as below. In a multithreaded application, two consecutive statements could then potentially run on an unstable database state (see [Concurrency](#concurrency)):
 
 ```swift
-// Direct access, for advanced users only:
+// Unprotected access, for advanced users only:
+try PointOfInterest(...).insert(dbQueue)
 let pois = PointOfInterest.fetchAll(dbQueue)
 ```
 
@@ -318,7 +319,8 @@ dbPool.read { db in
 *If you know what you are doing*, you can skip the protection of `read`, `write` and `writeInTransaction`, and use the pool directly, as below. In a multithreaded application, two consecutive statements could then potentially run on an unstable database state (see [Concurrency](#concurrency)):
 
 ```swift
-// Direct access, for advanced users only:
+// Unprotected access, for advanced users only:
+try PointOfInterest(...).insert(dbPool)
 let pois = PointOfInterest.fetchAll(dbPool)
 ```
 
@@ -2531,13 +2533,22 @@ dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
 }
 ```
 
-This is very different from the direct access to queue and pools. The two lines below are equivalent to two consecutive calls to `inDatabase`, with the opportunity for other threads to sneak in:
+*The unprotected access to queue and pools is very different.* The two lines below are equivalent to two consecutive calls to `dbQueue.inDatabase` or `dbPool.read`, with the opportunity for other threads to sneak in the middle:
 
 ```swift
 // Those two values may be different because some other thread may have inserted
 // or deleted a point of interest between the two statements:
 let count1 = PointOfInterest.fetchCount(dbQueue) // or dbPool
 let count2 = PointOfInterest.fetchCount(dbQueue) // or dbPool
+```
+
+That being said, unprotected access can do everything but iterate the memory-efficient [database sequences](#fetching-methods):
+
+```swift
+try dbQueue.execute("INSERT ...")
+let rows = Row.fetchAll(dbQueue, "SELECT ...")
+try PointOfInterest(...).insert(dbQueue)
+let pois = PointOfInterest.filter(favorite).order(title).fetchAll(dbQueue)
 ```
 
 **Rule 2: Use the safe `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods unless you know what you are doing.**
