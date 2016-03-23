@@ -5,7 +5,7 @@
       location = "group:Playgrounds"
       name = "Playgrounds">
       <FileRef
-         location = "group:/Users/groue/Documents/git/groue/GRDB.swift/Playgrounds/Tour.playground">
+         location = "group:Tour.playground">
       </FileRef>
       <FileRef
          location = "group:DatabaseTimestamp.playground">
