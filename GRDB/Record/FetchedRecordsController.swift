@@ -11,31 +11,34 @@ public class FetchedRecordsController<T: RowConvertible> {
     
     // MARK: - Initialization
     
-    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, isSameRecord: ((T, T) -> Bool)? = nil) {
+    // TODO: document that queue MUST be serial
+    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((T, T) -> Bool)? = nil) {
         let source: Source<T> = .SQL(sql, arguments)
-        self.init(database: database, source: source, isSameRecord: isSameRecord)
+        self.init(database: database, source: source, queue: queue, isSameRecord: isSameRecord)
     }
     
+    // TODO: document that queue MUST be serial
     public convenience init(_ database: DatabaseWriter, _ request: FetchRequest<T>, isSameRecord: ((T, T) -> Bool)? = nil) {
         let source: Source<T> = .FetchRequest(request)
         self.init(database: database, source: source, isSameRecord: isSameRecord)
     }
     
-    private convenience init(database: DatabaseWriter, source: Source<T>, isSameRecord: ((T, T) -> Bool)?) {
+    private convenience init(database: DatabaseWriter, source: Source<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((T, T) -> Bool)?) {
         let isSameRecordBuilder: (Database) -> (T, T) -> Bool
         if let isSameRecord = isSameRecord {
             isSameRecordBuilder = { _ in isSameRecord }
         } else {
             isSameRecordBuilder = { _ in { _ in return false } }
         }
-        self.init(database: database, source: source, isSameRecordBuilder: isSameRecordBuilder)
+        self.init(database: database, source: source, queue: queue, isSameRecordBuilder: isSameRecordBuilder)
     }
     
-    private init(database: DatabaseWriter, source: Source<T>, isSameRecordBuilder: (Database) -> (T, T) -> Bool) {
+    private init(database: DatabaseWriter, source: Source<T>, queue: dispatch_queue_t, isSameRecordBuilder: (Database) -> (T, T) -> Bool) {
         self.source = source
         self.database = database
         self.isSameRecordBuilder = isSameRecordBuilder
         self.diffQueue = dispatch_queue_create("GRDB.FetchedRecordsController.diff", nil)
+        self.mainQueue = queue
         database.addTransactionObserver(self)
     }
     
@@ -74,7 +77,8 @@ public class FetchedRecordsController<T: RowConvertible> {
     private var needsComputeChanges = false         // protected by database writer queue
     
     /// Dedicated to fetchedRecords, recordAtIndexPath
-    private var mainItems: [Item<T>]?               // protected by main thread
+    private var mainItems: [Item<T>]?               // protected by mainQueue
+    public private(set) var mainQueue: dispatch_queue_t
     
     /// Dedicated to change computation
     private var diffItems: [Item<T>]?               // protected by diffQueue
@@ -83,9 +87,8 @@ public class FetchedRecordsController<T: RowConvertible> {
     
     // MARK: - Accessing records
     
+    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
     public func performFetch() {
-        precondition(NSThread.isMainThread(), "Must be called on the main thread")
-        
         // Use database.write, so that we are serialized with transaction
         // callbacks, which happen on the writing queue.
         database.write { db in
@@ -101,8 +104,9 @@ public class FetchedRecordsController<T: RowConvertible> {
 
     /// Returns the records of the query.
     /// Returns nil if the performQuery: hasn't been called.
+    ///
+    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
     public var fetchedRecords: [T]? {
-        precondition(NSThread.isMainThread(), "Must be called on the main thread")
         if let mainItems = self.mainItems {
             return mainItems.map { $0.record }
         }
@@ -111,9 +115,10 @@ public class FetchedRecordsController<T: RowConvertible> {
 
     
     /// Returns the fetched record at a given indexPath.
+    ///
+    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
     public func recordAtIndexPath(indexPath: NSIndexPath) -> T {
-        precondition(NSThread.isMainThread(), "Must be called on the main thread")
-        return self.mainItems![indexPath.indexAtPosition(1)].record
+        return mainItems![indexPath.indexAtPosition(1)].record
     }
     
     /// Returns the indexPath of a given record.
@@ -256,14 +261,17 @@ public class FetchedRecordsController<T: RowConvertible> {
 }
 
 extension FetchedRecordsController where T: MutablePersistable {
-    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, compareRecordsByPrimaryKey: Bool) {
+    
+    // TODO: document that queue MUST be serial
+    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
         let source: Source<T> = .SQL(sql, arguments)
-        self.init(database: database, source: source, isSameRecordBuilder: { db in try! T.primaryKeyComparator(db) })
+        self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! T.primaryKeyComparator(db) })
     }
-
-    public convenience init(_ database: DatabaseWriter, _ request: FetchRequest<T>, compareRecordsByPrimaryKey: Bool) {
+    
+    // TODO: document that queue MUST be serial
+    public convenience init(_ database: DatabaseWriter, _ request: FetchRequest<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
         let source: Source<T> = .FetchRequest(request)
-        self.init(database: database, source: source, isSameRecordBuilder: { db in try! T.primaryKeyComparator(db) })
+        self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! T.primaryKeyComparator(db) })
     }
 }
 
@@ -312,7 +320,7 @@ extension FetchedRecordsController : TransactionObserverType {
                 return
             }
             
-            dispatch_async(dispatch_get_main_queue()) { [weak self] in
+            dispatch_async(self.mainQueue) { [weak self] in
                 // This code, submitted to the serial main queue, is guaranteed
                 // to process the last database transaction:
                 
