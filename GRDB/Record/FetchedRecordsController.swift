@@ -64,25 +64,12 @@ public final class FetchedRecordsController<T: RowConvertible> {
     
     // MARK: - Configuration
     
+    public weak var delegate: FetchedRecordsControllerDelegate?
+    
     // Configuration: database
     
     /// The databaseWriter
     public let database: DatabaseWriter
-    
-    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
-    public func willChange(callback:() -> ()) {
-        willChangeCallback = callback
-    }
-    
-    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
-    public func didChange(callback:() -> ()) {
-        didChangeCallback = callback
-    }
-    
-    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
-    public func onEvent(callback:(record: T, event: FetchedRecordsEvent) -> ()) {
-        eventCallback = callback
-    }
     
     
     // MARK: - Accessing records
@@ -139,11 +126,6 @@ public final class FetchedRecordsController<T: RowConvertible> {
     
     // The items exposed on public API
     private var mainItems: [Item<T>] = []           // protected by mainQueue
-    
-    // The change callbacks
-    private var willChangeCallback: (() -> ())?     // protected by mainQueue
-    private var didChangeCallback: (() -> ())?      // protected by mainQueue
-    private var eventCallback: ((record: T, event: FetchedRecordsEvent) -> ())? // protected by mainQueue
     
     // The record comparator. When T adopts MutablePersistable, we need to wait
     // for performFetch() in order to build it, because
@@ -380,20 +362,46 @@ extension FetchedRecordsController : TransactionObserverType {
                 
                 guard let strongSelf = self else { return }
                 
-                strongSelf.willChangeCallback?()
+                strongSelf.delegate?.controllerWillChangeRecords(strongSelf)
                 strongSelf.mainItems = newItems
                 
-                if let eventCallback = strongSelf.eventCallback {
-                    for change in changes {
-                        eventCallback(record: change.record, event: change.event)
-                    }
+                for change in changes {
+                    strongSelf.delegate?.controller(strongSelf, didChangeRecord: change.record, withEvent: change.event)
                 }
                 
-                strongSelf.didChangeCallback?()
+                strongSelf.delegate?.controllerDidChangeRecords(strongSelf)
             }
         }
     }
 }
+
+
+// =============================================================================
+// MARK: - FetchedRecordsControllerDelegate
+
+/// TODO
+public protocol FetchedRecordsControllerDelegate : class {
+    /// TODO: document that these are called on mainQueue
+    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>)
+    
+    /// TODO: document that these are called on mainQueue
+    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent)
+    
+    /// TODO: document that these are called on mainQueue
+    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>)
+}
+
+extension FetchedRecordsControllerDelegate {
+    /// TODO
+    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) { }
+
+    /// TODO
+    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) { }
+    
+    /// TODO
+    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) { }
+}
+
 
 
 // =============================================================================

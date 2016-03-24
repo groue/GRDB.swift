@@ -1,14 +1,18 @@
 import UIKit
 import GRDB
 
-class MasterViewController: UITableViewController {
+class MasterViewController: UITableViewController, FetchedRecordsControllerDelegate {
     var fetchedRecordsController: FetchedRecordsController<Person>!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationItem.leftBarButtonItem = self.editButtonItem()
         configureToolbar()
-        configureFetchedRecordsController()
+        
+        let fetchRequest = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
+        fetchedRecordsController = FetchedRecordsController(dbQueue, fetchRequest, compareRecordsByPrimaryKey: true)
+        fetchedRecordsController.delegate = self
+        fetchedRecordsController.performFetch()
     }
 
     override func viewWillAppear(animated: Bool) {
@@ -76,6 +80,44 @@ class MasterViewController: UITableViewController {
     }
     
     
+    // MARK: - FetchedRecordsControllerDelegate
+    
+    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) {
+        tableView.beginUpdates()
+    }
+    
+    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) {
+        switch event {
+        case .Insertion(let indexPath):
+            tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+            
+        case .Deletion(let indexPath):
+            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+            
+        case .Update(let indexPath, _):
+            if let cell = tableView.cellForRowAtIndexPath(indexPath) {
+                configureCell(cell, atIndexPath: indexPath)
+            }
+            
+        case .Move(let indexPath, let newIndexPath, _):
+//            // Technique 1 (replace)
+//            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+//            tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
+            
+            // Technique 2 (move)
+            let cell = tableView.cellForRowAtIndexPath(indexPath)
+            tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+            if let cell = cell {
+                configureCell(cell, atIndexPath: newIndexPath)
+            }
+        }
+    }
+    
+    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
+        tableView.endUpdates()
+    }
+    
+    
     // MARK: - Private
     
     func swapNames() {
@@ -105,54 +147,6 @@ class MasterViewController: UITableViewController {
             UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.FlexibleSpace, target: nil, action: nil)
         ]
         self.navigationController?.toolbarHidden = false
-    }
-    
-    private func configureFetchedRecordsController() {
-        // The fetched objects
-        let fetchRequest = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
-        fetchedRecordsController = FetchedRecordsController(dbQueue, fetchRequest, compareRecordsByPrimaryKey: true)
-        
-        fetchedRecordsController.willChange { [weak self] in
-            // Events are about to be applied
-            self?.tableView.beginUpdates()
-        }
-        
-        fetchedRecordsController.onEvent { [weak self] (person, event) in
-            guard let strongSelf = self else { return }
-            
-            // Apply individual event
-            switch event {
-            case .Insertion(let indexPath):
-                strongSelf.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-                
-            case .Deletion(let indexPath):
-                strongSelf.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-                
-            case .Update(let indexPath, _):
-                if let cell = strongSelf.tableView.cellForRowAtIndexPath(indexPath) {
-                    strongSelf.configureCell(cell, atIndexPath: indexPath)
-                }
-                
-            case .Move(let indexPath, let newIndexPath, _):
-//                // Technique 1 (replace)
-//                strongSelf.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-//                strongSelf.tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
-                
-                // Technique 2 (move)
-                let cell = strongSelf.tableView.cellForRowAtIndexPath(indexPath)
-                strongSelf.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
-                if let cell = cell {
-                    strongSelf.configureCell(cell, atIndexPath: newIndexPath)
-                }
-            }
-        }
-        
-        fetchedRecordsController.didChange { [weak self] in
-            // All events have been applied
-            self?.tableView.endUpdates()
-        }
-        
-        fetchedRecordsController.performFetch()
     }
 }
 
