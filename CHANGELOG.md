@@ -24,7 +24,7 @@ Released March 21, 2016
 **New**
 
 - Swift 2.2, and Xcode 7.3
-- `Row` adopts Equatable
+- `Row` adopts the standard `Equatable` protocol.
 
 
 ## 0.51.2
@@ -33,7 +33,7 @@ Released March 14, 2016
 
 **Fixed**
 
-- A race condition that could prevent `Configuration.fileAttributes` to apply to some database files.
+- A race condition that could prevent `Configuration.fileAttributes` from being applied to some database files.
 
 
 ## 0.51.1
