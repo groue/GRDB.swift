@@ -1,6 +1,22 @@
 Release Notes
 =============
 
+## 0.52.1
+
+Released March 24, 2016
+
+**Fixed**
+
+- The [query interface](https://github.com/groue/GRDB.swift/#the-query-interface) now generates robust SQL for explicit boolean comparisons.
+    
+    ```swift
+    // SELECT * FROM "pointOfInterests" WHERE "favorite"
+    PointOfInterest.filter(favorite == true).fetchAll(db)
+    ```
+    
+    Previous versions used to generate fragile comparisons to 0 and 1 which did badly interpret true values such as 2.
+
+
 ## 0.52.0
 
 Released March 21, 2016
