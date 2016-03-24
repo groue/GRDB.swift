@@ -353,16 +353,16 @@ class SQLSupportTests: GRDBTestCase {
         
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age == true)),
-            "SELECT * FROM \"readers\" WHERE (\"age\" <> 0)")
+            "SELECT * FROM \"readers\" WHERE \"age\"")
         XCTAssertEqual(
             sql(tableRequest.filter(true == Col.age)),
-            "SELECT * FROM \"readers\" WHERE (0 <> \"age\")")
+            "SELECT * FROM \"readers\" WHERE \"age\"")
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age == false)),
-            "SELECT * FROM \"readers\" WHERE (\"age\" = 0)")
+            "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
         XCTAssertEqual(
             sql(tableRequest.filter(false == Col.age)),
-            "SELECT * FROM \"readers\" WHERE (0 = \"age\")")
+            "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
         XCTAssertEqual(
             sql(tableRequest.filter(true == true)),
             "SELECT * FROM \"readers\" WHERE 1")
@@ -434,16 +434,16 @@ class SQLSupportTests: GRDBTestCase {
         
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age != true)),
-            "SELECT * FROM \"readers\" WHERE (\"age\" = 0)")
+            "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
         XCTAssertEqual(
             sql(tableRequest.filter(true != Col.age)),
-            "SELECT * FROM \"readers\" WHERE (0 = \"age\")")
+            "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
         XCTAssertEqual(
             sql(tableRequest.filter(Col.age != false)),
-            "SELECT * FROM \"readers\" WHERE (\"age\" <> 0)")
+            "SELECT * FROM \"readers\" WHERE \"age\"")
         XCTAssertEqual(
             sql(tableRequest.filter(false != Col.age)),
-            "SELECT * FROM \"readers\" WHERE (0 <> \"age\")")
+            "SELECT * FROM \"readers\" WHERE \"age\"")
         XCTAssertEqual(
             sql(tableRequest.filter(true != true)),
             "SELECT * FROM \"readers\" WHERE 0")

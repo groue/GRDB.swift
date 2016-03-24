@@ -13,9 +13,9 @@ public func == (lhs: _SQLDerivedExpressionType, rhs: _SQLExpressionType?) -> _SQ
 public func == (lhs: _SQLDerivedExpressionType, rhs: protocol<_SQLExpressionType, BooleanType>?) -> _SQLExpression {
     if let rhs = rhs {
         if rhs.boolValue {
-            return .NotEqual(lhs.sqlExpression, 0.sqlExpression)
+            return lhs.sqlExpression
         } else {
-            return .Equal(lhs.sqlExpression, 0.sqlExpression)
+            return .Not(lhs.sqlExpression)
         }
     } else {
         return .Equal(lhs.sqlExpression, .Value(nil))
@@ -35,9 +35,9 @@ public func == (lhs: _SQLExpressionType?, rhs: _SQLDerivedExpressionType) -> _SQ
 public func == (lhs: protocol<_SQLExpressionType, BooleanType>?, rhs: _SQLDerivedExpressionType) -> _SQLExpression {
     if let lhs = lhs {
         if lhs.boolValue {
-            return .NotEqual(0.sqlExpression, rhs.sqlExpression)
+            return rhs.sqlExpression
         } else {
-            return .Equal(0.sqlExpression, rhs.sqlExpression)
+            return .Not(rhs.sqlExpression)
         }
     } else {
         return .Equal(.Value(nil), rhs.sqlExpression)
@@ -67,9 +67,9 @@ public func != (lhs: _SQLDerivedExpressionType, rhs: _SQLExpressionType?) -> _SQ
 public func != (lhs: _SQLDerivedExpressionType, rhs: protocol<_SQLExpressionType, BooleanType>?) -> _SQLExpression {
     if let rhs = rhs {
         if rhs.boolValue {
-            return .Equal(lhs.sqlExpression, 0.sqlExpression)
+            return .Not(lhs.sqlExpression)
         } else {
-            return .NotEqual(lhs.sqlExpression, 0.sqlExpression)
+            return lhs.sqlExpression
         }
     } else {
         return .NotEqual(lhs.sqlExpression, .Value(nil))
@@ -89,9 +89,9 @@ public func != (lhs: _SQLExpressionType?, rhs: _SQLDerivedExpressionType) -> _SQ
 public func != (lhs: protocol<_SQLExpressionType, BooleanType>?, rhs: _SQLDerivedExpressionType) -> _SQLExpression {
     if let lhs = lhs {
         if lhs.boolValue {
-            return .Equal(0.sqlExpression, rhs.sqlExpression)
+            return .Not(rhs.sqlExpression)
         } else {
-            return .NotEqual(0.sqlExpression, rhs.sqlExpression)
+            return rhs.sqlExpression
         }
     } else {
         return .NotEqual(.Value(nil), rhs.sqlExpression)
