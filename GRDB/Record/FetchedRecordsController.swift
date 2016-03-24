@@ -168,7 +168,7 @@ public final class FetchedRecordsController<T: RowConvertible> {
     private var diffItems: [Item<T>] = []           // protected by diffQueue
     private var diffQueue: dispatch_queue_t
 
-    private static func computeChanges(fromRows s: [Item<T>], toRows t: [Item<T>], isSameRecord: ((T, T) -> Bool)) -> [ItemChange<T>] {
+    private func computeChanges(fromRows s: [Item<T>], toRows t: [Item<T>]) -> [ItemChange<T>] {
         
         let m = s.count
         let n = t.count
@@ -227,20 +227,6 @@ public final class FetchedRecordsController<T: RowConvertible> {
             }
         }
         
-        /// Returns the changes between two rows
-        /// Precondition: both rows have the same columns
-        func changedValues(from referenceRow: Row, to newRow: Row) -> [String: DatabaseValue] {
-            var changedValues: [String: DatabaseValue] = [:]
-            for (column, newValue) in newRow {
-                let oldValue = referenceRow[column]!
-                if newValue != oldValue {
-                    changedValues[column] = oldValue
-                }
-            }
-            return changedValues
-        }
-
-        
         /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
         func standardizeChanges(changes: [ItemChange<T>]) -> [ItemChange<T>] {
             
@@ -248,39 +234,61 @@ public final class FetchedRecordsController<T: RowConvertible> {
             /// If *change* is a deletion or an insertion, and there is a matching inverse
             /// insertion/deletion with the same value in *changes*, a corresponding .Move or .Update is returned.
             /// As a convenience, the index of the matched change is returned as well.
-            func mergedChange(change: ItemChange<T>, inChanges changes: [ItemChange<T>]) -> (mergedChange: ItemChange<T>, obsoleteIndex: Int)? {
-                let obsoleteIndex = changes.indexOf { earlierChange in
-                    return earlierChange.isMoveCounterpart(change, isSameRecord: isSameRecord)
-                }
-                if let obsoleteIndex = obsoleteIndex {
-                    switch (changes[obsoleteIndex], change) {
-                    case (.Deletion(let oldItem, let oldIndexPath), .Insertion(let newItem, let newIndexPath)):
-                        let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
-                        if oldIndexPath == newIndexPath {
-                            return (ItemChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), obsoleteIndex)
-                        } else {
-                            return (ItemChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), obsoleteIndex)
+            func mergedChange(change: ItemChange<T>, inChanges changes: [ItemChange<T>]) -> (mergedChange: ItemChange<T>, mergedIndex: Int)? {
+                
+                /// Returns the changes between two rows: a dictionary [key: oldValue]
+                /// Precondition: both rows have the same columns
+                func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
+                    var changedValues: [String: DatabaseValue] = [:]
+                    for (column, newValue) in newRow {
+                        let oldValue = oldRow[column]!
+                        if newValue != oldValue {
+                            changedValues[column] = oldValue
                         }
-                    case (.Insertion(let newItem, let newIndexPath), .Deletion(let oldItem, let oldIndexPath)):
-                        let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
-                        if oldIndexPath == newIndexPath {
-                            return (ItemChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), obsoleteIndex)
-                        } else {
-                            return (ItemChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), obsoleteIndex)
-                        }
-                    default:
-                        break
                     }
+                    return changedValues
                 }
-                return nil
+                
+                switch change {
+                case .Insertion(let newItem, let newIndexPath):
+                    // Look for a matching deletion
+                    for (index, otherChange) in changes.enumerate() {
+                        guard case .Deletion(let oldItem, let oldIndexPath) = otherChange else { continue }
+                        guard isSameRecord(oldItem.record, newItem.record) else { continue }
+                        let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
+                        if oldIndexPath == newIndexPath {
+                            return (ItemChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                        } else {
+                            return (ItemChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                        }
+                    }
+                    return nil
+                    
+                case .Deletion(let oldItem, let oldIndexPath):
+                    // Look for a matching insertion
+                    for (index, otherChange) in changes.enumerate() {
+                        guard case .Insertion(let newItem, let newIndexPath) = otherChange else { continue }
+                        guard isSameRecord(oldItem.record, newItem.record) else { continue }
+                        let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
+                        if oldIndexPath == newIndexPath {
+                            return (ItemChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                        } else {
+                            return (ItemChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                        }
+                    }
+                    return nil
+                    
+                default:
+                    return nil
+                }
             }
             
             // Updates must be pushed at the end
             var mergedChanges: [ItemChange<T>] = []
             var updateChanges: [ItemChange<T>] = []
             for change in changes {
-                if let (mergedChange, obsoleteIndex) = mergedChange(change, inChanges: mergedChanges) {
-                    mergedChanges.removeAtIndex(obsoleteIndex)
+                if let (mergedChange, mergedIndex) = mergedChange(change, inChanges: mergedChanges) {
+                    mergedChanges.removeAtIndex(mergedIndex)
                     switch mergedChange {
                     case .Update:
                         updateChanges.append(mergedChange)
@@ -351,20 +359,22 @@ extension FetchedRecordsController : TransactionObserverType {
         let statement = try! source.selectStatement(db)
         let newItems = Item<T>.fetchAll(statement)
         
-        dispatch_async(diffQueue) {
+        dispatch_async(diffQueue) { [weak self] in
             // This code, submitted to the serial diffQueue, is guaranteed
             // to process the last database transaction:
             
+            guard let strongSelf = self else { return }
+            
             // Read/write diffItems in self.diffQueue
-            let diffItems = self.diffItems
-            let changes = FetchedRecordsController.computeChanges(fromRows: diffItems, toRows: newItems, isSameRecord: self.isSameRecord)
-            self.diffItems = newItems
+            let diffItems = strongSelf.diffItems
+            let changes = strongSelf.computeChanges(fromRows: diffItems, toRows: newItems)
+            strongSelf.diffItems = newItems
             
             guard !changes.isEmpty else {
                 return
             }
             
-            dispatch_async(self.mainQueue) { [weak self] in
+            dispatch_async(strongSelf.mainQueue) {
                 // This code, submitted to the serial main queue, is guaranteed
                 // to process the last database transaction:
                 
@@ -400,7 +410,6 @@ public struct FetchedRecordsSectionInfo<T: RowConvertible> {
         return controller.mainItems.map { $0.record }
     }
 }
-
 
 
 // =============================================================================
@@ -511,19 +520,6 @@ extension ItemChange {
             return .Move(indexPath: indexPath, newIndexPath: newIndexPath, changes: changes)
         case .Update(item: _, indexPath: let indexPath, changes: let changes):
             return .Update(indexPath: indexPath, changes: changes)
-        }
-    }
-}
-
-extension ItemChange {
-    func isMoveCounterpart(otherChange: ItemChange<T>, isSameRecord: (T, T) -> Bool) -> Bool {
-        switch (self, otherChange) {
-        case (.Deletion(let deletedItem, _), .Insertion(let insertedItem, _)):
-            return isSameRecord(deletedItem.record, insertedItem.record)
-        case (.Insertion(let insertedItem, _), .Deletion(let deletedItem, _)):
-            return isSameRecord(deletedItem.record, insertedItem.record)
-        default:
-            return false
         }
     }
 }
