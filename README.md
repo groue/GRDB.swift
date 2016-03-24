@@ -2516,7 +2516,7 @@ GRDB ships with support for two concurrency modes:
 
 **Rule 1: Your application should have a unique instance of DatabaseQueue or DatabasePool connected to a database file. You may experience concurrency trouble if you do otherwise.**
 
-Now let's talk about the consistency of your data: you generally want to prevent you application threads to conflict.
+Now let's talk about the consistency of your data: you generally want to prevent your application threads from any conflict.
 
 Since it is difficult to synchronize threads, both [DatabaseQueue](#database-queues) and [DatabasePool](#database-pools) offer methods that isolate your statements, and guarantee a stable database state regardless of parallel threads:
 
