@@ -6,7 +6,7 @@ public struct FetchRequest<T> {
     
     /// Initializes a FetchRequest based on table *tableName*.
     public init(tableName: String) {
-        self.init(_SQLSelectQuery(select: [_SQLResultColumn.Star(nil)], from: .Table(name: tableName, alias: nil)))
+        self.init(query: _SQLSelectQuery(select: [_SQLResultColumn.Star(nil)], from: .Table(name: tableName, alias: nil)))
     }
     
     /// Returns a prepared statement that is ready to be executed.
@@ -22,7 +22,7 @@ public struct FetchRequest<T> {
         return statement
     }
     
-    init(_ query: _SQLSelectQuery) {
+    init(query: _SQLSelectQuery) {
         self.query = query
     }
 }
@@ -43,7 +43,7 @@ extension FetchRequest {
     public func select(selection: [_SQLSelectable]) -> FetchRequest<T> {
         var query = self.query
         query.selection = selection
-        return FetchRequest(query)
+        return FetchRequest(query: query)
     }
     
     /// Returns a new FetchRequest with a new net of selected columns.
@@ -56,7 +56,7 @@ extension FetchRequest {
     public var distinct: FetchRequest<T> {
         var query = self.query
         query.distinct = true
-        return FetchRequest(query)
+        return FetchRequest(query: query)
     }
     
     /// Returns a new FetchRequest with the provided *predicate* added to the
@@ -69,7 +69,7 @@ extension FetchRequest {
         } else {
             query.whereExpression = predicate.sqlExpression
         }
-        return FetchRequest(query)
+        return FetchRequest(query: query)
     }
     
     /// Returns a new FetchRequest with the provided *predicate* added to the
@@ -90,7 +90,7 @@ extension FetchRequest {
     public func group(expressions: [_SQLExpressionType]) -> FetchRequest<T> {
         var query = self.query
         query.groupByExpressions = expressions.map { $0.sqlExpression }
-        return FetchRequest(query)
+        return FetchRequest(query: query)
     }
     
     /// Returns a new FetchRequest with a new grouping.
@@ -109,7 +109,7 @@ extension FetchRequest {
         } else {
             query.havingExpression = predicate.sqlExpression
         }
-        return FetchRequest(query)
+        return FetchRequest(query: query)
     }
     
     /// Returns a new FetchRequest with the provided *sql* added to
@@ -132,7 +132,7 @@ extension FetchRequest {
     public func order(sortDescriptors: [_SQLSortDescriptorType]) -> FetchRequest<T> {
         var query = self.query
         query.sortDescriptors.appendContentsOf(sortDescriptors)
-        return FetchRequest(query)
+        return FetchRequest(query: query)
     }
     
     /// Returns a new FetchRequest with the provided *sql* added to the
@@ -147,7 +147,7 @@ extension FetchRequest {
     public func reverse() -> FetchRequest<T> {
         var query = self.query
         query.reversed = !query.reversed
-        return FetchRequest(query)
+        return FetchRequest(query: query)
     }
     
     /// Returns a FetchRequest which fetches *limit* rows, starting at
@@ -156,7 +156,7 @@ extension FetchRequest {
     public func limit(limit: Int, offset: Int? = nil) -> FetchRequest<T> {
         var query = self.query
         query.limit = _SQLLimit(limit: limit, offset: offset)
-        return FetchRequest(query)
+        return FetchRequest(query: query)
     }
 }
 
@@ -170,7 +170,7 @@ extension FetchRequest {
     /// - parameter db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
     @warn_unused_result
     public func fetchCount(db: DatabaseReader) -> Int {
-        return Int.fetchOne(db, FetchRequest(query.countQuery))!
+        return Int.fetchOne(db, FetchRequest(query: query.countQuery))!
     }
 }
 
