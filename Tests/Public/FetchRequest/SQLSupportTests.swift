@@ -350,6 +350,28 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name == Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" = \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.age == true)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" <> 0)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(true == Col.age)),
+            "SELECT * FROM \"readers\" WHERE (0 <> \"age\")")
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.age == false)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" = 0)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(false == Col.age)),
+            "SELECT * FROM \"readers\" WHERE (0 = \"age\")")
+        XCTAssertEqual(
+            sql(tableRequest.filter(true == true)),
+            "SELECT * FROM \"readers\" WHERE 1")
+        XCTAssertEqual(
+            sql(tableRequest.filter(false == false)),
+            "SELECT * FROM \"readers\" WHERE 1")
+        XCTAssertEqual(
+            sql(tableRequest.filter(true == false)),
+            "SELECT * FROM \"readers\" WHERE 0")
     }
     
     func testEqualWithCollation() {
@@ -409,6 +431,28 @@ class SQLSupportTests: GRDBTestCase {
         XCTAssertEqual(
             sql(tableRequest.filter(Col.name != Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> \"name\")")
+        
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.age != true)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" = 0)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(true != Col.age)),
+            "SELECT * FROM \"readers\" WHERE (0 = \"age\")")
+        XCTAssertEqual(
+            sql(tableRequest.filter(Col.age != false)),
+            "SELECT * FROM \"readers\" WHERE (\"age\" <> 0)")
+        XCTAssertEqual(
+            sql(tableRequest.filter(false != Col.age)),
+            "SELECT * FROM \"readers\" WHERE (0 <> \"age\")")
+        XCTAssertEqual(
+            sql(tableRequest.filter(true != true)),
+            "SELECT * FROM \"readers\" WHERE 0")
+        XCTAssertEqual(
+            sql(tableRequest.filter(false != false)),
+            "SELECT * FROM \"readers\" WHERE 0")
+        XCTAssertEqual(
+            sql(tableRequest.filter(true != false)),
+            "SELECT * FROM \"readers\" WHERE 1")
     }
     
     func testNotEqualWithCollation() {
