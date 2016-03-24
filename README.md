@@ -97,7 +97,7 @@ let favorite = SQLColumn("favorite")
 let paris = PointOfInterest.fetchOne(dbQueue, key: 1)                    // PointOfInterest?
 let berlin = PointOfInterest.filter(title == "Berlin").fetchOne(dbQueue) // PointOfInterest?
 let favoritePois = PointOfInterest                                       // [PointOfInterest]
-    .filter(favorite)
+    .filter(favorite == true)
     .order(title)
     .fetchAll(dbQueue)
 ```
@@ -2023,7 +2023,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```swift
     // SELECT * FROM "events"
     //  WHERE ("userId" IN (SELECT "id" FROM "persons" WHERE "verified"))
-    let verifiedUsers = User.filter(Col.verified)
+    let verifiedUsers = User.filter(Col.verified == true)
     Event.filter(verifiedUsers.select(Col.id).contains(Col.userId))
     ```
 
@@ -2549,7 +2549,7 @@ That being said, unprotected access can do everything but iterate the memory-eff
 try dbQueue.execute("INSERT ...")
 let rows = Row.fetchAll(dbQueue, "SELECT ...")
 try PointOfInterest(...).insert(dbQueue)
-let pois = PointOfInterest.filter(favorite).order(title).fetchAll(dbQueue)
+let pois = PointOfInterest.filter(favorite == true).order(title).fetchAll(dbQueue)
 ```
 
 **Rule 2: Use the safe `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods unless you know what you are doing.**
