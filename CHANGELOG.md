@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- `Row.databaseValue(atIndex:)` and `Row.databaseValue(named:)` expose the [DatabaseValues](https://github.com/groue/GRDB.swift/#databasevalue) of a row.
+- `DatabaseValue.failableValue()` is a new method that returns nil when a non-NULL value can not be converted to the requested type.
+
+**Breaking Change**
+
+- Row.value() and DatabaseValue.value() now raise a fatal error when they can not convert a non-NULL value to the requested type. Use DatabaseValue.failableValue() if you need the old, data-loss prone, behavior.
+
+
 ## 0.52.1
 
 Released March 24, 2016
