@@ -686,7 +686,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 
 #### DatabaseValue
 
-**`DatabaseValue` is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
+**DatabaseValue is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
 
 ```swift
 let dbv = row.databaseValue(atIndex: 0)    // 0 is the leftmost column
