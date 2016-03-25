@@ -80,11 +80,14 @@ public struct DatabaseValue {
     /// failableValue() method.
     ///
     /// - returns: An optional *Value*.
+    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>() -> Value? {
         if let value = Value.fromDatabaseValue(self) {
             return value
         }
-        precondition(isNull, "could not convert \(self) to \(Value.self).")
+        guard isNull else {
+            fatalError("could not convert \(self) to \(Value.self).")
+        }
         return nil
     }
     
@@ -94,6 +97,7 @@ public struct DatabaseValue {
     /// can not be converted to `Value`.
     ///
     /// - returns: A *Value*.
+    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>() -> Value {
         guard let value = Value.fromDatabaseValue(self) as Value? else {
             fatalError("could not convert \(self) to \(Value.self).")
@@ -110,6 +114,7 @@ public struct DatabaseValue {
     /// to you, use the value() method.
     ///
     /// - returns: An optional *Value*.
+    @warn_unused_result
     public func failableValue<Value: DatabaseValueConvertible>() -> Value? {
         return Value.fromDatabaseValue(self)
     }
