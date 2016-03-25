@@ -730,7 +730,7 @@ if let date: NSDate? = dbv.failableValue() {
 
 #### Rows as Dictionaries
 
-Row adopts the standard [CollectionType](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html) protocol, and can be seen as a dictionary:
+Row adopts the standard [CollectionType](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html) protocol, and can be seen as a dictionary of [DatabaseValue](#databasevalue):
 
 ```swift
 // Test if the column `date` is present:
