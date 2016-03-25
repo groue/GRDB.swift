@@ -125,6 +125,7 @@ extension Row {
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
+    @warn_unused_result
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
         precondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atIndex: index).value()
@@ -138,6 +139,7 @@ extension Row {
     /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
     /// value is converted to the requested type `Value`. Should this conversion
     /// fail, a fatal error is raised.
+    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
         precondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atIndex: index).value()
@@ -155,6 +157,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
+    @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value? {
         precondition(index >= 0 && index < count, "row index out of range")
         return fastValue(atUncheckedIndex: index)
@@ -167,6 +170,7 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
+    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
         precondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atIndex: index).value()
@@ -183,6 +187,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
+    @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value {
         precondition(index >= 0 && index < count, "row index out of range")
         return fastValue(atUncheckedIndex: index)
@@ -195,6 +200,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
+    @warn_unused_result
     public func value(named columnName: String) -> DatabaseValueConvertible? {
         // IMPLEMENTATION NOTE
         // This method has a single know use case: checking if the value is nil,
@@ -217,6 +223,7 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
+    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
         guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
@@ -236,6 +243,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
+    @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value? {
         guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
@@ -252,6 +260,7 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
+    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
         guard let index = impl.indexOfColumn(named: columnName) else {
             fatalError("no such column: \(columnName)")
@@ -272,6 +281,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
+    @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value {
         guard let index = impl.indexOfColumn(named: columnName) else {
             fatalError("no such column: \(columnName)")
@@ -289,6 +299,7 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
+    @warn_unused_result
     public func dataNoCopy(atIndex index: Int) -> NSData? {
         precondition(index >= 0 && index < count, "row index out of range")
         return impl.dataNoCopy(atIndex: index)
@@ -305,6 +316,7 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
+    @warn_unused_result
     public func dataNoCopy(named columnName: String) -> NSData? {
         guard let index = impl.indexOfColumn(named: columnName) else {
             return nil
@@ -313,8 +325,34 @@ extension Row {
     }
     
     
+    // MARK: - Extracting DatabaseValue
+    
+    /// Returns the `DatabaseValue` at given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    @warn_unused_result
+    public func databaseValue(atIndex index: Int) -> DatabaseValue {
+        precondition(index >= 0 && index < count, "row index out of range")
+        return impl.databaseValue(atIndex: index)
+    }
+    
+    /// Returns the `DatabaseValue` at given column.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    @warn_unused_result
+    public func databaseValue(named columnName: String) -> DatabaseValue {
+        guard let index = impl.indexOfColumn(named: columnName) else {
+            fatalError("no such column: \(columnName)")
+        }
+        return impl.databaseValue(atIndex: index)
+    }
+    
+    
     // MARK: - Helpers
     
+    @warn_unused_result
     private func fastValue<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atUncheckedIndex index: Int) -> Value? {
         let sqliteStatement = self.sqliteStatement
         guard sqliteStatement != nil else {
@@ -326,6 +364,7 @@ extension Row {
         return Value.init(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
+    @warn_unused_result
     private func fastValue<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atUncheckedIndex index: Int) -> Value {
         let sqliteStatement = self.sqliteStatement
         guard sqliteStatement != nil else {
@@ -342,15 +381,11 @@ extension Row {
     
     // MARK: - Extracting DatabaseValue
     
-    /// Returns a DatabaseValue, the intermediate type between SQLite and your
-    /// values, if and only if the row contains the requested column.
+    /// Returns the `DatabaseValue` at given column, if the row contains the
+    /// requested column.
     ///
-    ///     // Test if the column `name` is present:
-    ///     if let databaseValue = row["name"] {
-    ///         let name: String? = databaseValue.value()
-    ///     }
-    ///
-    /// This method is case-insensitive.
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
     ///
     /// - parameter columnName: A column name.
     /// - returns: A DatabaseValue if the row contains the requested column.
