@@ -547,6 +547,7 @@ Type.fetchOne(...) // Type?
 
 - [Fetching Rows](#fetching-rows)
 - [Column Values](#column-values)
+- [DatabaseValue](#databasevalue)
 - [Rows as Dictionaries](#rows-as-dictionaries)
 
 
@@ -591,7 +592,7 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 
 ```swift
 let name: String = row.value(atIndex: 0)    // 0 is the leftmost column
-let name: String = row.value(named: "name")
+let name: String = row.value(named: "name") // lookup is case-insensitive
 ```
 
 Make sure to ask for an optional when the value may be NULL:
@@ -607,7 +608,7 @@ let bookCount: Int     = row.value(named: "bookCount")
 let bookCount64: Int64 = row.value(named: "bookCount")
 let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
 
-let dateString: String = row.value(named: "date")       // "2015-09-11 18:14:15.123"
+let string: String     = row.value(named: "date")       // "2015-09-11 18:14:15.123"
 let date: NSDate       = row.value(named: "date")       // NSDate
 self.date = row.value(named: "date") // Depends on the type of the property.
 ```
@@ -631,29 +632,33 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 
 - **Successful conversions include:**
     
-    - All numeric (integer and real) SQLite values to Swift Int, Int32, Int64, Double and Bool (zero is the only false boolean).
+    - All numeric (integer and real) SQLite values to numeric Swift types (Int, Int32, Int64, Double), plus Bool (zero is the only false boolean).
     - Text SQLite values to Swift String.
     - Blob SQLite values to NSData.
     
     See [Values](#values) for more information on supported types (Bool, Int, String, NSDate, Swift enums, etc.)
 
-- **Invalid conversions return nil.**
+- **Invalid conversions throw a fatal error.**
+    
+    NULL can not be turned into a non-optional:
 
-    ```swift
-    let row = Row.fetchOne(db, "SELECT 'foo'")!
-    row.value(atIndex: 0) as String  // "foo"
-    row.value(atIndex: 0) as NSDate? // nil
-    row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
-    ```
-    
-    Notably, NULL won't turn to anything:
-    
     ```swift
     let row = Row.fetchOne(db, "SELECT NULL")!
     row.value(atIndex: 0) as Int? // nil
     row.value(atIndex: 0) as Int  // fatal error: could not convert NULL to Int.
     ```
-
+    
+    Non-NULL values are not silently discarded:
+    
+    ```swift
+    let row = Row.fetchOne(db, "SELECT 'foo'")!
+    row.value(atIndex: 0) as String  // "foo"
+    row.value(atIndex: 0) as NSDate? // fatal error: could not convert "foo" to NSDate.
+    row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
+    ```
+    
+    See [DatabaseValue.failableValue()](#databasevalue) method below if you need weak conversions.
+    
 - **Missing columns return nil.**
     
     ```swift
@@ -667,51 +672,55 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 - **The convenience conversions of SQLite, such as Blob to String, String to Int, or huge Double values to Int, are not guaranteed to apply.** You must not rely on them.
 
 
-#### Rows as Dictionaries
+#### DatabaseValue
 
-**Rows can be seen as dictionaries** of `DatabaseValue`, an intermediate type between SQLite and your values:
+**`DatabaseValue` is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
 
 ```swift
-// Test if the column `date` is present:
-if let databaseValue = row["date"] {
-    
-    // Pick the type you need:
-    let dateString: String = databaseValue.value() // "2015-09-11 18:14:15.123"
-    let date: NSDate = databaseValue.value()       // NSDate
-    self.date = databaseValue.value() // Depends on the type of the property.
-    
-    // Check for NULL:
-    if databaseValue.isNull {
-        print("NULL")
-    }
-    
-    // The five SQLite storage classes:
-    switch databaseValue.storage {
-    case .Null:
-        print("NULL")
-    case .Int64(let int64):
-        print("Int64: \(int64)")
-    case .Double(let double):
-        print("Double: \(double)")
-    case .String(let string):
-        print("String: \(string)")
-    case .Blob(let data):
-        print("NSData: \(data)")
-    }
+let dbv = row.databaseValue(atIndex: 0)    // 0 is the leftmost column
+let dbv = row.databaseValue(named: "name") // lookup is case-insensitive
+
+// Check for NULL:
+dbv.isNull    // Bool
+
+// All the five storage classes supported by SQLite:
+switch dbv.storage {
+case .Null:                 print("NULL")
+case .Int64(let int64):     print("Int64: \(int64)")
+case .Double(let double):   print("Double: \(double)")
+case .String(let string):   print("String: \(string)")
+case .Blob(let data):       print("NSData: \(data)")
+}
+```
+
+You can extract [values](#values) (Bool, Int, String, NSDate, Swift enums, etc.) from DatabaseValue, just like you do from [rows](#column-values):
+
+```swift
+// Pick the type you need:
+let string: String = dbv.value() // "2015-09-11 18:14:15.123"
+let date: NSDate = dbv.value()   // NSDate
+self.date = dbv.value()          // Depends on the type of the property.
+```
+
+Use the `failableValue()` method when you want to check if the value can be converted to the requested type:
+
+```swift
+if let date: NSDate? = dbv.failableValue() {
+    // conversion successful
 }
 ```
 
 
-**You can build rows from scratch** using the dictionary and NSDictionary initializers (see [Values](#values) for more information on supported types):
+#### Rows as Dictionaries
+
+**Rows can be seen as dictionaries** of [DatabaseValue](#databasevalue):
 
 ```swift
-let row = Row(["name": "foo", "date": nil])
-```
+// Test if the column `date` is present:
+if let databaseValue = row["date"] {
+    ...
+}
 
-
-**Rows are standard [collections](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html)**:
-
-```swift
 // the number of columns
 row.count
 
@@ -721,8 +730,7 @@ for (columnName, databaseValue) in row {
 }
 ```
 
-
-**Rows may contain duplicate keys**:
+Still, rows may contain duplicate keys:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
@@ -730,6 +738,13 @@ row.columnNames     // ["foo", "foo"]
 row.databaseValues  // [1, 2]
 row["foo"]          // 1 (the value for the leftmost column "foo")
 for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
+```
+
+
+**You can build rows from dictionaries** (standard Swift dictionaries and NSDictionary). See [Values](#values) for more information on supported types:
+
+```swift
+let row = Row(["name": "foo", "date": nil])
 ```
 
 
@@ -1004,12 +1019,12 @@ for rows in Row.fetch(db, "SELECT * FROM wines") {
 }
 ```
 
-Database values that do not match any enum case are extracted as nil:
+When a database value does not match any enum case, you get a fatal error:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 'Syrah'")!
 row.value(atIndex: 0) as String  // "Syrah"
-row.value(atIndex: 0) as Grape?  // nil
+row.value(atIndex: 0) as Grape?  // fatal error: could not convert "Syrah" to Grape.
 row.value(atIndex: 0) as Grape   // fatal error: could not convert "Syrah" to Grape.
 ```
 
@@ -1142,7 +1157,8 @@ let unicodeUpper = DatabaseFunction(
     argumentCount: 1, // Number of arguments
     pure: true,       // True means that the result only depends on input
     function: { (databaseValues: [DatabaseValue]) in
-        guard let string: String = databaseValues[0].value() else {
+        // Return NULL for everything that is not a string:
+        guard let string: String = databaseValues[0].failableValue() else {
             return nil
         }
         return string.uppercaseString
@@ -1156,7 +1172,7 @@ String.fetchOne(dbQueue, "SELECT unicodeUpper(?)", arguments: ["Jérôme"])!
 String.fetchOne(dbQueue, "SELECT upper(?)", arguments: ["Jérôme"])!
 ```
 
-The *function* argument takes an array of [DatabaseValue](#rows-as-dictionaries), and returns any valid [value](#values) (Bool, Int, String, NSDate, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
+The *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, NSDate, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
 
 SQLite has the opportunity to perform additional optimizations when functions are "pure", which means that their result only depends on their arguments. So make sure to set the *pure* argument to true when possible.
 
