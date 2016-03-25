@@ -76,6 +76,9 @@ public struct DatabaseValue {
     /// value is converted to the requested type `Value`. Should this conversion
     /// fail, a fatal error is raised.
     ///
+    /// If this fatal error is unacceptable to you, use the
+    /// failableValue() method.
+    ///
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>() -> Value? {
         if let value = Value.fromDatabaseValue(self) {
@@ -103,11 +106,11 @@ public struct DatabaseValue {
     /// The result is nil if the SQLite value is NULL, or if the SQLite value
     /// can not be converted to `Value`.
     ///
-    /// Because it can return nil for non-NULL values, this method loses
-    /// information. This is why it is "unsafe".
+    /// This method can return nil for non-NULL values. If this is unacceptable
+    /// to you, use the value() method.
     ///
     /// - returns: An optional *Value*.
-    public func unsafeValue<Value: DatabaseValueConvertible>() -> Value? {
+    public func failableValue<Value: DatabaseValueConvertible>() -> Value? {
         return Value.fromDatabaseValue(self)
     }
     
