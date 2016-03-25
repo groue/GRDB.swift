@@ -7,24 +7,157 @@
 //
 import UIKit
 
-public final class FetchedRecordsController<T: RowConvertible> {
+/// You use a FetchedRecordsController to feed a UITableView with the results
+/// returned from an SQLite request.
+///
+/// It looks and behaves very much like Core Data's NSFetchedResultsController.
+///
+/// Given a fetch request, and a type that adopts the RowConvertible protocol,
+/// such as a subclass of the Record class, a FetchedRecordsController is able
+/// to return the results of the request in a form that is suitable for a
+/// UITableView, with one table view row per fetched record.
+///
+/// FetchedRecordsController can also monitor the results of the fetch request,
+/// and notify its delegate of any change. Those changes can be easily turned
+/// into animated table view deletions, insertions, updates and moves.
+///
+/// # Creating the Fetched Records Controller
+///
+/// You typically create an instance of FetchedRecordsController as a property
+/// of a table view controller. When you initialize the fetch records
+/// controller, you provide the following information:
+///
+/// - The type of the fetched records. It must be a type that adopts the
+///   RowConvertible protocol, such as a subclass of the Record class.
+///
+/// - A fetch request. It can be a raw SQL query with its arguments, or a
+///   FetchRequest from the GRDB Query Interface.
+///
+/// - Optionally, a way to tell if two records have the same identity. Without
+///   this identity comparison, all record updates are seen as replacements,
+///   and your table view updates are less smooth.
+///
+/// After creating an instance, you invoke `performFetch()` to actually execute
+/// the fetch.
+///
+///     class Person : Record { ... }
+///
+///     let dbQueue = DatabaseQueue(...)
+///     let request = Person.order(SQLColumn("name"))
+///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
+///         dbQueue,
+///         request,
+///         compareRecordsByPrimaryKey: true)
+///     controller.performFetch()
+///
+/// In the example above, two persons are considered identical if they share
+/// the same primary key, thanks to the `compareRecordsByPrimaryKey` argument.
+/// This initializer argument is only available for types such as
+/// Record subclasses that adopt the RowConvertible protocol, and also the
+/// Persistable or MutablePersistable protocols.
+///
+/// If your type only adopts RowConvertible, you need to be more explicit, and
+/// provide your own identity comparison function:
+///
+///     struct Person : RowConvertible {
+///         let id: Int64
+///         ...
+///     }
+///
+///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
+///         dbQueue,
+///         request,
+///         isSameRecord: { $0.id == $1.id })
+///
+/// Instead of a FetchRequest object, you can also provide a raw SQL query:
+///
+///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
+///         dbQueue,
+///         "SELECT * FROM persons ORDER BY name",
+///         compareRecordsByPrimaryKey: true)
+///
+/// The fetch request can involve several database tables:
+///
+///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
+///         dbQueue,
+///         "SELECT persons.*, COUNT(books.id) AS bookCount " +
+///         "FROM persons " +
+///         "LEFT JOIN books ON books.owner_id = persons.id " +
+///         "GROUP BY persons.id " +
+///         "ORDER BY persons.name",
+///         compareRecordsByPrimaryKey: true)
+///
+/// # The Controllers's Delegate
+///
+/// Any change in the database that affects the record set is processed and the
+/// records are updated accordingly. The controller notifies the delegate when
+/// records change location (see FetchedRecordsControllerDelegate). You
+/// typically use these methods to update the display of the table view.
+///
+///
+/// # Implementing the Table View Datasource Methods
+///
+/// The table view data source asks the fetched records controller to provide
+/// relevant information:
+///
+///     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+///         return fetchedRecordsController.sections.count
+///     }
+///
+///     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+///         return fetchedRecordsController.sections[section].numberOfRecords
+///     }
+///
+///     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+///         let cell = /* Get the cell */
+///         let record = fetchedRecordsController.recordAtIndexPath(indexPath)
+///         /* Configure the cell */
+///         return cell
+///     }
+///
+///
+/// # Responding to Changes
+///
+/// In general, FetchedRecordsController is designed to respond to changes at
+/// the database layer, by informing its delegate when database rows change
+/// location or values.
+///
+/// Changes are not reflected until they are applied in the database by a
+/// successful transaction. Transactions can be explicit, or implicit:
+///
+///     try dbQueue.inTransaction { db in
+///         /* Change a person's attributes */
+///         try person.save(db)
+///         return .Commit      // Explicit transaction
+///     }
+///
+///     try dbQueue.inDatavase { db in
+///         /* Change a person's attributes */
+///         try person.save(db) // Implicit transaction
+///     }
+///
+/// When you apply several changes to the database, you should group them in a
+/// single transaction. The controller will then notify its delegate of all
+/// changes together.
+///
+public final class FetchedRecordsController<Record: RowConvertible> {
     
     // MARK: - Initialization
     
     // TODO: document that queue MUST be serial
-    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((T, T) -> Bool)? = nil) {
-        let source: DatabaseSource<T> = .SQL(sql, arguments)
+    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+        let source: DatabaseSource<Record> = .SQL(sql, arguments)
         self.init(database: database, source: source, queue: queue, isSameRecord: isSameRecord)
     }
     
     // TODO: document that queue MUST be serial
-    public convenience init<U>(_ database: DatabaseWriter, _ request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((T, T) -> Bool)? = nil) {
-        let request: FetchRequest<T> = FetchRequest(query: request.query) // Retype the fetch request
+    public convenience init<T>(_ database: DatabaseWriter, _ request: FetchRequest<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+        let request: FetchRequest<Record> = FetchRequest(query: request.query) // Retype the fetch request
         let source = DatabaseSource.FetchRequest(request)
         self.init(database: database, source: source, queue: queue, isSameRecord: isSameRecord)
     }
     
-    private convenience init(database: DatabaseWriter, source: DatabaseSource<T>, queue: dispatch_queue_t, isSameRecord: ((T, T) -> Bool)?) {
+    private convenience init(database: DatabaseWriter, source: DatabaseSource<Record>, queue: dispatch_queue_t, isSameRecord: ((Record, Record) -> Bool)?) {
         if let isSameRecord = isSameRecord {
             self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { _ in isSameRecord })
         } else {
@@ -32,7 +165,7 @@ public final class FetchedRecordsController<T: RowConvertible> {
         }
     }
     
-    private init(database: DatabaseWriter, source: DatabaseSource<T>, queue: dispatch_queue_t, isSameRecordBuilder: (Database) -> (T, T) -> Bool) {
+    private init(database: DatabaseWriter, source: DatabaseSource<Record>, queue: dispatch_queue_t, isSameRecordBuilder: (Database) -> (Record, Record) -> Bool) {
         self.source = source
         self.database = database
         self.isSameRecordBuilder = isSameRecordBuilder
@@ -47,7 +180,7 @@ public final class FetchedRecordsController<T: RowConvertible> {
         // callbacks, which happen on the writing queue.
         database.write { db in
             let statement = try! self.source.selectStatement(db)
-            self.mainItems = Item<T>.fetchAll(statement)
+            self.mainItems = Item<Record>.fetchAll(statement)
             if !self.isObserving {
                 self.isSameRecord = self.isSameRecordBuilder(db)
                 self.diffItems = self.mainItems
@@ -66,6 +199,7 @@ public final class FetchedRecordsController<T: RowConvertible> {
     
     public weak var delegate: FetchedRecordsControllerDelegate?
     
+    
     // Configuration: database
     
     /// The databaseWriter
@@ -78,7 +212,7 @@ public final class FetchedRecordsController<T: RowConvertible> {
     /// Returns nil if performQuery() hasn't been called.
     ///
     /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
-    public var fetchedRecords: [T]? {
+    public var fetchedRecords: [Record]? {
         if isObserving {
             return mainItems.map { $0.record }
         }
@@ -89,14 +223,14 @@ public final class FetchedRecordsController<T: RowConvertible> {
     /// Returns the fetched record at a given indexPath.
     ///
     /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
-    public func recordAtIndexPath(indexPath: NSIndexPath) -> T {
+    public func recordAtIndexPath(indexPath: NSIndexPath) -> Record {
         return mainItems[indexPath.indexAtPosition(1)].record
     }
     
     /// Returns the indexPath of a given record.
     ///
     /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
-    public func indexPathForRecord(record: T) -> NSIndexPath? {
+    public func indexPathForRecord(record: Record) -> NSIndexPath? {
         if let index = mainItems.indexOf({ isSameRecord($0.record, record) }) {
             return NSIndexPath(forRow: index, inSection: 0)
         }
@@ -109,7 +243,7 @@ public final class FetchedRecordsController<T: RowConvertible> {
     /// The sections
     ///
     /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
-    public var sections: [FetchedRecordsSectionInfo<T>] {
+    public var sections: [FetchedRecordsSectionInfo<Record>] {
         // We only support a single section
         return [FetchedRecordsSectionInfo(controller: self)]
     }
@@ -125,16 +259,16 @@ public final class FetchedRecordsController<T: RowConvertible> {
     private var isObserving: Bool = false           // protected by mainQueue
     
     // The items exposed on public API
-    private var mainItems: [Item<T>] = []           // protected by mainQueue
+    private var mainItems: [Item<Record>] = []      // protected by mainQueue
     
-    // The record comparator. When T adopts MutablePersistable, we need to wait
-    // for performFetch() in order to build it, because
-    private var isSameRecord: ((T, T) -> Bool) = { _ in false }
-    private let isSameRecordBuilder: (Database) -> (T, T) -> Bool
+    // The record comparator. When the Record type adopts MutablePersistable, we
+    // need to wait for performFetch() in order to build it, because
+    private var isSameRecord: ((Record, Record) -> Bool) = { _ in false }
+    private let isSameRecordBuilder: (Database) -> (Record, Record) -> Bool
     
     
     /// The source
-    private let source: DatabaseSource<T>
+    private let source: DatabaseSource<Record>
     
     /// The observed tables. Set in performFetch()
     private var observedTables: Set<String> = []    // protected by database queue
@@ -147,19 +281,19 @@ public final class FetchedRecordsController<T: RowConvertible> {
     // Configuration: records
     
     
-    private var diffItems: [Item<T>] = []           // protected by diffQueue
+    private var diffItems: [Item<Record>] = []      // protected by diffQueue
     private var diffQueue: dispatch_queue_t
 
-    private func computeChanges(fromRows s: [Item<T>], toRows t: [Item<T>]) -> [ItemChange<T>] {
+    private func computeChanges(fromRows s: [Item<Record>], toRows t: [Item<Record>]) -> [ItemChange<Record>] {
         
         let m = s.count
         let n = t.count
         
         // Fill first row and column of insertions and deletions.
         
-        var d: [[[ItemChange<T>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
+        var d: [[[ItemChange<Record>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
         
-        var changes = [ItemChange<T>]()
+        var changes = [ItemChange<Record>]()
         for (row, item) in s.enumerate() {
             let deletion = ItemChange.Deletion(item: item, indexPath: NSIndexPath(forRow: row, inSection: 0))
             changes.append(deletion)
@@ -210,13 +344,13 @@ public final class FetchedRecordsController<T: RowConvertible> {
         }
         
         /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
-        func standardizeChanges(changes: [ItemChange<T>]) -> [ItemChange<T>] {
+        func standardizeChanges(changes: [ItemChange<Record>]) -> [ItemChange<Record>] {
             
             /// Returns a potential .Move or .Update if *change* has a matching change in *changes*:
             /// If *change* is a deletion or an insertion, and there is a matching inverse
             /// insertion/deletion with the same value in *changes*, a corresponding .Move or .Update is returned.
             /// As a convenience, the index of the matched change is returned as well.
-            func mergedChange(change: ItemChange<T>, inChanges changes: [ItemChange<T>]) -> (mergedChange: ItemChange<T>, mergedIndex: Int)? {
+            func mergedChange(change: ItemChange<Record>, inChanges changes: [ItemChange<Record>]) -> (mergedChange: ItemChange<Record>, mergedIndex: Int)? {
                 
                 /// Returns the changes between two rows: a dictionary [key: oldValue]
                 /// Precondition: both rows have the same columns
@@ -266,8 +400,8 @@ public final class FetchedRecordsController<T: RowConvertible> {
             }
             
             // Updates must be pushed at the end
-            var mergedChanges: [ItemChange<T>] = []
-            var updateChanges: [ItemChange<T>] = []
+            var mergedChanges: [ItemChange<Record>] = []
+            var updateChanges: [ItemChange<Record>] = []
             for change in changes {
                 if let (mergedChange, mergedIndex) = mergedChange(change, inChanges: mergedChanges) {
                     mergedChanges.removeAtIndex(mergedIndex)
@@ -288,13 +422,13 @@ public final class FetchedRecordsController<T: RowConvertible> {
     }
 }
 
-extension FetchedRecordsController where T: MutablePersistable {
+extension FetchedRecordsController where Record: MutablePersistable {
     
     // TODO: document that queue MUST be serial
     public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
-        let source: DatabaseSource<T> = .SQL(sql, arguments)
+        let source: DatabaseSource<Record> = .SQL(sql, arguments)
         if compareRecordsByPrimaryKey {
-            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! T.primaryKeyComparator(db) })
+            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
         } else {
             self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
         }
@@ -302,10 +436,10 @@ extension FetchedRecordsController where T: MutablePersistable {
     
     // TODO: document that queue MUST be serial
     public convenience init<U>(_ database: DatabaseWriter, _ request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
-        let request: FetchRequest<T> = FetchRequest(query: request.query) // Retype the fetch request
+        let request: FetchRequest<Record> = FetchRequest(query: request.query) // Retype the fetch request
         let source = DatabaseSource.FetchRequest(request)
         if compareRecordsByPrimaryKey {
-            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! T.primaryKeyComparator(db) })
+            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
         } else {
             self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
         }
@@ -339,7 +473,7 @@ extension FetchedRecordsController : TransactionObserverType {
         needsComputeChanges = false
         
         let statement = try! source.selectStatement(db)
-        let newItems = Item<T>.fetchAll(statement)
+        let newItems = Item<Record>.fetchAll(statement)
         
         dispatch_async(diffQueue) { [weak self] in
             // This code, submitted to the serial diffQueue, is guaranteed
