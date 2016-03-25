@@ -669,7 +669,19 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     
     You can explicitly check for a column presence with the `hasColumn` method.
 
-- **The convenience conversions of SQLite, such as Blob to String, String to Int, or huge Double values to Int, are not guaranteed to apply.** You must not rely on them.
+- **SQLite has a weak type system, and provides [convenience conversions](https://www.sqlite.org/c3ref/column_blob.html) that can turn Blob to String, String to Int, etc.**
+    
+    GRDB will sometimes let those conversions go through:
+    
+    ```swift
+    dbQueue.inDatabase { db in
+        for row in Row.fetch(db, "SELECT 'foo'") {
+            row.value(atIndex: 0) as Int   // 0
+        }
+    }
+    ```
+    
+    Don't freak out: those conversions did not prevent SQLite from becoming the immensely successful database engine you want to use. And GRDB adds safety checks described just above. You can also prevent those convenience conversions altogether by using the [DatabaseValue](#databasevalue) type.
 
 
 #### DatabaseValue
@@ -696,10 +708,15 @@ case .Blob(let data):       print("NSData: \(data)")
 You can extract [values](#values) (Bool, Int, String, NSDate, Swift enums, etc.) from DatabaseValue, just like you do from [rows](#column-values):
 
 ```swift
-// Pick the type you need:
-let string: String = dbv.value() // "2015-09-11 18:14:15.123"
-let date: NSDate = dbv.value()   // NSDate
-self.date = dbv.value()          // Depends on the type of the property.
+let dbv = row.databaseValue(named: "bookCount")
+let bookCount: Int     = dbv.value()
+let bookCount64: Int64 = dbv.value()
+let hasBooks: Bool     = dbv.value() // false when 0
+
+let dbv = row.databaseValue(named: "date")
+let string: String = dbv.value()     // "2015-09-11 18:14:15.123"
+let date: NSDate   = dbv.value()     // NSDate
+self.date          = dbv.value()     // Depends on the type of the property.
 ```
 
 Use the `failableValue()` method when you want to check if the value can be converted to the requested type:
