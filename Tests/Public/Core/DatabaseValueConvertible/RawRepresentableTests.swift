@@ -52,7 +52,6 @@ class RawRepresentableTests: GRDBTestCase {
                     for color in [Color32.Red, Color32.White, Color32.Rose] {
                         try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [color])
                     }
-                    try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [4])
                     try db.execute("INSERT INTO wines (color) VALUES (NULL)")
                 }
                 
@@ -63,7 +62,6 @@ class RawRepresentableTests: GRDBTestCase {
                     XCTAssertEqual(colors[1]!, Color32.Red)
                     XCTAssertEqual(colors[2]!, Color32.White)
                     XCTAssertEqual(colors[3]!, Color32.Rose)
-                    XCTAssertTrue(colors[4] == nil)
                 }
                 
                 do {
@@ -72,7 +70,6 @@ class RawRepresentableTests: GRDBTestCase {
                     XCTAssertEqual(colors[1]!, Color32.Red)
                     XCTAssertEqual(colors[2]!, Color32.White)
                     XCTAssertEqual(colors[3]!, Color32.Rose)
-                    XCTAssertTrue(colors[4] == nil)
                 }
                 
                 return .Rollback
@@ -88,7 +85,6 @@ class RawRepresentableTests: GRDBTestCase {
                     for color in [Color64.Red, Color64.White, Color64.Rose] {
                         try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [color])
                     }
-                    try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [4])
                     try db.execute("INSERT INTO wines (color) VALUES (NULL)")
                 }
                 
@@ -99,7 +95,6 @@ class RawRepresentableTests: GRDBTestCase {
                     XCTAssertEqual(colors[1]!, Color64.Red)
                     XCTAssertEqual(colors[2]!, Color64.White)
                     XCTAssertEqual(colors[3]!, Color64.Rose)
-                    XCTAssertTrue(colors[4] == nil)
                 }
                 
                 do {
@@ -108,7 +103,6 @@ class RawRepresentableTests: GRDBTestCase {
                     XCTAssertEqual(colors[1]!, Color64.Red)
                     XCTAssertEqual(colors[2]!, Color64.White)
                     XCTAssertEqual(colors[3]!, Color64.Rose)
-                    XCTAssertTrue(colors[4] == nil)
                 }
                 
                 return .Rollback
@@ -124,7 +118,6 @@ class RawRepresentableTests: GRDBTestCase {
                     for color in [Color.Red, Color.White, Color.Rose] {
                         try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [color])
                     }
-                    try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [4])
                     try db.execute("INSERT INTO wines (color) VALUES (NULL)")
                 }
                 
@@ -135,7 +128,6 @@ class RawRepresentableTests: GRDBTestCase {
                     XCTAssertEqual(colors[1]!, Color.Red)
                     XCTAssertEqual(colors[2]!, Color.White)
                     XCTAssertEqual(colors[3]!, Color.Rose)
-                    XCTAssertTrue(colors[4] == nil)
                 }
                 
                 do {
@@ -144,7 +136,6 @@ class RawRepresentableTests: GRDBTestCase {
                     XCTAssertEqual(colors[1]!, Color.Red)
                     XCTAssertEqual(colors[2]!, Color.White)
                     XCTAssertEqual(colors[3]!, Color.Rose)
-                    XCTAssertTrue(colors[4] == nil)
                 }
                 
                 return .Rollback
@@ -160,7 +151,6 @@ class RawRepresentableTests: GRDBTestCase {
                     for grape in [Grape.Chardonnay, Grape.Merlot, Grape.Riesling] {
                         try db.execute("INSERT INTO wines (grape) VALUES (?)", arguments: [grape])
                     }
-                    try db.execute("INSERT INTO wines (grape) VALUES (?)", arguments: ["Syrah"])
                     try db.execute("INSERT INTO wines (grape) VALUES (NULL)")
                 }
                 
@@ -171,7 +161,6 @@ class RawRepresentableTests: GRDBTestCase {
                     XCTAssertEqual(grapes[1]!, Grape.Chardonnay)
                     XCTAssertEqual(grapes[2]!, Grape.Merlot)
                     XCTAssertEqual(grapes[3]!, Grape.Riesling)
-                    XCTAssertTrue(grapes[4] == nil)
                 }
                 
                 do {
@@ -180,7 +169,6 @@ class RawRepresentableTests: GRDBTestCase {
                     XCTAssertEqual(grapes[1]!, Grape.Chardonnay)
                     XCTAssertEqual(grapes[2]!, Grape.Merlot)
                     XCTAssertEqual(grapes[3]!, Grape.Riesling)
-                    XCTAssertTrue(grapes[4] == nil)
                 }
                 
                 return .Rollback
