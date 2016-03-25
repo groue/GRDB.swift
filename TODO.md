@@ -1,3 +1,4 @@
+- [ ] Row.value() should fatal error when value is not NULL but can't be converted. Introduce Row.unsafeValue/uncheckedValue which allows non-NULL to return nil.
 - [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
 - [ ] DOC: Write an app like http://www.appcoda.com/swiftydb/ ?
 - [ ] DOC: Since commit e6010e334abdf98eb9f62c1d6abbb2a9e8cd7d19, one can not use the raw SQLite API without importing the SQLite module for the platform. We need to document that.
