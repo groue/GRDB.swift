@@ -1,16 +1,20 @@
 Release Notes
 =============
 
-## Next Version
+## 0.53.0
+
+Released March 25, 2016
+
+**Fixed**
+
+- `Row.value()` and `DatabaseValue.value()` now raise a fatal error when they can not convert a non-NULL value to the requested type ([documentation](https://github.com/groue/GRDB.swift/#column-values)), effectively preventing silent data loss.
+    
+    Use the new `DatabaseValue.failableValue()` method if you need the old behavior that returned nil for failed conversions.
 
 **New**
 
 - `Row.databaseValue(atIndex:)` and `Row.databaseValue(named:)` expose the [DatabaseValues](https://github.com/groue/GRDB.swift/#databasevalue) of a row.
-- `DatabaseValue.failableValue()` is a new method that returns nil when a non-NULL value can not be converted to the requested type.
-
-**Breaking Change**
-
-- Row.value() and DatabaseValue.value() now raise a fatal error when they can not convert a non-NULL value to the requested type. Use DatabaseValue.failableValue() if you need the old, data-loss prone, behavior.
+- `DatabaseValue.failableValue()` returns nil when a non-NULL value can not be converted to the requested type.
 
 
 ## 0.52.1
