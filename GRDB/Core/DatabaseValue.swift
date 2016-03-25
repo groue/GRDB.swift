@@ -72,8 +72,10 @@ public struct DatabaseValue {
     
     /// Returns the value, converted to the requested type.
     ///
-    /// The result is nil if the SQLite value is NULL, or if the SQLite value
-    /// can not be converted to `Value`.
+    /// If the SQLite value is NULL, the result is nil.
+    ///
+    /// Otherwise the SQLite value is converted to the requested type `Value`.
+    /// Should this conversion fail, a fatal error is raised.
     ///
     /// Successful conversions include:
     ///
@@ -86,6 +88,32 @@ public struct DatabaseValue {
     ///
     /// - returns: An optional *Value*.
     public func value<Value: DatabaseValueConvertible>() -> Value? {
+        if let value: Value? = unsafeValue() {
+            return value
+        }
+        precondition(isNull, "could not convert \(self) to \(Value.self).")
+        return nil
+    }
+    
+    /// Returns the value, converted to the requested type.
+    ///
+    /// The result is nil if the SQLite value is NULL, or if the SQLite value
+    /// can not be converted to `Value`.
+    ///
+    /// Because it can return nil for non-NULL values, this method loses
+    /// information. This is why it is "unsafe".
+    ///
+    /// Successful conversions include:
+    ///
+    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
+    ///   Bool (zero is the only false boolean).
+    /// - Text SQLite values to Swift String.
+    /// - Blob SQLite values to NSData.
+    ///
+    /// Types that adopt DatabaseValueConvertible can provide more conversions.
+    ///
+    /// - returns: An optional *Value*.
+    public func unsafeValue<Value: DatabaseValueConvertible>() -> Value? {
         return Value.fromDatabaseValue(self)
     }
     
