@@ -730,7 +730,7 @@ if let date: NSDate? = dbv.failableValue() {
 
 #### Rows as Dictionaries
 
-**Rows can be seen as dictionaries** of [DatabaseValue](#databasevalue):
+Row adopts the standard [CollectionType](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html) protocol, and can be seen as a dictionary:
 
 ```swift
 // Test if the column `date` is present:
@@ -738,16 +738,19 @@ if let databaseValue = row["date"] {
     ...
 }
 
-// the number of columns
-row.count
-
 // All the (columnName, databaseValue) tuples, from left to right:
 for (columnName, databaseValue) in row {
     ...
 }
 ```
 
-Still, rows may contain duplicate keys:
+**You can build rows from dictionaries** (standard Swift dictionaries and NSDictionary). See [Values](#values) for more information on supported types:
+
+```swift
+let row = Row(["name": "foo", "date": nil])
+```
+
+Yet rows are not real dictionaries, because they may contain duplicate keys:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
@@ -755,13 +758,6 @@ row.columnNames     // ["foo", "foo"]
 row.databaseValues  // [1, 2]
 row["foo"]          // 1 (the value for the leftmost column "foo")
 for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
-```
-
-
-**You can build rows from dictionaries** (standard Swift dictionaries and NSDictionary). See [Values](#values) for more information on supported types:
-
-```swift
-let row = Row(["name": "foo", "date": nil])
 ```
 
 
