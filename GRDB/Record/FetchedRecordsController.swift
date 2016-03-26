@@ -17,9 +17,10 @@ import UIKit
 /// to return the results of the request in a form that is suitable for a
 /// UITableView, with one table view row per fetched record.
 ///
-/// FetchedRecordsController can also monitor the results of the fetch request,
-/// and notify its delegate of any change. Those changes can be easily turned
-/// into animated table view deletions, insertions, updates and moves.
+/// FetchedRecordsController can also track changes in the results of the fetch
+/// request, and notify its delegate of those changes. Change tracking is active
+/// if and only if the delegate is not nil.
+///
 ///
 /// # Creating the Fetched Records Controller
 ///
@@ -141,6 +142,17 @@ import UIKit
 /// single transaction. The controller will then notify its delegate of all
 /// changes together.
 ///
+///
+/// # Concurrency
+///
+/// A fetched records controller *can not* be used from any thread.
+///
+/// By default, it must be used from the main thread, and its delegate is
+/// notified of record changes on the main thread.
+///
+/// When you create a controller, you can give it a serial dispatch queue. The
+/// controller must then be used from this queue, and its delegate gets notified
+/// of record changes on this queue as well.
 public final class FetchedRecordsController<Record: RowConvertible> {
     
     // MARK: - Initialization
@@ -217,9 +229,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         self.source = source
         self.database = database
         self.isSameRecordBuilder = isSameRecordBuilder
-        self.diffQueue = dispatch_queue_create("GRDB.FetchedRecordsController.diff", DISPATCH_QUEUE_SERIAL)
         self.mainQueue = queue
-        database.addTransactionObserver(self)
     }
     
     /// Executes the controller's fetch request.
@@ -230,32 +240,66 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// This method must be used from the main thread unless the controller has
     /// been initialized with a custom dispatch queue.
     public func performFetch() {
-        // TODO: we need to invalidate pending changes notifications
-        // TODO: observe when and only when there is a delegate
+        // If some changes are currently processed, make sure they are discarded.
+        observer?.invalidate()
         
-        // Use database.write, so that we are serialized with transaction
-        // callbacks, which happen on the writing queue.
+        // Fetch items
         database.write { db in
             let statement = try! self.source.selectStatement(db)
-            self.mainItems = Item<Record>.fetchAll(statement)
-            if !self.isObserving {
-                self.isSameRecord = self.isSameRecordBuilder(db)
-                self.diffItems = self.mainItems
-                self.observedTables = statement.sourceTables
-                
-                // OK now we can start observing
-                db.addTransactionObserver(self)
-                self.isObserving = true
+            let items = Item<Record>.fetchAll(statement)
+            self.fetchedItems = items
+            
+            if self.delegate != nil {
+                // Setup a new transaction observer. Use database.write, so that
+                // the transaction observer is added on the same serialized
+                // queue as transaction callbacks.
+                let observer = FetchedRecordsObserver(
+                    controller: self,
+                    initialItems: items,
+                    observedTables: statement.sourceTables,
+                    isSameRecord: self.isSameRecordBuilder(db))
+                self.observer = observer
+                db.addTransactionObserver(observer)
             }
         }
     }
     
     
-    
     // MARK: - Configuration
     
     /// The object that is notified when the fetched records changed.
-    public weak var delegate: FetchedRecordsControllerDelegate?
+    ///
+    /// This property must be used from the main thread unless the controller
+    /// has been initialized with a custom dispatch queue.
+    public weak var delegate: FetchedRecordsControllerDelegate? {
+        didSet {
+            // Setting the delegate to nil *will* stop database changes
+            // observation only after last changes are processed, in
+            // FetchedRecordsObserver.databaseDidCommit and
+            // FetchedRecordsObserver.databaseDidRollback. This allows user code
+            // to change the delegate multiple times: tracking will stop if and
+            // only if the last delegate value is nil.
+            //
+            // Conversely, setting the delegate to a non-nil value must make
+            // sure that database changes are observed. But only if
+            // performFetch() has been called.
+            if let items = fetchedItems where delegate != nil && observer == nil {
+                // Setup a new transaction observer. Use
+                // database.write, so that the transaction observer is added on the
+                // same serialized queue as transaction callbacks.
+                database.write { db in
+                    let statement = try! self.source.selectStatement(db)
+                    let observer = FetchedRecordsObserver(
+                        controller: self,
+                        initialItems: items,
+                        observedTables: statement.sourceTables,
+                        isSameRecord: self.isSameRecordBuilder(db))
+                    self.observer = observer
+                    db.addTransactionObserver(observer)
+                }
+            }
+        }
+    }
     
     
     // Configuration: database
@@ -280,10 +324,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// This method must be used from the main thread unless the controller has
     /// been initialized with a custom dispatch queue.
     public var fetchedRecords: [Record]? {
-        if isObserving {
-            return mainItems.map { $0.record }
+        guard let fetchedItems = fetchedItems else {
+            return nil
         }
-        return nil
+        return fetchedItems.map { $0.record }
     }
     
     /// Returns the object at the given index path.
@@ -296,7 +340,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///     If indexPath does not describe a valid index path in the fetched
     ///     records, a fatal error is raised.
     public func recordAtIndexPath(indexPath: NSIndexPath) -> Record {
-        return mainItems[indexPath.indexAtPosition(1)].record
+        guard let fetchedItems = fetchedItems else {
+            fatalError("performFetch() has not been called.")
+        }
+        return fetchedItems[indexPath.indexAtPosition(1)].record
     }
     
     /// Returns the indexPath of a given record.
@@ -307,10 +354,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// - returns: The index path of *record* in the fetched records, or nil if
     ///   record could not be found.
     public func indexPathForRecord(record: Record) -> NSIndexPath? {
-        if let index = mainItems.indexOf({ isSameRecord($0.record, record) }) {
-            return NSIndexPath(forRow: index, inSection: 0)
+        guard let fetchedItems = fetchedItems, let index = fetchedItems.indexOf({ isSameRecord($0.record, record) }) else {
+            return nil
         }
-        return nil
+        return NSIndexPath(forRow: index, inSection: 0)
     }
     
     
@@ -335,37 +382,188 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     // mainQueue protected data exposed in public API
     private var mainQueue: dispatch_queue_t
     
-    // Set to true in performFetch()
-    private var isObserving: Bool = false           // protected by mainQueue
-    
     // The items exposed on public API
-    private var mainItems: [Item<Record>] = []      // protected by mainQueue
+    private var fetchedItems: [Item<Record>]?      // protected by mainQueue
     
     // The record comparator. When the Record type adopts MutablePersistable, we
     // need to wait for performFetch() in order to build it, because
     private var isSameRecord: ((Record, Record) -> Bool) = { _ in false }
     private let isSameRecordBuilder: (Database) -> (Record, Record) -> Bool
     
-    
     /// The source
     private let source: DatabaseSource<Record>
     
-    /// The observed tables. Set in performFetch()
-    private var observedTables: Set<String> = []    // protected by database queue
+    // The observer
+    private var observer: FetchedRecordsObserver<Record>?
     
-    /// True if databaseDidCommit(db) should compute changes
-    private var needsComputeChanges = false         // protected by database queue
-    
-    
-    
-    // Configuration: records
-    
-    
-    private var diffItems: [Item<Record>] = []      // protected by diffQueue
-    private var diffQueue: dispatch_queue_t
+    private func stopTrackingChanges() {
+        observer?.invalidate()
+        observer = nil
+    }
+}
 
-    private func computeChanges(fromRows s: [Item<Record>], toRows t: [Item<Record>]) -> [ItemChange<Record>] {
+extension FetchedRecordsController where Record: MutablePersistable {
+    
+    // MARK: - Initialization
+    
+    /// Returns a fetched records controller initialized from a SQL query and
+    /// its eventual arguments.
+    ///
+    /// The type of the fetched records must be a subclass of the Record class,
+    /// or adopt both RowConvertible, and Persistable or MutablePersistable
+    /// protocols.
+    ///
+    ///     let controller = FetchedRecordsController<Wine>(
+    ///         dbQueue,
+    ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    ///         arguments: [Color.Red],
+    ///         compareRecordsByPrimaryKey: true)
+    ///
+    /// - parameters:
+    ///     - database: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///
+    ///         The fetched records controller delegate will be notified of
+    ///         record changes in this queue. The controller itself must be used
+    ///         from this queue.
+    ///
+    ///         This dispatch queue must be serial.
+    ///
+    ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
+    ///         share the same identity if they share the same primay key.
+    public convenience init(_ database: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+        let source: DatabaseSource<Record> = .SQL(sql, arguments)
+        if compareRecordsByPrimaryKey {
+            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
+        } else {
+            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
+        }
+    }
+    
+    /// Returns a fetched records controller initialized from a fetch request
+    /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
+    ///
+    ///     let request = Wine.order(SQLColumn("name"))
+    ///     let controller = FetchedRecordsController<Wine>(
+    ///         dbQueue,
+    ///         request: request,
+    ///         compareRecordsByPrimaryKey: true)
+    ///
+    /// - parameters:
+    ///     - database: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - request: A fetch request.
+    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///
+    ///         The fetched records controller delegate will be notified of
+    ///         record changes in this queue. The controller itself must be used
+    ///         from this queue.
+    ///
+    ///         This dispatch queue must be serial.
+    ///
+    ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
+    ///         share the same identity if they share the same primay key.
+    public convenience init<U>(_ database: DatabaseWriter, request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+        let request: FetchRequest<Record> = FetchRequest(query: request.query) // Retype the fetch request
+        let source = DatabaseSource.FetchRequest(request)
+        if compareRecordsByPrimaryKey {
+            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
+        } else {
+            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
+        }
+    }
+}
+
+
+// MARK: - FetchedRecordsObserver
+
+/// FetchedRecordsController adopts TransactionObserverType so that it can
+/// monitor changes to its fetched records.
+private final class FetchedRecordsObserver<Record: RowConvertible> : TransactionObserverType {
+    weak var controller: FetchedRecordsController<Record>?
+    let observedTables: Set<String>
+    let isSameRecord: (Record, Record) -> Bool
+    var needsComputeChanges: Bool
+    var items: [Item<Record>]
+    let queue: dispatch_queue_t
+    
+    init(controller: FetchedRecordsController<Record>, initialItems: [Item<Record>], observedTables: Set<String>, isSameRecord: (Record, Record) -> Bool) {
+        self.controller = controller
+        self.items = initialItems
+        self.observedTables = observedTables
+        self.isSameRecord = isSameRecord
+        self.needsComputeChanges = false
+        self.queue = dispatch_queue_create("GRDB.FetchedRecordsObserver", DISPATCH_QUEUE_SERIAL)
+    }
+    
+    func invalidate() {
+        controller = nil
+    }
+    
+    /// Part of the TransactionObserverType protocol
+    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+        if observedTables.contains(event.tableName) {
+            needsComputeChanges = true
+        }
+    }
+    
+    /// Part of the TransactionObserverType protocol
+    func databaseWillCommit() throws { }
+    
+    /// Part of the TransactionObserverType protocol
+    func databaseDidRollback(db: Database) {
+        needsComputeChanges = false
+    }
+    
+    /// Part of the TransactionObserverType protocol
+    func databaseDidCommit(db: Database) {
+        // The databaseDidCommit callback is called in the database writer
+        // dispatch queue, which is serialized: it is guaranteed to process the
+        // last database transaction.
         
+        // Were observed tables modified?
+        guard needsComputeChanges else { return }
+        needsComputeChanges = false
+        
+        // Invalidated?
+        guard let controller = self.controller else { return }
+        
+        let statement = try! controller.source.selectStatement(db)
+        let newItems = Item<Record>.fetchAll(statement)
+        
+        dispatch_async(queue) {
+            // Invalidated?
+            guard let controller = self.controller else { return }
+            
+            // Read/write diffItems in self.diffQueue
+            let changes = self.computeChanges(fromRows: self.items, toRows: newItems)
+            self.items = newItems
+            
+            // No changes?
+            guard !changes.isEmpty else { return }
+            
+            dispatch_async(controller.mainQueue) {
+                // Invalidated?
+                guard let controller = self.controller else { return }
+                
+                if let delegate = controller.delegate {
+                    delegate.controllerWillChangeRecords(controller)
+                    controller.fetchedItems = newItems
+                    for change in changes {
+                        delegate.controller(controller, didChangeRecord: change.record, withEvent: change.event)
+                    }
+                    delegate.controllerDidChangeRecords(controller)
+                } else {
+                    // There is no delegate interested in changes: stop tracking
+                    // changes.
+                    controller.stopTrackingChanges()
+                }
+            }
+        }
+    }
+    
+    func computeChanges(fromRows s: [Item<Record>], toRows t: [Item<Record>]) -> [ItemChange<Record>] {
         let m = s.count
         let n = t.count
         
@@ -502,148 +700,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     }
 }
 
-extension FetchedRecordsController where Record: MutablePersistable {
-    
-    // MARK: - Initialization
-    
-    /// Returns a fetched records controller initialized from a SQL query and
-    /// its eventual arguments.
-    ///
-    /// The type of the fetched records must be a subclass of the Record class,
-    /// or adopt both RowConvertible, and Persistable or MutablePersistable
-    /// protocols.
-    ///
-    ///     let controller = FetchedRecordsController<Wine>(
-    ///         dbQueue,
-    ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
-    ///         arguments: [Color.Red],
-    ///         compareRecordsByPrimaryKey: true)
-    ///
-    /// - parameters:
-    ///     - database: A DatabaseWriter (DatabaseQueue, or DatabasePool)
-    ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
-    ///     - queue: Optional dispatch queue (defaults to the main queue)
-    ///
-    ///         The fetched records controller delegate will be notified of
-    ///         record changes in this queue. The controller itself must be used
-    ///         from this queue.
-    ///
-    ///         This dispatch queue must be serial.
-    ///
-    ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
-    ///         share the same identity if they share the same primay key.
-    public convenience init(_ database: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
-        let source: DatabaseSource<Record> = .SQL(sql, arguments)
-        if compareRecordsByPrimaryKey {
-            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
-        } else {
-            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
-        }
-    }
-    
-    /// Returns a fetched records controller initialized from a fetch request
-    /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
-    ///
-    ///     let request = Wine.order(SQLColumn("name"))
-    ///     let controller = FetchedRecordsController<Wine>(
-    ///         dbQueue,
-    ///         request: request,
-    ///         compareRecordsByPrimaryKey: true)
-    ///
-    /// - parameters:
-    ///     - database: A DatabaseWriter (DatabaseQueue, or DatabasePool)
-    ///     - request: A fetch request.
-    ///     - queue: Optional dispatch queue (defaults to the main queue)
-    ///
-    ///         The fetched records controller delegate will be notified of
-    ///         record changes in this queue. The controller itself must be used
-    ///         from this queue.
-    ///
-    ///         This dispatch queue must be serial.
-    ///
-    ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
-    ///         share the same identity if they share the same primay key.
-    public convenience init<U>(_ database: DatabaseWriter, request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
-        let request: FetchRequest<Record> = FetchRequest(query: request.query) // Retype the fetch request
-        let source = DatabaseSource.FetchRequest(request)
-        if compareRecordsByPrimaryKey {
-            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
-        } else {
-            self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
-        }
-    }
-}
-
-
-// MARK: - <TransactionObserverType>
-
-/// FetchedRecordsController adopts TransactionObserverType so that it can
-/// monitor changes to its fetched records.
-extension FetchedRecordsController : TransactionObserverType {
-    
-    /// Part of the TransactionObserverType protocol
-    public func databaseDidChangeWithEvent(event: DatabaseEvent) {
-        if observedTables.contains(event.tableName) {
-            needsComputeChanges = true
-        }
-    }
-    
-    /// Part of the TransactionObserverType protocol
-    public func databaseWillCommit() throws { }
-    
-    /// Part of the TransactionObserverType protocol
-    public func databaseDidRollback(db: Database) {
-        needsComputeChanges = false
-    }
-    
-    /// Part of the TransactionObserverType protocol
-    public func databaseDidCommit(db: Database) {
-        // The databaseDidCommit callback is called in a serialized dispatch
-        // queue: It is guaranteed to process the last database transaction.
-        
-        guard needsComputeChanges else {
-            return
-        }
-        needsComputeChanges = false
-        
-        let statement = try! source.selectStatement(db)
-        let newItems = Item<Record>.fetchAll(statement)
-        
-        dispatch_async(diffQueue) { [weak self] in
-            // This code, submitted to the serial diffQueue, is guaranteed
-            // to process the last database transaction:
-            
-            guard let strongSelf = self else { return }
-            
-            // Read/write diffItems in self.diffQueue
-            let diffItems = strongSelf.diffItems
-            let changes = strongSelf.computeChanges(fromRows: diffItems, toRows: newItems)
-            strongSelf.diffItems = newItems
-            
-            guard !changes.isEmpty else {
-                return
-            }
-            
-            dispatch_async(strongSelf.mainQueue) {
-                // This code, submitted to the serial main queue, is guaranteed
-                // to process the last database transaction:
-                
-                guard let strongSelf = self else { return }
-                
-                strongSelf.delegate?.controllerWillChangeRecords(strongSelf)
-                strongSelf.mainItems = newItems
-                
-                for change in changes {
-                    strongSelf.delegate?.controller(strongSelf, didChangeRecord: change.record, withEvent: change.event)
-                }
-                
-                strongSelf.delegate?.controllerDidChangeRecords(strongSelf)
-            }
-        }
-    }
-}
-
 
 // =============================================================================
 // MARK: - FetchedRecordsControllerDelegate
@@ -727,11 +783,11 @@ public struct FetchedRecordsSectionInfo<T: RowConvertible> {
     private let controller: FetchedRecordsController<T>
     public var numberOfRecords: Int {
         // We only support a single section
-        return controller.mainItems.count
+        return controller.fetchedItems!.count
     }
     public var records: [T] {
         // We only support a single section
-        return controller.mainItems.map { $0.record }
+        return controller.fetchedItems!.map { $0.record }
     }
 }
 
