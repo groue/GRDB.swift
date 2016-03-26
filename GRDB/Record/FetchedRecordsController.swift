@@ -228,6 +228,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private init(database: DatabaseWriter, source: DatabaseSource<Record>, queue: dispatch_queue_t, isSameRecordBuilder: (Database) -> (Record, Record) -> Bool) {
         self.source = source
         self.database = database
+        self.isSameRecord = { _ in return false }
         self.isSameRecordBuilder = isSameRecordBuilder
         self.queue = queue
     }
@@ -270,8 +271,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         didSet {
             // Setting the delegate to nil *will* stop database changes
             // observation only after last changes are processed, in
-            // FetchedRecordsObserver.databaseDidCommit and
-            // FetchedRecordsObserver.databaseDidRollback. This allows user code
+            // FetchedRecordsObserver.databaseDidCommit. This allows user code
             // to change the delegate multiple times: tracking will stop if and
             // only if the last delegate value is nil.
             //
@@ -305,7 +305,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// to changes.
     public let database: DatabaseWriter
     
-    /// TODO
+    /// The dispatch queue on which the controller must be used.
+    ///
+    /// Unless specified otherwise at initialization time, it is the main queue.
     public let queue: dispatch_queue_t
     
     
@@ -368,15 +370,19 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     // The items
     private var fetchedItems: [Item<Record>]?
     
-    // The record comparator. When the Record type adopts MutablePersistable, we
-    // need to wait for performFetch() in order to build it, because
-    private var isSameRecord: ((Record, Record) -> Bool) = { _ in false }
+    // The record comparator
+    private var isSameRecord: ((Record, Record) -> Bool)
+    
+    // The record comparator builder. It helps us supporting types that adopt
+    // MutablePersistable: we just have to wait for a database connection, in
+    // performFetch(), to get primary key information and generate a primary
+    // key comparator.
     private let isSameRecordBuilder: (Database) -> (Record, Record) -> Bool
     
     /// The source
     private let source: DatabaseSource<Record>
     
-    // The observer
+    // The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
     
     private func stopTrackingChanges() {
@@ -464,12 +470,12 @@ extension FetchedRecordsController where Record: MutablePersistable {
 /// FetchedRecordsController adopts TransactionObserverType so that it can
 /// monitor changes to its fetched records.
 private final class FetchedRecordsObserver<Record: RowConvertible> : TransactionObserverType {
-    weak var controller: FetchedRecordsController<Record>?
+    weak var controller: FetchedRecordsController<Record>?  // If nil, self is invalidated.
     let observedTables: Set<String>
     let isSameRecord: (Record, Record) -> Bool
     var needsComputeChanges: Bool
     var items: [Item<Record>]
-    let queue: dispatch_queue_t
+    let queue: dispatch_queue_t // protects items
     
     init(controller: FetchedRecordsController<Record>, initialItems: [Item<Record>], observedTables: Set<String>, isSameRecord: (Record, Record) -> Bool) {
         self.controller = controller
@@ -513,15 +519,15 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         guard let controller = self.controller else { return }
         
         let statement = try! controller.source.selectStatement(db)
-        let newItems = Item<Record>.fetchAll(statement)
+        let fetchedItems = Item<Record>.fetchAll(statement)
         
         dispatch_async(queue) {
             // Invalidated?
             guard let controller = self.controller else { return }
             
-            // Read/write diffItems in self.diffQueue
-            let changes = self.computeChanges(fromRows: self.items, toRows: newItems)
-            self.items = newItems
+            // Compute changes
+            let changes = self.computeChanges(from: self.items, to: fetchedItems)
+            self.items = fetchedItems
             
             // No changes?
             guard !changes.isEmpty else { return }
@@ -532,7 +538,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                 
                 if let delegate = controller.delegate {
                     delegate.controllerWillChangeRecords(controller)
-                    controller.fetchedItems = newItems
+                    controller.fetchedItems = fetchedItems
                     for change in changes {
                         delegate.controller(controller, didChangeRecord: change.record, withEvent: change.event)
                     }
@@ -546,7 +552,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         }
     }
     
-    func computeChanges(fromRows s: [Item<Record>], toRows t: [Item<Record>]) -> [ItemChange<Record>] {
+    func computeChanges(from s: [Item<Record>], to t: [Item<Record>]) -> [ItemChange<Record>] {
         let m = s.count
         let n = t.count
         
@@ -736,24 +742,55 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 ///         tableView.endUpdates()
 ///     }
 public protocol FetchedRecordsControllerDelegate : class {
-    /// TODO: document that these are called on controller.queue
+    /// Notifies that the fetched records controller is about to start
+    /// processing of one or more changes due to an add, remove, move,
+    // or update.
+    ///
+    /// - parameter controller: The fetched records controller that sent
+    ///   the message.
     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>)
     
-    /// TODO: document that these are called on controller.queue
+    /// Notifies that a record has been changed due to an add, remove, move,
+    /// or update.
+    ///
+    /// Swift mandates the delegate to implement this method as a generic
+    /// method on the type of the changed record.
+    ///
+    /// The advantage is that a single object can be the delegate of multiple
+    /// fetched records controllers that fetch multiple types of records. The
+    /// downside is that the actual type of the changed record is erased: you
+    /// must cast it to the expected type:
+    ///
+    ///     let personsController: FetchedRecordsController<Person>
+    ///
+    ///     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) {
+    ///         if controller === personsController {
+    ///             let person = record as! Person // Explicit cast
+    ///         }
+    ///     }
+    ///
+    /// - parameters:
+    ///     - controller: The fetched records controller that sent the message.
+    ///     - record: The record that changed.
+    ///     - event: The type of change (see FetchedRecordsEvent).
     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent)
     
-    /// TODO: document that these are called on controller.queue
+    /// Notifies that the fetched records controller has completed processing
+    /// of one or more changes due to an add, remove, move, or update.
+    ///
+    /// - parameter controller: The fetched records controller that sent
+    ///   the message.
     func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>)
 }
 
 extension FetchedRecordsControllerDelegate {
-    /// TODO
+    /// The default implementation does nothing.
     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) { }
 
-    /// TODO
+    /// The default implementation does nothing.
     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) { }
     
-    /// TODO
+    /// The default implementation does nothing.
     func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) { }
 }
 
