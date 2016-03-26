@@ -189,11 +189,10 @@ extension FetchedRecordsControllerDemoViewController {
     
     @IBAction func randomizeScores() {
         try! dbQueue.inTransaction { db in
-            for person in Person.fetchAll(db) {
+            for person in Person.fetch(db) {
                 person.score = 10 * (1 + Int(arc4random()) % 50)
-                try person.save(db)
+                try person.update(db)
             }
-            
             return .Commit
         }
     }
