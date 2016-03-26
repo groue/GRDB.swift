@@ -12,6 +12,11 @@ class PersonsViewController: UITableViewController {
         personsController.delegate = self
         personsController.performFetch()
     }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        configureToolbar()
+    }
 }
 
 
@@ -114,5 +119,31 @@ extension PersonsViewController : FetchedRecordsControllerDelegate {
     
     func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
         tableView.endUpdates()
+    }
+}
+
+
+// MARK: - FetchedRecordsController Demo
+
+extension PersonsViewController {
+    
+    private func configureToolbar() {
+        navigationController?.toolbarHidden = false
+        toolbarItems = [
+            UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(title: NSLocalizedString("Randomize Scores", comment: ""), style: .Plain, target: self, action: #selector(PersonsViewController.randomizeScores)),
+            UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil)
+        ]
+    }
+    
+    @IBAction func randomizeScores() {
+        try! dbQueue.inTransaction { db in
+            for person in Person.fetchAll(db) {
+                person.score = 10 * (1 + Int(arc4random()) % 50)
+                try person.save(db)
+            }
+            
+            return .Commit
+        }
     }
 }
