@@ -143,6 +143,15 @@ import UIKit
 /// changes together.
 ///
 ///
+/// # Modifying the Fetch Request
+///
+/// You can change a fetched records controller's fetch request or SQL query.
+/// The delegate gets notified of changes in the fetched records:
+///
+///     controller.setRequest(Person.order(SQLColumn("name")))
+///     controller.setSQL("SELECT ...")
+///
+///
 /// # Concurrency
 ///
 /// A fetched records controller *can not* be used from any thread.
@@ -212,7 +221,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
     public convenience init<T>(_ database: DatabaseWriter, request: FetchRequest<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
-        let request: FetchRequest<Record> = FetchRequest(query: request.query) // Retype the fetch request
+        // Retype the fetch request
+        let request: FetchRequest<Record> = FetchRequest(query: request.query)
         let source = DatabaseSource.FetchRequest(request)
         self.init(database: database, source: source, queue: queue, isSameRecord: isSameRecord)
     }
@@ -310,6 +320,20 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// Unless specified otherwise at initialization time, it is the main queue.
     public let queue: dispatch_queue_t
     
+    /// Updates the fetch request, and notifies the delegate of changes in the
+    /// fetched records.
+    public func setRequest<T>(request: FetchRequest<T>) {
+        // Retype the fetch request
+        let request: FetchRequest<Record> = FetchRequest(query: request.query)
+        self.source = DatabaseSource.FetchRequest(request)
+    }
+    
+    /// Updates the fetch request, and notifies the delegate of changes in the
+    /// fetched records.
+    public func setSQL(sql: String, arguments: StatementArguments? = nil) {
+        self.source = DatabaseSource.SQL(sql, arguments)
+    }
+    
     
     // MARK: - Accessing records
     
@@ -380,7 +404,14 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private let isSameRecordBuilder: (Database) -> (Record, Record) -> Bool
     
     /// The source
-    private let source: DatabaseSource<Record>
+    private var source: DatabaseSource<Record> {
+        didSet {
+            guard let observer = observer else { return }
+            database.write { db in
+                observer.checkForChangesInDatabase(db)
+            }
+        }
+    }
     
     // The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
@@ -454,7 +485,8 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
     public convenience init<U>(_ database: DatabaseWriter, request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
-        let request: FetchRequest<Record> = FetchRequest(query: request.query) // Retype the fetch request
+        // Retype the fetch request
+        let request: FetchRequest<Record> = FetchRequest(query: request.query)
         let source = DatabaseSource.FetchRequest(request)
         if compareRecordsByPrimaryKey {
             self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
@@ -515,6 +547,10 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         guard needsComputeChanges else { return }
         needsComputeChanges = false
         
+        checkForChangesInDatabase(db)
+    }
+    
+    func checkForChangesInDatabase(db: Database) {
         // Invalidated?
         guard let controller = self.controller else { return }
         
