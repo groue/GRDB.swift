@@ -62,11 +62,11 @@ public protocol MutablePersistable : TableMapping {
     ///     }
     var persistentDictionary: [String: DatabaseValueConvertible?] { get }
     
-    /// Do not call this method directly.
+    /// Notifies the record that it was succesfully inserted.
     ///
-    /// It is called upon successful insertion, in a protected dispatch queue,
-    /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
-    /// column name.
+    /// Do not call this method directly: it is called for you, in a protected
+    /// dispatch queue, with the inserted RowID and the eventual
+    /// INTEGER PRIMARY KEY column name.
     ///
     /// This method is optional: the default implementation does nothing.
     ///
@@ -173,6 +173,8 @@ public protocol MutablePersistable : TableMapping {
 
 public extension MutablePersistable {
     
+    /// Notifies the record that it was succesfully inserted.
+    ///
     /// The default implementation does nothing.
     mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
     }
@@ -382,11 +384,11 @@ extension MutablePersistable {
 /// mutating methods.
 public protocol Persistable : MutablePersistable {
     
-    /// Do not call this method directly.
+    /// Notifies the record that it was succesfully inserted.
     ///
-    /// It is called upon successful insertion, in a protected dispatch queue,
-    /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
-    /// column name.
+    /// Do not call this method directly: it is called for you, in a protected
+    /// dispatch queue, with the inserted RowID and the eventual
+    /// INTEGER PRIMARY KEY column name.
     ///
     /// This method is optional: the default implementation does nothing.
     ///
@@ -442,6 +444,8 @@ public protocol Persistable : MutablePersistable {
 
 public extension Persistable {
     
+    /// Notifies the record that it was succesfully inserted.
+    ///
     /// The default implementation does nothing.
     func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
     }

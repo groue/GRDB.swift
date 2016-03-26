@@ -81,11 +81,11 @@ public class Record : RowConvertible, TableMapping, Persistable {
         return [:]
     }
     
-    /// Do not call this method directly.
+    /// Notifies the record that it was succesfully inserted.
     ///
-    /// It is called upon successful insertion, in a protected dispatch queue,
-    /// with the inserted RowID and the eventual INTEGER PRIMARY KEY
-    /// column name.
+    /// Do not call this method directly: it is called for you, in a protected
+    /// dispatch queue, with the inserted RowID and the eventual
+    /// INTEGER PRIMARY KEY column name.
     ///
     /// The implementation of the base Record class does nothing.
     ///
