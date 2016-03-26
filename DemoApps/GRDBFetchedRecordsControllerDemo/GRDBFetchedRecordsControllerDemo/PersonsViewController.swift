@@ -7,7 +7,7 @@ class PersonsViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let request = Person.order(SQLColumn("score").desc, SQLColumn("name"))
+        let request = PersonsViewController.personsSortedByScore
         personsController = FetchedRecordsController(dbQueue, request: request, compareRecordsByPrimaryKey: true)
         personsController.delegate = self
         personsController.performFetch()
@@ -87,6 +87,12 @@ extension PersonsViewController {
         configureCell(cell, atIndexPath: indexPath)
         return cell
     }
+    
+    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        // Delete the person
+        let person = personsController.recordAtIndexPath(indexPath)
+        try! person.delete(dbQueue)
+    }
 }
 
 
@@ -112,8 +118,16 @@ extension PersonsViewController : FetchedRecordsControllerDelegate {
             }
             
         case .Move(let indexPath, let newIndexPath, _):
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-            tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
+            // Actually move cells around for more demo effect :-)
+            let cell = tableView.cellForRowAtIndexPath(indexPath)
+            tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+            if let cell = cell {
+                configureCell(cell, atIndexPath: newIndexPath)
+            }
+            
+            // A quieter animation:
+            // tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+            // tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
         }
     }
     
@@ -127,13 +141,40 @@ extension PersonsViewController : FetchedRecordsControllerDelegate {
 
 extension PersonsViewController {
     
+    private static let personsSortedByName = Person.order(SQLColumn("name"))
+    private static let personsSortedByScore = Person.order(SQLColumn("score").desc, SQLColumn("name"))
+    
     private func configureToolbar() {
         navigationController?.toolbarHidden = false
         toolbarItems = [
-            UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(title: NSLocalizedString("Randomize Scores", comment: ""), style: .Plain, target: self, action: #selector(PersonsViewController.randomizeScores)),
-            UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil)
+            UIBarButtonItem(
+                title: NSLocalizedString("Name ⬆︎", comment: ""),
+                style: .Plain,
+                target: self,
+                action: #selector(PersonsViewController.sortByName)),
+            UIBarButtonItem(
+                title: NSLocalizedString("Score ⬇︎", comment: ""),
+                style: .Plain,
+                target: self,
+                action: #selector(PersonsViewController.sortByScore)),
+            UIBarButtonItem(
+                barButtonSystemItem: .FlexibleSpace,
+                target: nil,
+                action: nil),
+            UIBarButtonItem(
+                title: NSLocalizedString("Randomize Scores", comment: ""),
+                style: .Plain,
+                target: self,
+                action: #selector(PersonsViewController.randomizeScores))
         ]
+    }
+    
+    @IBAction func sortByName() {
+        personsController.setRequest(PersonsViewController.personsSortedByName)
+    }
+    
+    @IBAction func sortByScore() {
+        personsController.setRequest(PersonsViewController.personsSortedByScore)
     }
     
     @IBAction func randomizeScores() {
