@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		568C7A9A1CA6C63100796484 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7A991CA6C63100796484 /* AppDelegate.swift */; };
-		568C7A9C1CA6C63100796484 /* PersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7A9B1CA6C63100796484 /* PersonsViewController.swift */; };
+		568C7A9C1CA6C63100796484 /* FetchedRecordsControllerDemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7A9B1CA6C63100796484 /* FetchedRecordsControllerDemoViewController.swift */; };
 		568C7A9F1CA6C63100796484 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 568C7A9D1CA6C63100796484 /* Main.storyboard */; };
 		568C7AA11CA6C63100796484 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 568C7AA01CA6C63100796484 /* Assets.xcassets */; };
 		568C7AA41CA6C63100796484 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 568C7AA21CA6C63100796484 /* LaunchScreen.storyboard */; };
@@ -17,6 +17,8 @@
 		568C7AE01CA6C7BC00796484 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7ADF1CA6C7BC00796484 /* Person.swift */; };
 		568C7AE21CA6C97500796484 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE11CA6C97500796484 /* Database.swift */; };
 		568C7AE41CA6CEBE00796484 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE31CA6CEBE00796484 /* PersonEditionViewController.swift */; };
+		568C7AE61CA6F95300796484 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE51CA6F95300796484 /* DemoViewController.swift */; };
+		568C7AE81CA6FB6600796484 /* PersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568C7AE71CA6FB6600796484 /* PersonsViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,7 +90,7 @@
 /* Begin PBXFileReference section */
 		568C7A961CA6C63100796484 /* GRDBFetchedRecordsControllerDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBFetchedRecordsControllerDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		568C7A991CA6C63100796484 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		568C7A9B1CA6C63100796484 /* PersonsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonsViewController.swift; sourceTree = "<group>"; };
+		568C7A9B1CA6C63100796484 /* FetchedRecordsControllerDemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchedRecordsControllerDemoViewController.swift; sourceTree = "<group>"; };
 		568C7A9E1CA6C63100796484 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		568C7AA01CA6C63100796484 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		568C7AA31CA6C63100796484 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -97,6 +99,8 @@
 		568C7ADF1CA6C7BC00796484 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		568C7AE11CA6C97500796484 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		568C7AE31CA6CEBE00796484 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
+		568C7AE51CA6F95300796484 /* DemoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
+		568C7AE71CA6FB6600796484 /* PersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,8 +137,7 @@
 				568C7A991CA6C63100796484 /* AppDelegate.swift */,
 				568C7AE11CA6C97500796484 /* Database.swift */,
 				568C7ADF1CA6C7BC00796484 /* Person.swift */,
-				568C7AE31CA6CEBE00796484 /* PersonEditionViewController.swift */,
-				568C7A9B1CA6C63100796484 /* PersonsViewController.swift */,
+				568C7AEA1CA6FE6B00796484 /* Controllers */,
 				568C7A9D1CA6C63100796484 /* Main.storyboard */,
 				568C7AA01CA6C63100796484 /* Assets.xcassets */,
 				568C7AA21CA6C63100796484 /* LaunchScreen.storyboard */,
@@ -155,6 +158,17 @@
 				568C7AD91CA6C6BF00796484 /* GRDBTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		568C7AEA1CA6FE6B00796484 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				568C7AE51CA6F95300796484 /* DemoViewController.swift */,
+				568C7A9B1CA6C63100796484 /* FetchedRecordsControllerDemoViewController.swift */,
+				568C7AE31CA6CEBE00796484 /* PersonEditionViewController.swift */,
+				568C7AE71CA6FB6600796484 /* PersonsViewController.swift */,
+			);
+			name = Controllers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -282,8 +296,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				568C7AE01CA6C7BC00796484 /* Person.swift in Sources */,
-				568C7A9C1CA6C63100796484 /* PersonsViewController.swift in Sources */,
+				568C7AE81CA6FB6600796484 /* PersonsViewController.swift in Sources */,
+				568C7A9C1CA6C63100796484 /* FetchedRecordsControllerDemoViewController.swift in Sources */,
 				568C7AE21CA6C97500796484 /* Database.swift in Sources */,
+				568C7AE61CA6F95300796484 /* DemoViewController.swift in Sources */,
 				568C7AE41CA6CEBE00796484 /* PersonEditionViewController.swift in Sources */,
 				568C7A9A1CA6C63100796484 /* AppDelegate.swift in Sources */,
 			);
