@@ -9,8 +9,8 @@ class MasterViewController: UITableViewController, FetchedRecordsControllerDeleg
         self.navigationItem.leftBarButtonItem = self.editButtonItem()
         configureToolbar()
         
-        let fetchRequest = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
-        fetchedRecordsController = FetchedRecordsController(dbQueue, fetchRequest, compareRecordsByPrimaryKey: true)
+        let request = Person.filter(Col.visible).order(Col.position, Col.firstName, Col.lastName)
+        fetchedRecordsController = FetchedRecordsController(dbQueue, request: request, compareRecordsByPrimaryKey: true)
         fetchedRecordsController.delegate = self
         fetchedRecordsController.performFetch()
     }

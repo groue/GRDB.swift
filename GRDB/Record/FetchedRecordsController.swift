@@ -31,7 +31,7 @@ import UIKit
 ///   RowConvertible protocol, such as a subclass of the Record class.
 ///
 /// - A fetch request. It can be a raw SQL query with its arguments, or a
-///   FetchRequest from the GRDB Query Interface.
+///   FetchRequest from the GRDB [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
 ///
 /// - Optionally, a way to tell if two records have the same identity. Without
 ///   this identity comparison, all record updates are seen as replacements,
@@ -46,7 +46,7 @@ import UIKit
 ///     let request = Person.order(SQLColumn("name"))
 ///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
 ///         dbQueue,
-///         request,
+///         request: request,
 ///         compareRecordsByPrimaryKey: true)
 ///     controller.performFetch()
 ///
@@ -66,26 +66,27 @@ import UIKit
 ///
 ///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
 ///         dbQueue,
-///         request,
-///         isSameRecord: { $0.id == $1.id })
+///         request: request,
+///         isSameRecord: { (person1, person2) in person1.id == person2.id })
 ///
 /// Instead of a FetchRequest object, you can also provide a raw SQL query:
 ///
 ///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
 ///         dbQueue,
-///         "SELECT * FROM persons ORDER BY name",
+///         sql: "SELECT * FROM persons ORDER BY name",
 ///         compareRecordsByPrimaryKey: true)
 ///
 /// The fetch request can involve several database tables:
 ///
 ///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
 ///         dbQueue,
-///         "SELECT persons.*, COUNT(books.id) AS bookCount " +
-///         "FROM persons " +
-///         "LEFT JOIN books ON books.owner_id = persons.id " +
-///         "GROUP BY persons.id " +
-///         "ORDER BY persons.name",
+///         sql: "SELECT persons.*, COUNT(books.id) AS bookCount " +
+///              "FROM persons " +
+///              "LEFT JOIN books ON books.owner_id = persons.id " +
+///              "GROUP BY persons.id " +
+///              "ORDER BY persons.name",
 ///         compareRecordsByPrimaryKey: true)
+///
 ///
 /// # The Controllers's Delegate
 ///
@@ -144,14 +145,61 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     // MARK: - Initialization
     
-    // TODO: document that queue MUST be serial
-    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+    /// Returns a fetched records controller initialized from a SQL query and
+    /// its eventual arguments.
+    ///
+    ///     let controller = FetchedRecordsController<Wine>(
+    ///         dbQueue,
+    ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    ///         arguments: [Color.Red],
+    ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
+    ///
+    /// - parameters:
+    ///     - database: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///
+    ///         The fetched records controller delegate will be notified of
+    ///         record changes in this queue. The controller itself must be used
+    ///         from this queue.
+    ///
+    ///         This dispatch queue must be serial.
+    ///
+    ///     - isSameRecord: Optional function that compares two records.
+    ///
+    ///         This function should return true if the two records have the
+    ///         same identity. For example, they have the same id.
+    public convenience init(_ database: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
         let source: DatabaseSource<Record> = .SQL(sql, arguments)
         self.init(database: database, source: source, queue: queue, isSameRecord: isSameRecord)
     }
     
-    // TODO: document that queue MUST be serial
-    public convenience init<T>(_ database: DatabaseWriter, _ request: FetchRequest<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+    /// Returns a fetched records controller initialized from a fetch request
+    /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
+    ///
+    ///     let request = Wine.order(SQLColumn("name"))
+    ///     let controller = FetchedRecordsController<Wine>(
+    ///         dbQueue,
+    ///         request: request,
+    ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
+    ///
+    /// - parameters:
+    ///     - database: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - request: A fetch request.
+    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///
+    ///         The fetched records controller delegate will be notified of
+    ///         record changes in this queue. The controller itself must be used
+    ///         from this queue.
+    ///
+    ///         This dispatch queue must be serial.
+    ///
+    ///     - isSameRecord: Optional function that compares two records.
+    ///
+    ///         This function should return true if the two records have the
+    ///         same identity. For example, they have the same id.
+    public convenience init<T>(_ database: DatabaseWriter, request: FetchRequest<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
         let request: FetchRequest<Record> = FetchRequest(query: request.query) // Retype the fetch request
         let source = DatabaseSource.FetchRequest(request)
         self.init(database: database, source: source, queue: queue, isSameRecord: isSameRecord)
@@ -174,7 +222,13 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         database.addTransactionObserver(self)
     }
     
-    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
+    /// Executes the controller's fetch request.
+    ///
+    /// After executing this method, you can access the the fetched objects with
+    /// the property fetchedRecords.
+    ///
+    /// This method must be used from the main thread unless the controller has
+    /// been initialized with a custom dispatch queue.
     public func performFetch() {
         // Use database.write, so that we are serialized with transaction
         // callbacks, which happen on the writing queue.
@@ -197,21 +251,31 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     // MARK: - Configuration
     
+    /// The object that is notified when the fetched records changed.
     public weak var delegate: FetchedRecordsControllerDelegate?
     
     
     // Configuration: database
     
-    /// The databaseWriter
+    /// The database used to fetch records.
+    ///
+    /// The controller registers as a transaction observer in order to respond
+    /// to changes.
     public let database: DatabaseWriter
     
     
     // MARK: - Accessing records
     
-    /// Returns the records of the query.
-    /// Returns nil if performQuery() hasn't been called.
+    /// The fetched records.
     ///
-    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
+    /// The value of this property is nil if performFetch() hasn't been called.
+    ///
+    /// The records reflect the state of the database after the initial
+    /// call to performFetch, and after each database transaction that affects
+    /// the results of the fetch request.
+    ///
+    /// This method must be used from the main thread unless the controller has
+    /// been initialized with a custom dispatch queue.
     public var fetchedRecords: [Record]? {
         if isObserving {
             return mainItems.map { $0.record }
@@ -219,17 +283,26 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         return nil
     }
     
-    
-    /// Returns the fetched record at a given indexPath.
+    /// Returns the object at the given index path.
     ///
-    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
+    /// This method must be used from the main thread unless the controller has
+    /// been initialized with a custom dispatch queue.
+    ///
+    /// - parameter indexPath: An index path in the fetched records.
+    ///
+    ///     If indexPath does not describe a valid index path in the fetched
+    ///     records, a fatal error is raised.
     public func recordAtIndexPath(indexPath: NSIndexPath) -> Record {
         return mainItems[indexPath.indexAtPosition(1)].record
     }
     
     /// Returns the indexPath of a given record.
     ///
-    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
+    /// This method must be used from the main thread unless the controller has
+    /// been initialized with a custom dispatch queue.
+    ///
+    /// - returns: The index path of *record* in the fetched records, or nil if
+    ///   record could not be found.
     public func indexPathForRecord(record: Record) -> NSIndexPath? {
         if let index = mainItems.indexOf({ isSameRecord($0.record, record) }) {
             return NSIndexPath(forRow: index, inSection: 0)
@@ -240,9 +313,13 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     // MARK: - Querying Sections Information
     
-    /// The sections
+    /// The sections for the fetched records.
     ///
-    /// MUST BE CALLED ON mainQueue (TODO: say it nicely)
+    /// You typically use the sections array when implementing
+    /// UITableViewDataSource methods, such as `numberOfSectionsInTableView`.
+    ///
+    /// This method must be used from the main thread unless the controller has
+    /// been initialized with a custom dispatch queue.
     public var sections: [FetchedRecordsSectionInfo<Record>] {
         // We only support a single section
         return [FetchedRecordsSectionInfo(controller: self)]
@@ -424,8 +501,36 @@ public final class FetchedRecordsController<Record: RowConvertible> {
 
 extension FetchedRecordsController where Record: MutablePersistable {
     
-    // TODO: document that queue MUST be serial
-    public convenience init(_ database: DatabaseWriter, _ sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+    // MARK: - Initialization
+    
+    /// Returns a fetched records controller initialized from a SQL query and
+    /// its eventual arguments.
+    ///
+    /// The type of the fetched records must be a subclass of the Record class,
+    /// or adopt both RowConvertible, and Persistable or MutablePersistable
+    /// protocols.
+    ///
+    ///     let controller = FetchedRecordsController<Wine>(
+    ///         dbQueue,
+    ///         sql: "SELECT * FROM wines WHERE color = ? ORDER BY name",
+    ///         arguments: [Color.Red],
+    ///         compareRecordsByPrimaryKey: true)
+    ///
+    /// - parameters:
+    ///     - database: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - sql: An SQL query.
+    ///     - arguments: Optional statement arguments.
+    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///
+    ///         The fetched records controller delegate will be notified of
+    ///         record changes in this queue. The controller itself must be used
+    ///         from this queue.
+    ///
+    ///         This dispatch queue must be serial.
+    ///
+    ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
+    ///         share the same identity if they share the same primay key.
+    public convenience init(_ database: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
         let source: DatabaseSource<Record> = .SQL(sql, arguments)
         if compareRecordsByPrimaryKey {
             self.init(database: database, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
@@ -434,8 +539,29 @@ extension FetchedRecordsController where Record: MutablePersistable {
         }
     }
     
-    // TODO: document that queue MUST be serial
-    public convenience init<U>(_ database: DatabaseWriter, _ request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+    /// Returns a fetched records controller initialized from a fetch request
+    /// from the [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
+    ///
+    ///     let request = Wine.order(SQLColumn("name"))
+    ///     let controller = FetchedRecordsController<Wine>(
+    ///         dbQueue,
+    ///         request: request,
+    ///         compareRecordsByPrimaryKey: true)
+    ///
+    /// - parameters:
+    ///     - database: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - request: A fetch request.
+    ///     - queue: Optional dispatch queue (defaults to the main queue)
+    ///
+    ///         The fetched records controller delegate will be notified of
+    ///         record changes in this queue. The controller itself must be used
+    ///         from this queue.
+    ///
+    ///         This dispatch queue must be serial.
+    ///
+    ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
+    ///         share the same identity if they share the same primay key.
+    public convenience init<U>(_ database: DatabaseWriter, request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
         let request: FetchRequest<Record> = FetchRequest(query: request.query) // Retype the fetch request
         let source = DatabaseSource.FetchRequest(request)
         if compareRecordsByPrimaryKey {
