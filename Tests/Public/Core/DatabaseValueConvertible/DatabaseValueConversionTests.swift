@@ -68,15 +68,17 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
                 // Check GRDB conversions from Text storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertEqual((dbv.failableValue() as String?)!, "0")
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as String?)!, "0")
                 XCTAssertEqual((dbv.value() as String), "0")
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
-                
+
                 return .Rollback
             }
             
@@ -88,14 +90,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
                 // Check GRDB conversions from Text storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertEqual((dbv.failableValue() as String?)!, "0")
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as String?)!, "0")
                 XCTAssertEqual((dbv.value() as String), "0")
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -108,14 +112,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
                 // Check GRDB conversions from Text storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertEqual((dbv.failableValue() as String?)!, "0")
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as String?)!, "0")
                 XCTAssertEqual((dbv.value() as String), "0")
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -128,14 +134,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
                 // Check GRDB conversions from Text storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertEqual((dbv.failableValue() as String?)!, "0.0")
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as String?)!, "0.0")
                 XCTAssertEqual((dbv.value() as String), "0.0")
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -148,15 +156,17 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
                 // Check GRDB conversions from Text storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertEqual((dbv.failableValue() as String?)!, "3.0e+5")
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+
                 XCTAssertEqual((dbv.value() as String?)!, "3.0e+5")
                 XCTAssertEqual((dbv.value() as String), "3.0e+5")
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
-                
+
                 return .Rollback
             }
             
@@ -168,14 +178,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
                 // Check GRDB conversions from Text storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertEqual((dbv.failableValue() as String?)!, "foo")
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as String?)!, "foo")
                 XCTAssertEqual((dbv.value() as String), "foo")
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -188,13 +200,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check GRDB conversions from Blob storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
-                XCTAssertTrue((dbv.value() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertEqual((dbv.failableValue() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                
                 XCTAssertEqual((dbv.value() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertTrue((dbv.value() as NSData).isEqualToData("foo".dataUsingEncoding(NSUTF8StringEncoding)!))
                 
                 return .Rollback
             }
@@ -258,6 +273,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -268,8 +291,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -282,6 +303,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -292,8 +321,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -306,6 +333,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -316,8 +351,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -330,6 +363,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, true)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 300000)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(300000))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(300000))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, Double(300000))
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, true)
                 XCTAssertEqual((dbv.value() as Bool), true)
                 XCTAssertEqual((dbv.value() as Int?)!, 300000)
@@ -340,8 +381,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(300000))
                 XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
                 XCTAssertEqual((dbv.value() as Double), Double(300000))
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -354,13 +393,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, true)
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 1e20)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+
                 XCTAssertEqual((dbv.value() as Bool?)!, true)
                 XCTAssertEqual((dbv.value() as Bool), true)
                 XCTAssertEqual((dbv.value() as Double?)!, 1e20)
                 XCTAssertEqual((dbv.value() as Double), 1e20)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
-                
+
                 return .Rollback
             }
             
@@ -372,6 +414,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, true)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 300000)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(300000))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(300000))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, Double(300000))
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, true)
                 XCTAssertEqual((dbv.value() as Bool), true)
                 XCTAssertEqual((dbv.value() as Int?)!, 300000)
@@ -382,8 +432,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(300000))
                 XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
                 XCTAssertEqual((dbv.value() as Double), Double(300000))
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -396,12 +444,15 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage: (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, true)
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 1e20)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, true)
                 XCTAssertEqual((dbv.value() as Bool), true)
                 XCTAssertEqual((dbv.value() as Double?)!, 1e20)
                 XCTAssertEqual((dbv.value() as Double), 1e20)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -414,14 +465,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
                 // Check GRDB conversions from Text storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertEqual((dbv.failableValue() as String?)!, "foo")
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as String?)!, "foo")
                 XCTAssertEqual((dbv.value() as String), "foo")
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -434,13 +487,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check GRDB conversions from Blob storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
-                XCTAssertTrue((dbv.value() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertEqual((dbv.failableValue() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                
                 XCTAssertEqual((dbv.value() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertTrue((dbv.value() as NSData).isEqualToData("foo".dataUsingEncoding(NSUTF8StringEncoding)!))
                 
                 return .Rollback
             }
@@ -464,6 +520,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check GRDB conversions from Integer storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -474,8 +538,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -488,6 +550,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check GRDB conversions from Integer storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -498,8 +568,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -512,6 +580,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check GRDB conversions from Integer storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -522,8 +598,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -536,6 +610,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -546,8 +628,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -560,14 +640,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
                 // Check GRDB conversions from Text storage
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertEqual((dbv.failableValue() as String?)!, "3.0e+5")
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as String?)!, "3.0e+5")
                 XCTAssertEqual((dbv.value() as String), "3.0e+5")
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -580,13 +662,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check GRDB conversions from Blob storage
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
-                XCTAssertTrue((dbv.value() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertEqual((dbv.failableValue() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                
                 XCTAssertEqual((dbv.value() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertTrue((dbv.value() as NSData).isEqualToData("foo".dataUsingEncoding(NSUTF8StringEncoding)!))
                 
                 return .Rollback
             }
@@ -624,6 +709,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check GRDB conversions from Integer storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -634,8 +727,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -648,6 +739,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check GRDB conversions from Integer storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -658,8 +757,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -672,6 +769,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check GRDB conversions from Integer storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, false)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 0)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(0))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(0))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 0.0)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, false)
                 XCTAssertEqual((dbv.value() as Bool), false)
                 XCTAssertEqual((dbv.value() as Int?)!, 0)
@@ -682,8 +787,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(0))
                 XCTAssertEqual((dbv.value() as Double?)!, 0.0)
                 XCTAssertEqual((dbv.value() as Double), 0.0)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -696,6 +799,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check GRDB conversions from Integer storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, true)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 300000)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(300000))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(300000))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, Double(300000))
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, true)
                 XCTAssertEqual((dbv.value() as Bool), true)
                 XCTAssertEqual((dbv.value() as Int?)!, 300000)
@@ -706,8 +817,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(300000))
                 XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
                 XCTAssertEqual((dbv.value() as Double), Double(300000))
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -720,12 +829,15 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, true)
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 1e20)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, true)
                 XCTAssertEqual((dbv.value() as Bool), true)
                 XCTAssertEqual((dbv.value() as Double?)!, 1e20)
                 XCTAssertEqual((dbv.value() as Double), 1e20)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -738,6 +850,14 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Integer)
                 
                 // Check GRDB conversions from Integer storage
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, true)
+                XCTAssertEqual((dbv.failableValue() as Int?)!, 300000)
+                XCTAssertEqual((dbv.failableValue() as Int32?)!, Int32(300000))
+                XCTAssertEqual((dbv.failableValue() as Int64?)!, Int64(300000))
+                XCTAssertEqual((dbv.failableValue() as Double?)!, Double(300000))
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, true)
                 XCTAssertEqual((dbv.value() as Bool), true)
                 XCTAssertEqual((dbv.value() as Int?)!, 300000)
@@ -748,8 +868,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual((dbv.value() as Int64), Int64(300000))
                 XCTAssertEqual((dbv.value() as Double?)!, Double(300000))
                 XCTAssertEqual((dbv.value() as Double), Double(300000))
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -762,12 +880,15 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Real)
                 
                 // Check GRDB conversions from Real storage: (avoid Int, Int32 and Int64 since 1.0e20 does not fit)
+                XCTAssertEqual((dbv.failableValue() as Bool?)!, true)
+                XCTAssertEqual((dbv.failableValue() as Double?)!, 1e20)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as Bool?)!, true)
                 XCTAssertEqual((dbv.value() as Bool), true)
                 XCTAssertEqual((dbv.value() as Double?)!, 1e20)
                 XCTAssertEqual((dbv.value() as Double), 1e20)
-                XCTAssertTrue((dbv.value() as String?) == nil)
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -780,14 +901,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Text)
                 
                 // Check GRDB conversions from Text storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertEqual((dbv.failableValue() as String?)!, "foo")
+                XCTAssertTrue((dbv.failableValue() as NSData?) == nil)
+                
                 XCTAssertEqual((dbv.value() as String?)!, "foo")
                 XCTAssertEqual((dbv.value() as String), "foo")
-                XCTAssertTrue((dbv.value() as NSData?) == nil)
                 
                 return .Rollback
             }
@@ -800,13 +923,16 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertEqual(dbv.storageClass, SQLiteStorageClass.Blob)
                 
                 // Check GRDB conversions from Blob storage:
-                XCTAssertTrue((dbv.value() as Bool?) == nil)
-                XCTAssertTrue((dbv.value() as Int?) == nil)
-                XCTAssertTrue((dbv.value() as Int32?) == nil)
-                XCTAssertTrue((dbv.value() as Int64?) == nil)
-                XCTAssertTrue((dbv.value() as Double?) == nil)
-                XCTAssertTrue((dbv.value() as String?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Bool?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int32?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Int64?) == nil)
+                XCTAssertTrue((dbv.failableValue() as Double?) == nil)
+                XCTAssertTrue((dbv.failableValue() as String?) == nil)
+                XCTAssertEqual((dbv.failableValue() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                
                 XCTAssertEqual((dbv.value() as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                XCTAssertTrue((dbv.value() as NSData).isEqualToData("foo".dataUsingEncoding(NSUTF8StringEncoding)!))
                 
                 return .Rollback
             }

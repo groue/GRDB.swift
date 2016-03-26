@@ -72,21 +72,23 @@ public struct DatabaseValue {
     
     /// Returns the value, converted to the requested type.
     ///
-    /// The result is nil if the SQLite value is NULL, or if the SQLite value
-    /// can not be converted to `Value`.
+    /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
+    /// value is converted to the requested type `Value`. Should this conversion
+    /// fail, a fatal error is raised.
     ///
-    /// Successful conversions include:
-    ///
-    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
-    ///   Bool (zero is the only false boolean).
-    /// - Text SQLite values to Swift String.
-    /// - Blob SQLite values to NSData.
-    ///
-    /// Types that adopt DatabaseValueConvertible can provide more conversions.
+    /// If this fatal error is unacceptable to you, use the
+    /// failableValue() method.
     ///
     /// - returns: An optional *Value*.
+    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>() -> Value? {
-        return Value.fromDatabaseValue(self)
+        if let value = Value.fromDatabaseValue(self) {
+            return value
+        }
+        guard isNull else {
+            fatalError("could not convert \(self) to \(Value.self).")
+        }
+        return nil
     }
     
     /// Returns the value, converted to the requested type.
@@ -94,21 +96,27 @@ public struct DatabaseValue {
     /// This method crashes if the SQLite value is NULL, or if the SQLite value
     /// can not be converted to `Value`.
     ///
-    /// Successful conversions include:
-    ///
-    /// - Integer and real SQLite values to Swift Int, Int32, Int64, Double and
-    ///   Bool (zero is the only false boolean).
-    /// - Text SQLite values to Swift String.
-    /// - Blob SQLite values to NSData.
-    ///
-    /// Types that adopt DatabaseValueConvertible can provide more conversions.
-    ///
     /// - returns: A *Value*.
+    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>() -> Value {
         guard let value = Value.fromDatabaseValue(self) as Value? else {
             fatalError("could not convert \(self) to \(Value.self).")
         }
         return value
+    }
+    
+    /// Returns the value, converted to the requested type.
+    ///
+    /// The result is nil if the SQLite value is NULL, or if the SQLite value
+    /// can not be converted to `Value`.
+    ///
+    /// This method can return nil for non-NULL values. If this is unacceptable
+    /// to you, use the value() method.
+    ///
+    /// - returns: An optional *Value*.
+    @warn_unused_result
+    public func failableValue<Value: DatabaseValueConvertible>() -> Value? {
+        return Value.fromDatabaseValue(self)
     }
     
     

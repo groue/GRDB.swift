@@ -117,8 +117,6 @@ class FunctionTests: GRDBTestCase {
                 XCTAssertTrue(Int64.fetchOne(db, "SELECT asInt64(NULL)") == nil)
                 XCTAssertEqual(Int64.fetchOne(db, "SELECT asInt64(1)")!, 1)
                 XCTAssertEqual(Int64.fetchOne(db, "SELECT asInt64(1.1)")!, 1)
-                XCTAssertTrue(Int64.fetchOne(db, "SELECT asInt64('foo')") == nil)
-                XCTAssertTrue(Int64.fetchOne(db, "SELECT asInt64(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)]) == nil)
             }
         }
     }
@@ -133,8 +131,6 @@ class FunctionTests: GRDBTestCase {
                 XCTAssertTrue(Double.fetchOne(db, "SELECT asDouble(NULL)") == nil)
                 XCTAssertEqual(Double.fetchOne(db, "SELECT asDouble(1)")!, 1.0)
                 XCTAssertEqual(Double.fetchOne(db, "SELECT asDouble(1.1)")!, 1.1)
-                XCTAssertTrue(Double.fetchOne(db, "SELECT asDouble('foo')") == nil)
-                XCTAssertTrue(Double.fetchOne(db, "SELECT asDouble(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)]) == nil)
             }
         }
     }
@@ -147,10 +143,7 @@ class FunctionTests: GRDBTestCase {
             dbQueue.addFunction(fn)
             dbQueue.inDatabase { db in
                 XCTAssertTrue(String.fetchOne(db, "SELECT asString(NULL)") == nil)
-                XCTAssertTrue(String.fetchOne(db, "SELECT asString(1)") == nil)
-                XCTAssertTrue(String.fetchOne(db, "SELECT asString(1.1)") == nil)
                 XCTAssertEqual(String.fetchOne(db, "SELECT asString('foo')")!, "foo")
-                XCTAssertTrue(String.fetchOne(db, "SELECT asString(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)]) == nil)
             }
         }
     }
@@ -163,9 +156,6 @@ class FunctionTests: GRDBTestCase {
             dbQueue.addFunction(fn)
             dbQueue.inDatabase { db in
                 XCTAssertTrue(NSData.fetchOne(db, "SELECT asData(NULL)") == nil)
-                XCTAssertTrue(NSData.fetchOne(db, "SELECT asData(1)") == nil)
-                XCTAssertTrue(NSData.fetchOne(db, "SELECT asData(1.1)") == nil)
-                XCTAssertTrue(NSData.fetchOne(db, "SELECT asData('foo')") == nil)
                 XCTAssertEqual(NSData.fetchOne(db, "SELECT asData(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])!, "foo".dataUsingEncoding(NSUTF8StringEncoding))
             }
         }
@@ -179,11 +169,7 @@ class FunctionTests: GRDBTestCase {
             dbQueue.addFunction(fn)
             dbQueue.inDatabase { db in
                 XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType(NULL)") == nil)
-                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType(1)") == nil)
-                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType(1.1)") == nil)
-                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType('foo')") == nil)
                 XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType('CustomValueType')") != nil)
-                XCTAssertTrue(CustomValueType.fetchOne(db, "SELECT asCustomValueType(?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)]) == nil)
             }
         }
     }

@@ -41,19 +41,19 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0 as Int])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "0")
@@ -61,9 +61,10 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String), "0")
                 }
-                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert "0" to NSData
+//                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -73,19 +74,19 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0 as Int64])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "0")
@@ -93,9 +94,10 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String), "0")
                 }
-                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert "0" to NSData
+//                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -105,19 +107,19 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0 as Int32])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "0")
@@ -125,31 +127,32 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String), "0")
                 }
-                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert "0" to NSData
+//                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
-            // Double is turned to Real
+            // Double is turned to Text
             
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0.0])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "0.0")
@@ -157,9 +160,10 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String), "0.0")
                 }
-                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert "0.0" to NSData
+//                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -169,19 +173,19 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["3.0e+5"])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), true)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 3)              // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 3)            // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 3)            // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 300000.0)    // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "3.0e+5")
@@ -189,9 +193,10 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String), "3.0e+5")
                 }
-                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert "3.0e+5" to NSData
+//                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -201,19 +206,19 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["foo"])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "foo")
@@ -221,9 +226,10 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String), "foo")
                 }
-                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert "foo" to NSData
+//                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -233,22 +239,22 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
                 // Check SQLite conversions from Blob storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "foo")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
@@ -343,11 +349,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0.0")   // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0.0 to NSData
+//                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -387,11 +394,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0.0")   // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0.0 to NSData
+//                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -431,11 +439,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0.0")   // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0.0 to NSData
+//                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -475,11 +484,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), Double(300000))
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "300000.0")    // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 300000.0 to NSData
+//                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -501,11 +511,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 1e20)
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 1e+20 to NSData
+//                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -545,11 +556,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), Double(300000))
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "300000.0")  // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 300000.0 to NSData
+//                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -571,11 +583,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 1e20)
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 1e+20 to NSData
+//                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -585,19 +598,19 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["foo"])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "foo")
@@ -605,9 +618,10 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String), "foo")
                 }
-                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert "foo" to NSData
+//                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -617,22 +631,22 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
                 // Check SQLite conversions from Blob storage:
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "foo")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
@@ -687,11 +701,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0 to NSData
+//                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -731,11 +746,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0 to NSData
+//                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -775,11 +791,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0 to NSData
+//                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -819,11 +836,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0.0")   // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0.0 to NSData
+//                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -833,19 +851,19 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["3.0e+5"])
                 // Check SQLite conversions from Text storage
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), true)      // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 3)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 3)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 3)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 300000.0)    // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "3.0e+5")
@@ -853,9 +871,10 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String), "3.0e+5")
                 }
-                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert "3.0e+5" to NSData
+//                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -865,22 +884,22 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
                 // Check SQLite conversions from Blob storage
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "foo")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
@@ -949,11 +968,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0 to NSData
+//                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -993,11 +1013,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0 to NSData
+//                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -1037,11 +1058,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 0.0)
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "0")     // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 0 to NSData
+//                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -1081,11 +1103,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), Double(300000))
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "300000")    // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 300000 to NSData
+//                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -1107,11 +1130,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 1e20)
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 1e+20 to NSData
+//                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -1151,11 +1175,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), Double(300000))
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "300000")    // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 300000 to NSData
+//                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -1177,11 +1202,12 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as Double), 1e20)
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "1.0e+20")   // incompatible with DatabaseValue conversion
                 }
-                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert 1e+20 to NSData
+//                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -1191,19 +1217,19 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["foo"])
                 // Check SQLite conversions from Text storage:
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String?)!, "foo")
@@ -1211,9 +1237,10 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as String), "foo")
                 }
-                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
-                }
+                // NSData extraction: precondition failed: could not convert "foo" to NSData
+//                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
+//                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
+//                }
                 return .Rollback
             }
             
@@ -1223,22 +1250,22 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                 try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
                 // Check SQLite conversions from Blob storage:
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Bool?) == nil)      // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int?) == nil)       // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int?), 0)          // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int32?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int32?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Int64?) == nil)     // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Int64?), 0)        // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as Double?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as Double?), 0.0)     // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertFalse((row.value(atIndex: 0) as String?) == nil)    // incompatible with DatabaseValue conversion
+                    XCTAssertEqual((row.value(atIndex: 0) as String?), "foo")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))

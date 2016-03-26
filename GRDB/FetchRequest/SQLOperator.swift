@@ -10,8 +10,38 @@ public func == (lhs: _SQLDerivedExpressionType, rhs: _SQLExpressionType?) -> _SQ
 /// Returns an SQL expression that compares two values.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-operators
+public func == (lhs: _SQLDerivedExpressionType, rhs: protocol<_SQLExpressionType, BooleanType>?) -> _SQLExpression {
+    if let rhs = rhs {
+        if rhs.boolValue {
+            return lhs.sqlExpression
+        } else {
+            return .Not(lhs.sqlExpression)
+        }
+    } else {
+        return .Equal(lhs.sqlExpression, .Value(nil))
+    }
+}
+
+/// Returns an SQL expression that compares two values.
+///
+/// See https://github.com/groue/GRDB.swift/#sql-operators
 public func == (lhs: _SQLExpressionType?, rhs: _SQLDerivedExpressionType) -> _SQLExpression {
     return .Equal(lhs?.sqlExpression ?? .Value(nil), rhs.sqlExpression)
+}
+
+/// Returns an SQL expression that compares two values.
+///
+/// See https://github.com/groue/GRDB.swift/#sql-operators
+public func == (lhs: protocol<_SQLExpressionType, BooleanType>?, rhs: _SQLDerivedExpressionType) -> _SQLExpression {
+    if let lhs = lhs {
+        if lhs.boolValue {
+            return rhs.sqlExpression
+        } else {
+            return .Not(rhs.sqlExpression)
+        }
+    } else {
+        return .Equal(.Value(nil), rhs.sqlExpression)
+    }
 }
 
 /// Returns an SQL expression that compares two values.
@@ -34,8 +64,38 @@ public func != (lhs: _SQLDerivedExpressionType, rhs: _SQLExpressionType?) -> _SQ
 /// Returns an SQL expression that compares two values.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-operators
+public func != (lhs: _SQLDerivedExpressionType, rhs: protocol<_SQLExpressionType, BooleanType>?) -> _SQLExpression {
+    if let rhs = rhs {
+        if rhs.boolValue {
+            return .Not(lhs.sqlExpression)
+        } else {
+            return lhs.sqlExpression
+        }
+    } else {
+        return .NotEqual(lhs.sqlExpression, .Value(nil))
+    }
+}
+
+/// Returns an SQL expression that compares two values.
+///
+/// See https://github.com/groue/GRDB.swift/#sql-operators
 public func != (lhs: _SQLExpressionType?, rhs: _SQLDerivedExpressionType) -> _SQLExpression {
     return .NotEqual(lhs?.sqlExpression ?? .Value(nil), rhs.sqlExpression)
+}
+
+/// Returns an SQL expression that compares two values.
+///
+/// See https://github.com/groue/GRDB.swift/#sql-operators
+public func != (lhs: protocol<_SQLExpressionType, BooleanType>?, rhs: _SQLDerivedExpressionType) -> _SQLExpression {
+    if let lhs = lhs {
+        if lhs.boolValue {
+            return .Not(rhs.sqlExpression)
+        } else {
+            return rhs.sqlExpression
+        }
+    } else {
+        return .NotEqual(.Value(nil), rhs.sqlExpression)
+    }
 }
 
 /// Returns an SQL expression that compares two values.

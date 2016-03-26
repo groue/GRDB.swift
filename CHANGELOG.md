@@ -1,6 +1,38 @@
 Release Notes
 =============
 
+## 0.53.0
+
+Released March 25, 2016
+
+**Fixed**
+
+- `Row.value()` and `DatabaseValue.value()` now raise a fatal error when they can not convert a non-NULL value to the requested type ([documentation](https://github.com/groue/GRDB.swift/#column-values)), effectively preventing silent data loss.
+    
+    Use the new `DatabaseValue.failableValue()` method if you need the old behavior that returned nil for failed conversions.
+
+**New**
+
+- `Row.databaseValue(atIndex:)` and `Row.databaseValue(named:)` expose the [DatabaseValues](https://github.com/groue/GRDB.swift/#databasevalue) of a row.
+- `DatabaseValue.failableValue()` returns nil when a non-NULL value can not be converted to the requested type.
+
+
+## 0.52.1
+
+Released March 24, 2016
+
+**Fixed**
+
+- The [query interface](https://github.com/groue/GRDB.swift/#the-query-interface) now generates robust SQL for explicit boolean comparisons.
+    
+    ```swift
+    // SELECT * FROM "pointOfInterests" WHERE "favorite"
+    PointOfInterest.filter(favorite == true).fetchAll(db)
+    ```
+    
+    Previous versions used to generate fragile comparisons to 0 and 1 which did badly interpret true values such as 2.
+
+
 ## 0.52.0
 
 Released March 21, 2016
@@ -8,7 +40,7 @@ Released March 21, 2016
 **New**
 
 - Swift 2.2, and Xcode 7.3
-- `Row` adopts Equatable
+- `Row` adopts the standard `Equatable` protocol.
 
 
 ## 0.51.2
@@ -17,7 +49,7 @@ Released March 14, 2016
 
 **Fixed**
 
-- A race condition that could prevent `Configuration.fileAttributes` to apply to some database files.
+- A race condition that could prevent `Configuration.fileAttributes` from being applied to some database files.
 
 
 ## 0.51.1
