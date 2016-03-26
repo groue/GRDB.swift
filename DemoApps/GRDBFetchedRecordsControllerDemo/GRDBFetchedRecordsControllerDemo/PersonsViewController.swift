@@ -7,6 +7,8 @@ class PersonsViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        navigationItem.leftBarButtonItem = editButtonItem()
+        
         let request = PersonsViewController.personsSortedByScore
         personsController = FetchedRecordsController(dbQueue, request: request, compareRecordsByPrimaryKey: true)
         personsController.delegate = self
@@ -35,6 +37,7 @@ extension PersonsViewController : PersonEditionViewControllerDelegate {
             controller.commitButtonHidden = true
         }
         else if segue.identifier == "NewPerson" {
+            setEditing(false, animated: true)
             let navigationController = segue.destinationViewController as! UINavigationController
             let controller = navigationController.viewControllers.first as! PersonEditionViewController
             controller.title = NSLocalizedString("New Person", comment: "")
@@ -71,7 +74,7 @@ extension PersonsViewController {
     func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
         let person = personsController.recordAtIndexPath(indexPath)
         cell.textLabel?.text = person.name
-        cell.detailTextLabel?.text = "\(person.score) points"
+        cell.detailTextLabel?.text = abs(person.score) > 1 ? "\(person.score) points" : "0 point"
     }
     
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
