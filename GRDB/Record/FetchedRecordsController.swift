@@ -229,7 +229,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         self.source = source
         self.database = database
         self.isSameRecordBuilder = isSameRecordBuilder
-        self.mainQueue = queue
+        self.queue = queue
     }
     
     /// Executes the controller's fetch request.
@@ -248,6 +248,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             let statement = try! self.source.selectStatement(db)
             let items = Item<Record>.fetchAll(statement)
             self.fetchedItems = items
+            self.isSameRecord = self.isSameRecordBuilder(db)
             
             if self.delegate != nil {
                 // Setup a new transaction observer. Use database.write, so that
@@ -257,7 +258,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                     controller: self,
                     initialItems: items,
                     observedTables: statement.sourceTables,
-                    isSameRecord: self.isSameRecordBuilder(db))
+                    isSameRecord: self.isSameRecord)
                 self.observer = observer
                 db.addTransactionObserver(observer)
             }
@@ -309,6 +310,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// The controller registers as a transaction observer in order to respond
     /// to changes.
     public let database: DatabaseWriter
+    
+    /// TODO
+    public let queue: dispatch_queue_t
     
     
     // MARK: - Accessing records
@@ -379,11 +383,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     // MARK: - Not public
     
     
-    // mainQueue protected data exposed in public API
-    private var mainQueue: dispatch_queue_t
-    
     // The items exposed on public API
-    private var fetchedItems: [Item<Record>]?      // protected by mainQueue
+    private var fetchedItems: [Item<Record>]?      // protected by queue
     
     // The record comparator. When the Record type adopts MutablePersistable, we
     // need to wait for performFetch() in order to build it, because
@@ -543,7 +544,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             // No changes?
             guard !changes.isEmpty else { return }
             
-            dispatch_async(controller.mainQueue) {
+            dispatch_async(controller.queue) {
                 // Invalidated?
                 guard let controller = self.controller else { return }
                 
@@ -753,13 +754,13 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 ///         tableView.endUpdates()
 ///     }
 public protocol FetchedRecordsControllerDelegate : class {
-    /// TODO: document that these are called on mainQueue
+    /// TODO: document that these are called on controller.queue
     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>)
     
-    /// TODO: document that these are called on mainQueue
+    /// TODO: document that these are called on controller.queue
     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent)
     
-    /// TODO: document that these are called on mainQueue
+    /// TODO: document that these are called on controller.queue
     func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>)
 }
 
