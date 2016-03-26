@@ -230,6 +230,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// This method must be used from the main thread unless the controller has
     /// been initialized with a custom dispatch queue.
     public func performFetch() {
+        // TODO: we need to invalidate pending changes notifications
+        // TODO: observe when and only when there is a delegate
+        
         // Use database.write, so that we are serialized with transaction
         // callbacks, which happen on the writing queue.
         database.write { db in
