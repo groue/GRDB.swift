@@ -705,8 +705,8 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 /// records controller as illustrated in the following example:
 ///
 ///     // Assume self has a tableView property, and a
-///     // configureCell(_:atIndexPath:) which updates the contents of a given
-///     // cell.
+///     // configureCell(_:atIndexPath:) method which updates the contents of a
+///     // given cell.
 ///
 ///     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) {
 ///         tableView.beginUpdates()
@@ -799,12 +799,17 @@ extension FetchedRecordsControllerDelegate {
 // =============================================================================
 // MARK: - FetchedRecordsSectionInfo
 
+/// A section given by a FetchedRecordsController.
 public struct FetchedRecordsSectionInfo<T: RowConvertible> {
     private let controller: FetchedRecordsController<T>
+    
+    /// The number of records (rows) in the section.
     public var numberOfRecords: Int {
         // We only support a single section
         return controller.fetchedItems!.count
     }
+    
+    /// The array of records in the section.
     public var records: [T] {
         // We only support a single section
         return controller.fetchedItems!.map { $0.record }
@@ -815,14 +820,32 @@ public struct FetchedRecordsSectionInfo<T: RowConvertible> {
 // =============================================================================
 // MARK: - FetchedRecordsEvent
 
+/// A change event given by a FetchedRecordsController to its delegate.
+///
+/// The move and update events hold a *changes* dictionary. Its keys are column
+/// names, and values the old values that have been changed.
 public enum FetchedRecordsEvent {
+    
+    /// An insertion event, at given indexPath.
     case Insertion(indexPath: NSIndexPath)
+    
+    /// A deletion event, at given indexPath.
     case Deletion(indexPath: NSIndexPath)
+    
+    /// A move event, from indexPath to newIndexPath. The *changes* are a
+    /// dictionary whose keys are column names, and values the old values that
+    /// have been changed.
     case Move(indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
+    
+    /// An update event, at given indexPath. The *changes* are a dictionary
+    /// whose keys are column names, and values the old values that have
+    /// been changed.
     case Update(indexPath: NSIndexPath, changes: [String: DatabaseValue])
 }
 
 extension FetchedRecordsEvent: CustomStringConvertible {
+    
+    /// A textual representation of `self`.
     public var description: String {
         switch self {
         case .Insertion(let indexPath):
@@ -869,6 +892,8 @@ private enum DatabaseSource<T> {
 
 private final class Item<T: RowConvertible> : RowConvertible, Equatable {
     let row: Row
+    
+    // TODO: Is is a good idea to lazily load records?
     lazy var record: T = {
         var record = T(self.row)
         record.awakeFromFetch(row: self.row)
@@ -896,7 +921,6 @@ private enum ItemChange<T: RowConvertible> {
 }
 
 extension ItemChange {
-
     var record: T {
         switch self {
         case .Insertion(item: let item, indexPath: _):
