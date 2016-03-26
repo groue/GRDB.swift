@@ -30,9 +30,6 @@
       location = "group:Tests/GRDBProfiling/GRDBProfiling.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:DemoApps/GRDBFetchedRecordsControllerDemo/GRDBFetchedRecordsControllerDemo.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "group:DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj">
    </FileRef>
    <FileRef

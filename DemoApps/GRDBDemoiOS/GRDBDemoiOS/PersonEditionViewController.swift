@@ -1,61 +1,104 @@
 import UIKit
 
-class PersonEditionViewController: UITableViewController, UITextFieldDelegate {
-    @IBOutlet weak var firstNameTableViewCell: UITableViewCell!
-    @IBOutlet weak var firstNameTextField: UITextField!
-    @IBOutlet weak var lastNameTableViewCell: UITableViewCell!
-    @IBOutlet weak var lastNameTextField: UITextField!
+protocol PersonEditionViewControllerDelegate: class {
+    func personEditionControllerDidComplete(controller: PersonEditionViewController)
+}
+
+class PersonEditionViewController: UITableViewController {
+    weak var delegate: PersonEditionViewControllerDelegate?
+    var person: Person! { didSet { configureView() } }
+    var cancelButtonHidden: Bool = false { didSet { configureView() } }
+    var commitButtonHidden: Bool = false { didSet { configureView() } }
+
+    @IBOutlet private weak var cancelBarButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var commitBarButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var nameCell: UITableViewCell!
+    @IBOutlet private weak var nameTextField: UITextField!
+    @IBOutlet private weak var scoreCell: UITableViewCell!
+    @IBOutlet private weak var scoreTextField: UITextField!
     
-    // The edited person
-    var person: Person!
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        // Initializes textFields with the person's names
-        firstNameTextField.text = person.firstName
-        lastNameTextField.text = person.lastName
+    func applyChanges() {
+        if let name = nameTextField.text where !name.isEmpty {
+            person.name = name
+        }
+        person.score = scoreTextField.text.flatMap { Int($0) } ?? 0
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        
-        // Auto focus firstName
-        firstNameTextField.becomeFirstResponder()
+        configureView()
+        nameTextField.becomeFirstResponder()
     }
     
+    private func configureView() {
+        guard isViewLoaded() else { return }
+        
+        nameTextField.text = person.name
+        if person.score == 0 && person.id == nil {
+            scoreTextField.text = ""
+        } else {
+            scoreTextField.text = "\(person.score)"
+        }
+    
+        if cancelButtonHidden {
+            navigationItem.leftBarButtonItem = nil
+        } else {
+            navigationItem.leftBarButtonItem = cancelBarButtonItem
+        }
+
+        if cancelButtonHidden {
+            navigationItem.rightBarButtonItem = nil
+        } else {
+            navigationItem.rightBarButtonItem = commitBarButtonItem
+        }
+    }
+}
+
+
+// MARK: - Navigation
+
+extension PersonEditionViewController {
+    
+    override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
+        // Force keyboard to dismiss early
+        view.endEditing(true)
+        return true
+    }
+    
+    override func willMoveToParentViewController(parent: UIViewController?) {
+        super.willMoveToParentViewController(parent)
+        
+        if parent == nil {
+            // Self is popping from its navigation controller
+            delegate?.personEditionControllerDidComplete(self)
+        }
+    }
+    
+}
+
+
+// MARK: - Form
+
+extension PersonEditionViewController: UITextFieldDelegate {
+    
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        // Tapping a cell selects its text fields.
-        if indexPath == tableView.indexPathForCell(firstNameTableViewCell) {
-            firstNameTextField.becomeFirstResponder()
-        } else if indexPath == tableView.indexPathForCell(lastNameTableViewCell) {
-            lastNameTextField.becomeFirstResponder()
+        tableView.deselectRowAtIndexPath(indexPath, animated: false)
+        
+        guard let cell = tableView.cellForRowAtIndexPath(indexPath) else {
+            return
+        }
+        
+        if cell == nameCell {
+            nameTextField.becomeFirstResponder()
+        } else if cell == scoreCell {
+            scoreTextField.becomeFirstResponder()
         }
     }
     
     func textFieldShouldReturn(textField: UITextField) -> Bool {
-        // Tapping Return key focuses next text field.
-        if textField == firstNameTextField {
-            lastNameTextField.becomeFirstResponder()
-        } else {
-            textField.resignFirstResponder()
+        if textField == nameTextField {
+            scoreTextField.becomeFirstResponder()
         }
         return false
-    }
-    
-    func textFieldDidEndEditing(textField: UITextField) {
-        // Update person when text field ends editing.
-        if textField == firstNameTextField {
-            person.firstName = textField.text
-        } else if textField == lastNameTextField {
-            person.lastName = textField.text
-        }
-    }
-    
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // About to cancel or commit: end editing.
-        // This dismisses the keyboard early, and apply pending changes through
-        // textFieldDidEndEditing(_).
-        view.endEditing(true)
     }
 }

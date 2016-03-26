@@ -1,23 +1,17 @@
 import GRDB
 
-class Person : Record {
-    var id: Int64!
-    var firstName: String?
-    var lastName: String?
-    var fullName: String {
-        return [firstName, lastName].flatMap { $0 }.filter { !$0.isEmpty }.joinWithSeparator(" ")
-    }
-    var visible: Bool = true
-    var position: Int64 = 0
+class Person: Record {
+    var id: Int64?
+    var name: String
+    var score: Int
     
-    init(firstName: String? = nil, lastName: String? = nil) {
-        self.firstName = firstName
-        self.lastName = lastName
+    init(name: String, score: Int) {
+        self.name = name
+        self.score = score
         super.init()
     }
     
-    
-    // MARK: - Record
+    // MARK: Record overrides
     
     override class func databaseTableName() -> String {
         return "persons"
@@ -25,36 +19,19 @@ class Person : Record {
     
     required init(_ row: Row) {
         id = row.value(named: "id")
-        firstName = row.value(named: "firstName")
-        lastName = row.value(named: "lastName")
-        visible = row.value(named: "visible")
-        position = row.value(named: "position")
+        name = row.value(named: "name")
+        score = row.value(named: "score")
         super.init(row)
-        
     }
     
-    override var persistentDictionary: [String: DatabaseValueConvertible?] {
+    override var persistentDictionary: [String : DatabaseValueConvertible?] {
         return [
             "id": id,
-            "firstName": firstName,
-            "lastName": lastName,
-            "visible": visible,
-            "position": position]
+            "name": name,
+            "score": score]
     }
     
     override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
         id = rowID
-    }
-    
-    override func insert(db: DatabaseWriter) throws {
-        
-        // Basic Ordering
-        if self.position == 0 {
-            if let maxPosition = Int.fetchOne(db, "SELECT MAX(position) from persons") {
-                self.position = maxPosition + 1
-            }
-        }
-        
-        try super.insert(db)
     }
 }
