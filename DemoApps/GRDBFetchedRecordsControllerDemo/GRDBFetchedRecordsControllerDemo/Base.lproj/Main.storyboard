@@ -296,6 +296,9 @@
                                         </label>
                                     </subviews>
                                 </tableViewCellContentView>
+                                <connections>
+                                    <segue destination="iNr-Oe-muq" kind="show" identifier="EditPerson" id="Lgu-Yd-HSy"/>
+                                </connections>
                             </tableViewCell>
                         </prototypes>
                         <connections>
@@ -312,7 +315,6 @@
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <segue destination="ein-Sr-i8w" kind="presentation" identifier="NewPerson" id="7PC-xN-zD4"/>
-                        <segue destination="iNr-Oe-muq" kind="show" identifier="EditPerson" id="zhO-ej-K6t"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="af5-Qo-AkD" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -322,6 +324,6 @@
     </scenes>
     <inferredMetricsTieBreakers>
         <segue reference="7PC-xN-zD4"/>
-        <segue reference="zhO-ej-K6t"/>
+        <segue reference="Lgu-Yd-HSy"/>
     </inferredMetricsTieBreakers>
 </document>
