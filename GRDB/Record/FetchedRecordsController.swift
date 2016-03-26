@@ -236,9 +236,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     /// After executing this method, you can access the the fetched objects with
     /// the property fetchedRecords.
-    ///
-    /// This method must be used from the main thread unless the controller has
-    /// been initialized with a custom dispatch queue.
     public func performFetch() {
         // If some changes are currently processed, make sure they are discarded.
         observer?.invalidate()
@@ -269,9 +266,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     // MARK: - Configuration
     
     /// The object that is notified when the fetched records changed.
-    ///
-    /// This property must be used from the main thread unless the controller
-    /// has been initialized with a custom dispatch queue.
     public weak var delegate: FetchedRecordsControllerDelegate? {
         didSet {
             // Setting the delegate to nil *will* stop database changes
@@ -324,9 +318,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// The records reflect the state of the database after the initial
     /// call to performFetch, and after each database transaction that affects
     /// the results of the fetch request.
-    ///
-    /// This method must be used from the main thread unless the controller has
-    /// been initialized with a custom dispatch queue.
     public var fetchedRecords: [Record]? {
         guard let fetchedItems = fetchedItems else {
             return nil
@@ -335,9 +326,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     }
     
     /// Returns the object at the given index path.
-    ///
-    /// This method must be used from the main thread unless the controller has
-    /// been initialized with a custom dispatch queue.
     ///
     /// - parameter indexPath: An index path in the fetched records.
     ///
@@ -351,9 +339,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     }
     
     /// Returns the indexPath of a given record.
-    ///
-    /// This method must be used from the main thread unless the controller has
-    /// been initialized with a custom dispatch queue.
     ///
     /// - returns: The index path of *record* in the fetched records, or nil if
     ///   record could not be found.
@@ -371,9 +356,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     /// You typically use the sections array when implementing
     /// UITableViewDataSource methods, such as `numberOfSectionsInTableView`.
-    ///
-    /// This method must be used from the main thread unless the controller has
-    /// been initialized with a custom dispatch queue.
     public var sections: [FetchedRecordsSectionInfo<Record>] {
         // We only support a single section
         return [FetchedRecordsSectionInfo(controller: self)]
@@ -383,8 +365,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     // MARK: - Not public
     
     
-    // The items exposed on public API
-    private var fetchedItems: [Item<Record>]?      // protected by queue
+    // The items
+    private var fetchedItems: [Item<Record>]?
     
     // The record comparator. When the Record type adopts MutablePersistable, we
     // need to wait for performFetch() in order to build it, because
