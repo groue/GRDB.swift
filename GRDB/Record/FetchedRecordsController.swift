@@ -575,20 +575,26 @@ extension FetchedRecordsController where Record: MutablePersistable {
 
 // MARK: - <TransactionObserverType>
 
+/// FetchedRecordsController adopts TransactionObserverType so that it can
+/// monitor changes to its fetched records.
 extension FetchedRecordsController : TransactionObserverType {
     
+    /// Part of the TransactionObserverType protocol
     public func databaseDidChangeWithEvent(event: DatabaseEvent) {
         if observedTables.contains(event.tableName) {
             needsComputeChanges = true
         }
     }
     
+    /// Part of the TransactionObserverType protocol
     public func databaseWillCommit() throws { }
     
+    /// Part of the TransactionObserverType protocol
     public func databaseDidRollback(db: Database) {
         needsComputeChanges = false
     }
     
+    /// Part of the TransactionObserverType protocol
     public func databaseDidCommit(db: Database) {
         // The databaseDidCommit callback is called in a serialized dispatch
         // queue: It is guaranteed to process the last database transaction.
@@ -639,7 +645,54 @@ extension FetchedRecordsController : TransactionObserverType {
 // =============================================================================
 // MARK: - FetchedRecordsControllerDelegate
 
-/// TODO
+/// An instance of FetchedRecordsController uses methods in this protocol to
+/// notify its delegate that the controller’s fetched records have been changed
+/// due to some add, remove, move, or update operations.
+///
+///
+/// # Typical Use
+///
+/// You can use controllerWillChangeRecords: and controllerDidChangeRecord: to
+/// bracket updates to a table view whose content is provided by the fetched
+/// records controller as illustrated in the following example:
+///
+///     // Assume self has a tableView property, and a
+///     // configureCell(_:atIndexPath:) which updates the contents of a given
+///     // cell.
+///
+///     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) {
+///         tableView.beginUpdates()
+///     }
+///
+///     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) {
+///         switch event {
+///         case .Insertion(let indexPath):
+///             tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+///
+///         case .Deletion(let indexPath):
+///             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+///
+///         case .Update(let indexPath, _):
+///             if let cell = tableView.cellForRowAtIndexPath(indexPath) {
+///                 configureCell(cell, atIndexPath: indexPath)
+///             }
+///
+///         case .Move(let indexPath, let newIndexPath, _):
+///             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+///             tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
+///
+///             // // Alternate technique (which actually moves cells around):
+///             // let cell = tableView.cellForRowAtIndexPath(indexPath)
+///             // tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+///             // if let cell = cell {
+///             //     configureCell(cell, atIndexPath: newIndexPath)
+///             // }
+///         }
+///     }
+///
+///     func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
+///         tableView.endUpdates()
+///     }
 public protocol FetchedRecordsControllerDelegate : class {
     /// TODO: document that these are called on mainQueue
     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>)
