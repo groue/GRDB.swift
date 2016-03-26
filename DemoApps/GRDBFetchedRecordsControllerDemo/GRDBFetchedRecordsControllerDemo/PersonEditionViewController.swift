@@ -12,7 +12,9 @@ class PersonEditionViewController: UITableViewController {
 
     @IBOutlet private weak var cancelBarButtonItem: UIBarButtonItem!
     @IBOutlet private weak var commitBarButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var nameCell: UITableViewCell!
     @IBOutlet private weak var nameTextField: UITextField!
+    @IBOutlet private weak var scoreCell: UITableViewCell!
     @IBOutlet private weak var scoreTextField: UITextField!
     
     func applyChanges() {
@@ -26,20 +28,15 @@ class PersonEditionViewController: UITableViewController {
         nameTextField.becomeFirstResponder()
     }
     
-    override func willMoveToParentViewController(parent: UIViewController?) {
-        super.willMoveToParentViewController(parent)
-        
-        if parent == nil {
-            // Self is popping from its navigation controller
-            delegate?.personEditionControllerDidComplete(self)
-        }
-    }
-    
     private func configureView() {
         guard isViewLoaded() else { return }
         
         nameTextField.text = person.name
-        scoreTextField.text = "\(person.score)"
+        if person.score == 0 && person.id == nil {
+            scoreTextField.text = ""
+        } else {
+            scoreTextField.text = "\(person.score)"
+        }
     
         if cancelButtonHidden {
             navigationItem.leftBarButtonItem = nil
@@ -52,5 +49,54 @@ class PersonEditionViewController: UITableViewController {
         } else {
             navigationItem.rightBarButtonItem = commitBarButtonItem
         }
+    }
+}
+
+
+// MARK: - Navigation
+
+extension PersonEditionViewController {
+    
+    override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
+        // Force keyboard to dismiss early
+        view.endEditing(true)
+        return true
+    }
+    
+    override func willMoveToParentViewController(parent: UIViewController?) {
+        super.willMoveToParentViewController(parent)
+        
+        if parent == nil {
+            // Self is popping from its navigation controller
+            delegate?.personEditionControllerDidComplete(self)
+        }
+    }
+    
+}
+
+
+// MARK: - Form
+
+extension PersonEditionViewController: UITextFieldDelegate {
+    
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        tableView.deselectRowAtIndexPath(indexPath, animated: false)
+        
+        guard let cell = tableView.cellForRowAtIndexPath(indexPath) else {
+            return
+        }
+        
+        if cell == nameCell {
+            nameTextField.becomeFirstResponder()
+        } else if cell == scoreCell {
+            scoreTextField.becomeFirstResponder()
+        }
+    }
+    
+    func textFieldShouldReturn(textField: UITextField) -> Bool {
+        if textField == nameTextField {
+            scoreTextField.becomeFirstResponder()
+        }
+        return false
     }
 }
