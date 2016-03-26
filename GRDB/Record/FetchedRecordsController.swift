@@ -783,7 +783,7 @@ public protocol FetchedRecordsControllerDelegate : class {
     func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>)
 }
 
-extension FetchedRecordsControllerDelegate {
+public extension FetchedRecordsControllerDelegate {
     /// The default implementation does nothing.
     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) { }
 
