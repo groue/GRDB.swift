@@ -554,6 +554,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         // Invalidated?
         guard let controller = self.controller else { return }
         
+        // TODO: how can we perform this in a parallel thread?
         let statement = try! controller.source.selectStatement(db)
         let fetchedItems = Item<Record>.fetchAll(statement)
         
