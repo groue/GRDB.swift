@@ -2,12 +2,12 @@ import Foundation
 
 /// A class that serializes accesses to a database.
 final class SerializedDatabase {
-    /// The database
-    private let database: Database
+    /// The database connection
+    private let db: Database
     
     /// The database configuration
     var configuration: Configuration {
-        return database.configuration
+        return db.configuration
     }
     
     /// The dispatch queue
@@ -34,13 +34,13 @@ final class SerializedDatabase {
         var config = configuration
         config.threadingMode = .MultiThread
         
-        database = try Database(path: path, configuration: config, schemaCache: schemaCache)
+        db = try Database(path: path, configuration: config, schemaCache: schemaCache)
         queue = dispatch_queue_create("GRDB.SerializedDatabase", nil)
         
         // Activate database.preconditionValidQueue()
-        let dispatchQueueID = unsafeBitCast(database, UnsafeMutablePointer<Void>.self)
+        let dispatchQueueID = unsafeBitCast(db, UnsafeMutablePointer<Void>.self)
         dispatch_queue_set_specific(queue, Database.dispatchQueueIDKey, dispatchQueueID, nil)
-        database.dispatchQueueID = dispatchQueueID
+        db.dispatchQueueID = dispatchQueueID
     }
     
     /// Synchronously executes a block a serialized dispatch queue, and returns
@@ -75,10 +75,20 @@ final class SerializedDatabase {
         //
         // I try not to ship half-baked solutions, so until a complete solution
         // is found to this problem, I prefer discouraging reentrancy.
-        precondition(database.dispatchQueueID != dispatch_get_specific(Database.dispatchQueueIDKey), "Database methods are not reentrant.")
+        precondition(db.dispatchQueueID != dispatch_get_specific(Database.dispatchQueueIDKey), "Database methods are not reentrant.")
         return try dispatchSync(queue) {
-            try block(db: self.database)
+            try block(db: self.db)
         }
+    }
+    
+    func asyncInDatabase(block: (db: Database) -> Void) {
+        dispatch_async(queue) {
+            block(db: self.db)
+        }
+    }
+    
+    func preconditionValidQueue() {
+        db.preconditionValidQueue()
     }
 }
 
@@ -111,5 +121,10 @@ extension SerializedDatabase : DatabaseReader {
 extension SerializedDatabase : DatabaseWriter {
     func write<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try inDatabase { try $0.write(block) }
+    }
+    
+    func readFromWrite(block: (db: Database) -> Void) {
+        db.preconditionValidQueue()
+        block(db: db)
     }
 }

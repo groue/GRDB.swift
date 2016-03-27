@@ -1153,9 +1153,11 @@ public struct DatabaseEvent {
     public let kind: Kind
     
     /// The database name
+    // TODO: make it lazy
     public let databaseName: String
     
     /// The table name
+    // TODO: make it lazy
     public let tableName: String
     
     /// The rowID of the changed row.
@@ -1168,10 +1170,10 @@ public struct DatabaseEvent {
 
 extension Database : DatabaseReader {
     
-    // MARK: - Read From Database
+    // MARK: - DatabaseReader Protocol Adoption
     
-    /// Evalutes the *block* argument in a deferred transaction, and returns
-    /// its result.
+    /// Synchronously evalutes the *block* argument in a deferred transaction,
+    /// and returns its result.
     ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
@@ -1179,7 +1181,8 @@ extension Database : DatabaseReader {
         // we run the block in a transaction.
         //
         // Problem is, our inTransaction() method is declared as a `throws`
-        // function, not a `rethrows` function.
+        // function, not a `rethrows` function. That's on purpose: immediate and
+        // exclusive transactions may throw their own locking errors.
         //
         // We could update DatabaseReader and make the read() method `throws`.
         //
@@ -1198,15 +1201,15 @@ extension Database : DatabaseReader {
             }
             return result!
         }
+        preconditionValidQueue()
         return try impl(block, onError: { throw $0 })
     }
     
-    /// Evalutes the *block* argument and returns its result.
+    /// Synchronously evalutes the *block* argument, and returns its result.
     ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        // The isolation guarantees required by DatabaseReader.nonIsolatedRead
-        // are inherited from our wrapping DatabaseQueue or DatabasePool.
+        preconditionValidQueue()
         return try block(db: self)
     }
 }
@@ -1217,14 +1220,20 @@ extension Database : DatabaseReader {
 
 extension Database : DatabaseWriter {
     
-    // MARK: - Writing in Database
+    // MARK: - DatabaseWriter Protocol Adoption
     
-    /// Evalutes the *block* argument and returns its result.
+    /// Synchronously evalutes the *block* argument, and returns its result.
     ///
     /// This method is part of the DatabaseWriter protocol adoption.
     public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
-        // The isolation guarantees required by DatabaseWriter.write are
-        // inherited from our wrapping DatabaseQueue or DatabasePool.
+        preconditionValidQueue()
         return try block(db: self)
+    }
+    
+    /// Synchronously evalutes the *block* argument in a deferred transaction.
+    ///
+    /// This method is part of the DatabaseWriter protocol adoption.
+    public func readFromWrite(block: (db: Database) -> Void) {
+        read(block)
     }
 }

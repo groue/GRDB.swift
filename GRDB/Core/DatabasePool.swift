@@ -143,7 +143,7 @@ extension DatabasePool : DatabaseReader {
     // MARK: - Read From Database
     
     /// Synchronously executes a read-only block in a protected dispatch queue,
-    /// and returns its result. The block is wrapped in a transaction.
+    /// and returns its result. The block is wrapped in a deferred transaction.
     ///
     ///     let persons = dbPool.read { db in
     ///         Person.fetchAll(...)
@@ -312,11 +312,50 @@ extension DatabasePool : DatabaseWriter {
     ///     - block: A block that executes SQL statements and return either
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
-    public func writeInTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) rethrows {
+    public func writeInTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) throws {
         try writer.inDatabase { db in
             try db.inTransaction(kind) {
                 try block(db: db)
             }
         }
+    }
+    
+    /// Asynchronously executes a read-only block in a protected dispatch queue,
+    /// wrapped in a deferred transaction.
+    ///
+    /// This method must be called from the writing dispatch queue.
+    ///
+    /// The *block* argument is guaranteed to see the database in the state it
+    /// has at the moment this method is called. Eventual concurrent
+    /// database updates are *not visible* inside the block.
+    ///
+    ///     try dbPool.write { db in
+    ///         try db.execute("DELETE FROM persons")
+    ///         dbPool.readFromWrite { db in
+    ///             // Guaranteed to be zero
+    ///             Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///         }
+    ///         try db.execute("INSERT INTO persons ...")
+    ///     }
+    ///
+    /// This method blocks the current thread until the isolation guarantee has
+    /// been established.
+    ///
+    /// The database pool releases the writing dispatch queue early, before the
+    /// block has finished.
+    public func readFromWrite(block: (db: Database) -> Void) {
+        writer.preconditionValidQueue()
+        
+        let s = dispatch_semaphore_create(0)
+        self.readerPool.get { reader in
+            reader.asyncInDatabase { db in
+                db.read { db in
+                    // Now we're isolated: release the writing queue
+                    dispatch_semaphore_signal(s)
+                    block(db: db)
+                }
+            }
+        }
+        dispatch_semaphore_wait(s, DISPATCH_TIME_FOREVER)
     }
 }

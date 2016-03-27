@@ -30,6 +30,34 @@ public protocol DatabaseWriter : DatabaseReader {
     /// The *block* argument is completely isolated. Eventual concurrent
     /// database updates are postponed until the block has executed.
     func write<T>(block: (db: Database) throws -> T) rethrows -> T
+    
+    
+    // MARK: - Reading from Database
+    
+    /// Synchronously or asynchronously executes a read-only block that takes a
+    /// database connection.
+    ///
+    /// This method must be called from a writing dispatch queue.
+    ///
+    /// The *block* argument is guaranteed to see the database in the state it
+    /// has at the moment this method is called. Eventual concurrent
+    /// database updates are *not visible* inside the block.
+    ///
+    ///     try writer.write { db in
+    ///         try db.execute("DELETE FROM persons")
+    ///         writer.readFromWrite { db in
+    ///             // Guaranteed to be zero
+    ///             Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+    ///         }
+    ///         try db.execute("INSERT INTO persons ...")
+    ///     }
+    ///
+    /// This method gives DatabasePool an opportunity to run *block*
+    /// asynchronously in a concurrent reader dispatch queue, and release the
+    /// writing dispatch queue early, before the block has finished.
+    ///
+    /// DatabaseQueue simply runs *block* synchronously.
+    func readFromWrite(block: (db: Database) -> Void)
 }
 
 extension DatabaseWriter {

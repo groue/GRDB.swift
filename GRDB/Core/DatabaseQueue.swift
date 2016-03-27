@@ -141,21 +141,20 @@ public final class DatabaseQueue {
 
 extension DatabaseQueue : DatabaseReader {
     
-    
-    // MARK: - Read From Database
+    // MARK: - DatabaseReader Protocol Adoption
     
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try inDatabase(block)
+        return try serializedDatabase.inDatabase(block)
     }
     
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try inDatabase(block)
+        return try serializedDatabase.inDatabase(block)
     }
     
     
@@ -211,12 +210,20 @@ extension DatabaseQueue : DatabaseReader {
 
 extension DatabaseQueue : DatabaseWriter {
     
-    // MARK: - Writing in Database
+    // MARK: - DatabaseWriter Protocol Adoption
     
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseWriter protocol adoption.
     public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try inDatabase(block)
+        return try serializedDatabase.inDatabase(block)
+    }
+
+    /// Executes *block*.
+    ///
+    /// This method is part of the DatabaseWriter protocol adoption, and must
+    /// be called from the protected database dispatch queue.
+    public func readFromWrite(block: (db: Database) -> Void) {
+        serializedDatabase.readFromWrite(block)
     }
 }
