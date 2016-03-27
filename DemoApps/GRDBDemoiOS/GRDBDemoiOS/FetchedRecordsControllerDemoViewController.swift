@@ -168,14 +168,19 @@ extension FetchedRecordsControllerDemoViewController {
                 target: self,
                 action: #selector(FetchedRecordsControllerDemoViewController.sortByScore)),
             UIBarButtonItem(
+                title: NSLocalizedString("Randomize", comment: ""),
+                style: .Plain,
+                target: self,
+                action: #selector(FetchedRecordsControllerDemoViewController.randomizeScores)),
+            UIBarButtonItem(
                 barButtonSystemItem: .FlexibleSpace,
                 target: nil,
                 action: nil),
             UIBarButtonItem(
-                title: NSLocalizedString("Randomize Scores", comment: ""),
+                title: NSLocalizedString("💣", comment: ""),
                 style: .Plain,
                 target: self,
-                action: #selector(FetchedRecordsControllerDemoViewController.randomizeScores))
+                action: #selector(FetchedRecordsControllerDemoViewController.stress))
         ]
     }
     
@@ -190,10 +195,39 @@ extension FetchedRecordsControllerDemoViewController {
     @IBAction func randomizeScores() {
         try! dbQueue.inTransaction { db in
             for person in Person.fetch(db) {
-                person.score = 10 * (1 + Int(arc4random()) % 50)
+                person.score = randomScore()
                 try person.update(db)
             }
             return .Commit
+        }
+    }
+    
+    @IBAction func stress() {
+        // Spawn some concurrent background jobs
+        for _ in 0...Int(arc4random_uniform(20)) {
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+                try! dbQueue.inTransaction { db in
+                    // Insert a person
+                    if arc4random_uniform(2) == 0 {
+                        let person = Person(name: randomName(), score: randomScore())
+                        try person.insert(db)
+                    }
+                    // Delete a person
+                    if arc4random_uniform(2) == 0 {
+                        if let person = Person.order(sql: "RANDOM()").fetchOne(db) {
+                            try person.delete(db)
+                        }
+                    }
+                    // Update some persons
+                    for person in Person.fetchAll(db) {
+                        if arc4random_uniform(4) == 0 {
+                            person.score = randomScore()
+                            try person.update(db)
+                        }
+                    }
+                    return .Commit
+                }
+            }
         }
     }
 }

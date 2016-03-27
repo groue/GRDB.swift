@@ -40,12 +40,20 @@ func setupDatabase() {
             ")")
     }
     migrator.registerMigration("addPersons") { db in
-        try Person(name: "Alice", score: 150).insert(db)
-        try Person(name: "Bob", score: 70).insert(db)
-        try Person(name: "Craig", score: 220).insert(db)
-        try Person(name: "David", score: 80).insert(db)
-        try Person(name: "Elise", score: 100).insert(db)
-        try Person(name: "Fiona", score: 40).insert(db)
+        for _ in 0..<8 {
+            try Person(name: randomName(), score: randomScore()).insert(db)
+        }
     }
     try! migrator.migrate(dbQueue)
+}
+
+
+private let names = ["Arthur", "Anita", "Barbara", "Bernard", "Craig", "Chiara", "David", "Dean", "Éric", "Elena", "Fatima", "Frederik", "Gilbert", "Georgette", "Henriette", "Hassan", "Ignacio", "Irene", "Julie", "Jack", "Karl", "Kristel", "Louis", "Liz", "Masashi", "Mary", "Noam", "Nicole", "Ophelie", "Oleg", "Pascal", "Patricia", "Quentin", "Quinn", "Raoul", "Rachel", "Stephan", "Susie", "Tristan", "Tatiana", "Ursule", "Urbain", "Victor", "Violette", "Wilfried", "Wilhelmina", "Yvon", "Yann", "Zazie", "Zoé"]
+
+func randomName() -> String {
+    return names[Int(arc4random_uniform(UInt32(names.count)))]
+}
+
+func randomScore() -> Int {
+    return 10 * (1 + Int(arc4random_uniform(50)))
 }
