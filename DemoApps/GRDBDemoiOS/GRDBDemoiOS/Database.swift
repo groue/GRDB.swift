@@ -55,5 +55,5 @@ func randomName() -> String {
 }
 
 func randomScore() -> Int {
-    return 10 * (1 + Int(arc4random_uniform(50)))
+    return 10 * Int(arc4random_uniform(101))
 }
