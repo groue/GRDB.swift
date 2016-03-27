@@ -2589,7 +2589,7 @@ try PointOfInterest(...).insert(dbQueue)
 let pois = PointOfInterest.filter(favorite == true).order(title).fetchAll(dbQueue)
 ```
 
-**Rule 2: Use the safe `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods unless you know what you are doing.**
+**Rule 2: Group your related statements with the safe `inDatabase`, `inTransaction`, `read`, `write` and `writeInTransaction` methods, unless you know what you are doing.**
 
 
 ### Advanced Concurrency
