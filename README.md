@@ -2434,7 +2434,7 @@ let controller = FetchedRecordsController<Person>(
 ```
 
 
-### The Controllers's Delegate
+### The Controller's Delegate
 
 Any change in the database that affects the record set is processed and the records are updated accordingly. The controller notifies the delegate when records change location (see [FetchedRecordsControllerDelegate](#fetchedrecordscontrollerdelegate)). You typically use these methods to update the display of the table view.
 
