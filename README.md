@@ -2465,7 +2465,7 @@ func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexP
 
 ### Responding to Changes
 
-In general, FetchedRecordsController is designed to respond to changes at *the database layer*, by informing its delegate when *database rows* change location or values.
+In general, FetchedRecordsController is designed to respond to changes at *the database layer*, by informing its [delegate](#fetchedrecordscontrollerdelegate) when *database rows* change location or values.
 
 Changes are not reflected until they are applied in the database by a successful [transaction](#transactions). Transactions can be explicit, or implicit:
 
