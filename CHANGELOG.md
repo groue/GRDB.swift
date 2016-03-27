@@ -1,6 +1,22 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `FetchedRecordsController` helps feeding a UITableView with the results returned from a database request.
+
+**Breaking Change**
+
+- The following method has changed its signature:
+
+    ```swift
+    protocol RowConvertible {
+        mutating func awakeFromFetch(row row: Row)
+    }
+    ```
+
 ## 0.53.0
 
 Released March 25, 2016
