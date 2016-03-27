@@ -43,7 +43,7 @@ extension PersonsViewController : PersonEditionViewControllerDelegate {
             setEditing(false, animated: true)
             let navigationController = segue.destinationViewController as! UINavigationController
             let controller = navigationController.viewControllers.first as! PersonEditionViewController
-            controller.title = NSLocalizedString("New Person", comment: "")
+            controller.title = "New Person"
             controller.person = Person(name: "", score: 0)
         }
     }
@@ -60,16 +60,18 @@ extension PersonsViewController : PersonEditionViewControllerDelegate {
         // Person creation: commit button was tapped
         let controller = segue.sourceViewController as! PersonEditionViewController
         controller.applyChanges()
-        if !controller.person.name.isEmpty {
-            try! controller.person.save(dbQueue)
+        let person = controller.person
+        if !person.name.isEmpty {
+            try! person.save(dbQueue)
         }
     }
     
     func personEditionControllerDidComplete(controller: PersonEditionViewController) {
         // Person edition: back button was tapped
         controller.applyChanges()
-        if !controller.person.name.isEmpty {
-            try! controller.person.save(dbQueue)
+        let person = controller.person
+        if !person.name.isEmpty {
+            try! person.save(dbQueue)
         }
     }
 }

@@ -8,19 +8,21 @@ class FetchedRecordsControllerDemoViewController: UITableViewController {
         super.viewDidLoad()
         
         navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: #selector(FetchedRecordsControllerDemoViewController.addPerson(_:))),
+            UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: .addPerson),
             editButtonItem()
         ]
         
-        let request = FetchedRecordsControllerDemoViewController.personsSortedByScore
+        let request = personsSortedByScore
         personsController = FetchedRecordsController(dbQueue, request: request, compareRecordsByPrimaryKey: true)
         personsController.delegate = self
         personsController.performFetch()
+
+        configureToolbar()
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        configureToolbar()
+        navigationController?.toolbarHidden = false
     }
 }
 
@@ -43,7 +45,7 @@ extension FetchedRecordsControllerDemoViewController : PersonEditionViewControll
             setEditing(false, animated: true)
             let navigationController = segue.destinationViewController as! UINavigationController
             let controller = navigationController.viewControllers.first as! PersonEditionViewController
-            controller.title = NSLocalizedString("New Person", comment: "")
+            controller.title = "New Person"
             controller.person = Person(name: "", score: 0)
         }
     }
@@ -151,48 +153,29 @@ extension FetchedRecordsControllerDemoViewController : FetchedRecordsControllerD
 
 extension FetchedRecordsControllerDemoViewController {
     
-    private static let personsSortedByName = Person.order(SQLColumn("name"))
-    private static let personsSortedByScore = Person.order(SQLColumn("score").desc, SQLColumn("name"))
-    
     private func configureToolbar() {
-        navigationController?.toolbarHidden = false
         toolbarItems = [
-            UIBarButtonItem(
-                title: NSLocalizedString("Name ⬆︎", comment: ""),
-                style: .Plain,
-                target: self,
-                action: #selector(FetchedRecordsControllerDemoViewController.sortByName)),
-            UIBarButtonItem(
-                title: NSLocalizedString("Score ⬇︎", comment: ""),
-                style: .Plain,
-                target: self,
-                action: #selector(FetchedRecordsControllerDemoViewController.sortByScore)),
-            UIBarButtonItem(
-                title: NSLocalizedString("Randomize", comment: ""),
-                style: .Plain,
-                target: self,
-                action: #selector(FetchedRecordsControllerDemoViewController.randomizeScores)),
-            UIBarButtonItem(
-                barButtonSystemItem: .FlexibleSpace,
-                target: nil,
-                action: nil),
-            UIBarButtonItem(
-                title: NSLocalizedString("💣", comment: ""),
-                style: .Plain,
-                target: self,
-                action: #selector(FetchedRecordsControllerDemoViewController.stress))
+            UIBarButtonItem(title: "Name ⬆︎", style: .Plain, target: self, action: .sortByName),
+            UIBarButtonItem(title: "Score ⬇︎", style: .Plain, target: self, action: .sortByScore),
+            UIBarButtonItem(title: "Randomize", style: .Plain, target: self, action: .randomizeScores),
+            UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(title: "💣", style: .Plain, target: self, action: .stress)
         ]
     }
     
     @IBAction func sortByName() {
-        personsController.setRequest(FetchedRecordsControllerDemoViewController.personsSortedByName)
+        setEditing(false, animated: true)
+        personsController.setRequest(personsSortedByName)
     }
     
     @IBAction func sortByScore() {
-        personsController.setRequest(FetchedRecordsControllerDemoViewController.personsSortedByScore)
+        setEditing(false, animated: true)
+        personsController.setRequest(personsSortedByScore)
     }
     
     @IBAction func randomizeScores() {
+        setEditing(false, animated: true)
+        
         try! dbQueue.inTransaction { db in
             for person in Person.fetch(db) {
                 person.score = randomScore()
@@ -203,26 +186,35 @@ extension FetchedRecordsControllerDemoViewController {
     }
     
     @IBAction func stress() {
+        setEditing(false, animated: true)
+        
         // Spawn some concurrent background jobs
-        for _ in 0...Int(arc4random_uniform(20)) {
+        for _ in 0..<20 {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
                 try! dbQueue.inTransaction { db in
-                    // Insert a person
-                    if arc4random_uniform(2) == 0 {
-                        let person = Person(name: randomName(), score: randomScore())
-                        try person.insert(db)
-                    }
-                    // Delete a person
-                    if arc4random_uniform(2) == 0 {
-                        if let person = Person.order(sql: "RANDOM()").fetchOne(db) {
-                            try person.delete(db)
+                    if Person.fetchCount(db) == 0 {
+                        // Insert persons
+                        for _ in 0..<8 {
+                            try Person(name: randomName(), score: randomScore()).insert(db)
                         }
-                    }
-                    // Update some persons
-                    for person in Person.fetchAll(db) {
-                        if arc4random_uniform(4) == 0 {
-                            person.score = randomScore()
-                            try person.update(db)
+                    } else {
+                        // Insert person
+                        if arc4random_uniform(2) == 0 {
+                            let person = Person(name: randomName(), score: randomScore())
+                            try person.insert(db)
+                        }
+                        // Delete a person
+                        if arc4random_uniform(2) == 0 {
+                            if let person = Person.order(sql: "RANDOM()").fetchOne(db) {
+                                try person.delete(db)
+                            }
+                        }
+                        // Update some persons
+                        for person in Person.fetchAll(db) {
+                            if arc4random_uniform(2) == 0 {
+                                person.score = randomScore()
+                                try person.update(db)
+                            }
                         }
                     }
                     return .Commit
@@ -231,3 +223,15 @@ extension FetchedRecordsControllerDemoViewController {
         }
     }
 }
+
+// https://medium.com/swift-programming/swift-selector-syntax-sugar-81c8a8b10df3
+private extension Selector {
+    static let addPerson       = #selector(FetchedRecordsControllerDemoViewController.addPerson(_:))
+    static let sortByName      = #selector(FetchedRecordsControllerDemoViewController.sortByName)
+    static let sortByScore     = #selector(FetchedRecordsControllerDemoViewController.sortByScore)
+    static let randomizeScores = #selector(FetchedRecordsControllerDemoViewController.randomizeScores)
+    static let stress          = #selector(FetchedRecordsControllerDemoViewController.stress)
+}
+
+private let personsSortedByName = Person.order(SQLColumn("name"))
+private let personsSortedByScore = Person.order(SQLColumn("score").desc, SQLColumn("name"))
