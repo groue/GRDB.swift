@@ -77,14 +77,8 @@
                                             <rect key="frame" x="0.0" y="0.0" width="600" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="750" verticalHuggingPriority="251" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4y6-ck-zn3">
-                                                    <rect key="frame" x="18" y="12" width="43" height="20"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="Name" textAlignment="right" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="m5m-Zs-j0z">
-                                                    <rect key="frame" x="69" y="12" width="513" height="20"/>
+                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Name" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="m5m-Zs-j0z">
+                                                    <rect key="frame" x="18" y="12" width="564" height="20"/>
                                                     <color key="textColor" red="0.11372549019607843" green="0.47843137254901963" blue="0.98039215686274506" alpha="1" colorSpace="calibratedRGB"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="words" autocorrectionType="no" spellCheckingType="no" returnKeyType="next"/>
@@ -94,11 +88,9 @@
                                                 </textField>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstItem="4y6-ck-zn3" firstAttribute="centerY" secondItem="iyM-TJ-JB4" secondAttribute="centerY" id="8x0-x4-9KM"/>
-                                                <constraint firstItem="m5m-Zs-j0z" firstAttribute="baseline" secondItem="4y6-ck-zn3" secondAttribute="baseline" id="FzJ-zg-dH0"/>
+                                                <constraint firstItem="m5m-Zs-j0z" firstAttribute="leading" secondItem="iyM-TJ-JB4" secondAttribute="leadingMargin" constant="10" id="9cK-nj-70V"/>
                                                 <constraint firstAttribute="trailingMargin" secondItem="m5m-Zs-j0z" secondAttribute="trailing" constant="10" id="JsE-8v-XAS"/>
-                                                <constraint firstItem="m5m-Zs-j0z" firstAttribute="leading" secondItem="4y6-ck-zn3" secondAttribute="trailing" constant="8" symbolic="YES" id="Msf-6H-s72"/>
-                                                <constraint firstItem="4y6-ck-zn3" firstAttribute="leading" secondItem="iyM-TJ-JB4" secondAttribute="leadingMargin" constant="10" id="u1M-G3-Ued"/>
+                                                <constraint firstItem="m5m-Zs-j0z" firstAttribute="centerY" secondItem="iyM-TJ-JB4" secondAttribute="centerY" id="psG-tW-QrM"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -109,25 +101,17 @@
                                             <rect key="frame" x="0.0" y="0.0" width="600" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="750" verticalHuggingPriority="251" text="Score" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6h8-IF-U4B">
-                                                    <rect key="frame" x="18" y="12" width="43" height="20"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="Score" textAlignment="right" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="rZ9-Fa-cyr">
-                                                    <rect key="frame" x="69" y="12" width="513" height="20"/>
+                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Score" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="rZ9-Fa-cyr">
+                                                    <rect key="frame" x="18" y="12" width="564" height="20"/>
                                                     <color key="textColor" red="0.11372549019607843" green="0.47843137254901963" blue="0.98039215686274506" alpha="1" colorSpace="calibratedRGB"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="numberPad" returnKeyType="done"/>
                                                 </textField>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstItem="rZ9-Fa-cyr" firstAttribute="leading" secondItem="6h8-IF-U4B" secondAttribute="trailing" constant="8" symbolic="YES" id="1Aw-5A-L3h"/>
                                                 <constraint firstAttribute="trailingMargin" secondItem="rZ9-Fa-cyr" secondAttribute="trailing" constant="10" id="Gso-FU-Ct1"/>
-                                                <constraint firstItem="6h8-IF-U4B" firstAttribute="centerY" secondItem="ccO-0O-u72" secondAttribute="centerY" id="wnh-aV-u1G"/>
-                                                <constraint firstItem="rZ9-Fa-cyr" firstAttribute="baseline" secondItem="6h8-IF-U4B" secondAttribute="baseline" id="ybu-qY-WT7"/>
-                                                <constraint firstItem="6h8-IF-U4B" firstAttribute="leading" secondItem="ccO-0O-u72" secondAttribute="leadingMargin" constant="10" id="yr9-Zm-MUx"/>
+                                                <constraint firstItem="rZ9-Fa-cyr" firstAttribute="centerY" secondItem="ccO-0O-u72" secondAttribute="centerY" id="UqA-ea-emb"/>
+                                                <constraint firstItem="rZ9-Fa-cyr" firstAttribute="leading" secondItem="ccO-0O-u72" secondAttribute="leadingMargin" constant="10" id="WrY-St-72v"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
