@@ -2361,7 +2361,7 @@ Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertib
 
 FetchedRecordsController can also track changes in the results of the fetch request, and notify its delegate of those changes. Change tracking is active if and only if the delegate is not nil.
 
-See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sampleapp that uses FetchedRecordsController.
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
 - [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource methods)
@@ -2377,7 +2377,7 @@ You typically create an instance of FetchedRecordsController as a property of a 
 
 - A [database connection](#database-connections)
 - The type of the fetched records. It must be a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class.
-- A fetch request. It can be a raw SQL query with its arguments, or a FetchRequest from the [Query Interface](#the-query-interface).
+- A fetch request. It can be a raw SQL query with its eventual [arguments](#fetching-rows), or a FetchRequest from the [Query Interface](#the-query-interface).
 - Optionally, a way to tell if two records have the same identity. Without this identity comparison, all record updates are seen as replacements, and your table view updates are less smooth.
 
 After creating an instance, you invoke `performFetch()` to actually execute
@@ -2411,7 +2411,7 @@ let controller = FetchedRecordsController<Person>(
     isSameRecord: { (person1, person2) in person1.id == person2.id })
 ```
 
-Instead of a [FetchRequest](#the-query-interface) object, you can also provide a raw SQL query, with eventual arguments:
+Instead of a [FetchRequest](#the-query-interface) object, you can also provide a raw SQL query, with eventual [arguments](#fetching-rows):
 
 ```swift
 let controller = FetchedRecordsController<Person>(
@@ -2552,7 +2552,7 @@ func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
 }
 ```
 
-See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sampleapp that uses FetchedRecordsController.
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
 
 Good To Know
