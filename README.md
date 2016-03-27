@@ -2555,23 +2555,31 @@ dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
     let count1 = PointOfInterest.fetchCount(db)
     let count2 = PointOfInterest.fetchCount(db)
 }
-
-dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
-    // Now this value may be different:
-    let count = PointOfInterest.fetchCount(db)
-}
 ```
 
-*However, isolation is lost when you access database queues and pools in an unprotected fashion.* The two lines below are equivalent to two consecutive calls to `dbQueue.inDatabase` or `dbPool.read`, with the opportunity for other threads to sneak in between:
+Isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls don't guarantee isolation:
 
 ```swift
 // Those two values may be different because some other thread may have inserted
 // or deleted a point of interest between the two statements:
-let count1 = PointOfInterest.fetchCount(dbQueue) // or dbPool
-let count2 = PointOfInterest.fetchCount(dbQueue) // or dbPool
+let count1 = dbQueue.inDatabase { db in
+    return PointOfInterest.fetchCount(db)
+}
+let count2 = dbQueue.inDatabase { db in
+    return PointOfInterest.fetchCount(db)
+}
 ```
 
-That being said, unprotected access can do everything but iterate the memory-efficient [database sequences](#fetching-methods):
+Isolation is also lost when you access database queues and pools in an unprotected fashion. The two lines below are equivalent to two consecutive calls to `dbQueue.inDatabase`, as above, with the opportunity for other threads to sneak in between:
+
+```swift
+// Those two values may be different because some other thread may have inserted
+// or deleted a point of interest between the two statements:
+let count1 = PointOfInterest.fetchCount(dbQueue)
+let count2 = PointOfInterest.fetchCount(dbQueue)
+```
+
+That being said, unprotected access can do everything (but iterate the memory-efficient [database sequences](#fetching-methods)):
 
 ```swift
 // Unprotected access, for advanced users only:
