@@ -159,7 +159,7 @@ extension FetchedRecordsControllerDemoViewController {
             UIBarButtonItem(title: "Score ⬇︎", style: .Plain, target: self, action: .sortByScore),
             UIBarButtonItem(title: "Randomize", style: .Plain, target: self, action: .randomizeScores),
             UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(title: "💣", style: .Plain, target: self, action: .stress)
+            UIBarButtonItem(title: "💣", style: .Plain, target: self, action: .stressTest)
         ]
     }
     
@@ -185,7 +185,7 @@ extension FetchedRecordsControllerDemoViewController {
         }
     }
     
-    @IBAction func stress() {
+    @IBAction func stressTest() {
         setEditing(false, animated: true)
         
         // Spawn some concurrent background jobs
@@ -198,7 +198,7 @@ extension FetchedRecordsControllerDemoViewController {
                             try Person(name: randomName(), score: randomScore()).insert(db)
                         }
                     } else {
-                        // Insert person
+                        // Insert a person
                         if arc4random_uniform(2) == 0 {
                             let person = Person(name: randomName(), score: randomScore())
                             try person.insert(db)
@@ -230,7 +230,7 @@ private extension Selector {
     static let sortByName      = #selector(FetchedRecordsControllerDemoViewController.sortByName)
     static let sortByScore     = #selector(FetchedRecordsControllerDemoViewController.sortByScore)
     static let randomizeScores = #selector(FetchedRecordsControllerDemoViewController.randomizeScores)
-    static let stress          = #selector(FetchedRecordsControllerDemoViewController.stress)
+    static let stressTest      = #selector(FetchedRecordsControllerDemoViewController.stressTest)
 }
 
 private let personsSortedByName = Person.order(SQLColumn("name"))
