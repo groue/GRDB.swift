@@ -2557,7 +2557,7 @@ dbQueue.inDatabase { db in  // or dbPool.read, or dbPool.write
 }
 ```
 
-Two consecutive calls don't guarantee isolation:
+Isolation is only guaranteed inside the closure argument of those methods: two consecutive calls don't guarantee isolation:
 
 ```swift
 // Those two values may be different because some other thread may have inserted
