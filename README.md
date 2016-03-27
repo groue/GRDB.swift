@@ -2475,7 +2475,7 @@ try dbQueue.inTransaction { db in
     return .Commit       // Explicit transaction
 }
 
-try dbQueue.inDatavase { db in
+try dbQueue.inDatabase { db in
     try person.save(db)  // Implicit transaction
 }
 

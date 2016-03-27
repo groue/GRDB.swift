@@ -133,7 +133,7 @@ import UIKit
 ///         return .Commit      // Explicit transaction
 ///     }
 ///
-///     try dbQueue.inDatavase { db in
+///     try dbQueue.inDatabase { db in
 ///         /* Change a person's attributes */
 ///         try person.save(db) // Implicit transaction
 ///     }
