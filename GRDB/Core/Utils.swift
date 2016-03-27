@@ -20,7 +20,7 @@ extension String {
     ///     db.execute("SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
     public var quotedDatabaseIdentifier: String {
         // See https://www.sqlite.org/lang_keywords.html
-        return "\"\(self)\""
+        return "\"" + self + "\""
     }
 }
 
