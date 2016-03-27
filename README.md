@@ -2499,7 +2499,9 @@ controller.setSQL("SELECT ...", arguments: ...)
 
 **A fetched records controller *can not* be used from any thread.**
 
-By default, it must be used from the main thread, and its delegate is notified of record changes on the main thread.
+The database itself can be read and modified from [any thread](#database-connections), but fetched records controller methods like `performFetch` or `recordAtIndexPath` are constrained:
+
+By default, they must be used from the main thread, and the delegate is also notified of record changes on the main thread.
 
 When you create a controller, you can give it a serial dispatch queue. The controller must then be used from this queue, and its delegate gets notified of record changes on this queue as well.
 
