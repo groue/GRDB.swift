@@ -1,9 +1,21 @@
 import XCTest
 import GRDB
 
-class TransactionObserver : TransactionObserverType {
-    var lastCommittedEvents: [DatabaseEvent] = []
-    var events: [DatabaseEvent] = []
+private struct ObservedDatabaseEvent {
+    let tableName: String
+    let rowID: Int64
+    let kind: DatabaseEvent.Kind
+    
+    init(rawEvent event: DatabaseEvent) {
+        tableName = event.tableName // this value needs to be copied
+        rowID = event.rowID
+        kind = event.kind
+    }
+}
+
+private class TransactionObserver : TransactionObserverType {
+    var lastCommittedEvents: [ObservedDatabaseEvent] = []
+    var events: [ObservedDatabaseEvent] = []
     var commitError: ErrorType?
     var deinitBlock: (() -> ())?
     
@@ -31,7 +43,7 @@ class TransactionObserver : TransactionObserverType {
     
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
         didChangeCount += 1
-        events.append(event)
+        events.append(ObservedDatabaseEvent(rawEvent: event))
     }
     
     func databaseWillCommit() throws {
@@ -137,7 +149,7 @@ class Artwork : Record {
 }
 
 class TransactionObserverTests: GRDBTestCase {
-    var observer: TransactionObserver!
+    private var observer: TransactionObserver!
     
     override func setUp() {
         super.setUp()
@@ -155,7 +167,7 @@ class TransactionObserverTests: GRDBTestCase {
         self.observer.resetCounts()
     }
     
-    func match(event event: DatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
+    private func match(event event: ObservedDatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
         return (event.tableName == tableName) && (event.rowID == rowId) && (event.kind == kind)
     }
     

@@ -1024,12 +1024,12 @@ extension Database {
     private func installTransactionObserverHooks() {
         let dbPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
         
-        sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseName, tableName, rowID) in
+        sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseNameCString, tableNameCString, rowID) in
             let db = unsafeBitCast(dbPointer, Database.self)
             db.didChangeWithEvent(DatabaseEvent(
+                databaseNameCString: databaseNameCString,
+                tableNameCString: tableNameCString,
                 kind: DatabaseEvent.Kind(rawValue: updateKind)!,
-                databaseName: String.fromCString(databaseName)!,
-                tableName: String.fromCString(tableName)!,
                 rowID: rowID))
             }, dbPointer)
         
@@ -1106,7 +1106,10 @@ public protocol TransactionObserverType : class {
     ///
     /// This method is called on the database queue.
     ///
-    /// **WARNING**: this method must not change the database.
+    /// The event is only valid for the duration of this method call. If you
+    /// need to keep it longer, store a copy of its properties.
+    ///
+    /// - warning: this method must not change the database.
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
     /// When a transaction is about to be committed, the transaction observer
@@ -1114,7 +1117,7 @@ public protocol TransactionObserverType : class {
     ///
     /// This method is called on the database queue.
     ///
-    /// **WARNING**: this method must not change the database.
+    /// - warning: this method must not change the database.
     ///
     /// - throws: An eventual error that rollbacks pending changes.
     func databaseWillCommit() throws
@@ -1142,6 +1145,9 @@ class WeakTransactionObserver {
 ///
 /// See https://www.sqlite.org/c3ref/update_hook.html for more information.
 public struct DatabaseEvent {
+    private let databaseNameCString: UnsafePointer<Int8>
+    private let tableNameCString: UnsafePointer<Int8>
+    
     /// An event kind
     public enum Kind: Int32 {
         case Insert = 18    // SQLITE_INSERT
@@ -1153,12 +1159,10 @@ public struct DatabaseEvent {
     public let kind: Kind
     
     /// The database name
-    // TODO: make it lazy
-    public let databaseName: String
-    
+    public var databaseName: String { return String.fromCString(databaseNameCString)! }
+
     /// The table name
-    // TODO: make it lazy
-    public let tableName: String
+    public var tableName: String { return String.fromCString(tableNameCString)! }
     
     /// The rowID of the changed row.
     public let rowID: Int64
