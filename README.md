@@ -3,7 +3,7 @@ GRDB.swift
 
 GRDB.swift is an SQLite toolkit for Swift 2.2.
 
-It ships with an SQL API, protocols that turn your custom types in ORM-like objects, safe concurrent accesses to the database (that's pretty unique), and a Swift query interface which lets SQL-allergic developers avoid their most dreaded language.
+It ships with an SQL API, protocols that turn your custom types in ORM-like objects, safe concurrent accesses to the database (that's pretty unique), a Swift query interface which lets SQL-allergic developers avoid their most dreaded language, and a "fetched records controller" that behaves like Core Data's NSFetchedResultsController and tracks database changes for you.
 
 And it's well-documented, tested, and [fast](https://github.com/groue/GRDB.swift/wiki/Performance).
 
@@ -101,7 +101,7 @@ let favoritePois = PointOfInterest                                       // [Poi
     .order(title)
     .fetchAll(dbQueue)
 ```
-  
+
 
 Documentation
 =============
@@ -127,6 +127,7 @@ Documentation
 - [Query Interface](#the-query-interface): A swift way to generate SQL.
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
+- [FetchedRecordsController](#fetchedrecordscontroller): Let GRDB manage your UITableView for you.
 
 **Good to know**
 
@@ -1292,6 +1293,7 @@ On top of the SQLite API described above, GRDB provides a toolkit for applicatio
 - [Query Interface](#the-query-interface): A swift way to generate SQL.
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
+- [FetchedRecordsController](#fetchedrecordscontroller): Let GRDB manage your UITableView for you.
 
 
 ## Records
@@ -2342,7 +2344,215 @@ do {
 >
 > :point_up: **Note**: the databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
-Check [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd) for a transaction observer that notifies, on the main thread, of modified database tables. Your view controllers can listen to those notifications and update their views accordingly.
+[FetchedRecordsController](#fetchedrecordscontroller) is based on the TransactionObserverType protocol.
+
+See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
+
+
+## FetchedRecordsController
+
+**You use a FetchedRecordsController to feed a UITableView with the results returned from an SQLite request.**
+
+It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/). This documentation of FetchedRecordsController is indeed directly inspired from Apple's.
+
+> :point_up: **Note**: In its current state, FetchedRecordsController does not support grouping table view rows into sections: it generates a unique section.
+
+Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to return the results of the request in a form that is suitable for a UITableView, with one table view row per fetched record.
+
+FetchedRecordsController can also track changes in the results of the fetch request, and notify its delegate of those changes. Change tracking is active if and only if the delegate is not nil.
+
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sampleapp that uses FetchedRecordsController.
+
+- [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
+- [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource methods)
+- [Responding to Changes](#responding-to-changes)
+- [Modifying the Fetch Request](#modifying-the-fetch-request)
+- [FetchedRecordsController Concurrency](#fetchedrecordscontroller-concurrency)
+- [FetchedRecordsControllerDelegate](#fetchedrecordscontrollerdelegate)
+
+
+### Creating the Fetched Records Controller
+
+You typically create an instance of FetchedRecordsController as a property of a table view controller. When you initialize the fetch records controller, you provide the following information:
+
+- A [database connection](#database-connections)
+- The type of the fetched records. It must be a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class.
+- A fetch request. It can be a raw SQL query with its arguments, or a FetchRequest from the [Query Interface](#the-query-interface).
+- Optionally, a way to tell if two records have the same identity. Without this identity comparison, all record updates are seen as replacements, and your table view updates are less smooth.
+
+After creating an instance, you invoke `performFetch()` to actually execute
+the fetch.
+
+```swift
+class Person : Record { ... }
+let dbQueue = DatabaseQueue(...)    // Or DatabasePool
+
+let request = Person.order(SQLColumn("name"))
+let controller = FetchedRecordsController<Person>(
+    dbQueue,
+    request: request,
+    compareRecordsByPrimaryKey: true)
+controller.performFetch()
+```
+
+In the example above, two persons are considered identical if they share the same primary key, thanks to the `compareRecordsByPrimaryKey` argument. This initializer argument is only available for types such as [Record](#record-class) subclasses that adopt both the [RowConvertible](#rowconvertible-protocol) protocol, and the [Persistable](#persistable-protocol) protocol.
+
+If your type only adopts RowConvertible, you need to be more explicit, and provide your own identity comparison function:
+
+```swift
+struct Person : RowConvertible {
+    let id: Int64
+    ...
+}
+
+let controller = FetchedRecordsController<Person>(
+    dbQueue,
+    request: request,
+    isSameRecord: { (person1, person2) in person1.id == person2.id })
+```
+
+Instead of a [FetchRequest](#the-query-interface) object, you can also provide a raw SQL query, with eventual arguments:
+
+```swift
+let controller = FetchedRecordsController<Person>(
+    dbQueue,
+    sql: "SELECT * FROM persons ORDER BY name",
+    compareRecordsByPrimaryKey: true)
+```
+
+The fetch request can involve several database tables:
+
+```swift
+let controller = FetchedRecordsController<Person>(
+    dbQueue,
+    sql: "SELECT persons.*, COUNT(books.id) AS bookCount " +
+         "FROM persons " +
+         "LEFT JOIN books ON books.owner_id = persons.id " +
+         "GROUP BY persons.id " +
+         "ORDER BY persons.name",
+    compareRecordsByPrimaryKey: true)
+```
+
+
+### The Controllers's Delegate
+
+Any change in the database that affects the record set is processed and the records are updated accordingly. The controller notifies the delegate when records change location (see [FetchedRecordsControllerDelegate](#fetchedrecordscontrollerdelegate)). You typically use these methods to update the display of the table view.
+
+
+### Implementing the Table View Datasource Methods
+
+The table view data source asks the fetched records controller to provide relevant information:
+
+```swift
+func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    return fetchedRecordsController.sections.count
+}
+
+func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return fetchedRecordsController.sections[section].numberOfRecords
+}
+
+func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    let cell = ...
+    let record = fetchedRecordsController.recordAtIndexPath(indexPath)
+    // Configure the cell
+    return cell
+}
+```
+
+> :point_up: **Note**: In its current state, FetchedRecordsController does not support grouping table view rows into sections: it generates a unique section.
+
+
+### Responding to Changes
+
+In general, FetchedRecordsController is designed to respond to changes at *the database layer*, by informing its delegate when *database rows* change location or values.
+
+Changes are not reflected until they are applied in the database by a successful [transaction](#transactions). Transactions can be explicit, or implicit:
+
+```swift
+try dbQueue.inTransaction { db in
+    try person.save(db)
+    return .Commit       // Explicit transaction
+}
+
+try dbQueue.inDatavase { db in
+    try person.save(db)  // Implicit transaction
+}
+
+try person.save(dbQueue) // Implicit transaction
+```
+
+When you apply several changes to the database, you should group them in a single explicit transaction. The controller will then notify its delegate of all changes together.
+
+
+### Modifying the Fetch Request
+
+You can change a fetched records controller's fetch request or SQL query. The request is immediately run, and the delegate gets notified of changes in the fetched records:
+
+```swift
+controller.setRequest(Person.order(SQLColumn("name")))
+controller.setSQL("SELECT ...", arguments: ...)
+```
+
+
+### FetchedRecordsController Concurrency
+
+**A fetched records controller *can not* be used from any thread.**
+
+By default, it must be used from the main thread, and its delegate is notified of record changes on the main thread.
+
+When you create a controller, you can give it a serial dispatch queue. The controller must then be used from this queue, and its delegate gets notified of record changes on this queue as well.
+
+
+### FetchedRecordsControllerDelegate
+
+An instance of FetchedRecordsController uses methods in this protocol to notify its delegate that the controller’s fetched records have been changed due to some add, remove, move, or update operations.
+
+
+**Typical Use**
+
+You can use `controllerWillChangeRecords` and `controllerDidChangeRecord` to bracket updates to a table view whose content is provided by the fetched records controller, as illustrated in the following example:
+
+```swift
+// Assume self has a tableView property, and a configureCell(_:atIndexPath:)
+// method which updates the contents of a given cell.
+
+func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) {
+    tableView.beginUpdates()
+}
+
+func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) {
+    switch event {
+    case .Insertion(let indexPath):
+        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+
+    case .Deletion(let indexPath):
+        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+
+    case .Update(let indexPath, _):
+        if let cell = tableView.cellForRowAtIndexPath(indexPath) {
+            configureCell(cell, atIndexPath: indexPath)
+        }
+
+    case .Move(let indexPath, let newIndexPath, _):
+        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+        tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
+
+        // // Alternate technique which actually moves cells around:
+        // let cell = tableView.cellForRowAtIndexPath(indexPath)
+        // tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+        // if let cell = cell {
+        //     configureCell(cell, atIndexPath: newIndexPath)
+        // }
+    }
+}
+
+func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
+    tableView.endUpdates()
+}
+```
+
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sampleapp that uses FetchedRecordsController.
 
 
 Good To Know
@@ -2671,6 +2881,6 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [@Chiliec](https://github.com/Chiliec), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss) and [@pierlo](https://github.com/pierlo) for their feedback on GRDB.
-- [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
+- [Vladimir Babin](https://github.com/Chiliec), [Pascal Edmond](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss) and [Pierre-Loïc Raynaud](https://github.com/pierlo) for their help and feedback on GRDB.
+- [@aymerick](https://github.com/aymerick) and [Mathieu "Kali" Poumeyrol](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.

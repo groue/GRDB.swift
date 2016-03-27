@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- `FetchedRecordsController` helps feeding a UITableView with the results returned from a database request.
+- `FetchedRecordsController` helps feeding a UITableView with the results returned from a database request (thanks to [Pascal Edmond](https://github.com/pakko972))
 
 **Breaking Change**
 
