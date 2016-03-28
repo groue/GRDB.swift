@@ -1170,7 +1170,7 @@ let reverseString = DatabaseFunction(
     argumentCount: 1, // Number of arguments
     pure: true,       // True means that the result only depends on input
     function: { (databaseValues: [DatabaseValue]) in
-        guard let string: String = databaseValues[0].failableValue() else {
+        guard let string: String = databaseValues[0].value() else {
             // Not a string argument: return NULL
             return nil
         }
@@ -1193,7 +1193,7 @@ When you don't provide any explicit *argumentCount*, the function can take any n
 
 ```swift
 let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [DatabaseValue]) in
-    let doubles: [Double] = databaseValues.flatMap { $0.failableValue() }
+    let doubles: [Double] = databaseValues.flatMap { $0.value() }
     return doubles.reduce(0, combine: +) / Double(doubles.count)
 }
 dbQueue.addFunction(averageOf)
