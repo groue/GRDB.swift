@@ -2487,7 +2487,9 @@ When you apply several changes to the database, you should group them in a singl
 
 ### Modifying the Fetch Request
 
-You can change a fetched records controller's fetch request or SQL query. The request is immediately run, and the delegate gets notified of changes in the fetched records:
+You can change a fetched records controller's fetch request or SQL query.
+
+If change tracking is active, the [delegate](#fetchedrecordscontrollerdelegate) gets notified of changes in the fetched records:
 
 ```swift
 controller.setRequest(Person.order(SQLColumn("name")))
