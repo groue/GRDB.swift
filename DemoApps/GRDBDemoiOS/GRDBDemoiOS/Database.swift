@@ -27,28 +27,19 @@ func setupDatabase() {
     dbQueue = try! DatabaseQueue(path: databasePath)
     
     
-    // SQLite does not support Unicode: let's add a custom collation which will
-    // allow us to sort persons by name.
-    //
-    // See https://github.com/groue/GRDB.swift/#string-comparison
-    
-    let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
-        return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
-    }
-    dbQueue.addCollation(collation)
-    
-    
     // Use DatabaseMigrator to setup the database
     //
     // See https://github.com/groue/GRDB.swift/#migrations
     
     var migrator = DatabaseMigrator()
     migrator.registerMigration("createPersons") { db in
+        // Have person names compared in a localized case insensitive fashion
+        let collation = DatabaseCollation.localizedCaseInsensitiveCompare
         try db.execute(
             "CREATE TABLE persons (" +
                 "id INTEGER PRIMARY KEY, " +
-                "firstName TEXT COLLATE localized_case_insensitive, " +
-                "lastName TEXT COLLATE localized_case_insensitive" +
+                "firstName TEXT COLLATE \(collation.name), " +
+                "lastName TEXT COLLATE \(collation.name)" +
             ")")
     }
     migrator.registerMigration("addPersons") { db in
