@@ -2415,7 +2415,7 @@ The `UPPER` and `LOWER` SQLite functions are not unicode-aware.
 
 GRDB extends all your database connections with built-in [SQL Functions](#sql-functions) that give access to the standard Swift String unicode-aware functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString`, and `localizedUppercaseString`:
 
-```
+```swift
 // "JéRôME" vs. "JÉRÔME"
 let uppercaseString = DatabaseFunction.uppercaseString
 String.fetchOne(dbQueue, "SELECT UPPER('Jérôme')")
