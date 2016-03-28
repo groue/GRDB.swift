@@ -2437,11 +2437,11 @@ The comparison result comes from a *collating function*, or *collation*. SQLite 
 
 GRDB comes with five extra collations that leverage unicode-aware comparisons based on the standard Swift String comparison functions and operators:
 
-- DatabaseCollation.unicodeCompare (uses the built-in `<=` and `==` operators)
-- DatabaseCollation.caseInsensitiveCompare
-- DatabaseCollation.localizedCaseInsensitiveCompare
-- DatabaseCollation.localizedCompare
-- DatabaseCollation.localizedStandardCompare
+- `unicodeCompare` (uses the built-in `<=` and `==` operators)
+- `caseInsensitiveCompare`
+- `localizedCaseInsensitiveCompare`
+- `localizedCompare`
+- `localizedStandardCompare`
 
 A collation can be applied to a table column. All comparisons involving this column will then automatically trigger the comparison function:
     
