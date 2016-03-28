@@ -15,6 +15,33 @@ struct CustomValueType : DatabaseValueConvertible {
 
 class FunctionTests: GRDBTestCase {
     
+    // MARK: - Default functions
+    
+    func testDefaultFunctions() {
+        // Those functions are automatically added to all connections.
+        // See Database.setupDefaultFunctions()
+        
+        let capitalizedStringName = DatabaseFunction.capitalizedString.name
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(capitalizedStringName)('jérÔME')"), "Jérôme")
+        
+        let lowercaseStringName = DatabaseFunction.lowercaseString.name
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(lowercaseStringName)('jérÔME')"), "jérôme")
+        
+        let uppercaseStringName = DatabaseFunction.uppercaseString.name
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(uppercaseStringName)('jérÔME')"), "JÉRÔME")
+        
+        // Locale-dependent tests. Are they fragile?
+        
+        let localizedCapitalizedStringName = DatabaseFunction.localizedCapitalizedString.name
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedCapitalizedStringName)('jérÔME')"), "Jérôme")
+        
+        let localizedLowercaseStringName = DatabaseFunction.localizedLowercaseString.name
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedLowercaseStringName)('jérÔME')"), "jérôme")
+        
+        let localizedUppercaseStringName = DatabaseFunction.localizedUppercaseString.name
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedUppercaseStringName)('jérÔME')"), "JÉRÔME")
+    }
+    
     // MARK: - Return values
     
     func testFunctionReturningNull() {
