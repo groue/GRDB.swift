@@ -76,6 +76,7 @@ public final class Database {
         try setupForeignKeys()
         setupBusyMode()
         setupDefaultFunctions()
+        setupDefaultCollations()
     }
     
     deinit {
@@ -131,19 +132,41 @@ public final class Database {
     
     private func setupDefaultFunctions() {
         // Add support for Swift String functions.
+        //
         // Those functions are used by query's interface:
         //
         ///     let nameColumn = SQLColumn("name")
         ///     let request = Person.select(nameColumn.capitalizedString)
         ///     let names = String.fetchAll(dbQueue, request)   // [String]
-        addFunction(DatabaseFunction.capitalizedString)
-        addFunction(DatabaseFunction.lowercaseString)
-        addFunction(DatabaseFunction.uppercaseString)
+        
+        addFunction(.capitalizedString)
+        addFunction(.lowercaseString)
+        addFunction(.uppercaseString)
+        
         if #available(iOSApplicationExtension 9.0, OSXApplicationExtension 10.11, *) {
-            addFunction(DatabaseFunction.localizedCapitalizedString)
-            addFunction(DatabaseFunction.localizedLowercaseString)
-            addFunction(DatabaseFunction.localizedUppercaseString)
+            addFunction(.localizedCapitalizedString)
+            addFunction(.localizedLowercaseString)
+            addFunction(.localizedUppercaseString)
         }
+    }
+    
+    private func setupDefaultCollations() {
+        // Add support for Swift String comparison functions.
+        //
+        // Those collations are readily available when creating tables:
+        //
+        //      let collationName = DatabaseCollation.localizedCaseInsensitiveCompare.name
+        //      dbQueue.execute(
+        //          "CREATE TABLE persons (" +
+        //              "name TEXT COLLATE \(collationName)" +
+        //          ")"
+        //      )
+        
+        addCollation(.unicodeCompare)
+        addCollation(.caseInsensitiveCompare)
+        addCollation(.localizedCaseInsensitiveCompare)
+        addCollation(.localizedCompare)
+        addCollation(.localizedStandardCompare)
     }
 }
 
@@ -549,7 +572,7 @@ extension DatabaseFunction {
     ///     let nameColumn = SQLColumn("name")
     ///     let request = Person.select(nameColumn.capitalizedString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    static public let capitalizedString = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
+    public static let capitalizedString = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
         guard let string: String = databaseValues[0].failableValue() else {
             return nil
         }
@@ -568,7 +591,7 @@ extension DatabaseFunction {
     ///     let nameColumn = SQLColumn("name")
     ///     let request = Person.select(nameColumn.lowercaseString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    static public let lowercaseString = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { databaseValues in
+    public static let lowercaseString = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { databaseValues in
         guard let string: String = databaseValues[0].failableValue() else {
             return nil
         }
@@ -587,7 +610,7 @@ extension DatabaseFunction {
     ///     let nameColumn = SQLColumn("name")
     ///     let request = Person.select(nameColumn.uppercaseString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    static public let uppercaseString = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { databaseValues in
+    public static let uppercaseString = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { databaseValues in
         guard let string: String = databaseValues[0].failableValue() else {
             return nil
         }
@@ -609,7 +632,7 @@ extension DatabaseFunction {
     ///     let nameColumn = SQLColumn("name")
     ///     let request = Person.select(nameColumn.localizedCapitalizedString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    static public let localizedCapitalizedString = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
+    public static let localizedCapitalizedString = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
         guard let string: String = databaseValues[0].failableValue() else {
             return nil
         }
@@ -628,7 +651,7 @@ extension DatabaseFunction {
     ///     let nameColumn = SQLColumn("name")
     ///     let request = Person.select(nameColumn.localizedLowercaseString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    static public let localizedLowercaseString = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { databaseValues in
+    public static let localizedLowercaseString = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { databaseValues in
         guard let string: String = databaseValues[0].failableValue() else {
             return nil
         }
@@ -647,7 +670,7 @@ extension DatabaseFunction {
     ///     let nameColumn = SQLColumn("name")
     ///     let request = Person.select(nameColumn.localizedUppercaseString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    static public let localizedUppercaseString = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { databaseValues in
+    public static let localizedUppercaseString = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { databaseValues in
         guard let string: String = databaseValues[0].failableValue() else {
             return nil
         }
@@ -737,6 +760,98 @@ extension DatabaseCollation : Hashable {
 public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
     // See https://www.sqlite.org/c3ref/create_collation.html
     return sqlite3_stricmp(lhs.name, lhs.name) == 0
+}
+
+extension DatabaseCollation {
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in == and <= operators.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let unicodeCompare = DatabaseCollation("swiftCompare") { (lhs, rhs) in
+        return (lhs < rhs) ? .OrderedAscending : ((lhs == rhs) ? .OrderedSame : .OrderedDescending)
+    }
+    
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in caseInsensitiveCompare(_:) method.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let caseInsensitiveCompare = DatabaseCollation("swiftCaseInsensitiveCompare") { (lhs, rhs) in
+        return lhs.caseInsensitiveCompare(rhs)
+    }
+    
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in localizedCaseInsensitiveCompare(_:) method.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.localizedCaseInsensitiveCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let localizedCaseInsensitiveCompare = DatabaseCollation("swiftLocalizedCaseInsensitiveCompare") { (lhs, rhs) in
+        return lhs.localizedCaseInsensitiveCompare(rhs)
+    }
+    
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in localizedCompare(_:) method.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.localizedCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let localizedCompare = DatabaseCollation("swiftLocalizedCompare") { (lhs, rhs) in
+        return lhs.localizedCompare(rhs)
+    }
+    
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in localizedStandardCompare(_:) method.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.localizedStandardCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let localizedStandardCompare = DatabaseCollation("swiftLocalizedStandardCompare") { (lhs, rhs) in
+        return lhs.localizedStandardCompare(rhs)
+    }
 }
 
 

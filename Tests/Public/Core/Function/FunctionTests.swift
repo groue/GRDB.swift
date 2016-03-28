@@ -21,25 +21,25 @@ class FunctionTests: GRDBTestCase {
         // Those functions are automatically added to all connections.
         // See Database.setupDefaultFunctions()
         
-        let capitalizedStringName = DatabaseFunction.capitalizedString.name
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(capitalizedStringName)('jérÔME')"), "Jérôme")
+        let capitalizedString = DatabaseFunction.capitalizedString
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(capitalizedString.name)('jérÔME')"), "Jérôme")
         
-        let lowercaseStringName = DatabaseFunction.lowercaseString.name
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(lowercaseStringName)('jérÔME')"), "jérôme")
+        let lowercaseString = DatabaseFunction.lowercaseString
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(lowercaseString.name)('jérÔME')"), "jérôme")
         
-        let uppercaseStringName = DatabaseFunction.uppercaseString.name
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(uppercaseStringName)('jérÔME')"), "JÉRÔME")
+        let uppercaseString = DatabaseFunction.uppercaseString
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(uppercaseString.name)('jérÔME')"), "JÉRÔME")
         
         // Locale-dependent tests. Are they fragile?
         
-        let localizedCapitalizedStringName = DatabaseFunction.localizedCapitalizedString.name
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedCapitalizedStringName)('jérÔME')"), "Jérôme")
+        let localizedCapitalizedString = DatabaseFunction.localizedCapitalizedString
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedCapitalizedString.name)('jérÔME')"), "Jérôme")
         
-        let localizedLowercaseStringName = DatabaseFunction.localizedLowercaseString.name
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedLowercaseStringName)('jérÔME')"), "jérôme")
+        let localizedLowercaseString = DatabaseFunction.localizedLowercaseString
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedLowercaseString.name)('jérÔME')"), "jérôme")
         
-        let localizedUppercaseStringName = DatabaseFunction.localizedUppercaseString.name
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedUppercaseStringName)('jérÔME')"), "JÉRÔME")
+        let localizedUppercaseString = DatabaseFunction.localizedUppercaseString
+        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedUppercaseString.name)('jérÔME')"), "JÉRÔME")
     }
     
     // MARK: - Return values
