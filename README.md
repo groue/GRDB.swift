@@ -2355,7 +2355,7 @@ See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e63
 
 It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/). This documentation of FetchedRecordsController is indeed directly inspired from Apple's.
 
-> :point_up: **Note**: In its current state, FetchedRecordsController does not support grouping table view rows into sections: it generates a unique section.
+> :point_up: **Note**: In its current state, FetchedRecordsController does not support grouping table view rows into custom sections: it generates a unique section.
 
 Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to return the results of the request in a form that is suitable for a UITableView, with one table view row per fetched record.
 
@@ -2460,7 +2460,7 @@ func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexP
 }
 ```
 
-> :point_up: **Note**: In its current state, FetchedRecordsController does not support grouping table view rows into sections: it generates a unique section.
+> :point_up: **Note**: In its current state, FetchedRecordsController does not support grouping table view rows into custom sections: it generates a unique section.
 
 
 ### Responding to Changes

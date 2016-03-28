@@ -16,7 +16,7 @@ class FetchedRecordsControllerDemoViewController: UITableViewController {
         personsController = FetchedRecordsController(dbQueue, request: request, compareRecordsByPrimaryKey: true)
         personsController.delegate = self
         personsController.performFetch()
-
+        
         configureToolbar()
     }
     

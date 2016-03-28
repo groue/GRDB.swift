@@ -463,6 +463,7 @@
 				568C7AAA1CA6C63100796484 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
