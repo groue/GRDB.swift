@@ -5,7 +5,15 @@ Release Notes
 
 **New**
 
-- `FetchedRecordsController` helps feeding a UITableView with the results returned from a database request (thanks to [Pascal Edmond](https://github.com/pakko972))
+- `FetchedRecordsController` helps feeding a UITableView with the results returned from a database request ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller)). This grandiose addition was brought in by [Pascal Edmond](https://github.com/pakko972).
+
+- The standard Swift string properties `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString`, `localizedUppercaseString` are available for your database requests ([documentation](https://github.com/groue/GRDB.swift#unicode)).
+
+- The standard Swift comparison functions `caseInsensitiveCompare`, `localizedCaseInsensitiveCompare`, `localizedCompare`, `localizedStandardCompare` and `unicodeCompare` are available for your database requests ([documentation](https://github.com/groue/GRDB.swift#unicode)).
+
+**Fixed**
+
+- The query interface `uppercaseString` and `lowercaseString` no longer invoke the non unicode aware UPPER and LOWER SQLite functions.
 
 **Breaking Change**
 

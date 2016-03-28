@@ -1163,27 +1163,24 @@ See [row queries](#row-queries), [value queries](#value-queries), and [Records](
 
 **SQLite lets you define SQL functions.**
 
-You can for example use the Unicode support of Swift strings, and go beyond the ASCII limitations of the built-in SQLite `upper()` function:
+A custom SQL function extends SQLite. It can be used in raw SQL queries. And when SQLite needs to evaluate it, it calls your custom code.
 
 ```swift
-let unicodeUpper = DatabaseFunction(
-    "unicodeUpper",   // The name of the function
+let reverseString = DatabaseFunction(
+    "reverseString",  // The name of the function
     argumentCount: 1, // Number of arguments
     pure: true,       // True means that the result only depends on input
     function: { (databaseValues: [DatabaseValue]) in
-        // Return NULL for everything that is not a string:
         guard let string: String = databaseValues[0].failableValue() else {
+            // Not a string argument: return NULL
             return nil
         }
-        return string.uppercaseString
+        return String(string.characters.reverse())
     })
-dbQueue.addFunction(unicodeUpper)   // Or dbPool.addFunction(...)
+dbQueue.addFunction(reverseString)   // Or dbPool.addFunction(...)
 
-// "JÉRÔME"
-String.fetchOne(dbQueue, "SELECT unicodeUpper(?)", arguments: ["Jérôme"])!
-
-// "JéRôME"
-String.fetchOne(dbQueue, "SELECT upper(?)", arguments: ["Jérôme"])!
+// "oof"
+String.fetchOne(dbQueue, "SELECT reverseString('foo')")!
 ```
 
 The *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, NSDate, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
@@ -1197,7 +1194,7 @@ When you don't provide any explicit *argumentCount*, the function can take any n
 
 ```swift
 let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [DatabaseValue]) in
-    let doubles: [Double] = databaseValues.flatMap { $0.value() }
+    let doubles: [Double] = databaseValues.flatMap { $0.failableValue() }
     return doubles.reduce(0, combine: +) / Double(doubles.count)
 }
 dbQueue.addFunction(averageOf)
@@ -1207,35 +1204,15 @@ Double.fetchOne(dbQueue, "SELECT averageOf(1, 2, 3)")!
 ```
 
 
-**Functions can throw:**
-
-```swift
-let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
-    let dbv = databaseValues[0]
-    guard let double: Double = dbv.value() else {
-        return nil
-    }
-    guard double >= 0.0 else {
-        throw DatabaseError(message: "Invalid negative value in function sqrt()")
-    }
-    return sqrt(double)
-}
-dbQueue.addFunction(sqrt)
-
-// fatal error: SQLite error 1 with statement `SELECT sqrt(-1)`:
-// Invalid negative value in function sqrt()
-Double.fetchOne(dbQueue, "SELECT sqrt(-1)")
-```
-
-See [error handling](#error-handling) for more information on database errors.
-
-
 **Use custom functions in the [query interface](#the-query-interface):**
 
 ```swift
-// SELECT unicodeUpper("name") AS "uppercaseName" FROM persons
-Person.select(unicodeUpper.apply(Col.name).aliased("uppercaseName"))
+// SELECT reverseString("name") AS "reversedName" FROM persons
+Person.select(reverseString.apply(Col.name).aliased("reversedName"))
 ```
+
+
+**GRDB ships with built-in SQL functions that perform unicode-aware string transformations.** See [Unicode](#unicode).
 
 
 ## Raw SQLite Pointers
@@ -1863,11 +1840,8 @@ All the methods above return another request, which you can further refine by ap
     // SELECT "id", "name" FROM "persons"
     Person.select(Col.id, Col.name)
     
-    // SELECT UPPER("name") FROM "persons"
-    Person.select(Col.name.uppercaseString)
-    
-    // SELECT UPPER("name") AS "uppercaseName" FROM "persons"
-    Person.select(Col.name.uppercaseString.aliased("uppercaseName"))
+    // SELECT MAX("age") AS "maxAge" FROM "persons"
+    Person.select(max(Col.age).aliased("maxAge"))
     ```
 
 - `distinct` performs uniquing:
@@ -1912,18 +1886,15 @@ All the methods above return another request, which you can further refine by ap
     // SELECT * FROM "persons" ORDER BY "name"
     Person.order(Col.name)
     
-    // SELECT * FROM "persons" ORDER BY UPPER("name") DESC, "email" ASC
-    Person.order(Col.name.uppercaseString.desc, Col.email.asc)
+    // SELECT * FROM "persons" ORDER BY "score" DESC, "name"
+    Person.order(Col.score.desc, Col.name)
     ```
 
 - `reverse()` reverses the eventual sort descriptors.
     
     ```swift
-    // SELECT * FROM "persons" ORDER BY "name" DESC
-    Person.order(Col.name).reverse()
-
-    // SELECT * FROM "persons" ORDER BY UPPER("name") ASC, "email" DESC
-    Person.order(Col.name.uppercaseString.desc, Col.email.asc)reverse()
+    // SELECT * FROM "persons" ORDER BY "score" ASC, "name" DESC
+    Person.order(Col.score.desc, Col.name).reverse()
     ```
     
     If no ordering was specified, the result is ordered by the primary key in reverse order.
@@ -2101,24 +2072,26 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 - `LOWER`, `UPPER`
     
-    Use the `lowercaseString` and `uppercaseString` methods:
+    The query interface does not give access to those SQLite functions. Nothing against them, but they are not unicode aware.
+    
+    Instead, GRDB extends SQLite with SQL functions that call the Swift string functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString` and `localizedUppercaseString`:
     
     ```swift
-    // SELECT * FROM persons WHERE LOWER(name) = 'arthur'
-    Person.filter(Col.name.lowercaseString == 'arthur)
+    // SELECT swiftCapitalizedString(name) FROM persons
+    Person.select(Col.name.capitalizedString)
     ```
     
-    > :point_up: **Note**: SQLite support for case translation is limited to ASCII characters. When comparing strings as in the example abobe, you may prefer a [custom comparison function](#string-comparison). When you actually want to transform strings in an Unicode-aware fashion, use a [custom SQL function](#custom-sql-functions).
+    > :point_up: **Note**: When *comparing* strings, you may prefer a [custom comparison function](#string-comparison).
 
 - Custom SQL functions
     
     You can apply your own [custom SQL functions](#custom-sql-functions):
     
     ```swift
-    let unicodeUpper = DatabaseFunction("unicodeUpper", ...)
+    let f = DatabaseFunction("f", ...)
     
-    // SELECT unicodeUpper("name") AS "uppercaseName" FROM persons
-    Person.select(unicodeUpper.apply(Col.name).aliased("uppercaseName"))
+    // SELECT f("name") FROM persons
+    Person.select(f.apply(Col.name))
     ```
 
     
@@ -2647,9 +2620,28 @@ SQLite lets you store unicode strings in the database.
 
 However, SQLite does not provide any unicode-aware string transformations or comparisons.
 
+GRDB has built-in tools that improve unicode support:
+
+
 ### Unicode functions
 
-The `upper` and `lower` SQLite functions are not unicode-aware. See [SQL Functions](#sql-functions) to learn how you can introduce custom string functions.
+The `UPPER` and `LOWER` SQLite functions are not unicode-aware.
+
+GRDB extends all your database connections with built-in [SQL Functions](#sql-functions) that give access to the standard Swift String unicode-aware functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString`, and `localizedUppercaseString`:
+
+```swift
+// "JéRôME" vs. "JÉRÔME"
+let uppercaseString = DatabaseFunction.uppercaseString
+String.fetchOne(dbQueue, "SELECT UPPER('Jérôme')")
+String.fetchOne(dbQueue, "SELECT \(uppercaseString.name)('Jérôme')")
+```
+
+Those built-in functions are also available in the [query interface](#sql-functions):
+
+```
+Person.select(Col.name.capitalizedString)
+```
+
 
 ### String Comparison
 
@@ -2657,22 +2649,21 @@ SQLite compares strings in many occasions: when you sort rows according to a str
 
 The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation) that do not support Unicode. For SQLite, "Jérôme" and "jerome" will never match.
 
-Fortunately, **you can define your own collations**, based on the rich set of Swift string comparisons:
+GRDB comes with five extra collations that leverage unicode-aware comparisons based on the standard Swift String comparison functions and operators:
 
-```swift
-let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
-    return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
-}
-dbQueue.addCollation(collation) // Or dbPool.addCollation(...)
-```
+- `unicodeCompare` (uses the built-in `<=` and `==` operators)
+- `caseInsensitiveCompare`
+- `localizedCaseInsensitiveCompare`
+- `localizedCompare`
+- `localizedStandardCompare`
 
-Once defined, the custom collation can be applied to a table column. All comparisons involving this column will automatically trigger your comparison function:
+A collation can be applied to a table column. All comparisons involving this column will then automatically trigger the comparison function:
     
 ```swift
-// Apply the custom collation to the `name` column
+let collation = DatabaseCollation.localizedCaseInsensitiveCompare
 try dbQueue.execute(
     "CREATE TABLE persons (" +
-        "name TEXT COLLATE localized_case_insensitive" + // The name of the collation
+        "name TEXT COLLATE \(collation.name)" +
     ")")
 
 // Persons are sorted as expected:
@@ -2688,11 +2679,20 @@ If you can't or don't want to define the comparison behavior of a column, you ca
 // SELECT * FROM "persons" WHERE ("name" = 'foo' COLLATE NOCASE)
 let persons = Person.filter(name.collating("NOCASE") == "foo").fetchAll(db)
 
-// SELECT * FROM "persons" WHERE ("name" = 'Jérôme' COLLATE localized_case_insensitive)
+// SELECT * FROM "persons" WHERE ("name" = 'Jérôme' COLLATE swiftLocalizedCaseInsensitiveCompare)
 let persons = Person.filter(name.collating(collation) == "Jérôme").fetchAll(db)
 ```
 
 See the [query interface](#the-query-interface) for more information.
+
+**You can also define your own collations**:
+
+```swift
+let collation = DatabaseCollation("customCollation") { (lhs, rhs) -> NSComparisonResult in
+    // return the comparison of lhs and rhs strings.
+}
+dbQueue.addCollation(collation) // Or dbPool.addCollation(...)
+```
 
 
 ## Memory Management

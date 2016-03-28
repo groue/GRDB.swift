@@ -651,18 +651,29 @@ class SQLSupportTests: GRDBTestCase {
     }
     
     
-    // MARK: - String expressions
+    // MARK: - String functions
     
-    func testLowercaseString() {
+    func testStringFunctions() {
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.lowercaseString == "foo")),
-            "SELECT * FROM \"readers\" WHERE (LOWER(\"name\") = 'foo')")
-    }
-    
-    func testUppercaseString() {
+            sql(tableRequest.select(Col.name.capitalizedString)),
+            "SELECT swiftCapitalizedString(\"name\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.uppercaseString == "FOO")),
-            "SELECT * FROM \"readers\" WHERE (UPPER(\"name\") = 'FOO')")
+            sql(tableRequest.select(Col.name.lowercaseString)),
+            "SELECT swiftLowercaseString(\"name\") FROM \"readers\"")
+        XCTAssertEqual(
+            sql(tableRequest.select(Col.name.uppercaseString)),
+            "SELECT swiftUppercaseString(\"name\") FROM \"readers\"")
+        
+        XCTAssertEqual(
+            sql(tableRequest.select(Col.name.localizedCapitalizedString)),
+            "SELECT swiftLocalizedCapitalizedString(\"name\") FROM \"readers\"")
+        XCTAssertEqual(
+            sql(tableRequest.select(Col.name.localizedLowercaseString)),
+            "SELECT swiftLocalizedLowercaseString(\"name\") FROM \"readers\"")
+        XCTAssertEqual(
+            sql(tableRequest.select(Col.name.localizedUppercaseString)),
+            "SELECT swiftLocalizedUppercaseString(\"name\") FROM \"readers\"")
+
     }
     
     
