@@ -2474,7 +2474,7 @@ See the [query interface](#the-query-interface) for more information.
 **You can also define your own collations**:
 
 ```swift
-let collation = DatabaseCollation("custom_collation") { (lhs, rhs) -> NSComparisonResult in
+let collation = DatabaseCollation("customCollation") { (lhs, rhs) -> NSComparisonResult in
     // return the comparison of lhs and rhs strings.
 }
 dbQueue.addCollation(collation) // Or dbPool.addCollation(...)
