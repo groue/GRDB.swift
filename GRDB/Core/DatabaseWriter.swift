@@ -52,11 +52,14 @@ public protocol DatabaseWriter : DatabaseReader {
     ///         try db.execute("INSERT INTO persons ...")
     ///     }
     ///
-    /// This method gives DatabasePool an opportunity to run *block*
-    /// asynchronously in a concurrent reader dispatch queue, and release the
-    /// writing dispatch queue early, before the block has finished.
+    /// DatabasePool.readFromWrite runs *block* asynchronously in a concurrent
+    /// reader dispatch queue, and release the writing dispatch queue early,
+    /// before the block has finished. In the example above, the insertion runs
+    /// concurrently with the select.
     ///
-    /// DatabaseQueue simply runs *block* synchronously.
+    /// DatabaseQueue.readFromWrite simply runs *block* synchronously, and
+    /// returns when the block has completed: the insertion is run after the
+    /// select.
     func readFromWrite(block: (db: Database) -> Void)
 }
 
