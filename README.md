@@ -1171,10 +1171,11 @@ let reverseString = DatabaseFunction(
     argumentCount: 1, // Number of arguments
     pure: true,       // True means that the result only depends on input
     function: { (databaseValues: [DatabaseValue]) in
+        // Extract string value, if any...
         guard let string: String = databaseValues[0].value() else {
-            // Not a string argument: return NULL
             return nil
         }
+        // ... and return reversed string:
         return String(string.characters.reverse())
     })
 dbQueue.addFunction(reverseString)   // Or dbPool.addFunction(...)
