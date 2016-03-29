@@ -574,50 +574,71 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         // Invalidated?
         guard let controller = self.controller else { return }
         
-        // Execute the fetch request.
+        // Fetch items.
         //
         // This method is called from the database writer's serialized queue, so
-        // that we can execute the fetch request before other writes have the
-        // opportunity to modify the database.
+        // that we can fetch items before other writes have the opportunity to
+        // modify the database.
         //
         // However, we don't have to block the writer queue for all the duration
         // of the fetch. We just need to block the writer queue until we can
         // perform a fetch in isolation. This is the role of the readFromWrite
-        // method:
+        // method (see below).
+        //
+        // However, our fetch will last for an unknown duration. And since we
+        // release the writer queue early, the next database modification will
+        // triggers this callback while our fetch is, maybe, still running. This
+        // next callback will also perform its own fetch, that will maybe end
+        // before our own fetch.
+        //
+        // We have to make sure that our fetch is processed *before* the next
+        // fetch: let's immediately dispatch the processing task in our
+        // serialized FIFO queue, but have it wait for our fetch to complete
+        // with a semaphore:
+        let semaphore = dispatch_semaphore_create(0)
+        var fetchedItems: [Item<Record>]! = nil
+        
         controller.writer.readFromWrite { db in
+            let statement = try! controller.source.selectStatement(db)
+            fetchedItems = Item<Record>.fetchAll(statement)
+            
+            // Fetch is complete:
+            dispatch_semaphore_signal(semaphore)
+        }
+        
+        
+        // Process the fetched items
+        
+        dispatch_async(queue) {
+            // Wait for the fetch to complete:
+            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+            assert(fetchedItems != nil)
+            
             // Invalidated?
             guard let controller = self.controller else { return }
             
-            let statement = try! controller.source.selectStatement(db)
-            let fetchedItems = Item<Record>.fetchAll(statement)
+            // Compute changes
+            let changes = self.computeChanges(from: self.items, to: fetchedItems)
+            self.items = fetchedItems
             
-            dispatch_async(self.queue) {
+            // No changes?
+            guard !changes.isEmpty else { return }
+            
+            dispatch_async(controller.queue) {
                 // Invalidated?
                 guard let controller = self.controller else { return }
                 
-                // Compute changes
-                let changes = self.computeChanges(from: self.items, to: fetchedItems)
-                self.items = fetchedItems
-                
-                // No changes?
-                guard !changes.isEmpty else { return }
-                
-                dispatch_async(controller.queue) {
-                    // Invalidated?
-                    guard let controller = self.controller else { return }
-                    
-                    if let delegate = controller.delegate {
-                        delegate.controllerWillChangeRecords(controller)
-                        controller.fetchedItems = fetchedItems
-                        for change in changes {
-                            delegate.controller(controller, didChangeRecord: change.record, withEvent: change.event)
-                        }
-                        delegate.controllerDidChangeRecords(controller)
-                    } else {
-                        // There is no delegate interested in changes: stop tracking
-                        // changes.
-                        controller.stopTrackingChanges()
+                if let delegate = controller.delegate {
+                    delegate.controllerWillChangeRecords(controller)
+                    controller.fetchedItems = fetchedItems
+                    for change in changes {
+                        delegate.controller(controller, didChangeRecord: change.record, withEvent: change.event)
                     }
+                    delegate.controllerDidChangeRecords(controller)
+                } else {
+                    // There is no delegate interested in changes: stop tracking
+                    // changes.
+                    controller.stopTrackingChanges()
                 }
             }
         }

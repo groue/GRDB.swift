@@ -348,16 +348,16 @@ extension DatabasePool : DatabaseWriter {
     public func readFromWrite(block: (db: Database) -> Void) {
         writer.preconditionValidQueue()
         
-        let s = dispatch_semaphore_create(0)
+        let semaphore = dispatch_semaphore_create(0)
         self.readerPool.get { reader in
             reader.performAsync { db in
                 db.read { db in
                     // Now we're isolated: release the writing queue
-                    dispatch_semaphore_signal(s)
+                    dispatch_semaphore_signal(semaphore)
                     block(db: db)
                 }
             }
         }
-        dispatch_semaphore_wait(s, DISPATCH_TIME_FOREVER)
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
     }
 }
