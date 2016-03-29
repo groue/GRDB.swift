@@ -61,7 +61,7 @@ public final class DatabaseQueue {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func inDatabase<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.inDatabase(block)
+        return try serializedDatabase.performSync(block)
     }
     
     /// Synchronously executes a block in a protected dispatch queue, wrapped
@@ -86,7 +86,7 @@ public final class DatabaseQueue {
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) throws {
-        try serializedDatabase.inDatabase { db in
+        try serializedDatabase.performSync { db in
             try db.inTransaction(kind) {
                 try block(db: db)
             }
@@ -100,7 +100,7 @@ public final class DatabaseQueue {
     ///
     /// This method blocks the current thread until all database accesses are completed.
     public func releaseMemory() {
-        serializedDatabase.inDatabase { db in
+        serializedDatabase.performSync { db in
             db.releaseMemory()
         }
     }
@@ -147,14 +147,14 @@ extension DatabaseQueue : DatabaseReader {
     ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.inDatabase(block)
+        return try serializedDatabase.performSync(block)
     }
     
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseReader protocol adoption.
     public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.inDatabase(block)
+        return try serializedDatabase.performSync(block)
     }
     
     
@@ -174,12 +174,16 @@ extension DatabaseQueue : DatabaseReader {
     ///         Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func addFunction(function: DatabaseFunction) {
-        serializedDatabase.addFunction(function)
+        serializedDatabase.performSync { db in
+            db.addFunction(function)
+        }
     }
     
     /// Remove an SQL function.
     public func removeFunction(function: DatabaseFunction) {
-        serializedDatabase.removeFunction(function)
+        serializedDatabase.performSync { db in
+            db.removeFunction(function)
+        }
     }
     
     
@@ -195,12 +199,16 @@ extension DatabaseQueue : DatabaseReader {
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func addCollation(collation: DatabaseCollation) {
-        serializedDatabase.addCollation(collation)
+        serializedDatabase.performSync { db in
+            db.addCollation(collation)
+        }
     }
     
     /// Remove a collation.
     public func removeCollation(collation: DatabaseCollation) {
-        serializedDatabase.removeCollation(collation)
+        serializedDatabase.performSync { db in
+            db.removeCollation(collation)
+        }
     }
 }
 
@@ -216,7 +224,7 @@ extension DatabaseQueue : DatabaseWriter {
     ///
     /// This method is part of the DatabaseWriter protocol adoption.
     public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.inDatabase(block)
+        return try serializedDatabase.performSync(block)
     }
 
     /// Executes *block*.
@@ -224,6 +232,6 @@ extension DatabaseQueue : DatabaseWriter {
     /// This method is part of the DatabaseWriter protocol adoption, and must
     /// be called from the protected database dispatch queue.
     public func readFromWrite(block: (db: Database) -> Void) {
-        serializedDatabase.readFromWrite(block)
+        serializedDatabase.perform(block)
     }
 }

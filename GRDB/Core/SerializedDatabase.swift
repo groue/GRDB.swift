@@ -43,14 +43,11 @@ final class SerializedDatabase {
         db.dispatchQueueID = dispatchQueueID
     }
     
-    /// Synchronously executes a block a serialized dispatch queue, and returns
+    /// Synchronously executes a block the serialized dispatch queue, and returns
     /// its result.
     ///
     /// This method is *not* reentrant.
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
-    func inDatabase<T>(block: (db: Database) throws -> T) rethrows -> T {
+    func performSync<T>(block: (db: Database) throws -> T) rethrows -> T {
         // This method is NOT reentrant.
         //
         // Avoiding dispatch_sync and calling block() right away if the specific
@@ -81,50 +78,23 @@ final class SerializedDatabase {
         }
     }
     
-    func asyncInDatabase(block: (db: Database) -> Void) {
+    /// Asynchronously executes a block in the serialized dispatch queue.
+    func performAsync(block: (db: Database) -> Void) {
         dispatch_async(queue) {
             block(db: self.db)
         }
     }
     
+    /// Executes the block in the current queue.
+    ///
+    /// - precondition: the current dispatch queue is valid.
+    func perform<T>(block: (db: Database) throws -> T) rethrows -> T {
+        db.preconditionValidQueue()
+        return try block(db: db)
+    }
+    
+    /// Fatal error if current dispatch queue is not valid.
     func preconditionValidQueue() {
         db.preconditionValidQueue()
-    }
-}
-
-extension SerializedDatabase : DatabaseReader {
-    func read<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try inDatabase { try $0.read(block) }
-    }
-    
-    func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try inDatabase { try $0.nonIsolatedRead(block) }
-    }
-    
-    func addFunction(function: DatabaseFunction) {
-        inDatabase { $0.addFunction(function) }
-    }
-    
-    func removeFunction(function: DatabaseFunction) {
-        inDatabase { $0.removeFunction(function) }
-    }
-    
-    func addCollation(collation: DatabaseCollation) {
-        inDatabase { $0.addCollation(collation) }
-    }
-    
-    func removeCollation(collation: DatabaseCollation) {
-        inDatabase { $0.removeCollation(collation) }
-    }
-}
-
-extension SerializedDatabase : DatabaseWriter {
-    func write<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try inDatabase { try $0.write(block) }
-    }
-    
-    func readFromWrite(block: (db: Database) -> Void) {
-        db.preconditionValidQueue()
-        block(db: db)
     }
 }

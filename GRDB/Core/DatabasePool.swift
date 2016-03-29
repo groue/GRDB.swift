@@ -41,7 +41,9 @@ public final class DatabasePool {
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
-            let journalMode = String.fetchOne(writer, "PRAGMA journal_mode=WAL")
+            let journalMode = writer.performSync { db in
+                String.fetchOne(db, "PRAGMA journal_mode=WAL")
+            }
             guard journalMode == "wal" else {
                 throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
             }
@@ -59,7 +61,7 @@ public final class DatabasePool {
                 configuration: readerConfig,
                 schemaCache: databaseSchemaCache)
             
-            serializedDatabase.inDatabase { db in
+            serializedDatabase.performSync { db in
                 for function in self.functions {
                     db.addFunction(function)
                 }
@@ -83,7 +85,7 @@ public final class DatabasePool {
     ///
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(kind: CheckpointMode = .Passive) throws {
-        try writer.inDatabase { db in
+        try writer.performSync { db in
             // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
             // check whether we need a busy handler on writer and/or readers
             // when kind is not .Passive.
@@ -102,12 +104,12 @@ public final class DatabasePool {
     /// This method blocks the current thread until all database accesses are completed.
     public func releaseMemory() {
         // TODO: test that this method blocks the current thread until all database accesses are completed.
-        writer.inDatabase { db in
+        writer.performSync { db in
             db.releaseMemory()
         }
         
         readerPool.forEach { reader in
-            reader.inDatabase { db in
+            reader.performSync { db in
                 db.releaseMemory()
             }
         }
@@ -172,7 +174,7 @@ extension DatabasePool : DatabaseReader {
         // The block isolation comes from the DEFERRED transaction.
         // See DatabasePoolTests.testReadMethodIsolationOfBlock().
         return try readerPool.get { reader in
-            try reader.inDatabase { db in
+            try reader.performSync { db in
                 var result: T? = nil
                 try db.inTransaction(.Deferred) {
                     result = try block(db: db)
@@ -205,7 +207,7 @@ extension DatabasePool : DatabaseReader {
     /// - throws: The error thrown by the block.
     public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
         return try readerPool.get { reader in
-            try reader.inDatabase { db in
+            try reader.performSync { db in
                 try block(db: db)
             }
         }
@@ -230,15 +232,15 @@ extension DatabasePool : DatabaseReader {
     public func addFunction(function: DatabaseFunction) {
         functions.remove(function)
         functions.insert(function)
-        writer.addFunction(function)
-        readerPool.forEach { $0.addFunction(function) }
+        writer.performSync { db in db.addFunction(function) }
+        readerPool.forEach { $0.performSync { db in db.addFunction(function) } }
     }
     
     /// Remove an SQL function.
     public func removeFunction(function: DatabaseFunction) {
         functions.remove(function)
-        writer.removeFunction(function)
-        readerPool.forEach { $0.removeFunction(function) }
+        writer.performSync { db in db.removeFunction(function) }
+        readerPool.forEach { $0.performSync { db in db.removeFunction(function) } }
     }
     
     
@@ -256,15 +258,15 @@ extension DatabasePool : DatabaseReader {
     public func addCollation(collation: DatabaseCollation) {
         collations.remove(collation)
         collations.insert(collation)
-        writer.addCollation(collation)
-        readerPool.forEach { $0.addCollation(collation) }
+        writer.performSync { db in db.addCollation(collation) }
+        readerPool.forEach { $0.performSync { db in db.addCollation(collation) } }
     }
     
     /// Remove a collation.
     public func removeCollation(collation: DatabaseCollation) {
         collations.remove(collation)
-        writer.removeCollation(collation)
-        readerPool.forEach { $0.removeCollation(collation) }
+        writer.performSync { db in db.removeCollation(collation) }
+        readerPool.forEach { $0.performSync { db in db.removeCollation(collation) } }
     }
 }
 
@@ -288,7 +290,7 @@ extension DatabasePool : DatabaseWriter {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try writer.inDatabase(block)
+        return try writer.performSync(block)
     }
     
     /// Synchronously executes a block in a protected dispatch queue, wrapped
@@ -313,7 +315,7 @@ extension DatabasePool : DatabaseWriter {
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
     public func writeInTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) throws {
-        try writer.inDatabase { db in
+        try writer.performSync { db in
             try db.inTransaction(kind) {
                 try block(db: db)
             }
@@ -348,7 +350,7 @@ extension DatabasePool : DatabaseWriter {
         
         let s = dispatch_semaphore_create(0)
         self.readerPool.get { reader in
-            reader.asyncInDatabase { db in
+            reader.performAsync { db in
                 db.read { db in
                     // Now we're isolated: release the writing queue
                     dispatch_semaphore_signal(s)

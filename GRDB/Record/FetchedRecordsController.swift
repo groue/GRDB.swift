@@ -237,7 +237,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     private init(db: DatabaseWriter, source: DatabaseSource<Record>, queue: dispatch_queue_t, isSameRecordBuilder: (Database) -> (Record, Record) -> Bool) {
         self.source = source
-        self.db = db
+        self.writer = db
         self.isSameRecord = { _ in return false }
         self.isSameRecordBuilder = isSameRecordBuilder
         self.queue = queue
@@ -251,17 +251,17 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // If some changes are currently processed, make sure they are discarded.
         observer?.invalidate()
         
-        // Fetch items
-        db.write { db in
+        // Fetch items on the writing dispatch queue, so that the transaction
+        // observer is added on the same serialized queue as transaction
+        // callbacks.
+        writer.write { db in
             let statement = try! self.source.selectStatement(db)
             let items = Item<Record>.fetchAll(statement)
             self.fetchedItems = items
             self.isSameRecord = self.isSameRecordBuilder(db)
             
             if self.delegate != nil {
-                // Setup a new transaction observer. Use db.write, so that
-                // the transaction observer is added on the same serialized
-                // queue as transaction callbacks.
+                // Setup a new transaction observer.
                 let observer = FetchedRecordsObserver(
                     controller: self,
                     initialItems: items,
@@ -292,7 +292,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 // Setup a new transaction observer. Use
                 // database.write, so that the transaction observer is added on the
                 // same serialized queue as transaction callbacks.
-                db.write { db in
+                writer.write { db in
                     let statement = try! self.source.selectStatement(db)
                     let observer = FetchedRecordsObserver(
                         controller: self,
@@ -313,12 +313,30 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     /// The controller registers as a transaction observer in order to respond
     /// to changes.
-    public let db: DatabaseWriter
+    public let writer: DatabaseWriter
     
     /// The dispatch queue on which the controller must be used.
     ///
     /// Unless specified otherwise at initialization time, it is the main queue.
     public let queue: dispatch_queue_t
+    
+    /// The fetch request. Nil if controller uses a raw SQL query (see
+    /// sqlAndArguments property).
+    public var request: FetchRequest<Record>? {
+        guard case .FetchRequest(let request) = source else {
+            return nil
+        }
+        return request
+    }
+    
+    /// The SQL query, and eventual arguments. Nil if controller uses a
+    /// fetch request (see request property).
+    public var sqlAndArguments: (sql: String, arguments: StatementArguments?)? {
+        guard case .SQL(let sql, let arguments) = source else {
+            return nil
+        }
+        return (sql: sql, arguments: arguments)
+    }
     
     /// Updates the fetch request, and notifies the delegate of changes in the
     /// fetched records.
@@ -407,7 +425,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private var source: DatabaseSource<Record> {
         didSet {
             guard let observer = observer else { return }
-            db.write { db in
+            writer.write { db in
                 observer.checkForChangesInDatabase(db)
             }
         }
@@ -566,7 +584,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         // of the fetch. We just need to block the writer queue until we can
         // perform a fetch in isolation. This is the role of the readFromWrite
         // method:
-        controller.db.readFromWrite { db in
+        controller.writer.readFromWrite { db in
             // Invalidated?
             guard let controller = self.controller else { return }
             
