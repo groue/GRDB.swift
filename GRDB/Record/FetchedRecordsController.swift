@@ -1,10 +1,3 @@
-//
-//  FetchedRecordsController.swift
-//  GRDB
-//
-//  Created by Pascal Edmond on 09/12/2015.
-//  Copyright © 2015 Gwendal Roué. All rights reserved.
-//
 import UIKit
 
 /// You use a FetchedRecordsController to feed a UITableView with the results

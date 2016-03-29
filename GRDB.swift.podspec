@@ -7,6 +7,7 @@ Pod::Spec.new do |s|
 	s.author   = { 'Gwendal Roué' => 'gr@pierlis.com' }
 	s.source   = { :git => 'https://github.com/groue/GRDB.swift.git', :tag => "v#{s.version}" }
 	s.source_files = 'GRDB/**/*.{h,m,swift}'
+	s.osx.exclude_files = 'GRDB/Record/FetchedRecordsController.swift'
 	s.module_name = 'GRDB'
 	s.ios.deployment_target = '9.0'
 	s.osx.deployment_target = '10.11'
