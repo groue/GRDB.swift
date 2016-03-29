@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## 0.54.1
+
+Released March 29, 2016
+
+This release restores CocoaPods support for iOS 9.0+ and OSX 10.11+. We'll try to bring back CocoaPods support for iOS 8.0+ or OSX 10.9+ in a further release.
+
+
 ## 0.54.0
 
 Released March 29, 2016
