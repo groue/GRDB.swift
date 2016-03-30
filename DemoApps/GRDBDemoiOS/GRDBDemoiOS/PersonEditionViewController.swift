@@ -24,10 +24,9 @@ class PersonEditionViewController: UITableViewController {
         person.score = scoreTextField.text.flatMap { Int($0) } ?? 0
     }
     
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
+    override func viewDidLoad() {
+        super.viewDidLoad()
         configureView()
-        nameTextField.becomeFirstResponder()
     }
     
     private func configureView() {
@@ -81,13 +80,14 @@ extension PersonEditionViewController {
 
 extension PersonEditionViewController: UITextFieldDelegate {
     
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        nameTextField.becomeFirstResponder()
+    }
+    
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
-        
-        guard let cell = tableView.cellForRowAtIndexPath(indexPath) else {
-            return
-        }
-        
+        let cell = tableView.cellForRowAtIndexPath(indexPath)
         if cell == nameCell {
             nameTextField.becomeFirstResponder()
         } else if cell == scoreCell {
