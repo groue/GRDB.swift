@@ -9,7 +9,7 @@
         <!--Hall Of Fame-->
         <scene sceneID="8jG-C9-QsI">
             <objects>
-                <tableViewController id="cyv-nk-Plb" customClass="PersonsViewController" customModule="GRDBDemoiOS" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="cyv-nk-Plb" customClass="SimplePersonsViewController" customModule="GRDBDemoiOS" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="oON-zg-8kO">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -249,7 +249,7 @@
         <!--Hall Of Fame-->
         <scene sceneID="9su-ms-vdJ">
             <objects>
-                <tableViewController id="PJp-Eq-ZjA" customClass="FetchedRecordsControllerDemoViewController" customModule="GRDBDemoiOS" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="PJp-Eq-ZjA" customClass="PersonsViewController" customModule="GRDBDemoiOS" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="tX0-ON-WSI">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
