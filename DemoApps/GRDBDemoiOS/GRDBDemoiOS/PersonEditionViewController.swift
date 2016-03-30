@@ -88,9 +88,9 @@ extension PersonEditionViewController: UITextFieldDelegate {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
         let cell = tableView.cellForRowAtIndexPath(indexPath)
-        if cell == nameCell {
+        if cell === nameCell {
             nameTextField.becomeFirstResponder()
-        } else if cell == scoreCell {
+        } else if cell === scoreCell {
             scoreTextField.becomeFirstResponder()
         }
     }
