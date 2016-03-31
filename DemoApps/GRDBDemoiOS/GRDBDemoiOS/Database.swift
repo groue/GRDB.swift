@@ -1,9 +1,10 @@
 import GRDB
+import UIKit
 
 // The shared database queue
 var dbQueue: DatabaseQueue!
 
-func setupDatabase() {
+func setupDatabase(application: UIApplication) {
     
     // Connect to the database
     // See https://github.com/groue/GRDB.swift/#database-connections
@@ -11,6 +12,11 @@ func setupDatabase() {
     let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first! as NSString
     let databasePath = documentsPath.stringByAppendingPathComponent("db.sqlite")
     dbQueue = try! DatabaseQueue(path: databasePath)
+    
+    
+    // Be a nice iOS citizen
+    // See https://github.com/groue/GRDB.swift/#memory-management
+    dbQueue.setupMemoryManagement(application: application)
     
     
     // Use DatabaseMigrator to setup the database
