@@ -123,9 +123,9 @@ public final class DatabaseQueue {
     
     
     #if os(iOS)
-    /// Release as much memory as possible on
-    /// UIApplicationDidEnterBackgroundNotification and
-    /// UIApplicationDidReceiveMemoryWarningNotification.
+    /// Listens to UIApplicationDidEnterBackgroundNotification and
+    /// UIApplicationDidReceiveMemoryWarningNotification in order to release
+    /// as much memory as possible.
     ///
     /// - param application: The UIApplication that will start a background
     ///   task to let the database queue release its memory when the application

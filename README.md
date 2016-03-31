@@ -2725,29 +2725,11 @@ This method blocks the current thread until all current database accesses are co
 
 **The iOS operating system likes applications that do not consume much memory.**
 
-You should call the `releaseMemory` method when your application receives a memory warning, and when it enters background. Since `releaseMemory` is blocking, dispatch it to some background queue so that you avoid freezing your user interface.
+[Database queues](#database-queues) and [pools](#database-pools) can call the `releaseMemory` method for you, when application receives memory warnings, and when application enters background: call the `setupMemoryManagement` method after creating the queue or pool instance:
 
-For example:
-
-```swift
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    var dbQueue: DatabaseQueue!
-    
-    func applicationDidReceiveMemoryWarning(application: UIApplication) {
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-            self.dbQueue.releaseMemory()
-        }
-    }
-    
-    func applicationDidEnterBackground(application: UIApplication) {
-        let task = application.beginBackgroundTaskWithExpirationHandler(nil)
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-            self.dbQueue.releaseMemory()
-            application.endBackgroundTask(task)
-        }
-    }
-}
+```
+let dbQueue = try DatabaseQueue(...)
+dbQueue.setupMemoryManagement(application: UIApplication.sharedApplication())
 ```
 
 
