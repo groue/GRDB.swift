@@ -549,7 +549,7 @@ final class DataMapper {
         
         // Fail early if persistentDictionary is empty
         let persistentDictionary = persistable.persistentDictionary
-        precondition(persistentDictionary.count > 0, "\(persistable.dynamicType).persistentDictionary: invalid empty dictionary")
+        GRDBPrecondition(persistentDictionary.count > 0, "\(persistable.dynamicType).persistentDictionary: invalid empty dictionary")
         
         self.db = db
         self.persistable = persistable
@@ -571,7 +571,7 @@ final class DataMapper {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
-        precondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
+        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
         // Update everything but primary key
         var updatedColumns = persistentDictionary.keys.removingElementsOf(primaryKeyColumns)
@@ -601,7 +601,7 @@ final class DataMapper {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
-        precondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
+        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
         let query = DeleteQuery(
             tableName: databaseTableName,
@@ -615,7 +615,7 @@ final class DataMapper {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
-        precondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
+        GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
         let query = ExistsQuery(
             tableName: databaseTableName,

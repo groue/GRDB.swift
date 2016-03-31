@@ -241,8 +241,8 @@ extension Database {
     /// See preconditionValidQueue.
     static let dispatchQueueIDKey = unsafeBitCast(Database.self, UnsafePointer<Void>.self)     // some unique pointer
     
-    func preconditionValidQueue() {
-        precondition(dispatchQueueID == nil || dispatchQueueID == dispatch_get_specific(Database.dispatchQueueIDKey), "Database was not used on the correct thread. If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.")
+    func preconditionValidQueue(@autoclosure message: () -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
+        GRDBPrecondition(dispatchQueueID == nil || dispatchQueueID == dispatch_get_specific(Database.dispatchQueueIDKey), message, file: file, line: line)
     }
 }
 

@@ -25,7 +25,7 @@ public final class DatabasePool {
     ///     - maximumReaderCount: The maximum number of readers. Default is 5.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration(), maximumReaderCount: Int = 5) throws {
-        precondition(maximumReaderCount > 1, "maximumReaderCount must be at least 1")
+        GRDBPrecondition(maximumReaderCount > 1, "maximumReaderCount must be at least 1")
         
         // Database Store
         store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)

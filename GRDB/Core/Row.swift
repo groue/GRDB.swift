@@ -127,7 +127,7 @@ extension Row {
     /// righmost column.
     @warn_unused_result
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
-        precondition(index >= 0 && index < count, "row index out of range")
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atIndex: index).value()
     }
     
@@ -141,7 +141,7 @@ extension Row {
     /// fail, a fatal error is raised.
     @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
-        precondition(index >= 0 && index < count, "row index out of range")
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atIndex: index).value()
     }
     
@@ -159,7 +159,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value? {
-        precondition(index >= 0 && index < count, "row index out of range")
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return fastValue(atUncheckedIndex: index)
     }
     
@@ -172,7 +172,7 @@ extension Row {
     /// SQLite value can not be converted to `Value`.
     @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
-        precondition(index >= 0 && index < count, "row index out of range")
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atIndex: index).value()
     }
     
@@ -189,7 +189,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value {
-        precondition(index >= 0 && index < count, "row index out of range")
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return fastValue(atUncheckedIndex: index)
     }
     
@@ -301,7 +301,7 @@ extension Row {
     /// than the row's lifetime.
     @warn_unused_result
     public func dataNoCopy(atIndex index: Int) -> NSData? {
-        precondition(index >= 0 && index < count, "row index out of range")
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.dataNoCopy(atIndex: index)
     }
     
@@ -333,7 +333,7 @@ extension Row {
     /// righmost column.
     @warn_unused_result
     public func databaseValue(atIndex index: Int) -> DatabaseValue {
-        precondition(index >= 0 && index < count, "row index out of range")
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atIndex: index)
     }
     

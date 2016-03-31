@@ -324,7 +324,7 @@ public struct DatabaseSequence<Element>: SequenceType {
     private init(statement: SelectStatement, element: () -> Element) {
         self.generateImpl = {
             // Check that generator is built on a valid queue.
-            statement.database.preconditionValidQueue()
+            statement.database.preconditionValidQueue("Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
             
             // Support multiple sequence iterations
             try statement.reset()
@@ -351,7 +351,7 @@ public struct DatabaseSequence<Element>: SequenceType {
         // to be used on the database queue.
         return DatabaseSequence() {
             // Check that generator is built on a valid queue.
-            database.preconditionValidQueue()
+            database.preconditionValidQueue("Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
             return DatabaseGenerator()
         }
     }

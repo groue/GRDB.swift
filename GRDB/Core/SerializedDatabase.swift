@@ -72,7 +72,7 @@ final class SerializedDatabase {
         //
         // I try not to ship half-baked solutions, so until a complete solution
         // is found to this problem, I prefer discouraging reentrancy.
-        precondition(db.dispatchQueueID != dispatch_get_specific(Database.dispatchQueueIDKey), "Database methods are not reentrant.")
+        GRDBPrecondition(db.dispatchQueueID != dispatch_get_specific(Database.dispatchQueueIDKey), "Database methods are not reentrant.")
         return try dispatchSync(queue) {
             try block(db: self.db)
         }
@@ -94,7 +94,7 @@ final class SerializedDatabase {
     }
     
     /// Fatal error if current dispatch queue is not valid.
-    func preconditionValidQueue() {
-        db.preconditionValidQueue()
+    func preconditionValidQueue(@autoclosure message: () -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
+        db.preconditionValidQueue(message, file: file, line: line)
     }
 }

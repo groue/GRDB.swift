@@ -84,7 +84,7 @@ extension RowConvertible where Self: TableMapping {
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey.columns
-        precondition(columns.count == 1, "expected single column primary key in table: \(databaseTableName)")
+        GRDBPrecondition(columns.count == 1, "requires single column primary key in table: \(databaseTableName)")
         let column = columns.first!
         
         let values = Array(values)
@@ -175,7 +175,7 @@ extension RowConvertible where Self: TableMapping {
         var arguments: [DatabaseValueConvertible?] = []
         var whereClauses: [String] = []
         for dictionary in keys {
-            precondition(dictionary.count > 0, "Invalid empty key dictionary")
+            GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             arguments.appendContentsOf(dictionary.values)
             whereClauses.append("(" + dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" }.joinWithSeparator(" AND ") + ")")
         }

@@ -95,7 +95,7 @@ public struct DatabaseMigrator {
     private var migrations: [Migration] = []
     
     private mutating func registerMigration(migration: Migration) {
-        precondition(!migrations.map({ $0.identifier }).contains(migration.identifier), "already registered migration: \"\(migration.identifier)\"")
+        GRDBPrecondition(!migrations.map({ $0.identifier }).contains(migration.identifier), "already registered migration: \"\(migration.identifier)\"")
         migrations.append(migration)
     }
     

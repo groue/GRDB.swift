@@ -36,6 +36,17 @@ public func databaseQuestionMarks(count count: Int) -> String {
 
 let SQLITE_TRANSIENT = unsafeBitCast(COpaquePointer(bitPattern: -1), sqlite3_destructor_type.self)
 
+/// Custom precondition function which aims at solving
+/// https://bugs.swift.org/browse/SR-905 and
+/// https://github.com/groue/GRDB.swift/issues/37
+///
+/// TODO: remove this function when https://bugs.swift.org/browse/SR-905 is solved.
+func GRDBPrecondition(@autoclosure condition: () -> Bool, @autoclosure _ message: () -> String = "", file: StaticString = #file, line: UInt = #line) {
+    if !condition() {
+        fatalError(message, file: file, line: line)
+    }
+}
+
 /// A function declared as rethrows that synchronously executes a throwing
 /// block in a dispatch_queue.
 func dispatchSync<T>(queue: dispatch_queue_t, _ block: () throws -> T) rethrows -> T {
@@ -176,7 +187,7 @@ final class Pool<T> {
     private let semaphore: dispatch_semaphore_t // limits the number of elements
     
     init(maximumCount: Int, makeElement: (() -> T)? = nil) {
-        precondition(maximumCount > 0, "Pool size must be at least 1")
+        GRDBPrecondition(maximumCount > 0, "Pool size must be at least 1")
         self.makeElement = makeElement
         self.queue = dispatch_queue_create("GRDB.Pool", nil)
         self.semaphore = dispatch_semaphore_create(maximumCount)
