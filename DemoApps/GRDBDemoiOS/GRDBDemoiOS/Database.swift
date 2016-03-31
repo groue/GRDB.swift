@@ -14,8 +14,9 @@ func setupDatabase(application: UIApplication) {
     dbQueue = try! DatabaseQueue(path: databasePath)
     
     
-    // Be a nice iOS citizen
+    // Be a nice iOS citizen, and don't consume too much memory
     // See https://github.com/groue/GRDB.swift/#memory-management
+    
     dbQueue.setupMemoryManagement(application: application)
     
     
