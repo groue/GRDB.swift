@@ -8,6 +8,10 @@
 #endif
 #endif
 
+#if os(iOS)
+    import UIKit
+#endif
+
 /// A DatabasePool grants concurrent accesses to an SQLite database.
 public final class DatabasePool {
     
@@ -72,6 +76,18 @@ public final class DatabasePool {
             
             return serializedDatabase
         }
+        
+        setupMemoryManagement()
+    }
+    
+    deinit {
+        #if os(iOS)
+            // Undo job done in setupMemoryManagement()
+            //
+            // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
+            // Explicit unregistration is required before iOS 9 and OS X 10.11.
+            NSNotificationCenter.defaultCenter().removeObserver(self)
+        #endif
     }
     
     
@@ -102,6 +118,10 @@ public final class DatabasePool {
     /// Free as much memory as possible.
     ///
     /// This method blocks the current thread until all database accesses are completed.
+    ///
+    /// On iOS, this method is automatically called on
+    /// UIApplicationDidReceiveMemoryWarningNotification and
+    /// UIApplicationDidEnterBackgroundNotification.
     public func releaseMemory() {
         // TODO: test that this method blocks the current thread until all database accesses are completed.
         writer.performSync { db in
@@ -116,6 +136,28 @@ public final class DatabasePool {
         
         readerPool.clear()
     }
+    
+    private func setupMemoryManagement() {
+        #if os(iOS)
+            let center = NSNotificationCenter.defaultCenter()
+            center.addObserver(self, selector: #selector(DatabasePool.applicationDidReceiveMemoryWarning(_:)), name: UIApplicationDidReceiveMemoryWarningNotification, object: nil)
+            center.addObserver(self, selector: #selector(DatabasePool.applicationDidEnterBackground(_:)), name: UIApplicationDidEnterBackgroundNotification, object: nil)
+        #endif
+    }
+    
+    #if os(iOS)
+    @objc private func applicationDidEnterBackground(notification: NSNotification) {
+        // We can't get UIApplication.sharedApplication, so we can't start a
+        // background task: perform releaseMemory() synchronously.
+        releaseMemory()
+    }
+    
+    @objc private func applicationDidReceiveMemoryWarning(notification: NSNotification) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+            self.releaseMemory()
+        }
+    }
+    #endif
     
     
     // MARK: - Not public

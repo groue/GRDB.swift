@@ -1,5 +1,9 @@
 import Foundation
 
+#if os(iOS)
+import UIKit
+#endif
+
 /// A DatabaseQueue serializes access to an SQLite database.
 public final class DatabaseQueue {
     
@@ -29,6 +33,7 @@ public final class DatabaseQueue {
             path: path,
             configuration: configuration,
             schemaCache: DatabaseSchemaCache())
+        setupMemoryManagement()
     }
     
     /// Opens an in-memory SQLite database.
@@ -44,6 +49,17 @@ public final class DatabaseQueue {
             path: ":memory:",
             configuration: configuration,
             schemaCache: DatabaseSchemaCache())
+        setupMemoryManagement()
+    }
+    
+    deinit {
+        #if os(iOS)
+            // Undo job done in setupMemoryManagement()
+            //
+            // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
+            // Explicit unregistration is required before iOS 9 and OS X 10.11.
+            NSNotificationCenter.defaultCenter().removeObserver(self)
+        #endif
     }
     
     
@@ -99,11 +115,37 @@ public final class DatabaseQueue {
     /// Free as much memory as possible.
     ///
     /// This method blocks the current thread until all database accesses are completed.
+    ///
+    /// On iOS, this method is automatically called on
+    /// UIApplicationDidReceiveMemoryWarningNotification and
+    /// UIApplicationDidEnterBackgroundNotification.
     public func releaseMemory() {
         serializedDatabase.performSync { db in
             db.releaseMemory()
         }
     }
+    
+    private func setupMemoryManagement() {
+        #if os(iOS)
+            let center = NSNotificationCenter.defaultCenter()
+            center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)), name: UIApplicationDidReceiveMemoryWarningNotification, object: nil)
+            center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)), name: UIApplicationDidEnterBackgroundNotification, object: nil)
+        #endif
+    }
+    
+    #if os(iOS)
+    @objc private func applicationDidEnterBackground(notification: NSNotification) {
+        // We can't get UIApplication.sharedApplication, so we can't start a
+        // background task: perform releaseMemory() synchronously.
+        releaseMemory()
+    }
+    
+    @objc private func applicationDidReceiveMemoryWarning(notification: NSNotification) {
+        serializedDatabase.performAsync { db in
+            db.releaseMemory()
+        }
+    }
+    #endif
     
     
     // MARK: - Not public
