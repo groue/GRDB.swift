@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.54.2
+
+Released March 31, 2016
+
+**Fixed**
+
+- Messages of failed preconditions are no longer lost when GRDB is built in Release configuration. Fixes [#37](https://github.com/groue/GRDB.swift/issues/37).
+
+
 ## 0.54.1
 
 Released March 29, 2016
