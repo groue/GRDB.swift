@@ -12,10 +12,10 @@
 		567374431B4D46600089DE44 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 567374411B4D46600089DE44 /* Main.storyboard */; };
 		567374451B4D46600089DE44 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 567374441B4D46600089DE44 /* Assets.xcassets */; };
 		567374481B4D46600089DE44 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 567374461B4D46600089DE44 /* LaunchScreen.storyboard */; };
+		568E2B991CACE4ED00426E7B /* SimplePersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568E2B981CACE4ED00426E7B /* SimplePersonsViewController.swift */; };
 		56AEC9D91CAA985700452D96 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D21CAA985700452D96 /* AppDelegate.swift */; };
 		56AEC9DA1CAA985700452D96 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D31CAA985700452D96 /* Database.swift */; };
 		56AEC9DB1CAA985700452D96 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D41CAA985700452D96 /* DemoViewController.swift */; };
-		56AEC9DC1CAA985700452D96 /* FetchedRecordsControllerDemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D51CAA985700452D96 /* FetchedRecordsControllerDemoViewController.swift */; };
 		56AEC9DD1CAA985700452D96 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D61CAA985700452D96 /* Person.swift */; };
 		56AEC9DE1CAA985700452D96 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D71CAA985700452D96 /* PersonEditionViewController.swift */; };
 		56AEC9DF1CAA985700452D96 /* PersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D81CAA985700452D96 /* PersonsViewController.swift */; };
@@ -42,10 +42,10 @@
 		567374441B4D46600089DE44 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		567374471B4D46600089DE44 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		567374491B4D46600089DE44 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		568E2B981CACE4ED00426E7B /* SimplePersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimplePersonsViewController.swift; sourceTree = "<group>"; };
 		56AEC9D21CAA985700452D96 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		56AEC9D31CAA985700452D96 /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		56AEC9D41CAA985700452D96 /* DemoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
-		56AEC9D51CAA985700452D96 /* FetchedRecordsControllerDemoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsControllerDemoViewController.swift; sourceTree = "<group>"; };
 		56AEC9D61CAA985700452D96 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		56AEC9D71CAA985700452D96 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
 		56AEC9D81CAA985700452D96 /* PersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonsViewController.swift; sourceTree = "<group>"; };
@@ -84,16 +84,16 @@
 			isa = PBXGroup;
 			children = (
 				56AEC9D21CAA985700452D96 /* AppDelegate.swift */,
+				567374441B4D46600089DE44 /* Assets.xcassets */,
 				56AEC9D31CAA985700452D96 /* Database.swift */,
 				56AEC9D41CAA985700452D96 /* DemoViewController.swift */,
-				56AEC9D51CAA985700452D96 /* FetchedRecordsControllerDemoViewController.swift */,
+				567374491B4D46600089DE44 /* Info.plist */,
+				567374461B4D46600089DE44 /* LaunchScreen.storyboard */,
+				567374411B4D46600089DE44 /* Main.storyboard */,
 				56AEC9D61CAA985700452D96 /* Person.swift */,
 				56AEC9D71CAA985700452D96 /* PersonEditionViewController.swift */,
 				56AEC9D81CAA985700452D96 /* PersonsViewController.swift */,
-				567374411B4D46600089DE44 /* Main.storyboard */,
-				567374441B4D46600089DE44 /* Assets.xcassets */,
-				567374461B4D46600089DE44 /* LaunchScreen.storyboard */,
-				567374491B4D46600089DE44 /* Info.plist */,
+				568E2B981CACE4ED00426E7B /* SimplePersonsViewController.swift */,
 			);
 			name = GRDBDemoiOS;
 			path = ../../../DemoApps/GRDBDemoiOS/GRDBDemoiOS;
@@ -192,9 +192,9 @@
 			files = (
 				56AEC9DD1CAA985700452D96 /* Person.swift in Sources */,
 				56AEC9DF1CAA985700452D96 /* PersonsViewController.swift in Sources */,
-				56AEC9DC1CAA985700452D96 /* FetchedRecordsControllerDemoViewController.swift in Sources */,
 				56AEC9DB1CAA985700452D96 /* DemoViewController.swift in Sources */,
 				56AEC9DA1CAA985700452D96 /* Database.swift in Sources */,
+				568E2B991CACE4ED00426E7B /* SimplePersonsViewController.swift in Sources */,
 				56AEC9DE1CAA985700452D96 /* PersonEditionViewController.swift in Sources */,
 				56AEC9D91CAA985700452D96 /* AppDelegate.swift in Sources */,
 			);
