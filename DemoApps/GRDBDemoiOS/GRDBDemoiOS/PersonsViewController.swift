@@ -178,7 +178,7 @@ extension PersonsViewController {
         
         try! dbQueue.inTransaction { db in
             for person in Person.fetch(db) {
-                person.score = randomScore()
+                person.score = Person.randomScore()
                 try person.update(db)
             }
             return .Commit
@@ -195,12 +195,12 @@ extension PersonsViewController {
                     if Person.fetchCount(db) == 0 {
                         // Insert persons
                         for _ in 0..<8 {
-                            try Person(name: randomName(), score: randomScore()).insert(db)
+                            try Person(name: Person.randomName(), score: Person.randomScore()).insert(db)
                         }
                     } else {
                         // Insert a person
                         if arc4random_uniform(2) == 0 {
-                            let person = Person(name: randomName(), score: randomScore())
+                            let person = Person(name: Person.randomName(), score: Person.randomScore())
                             try person.insert(db)
                         }
                         // Delete a person
@@ -212,7 +212,7 @@ extension PersonsViewController {
                         // Update some persons
                         for person in Person.fetchAll(db) {
                             if arc4random_uniform(2) == 0 {
-                                person.score = randomScore()
+                                person.score = Person.randomScore()
                                 try person.update(db)
                             }
                         }
