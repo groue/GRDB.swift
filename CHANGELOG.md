@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.55.0
+
+Released March 31, 2016
+
+**New (iOS only)**
+
+- `DatabaseQueue.setupMemoryManagement(application:)` and `DatabasePool.setupMemoryManagement(application:)` make sure GRDB manages memory as a good iOS citizen ([documentation](https://github.com/groue/GRDB.swift#memory-management-on-ios)).
+
+
 ## 0.54.2
 
 Released March 31, 2016
