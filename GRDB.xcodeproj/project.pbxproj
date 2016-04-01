@@ -395,6 +395,7 @@
 		560D92441C672C4B00F4F92B /* Persistable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Persistable.swift; sourceTree = "<group>"; };
 		560D92451C672C4B00F4F92B /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
 		560D92461C672C4B00F4F92B /* TableMapping.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableMapping.swift; sourceTree = "<group>"; };
+		560FC5101CAEEDF10014AA8E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBTestCase.swift; sourceTree = "<group>"; };
 		56300B5D1C53C38F005A543B /* FetchRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchRequestTests.swift; sourceTree = "<group>"; };
 		56300B601C53C42C005A543B /* RowConvertible+FetchRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "RowConvertible+FetchRequestTests.swift"; sourceTree = "<group>"; };
@@ -960,6 +961,7 @@
 		56BB86101BA9886D001F9168 /* Performance */ = {
 			isa = PBXGroup;
 			children = (
+				560FC5101CAEEDF10014AA8E /* README.md */,
 				56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */,
 				56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */,
 				56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */,
