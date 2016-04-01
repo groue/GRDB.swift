@@ -1,3 +1,4 @@
+- [ ] Since save() is not atomic, it should not be allowed to run directly on dbQueue and dbPool.
 - [ ] FetchedRecordsController needs a property that disables changes computation and calls to delegate.controller(_:didChangeRecord:withEvent:).
 - [ ] Turn FetchedRecordsController.setRequest into the request property setter.
 - [ ] DatabaseValue.failableValue() is not a nice name.
