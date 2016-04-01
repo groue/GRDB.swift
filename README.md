@@ -374,8 +374,10 @@ Once granted with a [database connection](#database-connections), you can perfor
 try dbQueue.execute("CREATE TABLE wines (...)")
 
 // Insert:
-let wineId = try dbQueue.execute("INSERT INTO wines (color, name) VALUES (?, ?)",
-    arguments: [Color.Red, "Pomerol"]).insertedRowID
+let wineId = try dbQueue.execute(
+    "INSERT INTO wines (color, name) VALUES (?, ?)",
+    arguments: [Color.Red, "Pomerol"])
+    .insertedRowID
 print("Inserted wine id: \(wineId)")
     
 // Fetch arrays and single values:
