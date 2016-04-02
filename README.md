@@ -2472,7 +2472,7 @@ If change tracking is active, the [delegate](#fetchedrecordscontrollerdelegate) 
 
 ```swift
 controller.setRequest(Person.order(SQLColumn("name")))
-controller.setSQL("SELECT ...", arguments: ...)
+controller.setRequest(sql: "SELECT ...", arguments: ...)
 ```
 
 

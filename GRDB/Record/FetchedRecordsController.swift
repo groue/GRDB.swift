@@ -310,24 +310,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// Unless specified otherwise at initialization time, it is the main queue.
     public let queue: dispatch_queue_t
     
-    /// The fetch request. Nil if controller uses a raw SQL query (see
-    /// sqlAndArguments property).
-    public var request: FetchRequest<Record>? {
-        guard case .FetchRequest(let request) = source else {
-            return nil
-        }
-        return request
-    }
-    
-    /// The SQL query, and eventual arguments. Nil if controller uses a
-    /// fetch request (see request property).
-    public var sqlAndArguments: (sql: String, arguments: StatementArguments?)? {
-        guard case .SQL(let sql, let arguments) = source else {
-            return nil
-        }
-        return (sql: sql, arguments: arguments)
-    }
-    
     /// Updates the fetch request, and notifies the delegate of changes in the
     /// fetched records if delegate is not nil, and performFetch() has been
     /// called.
@@ -343,7 +325,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// Updates the fetch request, and notifies the delegate of changes in the
     /// fetched records if delegate is not nil, and performFetch() has been
     /// called.
-    public func setSQL(sql: String, arguments: StatementArguments? = nil) {
+    public func setRequest(sql sql: String, arguments: StatementArguments? = nil) {
         self.source = DatabaseSource.SQL(sql, arguments)
     }
     
