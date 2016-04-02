@@ -332,15 +332,20 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     }
     
     /// Updates the fetch request, and notifies the delegate of changes in the
-    /// fetched records.
+    /// fetched records if delegate is not nil, and performFetch() has been
+    /// called.
     public func setRequest<T>(request: FetchRequest<T>) {
+        // We don't provide a setter for the request property because we need a
+        // non-optional request.
+        
         // Retype the fetch request
         let request: FetchRequest<Record> = FetchRequest(query: request.query)
         self.source = DatabaseSource.FetchRequest(request)
     }
     
     /// Updates the fetch request, and notifies the delegate of changes in the
-    /// fetched records.
+    /// fetched records if delegate is not nil, and performFetch() has been
+    /// called.
     public func setSQL(sql: String, arguments: StatementArguments? = nil) {
         self.source = DatabaseSource.SQL(sql, arguments)
     }

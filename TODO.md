@@ -1,6 +1,5 @@
 - [ ] Make FetchRequest adopt Equatable
 - [ ] FetchedRecordsController needs a property that disables changes computation and calls to delegate.controller(_:didChangeRecord:withEvent:).
-- [ ] Turn FetchedRecordsController.setRequest into the request property setter.
 - [ ] DatabaseValue.failableValue() is not a nice name.
 - [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
 - [ ] DOC: Write an app like http://www.appcoda.com/swiftydb/ ?
