@@ -1556,13 +1556,14 @@ try pointOfInterest.delete(db) // DELETE
 pointOfInterest.exists(db)     // Bool
 ```
 
-- The argument of persistence methods is any object able to write in a database:
+- The argument is any object able to write in a database, with the only exception of `save` which requires a database connection:
 
     ```swift
     pointOfInterest.insert(dbQueue) // DatabaseQueue
     pointOfInterest.insert(dbPool)  // DatabasePool
     dbQueue.inDatabase { db in
         pointOfInterest.insert(db)  // Database
+        pointOfInterest.save(db)    // Database
     }
     ```
 
@@ -2449,15 +2450,15 @@ Changes are not reflected until they are applied in the database by a successful
 
 ```swift
 try dbQueue.inTransaction { db in
-    try person.save(db)
-    return .Commit       // Explicit transaction
+    try person.insert(db)
+    return .Commit         // Explicit transaction
 }
 
 try dbQueue.inDatabase { db in
-    try person.save(db)  // Implicit transaction
+    try person.insert(db)  // Implicit transaction
 }
 
-try person.save(dbQueue) // Implicit transaction
+try person.insert(dbQueue) // Implicit transaction
 ```
 
 When you apply several changes to the database, you should group them in a single explicit transaction. The controller will then notify its delegate of all changes together.

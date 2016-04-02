@@ -68,7 +68,7 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
         try performUpdate(db)
     }
     
-    mutating func save(db: DatabaseWriter) throws {
+    mutating func save(db: Database) throws {
         willSave()
         try performSave(db)
     }
@@ -142,41 +142,6 @@ class DatabasePoolMutablePersistableTests: GRDBTestCase {
         }
     }
     
-    func testSaveMutablePersistablePerson() {
-        assertNoError {
-            var person1 = MutablePersistablePerson(id: nil, name: "Arthur")
-            try person1.save(dbPool)
-            
-            var rows = Row.fetchAll(dbPool, "SELECT * FROM persons")
-            XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "Arthur")
-            
-            var person2 = MutablePersistablePerson(id: nil, name: "Barbara")
-            try person2.save(dbPool)
-            
-            person1.name = "Craig"
-            try person1.save(dbPool)
-            
-            rows = Row.fetchAll(dbPool, "SELECT * FROM persons ORDER BY id")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
-            XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
-            XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-            
-            try person1.delete(dbPool)
-            try person1.save(dbPool)
-            
-            rows = Row.fetchAll(dbPool, "SELECT * FROM persons ORDER BY id")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(named: "id") as Int64, person1.id!)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "Craig")
-            XCTAssertEqual(rows[1].value(named: "id") as Int64, person2.id!)
-            XCTAssertEqual(rows[1].value(named: "name") as String, "Barbara")
-        }
-    }
-    
     func testDeleteMutablePersistablePerson() {
         assertNoError {
             var person1 = MutablePersistablePerson(id: nil, name: "Arthur")
@@ -236,41 +201,6 @@ class DatabasePoolMutablePersistableTests: GRDBTestCase {
             XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
             XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country2.rowID!)
             XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
-        }
-    }
-    
-    func testSaveMutablePersistableCountry() {
-        assertNoError {
-            var country1 = MutablePersistableCountry(rowID: nil, isoCode: "FR", name: "France")
-            try country1.save(dbPool)
-            
-            var rows = Row.fetchAll(dbPool, "SELECT rowID, * FROM countries")
-            XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "France")
-            
-            var country2 = MutablePersistableCountry(rowID: nil, isoCode: "US", name: "United States")
-            try country2.save(dbPool)
-            
-            country1.name = "France Métropolitaine"
-            try country1.save(dbPool)
-            
-            rows = Row.fetchAll(dbPool, "SELECT rowID, * FROM countries ORDER BY rowID")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
-            XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country2.rowID!)
-            XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
-            
-            try country1.delete(dbPool)
-            try country1.save(dbPool)
-            
-            rows = Row.fetchAll(dbPool, "SELECT rowID, * FROM countries ORDER BY rowID")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country2.rowID!)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "United States")
-            XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country1.rowID!)
-            XCTAssertEqual(rows[1].value(named: "name") as String, "France Métropolitaine")
         }
     }
     
@@ -379,80 +309,6 @@ class DatabasePoolMutablePersistableTests: GRDBTestCase {
             XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
             XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country2.rowID!)
             XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
-        }
-    }
-    
-    func testSaveMutablePersistableCustomizedCountry() {
-        assertNoError {
-            var insertCount: Int = 0
-            var updateCount: Int = 0
-            var saveCount: Int = 0
-            var deleteCount: Int = 0
-            var existsCount: Int = 0
-            var country1 = MutablePersistableCustomizedCountry(
-                rowID: nil,
-                isoCode: "FR",
-                name: "France",
-                willInsert: { insertCount += 1 },
-                willUpdate: { updateCount += 1 },
-                willSave: { saveCount += 1 },
-                willDelete: { deleteCount += 1 },
-                willExists: { existsCount += 1 })
-            try country1.save(dbPool)
-            
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 1)
-            XCTAssertEqual(saveCount, 1)
-            XCTAssertEqual(deleteCount, 0)
-            XCTAssertEqual(existsCount, 0)
-            
-            var rows = Row.fetchAll(dbPool, "SELECT rowID, * FROM countries")
-            XCTAssertEqual(rows.count, 1)
-            XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "France")
-            
-            var country2 = MutablePersistableCustomizedCountry(
-                rowID: nil,
-                isoCode: "US",
-                name: "United States",
-                willInsert: { },
-                willUpdate: { },
-                willSave: { },
-                willDelete: { },
-                willExists: { })
-            try country2.save(dbPool)
-            
-            country1.name = "France Métropolitaine"
-            try country1.save(dbPool)
-            
-            XCTAssertEqual(insertCount, 1)
-            XCTAssertEqual(updateCount, 2)
-            XCTAssertEqual(saveCount, 2)
-            XCTAssertEqual(deleteCount, 0)
-            XCTAssertEqual(existsCount, 0)
-            
-            rows = Row.fetchAll(dbPool, "SELECT rowID, * FROM countries ORDER BY rowID")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country1.rowID!)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "France Métropolitaine")
-            XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country2.rowID!)
-            XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
-            
-            try country1.delete(dbPool)
-            try country1.save(dbPool)
-            
-            XCTAssertEqual(insertCount, 2)
-            XCTAssertEqual(updateCount, 3)
-            XCTAssertEqual(saveCount, 3)
-            XCTAssertEqual(deleteCount, 1)
-            XCTAssertEqual(existsCount, 0)
-            
-            rows = Row.fetchAll(dbPool, "SELECT rowID, * FROM countries ORDER BY rowID")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0].value(named: "rowID") as Int64, country2.rowID!)
-            XCTAssertEqual(rows[0].value(named: "name") as String, "United States")
-            XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country1.rowID!)
-            XCTAssertEqual(rows[1].value(named: "name") as String, "France Métropolitaine")
         }
     }
     

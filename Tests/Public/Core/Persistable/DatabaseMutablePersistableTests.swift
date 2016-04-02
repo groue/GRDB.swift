@@ -68,7 +68,7 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
         try performUpdate(db)
     }
     
-    mutating func save(db: DatabaseWriter) throws {
+    mutating func save(db: Database) throws {
         willSave()
         try performSave(db)
     }

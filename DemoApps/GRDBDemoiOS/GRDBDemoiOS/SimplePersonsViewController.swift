@@ -62,7 +62,9 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
         controller.applyChanges()
         let person = controller.person
         if !person.name.isEmpty {
-            try! person.save(dbQueue)
+            try! dbQueue.inDatabase { db in
+                try person.save(db)
+            }
         }
     }
     
@@ -71,7 +73,9 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
         controller.applyChanges()
         let person = controller.person
         if !person.name.isEmpty {
-            try! person.save(dbQueue)
+            try! dbQueue.inDatabase { db in
+                try person.save(db)
+            }
         }
     }
 }

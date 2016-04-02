@@ -296,11 +296,10 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// This method is guaranteed to have inserted or updated a row in the
     /// database if it returns without error.
     ///
-    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
-    ///   Database).
+    /// - parameter db: A Database connection
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    final public func save(db: DatabaseWriter) throws {
+    final public func save(db: Database) throws {
         try performSave(db)
     }
     
