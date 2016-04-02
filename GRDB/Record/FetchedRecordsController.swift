@@ -169,7 +169,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
     ///
     /// - parameters:
-    ///     - db: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     ///     - queue: Optional dispatch queue (defaults to the main queue)
@@ -184,9 +184,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
-    public convenience init(_ db: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
         let source: DatabaseSource<Record> = .SQL(sql, arguments)
-        self.init(db: db, source: source, queue: queue, isSameRecord: isSameRecord)
+        self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecord: isSameRecord)
     }
     
     /// Returns a fetched records controller initialized from a fetch request
@@ -199,7 +199,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
     ///
     /// - parameters:
-    ///     - db: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
     ///     - request: A fetch request.
     ///     - queue: Optional dispatch queue (defaults to the main queue)
     ///
@@ -213,24 +213,24 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
-    public convenience init<T>(_ db: DatabaseWriter, request: FetchRequest<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+    public convenience init<T>(_ databaseWriter: DatabaseWriter, request: FetchRequest<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
         // Retype the fetch request
         let request: FetchRequest<Record> = FetchRequest(query: request.query)
         let source = DatabaseSource.FetchRequest(request)
-        self.init(db: db, source: source, queue: queue, isSameRecord: isSameRecord)
+        self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecord: isSameRecord)
     }
     
-    private convenience init(db: DatabaseWriter, source: DatabaseSource<Record>, queue: dispatch_queue_t, isSameRecord: ((Record, Record) -> Bool)?) {
+    private convenience init(databaseWriter: DatabaseWriter, source: DatabaseSource<Record>, queue: dispatch_queue_t, isSameRecord: ((Record, Record) -> Bool)?) {
         if let isSameRecord = isSameRecord {
-            self.init(db: db, source: source, queue: queue, isSameRecordBuilder: { _ in isSameRecord })
+            self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecordBuilder: { _ in isSameRecord })
         } else {
-            self.init(db: db, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
+            self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
         }
     }
     
-    private init(db: DatabaseWriter, source: DatabaseSource<Record>, queue: dispatch_queue_t, isSameRecordBuilder: (Database) -> (Record, Record) -> Bool) {
+    private init(databaseWriter: DatabaseWriter, source: DatabaseSource<Record>, queue: dispatch_queue_t, isSameRecordBuilder: (Database) -> (Record, Record) -> Bool) {
         self.source = source
-        self.writer = db
+        self.databaseWriter = databaseWriter
         self.isSameRecord = { _ in return false }
         self.isSameRecordBuilder = isSameRecordBuilder
         self.queue = queue
@@ -247,7 +247,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // Fetch items on the writing dispatch queue, so that the transaction
         // observer is added on the same serialized queue as transaction
         // callbacks.
-        writer.write { db in
+        databaseWriter.write { db in
             let statement = try! self.source.selectStatement(db)
             let items = Item<Record>.fetchAll(statement)
             self.fetchedItems = items
@@ -285,7 +285,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 // Setup a new transaction observer. Use
                 // database.write, so that the transaction observer is added on the
                 // same serialized queue as transaction callbacks.
-                writer.write { db in
+                databaseWriter.write { db in
                     let statement = try! self.source.selectStatement(db)
                     let observer = FetchedRecordsObserver(
                         controller: self,
@@ -299,14 +299,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
     }
     
-    
-    // Configuration: database
-    
     /// The database writer used to fetch records.
     ///
     /// The controller registers as a transaction observer in order to respond
     /// to changes.
-    public let writer: DatabaseWriter
+    public let databaseWriter: DatabaseWriter
     
     /// The dispatch queue on which the controller must be used.
     ///
@@ -423,7 +420,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private var source: DatabaseSource<Record> {
         didSet {
             guard let observer = observer else { return }
-            writer.write { db in
+            databaseWriter.write { db in
                 observer.checkForChangesInDatabase(db)
             }
         }
@@ -456,7 +453,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///         compareRecordsByPrimaryKey: true)
     ///
     /// - parameters:
-    ///     - db: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     ///     - queue: Optional dispatch queue (defaults to the main queue)
@@ -469,12 +466,12 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
-    public convenience init(_ db: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
         let source: DatabaseSource<Record> = .SQL(sql, arguments)
         if compareRecordsByPrimaryKey {
-            self.init(db: db, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
+            self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
         } else {
-            self.init(db: db, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
+            self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
         }
     }
     
@@ -488,7 +485,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///         compareRecordsByPrimaryKey: true)
     ///
     /// - parameters:
-    ///     - db: A DatabaseWriter (DatabaseQueue, or DatabasePool)
+    ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
     ///     - request: A fetch request.
     ///     - queue: Optional dispatch queue (defaults to the main queue)
     ///
@@ -500,14 +497,14 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
-    public convenience init<U>(_ db: DatabaseWriter, request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+    public convenience init<U>(_ databaseWriter: DatabaseWriter, request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
         // Retype the fetch request
         let request: FetchRequest<Record> = FetchRequest(query: request.query)
         let source = DatabaseSource.FetchRequest(request)
         if compareRecordsByPrimaryKey {
-            self.init(db: db, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
+            self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
         } else {
-            self.init(db: db, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
+            self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
         }
     }
 }
@@ -596,7 +593,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         let semaphore = dispatch_semaphore_create(0)
         var fetchedItems: [Item<Record>]! = nil
         
-        controller.writer.readFromWrite { db in
+        controller.databaseWriter.readFromWrite { db in
             let statement = try! controller.source.selectStatement(db)
             fetchedItems = Item<Record>.fetchAll(statement)
             
