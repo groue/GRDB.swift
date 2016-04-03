@@ -36,6 +36,9 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
             do {
                 dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
                 let dbPool = try makeDatabasePool()
+                // TODO: this test is fragile: we have to wait until the database
+                // store has been notified of file creation.
+                NSThread.sleepForTimeInterval(0.1)
                 var attributes = try fm.attributesOfItemAtPath(dbPool.path)
                 XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
                 attributes = try fm.attributesOfItemAtPath(dbPool.path + "-wal")

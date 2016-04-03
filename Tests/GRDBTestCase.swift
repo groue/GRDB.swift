@@ -10,6 +10,7 @@ class GRDBTestCase: XCTestCase {
         try! NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
         let dbPath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
         let dbQueue = try DatabaseQueue(path: dbPath, configuration: dbConfiguration)
+        try setUpDatabaseFromTargetConfiguration(dbQueue)
         try setUpDatabase(dbQueue)
         return dbQueue
     }
@@ -19,8 +20,20 @@ class GRDBTestCase: XCTestCase {
         try! NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
         let dbPath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
         let dbPool = try DatabasePool(path: dbPath, configuration: dbConfiguration)
+        try setUpDatabaseFromTargetConfiguration(dbPool)
         try setUpDatabase(dbPool)
         return dbPool
+    }
+    
+    #if GRDBCIPHER_USE_ENCRYPTION
+    let passphrase = "secret"
+    #endif
+    
+    // Subclasses can not override. Here we apply general target configuration
+    private final func setUpDatabaseFromTargetConfiguration(dbWriter: DatabaseWriter) throws {
+        #if GRDBCIPHER_USE_ENCRYPTION
+            try dbWriter.setKey(passphrase)
+        #endif
     }
     
     // Subclasses can override
