@@ -193,7 +193,21 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
-    func testPragmaCompatibility() {
-        
+    func testDatabaseQueueWithPragmaPassphraseToDatabaseQueueWithPassphrase() {
+        assertNoError {
+            do {
+                dbConfiguration.passphrase = nil
+                let dbQueue = try makeDatabaseQueue()
+                try dbQueue.execute("PRAGMA key = 'secret'")
+                try dbQueue.execute("CREATE TABLE data (value INTEGER)")
+                try dbQueue.execute("INSERT INTO data (value) VALUES (1)")
+            }
+            
+            do {
+                dbConfiguration.passphrase = "secret"
+                let dbQueue = try makeDatabaseQueue()
+                XCTAssertEqual(Int.fetchOne(dbQueue, "SELECT value FROM data")!, 1)
+            }
+        }
     }
 }
