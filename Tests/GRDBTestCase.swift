@@ -7,33 +7,20 @@ class GRDBTestCase: XCTestCase {
     
     // Builds a database queue based on dbConfiguration
     func makeDatabaseQueue(filename: String = "db.sqlite") throws -> DatabaseQueue {
-        try! NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+        try NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
         let dbPath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
         let dbQueue = try DatabaseQueue(path: dbPath, configuration: dbConfiguration)
-        try setUpDatabaseFromTargetConfiguration(dbQueue)
         try setUpDatabase(dbQueue)
         return dbQueue
     }
     
     // Builds a database pool based on dbConfiguration
     func makeDatabasePool(filename: String = "db.sqlite") throws -> DatabasePool {
-        try! NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+        try NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
         let dbPath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
         let dbPool = try DatabasePool(path: dbPath, configuration: dbConfiguration)
-        try setUpDatabaseFromTargetConfiguration(dbPool)
         try setUpDatabase(dbPool)
         return dbPool
-    }
-    
-    #if GRDBCIPHER_USE_ENCRYPTION
-    let passphrase = "secret"
-    #endif
-    
-    // Subclasses can not override. Here we apply general target configuration
-    private final func setUpDatabaseFromTargetConfiguration(dbWriter: DatabaseWriter) throws {
-        #if GRDBCIPHER_USE_ENCRYPTION
-            try dbWriter.setKey(passphrase)
-        #endif
     }
     
     // Subclasses can override
@@ -62,6 +49,11 @@ class GRDBTestCase: XCTestCase {
             self.lastSQLQuery = sql
             // LogSQL(sql) // Uncomment for verbose tests
         }
+        
+        #if GRDBCIPHER_USE_ENCRYPTION
+            dbConfiguration.passphrase = "secret"
+        #endif
+        
         sqlQueries = []
         lastSQLQuery = nil
         

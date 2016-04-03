@@ -66,6 +66,12 @@ public final class Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
+        #if SQLITE_HAS_CODEC
+            if let passphrase = configuration.passphrase {
+                try Database.setPassphrase(passphrase, forConnection: sqliteConnection)
+            }
+        #endif
+        
         self.configuration = configuration
         self.schemaCache = schemaCache
         self.sqliteConnection = sqliteConnection
@@ -860,60 +866,17 @@ extension DatabaseCollation {
 // =========================================================================
 // MARK: - Encryption
 
+#if SQLITE_HAS_CODEC
 extension Database {
-    
-    /// TODO
-    class func supportsEncryption() -> Bool {
-        #if SQLITE_HAS_CODEC
-            return true
-        #else
-            return false
-        #endif
+    private class func setPassphrase(passphrase: String, forConnection sqliteConnection: SQLiteConnection) throws {
+        let data = passphrase.dataUsingEncoding(NSUTF8StringEncoding)!
+        let code = sqlite3_key(sqliteConnection, data.bytes, Int32(data.length))
+        guard code == SQLITE_OK else {
+            throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
+        }
     }
-    
-    /// TODO
-    public func setKey(passphrase: String) throws {
-        #if SQLITE_HAS_CODEC
-            let data = passphrase.dataUsingEncoding(NSUTF8StringEncoding)!
-            let code = sqlite3_key(sqliteConnection, data.bytes, Int32(data.length))
-            guard code == SQLITE_OK else {
-                throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
-            }
-            
-//            // https://www.zetetic.net/sqlcipher/sqlcipher-api/#key
-//            // > When opening an existing database, PRAGMA key will not
-//            // > immediately throw an error if the key provided is incorrect.
-//            // > To test that the database can be successfully opened with the
-//            // > provided key, it is necessary to perform some operation on the
-//            // > database (i.e. read from it) and confirm it is success.
-//            if configuration.readonly {
-//                code = sqlite3_exec(sqliteConnection, "SELECT COUNT(*) FROM sqlite_master", nil, nil, nil)
-//            } else {
-//                code = sqlite3_exec(sqliteConnection, "CREATE TABLE GRDBEncryptionTestTable (id INTEGER); DROP TABLE GRDBEncryptionTestTable;", nil, nil, nil)
-//            }
-//            guard code == SQLITE_OK else {
-//                throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
-//            }
-
-        #else
-            throw DatabaseError(code: SQLITE_MISUSE, message: "encryption is not supported.")
-        #endif
-    }
-    
-    /// TODO
-    public func reKey(passphrase: String) throws {
-        #if SQLITE_HAS_CODEC
-            let data = passphrase.dataUsingEncoding(NSUTF8StringEncoding)!
-            let code = sqlite3_rekey(sqliteConnection, data.bytes, Int32(data.length))
-            guard code == SQLITE_OK else {
-                throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
-            }
-        #else
-            throw DatabaseError(code: SQLITE_MISUSE, message: "encryption is not supported.")
-        #endif
-    }
-
 }
+#endif
 
 
 // =========================================================================

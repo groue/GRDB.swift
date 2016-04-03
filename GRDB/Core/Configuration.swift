@@ -24,6 +24,13 @@ public struct Configuration {
     public var trace: TraceFunction?
     
     
+    // MARK: - Encryption
+    
+    #if SQLITE_HAS_CODEC
+    /// The passphrase for encrypted database
+    public var passphrase: String?
+    #endif
+    
     // MARK: - File Attributes
     
     /// The file attributes that should be applied to the database files (see

@@ -47,6 +47,12 @@ class ConcurrencyTests: GRDBTestCase {
     func testDeferredTransactionConcurrency() {
         assertNoError {
             let dbQueue1 = try makeDatabaseQueue()
+            #if GRDBCIPHER_USE_ENCRYPTION
+                // Work around SQLCipher bug when two connections are open to the
+                // same empty database: make sure the database is not empty before
+                // running this test
+                try dbQueue1.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+            #endif
             let dbQueue2 = try makeDatabaseQueue()
             
             // Queue 1                              Queue 2
@@ -236,6 +242,12 @@ class ConcurrencyTests: GRDBTestCase {
     func testBusyCallback() {
         assertNoError {
             let dbQueue1 = try makeDatabaseQueue()
+            #if GRDBCIPHER_USE_ENCRYPTION
+                // Work around SQLCipher bug when two connections are open to the
+                // same empty database: make sure the database is not empty before
+                // running this test
+                try dbQueue1.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+            #endif
             let dbQueue2 = try makeDatabaseQueue()
             
             // Queue 1                              Queue 2
@@ -294,6 +306,12 @@ class ConcurrencyTests: GRDBTestCase {
     func testReaderDuringDefaultTransaction() {
         assertNoError {
             let dbQueue1 = try makeDatabaseQueue()
+            #if GRDBCIPHER_USE_ENCRYPTION
+                // Work around SQLCipher bug when two connections are open to the
+                // same empty database: make sure the database is not empty before
+                // running this test
+                try dbQueue1.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+            #endif
             let dbQueue2 = try makeDatabaseQueue()
             
             // Here we test that a reader can read while a writer is writing.
@@ -354,6 +372,12 @@ class ConcurrencyTests: GRDBTestCase {
     func testReaderInDeferredTransactionDuringDefaultTransaction() {
         assertNoError {
             let dbQueue1 = try makeDatabaseQueue()
+            #if GRDBCIPHER_USE_ENCRYPTION
+                // Work around SQLCipher bug when two connections are open to the
+                // same empty database: make sure the database is not empty before
+                // running this test
+                try dbQueue1.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+            #endif
             let dbQueue2 = try makeDatabaseQueue()
             
             // The `SELECT * FROM stuffs` statement of Queue 2 prevents Queue 1

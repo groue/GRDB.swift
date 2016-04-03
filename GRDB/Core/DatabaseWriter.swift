@@ -62,15 +62,6 @@ public protocol DatabaseWriter : DatabaseReader {
     /// returns when the block has completed. In the example above, the
     /// insertion is run after the select.
     func readFromWrite(block: (db: Database) -> Void)
-    
-    
-    // MARK: - Encryption
-    
-    /// TODO
-    func setKey(passphrase: String) throws
-    
-    /// TODO
-    func reKey(passphrase: String) throws
 }
 
 extension DatabaseWriter {

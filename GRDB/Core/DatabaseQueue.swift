@@ -281,23 +281,6 @@ extension DatabaseQueue : DatabaseReader {
 
 extension DatabaseQueue : DatabaseWriter {
     
-    // MARK: - Encryption
-    
-    /// TODO
-    public func setKey(passphrase: String) throws {
-        try serializedDatabase.performSync { db in
-            try db.setKey(passphrase)
-        }
-    }
-    
-    /// TODO
-    public func reKey(passphrase: String) throws {
-        try serializedDatabase.performSync { db in
-            try db.reKey(passphrase)
-        }
-    }
-    
-    
     // MARK: - DatabaseWriter Protocol Adoption
     
     /// Alias for inDatabase
