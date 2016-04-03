@@ -861,7 +861,8 @@ extension DatabaseCollation {
 // MARK: - Encryption
 
 extension Database {
-
+    
+    /// TODO
     class func supportsEncryption() -> Bool {
         #if SQLITE_HAS_CODEC
             return true
@@ -870,6 +871,7 @@ extension Database {
         #endif
     }
     
+    /// TODO
     public func setKey(passphrase: String) throws {
         #if SQLITE_HAS_CODEC
             let data = passphrase.dataUsingEncoding(NSUTF8StringEncoding)!
@@ -898,6 +900,7 @@ extension Database {
         #endif
     }
     
+    /// TODO
     public func reKey(passphrase: String) throws {
         #if SQLITE_HAS_CODEC
             let data = passphrase.dataUsingEncoding(NSUTF8StringEncoding)!

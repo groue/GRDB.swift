@@ -212,18 +212,20 @@ final class Pool<T> {
     
     /// Performs a block on each pool element, available or not.
     /// The block is run is some arbitrary queue.
-    func forEach(block: (T) -> ()) {
-        dispatch_sync(queue) {
+    func forEach(block: (T) throws -> ()) rethrows {
+        try dispatchSync(queue) {
             for item in self.items {
-                block(item.element)
+                try block(item.element)
             }
         }
     }
     
     /// Empty the pool. Currently used items won't be reused.
-    func clear() {
+    /// Eventual block is executed before any other thread can load another element.
+    func clear(block: (() -> ())? = nil) {
         dispatch_sync(queue) {
             self.items = []
+            block?()
         }
     }
     

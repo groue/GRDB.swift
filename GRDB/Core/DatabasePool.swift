@@ -68,6 +68,9 @@ public final class DatabasePool {
                 schemaCache: databaseSchemaCache)
             
             serializedDatabase.performSync { db in
+                if let passphrase = self.passphrase {
+                    try! db.setKey(passphrase)
+                }
                 for function in self.functions {
                     db.addFunction(function)
                 }
@@ -98,6 +101,7 @@ public final class DatabasePool {
         return store.path
     }
     
+    private var passphrase: String?
     
     // MARK: - WAL Management
     
@@ -393,6 +397,9 @@ extension DatabasePool : DatabaseWriter {
         }
     }
     
+    
+    // MARK: - Reading from Database
+    
     /// Asynchronously executes a read-only block in a protected dispatch queue,
     /// wrapped in a deferred transaction.
     ///
@@ -431,4 +438,28 @@ extension DatabasePool : DatabaseWriter {
         }
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
     }
+    
+    
+    // MARK: - Encryption
+    
+    /// TODO
+    public func setKey(passphrase: String) throws {
+        try writer.performSync { db in
+            try db.setKey(passphrase)
+            self.readerPool.clear {
+                self.passphrase = passphrase
+            }
+        }
+    }
+    
+    /// TODO
+    public func reKey(passphrase: String) throws {
+        try writer.performSync { db in
+            try db.reKey(passphrase)
+            self.readerPool.clear {
+                self.passphrase = passphrase
+            }
+        }
+    }
+    
 }
