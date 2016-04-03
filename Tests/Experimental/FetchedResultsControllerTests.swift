@@ -1,6 +1,9 @@
 import XCTest
-import GRDB
-
+#if SQLITE_HAS_CODEC
+    import GRDBCipher
+#else
+    import GRDB
+#endif
 
 extension Person : Equatable {}
 func ==(lhs: Person, rhs: Person) -> Bool {

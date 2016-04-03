@@ -1,5 +1,9 @@
 import XCTest
-import GRDB
+#if SQLITE_HAS_CODEC
+    import GRDBCipher
+#else
+    import GRDB
+#endif
 
 // BadlyMangledStuff.updateFromRow() accepts a row with mangled column names.
 // Its hasPersistentChangedValues flag is wrong.

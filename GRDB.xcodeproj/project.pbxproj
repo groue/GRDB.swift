@@ -120,7 +120,6 @@
 		560FC5411CB003810014AA8E /* Persistable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D92441C672C4B00F4F92B /* Persistable.swift */; };
 		560FC5421CB003810014AA8E /* StatementColumnConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D923F1C672C3E00F4F92B /* StatementColumnConvertible.swift */; };
 		560FC5431CB003810014AA8E /* RowConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D92451C672C4B00F4F92B /* RowConvertible.swift */; };
-		560FC55C1CB00AB40014AA8E /* libsqlcipher.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC5561CB004AD0014AA8E /* libsqlcipher.a */; };
 		560FC5611CB00B880014AA8E /* DatabaseValueConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A2381B1B9C74A90082EB20 /* DatabaseValueConversionTests.swift */; };
 		560FC5621CB00B880014AA8E /* Record+FetchRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56300B841C54DC95005A543B /* Record+FetchRequestTests.swift */; };
 		560FC5631CB00B880014AA8E /* RecordDescriptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A2382E1B9C74A90082EB20 /* RecordDescriptionTests.swift */; };
@@ -324,13 +323,13 @@
 		567156631CB16729007DC145 /* StatementInformationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605F1861C69111300235C62 /* StatementInformationTests.swift */; };
 		567156641CB16729007DC145 /* GRDBTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */; };
 		567156651CB16729007DC145 /* DatabaseQueueFileAttributesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363DB1C95891E000BE133 /* DatabaseQueueFileAttributesTests.swift */; };
-		567156671CB16729007DC145 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC54D1CB003810014AA8E /* GRDB.framework */; };
+		567156671CB16729007DC145 /* GRDBCipher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC54D1CB003810014AA8E /* GRDBCipher.framework */; };
 		567156711CB18050007DC145 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156701CB18050007DC145 /* EncryptionTests.swift */; };
 		5683C2691B4D445E00296494 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5683C2681B4D445E00296494 /* libsqlite3.dylib */; };
-		568BE5231CB0371D00270F93 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC54D1CB003810014AA8E /* GRDB.framework */; };
+		568BE5231CB0371D00270F93 /* GRDBCipher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC54D1CB003810014AA8E /* GRDBCipher.framework */; };
 		568E1CB21CB037BA008D97A6 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 568BE5191CB035A900270F93 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		568E1CB91CB03847008D97A6 /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB71CB03847008D97A6 /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		568E1CBA1CB03847008D97A6 /* GRDB.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB81CB03847008D97A6 /* GRDB.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		568E1CB91CB03847008D97A6 /* GRDBCipher-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		568E1CBA1CB03847008D97A6 /* GRDBCipher.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB81CB03847008D97A6 /* GRDBCipher.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		569531091C9067DC00CF1A2B /* DatabaseQueueCrashTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569530FB1C9067CC00CF1A2B /* DatabaseQueueCrashTests.swift */; };
 		5695310A1C9067DC00CF1A2B /* DatabaseValueConvertibleCrashTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569530FC1C9067CC00CF1A2B /* DatabaseValueConvertibleCrashTests.swift */; };
 		5695310B1C9067DC00CF1A2B /* GRDBCrashTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569530FD1C9067CC00CF1A2B /* GRDBCrashTestCase.swift */; };
@@ -421,6 +420,7 @@
 		56A238B71B9CA2590082EB20 /* DatabaseTimestampTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238B51B9CA2590082EB20 /* DatabaseTimestampTests.swift */; };
 		56A5E4091BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A5E4081BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift */; };
 		56A5E40A1BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A5E4081BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift */; };
+		56AFC97A1CB1A41E00F48B96 /* libsqlcipher.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC5561CB004AD0014AA8E /* libsqlcipher.a */; };
 		56B7F42A1BE14A1900E39BBF /* CGFloatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B7F4291BE14A1900E39BBF /* CGFloatTests.swift */; };
 		56B7F42F1BE14CD700E39BBF /* CGFloatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B7F4291BE14A1900E39BBF /* CGFloatTests.swift */; };
 		56B7F4371BE4C11200E39BBF /* DatabaseCoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B7F4361BE4C11200E39BBF /* DatabaseCoderTests.swift */; };
@@ -499,13 +499,6 @@
 			remoteGlobalIDString = D2AAC046055464E500DB518D;
 			remoteInfo = sqlcipher;
 		};
-		560FC55A1CB00AAD0014AA8E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D;
-			remoteInfo = sqlcipher;
-		};
 		56553BDC1C3E906C00522B5C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
@@ -526,6 +519,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 560FC5191CB003810014AA8E;
 			remoteInfo = GRDBCipherOSX;
+		};
+		56AFC9771CB1A3E200F48B96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = sqlcipher;
 		};
 		56CA220A1BB414FE009A04C5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -620,7 +620,7 @@
 		560D92451C672C4B00F4F92B /* RowConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowConvertible.swift; sourceTree = "<group>"; };
 		560D92461C672C4B00F4F92B /* TableMapping.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableMapping.swift; sourceTree = "<group>"; };
 		560FC5101CAEEDF10014AA8E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		560FC54D1CB003810014AA8E /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		560FC54D1CB003810014AA8E /* GRDBCipher.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDBCipher.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = sqlcipher.xcodeproj; path = SQLCipher/src/sqlcipher.xcodeproj; sourceTree = "<group>"; };
 		560FC5B01CB00B880014AA8E /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBTestCase.swift; sourceTree = "<group>"; };
@@ -658,8 +658,8 @@
 		568BE5191CB035A900270F93 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = SQLCipher/src/sqlite3.h; sourceTree = "<group>"; };
 		568BE51F1CB0360500270F93 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDB.xcconfig; path = SQLCipher/GRDB.xcconfig; sourceTree = "<group>"; };
 		568BE5201CB0360500270F93 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = SQLCipher/module.modulemap; sourceTree = "<group>"; };
-		568E1CB71CB03847008D97A6 /* GRDB-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "GRDB-Bridging.h"; path = "SQLCipher/GRDB-Bridging.h"; sourceTree = "<group>"; };
-		568E1CB81CB03847008D97A6 /* GRDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GRDB.h; path = SQLCipher/GRDB.h; sourceTree = "<group>"; };
+		568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "GRDBCipher-Bridging.h"; path = "SQLCipher/GRDBCipher-Bridging.h"; sourceTree = "<group>"; };
+		568E1CB81CB03847008D97A6 /* GRDBCipher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GRDBCipher.h; path = SQLCipher/GRDBCipher.h; sourceTree = "<group>"; };
 		569530FB1C9067CC00CF1A2B /* DatabaseQueueCrashTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueCrashTests.swift; sourceTree = "<group>"; };
 		569530FC1C9067CC00CF1A2B /* DatabaseValueConvertibleCrashTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleCrashTests.swift; sourceTree = "<group>"; };
 		569530FD1C9067CC00CF1A2B /* GRDBCrashTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBCrashTestCase.swift; sourceTree = "<group>"; };
@@ -787,7 +787,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				560FC55C1CB00AB40014AA8E /* libsqlcipher.a in Frameworks */,
+				56AFC97A1CB1A41E00F48B96 /* libsqlcipher.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -795,7 +795,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				568BE5231CB0371D00270F93 /* GRDB.framework in Frameworks */,
+				568BE5231CB0371D00270F93 /* GRDBCipher.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -812,7 +812,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				567156671CB16729007DC145 /* GRDB.framework in Frameworks */,
+				567156671CB16729007DC145 /* GRDBCipher.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -945,8 +945,8 @@
 				568BE51F1CB0360500270F93 /* GRDB.xcconfig */,
 				568BE5201CB0360500270F93 /* module.modulemap */,
 				568BE5191CB035A900270F93 /* sqlite3.h */,
-				568E1CB81CB03847008D97A6 /* GRDB.h */,
-				568E1CB71CB03847008D97A6 /* GRDB-Bridging.h */,
+				568E1CB81CB03847008D97A6 /* GRDBCipher.h */,
+				568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */,
 				560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */,
 			);
 			name = GRDBCipher;
@@ -1381,7 +1381,7 @@
 				56E5D7F91B4D422D00430942 /* GRDBTests.xctest */,
 				560C981A1C0E22D300BF8471 /* GRDBOSXPerformanceTests.xctest */,
 				56553C181C3E906C00522B5C /* GRDBOSXCrashTests.xctest */,
-				560FC54D1CB003810014AA8E /* GRDB.framework */,
+				560FC54D1CB003810014AA8E /* GRDBCipher.framework */,
 				560FC5B01CB00B880014AA8E /* GRDBTests.xctest */,
 				5671566C1CB16729007DC145 /* GRDBCipherOSXEncryptedTests.xctest */,
 			);
@@ -1431,9 +1431,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				568E1CBA1CB03847008D97A6 /* GRDB.h in Headers */,
+				568E1CBA1CB03847008D97A6 /* GRDBCipher.h in Headers */,
 				568E1CB21CB037BA008D97A6 /* sqlite3.h in Headers */,
-				568E1CB91CB03847008D97A6 /* GRDB-Bridging.h in Headers */,
+				568E1CB91CB03847008D97A6 /* GRDBCipher-Bridging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1490,11 +1490,11 @@
 			buildRules = (
 			);
 			dependencies = (
-				560FC55B1CB00AAD0014AA8E /* PBXTargetDependency */,
+				56AFC9781CB1A3E200F48B96 /* PBXTargetDependency */,
 			);
 			name = GRDBCipherOSX;
 			productName = GRDB;
-			productReference = 560FC54D1CB003810014AA8E /* GRDB.framework */;
+			productReference = 560FC54D1CB003810014AA8E /* GRDBCipher.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		560FC55D1CB00B880014AA8E /* GRDBCipherOSXTests */ = {
@@ -2306,11 +2306,6 @@
 			target = DC3773F219C8CBB3004FCF85 /* GRDBOSX */;
 			targetProxy = 560C97D31C0E22D300BF8471 /* PBXContainerItemProxy */;
 		};
-		560FC55B1CB00AAD0014AA8E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = sqlcipher;
-			targetProxy = 560FC55A1CB00AAD0014AA8E /* PBXContainerItemProxy */;
-		};
 		56553BDB1C3E906C00522B5C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = DC3773F219C8CBB3004FCF85 /* GRDBOSX */;
@@ -2325,6 +2320,11 @@
 			isa = PBXTargetDependency;
 			target = 560FC5191CB003810014AA8E /* GRDBCipherOSX */;
 			targetProxy = 568BE5211CB0371000270F93 /* PBXContainerItemProxy */;
+		};
+		56AFC9781CB1A3E200F48B96 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = sqlcipher;
+			targetProxy = 56AFC9771CB1A3E200F48B96 /* PBXContainerItemProxy */;
 		};
 		56E5D7D61B4D3FEE00430942 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2424,6 +2424,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				OTHER_SWIFT_FLAGS = "-D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
 				PRODUCT_NAME = GRDBTests;
 				SDKROOT = macosx;
@@ -2440,6 +2441,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				OTHER_SWIFT_FLAGS = "-D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
 				PRODUCT_NAME = GRDBTests;
 				SDKROOT = macosx;
@@ -2484,7 +2486,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_SWIFT_FLAGS = "-D GRDBCIPHER_USE_ENCRYPTION";
+				OTHER_SWIFT_FLAGS = "-D GRDBCIPHER_USE_ENCRYPTION -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -2501,7 +2503,7 @@
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_SWIFT_FLAGS = "-D GRDBCIPHER_USE_ENCRYPTION";
+				OTHER_SWIFT_FLAGS = "-D GRDBCIPHER_USE_ENCRYPTION -D SQLITE_HAS_CODEC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

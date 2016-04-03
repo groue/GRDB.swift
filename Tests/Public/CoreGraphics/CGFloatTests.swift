@@ -1,6 +1,10 @@
 import XCTest
 import CoreGraphics
-import GRDB
+#if SQLITE_HAS_CODEC
+    import GRDBCipher
+#else
+    import GRDB
+#endif
 
 class CGFloatTests: GRDBTestCase {
     

@@ -1,13 +1,9 @@
-//
-//  StatementTests.swift
-//  GRDB
-//
-//  Created by Gwendal Roué on 06/01/2016.
-//  Copyright © 2016 Gwendal Roué. All rights reserved.
-//
-
 import XCTest
-import GRDB
+#if SQLITE_HAS_CODEC
+    import GRDBCipher
+#else
+    import GRDB
+#endif
 
 class StatementArgumentsTests: GRDBTestCase {
 

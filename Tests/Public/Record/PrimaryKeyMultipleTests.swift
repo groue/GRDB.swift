@@ -1,5 +1,9 @@
 import XCTest
-import GRDB
+#if SQLITE_HAS_CODEC
+    import GRDBCipher
+#else
+    import GRDB
+#endif
 
 // Citizenship has a multiple-column primary key.
 class Citizenship : Record {

@@ -1,5 +1,5 @@
 import XCTest
-import GRDB
+import GRDBCipher
 
 class EncryptionTests: GRDBTestCase {
     

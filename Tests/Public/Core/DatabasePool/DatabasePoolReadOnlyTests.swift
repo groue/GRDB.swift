@@ -1,13 +1,9 @@
-//
-//  DatabasePoolReadOnlyTests.swift
-//  GRDB
-//
-//  Created by Gwendal Roué on 11/03/2016.
-//  Copyright © 2016 Gwendal Roué. All rights reserved.
-//
-
 import XCTest
-import GRDB
+#if SQLITE_HAS_CODEC
+    import GRDBCipher
+#else
+    import GRDB
+#endif
 
 class DatabasePoolReadOnlyTests: GRDBTestCase {
     

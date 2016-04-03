@@ -1,5 +1,9 @@
 import XCTest
-@testable import GRDB
+#if SQLITE_HAS_CODEC
+    @testable import GRDBCipher
+#else
+    @testable import GRDB
+#endif
 
 class DatabaseQueueSchemaCacheTests : GRDBTestCase {
     
