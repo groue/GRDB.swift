@@ -5,11 +5,16 @@ Release Notes
 
 **New**
 
+- Support for [SQLCipher](http://sqlcipher.net)
 - `DatabaseQueue.path` and `DatabasePool.path` give the path to the database.
 
 **Breaking Changes**
 
 - The `save()` method now only accepts a database connection, and won't accept a database queue or database pool as an argument. This change makes sure that this method that may call several statements is called in an isolated context.
+
+**Fixed**
+
+- Restored iOS 7 compatibility
 
 
 ## 0.55.0
@@ -268,7 +273,7 @@ Released February 11, 2016
 
 **Fixed**
 
-- [iOS7 demo application](https://github.com/groue/GRDB.swift/tree/master/DemoApps/GRDBDemoiOS7) builds again.
+- Restored iOS 7 compatibility
 
 
 ## 0.45.0
@@ -685,7 +690,7 @@ Released October 14, 2015
 
 **Fixed**
 
-- Restored iOS7 compatibility
+- Restored iOS 7 compatibility
 
 
 ## 0.23.0
