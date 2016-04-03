@@ -22,13 +22,13 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
             let fm = NSFileManager.defaultManager()
             
             try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
-            dbPool = nil
             var attributes = try fm.attributesOfItemAtPath(dbPoolPath)
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
             attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-wal")
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
             attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-shm")
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
+            dbPool = nil
             
             dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
             _ = dbPool

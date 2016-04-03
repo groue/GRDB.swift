@@ -1,1 +1,2 @@
 MODULEMAP_FILE = $(SRCROOT)/Support/module.modulemap
+OTHER_SWIFT_FLAGS = -D SQLITE_MODULE

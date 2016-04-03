@@ -33,7 +33,7 @@ class ConcurrencyTests: XCTestCase {
         dbLog1 = []
         var configuration1 = baseConfiguration
         configuration1.trace = { (sql) in
-            // NSLog("Queue 1: %@", sql)
+            NSLog("Queue 1: %@", sql)
             self.dbLog1.append(sql)
         }
         dbQueue1 = try! DatabaseQueue(path: databasePath, configuration: configuration1)
@@ -41,7 +41,7 @@ class ConcurrencyTests: XCTestCase {
         dbLog2 = []
         var configuration2 = baseConfiguration
         configuration2.trace = { (sql) in
-            // NSLog("Queue 2: %@", sql)
+            NSLog("Queue 2: %@", sql)
             self.dbLog2.append(sql)
         }
         dbQueue2 = try! DatabaseQueue(path: databasePath, configuration: configuration2)

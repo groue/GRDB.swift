@@ -1,13 +1,15 @@
 import Foundation
 
-#if os(OSX)
-    import SQLiteMacOSX
-#elseif os(iOS)
-#if (arch(i386) || arch(x86_64))
-    import SQLiteiPhoneSimulator
-    #else
-    import SQLiteiPhoneOS
-#endif
+#if SQLITE_MODULE
+    #if os(OSX)
+        import SQLiteMacOSX
+    #elseif os(iOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteiPhoneSimulator
+        #else
+            import SQLiteiPhoneOS
+        #endif
+    #endif
 #endif
 
 /// A raw SQLite connection, suitable for the SQLite C API.
@@ -57,9 +59,25 @@ public final class Database {
     var dispatchQueueID: UnsafeMutablePointer<Void> = nil
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
+        print(path)
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection: SQLiteConnection = nil
-        let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
+        var code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
+        }
+        
+        configuration.trace?("Encrypt")
+        code = sqlite3_key(sqliteConnection, "test123", 7)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
+        }
+        
+        if configuration.readonly {
+            code = sqlite3_exec(sqliteConnection, "SELECT COUNT(*) FROM sqlite_master", nil, nil, nil)
+        } else {
+            code = sqlite3_exec(sqliteConnection, "CREATE TABLE test (id INTEGER); DROP TABLE test;", nil, nil, nil)
+        }
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
@@ -69,6 +87,8 @@ public final class Database {
         self.sqliteConnection = sqliteConnection
         
         configuration.SQLiteConnectionDidOpen?()
+        print(String.fetchAll(self, "PRAGMA compile_options"))
+        
         
         // Setup trace first, so that all queries, including initialization queries, are traced.
         setupTrace()

@@ -1,0 +1,6 @@
+framework module GRDB {
+    umbrella header "GRDB.h"
+    
+    export *
+    module * { export * }
+}

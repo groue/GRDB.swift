@@ -1,11 +1,13 @@
-#if os(OSX)
-    import SQLiteMacOSX
-#elseif os(iOS)
-#if (arch(i386) || arch(x86_64))
-    import SQLiteiPhoneSimulator
-    #else
-    import SQLiteiPhoneOS
-#endif
+#if SQLITE_MODULE
+    #if os(OSX)
+        import SQLiteMacOSX
+    #elseif os(iOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteiPhoneSimulator
+        #else
+            import SQLiteiPhoneOS
+        #endif
+    #endif
 #endif
 
 /// When a type adopts both DatabaseValueConvertible and
