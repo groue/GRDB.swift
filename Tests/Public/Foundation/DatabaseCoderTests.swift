@@ -5,6 +5,7 @@ class DatabaseCoderTests: GRDBTestCase {
     
     func testDatabaseCoder() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE arrays (array BLOB)")
                 

@@ -41,14 +41,10 @@ class EventRecorder : Record {
 
 class RecordEventsTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createEventRecorder", migrate: EventRecorder.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     func testAwakeFromFetchIsNotTriggeredByInit() {
@@ -63,6 +59,7 @@ class RecordEventsTests: GRDBTestCase {
     
     func testAwakeFromFetchIsTriggeredByFetch() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 do {
                     let record = EventRecorder()
@@ -74,6 +71,7 @@ class RecordEventsTests: GRDBTestCase {
     }
     func testAwakeFromFetchIsTriggeredByReload() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try EventRecorder().insert(db)
                 do {

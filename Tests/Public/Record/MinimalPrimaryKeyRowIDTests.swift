@@ -38,14 +38,10 @@ class MinimalRowID : Record {
 
 class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createMinimalRowID", migrate: MinimalRowID.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -53,6 +49,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testInsertWithNilPrimaryKeyInsertsARowAndSetsPrimaryKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 XCTAssertTrue(record.id == nil)
@@ -73,6 +70,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 record.id = 123456
@@ -92,6 +90,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testInsertWithNotNilPrimaryKeyThatMatchesARowThrowsDatabaseError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -107,6 +106,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testInsertAfterDeleteInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -130,6 +130,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 record.id = 123456
@@ -145,6 +146,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -164,6 +166,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testUpdateAfterDeleteThrowsRecordNotFound() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -183,6 +186,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testSaveWithNilPrimaryKeyInsertsARowAndSetsPrimaryKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 XCTAssertTrue(record.id == nil)
@@ -203,6 +207,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 record.id = 123456
@@ -222,6 +227,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -241,6 +247,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testSaveAfterDeleteInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -264,6 +271,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 record.id = 123456
@@ -275,6 +283,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -289,6 +298,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testDeleteAfterDeleteDoesNothing() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -305,6 +315,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testFetchWithKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = MinimalRowID()
                 try record1.insert(db)
@@ -333,6 +344,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testFetchAllWithKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = MinimalRowID()
                 try record1.insert(db)
@@ -361,6 +373,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testFetchOneWithKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -376,6 +389,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testFetchWithPrimaryKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = MinimalRowID()
                 try record1.insert(db)
@@ -400,6 +414,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testFetchAllWithPrimaryKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = MinimalRowID()
                 try record1.insert(db)
@@ -424,6 +439,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testFetchOneWithPrimaryKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -446,15 +462,19 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     // MARK: - Exists
     
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
-        dbQueue.inDatabase { db in
-            let record = MinimalRowID()
-            record.id = 123456
-            XCTAssertFalse(record.exists(db))
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let record = MinimalRowID()
+                record.id = 123456
+                XCTAssertFalse(record.exists(db))
+            }
         }
     }
     
     func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)
@@ -465,6 +485,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
     func testExistsAfterDeleteReturnsTrue() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = MinimalRowID()
                 try record.insert(db)

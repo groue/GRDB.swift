@@ -69,10 +69,8 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
     
     func testReaderCrashDuringExclusiveTransaction() {
         assertCrash("SQLite error 5 with statement `SELECT * FROM stuffs`: database is locked") {
-            databasePath = "/tmp/GRDBTestReaderDuringExclusiveTransaction.sqlite"
-            do { try NSFileManager.defaultManager().removeItemAtPath(databasePath) } catch { }
-            let dbQueue1 = try! DatabaseQueue(path: databasePath)
-            let dbQueue2 = try! DatabaseQueue(path: databasePath)
+            let dbQueue1 = try! makeDatabaseQueue(path: dbQueuepath, configuration: dbConfiguration)
+            let dbQueue2 = try! makeDatabaseQueue(path: dbQueuepath, configuration: dbConfiguration)
             
             try! dbQueue1.inDatabase { db in
                 try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")

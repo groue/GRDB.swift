@@ -21,13 +21,9 @@ extension SimpleRowConvertible : RowConvertible {
 
 class RowConvertibleTests: GRDBTestCase {
 
-    override func setUp() {
-        super.setUp()
-        
-        assertNoError {
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE structs (firstName TEXT, lastName TEXT)")
-            }
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+        try dbWriter.write { db in
+            try db.execute("CREATE TABLE structs (firstName TEXT, lastName TEXT)")
         }
     }
     
@@ -41,6 +37,7 @@ class RowConvertibleTests: GRDBTestCase {
     
     func testFetchFromDatabase() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
                 let ss = SimpleRowConvertible.fetch(db, "SELECT * FROM structs")
@@ -54,6 +51,7 @@ class RowConvertibleTests: GRDBTestCase {
     
     func testFetchAllFromDatabase() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
                 let ss = SimpleRowConvertible.fetchAll(db, "SELECT * FROM structs")
@@ -67,6 +65,7 @@ class RowConvertibleTests: GRDBTestCase {
     
     func testFetchOneFromDatabase() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let missingS = SimpleRowConvertible.fetchOne(db, "SELECT * FROM structs")
                 XCTAssertTrue(missingS == nil)
@@ -82,6 +81,7 @@ class RowConvertibleTests: GRDBTestCase {
     
     func testFetchFromStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
                 let statement = try db.selectStatement("SELECT * FROM structs")
@@ -96,6 +96,7 @@ class RowConvertibleTests: GRDBTestCase {
     
     func testFetchAllFromStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO structs (firstName, lastName) VALUES (?, ?)", arguments: ["Arthur", "Martin"])
                 let statement = try db.selectStatement("SELECT * FROM structs")
@@ -110,6 +111,7 @@ class RowConvertibleTests: GRDBTestCase {
     
     func testFetchOneFromStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.selectStatement("SELECT * FROM structs")
                 let missingS = SimpleRowConvertible.fetchOne(statement)

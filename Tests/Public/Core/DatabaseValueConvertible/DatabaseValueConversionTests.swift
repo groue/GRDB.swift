@@ -30,9 +30,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute(
@@ -44,10 +42,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
                     "numericAffinity NUMERIC" +
                 ")")
         }
-        
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     func testTextAffinity() {
@@ -59,6 +54,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         // > stored.
         
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             // Int is turned to Text
             
@@ -264,6 +260,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         // > the database file.)
         
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             // Int is turned to Real
             
@@ -511,6 +508,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         // > class into another.
         
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             // Int is turned to Integer
             
@@ -700,6 +698,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         // > value 300000.0.
         
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             // Int is turned to Integer
             

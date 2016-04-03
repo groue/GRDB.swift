@@ -5,6 +5,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testCreateTable() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 XCTAssertFalse(db.tableExists("persons"))
                 try db.execute(
@@ -19,6 +20,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testMultipleStatementsWithoutArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 XCTAssertFalse(db.tableExists("persons"))
                 XCTAssertFalse(db.tableExists("pets"))
@@ -33,6 +35,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testUpdateStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -49,6 +52,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testUpdateStatementWithArrayBinding() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -64,6 +68,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testUpdateStatementWithDictionaryBinding() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -79,6 +84,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testDatabaseExecute() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -94,6 +100,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testChangesReturnedByDatabaseExecute() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT)")
                 
@@ -113,6 +120,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testDatabaseExecuteWithArrayBinding() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -128,6 +136,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testDatabaseExecuteWithDictionaryBinding() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
@@ -143,6 +152,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testSelectStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
@@ -157,6 +167,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testSelectStatementWithArrayBinding() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
@@ -171,6 +182,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testSelectStatementWithDictionaryBinding() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
@@ -185,6 +197,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testRowValueAtIndex() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
@@ -211,6 +224,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testRowValueNamed() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
@@ -237,6 +251,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testRowSequenceCanBeIteratedTwice() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try db.execute("CREATE TABLE persons (name TEXT)")
                 try db.execute("INSERT INTO persons (name) VALUES (:name)", arguments: ["name": "Arthur"])
@@ -258,6 +273,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testValueSequenceCanBeIteratedTwice() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try db.execute("CREATE TABLE persons (name TEXT)")
                 try db.execute("INSERT INTO persons (name) VALUES (:name)", arguments: ["name": "Arthur"])
@@ -279,6 +295,7 @@ class DatabaseTests : GRDBTestCase {
     
     func testDatabaseCanBeUsedOutsideOfDatabaseQueueBlockAsLongAsTheQueueIsCorrect() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             var database: Database? = nil
             dbQueue.inDatabase { db in
                 database = db

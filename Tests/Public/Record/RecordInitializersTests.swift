@@ -103,6 +103,7 @@ class RecordInitializersTests : GRDBTestCase {
         XCTAssertFalse(RecordWithPedigree().initializedFromRow)
         
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE pedigrees (foo INTEGER)")
                 try db.execute("INSERT INTO pedigrees (foo) VALUES (NULL)")

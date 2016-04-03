@@ -3,11 +3,8 @@ import GRDB
 
 class SelectStatementTests : GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        
         migrator.registerMigration("createPersons") { db in
             try db.execute(
                 "CREATE TABLE persons (" +
@@ -21,14 +18,12 @@ class SelectStatementTests : GRDBTestCase {
             try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Barbara", 26])
             try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Craig", 13])
         }
-        
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     func testArrayStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
                 let ages = [20, 30, 40, 50]
@@ -40,6 +35,7 @@ class SelectStatementTests : GRDBTestCase {
     
     func testStatementArgumentsSetterWithArray() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
                 let ages = [20, 30, 40, 50]
@@ -54,6 +50,7 @@ class SelectStatementTests : GRDBTestCase {
     
     func testDictionaryStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: Remove this explicit type declaration required by rdar://22357375
@@ -70,6 +67,7 @@ class SelectStatementTests : GRDBTestCase {
     
     func testStatementArgumentsSetterWithDictionary() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
                 // TODO: Remove this explicit type declaration required by rdar://22357375
@@ -85,6 +83,7 @@ class SelectStatementTests : GRDBTestCase {
     
     func testRowSequenceCanBeFetchedTwice() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.selectStatement("SELECT * FROM persons ORDER BY name")
                 var names1 = Row.fetch(statement).map { $0.value(named: "name") as String }
@@ -102,6 +101,7 @@ class SelectStatementTests : GRDBTestCase {
 
     func testRowSequenceCanBeIteratedTwice() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.selectStatement("SELECT * FROM persons ORDER BY name")
                 let rows = Row.fetch(statement)
@@ -120,6 +120,7 @@ class SelectStatementTests : GRDBTestCase {
     
     func testValueSequenceCanBeFetchedTwice() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.selectStatement("SELECT name FROM persons ORDER BY name")
                 var names1 = Array(String.fetch(statement))
@@ -137,6 +138,7 @@ class SelectStatementTests : GRDBTestCase {
     
     func testValueSequenceCanBeIteratedTwice() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.selectStatement("SELECT name FROM persons ORDER BY name")
                 let nameSequence = String.fetch(statement)
@@ -154,17 +156,18 @@ class SelectStatementTests : GRDBTestCase {
     }
     
     func testDatabaseErrorThrownBySelectStatementContainSQL() {
-        dbQueue.inDatabase { db in
-            do {
-                _ = try db.selectStatement("SELECT * FROM blah")
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 1)
-                XCTAssertEqual(error.message!, "no such table: blah")
-                XCTAssertEqual(error.sql!, "SELECT * FROM blah")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT * FROM blah`: no such table: blah")
-            } catch {
-                XCTFail("\(error)")
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    _ = try db.selectStatement("SELECT * FROM blah")
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 1)
+                    XCTAssertEqual(error.message!, "no such table: blah")
+                    XCTAssertEqual(error.sql!, "SELECT * FROM blah")
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT * FROM blah`: no such table: blah")
+                }
             }
         }
     }

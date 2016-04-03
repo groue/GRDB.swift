@@ -5,7 +5,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowAsSequence() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -32,7 +32,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowValueAtIndex() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -82,7 +82,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowValueNamed() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -131,7 +131,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowDatabaseValueAtIndex() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 var rowFetched = false
                 for row in Row.fetch(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'") {
@@ -149,7 +149,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowDatabaseValueNamed() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 var rowFetched = false
                 for row in Row.fetch(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"") {
@@ -167,7 +167,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowCount() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -183,7 +183,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowColumnNames() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -199,7 +199,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowDatabaseValues() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -215,7 +215,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowIsCaseInsensitive() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 var rowFetched = false
                 for row in Row.fetch(db, "SELECT 'foo' AS nAmE") {
@@ -234,7 +234,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowIsCaseInsensitiveAndReturnsLeftmostMatchingColumn() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 var rowFetched = false
                 for row in Row.fetch(db, "SELECT 1 AS name, 2 AS NAME") {
@@ -253,7 +253,7 @@ class MetalRowTests: GRDBTestCase {
     
     func testRowHasColumnIsCaseInsensitive() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 var rowFetched = false
                 for row in Row.fetch(db, "SELECT 'foo' AS nAmE, 1 AS foo") {

@@ -3,9 +3,7 @@ import GRDB
 
 class NSDateTests : GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createDates") { db in
             try db.execute(
@@ -14,13 +12,12 @@ class NSDateTests : GRDBTestCase {
                     "creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP" +
                 ")")
         }
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
 
     func testNSDate() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
@@ -55,6 +52,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateIsLexicallyComparableToCURRENT_TIMESTAMP() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (id, creationDate) VALUES (?,?)",
@@ -81,6 +79,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateDoesNotAcceptFormatHM() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
@@ -93,6 +92,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateDoesNotAcceptFormatHMS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
@@ -105,6 +105,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateDoesNotAcceptFormatHMSS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
@@ -117,6 +118,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateAcceptsFormatYMD() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
@@ -137,6 +139,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateAcceptsFormatYMD_HM() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
@@ -157,6 +160,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateAcceptsFormatYMD_HMS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
@@ -177,6 +181,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateAcceptsFormatYMD_HMSS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
@@ -197,6 +202,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateAcceptsJulianDayNumber() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 // 00:30:00.0 UT January 1, 2013 according to https://en.wikipedia.org/wiki/Julian_day
                 try db.execute(
@@ -221,6 +227,7 @@ class NSDateTests : GRDBTestCase {
 
     func testNSDateAcceptsFormatIso8601YMD_HM() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
@@ -241,6 +248,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateAcceptsFormatIso8601YMD_HMS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
@@ -261,6 +269,7 @@ class NSDateTests : GRDBTestCase {
     
     func testNSDateAcceptsFormatIso8601YMD_HMSS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",

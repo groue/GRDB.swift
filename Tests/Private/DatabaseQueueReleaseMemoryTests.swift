@@ -22,11 +22,10 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
             }
             
-            // Open connection
-            try dbQueue.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            
-            // Release
-            dbQueue = nil
+            do {
+                // Open & release connection
+                try makeDatabaseQueue()
+            }
             
             // One reader, one writer
             XCTAssertEqual(totalOpenConnectionCount, 1)
@@ -55,8 +54,6 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
             }
             
-            try self.dbQueue.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            
             // Block 1                  Block 2
             //                          inDatabase {
             //                              >
@@ -68,12 +65,14 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             //                          }
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
+                var dbQueue: DatabaseQueue? = try! makeDatabaseQueue()
+                try! dbQueue!.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    self.dbQueue = nil
+                    dbQueue = nil
                     dispatch_semaphore_signal(s2)
                 }
-                let dbQueue = self.dbQueue
                 let block2 = { [weak dbQueue] () in
                     if let dbQueue = dbQueue {
                         dbQueue.write { db in
@@ -120,10 +119,6 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
             }
             
-            try self.dbQueue.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            try self.dbQueue.execute("INSERT INTO items (id) VALUES (NULL)")
-            try self.dbQueue.execute("INSERT INTO items (id) VALUES (NULL)")
-            
             // Block 1                  Block 2
             //                          write {
             //                              SELECT
@@ -138,12 +133,16 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             //                          }
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
+                var dbQueue: DatabaseQueue? = try! makeDatabaseQueue()
+                try! dbQueue!.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try! dbQueue!.execute("INSERT INTO items (id) VALUES (NULL)")
+                try! dbQueue!.execute("INSERT INTO items (id) VALUES (NULL)")
+                
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    self.dbQueue = nil
+                    dbQueue = nil
                     dispatch_semaphore_signal(s2)
                 }
-                let dbQueue = self.dbQueue
                 let block2 = { [weak dbQueue] () in
                     weak var connection: Database? = nil
                     var generator: DatabaseGenerator<Int>? = nil
@@ -196,12 +195,13 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             //                          dbQueue is nil
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
+                var dbQueue: DatabaseQueue? = try! makeDatabaseQueue()
+                
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    self.dbQueue = nil
+                    dbQueue = nil
                     dispatch_semaphore_signal(s2)
                 }
-                let dbQueue = self.dbQueue
                 let block2 = { [weak dbQueue] () in
                     var statement: UpdateStatement? = nil
                     do {

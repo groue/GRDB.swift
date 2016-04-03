@@ -3,11 +3,8 @@ import GRDB
 
 class UpdateStatementTests : GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        
         migrator.registerMigration("createPersons") { db in
             try db.execute(
                 "CREATE TABLE persons (" +
@@ -17,14 +14,12 @@ class UpdateStatementTests : GRDBTestCase {
                     "age INT" +
                 ")")
         }
-        
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     func testTrailingSemicolonAndWhiteSpaceIsAcceptedAndOptional() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try db.updateStatement("INSERT INTO persons (name) VALUES ('Arthur');").execute()
                 try db.updateStatement("INSERT INTO persons (name) VALUES ('Barbara')\n \t").execute()
@@ -32,16 +27,16 @@ class UpdateStatementTests : GRDBTestCase {
                 try db.updateStatement("INSERT INTO persons (name) VALUES ('Daniel');\n \t").execute()
                 return .Commit
             }
-        }
-        
-        dbQueue.inDatabase { db in
-            let names = String.fetchAll(db, "SELECT name FROM persons ORDER BY name")
-            XCTAssertEqual(names, ["Arthur", "Barbara", "Craig", "Daniel"])
+            dbQueue.inDatabase { db in
+                let names = String.fetchAll(db, "SELECT name FROM persons ORDER BY name")
+                XCTAssertEqual(names, ["Arthur", "Barbara", "Craig", "Daniel"])
+            }
         }
     }
     
     func testArrayStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inTransaction { db in
                 
@@ -70,6 +65,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testStatementArgumentsSetterWithArray() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inTransaction { db in
                 
@@ -99,6 +95,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testDictionaryStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inTransaction { db in
                 
@@ -127,6 +124,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testStatementArgumentsSetterWithDictionary() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inTransaction { db in
                 
@@ -158,6 +156,7 @@ class UpdateStatementTests : GRDBTestCase {
         // This test makes sure we do not introduce any regression for
         // https://github.com/groue/GRDB.swift/issues/15
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("SELECT 1")
             }
@@ -166,6 +165,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testExecuteMultipleStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)")
                 XCTAssertTrue(db.tableExists("wines"))
@@ -176,6 +176,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testExecuteMultipleStatementWithTrailingWhiteSpace() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)\n \t")
                 XCTAssertTrue(db.tableExists("wines"))
@@ -186,6 +187,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testExecuteMultipleStatementWithTrailingSemicolonAndWhiteSpace() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT);\n \t")
                 XCTAssertTrue(db.tableExists("wines"))
@@ -196,6 +198,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testExecuteMultipleStatementWithNamedArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try db.execute(
                     "INSERT INTO persons (name, age) VALUES ('Arthur', :age1);" +
@@ -218,6 +221,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testExecuteMultipleStatementWithReusedNamedArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try db.execute(
                     "INSERT INTO persons (name, age) VALUES ('Arthur', :age);" +
@@ -244,6 +248,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testExecuteMultipleStatementWithPositionalArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try db.execute(
                     "INSERT INTO persons (name, age) VALUES ('Arthur', ?);" +
@@ -256,23 +261,25 @@ class UpdateStatementTests : GRDBTestCase {
     }
     
     func testDatabaseErrorThrownByUpdateStatementContainSQL() {
-        dbQueue.inDatabase { db in
-            do {
-                _ = try db.updateStatement("UPDATE blah SET id = 12")
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 1)
-                XCTAssertEqual(error.message!, "no such table: blah")
-                XCTAssertEqual(error.sql!, "UPDATE blah SET id = 12")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `UPDATE blah SET id = 12`: no such table: blah")
-            } catch {
-                XCTFail("\(error)")
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                do {
+                    _ = try db.updateStatement("UPDATE blah SET id = 12")
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 1)
+                    XCTAssertEqual(error.message!, "no such table: blah")
+                    XCTAssertEqual(error.sql!, "UPDATE blah SET id = 12")
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `UPDATE blah SET id = 12`: no such table: blah")
+                }
             }
         }
     }
     
     func testMultipleValidStatementsError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 do {
                     _ = try db.updateStatement("UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
@@ -289,6 +296,7 @@ class UpdateStatementTests : GRDBTestCase {
     
     func testMultipleStatementsWithSecondOneInvalidError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 do {
                     _ = try db.updateStatement("UPDATE persons SET age = 1;x")
@@ -299,28 +307,6 @@ class UpdateStatementTests : GRDBTestCase {
                     XCTAssertEqual(error.sql!, "UPDATE persons SET age = 1;x")
                     XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1;x`: Multiple statements found. To execute multiple statements, use Database.execute() instead.")
                 }
-            }
-        }
-    }
-    
-    func testReadOnlyDatabaseCanNotBeModified() {
-        assertNoError {
-            var configuration = Configuration()
-            configuration.readonly = true
-            dbQueue = try DatabaseQueue(path: dbQueuePath, configuration: configuration)
-            let statement = try dbQueue.inDatabase { db in
-                try db.updateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            }
-            do {
-                try dbQueue.inDatabase { db in
-                    try statement.execute()
-                }
-                XCTFail()
-            } catch let error as DatabaseError {
-                XCTAssertEqual(error.code, 8)   // SQLITE_READONLY
-                XCTAssertEqual(error.message!, "attempt to write a readonly database")
-                XCTAssertEqual(error.sql!, "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                XCTAssertEqual(error.description, "SQLite error 8 with statement `CREATE TABLE items (id INTEGER PRIMARY KEY)`: attempt to write a readonly database")
             }
         }
     }

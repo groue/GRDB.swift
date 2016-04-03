@@ -11,11 +11,8 @@ import GRDB
 
 class StatementArgumentsTests: GRDBTestCase {
 
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        
         migrator.registerMigration("createPersons") { db in
             try db.execute(
                 "CREATE TABLE persons (" +
@@ -25,14 +22,12 @@ class StatementArgumentsTests: GRDBTestCase {
                     "age INT" +
                 ")")
         }
-        
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     func testPositionalStatementArgumentsValidation() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.updateStatement("INSERT INTO persons (firstName, age) VALUES (?, ?)")
                 
@@ -98,6 +93,7 @@ class StatementArgumentsTests: GRDBTestCase {
     
     func testPositionalStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let name = "Arthur"
                 let age = 42
@@ -119,6 +115,7 @@ class StatementArgumentsTests: GRDBTestCase {
     
     func testUnsafePositionalStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let name = "Arthur"
                 let age = 42
@@ -140,6 +137,7 @@ class StatementArgumentsTests: GRDBTestCase {
     
     func testNamedStatementArgumentsValidation() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.updateStatement("INSERT INTO persons (firstName, age) VALUES (:firstName, :age)")
                 
@@ -219,6 +217,7 @@ class StatementArgumentsTests: GRDBTestCase {
     
     func testNamedStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let name = "Arthur"
                 let age = 42
@@ -240,6 +239,7 @@ class StatementArgumentsTests: GRDBTestCase {
     
     func testUnsafeNamedStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let name = "Arthur"
                 let age = 42
@@ -261,6 +261,7 @@ class StatementArgumentsTests: GRDBTestCase {
     
     func testReusedNamedStatementArgumentsValidation() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let statement = try db.updateStatement("INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
                 
@@ -349,6 +350,7 @@ class StatementArgumentsTests: GRDBTestCase {
     
     func testReusedNamedStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let name = "Arthur"
                 let age = 42
@@ -370,6 +372,7 @@ class StatementArgumentsTests: GRDBTestCase {
     
     func testUnsafeReusedNamedStatementArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let name = "Arthur"
                 let age = 42

@@ -49,6 +49,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testRowExtractionIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 for row in Row.fetch(db, "SELECT NULL") {
                     let one: FastWrappedInt? = row.value(atIndex: 0)
@@ -80,6 +81,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testFetchFromStatementIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -96,6 +98,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testFetchAllFromStatementIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -112,6 +115,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testFetchOneFromStatementIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
@@ -134,6 +138,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testFetchFromDatabaseIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -149,6 +154,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testFetchAllFromDatabaseIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -164,6 +170,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testFetchOneFromDatabaseIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 
@@ -185,6 +192,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testOptionalFetchFromStatementIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -205,6 +213,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testOptionalFetchAllFromStatementIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -224,6 +233,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testOptionalFetchFromDatabaseIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -243,6 +253,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
     
     func testOptionalFetchAllFromDatabaseIsFast() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")

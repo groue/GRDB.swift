@@ -96,9 +96,7 @@ private struct PersistableCustomizedCountry : Persistable {
 
 class DatabaseQueuePersistableTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("setUp") { db in
             try db.execute(
@@ -113,10 +111,7 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
                     "name TEXT NOT NULL " +
                 ")")
         }
-        
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -124,6 +119,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testInsertPersistablePerson() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             let person = PersistablePerson(name: "Arthur", age: 42)
             try person.insert(dbQueue)
             
@@ -138,6 +135,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testInsertPersistablePersonClass() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
             try person.insert(dbQueue)
             
@@ -150,6 +149,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testUpdatePersistablePersonClass() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
             try person1.insert(dbQueue)
             let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
@@ -169,6 +170,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testDeletePersistablePersonClass() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
             try person1.insert(dbQueue)
             let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
@@ -185,6 +188,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testExistsPersistablePersonClass() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
             try person.insert(dbQueue)
             XCTAssertTrue(person.exists(dbQueue))
@@ -200,6 +205,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testInsertPersistableCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             let country = PersistableCountry(isoCode: "FR", name: "France")
             try country.insert(dbQueue)
             
@@ -212,6 +219,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testUpdatePersistableCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             var country1 = PersistableCountry(isoCode: "FR", name: "France")
             try country1.insert(dbQueue)
             let country2 = PersistableCountry(isoCode: "US", name: "United States")
@@ -231,6 +240,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testDeletePersistableCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             let country1 = PersistableCountry(isoCode: "FR", name: "France")
             try country1.insert(dbQueue)
             let country2 = PersistableCountry(isoCode: "US", name: "United States")
@@ -247,6 +258,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testExistsPersistableCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             let country = PersistableCountry(isoCode: "FR", name: "France")
             try country.insert(dbQueue)
             XCTAssertTrue(country.exists(dbQueue))
@@ -262,6 +275,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testInsertPersistableCustomizedCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             var insertCount: Int = 0
             var updateCount: Int = 0
             var saveCount: Int = 0
@@ -292,6 +307,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testUpdatePersistableCustomizedCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             var insertCount: Int = 0
             var updateCount: Int = 0
             var saveCount: Int = 0
@@ -336,6 +353,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testDeletePersistableCustomizedCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             var insertCount: Int = 0
             var updateCount: Int = 0
             var saveCount: Int = 0
@@ -377,6 +396,8 @@ class DatabaseQueuePersistableTests: GRDBTestCase {
     
     func testExistsPersistableCustomizedCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             var insertCount: Int = 0
             var updateCount: Int = 0
             var saveCount: Int = 0

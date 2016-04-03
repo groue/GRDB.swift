@@ -96,9 +96,7 @@ private struct PersistableCustomizedCountry : Persistable {
 
 class DatabasePersistableTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("setUp") { db in
             try db.execute(
@@ -113,10 +111,7 @@ class DatabasePersistableTests: GRDBTestCase {
                     "name TEXT NOT NULL " +
                 ")")
         }
-        
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -124,6 +119,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testInsertPersistablePerson() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = PersistablePerson(name: "Arthur", age: 42)
                 try person.insert(db)
@@ -137,6 +133,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testSavePersistablePerson() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = PersistablePerson(name: "Arthur", age: 42)
                 try person.save(db)
@@ -153,6 +150,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testInsertPersistablePersonClass() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person.insert(db)
@@ -167,6 +165,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testUpdatePersistablePersonClass() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person1.insert(db)
@@ -188,6 +187,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testSavePersistablePersonClass() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person1.save(db)
@@ -225,6 +225,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testDeletePersistablePersonClass() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person1.insert(db)
@@ -243,6 +244,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testExistsPersistablePersonClass() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
                 try person.insert(db)
@@ -260,6 +262,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testInsertPersistableCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let country = PersistableCountry(isoCode: "FR", name: "France")
                 try country.insert(db)
@@ -274,6 +277,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testUpdatePersistableCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var country1 = PersistableCountry(isoCode: "FR", name: "France")
                 try country1.insert(db)
@@ -295,6 +299,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testSavePersistableCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var country1 = PersistableCountry(isoCode: "FR", name: "France")
                 try country1.save(db)
@@ -332,6 +337,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testDeletePersistableCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let country1 = PersistableCountry(isoCode: "FR", name: "France")
                 try country1.insert(db)
@@ -350,6 +356,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testExistsPersistableCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let country = PersistableCountry(isoCode: "FR", name: "France")
                 try country.insert(db)
@@ -367,6 +374,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testInsertPersistableCustomizedCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var insertCount: Int = 0
                 var updateCount: Int = 0
@@ -399,6 +407,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testUpdatePersistableCustomizedCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var insertCount: Int = 0
                 var updateCount: Int = 0
@@ -445,6 +454,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testSavePersistableCustomizedCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var insertCount: Int = 0
                 var updateCount: Int = 0
@@ -519,6 +529,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testDeletePersistableCustomizedCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var insertCount: Int = 0
                 var updateCount: Int = 0
@@ -562,6 +573,7 @@ class DatabasePersistableTests: GRDBTestCase {
     
     func testExistsPersistableCustomizedCountry() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var insertCount: Int = 0
                 var updateCount: Int = 0

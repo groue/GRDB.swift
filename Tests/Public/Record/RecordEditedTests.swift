@@ -74,14 +74,10 @@ class PersonWithModifiedCaseColumns: Record {
 
 class RecordEditedTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -106,6 +102,7 @@ class RecordEditedTests: GRDBTestCase {
         // columns in persistentDictionary would perform no change. So the
         // record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT * FROM persons")!
@@ -121,6 +118,7 @@ class RecordEditedTests: GRDBTestCase {
     
     func testRecordIsNotEditedAfterFullFetchWithIntegerPropertyOnRealAffinityColumn() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE t (value REAL)")
                 try db.execute("INSERT INTO t (value) VALUES (1)")
@@ -155,6 +153,7 @@ class RecordEditedTests: GRDBTestCase {
         // which only saves the columns in persistentDictionary would
         // perform no change. So the record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT *, 1 AS foo FROM persons")!
@@ -174,6 +173,7 @@ class RecordEditedTests: GRDBTestCase {
         // persistentDictionary, so it may perform unpredictable change.
         // So the record is edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person =  Person.fetchOne(db, "SELECT name FROM persons")!
@@ -190,6 +190,7 @@ class RecordEditedTests: GRDBTestCase {
     func testRecordIsNotEditedAfterInsert() {
         // After insertion, a record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
@@ -207,6 +208,7 @@ class RecordEditedTests: GRDBTestCase {
         // Any change in a value exposed in persistentDictionary yields a
         // record that is edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 do {
                     let person = Person(name: "Arthur")
@@ -258,6 +260,7 @@ class RecordEditedTests: GRDBTestCase {
     
     func testRecordIsNotEditedAfterSameValueChange() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 do {
                     let person = Person(name: "Arthur")
@@ -296,6 +299,7 @@ class RecordEditedTests: GRDBTestCase {
     func testRecordIsNotEditedAfterUpdate() {
         // After update, a record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
@@ -316,6 +320,7 @@ class RecordEditedTests: GRDBTestCase {
     func testRecordIsNotEditedAfterSave() {
         // After save, a record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.save(db)
@@ -340,6 +345,7 @@ class RecordEditedTests: GRDBTestCase {
     func testRecordIsEditedAfterPrimaryKeyChange() {
         // After reload, a record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
@@ -357,6 +363,7 @@ class RecordEditedTests: GRDBTestCase {
     
     func testCopyTransfersEditedFlag() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 
@@ -444,6 +451,7 @@ class RecordEditedTests: GRDBTestCase {
         // columns in persistentDictionary would perform no change. So the
         // record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person = Person.fetchOne(db, "SELECT * FROM persons")!
@@ -465,6 +473,7 @@ class RecordEditedTests: GRDBTestCase {
         // persistentDictionary, so it may perform unpredictable change.
         // So the record is edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 let person =  Person.fetchOne(db, "SELECT name FROM persons")!
@@ -507,6 +516,7 @@ class RecordEditedTests: GRDBTestCase {
     func testChangesAfterInsert() {
         // After insertion, a record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
@@ -526,6 +536,7 @@ class RecordEditedTests: GRDBTestCase {
         // Any change in a value exposed in persistentDictionary yields a
         // record that is edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: nil)
                 try person.insert(db)
@@ -576,6 +587,7 @@ class RecordEditedTests: GRDBTestCase {
     func testChangesAfterUpdate() {
         // After update, a record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
@@ -596,6 +608,7 @@ class RecordEditedTests: GRDBTestCase {
     func testChangesAfterSave() {
         // After save, a record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.save(db)
@@ -640,6 +653,7 @@ class RecordEditedTests: GRDBTestCase {
     func testChangesAfterPrimaryKeyChange() {
         // After reload, a record is not edited.
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 try person.insert(db)
@@ -675,6 +689,7 @@ class RecordEditedTests: GRDBTestCase {
     
     func testCopyTransfersChanges() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let person = Person(name: "Arthur", age: 41)
                 

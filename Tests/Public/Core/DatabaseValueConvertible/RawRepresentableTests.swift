@@ -32,20 +32,17 @@ extension Grape : DatabaseValueConvertible { }
 
 class RawRepresentableTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute("CREATE TABLE wines (grape TEXT, color INTEGER)")
         }
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     func testColor32() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 
                 do {
@@ -79,6 +76,7 @@ class RawRepresentableTests: GRDBTestCase {
     
     func testColor64() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 
                 do {
@@ -112,6 +110,7 @@ class RawRepresentableTests: GRDBTestCase {
     
     func testColor() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 
                 do {
@@ -145,6 +144,7 @@ class RawRepresentableTests: GRDBTestCase {
     
     func testGrape() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 
                 do {

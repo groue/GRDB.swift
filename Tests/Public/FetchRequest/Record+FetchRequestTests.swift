@@ -36,9 +36,7 @@ private class Reader : Record {
 
 class RecordFetchRequestTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
             try db.execute(
@@ -48,7 +46,7 @@ class RecordFetchRequestTests: GRDBTestCase {
                     "age INT" +
                 ")")
         }
-        try! migrator.migrate(dbQueue)
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -56,6 +54,7 @@ class RecordFetchRequestTests: GRDBTestCase {
     
     func testFetch() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let arthur = Reader(id: nil, name: "Arthur", age: 42)
                 try arthur.insert(db)

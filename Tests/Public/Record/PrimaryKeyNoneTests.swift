@@ -35,14 +35,10 @@ private class Item : Record {
 
 class PrimaryKeyNoneTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createItem", migrate: Item.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -50,6 +46,7 @@ class PrimaryKeyNoneTests: GRDBTestCase {
     
     func testInsertInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Item(name: "Table")
                 try record.insert(db)
@@ -66,6 +63,7 @@ class PrimaryKeyNoneTests: GRDBTestCase {
     
     func testSaveInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Item(name: "Table")
                 try record.save(db)
@@ -82,6 +80,7 @@ class PrimaryKeyNoneTests: GRDBTestCase {
     
     func testSelectWithKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Item(name: "Table")
                 try record.insert(db)

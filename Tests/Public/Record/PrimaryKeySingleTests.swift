@@ -39,14 +39,10 @@ class Pet : Record {
 
 class PrimaryKeySingleTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPet", migrate: Pet.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -54,6 +50,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(name: "Bobby")
                 XCTAssertTrue(record.UUID == nil)
@@ -69,6 +66,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -87,6 +85,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testInsertWithNotNilPrimaryKeyThatMatchesARowThrowsDatabaseError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -102,6 +101,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testInsertAfterDeleteInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -125,6 +125,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 do {
@@ -139,6 +140,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -159,6 +161,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testUpdateAfterDeleteThrowsRecordNotFound() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -178,6 +181,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(name: "Bobby")
                 XCTAssertTrue(record.UUID == nil)
@@ -193,6 +197,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.save(db)
@@ -211,6 +216,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -232,6 +238,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testSaveAfterDeleteInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -255,6 +262,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 let deleted = try record.delete(db)
@@ -265,6 +273,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -279,6 +288,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testDeleteAfterDeleteDoesNothing() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -295,6 +305,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testFetchWithKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record1.insert(db)
@@ -323,6 +334,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testFetchAllWithKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record1.insert(db)
@@ -351,6 +363,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testFetchOneWithKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -367,6 +380,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testFetchWithPrimaryKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record1.insert(db)
@@ -391,6 +405,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testFetchAllWithPrimaryKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record1.insert(db)
@@ -415,6 +430,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testFetchOneWithPrimaryKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -438,14 +454,18 @@ class PrimaryKeySingleTests: GRDBTestCase {
     // MARK: - Exists
     
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
-        dbQueue.inDatabase { db in
-            let record = Pet(UUID: "BobbyUUID", name: "Bobby")
-            XCTAssertFalse(record.exists(db))
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let record = Pet(UUID: "BobbyUUID", name: "Bobby")
+                XCTAssertFalse(record.exists(db))
+            }
         }
     }
     
     func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)
@@ -456,6 +476,7 @@ class PrimaryKeySingleTests: GRDBTestCase {
     
     func testExistsAfterDeleteReturnsTrue() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Pet(UUID: "BobbyUUID", name: "Bobby")
                 try record.insert(db)

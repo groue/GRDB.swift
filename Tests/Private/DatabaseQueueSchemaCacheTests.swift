@@ -5,6 +5,8 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
     
     func testCache() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }

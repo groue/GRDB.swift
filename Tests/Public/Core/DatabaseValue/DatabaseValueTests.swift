@@ -4,27 +4,34 @@ import GRDB
 class DatabaseValueTests: GRDBTestCase {
     
     func testDatabaseValueAsDatabaseValueConvertible() {
-        dbQueue.inDatabase { db in
-            XCTAssertTrue((Row.fetchOne(db, "SELECT 1")!.value(atIndex: 0) as DatabaseValue).value() is Int64)
-            XCTAssertTrue((Row.fetchOne(db, "SELECT 1.0")!.value(atIndex: 0) as DatabaseValue).value() is Double)
-            XCTAssertTrue((Row.fetchOne(db, "SELECT 'foo'")!.value(atIndex: 0) as DatabaseValue).value() is String)
-            XCTAssertTrue((Row.fetchOne(db, "SELECT x'53514C697465'")!.value(atIndex: 0) as DatabaseValue).value() is NSData)
-            XCTAssertTrue((Row.fetchOne(db, "SELECT NULL")!.value(atIndex: 0) as DatabaseValue?) == nil)
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                XCTAssertTrue((Row.fetchOne(db, "SELECT 1")!.value(atIndex: 0) as DatabaseValue).value() is Int64)
+                XCTAssertTrue((Row.fetchOne(db, "SELECT 1.0")!.value(atIndex: 0) as DatabaseValue).value() is Double)
+                XCTAssertTrue((Row.fetchOne(db, "SELECT 'foo'")!.value(atIndex: 0) as DatabaseValue).value() is String)
+                XCTAssertTrue((Row.fetchOne(db, "SELECT x'53514C697465'")!.value(atIndex: 0) as DatabaseValue).value() is NSData)
+                XCTAssertTrue((Row.fetchOne(db, "SELECT NULL")!.value(atIndex: 0) as DatabaseValue?) == nil)
+            }
         }
     }
     
     func testDatabaseValueAsStatementColumnConvertible() {
-        dbQueue.inDatabase { db in
-            XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 1")!.value() is Int64)
-            XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 1.0")!.value() is Double)
-            XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 'foo'")!.value() is String)
-            XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.value() is NSData)
-            XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT NULL") == nil)
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 1")!.value() is Int64)
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 1.0")!.value() is Double)
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 'foo'")!.value() is String)
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.value() is NSData)
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT NULL") == nil)
+            }
         }
     }
     
     func testDatabaseValueCanBeUsedAsStatementArgument() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE integers (integer INTEGER)")
                 try db.execute("INSERT INTO integers (integer) VALUES (1)")

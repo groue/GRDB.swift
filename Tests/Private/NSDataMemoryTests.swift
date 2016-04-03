@@ -18,6 +18,7 @@ class NSDataMemoryTests: GRDBTestCase {
     
     func testMemoryBehavior() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE datas (data BLOB)")
                 

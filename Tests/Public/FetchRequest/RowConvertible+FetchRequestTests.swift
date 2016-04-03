@@ -46,9 +46,7 @@ extension AltReader : RowConvertible {
 
 class RowConvertibleFetchRequestTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
             try db.execute(
@@ -58,7 +56,7 @@ class RowConvertibleFetchRequestTests: GRDBTestCase {
                     "age INT" +
                 ")")
         }
-        try! migrator.migrate(dbQueue)
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -66,6 +64,7 @@ class RowConvertibleFetchRequestTests: GRDBTestCase {
     
     func testAll() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var arthur = Reader(id: nil, name: "Arthur", age: 42)
                 try arthur.insert(db)
@@ -105,6 +104,7 @@ class RowConvertibleFetchRequestTests: GRDBTestCase {
     
     func testFetch() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var arthur = Reader(id: nil, name: "Arthur", age: 42)
                 try arthur.insert(db)
@@ -142,6 +142,7 @@ class RowConvertibleFetchRequestTests: GRDBTestCase {
     
     func testAlternativeFetch() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 var arthur = Reader(id: nil, name: "Arthur", age: 42)
                 try arthur.insert(db)

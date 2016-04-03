@@ -5,6 +5,7 @@ class StatementInformationTests : GRDBTestCase {
     
     func testSelectStatementSourceTables() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE foo (id INTEGER)")
                 try db.execute("CREATE TABLE bar (id INTEGER, fooId INTEGER)")
@@ -18,6 +19,7 @@ class StatementInformationTests : GRDBTestCase {
     
     func testUpdateStatementInvalidatesDatabaseSchemaCache() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 do {
                     let statement = try db.updateStatement("CREATE TABLE foo (id INTEGER)")

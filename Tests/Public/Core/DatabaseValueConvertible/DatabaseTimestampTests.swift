@@ -46,6 +46,7 @@ class DatabaseTimestampTests: GRDBTestCase {
 
     func testDatabaseTimestamp() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE dates (date DATETIME)")
                 let storedDate = NSDate()

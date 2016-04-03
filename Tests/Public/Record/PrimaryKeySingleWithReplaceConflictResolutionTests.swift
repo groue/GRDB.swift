@@ -38,14 +38,10 @@ class Email : Record {
 
 class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createEmail", migrate: Email.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -53,6 +49,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 XCTAssertTrue(record.email == nil)
@@ -68,6 +65,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -88,6 +86,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testInsertWithNotNilPrimaryKeyThatMatchesARowReplacesARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -110,6 +109,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testInsertAfterDeleteInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -134,6 +134,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -149,6 +150,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -169,6 +171,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testUpdateAfterDeleteThrowsRecordNotFound() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -189,6 +192,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 XCTAssertTrue(record.email == nil)
@@ -204,6 +208,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -223,6 +228,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -243,6 +249,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testSaveAfterDeleteInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -267,6 +274,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -278,6 +286,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -293,6 +302,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testDeleteAfterDeleteDoesNothing() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -310,6 +320,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testFetchWithKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Email()
                 record1.email = "me@domain.com"
@@ -340,6 +351,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testFetchAllWithKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Email()
                 record1.email = "me@domain.com"
@@ -370,6 +382,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testFetchOneWithKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -386,6 +399,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testFetchWithPrimaryKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Email()
                 record1.email = "me@domain.com"
@@ -412,6 +426,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testFetchAllWithPrimaryKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Email()
                 record1.email = "me@domain.com"
@@ -438,6 +453,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testFetchOneWithPrimaryKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -461,15 +477,19 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     // MARK: - Exists
     
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
-        dbQueue.inDatabase { db in
-            let record = Email()
-            record.email = "me@domain.com"
-            XCTAssertFalse(record.exists(db))
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let record = Email()
+                record.email = "me@domain.com"
+                XCTAssertFalse(record.exists(db))
+            }
         }
     }
     
     func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"
@@ -481,6 +501,7 @@ class PrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     
     func testExistsAfterDeleteReturnsTrue() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Email()
                 record.email = "me@domain.com"

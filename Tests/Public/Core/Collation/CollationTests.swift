@@ -5,6 +5,7 @@ class CollationTests: GRDBTestCase {
     
     func testDefaultCollations() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT)")
                 try db.execute("INSERT INTO strings VALUES (1, '1')")
@@ -37,6 +38,7 @@ class CollationTests: GRDBTestCase {
 
     func testCollation() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let collation = DatabaseCollation("localized_standard") { (string1, string2) in
                 let length1 = string1.utf8.count
                 let length2 = string2.utf8.count

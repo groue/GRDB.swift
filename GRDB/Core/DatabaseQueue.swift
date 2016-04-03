@@ -14,6 +14,11 @@ public final class DatabaseQueue {
         return serializedDatabase.configuration
     }
     
+    /// The path to the database.
+    ///
+    /// It is nil for in-memory databases.
+    public let path: String!
+    
     
     // MARK: - Initializers
     
@@ -28,6 +33,7 @@ public final class DatabaseQueue {
     ///     - configuration: A configuration.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public init(path: String, configuration: Configuration = Configuration()) throws {
+        self.path = path
         store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
         serializedDatabase = try SerializedDatabase(
             path: path,
@@ -43,6 +49,7 @@ public final class DatabaseQueue {
     ///
     /// - parameter configuration: A configuration.
     public init(configuration: Configuration = Configuration()) {
+        path = nil
         store = nil
         serializedDatabase = try! SerializedDatabase(
             path: ":memory:",
@@ -189,11 +196,6 @@ public final class DatabaseQueue {
     //
     // This is why we use a serialized database:
     private var serializedDatabase: SerializedDatabase
-    
-    init(serializedDatabase: SerializedDatabase, store: DatabaseStore?) {
-        self.store = store
-        self.serializedDatabase = serializedDatabase
-    }
 }
 
 

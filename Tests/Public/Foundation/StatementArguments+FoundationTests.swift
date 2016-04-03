@@ -3,11 +3,8 @@ import GRDB
 
 class StatementArgumentsFoundationTests: GRDBTestCase {
 
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        
         migrator.registerMigration("createPersons") { db in
             try db.execute(
                 "CREATE TABLE persons (" +
@@ -17,14 +14,12 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
                     "age INT" +
                 ")")
         }
-        
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     func testStatementArgumentsNSArrayInitializer() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inTransaction { db in
                 
@@ -53,6 +48,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
     
     func testStatementArgumentsNSDictionaryInitializer() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             
             try dbQueue.inTransaction { db in
                 

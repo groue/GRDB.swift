@@ -22,6 +22,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testFetchFromStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -37,6 +38,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testFetchAllFromStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -52,6 +54,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testFetchOneFromStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
@@ -73,6 +76,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testFetchFromDatabase() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -87,6 +91,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testFetchAllFromDatabase() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -101,6 +106,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testFetchOneFromDatabase() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 
@@ -121,6 +127,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testOptionalFetchFromStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -139,6 +146,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testOptionalFetchAllFromStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -157,6 +165,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testOptionalFetchFromDatabase() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
@@ -174,6 +183,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     
     func testOptionalFetchAllFromDatabase() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
                 try db.execute("INSERT INTO ints (int) VALUES (1)")

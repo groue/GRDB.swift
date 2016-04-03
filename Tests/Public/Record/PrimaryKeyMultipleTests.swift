@@ -48,14 +48,10 @@ class Citizenship : Record {
 
 class PrimaryKeyMultipleTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createCitizenship", migrate: Citizenship.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -63,6 +59,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testInsertWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(native: true)
                 XCTAssertTrue(record.personName == nil && record.countryName == nil)
@@ -78,6 +75,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -96,6 +94,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testInsertWithNotNilPrimaryKeyThatMatchesARowThrowsDatabaseError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -111,6 +110,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testInsertAfterDeleteInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -134,6 +134,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 do {
@@ -148,6 +149,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -168,6 +170,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testUpdateAfterDeleteThrowsRecordNotFound() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -187,6 +190,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testSaveWithNilPrimaryKeyThrowsDatabaseError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(native: true)
                 XCTAssertTrue(record.personName == nil && record.countryName == nil)
@@ -202,6 +206,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.save(db)
@@ -220,6 +225,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -241,6 +247,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testSaveAfterDeleteInsertsARow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -264,6 +271,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 let deleted = try record.delete(db)
@@ -274,6 +282,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -288,6 +297,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testDeleteAfterDeleteDoesNothing() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -304,6 +314,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testFetchWithKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record1.insert(db)
@@ -332,6 +343,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testFetchAllWithKeys() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record1.insert(db)
@@ -360,6 +372,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testFetchOneWithKey() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -376,14 +389,18 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     // MARK: - Exists
     
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() {
-        dbQueue.inDatabase { db in
-            let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
-            XCTAssertFalse(record.exists(db))
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
+                XCTAssertFalse(record.exists(db))
+            }
         }
     }
     
     func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)
@@ -394,6 +411,7 @@ class PrimaryKeyMultipleTests: GRDBTestCase {
     
     func testExistsAfterDeleteReturnsTrue() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
                 try record.insert(db)

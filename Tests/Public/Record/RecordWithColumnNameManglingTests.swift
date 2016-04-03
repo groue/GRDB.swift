@@ -44,18 +44,15 @@ class BadlyMangledStuff : Record {
 
 class RecordWithColumnNameManglingTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createBadlyMangledStuff", migrate: BadlyMangledStuff.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     func testBadlyMangledStuff() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 do {
                     let record = BadlyMangledStuff()

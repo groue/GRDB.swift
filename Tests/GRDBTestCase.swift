@@ -2,35 +2,37 @@ import XCTest
 import GRDB
 
 class GRDBTestCase: XCTestCase {
-    var dbConfiguration = Configuration()
+    // The default configuration for tests
+    var dbConfiguration: Configuration!
     
-    var dbQueuePath: String!
-    var _dbQueue: DatabaseQueue?
-    var dbQueue: DatabaseQueue! {
-        get {
-            if let _dbQueue = _dbQueue {
-                return _dbQueue
-            } else {
-                _dbQueue = try! DatabaseQueue(path: dbQueuePath, configuration: dbConfiguration)
-                return _dbQueue!
-            }
-        }
-        set {
-            _dbQueue = newValue
-        }
+    // Builds a database queue
+    func makeDatabaseQueue(filename: String = "db.sqlite") throws -> DatabaseQueue {
+        try! NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+        let dbQueuePath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
+        let dbQueue = try DatabaseQueue(path: dbQueuePath, configuration: dbConfiguration)
+        try setUpDatabase(dbQueue)
+        return dbQueue
     }
     
-    var dbPoolDirectoryPath: String!
+    // Subclasses can override
+    func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    }
+    
+    // The default path for database pool directory
+    var dbDirectoryPath: String!
+
+    // The default path for database pool
     var dbPoolPath: String {
-        return (dbPoolDirectoryPath as NSString).stringByAppendingPathComponent("db.sqlite")
+        return (dbDirectoryPath as NSString).stringByAppendingPathComponent("db.sqlite")
     }
-    var _dbPool: DatabasePool?
+    
+    // The default database pool
     var dbPool: DatabasePool! {
         get {
             if let _dbPool = _dbPool {
                 return _dbPool
             } else {
-                try! NSFileManager.defaultManager().createDirectoryAtPath(dbPoolDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+                try! NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
                 _dbPool = try! DatabasePool(path: dbPoolPath, configuration: dbConfiguration)
                 return _dbPool!
             }
@@ -39,6 +41,7 @@ class GRDBTestCase: XCTestCase {
             _dbPool = newValue
         }
     }
+    var _dbPool: DatabasePool?
     
     
     var sqlQueries: [String]!
@@ -46,13 +49,11 @@ class GRDBTestCase: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        
-        let dbQueueFileName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        dbQueuePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbQueueFileName)
 
         let dbPoolDirectoryName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString)"
-        dbPoolDirectoryPath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbPoolDirectoryName)
+        dbDirectoryPath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbPoolDirectoryName)
         
+        dbConfiguration = Configuration()
         dbConfiguration.trace = { (sql) in
             self.sqlQueries.append(sql)
             self.lastSQLQuery = sql
@@ -61,30 +62,27 @@ class GRDBTestCase: XCTestCase {
         sqlQueries = []
         lastSQLQuery = nil
         
-        do { try NSFileManager.defaultManager().removeItemAtPath(dbQueuePath) } catch { }
-        do { try NSFileManager.defaultManager().removeItemAtPath(dbPoolDirectoryPath) } catch { }
+        do { try NSFileManager.defaultManager().removeItemAtPath(dbDirectoryPath) } catch { }
     }
     
     override func tearDown() {
         super.tearDown()
         
-        _dbQueue = nil
         _dbPool = nil
                 
-        do { try NSFileManager.defaultManager().removeItemAtPath(dbQueuePath) } catch { }
-        do { try NSFileManager.defaultManager().removeItemAtPath(dbPoolDirectoryPath) } catch { }
+        do { try NSFileManager.defaultManager().removeItemAtPath(dbDirectoryPath) } catch { }
     }
     
-    func assertNoError(@noescape test: (Void) throws -> Void) {
+    func assertNoError(file: StaticString = #file, line: UInt = #line, @noescape test: (Void) throws -> Void) {
         do {
             try test()
         } catch {
-            XCTFail("unexpected error: \(error)")
+            XCTFail("unexpected error at \(file):\(line): \(error)")
         }
     }
     
-    func sql<T>(request: FetchRequest<T>) -> String {
-        return dbQueue.inDatabase { db in
+    func sql<T>(databaseReader: DatabaseReader, _ request: FetchRequest<T>) -> String {
+        return databaseReader.read { db in
             _ = Row.fetchOne(db, request)
             return self.lastSQLQuery
         }

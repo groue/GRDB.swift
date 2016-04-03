@@ -6,6 +6,7 @@ class CGFloatTests: GRDBTestCase {
     
     func testCGFLoat() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE points (x DOUBLE, y DOUBLE)")
 

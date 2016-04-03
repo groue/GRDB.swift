@@ -45,14 +45,10 @@ class PersonWithOverrides : Person {
 
 class RecordSubClassTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -60,6 +56,7 @@ class RecordSubClassTests: GRDBTestCase {
     
     func testSaveWithNilPrimaryKeyCallsInsertMethod() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = PersonWithOverrides(name: "Arthur")
                 try record.save(db)
@@ -70,6 +67,7 @@ class RecordSubClassTests: GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowCallsInsertMethod() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = PersonWithOverrides(id: 123456, name: "Arthur")
                 try record.save(db)
@@ -81,6 +79,7 @@ class RecordSubClassTests: GRDBTestCase {
     
     func testSaveWithNotNilPrimaryKeyThatMatchesARowCallsUpdateMethod() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = PersonWithOverrides(name: "Arthur", age: 41)
                 try record.insert(db)
@@ -93,6 +92,7 @@ class RecordSubClassTests: GRDBTestCase {
     
     func testSaveAfterDeleteCallsInsertMethod() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = PersonWithOverrides(name: "Arthur")
                 try record.insert(db)
@@ -108,6 +108,7 @@ class RecordSubClassTests: GRDBTestCase {
     
     func testSelect() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let record = Person(name: "Arthur", age: 41)
                 try record.insert(db)

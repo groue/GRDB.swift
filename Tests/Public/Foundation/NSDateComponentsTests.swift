@@ -3,9 +3,7 @@ import GRDB
 
 class NSDateComponentsTests : GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createDates") { db in
             try db.execute(
@@ -14,13 +12,12 @@ class NSDateComponentsTests : GRDBTestCase {
                     "creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP" +
                 ")")
         }
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     func testDatabaseDateComponentsFormatHM() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -51,6 +48,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testDatabaseDateComponentsFormatHMS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -81,6 +79,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testDatabaseDateComponentsFormatHMSS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -111,6 +110,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testDatabaseDateComponentsFormatYMD() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -141,6 +141,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testDatabaseDateComponentsFormatYMD_HM() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -171,6 +172,7 @@ class NSDateComponentsTests : GRDBTestCase {
 
     func testDatabaseDateComponentsFormatYMD_HMS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -201,6 +203,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testDatabaseDateComponentsFormatYMD_HMSS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -231,6 +234,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testUndefinedDatabaseDateComponentsFormatYMD_HMSS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -254,6 +258,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testDatabaseDateComponentsFormatIso8601YMD_HM() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -281,6 +286,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testDatabaseDateComponentsFormatIso8601YMD_HMS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -308,6 +314,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testDatabaseDateComponentsFormatIso8601YMD_HMSS() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
                 let dateComponents = NSDateComponents()
@@ -335,6 +342,7 @@ class NSDateComponentsTests : GRDBTestCase {
     
     func testFormatYMD_HMSIsLexicallyComparableToCURRENT_TIMESTAMP() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)

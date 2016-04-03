@@ -14,13 +14,11 @@ class FetchRequestTests: GRDBTestCase {
 
     var collation: DatabaseCollation!
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
             return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
         }
-        dbQueue.addCollation(collation)
+        dbWriter.addCollation(collation)
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
@@ -31,7 +29,7 @@ class FetchRequestTests: GRDBTestCase {
                     "age INT" +
                 ")")
         }
-        try! migrator.migrate(dbQueue)
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -39,6 +37,7 @@ class FetchRequestTests: GRDBTestCase {
     
     func testFetchRowFromRequest() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
@@ -79,6 +78,7 @@ class FetchRequestTests: GRDBTestCase {
     // MARK: - Count
     
     func testFetchCount() {
+        let dbQueue = try! makeDatabaseQueue()
         dbQueue.inDatabase { db in
             XCTAssertEqual(tableRequest.fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
@@ -126,6 +126,7 @@ class FetchRequestTests: GRDBTestCase {
     
     func testSelectLiteral() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
@@ -144,6 +145,7 @@ class FetchRequestTests: GRDBTestCase {
     
     func testSelect() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
@@ -162,6 +164,7 @@ class FetchRequestTests: GRDBTestCase {
     
     func testSelectAliased() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
                 
@@ -175,8 +178,9 @@ class FetchRequestTests: GRDBTestCase {
     }
     
     func testMultipleSelect() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.select(Col.age).select(Col.name)),
+            sql(dbQueue, tableRequest.select(Col.age).select(Col.name)),
             "SELECT \"name\" FROM \"readers\"")
     }
     
@@ -184,8 +188,9 @@ class FetchRequestTests: GRDBTestCase {
     // MARK: - Distinct
     
     func testDistinct() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.select(Col.name).distinct),
+            sql(dbQueue, tableRequest.select(Col.name).distinct),
             "SELECT DISTINCT \"name\" FROM \"readers\"")
     }
     
@@ -193,20 +198,23 @@ class FetchRequestTests: GRDBTestCase {
     // MARK: - Filter
     
     func testFilterLiteral() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.filter(sql: "id <> 1")),
+            sql(dbQueue, tableRequest.filter(sql: "id <> 1")),
             "SELECT * FROM \"readers\" WHERE id <> 1")
     }
     
     func testFilter() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.filter(true)),
+            sql(dbQueue, tableRequest.filter(true)),
             "SELECT * FROM \"readers\" WHERE 1")
     }
 
     func testMultipleFilter() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.filter(true).filter(false)),
+            sql(dbQueue, tableRequest.filter(true).filter(false)),
             "SELECT * FROM \"readers\" WHERE (1 AND 0)")
     }
     
@@ -214,23 +222,26 @@ class FetchRequestTests: GRDBTestCase {
     // MARK: - Group
     
     func testGroupLiteral() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.group(sql: "age, lower(name)")),
+            sql(dbQueue, tableRequest.group(sql: "age, lower(name)")),
             "SELECT * FROM \"readers\" GROUP BY age, lower(name)")
     }
     
     func testGroup() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.group(Col.age)),
+            sql(dbQueue, tableRequest.group(Col.age)),
             "SELECT * FROM \"readers\" GROUP BY \"age\"")
         XCTAssertEqual(
-            sql(tableRequest.group(Col.age, Col.name)),
+            sql(dbQueue, tableRequest.group(Col.age, Col.name)),
             "SELECT * FROM \"readers\" GROUP BY \"age\", \"name\"")
     }
     
     func testMultipleGroup() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.group(Col.age).group(Col.name)),
+            sql(dbQueue, tableRequest.group(Col.age).group(Col.name)),
             "SELECT * FROM \"readers\" GROUP BY \"name\"")
     }
     
@@ -238,20 +249,23 @@ class FetchRequestTests: GRDBTestCase {
     // MARK: - Having
     
     func testHavingLiteral() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.group(Col.name).having(sql: "min(age) > 18")),
+            sql(dbQueue, tableRequest.group(Col.name).having(sql: "min(age) > 18")),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
     }
     
     func testHaving() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.group(Col.name).having(min(Col.age) > 18)),
+            sql(dbQueue, tableRequest.group(Col.name).having(min(Col.age) > 18)),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (MIN(\"age\") > 18)")
     }
     
     func testMultipleHaving() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.group(Col.name).having(min(Col.age) > 18).having(max(Col.age) < 50)),
+            sql(dbQueue, tableRequest.group(Col.name).having(min(Col.age) > 18).having(max(Col.age) < 50)),
                 "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((MIN(\"age\") > 18) AND (MAX(\"age\") < 50))")
     }
     
@@ -259,44 +273,48 @@ class FetchRequestTests: GRDBTestCase {
     // MARK: - Sort
     
     func testSortLiteral() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.order(sql: "lower(age) desc")),
+            sql(dbQueue, tableRequest.order(sql: "lower(age) desc")),
             "SELECT * FROM \"readers\" ORDER BY lower(age) desc")
     }
     
     func testSort() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age)),
+            sql(dbQueue, tableRequest.order(Col.age)),
             "SELECT * FROM \"readers\" ORDER BY \"age\"")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age.asc)),
+            sql(dbQueue, tableRequest.order(Col.age.asc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age.desc)),
+            sql(dbQueue, tableRequest.order(Col.age.desc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age, Col.name.desc)),
+            sql(dbQueue, tableRequest.order(Col.age, Col.name.desc)),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\" DESC")
         XCTAssertEqual(
-            sql(tableRequest.order(abs(Col.age))),
+            sql(dbQueue, tableRequest.order(abs(Col.age))),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
     }
     
     func testSortWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.order(Col.name.collating("NOCASE"))),
+            sql(dbQueue, tableRequest.order(Col.name.collating("NOCASE"))),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.name.collating("NOCASE").asc)),
+            sql(dbQueue, tableRequest.order(Col.name.collating("NOCASE").asc)),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.name.collating(collation))),
+            sql(dbQueue, tableRequest.order(Col.name.collating(collation))),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive")
     }
     
     func testMultipleSort() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age).order(Col.name)),
+            sql(dbQueue, tableRequest.order(Col.age).order(Col.name)),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\"")
     }
     
@@ -304,44 +322,47 @@ class FetchRequestTests: GRDBTestCase {
     // MARK: - Reverse
     
     func testReverse() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.reverse()),
+            sql(dbQueue, tableRequest.reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"id\" DESC")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age).reverse()),
+            sql(dbQueue, tableRequest.order(Col.age).reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age.asc).reverse()),
+            sql(dbQueue, tableRequest.order(Col.age.asc).reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age.desc).reverse()),
+            sql(dbQueue, tableRequest.order(Col.age.desc).reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age, Col.name.desc).reverse()),
+            sql(dbQueue, tableRequest.order(Col.age, Col.name.desc).reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC, \"name\" ASC")
         XCTAssertEqual(
-            sql(tableRequest.order(abs(Col.age)).reverse()),
+            sql(dbQueue, tableRequest.order(abs(Col.age)).reverse()),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\") DESC")
     }
     
     func testReverseWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.order(Col.name.collating("NOCASE")).reverse()),
+            sql(dbQueue, tableRequest.order(Col.name.collating("NOCASE")).reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.name.collating("NOCASE").asc).reverse()),
+            sql(dbQueue, tableRequest.order(Col.name.collating("NOCASE").asc).reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.name.collating(collation)).reverse()),
+            sql(dbQueue, tableRequest.order(Col.name.collating(collation)).reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive DESC")
     }
     
     func testMultipleReverse() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.reverse().reverse()),
+            sql(dbQueue, tableRequest.reverse().reverse()),
             "SELECT * FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.order(Col.age).order(Col.name).reverse().reverse()),
+            sql(dbQueue, tableRequest.order(Col.age).order(Col.name).reverse().reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\"")
     }
     
@@ -349,17 +370,19 @@ class FetchRequestTests: GRDBTestCase {
     // MARK: - Limit
     
     func testLimit() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.limit(1)),
+            sql(dbQueue, tableRequest.limit(1)),
             "SELECT * FROM \"readers\" LIMIT 1")
         XCTAssertEqual(
-            sql(tableRequest.limit(1, offset: 2)),
+            sql(dbQueue, tableRequest.limit(1, offset: 2)),
             "SELECT * FROM \"readers\" LIMIT 1 OFFSET 2")
     }
     
     func testMultipleLimit() {
+        let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(tableRequest.limit(1, offset: 2).limit(3)),
+            sql(dbQueue, tableRequest.limit(1, offset: 2).limit(3)),
             "SELECT * FROM \"readers\" LIMIT 3")
     }
 }

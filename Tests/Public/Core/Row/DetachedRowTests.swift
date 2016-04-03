@@ -5,7 +5,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowAsSequence() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -29,7 +29,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowValueAtIndex() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -75,7 +75,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowValueNamed() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -120,7 +120,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowDatabaseValueAtIndex() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 let row = Row.fetchOne(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'")!
                 
@@ -135,7 +135,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowDatabaseValueNamed() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 let row = Row.fetchOne(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"")!
                 
@@ -150,7 +150,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowCount() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -163,7 +163,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowColumnNames() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -176,7 +176,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowDatabaseValues() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
                 try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
@@ -189,7 +189,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowIsCaseInsensitive() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE")!
                 XCTAssertEqual(row["name"], "foo".databaseValue)
@@ -204,7 +204,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowIsCaseInsensitiveAndReturnsLeftmostMatchingColumn() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 let row = Row.fetchOne(db, "SELECT 1 AS name, 2 AS NAME")!
                 XCTAssertEqual(row["name"], 1.databaseValue)
@@ -219,7 +219,7 @@ class DetachedRowTests: GRDBTestCase {
     
     func testRowHasColumnIsCaseInsensitive() {
         assertNoError {
-            let dbQueue = DatabaseQueue()
+            let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
                 XCTAssertTrue(row.hasColumn("name"))

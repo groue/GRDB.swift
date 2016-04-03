@@ -14,13 +14,17 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
     func testConcurrentRead() {
         assertNoError {
             // Create a non-WAL database:
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                for _ in 0..<3 {
-                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+            let dbQueuePath: String
+            do {
+                let dbQueue = try makeDatabaseQueue()
+                dbQueuePath = dbQueue.path
+                try dbQueue.inDatabase { db in
+                    try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                    for _ in 0..<3 {
+                        try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                    }
                 }
             }
-            dbQueue = nil
             
             // Open a read-only pool on that database:
             var configuration = Configuration()

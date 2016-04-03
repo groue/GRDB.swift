@@ -18,34 +18,39 @@ class FunctionTests: GRDBTestCase {
     // MARK: - Default functions
     
     func testDefaultFunctions() {
-        // Those functions are automatically added to all connections.
-        // See Database.setupDefaultFunctions()
-        
-        let capitalizedString = DatabaseFunction.capitalizedString
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(capitalizedString.name)('jérÔME')"), "Jérôme")
-        
-        let lowercaseString = DatabaseFunction.lowercaseString
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(lowercaseString.name)('jérÔME')"), "jérôme")
-        
-        let uppercaseString = DatabaseFunction.uppercaseString
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(uppercaseString.name)('jérÔME')"), "JÉRÔME")
-        
-        // Locale-dependent tests. Are they fragile?
-        
-        let localizedCapitalizedString = DatabaseFunction.localizedCapitalizedString
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedCapitalizedString.name)('jérÔME')"), "Jérôme")
-        
-        let localizedLowercaseString = DatabaseFunction.localizedLowercaseString
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedLowercaseString.name)('jérÔME')"), "jérôme")
-        
-        let localizedUppercaseString = DatabaseFunction.localizedUppercaseString
-        XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedUppercaseString.name)('jérÔME')"), "JÉRÔME")
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
+            // Those functions are automatically added to all connections.
+            // See Database.setupDefaultFunctions()
+            
+            let capitalizedString = DatabaseFunction.capitalizedString
+            XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(capitalizedString.name)('jérÔME')"), "Jérôme")
+            
+            let lowercaseString = DatabaseFunction.lowercaseString
+            XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(lowercaseString.name)('jérÔME')"), "jérôme")
+            
+            let uppercaseString = DatabaseFunction.uppercaseString
+            XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(uppercaseString.name)('jérÔME')"), "JÉRÔME")
+            
+            // Locale-dependent tests. Are they fragile?
+            
+            let localizedCapitalizedString = DatabaseFunction.localizedCapitalizedString
+            XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedCapitalizedString.name)('jérÔME')"), "Jérôme")
+            
+            let localizedLowercaseString = DatabaseFunction.localizedLowercaseString
+            XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedLowercaseString.name)('jérÔME')"), "jérôme")
+            
+            let localizedUppercaseString = DatabaseFunction.localizedUppercaseString
+            XCTAssertEqual(String.fetchOne(dbQueue, "SELECT \(localizedUppercaseString.name)('jérÔME')"), "JÉRÔME")
+        }
     }
     
     // MARK: - Return values
     
     func testFunctionReturningNull() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
                 return nil
             }
@@ -58,6 +63,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionReturningInt64() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
                 return Int64(1)
             }
@@ -70,6 +76,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionReturningDouble() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
                 return 1e100
             }
@@ -82,6 +89,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionReturningString() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
                 return "foo"
             }
@@ -94,6 +102,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionReturningData() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
                 return "foo".dataUsingEncoding(NSUTF8StringEncoding)
             }
@@ -106,6 +115,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionReturningCustomValueType() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
                 return CustomValueType()
             }
@@ -120,6 +130,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionArgumentNil() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("isNil", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
                 return databaseValues[0].isNull
             }
@@ -136,6 +147,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionArgumentInt64() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asInt64", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
                 return databaseValues[0].value() as Int64?
             }
@@ -150,6 +162,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionArgumentDouble() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asDouble", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
                 return databaseValues[0].value() as Double?
             }
@@ -164,6 +177,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionArgumentString() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asString", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
                 return databaseValues[0].value() as String?
             }
@@ -177,6 +191,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionArgumentBlob() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asData", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
                 return databaseValues[0].value() as NSData?
             }
@@ -190,6 +205,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionArgumentCustomValueType() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asCustomValueType", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
                 return databaseValues[0].value() as CustomValueType?
             }
@@ -205,6 +221,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionWithoutArgument() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
                 return "foo"
             }
@@ -217,6 +234,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionOfOneArgument() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("unicodeUpper", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
                 let dbv = databaseValues[0]
                 guard let string: String = dbv.value() else {
@@ -235,6 +253,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionOfTwoArguments() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 2) { databaseValues in
                 let ints: [Int] = databaseValues.flatMap { $0.value() }
                 return ints.reduce(0, combine: +)
@@ -248,6 +267,7 @@ class FunctionTests: GRDBTestCase {
     
     func testVariadicFunction() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f") { databaseValues in
                 return databaseValues.count
             }
@@ -264,6 +284,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionThrowingDatabaseErrorWithMessage() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 1) { databaseValues in
                 throw DatabaseError(message: "custom error message")
             }
@@ -283,6 +304,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionThrowingDatabaseErrorWithCode() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 1) { databaseValues in
                 throw DatabaseError(code: 123)
             }
@@ -302,6 +324,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionThrowingDatabaseErrorWithMessageAndCode() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 1) { databaseValues in
                 throw DatabaseError(code: 123, message: "custom error message")
             }
@@ -321,6 +344,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionThrowingCustomError() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 1) { databaseValues in
                 throw NSError(domain: "CustomErrorDomain", code: 123, userInfo: [NSLocalizedDescriptionKey: "custom error message"])
             }
@@ -344,6 +368,7 @@ class FunctionTests: GRDBTestCase {
     
     func testFunctionsAreClosures() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             var x = 123
             let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
                 return x

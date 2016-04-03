@@ -15,19 +15,17 @@ class SQLSupportTests: GRDBTestCase {
     var collation: DatabaseCollation!
     var customFunction: DatabaseFunction!
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
             return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
         }
-        dbQueue.addCollation(collation)
+        dbWriter.addCollation(collation)
         
         customFunction = DatabaseFunction("avgOf", pure: true) { databaseValues in
             let sum = databaseValues.flatMap { $0.value() as Int? }.reduce(0, combine: +)
             return Double(sum) / Double(databaseValues.count)
         }
-        dbQueue.addFunction(self.customFunction)
+        dbWriter.addFunction(self.customFunction)
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
@@ -38,615 +36,659 @@ class SQLSupportTests: GRDBTestCase {
                     "age INT" +
                 ")")
         }
-        try! migrator.migrate(dbQueue)
+        try migrator.migrate(dbWriter)
     }
     
     
     // MARK: - Boolean expressions
     
     func testContains() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         // emptyArray.contains(): 0
         XCTAssertEqual(
-            sql(tableRequest.filter([Int]().contains(Col.id))),
+            sql(dbQueue, tableRequest.filter([Int]().contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE 0")
         
         // Array.contains(): IN operator
         XCTAssertEqual(
-            sql(tableRequest.filter([1,2,3].contains(Col.id))),
+            sql(dbQueue, tableRequest.filter([1,2,3].contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (1, 2, 3))")
         
         // Array.contains(): IN operator
         XCTAssertEqual(
-            sql(tableRequest.filter([Col.id].contains(Col.id))),
+            sql(dbQueue, tableRequest.filter([Col.id].contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (\"id\"))")
         
         // Sequence.contains(): IN operator
         XCTAssertEqual(
-            sql(tableRequest.filter(AnySequence([1,2,3]).contains(Col.id))),
+            sql(dbQueue, tableRequest.filter(AnySequence([1,2,3]).contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (1, 2, 3))")
         
         // Sequence.contains(): IN operator
         XCTAssertEqual(
-            sql(tableRequest.filter(AnySequence([Col.id]).contains(Col.id))),
+            sql(dbQueue, tableRequest.filter(AnySequence([Col.id]).contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (\"id\"))")
         
         // !Sequence.contains(): NOT IN operator
         XCTAssertEqual(
-            sql(tableRequest.filter(![1,2,3].contains(Col.id))),
+            sql(dbQueue, tableRequest.filter(![1,2,3].contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" NOT IN (1, 2, 3))")
         
         // !!Sequence.contains(): IN operator
         XCTAssertEqual(
-            sql(tableRequest.filter(!(![1,2,3].contains(Col.id)))),
+            sql(dbQueue, tableRequest.filter(!(![1,2,3].contains(Col.id)))),
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (1, 2, 3))")
         
         // Range.contains(): BETWEEN operator
         var range: Range<Int64> = 1..<10
         XCTAssertEqual(
-            sql(tableRequest.filter(range.contains(Col.id))),
+            sql(dbQueue, tableRequest.filter(range.contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1 AND 9)")
         
         // Range.contains(): BETWEEN operator
         range = 1...10
         XCTAssertEqual(
-            sql(tableRequest.filter(range.contains(Col.id))),
+            sql(dbQueue, tableRequest.filter(range.contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1 AND 10)")
         
         // ClosedInterval: BETWEEN operator
         let closedInterval: ClosedInterval<String> = "A"..."z"
         XCTAssertEqual(
-            sql(tableRequest.filter(closedInterval.contains(Col.name))),
+            sql(dbQueue, tableRequest.filter(closedInterval.contains(Col.name))),
             "SELECT * FROM \"readers\" WHERE (\"name\" BETWEEN 'A' AND 'z')")
         
         // HalfOpenInterval:  min <= x < max
         let halfOpenInterval: HalfOpenInterval<String> = "A"..<"z"
         XCTAssertEqual(
-            sql(tableRequest.filter(halfOpenInterval.contains(Col.name))),
+            sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name))),
             "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A') AND (\"name\" < 'z'))")
         
         // Subquery
         XCTAssertEqual(
-            sql(tableRequest.filter(tableRequest.select(Col.id).contains(Col.id))),
+            sql(dbQueue, tableRequest.filter(tableRequest.select(Col.id).contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (SELECT \"id\" FROM \"readers\"))")
         
         // Subquery
         XCTAssertEqual(
-            sql(tableRequest.filter(!tableRequest.select(Col.id).contains(Col.id))),
+            sql(dbQueue, tableRequest.filter(!tableRequest.select(Col.id).contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" NOT IN (SELECT \"id\" FROM \"readers\"))")
     }
     
     func testContainsWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         // Array.contains(): IN operator
         XCTAssertEqual(
-            sql(tableRequest.filter(["arthur", "barbara"].contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(["arthur", "barbara"].contains(Col.name.collating("NOCASE")))),
             "SELECT * FROM \"readers\" WHERE (\"name\" IN ('arthur', 'barbara') COLLATE NOCASE)")
         
         // Sequence.contains(): IN operator
         XCTAssertEqual(
-            sql(tableRequest.filter(AnySequence(["arthur", "barbara"]).contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(AnySequence(["arthur", "barbara"]).contains(Col.name.collating("NOCASE")))),
             "SELECT * FROM \"readers\" WHERE (\"name\" IN ('arthur', 'barbara') COLLATE NOCASE)")
         
         // Sequence.contains(): IN operator
         XCTAssertEqual(
-            sql(tableRequest.filter(AnySequence([Col.name]).contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(AnySequence([Col.name]).contains(Col.name.collating("NOCASE")))),
             "SELECT * FROM \"readers\" WHERE (\"name\" IN (\"name\") COLLATE NOCASE)")
         
         // ClosedInterval: BETWEEN operator
         let closedInterval: ClosedInterval<String> = "A"..."z"
         XCTAssertEqual(
-            sql(tableRequest.filter(closedInterval.contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(closedInterval.contains(Col.name.collating("NOCASE")))),
             "SELECT * FROM \"readers\" WHERE (\"name\" BETWEEN 'A' AND 'z' COLLATE NOCASE)")
         
         // HalfOpenInterval:  min <= x < max
         let halfOpenInterval: HalfOpenInterval<String> = "A"..<"z"
         XCTAssertEqual(
-            sql(tableRequest.filter(halfOpenInterval.contains(Col.name.collating("NOCASE")))),
+            sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name.collating("NOCASE")))),
             "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A' COLLATE NOCASE) AND (\"name\" < 'z' COLLATE NOCASE))")
     }
     
     func testGreaterThan() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age > 10)),
+            sql(dbQueue, tableRequest.filter(Col.age > 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" > 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 > Col.age)),
+            sql(dbQueue, tableRequest.filter(10 > Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 > \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 > 10)),
+            sql(dbQueue, tableRequest.filter(10 > 10)),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age > Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age > Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" > \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name > "B")),
+            sql(dbQueue, tableRequest.filter(Col.name > "B")),
             "SELECT * FROM \"readers\" WHERE (\"name\" > 'B')")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" > Col.name)),
+            sql(dbQueue, tableRequest.filter("B" > Col.name)),
             "SELECT * FROM \"readers\" WHERE ('B' > \"name\")")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" > "B")),
+            sql(dbQueue, tableRequest.filter("B" > "B")),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name > Col.name)),
+            sql(dbQueue, tableRequest.filter(Col.name > Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" > \"name\")")
         
         XCTAssertEqual(
-            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 > 20)),
+            sql(dbQueue, tableRequest.group(Col.name).having(average(Col.age) + 10 > 20)),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) > 20)")
     }
     
     func testGreaterThanWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") > "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") > "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" > 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating(collation) > "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(collation) > "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" > 'fOo' COLLATE localized_case_insensitive)")
     }
     
     func testGreaterThanOrEqual() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age >= 10)),
+            sql(dbQueue, tableRequest.filter(Col.age >= 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" >= 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 >= Col.age)),
+            sql(dbQueue, tableRequest.filter(10 >= Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 >= \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 >= 10)),
+            sql(dbQueue, tableRequest.filter(10 >= 10)),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age >= Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age >= Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" >= \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name >= "B")),
+            sql(dbQueue, tableRequest.filter(Col.name >= "B")),
             "SELECT * FROM \"readers\" WHERE (\"name\" >= 'B')")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" >= Col.name)),
+            sql(dbQueue, tableRequest.filter("B" >= Col.name)),
             "SELECT * FROM \"readers\" WHERE ('B' >= \"name\")")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" >= "B")),
+            sql(dbQueue, tableRequest.filter("B" >= "B")),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name >= Col.name)),
+            sql(dbQueue, tableRequest.filter(Col.name >= Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" >= \"name\")")
         
         XCTAssertEqual(
-            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 >= 20)),
+            sql(dbQueue, tableRequest.group(Col.name).having(average(Col.age) + 10 >= 20)),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) >= 20)")
     }
     
     func testGreaterThanOrEqualWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") >= "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") >= "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" >= 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating(collation) >= "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(collation) >= "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" >= 'fOo' COLLATE localized_case_insensitive)")
     }
     
     func testLessThan() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age < 10)),
+            sql(dbQueue, tableRequest.filter(Col.age < 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" < 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 < Col.age)),
+            sql(dbQueue, tableRequest.filter(10 < Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 < \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 < 10)),
+            sql(dbQueue, tableRequest.filter(10 < 10)),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age < Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age < Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" < \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name < "B")),
+            sql(dbQueue, tableRequest.filter(Col.name < "B")),
             "SELECT * FROM \"readers\" WHERE (\"name\" < 'B')")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" < Col.name)),
+            sql(dbQueue, tableRequest.filter("B" < Col.name)),
             "SELECT * FROM \"readers\" WHERE ('B' < \"name\")")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" < "B")),
+            sql(dbQueue, tableRequest.filter("B" < "B")),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name < Col.name)),
+            sql(dbQueue, tableRequest.filter(Col.name < Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" < \"name\")")
         
         XCTAssertEqual(
-            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 < 20)),
+            sql(dbQueue, tableRequest.group(Col.name).having(average(Col.age) + 10 < 20)),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) < 20)")
     }
     
     func testLessThanWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") < "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") < "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" < 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating(collation) < "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(collation) < "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" < 'fOo' COLLATE localized_case_insensitive)")
     }
     
     func testLessThanOrEqual() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age <= 10)),
+            sql(dbQueue, tableRequest.filter(Col.age <= 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" <= 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 <= Col.age)),
+            sql(dbQueue, tableRequest.filter(10 <= Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 <= \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 <= 10)),
+            sql(dbQueue, tableRequest.filter(10 <= 10)),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age <= Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age <= Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" <= \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name <= "B")),
+            sql(dbQueue, tableRequest.filter(Col.name <= "B")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <= 'B')")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" <= Col.name)),
+            sql(dbQueue, tableRequest.filter("B" <= Col.name)),
             "SELECT * FROM \"readers\" WHERE ('B' <= \"name\")")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" <= "B")),
+            sql(dbQueue, tableRequest.filter("B" <= "B")),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name <= Col.name)),
+            sql(dbQueue, tableRequest.filter(Col.name <= Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" <= \"name\")")
         
         XCTAssertEqual(
-            sql(tableRequest.group(Col.name).having(average(Col.age) + 10 <= 20)),
+            sql(dbQueue, tableRequest.group(Col.name).having(average(Col.age) + 10 <= 20)),
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((AVG(\"age\") + 10) <= 20)")
     }
     
     func testLessThanOrEqualWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") <= "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") <= "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <= 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating(collation) <= "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(collation) <= "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <= 'fOo' COLLATE localized_case_insensitive)")
     }
     
     func testEqual() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age == 10)),
+            sql(dbQueue, tableRequest.filter(Col.age == 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" = 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age == (10 as Int?))),
+            sql(dbQueue, tableRequest.filter(Col.age == (10 as Int?))),
             "SELECT * FROM \"readers\" WHERE (\"age\" = 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 == Col.age)),
+            sql(dbQueue, tableRequest.filter(10 == Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 = \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter((10 as Int?) == Col.age)),
+            sql(dbQueue, tableRequest.filter((10 as Int?) == Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 = \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 == 10)),
+            sql(dbQueue, tableRequest.filter(10 == 10)),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age == Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age == Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" = \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age == nil)),
+            sql(dbQueue, tableRequest.filter(Col.age == nil)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(nil == Col.age)),
+            sql(dbQueue, tableRequest.filter(nil == Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age == Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age == Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" = \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name == "B")),
+            sql(dbQueue, tableRequest.filter(Col.name == "B")),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'B')")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" == Col.name)),
+            sql(dbQueue, tableRequest.filter("B" == Col.name)),
             "SELECT * FROM \"readers\" WHERE ('B' = \"name\")")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" == "B")),
+            sql(dbQueue, tableRequest.filter("B" == "B")),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name == Col.name)),
+            sql(dbQueue, tableRequest.filter(Col.name == Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" = \"name\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age == true)),
+            sql(dbQueue, tableRequest.filter(Col.age == true)),
             "SELECT * FROM \"readers\" WHERE \"age\"")
         XCTAssertEqual(
-            sql(tableRequest.filter(true == Col.age)),
+            sql(dbQueue, tableRequest.filter(true == Col.age)),
             "SELECT * FROM \"readers\" WHERE \"age\"")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age == false)),
+            sql(dbQueue, tableRequest.filter(Col.age == false)),
             "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(false == Col.age)),
+            sql(dbQueue, tableRequest.filter(false == Col.age)),
             "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(true == true)),
+            sql(dbQueue, tableRequest.filter(true == true)),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(false == false)),
+            sql(dbQueue, tableRequest.filter(false == false)),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(true == false)),
+            sql(dbQueue, tableRequest.filter(true == false)),
             "SELECT * FROM \"readers\" WHERE 0")
     }
     
     func testEqualWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") == "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") == "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") == ("fOo" as String?))),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") == ("fOo" as String?))),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") == nil)),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") == nil)),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NULL COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating(collation) == "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(collation) == "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" = 'fOo' COLLATE localized_case_insensitive)")
     }
     
     func testNotEqual() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age != 10)),
+            sql(dbQueue, tableRequest.filter(Col.age != 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" <> 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age != (10 as Int?))),
+            sql(dbQueue, tableRequest.filter(Col.age != (10 as Int?))),
             "SELECT * FROM \"readers\" WHERE (\"age\" <> 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 != Col.age)),
+            sql(dbQueue, tableRequest.filter(10 != Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 <> \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter((10 as Int?) != Col.age)),
+            sql(dbQueue, tableRequest.filter((10 as Int?) != Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 <> \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 != 10)),
+            sql(dbQueue, tableRequest.filter(10 != 10)),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age != Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age != Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" <> \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age != nil)),
+            sql(dbQueue, tableRequest.filter(Col.age != nil)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(nil != Col.age)),
+            sql(dbQueue, tableRequest.filter(nil != Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age != Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age != Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" <> \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name != "B")),
+            sql(dbQueue, tableRequest.filter(Col.name != "B")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'B')")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" != Col.name)),
+            sql(dbQueue, tableRequest.filter("B" != Col.name)),
             "SELECT * FROM \"readers\" WHERE ('B' <> \"name\")")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" != "B")),
+            sql(dbQueue, tableRequest.filter("B" != "B")),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name != Col.name)),
+            sql(dbQueue, tableRequest.filter(Col.name != Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> \"name\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age != true)),
+            sql(dbQueue, tableRequest.filter(Col.age != true)),
             "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(true != Col.age)),
+            sql(dbQueue, tableRequest.filter(true != Col.age)),
             "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age != false)),
+            sql(dbQueue, tableRequest.filter(Col.age != false)),
             "SELECT * FROM \"readers\" WHERE \"age\"")
         XCTAssertEqual(
-            sql(tableRequest.filter(false != Col.age)),
+            sql(dbQueue, tableRequest.filter(false != Col.age)),
             "SELECT * FROM \"readers\" WHERE \"age\"")
         XCTAssertEqual(
-            sql(tableRequest.filter(true != true)),
+            sql(dbQueue, tableRequest.filter(true != true)),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(false != false)),
+            sql(dbQueue, tableRequest.filter(false != false)),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(true != false)),
+            sql(dbQueue, tableRequest.filter(true != false)),
             "SELECT * FROM \"readers\" WHERE 1")
     }
     
     func testNotEqualWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") != "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") != "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") != ("fOo" as String?))),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") != ("fOo" as String?))),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") != nil)),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") != nil)),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT NULL COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating(collation) != "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(collation) != "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" <> 'fOo' COLLATE localized_case_insensitive)")
     }
     
     func testNotEqualWithSwiftNotOperator() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(!(Col.age == 10))),
+            sql(dbQueue, tableRequest.filter(!(Col.age == 10))),
             "SELECT * FROM \"readers\" WHERE (\"age\" <> 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(10 == Col.age))),
+            sql(dbQueue, tableRequest.filter(!(10 == Col.age))),
             "SELECT * FROM \"readers\" WHERE (10 <> \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(10 == 10))),
+            sql(dbQueue, tableRequest.filter(!(10 == 10))),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(Col.age == Col.age))),
+            sql(dbQueue, tableRequest.filter(!(Col.age == Col.age))),
             "SELECT * FROM \"readers\" WHERE (\"age\" <> \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(!(Col.age == nil))),
+            sql(dbQueue, tableRequest.filter(!(Col.age == nil))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(nil == Col.age))),
+            sql(dbQueue, tableRequest.filter(!(nil == Col.age))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(Col.age == Col.age))),
+            sql(dbQueue, tableRequest.filter(!(Col.age == Col.age))),
             "SELECT * FROM \"readers\" WHERE (\"age\" <> \"age\")")
     }
     
     func testIs() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age === 10)),
+            sql(dbQueue, tableRequest.filter(Col.age === 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 === Col.age)),
+            sql(dbQueue, tableRequest.filter(10 === Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 IS \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 === 10)),
+            sql(dbQueue, tableRequest.filter(10 === 10)),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age === Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age === Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age === nil)),
+            sql(dbQueue, tableRequest.filter(Col.age === nil)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(nil === Col.age)),
+            sql(dbQueue, tableRequest.filter(nil === Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age === Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age === Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name === "B")),
+            sql(dbQueue, tableRequest.filter(Col.name === "B")),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS 'B')")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" === Col.name)),
+            sql(dbQueue, tableRequest.filter("B" === Col.name)),
             "SELECT * FROM \"readers\" WHERE ('B' IS \"name\")")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" === "B")),
+            sql(dbQueue, tableRequest.filter("B" === "B")),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name === Col.name)),
+            sql(dbQueue, tableRequest.filter(Col.name === Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS \"name\")")
     }
     
     func testIsWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") === "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") === "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating(collation) === "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(collation) === "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS 'fOo' COLLATE localized_case_insensitive)")
     }
     
     func testIsNot() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age !== 10)),
+            sql(dbQueue, tableRequest.filter(Col.age !== 10)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 !== Col.age)),
+            sql(dbQueue, tableRequest.filter(10 !== Col.age)),
             "SELECT * FROM \"readers\" WHERE (10 IS NOT \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(10 !== 10)),
+            sql(dbQueue, tableRequest.filter(10 !== 10)),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age !== Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age !== Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age !== nil)),
+            sql(dbQueue, tableRequest.filter(Col.age !== nil)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(nil !== Col.age)),
+            sql(dbQueue, tableRequest.filter(nil !== Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age !== Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age !== Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name !== "B")),
+            sql(dbQueue, tableRequest.filter(Col.name !== "B")),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT 'B')")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" !== Col.name)),
+            sql(dbQueue, tableRequest.filter("B" !== Col.name)),
             "SELECT * FROM \"readers\" WHERE ('B' IS NOT \"name\")")
         XCTAssertEqual(
-            sql(tableRequest.filter("B" !== "B")),
+            sql(dbQueue, tableRequest.filter("B" !== "B")),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name !== Col.name)),
+            sql(dbQueue, tableRequest.filter(Col.name !== Col.name)),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT \"name\")")
     }
     
     func testIsNotWithCollation() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating("NOCASE") !== "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating("NOCASE") !== "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT 'fOo' COLLATE NOCASE)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.name.collating(collation) !== "fOo")),
+            sql(dbQueue, tableRequest.filter(Col.name.collating(collation) !== "fOo")),
             "SELECT * FROM \"readers\" WHERE (\"name\" IS NOT 'fOo' COLLATE localized_case_insensitive)")
     }
     
     func testIsNotWithSwiftNotOperator() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(!(Col.age === 10))),
+            sql(dbQueue, tableRequest.filter(!(Col.age === 10))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(10 === Col.age))),
+            sql(dbQueue, tableRequest.filter(!(10 === Col.age))),
             "SELECT * FROM \"readers\" WHERE (10 IS NOT \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(10 === 10))),
+            sql(dbQueue, tableRequest.filter(!(10 === 10))),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(Col.age === Col.age))),
+            sql(dbQueue, tableRequest.filter(!(Col.age === Col.age))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT \"age\")")
         
         XCTAssertEqual(
-            sql(tableRequest.filter(!(Col.age === nil))),
+            sql(dbQueue, tableRequest.filter(!(Col.age === nil))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(nil === Col.age))),
+            sql(dbQueue, tableRequest.filter(!(nil === Col.age))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT NULL)")
         XCTAssertEqual(
-            sql(tableRequest.filter(!(Col.age === Col.age))),
+            sql(dbQueue, tableRequest.filter(!(Col.age === Col.age))),
             "SELECT * FROM \"readers\" WHERE (\"age\" IS NOT \"age\")")
     }
     
     func testExists() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(tableRequest.exists)),
+            sql(dbQueue, tableRequest.filter(tableRequest.exists)),
             "SELECT * FROM \"readers\" WHERE (EXISTS (SELECT * FROM \"readers\"))")
         XCTAssertEqual(
-            sql(tableRequest.filter(!tableRequest.exists)),
+            sql(dbQueue, tableRequest.filter(!tableRequest.exists)),
             "SELECT * FROM \"readers\" WHERE (NOT EXISTS (SELECT * FROM \"readers\"))")
     }
     
     func testLogicalOperators() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(!Col.age)),
+            sql(dbQueue, tableRequest.filter(!Col.age)),
             "SELECT * FROM \"readers\" WHERE (NOT \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age && true)),
+            sql(dbQueue, tableRequest.filter(Col.age && true)),
             "SELECT * FROM \"readers\" WHERE (\"age\" AND 1)")
         XCTAssertEqual(
-            sql(tableRequest.filter(true && Col.age)),
+            sql(dbQueue, tableRequest.filter(true && Col.age)),
             "SELECT * FROM \"readers\" WHERE (1 AND \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age || false)),
+            sql(dbQueue, tableRequest.filter(Col.age || false)),
             "SELECT * FROM \"readers\" WHERE (\"age\" OR 0)")
         XCTAssertEqual(
-            sql(tableRequest.filter(false || Col.age)),
+            sql(dbQueue, tableRequest.filter(false || Col.age)),
             "SELECT * FROM \"readers\" WHERE (0 OR \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age != nil || Col.name != nil)),
+            sql(dbQueue, tableRequest.filter(Col.age != nil || Col.name != nil)),
             "SELECT * FROM \"readers\" WHERE ((\"age\" IS NOT NULL) OR (\"name\" IS NOT NULL))")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age != nil || Col.name != nil && Col.id != nil)),
+            sql(dbQueue, tableRequest.filter(Col.age != nil || Col.name != nil && Col.id != nil)),
             "SELECT * FROM \"readers\" WHERE ((\"age\" IS NOT NULL) OR ((\"name\" IS NOT NULL) AND (\"id\" IS NOT NULL)))")
         XCTAssertEqual(
-            sql(tableRequest.filter((Col.age != nil || Col.name != nil) && Col.id != nil)),
+            sql(dbQueue, tableRequest.filter((Col.age != nil || Col.name != nil) && Col.id != nil)),
             "SELECT * FROM \"readers\" WHERE (((\"age\" IS NOT NULL) OR (\"name\" IS NOT NULL)) AND (\"id\" IS NOT NULL))")
     }
     
@@ -654,24 +696,26 @@ class SQLSupportTests: GRDBTestCase {
     // MARK: - String functions
     
     func testStringFunctions() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.select(Col.name.capitalizedString)),
+            sql(dbQueue, tableRequest.select(Col.name.capitalizedString)),
             "SELECT swiftCapitalizedString(\"name\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(Col.name.lowercaseString)),
+            sql(dbQueue, tableRequest.select(Col.name.lowercaseString)),
             "SELECT swiftLowercaseString(\"name\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(Col.name.uppercaseString)),
+            sql(dbQueue, tableRequest.select(Col.name.uppercaseString)),
             "SELECT swiftUppercaseString(\"name\") FROM \"readers\"")
         
         XCTAssertEqual(
-            sql(tableRequest.select(Col.name.localizedCapitalizedString)),
+            sql(dbQueue, tableRequest.select(Col.name.localizedCapitalizedString)),
             "SELECT swiftLocalizedCapitalizedString(\"name\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(Col.name.localizedLowercaseString)),
+            sql(dbQueue, tableRequest.select(Col.name.localizedLowercaseString)),
             "SELECT swiftLocalizedLowercaseString(\"name\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(Col.name.localizedUppercaseString)),
+            sql(dbQueue, tableRequest.select(Col.name.localizedUppercaseString)),
             "SELECT swiftLocalizedUppercaseString(\"name\") FROM \"readers\"")
 
     }
@@ -680,85 +724,97 @@ class SQLSupportTests: GRDBTestCase {
     // MARK: - Arithmetic expressions
     
     func testPrefixMinusOperator() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(-Col.age)),
+            sql(dbQueue, tableRequest.filter(-Col.age)),
             "SELECT * FROM \"readers\" WHERE -\"age\"")
     }
     
     func testInfixMinusOperator() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age - 2)),
+            sql(dbQueue, tableRequest.filter(Col.age - 2)),
             "SELECT * FROM \"readers\" WHERE (\"age\" - 2)")
         XCTAssertEqual(
-            sql(tableRequest.filter(2 - Col.age)),
+            sql(dbQueue, tableRequest.filter(2 - Col.age)),
             "SELECT * FROM \"readers\" WHERE (2 - \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(2 - 2)),
+            sql(dbQueue, tableRequest.filter(2 - 2)),
             "SELECT * FROM \"readers\" WHERE 0")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age - Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age - Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" - \"age\")")
     }
     
     func testInfixPlusOperator() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age + 2)),
+            sql(dbQueue, tableRequest.filter(Col.age + 2)),
             "SELECT * FROM \"readers\" WHERE (\"age\" + 2)")
         XCTAssertEqual(
-            sql(tableRequest.filter(2 + Col.age)),
+            sql(dbQueue, tableRequest.filter(2 + Col.age)),
             "SELECT * FROM \"readers\" WHERE (2 + \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(2 + 2)),
+            sql(dbQueue, tableRequest.filter(2 + 2)),
             "SELECT * FROM \"readers\" WHERE 4")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age + Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age + Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" + \"age\")")
     }
     
     func testInfixMultiplyOperator() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age * 2)),
+            sql(dbQueue, tableRequest.filter(Col.age * 2)),
             "SELECT * FROM \"readers\" WHERE (\"age\" * 2)")
         XCTAssertEqual(
-            sql(tableRequest.filter(2 * Col.age)),
+            sql(dbQueue, tableRequest.filter(2 * Col.age)),
             "SELECT * FROM \"readers\" WHERE (2 * \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(2 * 2)),
+            sql(dbQueue, tableRequest.filter(2 * 2)),
             "SELECT * FROM \"readers\" WHERE 4")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age * Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age * Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" * \"age\")")
     }
     
     func testInfixDivideOperator() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age / 2)),
+            sql(dbQueue, tableRequest.filter(Col.age / 2)),
             "SELECT * FROM \"readers\" WHERE (\"age\" / 2)")
         XCTAssertEqual(
-            sql(tableRequest.filter(2 / Col.age)),
+            sql(dbQueue, tableRequest.filter(2 / Col.age)),
             "SELECT * FROM \"readers\" WHERE (2 / \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(2 / 2)),
+            sql(dbQueue, tableRequest.filter(2 / 2)),
             "SELECT * FROM \"readers\" WHERE 1")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age / Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age / Col.age)),
             "SELECT * FROM \"readers\" WHERE (\"age\" / \"age\")")
     }
     
     func testCompoundArithmeticExpression() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         // Int / Double
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age / 2.0)),
+            sql(dbQueue, tableRequest.filter(Col.age / 2.0)),
             "SELECT * FROM \"readers\" WHERE (\"age\" / 2.0)")
         // Double / Int
         XCTAssertEqual(
-            sql(tableRequest.filter(2.0 / Col.age)),
+            sql(dbQueue, tableRequest.filter(2.0 / Col.age)),
             "SELECT * FROM \"readers\" WHERE (2.0 / \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age + 2 * 5)),
+            sql(dbQueue, tableRequest.filter(Col.age + 2 * 5)),
             "SELECT * FROM \"readers\" WHERE (\"age\" + 10)")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age * 2 + 5)),
+            sql(dbQueue, tableRequest.filter(Col.age * 2 + 5)),
             "SELECT * FROM \"readers\" WHERE ((\"age\" * 2) + 5)")
     }
     
@@ -766,26 +822,28 @@ class SQLSupportTests: GRDBTestCase {
     // MARK: - IFNULL expression
     
     func testIfNull() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         var optInt: Int? = nil
         let int: Int = 1
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age ?? 2)),
+            sql(dbQueue, tableRequest.filter(Col.age ?? 2)),
             "SELECT * FROM \"readers\" WHERE IFNULL(\"age\", 2)")
         XCTAssertEqual(
-            sql(tableRequest.filter(optInt ?? Col.age)),
+            sql(dbQueue, tableRequest.filter(optInt ?? Col.age)),
             "SELECT * FROM \"readers\" WHERE \"age\"")
         optInt = 1
         XCTAssertEqual(
-            sql(tableRequest.filter(optInt ?? Col.age)),
+            sql(dbQueue, tableRequest.filter(optInt ?? Col.age)),
             "SELECT * FROM \"readers\" WHERE IFNULL(1, \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(int ?? Col.age)),
+            sql(dbQueue, tableRequest.filter(int ?? Col.age)),
             "SELECT * FROM \"readers\" WHERE IFNULL(1, \"age\")")
         XCTAssertEqual(
-            sql(tableRequest.filter(3 ?? 2)),
+            sql(dbQueue, tableRequest.filter(3 ?? 2)),
             "SELECT * FROM \"readers\" WHERE 3")
         XCTAssertEqual(
-            sql(tableRequest.filter(Col.age ?? Col.age)),
+            sql(dbQueue, tableRequest.filter(Col.age ?? Col.age)),
             "SELECT * FROM \"readers\" WHERE IFNULL(\"age\", \"age\")")
     }
     
@@ -793,53 +851,63 @@ class SQLSupportTests: GRDBTestCase {
     // MARK: - Aggregated expressions
     
     func testCountExpression() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.select(count(Col.age))),
+            sql(dbQueue, tableRequest.select(count(Col.age))),
             "SELECT COUNT(\"age\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(count(Col.age ?? 0))),
+            sql(dbQueue, tableRequest.select(count(Col.age ?? 0))),
             "SELECT COUNT(IFNULL(\"age\", 0)) FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(count(distinct: Col.age))),
+            sql(dbQueue, tableRequest.select(count(distinct: Col.age))),
             "SELECT COUNT(DISTINCT \"age\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(count(distinct: Col.age / Col.age))),
+            sql(dbQueue, tableRequest.select(count(distinct: Col.age / Col.age))),
             "SELECT COUNT(DISTINCT (\"age\" / \"age\")) FROM \"readers\"")
     }
     
     func testAvgExpression() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.select(average(Col.age))),
+            sql(dbQueue, tableRequest.select(average(Col.age))),
             "SELECT AVG(\"age\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(average(Col.age / 2))),
+            sql(dbQueue, tableRequest.select(average(Col.age / 2))),
             "SELECT AVG((\"age\" / 2)) FROM \"readers\"")
     }
     
     func testMinExpression() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.select(min(Col.age))),
+            sql(dbQueue, tableRequest.select(min(Col.age))),
             "SELECT MIN(\"age\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(min(Col.age / 2))),
+            sql(dbQueue, tableRequest.select(min(Col.age / 2))),
             "SELECT MIN((\"age\" / 2)) FROM \"readers\"")
     }
     
     func testMaxExpression() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.select(max(Col.age))),
+            sql(dbQueue, tableRequest.select(max(Col.age))),
             "SELECT MAX(\"age\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(max(Col.age / 2))),
+            sql(dbQueue, tableRequest.select(max(Col.age / 2))),
             "SELECT MAX((\"age\" / 2)) FROM \"readers\"")
     }
     
     func testSumExpression() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.select(sum(Col.age))),
+            sql(dbQueue, tableRequest.select(sum(Col.age))),
             "SELECT SUM(\"age\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(tableRequest.select(sum(Col.age / 2))),
+            sql(dbQueue, tableRequest.select(sum(Col.age / 2))),
             "SELECT SUM((\"age\" / 2)) FROM \"readers\"")
     }
     
@@ -847,8 +915,10 @@ class SQLSupportTests: GRDBTestCase {
     // MARK: - Function
     
     func testCustomFunction() {
+        let dbQueue = try! makeDatabaseQueue()
+        
         XCTAssertEqual(
-            sql(tableRequest.select(customFunction.apply(Col.age, 1, 2))),
+            sql(dbQueue, tableRequest.select(customFunction.apply(Col.age, 1, 2))),
             "SELECT avgOf(\"age\", 1, 2) FROM \"readers\"")
     }
 }

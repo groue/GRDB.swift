@@ -3,19 +3,16 @@ import GRDB
 
 class RecordFetchTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
-        assertNoError {
-            try migrator.migrate(dbQueue)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
     func testSelectStatement() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 try Person(name: "Barbara", age: 37).insert(db)
@@ -35,6 +32,7 @@ class RecordFetchTests: GRDBTestCase {
     
     func testDatabaseRecordSequenceCanBeIteratedTwice() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 try Person(name: "Barbara", age: 37).insert(db)
@@ -55,6 +53,7 @@ class RecordFetchTests: GRDBTestCase {
     
     func testSelectStatementRecordSequenceCanBeIteratedTwice() {
         assertNoError {
+            let dbQueue = try makeDatabaseQueue()
             try dbQueue.inTransaction { db in
                 try Person(name: "Arthur", age: 41).insert(db)
                 try Person(name: "Barbara", age: 37).insert(db)
