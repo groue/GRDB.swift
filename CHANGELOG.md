@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- `DatabaseQueue.path` is the path to the database.
+- `DatabaseQueue.path` and `DatabasePool.path` give the path to the database.
 
 **Breaking Changes**
 

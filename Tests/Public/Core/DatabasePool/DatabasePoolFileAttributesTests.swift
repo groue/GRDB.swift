@@ -5,14 +5,15 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
     
     func testDefaultFileAttributes() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             let fm = NSFileManager.defaultManager()
             
             try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
-            var attributes = try fm.attributesOfItemAtPath(dbPoolPath)
+            var attributes = try fm.attributesOfItemAtPath(dbPool.path)
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
-            attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-wal")
+            attributes = try fm.attributesOfItemAtPath(dbPool.path + "-wal")
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
-            attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-shm")
+            attributes = try fm.attributesOfItemAtPath(dbPool.path + "-shm")
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
         }
     }
@@ -21,23 +22,27 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
         assertNoError {
             let fm = NSFileManager.defaultManager()
             
-            try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
-            var attributes = try fm.attributesOfItemAtPath(dbPoolPath)
-            XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
-            attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-wal")
-            XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
-            attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-shm")
-            XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
-            dbPool = nil
+            do {
+                let dbPool = try makeDatabasePool()
+                try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
+                var attributes = try fm.attributesOfItemAtPath(dbPool.path)
+                XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
+                attributes = try fm.attributesOfItemAtPath(dbPool.path + "-wal")
+                XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
+                attributes = try fm.attributesOfItemAtPath(dbPool.path + "-shm")
+                XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
+            }
             
-            dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
-            _ = dbPool
-            attributes = try fm.attributesOfItemAtPath(dbPoolPath)
-            XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
-            attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-wal")
-            XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
-            attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-shm")
-            XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
+            do {
+                dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
+                let dbPool = try makeDatabasePool()
+                var attributes = try fm.attributesOfItemAtPath(dbPool.path)
+                XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
+                attributes = try fm.attributesOfItemAtPath(dbPool.path + "-wal")
+                XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
+                attributes = try fm.attributesOfItemAtPath(dbPool.path + "-shm")
+                XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
+            }
         }
     }
     
@@ -46,15 +51,16 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
             let fm = NSFileManager.defaultManager()
             
             dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
+            let dbPool = try makeDatabasePool()
             try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
             // TODO: this test is fragile: we have to wait until the database
             // store has been notified of file creation.
             NSThread.sleepForTimeInterval(0.1)
-            var attributes = try fm.attributesOfItemAtPath(dbPoolPath)
+            var attributes = try fm.attributesOfItemAtPath(dbPool.path)
             XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
-            attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-wal")
+            attributes = try fm.attributesOfItemAtPath(dbPool.path + "-wal")
             XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
-            attributes = try fm.attributesOfItemAtPath(dbPoolPath + "-shm")
+            attributes = try fm.attributesOfItemAtPath(dbPool.path + "-shm")
             XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
         }
     }

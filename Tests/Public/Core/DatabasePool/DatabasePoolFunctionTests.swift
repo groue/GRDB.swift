@@ -5,6 +5,8 @@ class DatabasePoolFunctionTests: GRDBTestCase {
     
     func testFunctionIsSharedBetweenWriterAndReaders() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let function1 = DatabaseFunction("function1", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
                 return databaseValues[0]
             }

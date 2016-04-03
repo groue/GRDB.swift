@@ -5,6 +5,8 @@ class DatabasePoolCollationTests: GRDBTestCase {
     
     func testCollationIsSharedBetweenWriterAndReaders() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let collation1 = DatabaseCollation("collation1") { (string1, string2) in
                 return (string1 == string2) ? .OrderedSame : ((string1 < string2) ? .OrderedAscending : .OrderedDescending)
             }

@@ -5,46 +5,36 @@ class GRDBTestCase: XCTestCase {
     // The default configuration for tests
     var dbConfiguration: Configuration!
     
-    // Builds a database queue
+    // Builds a database queue based on dbConfiguration
     func makeDatabaseQueue(filename: String = "db.sqlite") throws -> DatabaseQueue {
         try! NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbQueuePath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
-        let dbQueue = try DatabaseQueue(path: dbQueuePath, configuration: dbConfiguration)
+        let dbPath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
+        let dbQueue = try DatabaseQueue(path: dbPath, configuration: dbConfiguration)
         try setUpDatabase(dbQueue)
         return dbQueue
     }
     
+    // Builds a database pool based on dbConfiguration
+    func makeDatabasePool(filename: String = "db.sqlite") throws -> DatabasePool {
+        try! NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+        let dbPath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
+        let dbPool = try DatabasePool(path: dbPath, configuration: dbConfiguration)
+        try setUpDatabase(dbPool)
+        return dbPool
+    }
+    
     // Subclasses can override
+    // Default implementation is empty.
     func setUpDatabase(dbWriter: DatabaseWriter) throws {
     }
     
     // The default path for database pool directory
-    var dbDirectoryPath: String!
-
-    // The default path for database pool
-    var dbPoolPath: String {
-        return (dbDirectoryPath as NSString).stringByAppendingPathComponent("db.sqlite")
-    }
+    private var dbDirectoryPath: String!
     
-    // The default database pool
-    var dbPool: DatabasePool! {
-        get {
-            if let _dbPool = _dbPool {
-                return _dbPool
-            } else {
-                try! NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-                _dbPool = try! DatabasePool(path: dbPoolPath, configuration: dbConfiguration)
-                return _dbPool!
-            }
-        }
-        set {
-            _dbPool = newValue
-        }
-    }
-    var _dbPool: DatabasePool?
-    
-    
+    // Populated by default configuration
     var sqlQueries: [String]!
+    
+    // Populated by default configuration
     var lastSQLQuery: String!
     
     override func setUp() {
@@ -67,9 +57,6 @@ class GRDBTestCase: XCTestCase {
     
     override func tearDown() {
         super.tearDown()
-        
-        _dbPool = nil
-                
         do { try NSFileManager.defaultManager().removeItemAtPath(dbDirectoryPath) } catch { }
     }
     

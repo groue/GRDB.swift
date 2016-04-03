@@ -5,6 +5,8 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
     
     func testCache() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }

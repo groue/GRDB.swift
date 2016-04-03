@@ -91,6 +91,14 @@ public final class DatabasePool {
     #endif
     
     
+    // MARK: - Configuration
+    
+    /// The path to the database.
+    public var path: String {
+        return store.path
+    }
+    
+    
     // MARK: - WAL Management
     
     /// Runs a WAL checkpoint

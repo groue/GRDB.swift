@@ -24,14 +24,14 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             // write & read
             
-            try dbPool.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            for _ in 0..<2 {
-                try dbPool.execute("INSERT INTO items (id) VALUES (NULL)")
+            do {
+                // Create and release DatabasePool
+                let dbPool = try makeDatabasePool()
+                // Writer connection
+                try dbPool.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                // Reader connection
+                _ = Int.fetchOne(dbPool, "SELECT COUNT(*) FROM items")
             }
-            _ = Int.fetchOne(dbPool, "SELECT COUNT(*) FROM items")
-            
-            // Release
-            dbPool = nil
             
             // One reader, one writer
             XCTAssertEqual(totalOpenConnectionCount, 2)
@@ -60,6 +60,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
             }
             
+            let dbPool = try makeDatabasePool()
             try dbPool.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             for _ in 0..<2 {
                 try dbPool.execute("INSERT INTO items (id) VALUES (NULL)")
@@ -80,7 +81,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             // end                      end                     releaseMemory
             
             let block1 = { () in
-                self.dbPool.read { db in
+                dbPool.read { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s1)
@@ -92,7 +93,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             }
             let block2 = { () in
                 dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                self.dbPool.read { db in
+                dbPool.read { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s2)
@@ -102,7 +103,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             }
             let block3 = { () in
                 dispatch_semaphore_wait(s3, DISPATCH_TIME_FOREVER)
-                self.dbPool.releaseMemory()
+                dbPool.releaseMemory()
             }
             let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
             dispatch_apply(3, queue) { index in
@@ -136,8 +137,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
             }
             
-            try self.dbPool.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            
             // Block 1                  Block 2
             //                          read {
             //                              >
@@ -149,12 +148,14 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             //                          }
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
+                var dbPool: DatabasePool? = try! makeDatabasePool()
+                try! dbPool!.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    self.dbPool = nil
+                    dbPool = nil
                     dispatch_semaphore_signal(s2)
                 }
-                let dbPool = self.dbPool
                 let block2 = { [weak dbPool] () in
                     if let dbPool = dbPool {
                         dbPool.read { db in
@@ -201,10 +202,6 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
             }
             
-            try self.dbPool.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            try self.dbPool.execute("INSERT INTO items (id) VALUES (NULL)")
-            try self.dbPool.execute("INSERT INTO items (id) VALUES (NULL)")
-            
             // Block 1                  Block 2
             //                          write {
             //                              SELECT
@@ -219,12 +216,16 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             //                          }
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
+                var dbPool: DatabasePool? = try! makeDatabasePool()
+                try! dbPool!.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try! dbPool!.execute("INSERT INTO items (id) VALUES (NULL)")
+                try! dbPool!.execute("INSERT INTO items (id) VALUES (NULL)")
+                
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    self.dbPool = nil
+                    dbPool = nil
                     dispatch_semaphore_signal(s2)
                 }
-                let dbPool = self.dbPool
                 let block2 = { [weak dbPool] () in
                     weak var connection: Database? = nil
                     var generator: DatabaseGenerator<Int>? = nil
@@ -277,12 +278,12 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             //                          dbPool is nil
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
+                var dbPool: DatabasePool? = try! makeDatabasePool()
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    self.dbPool = nil
+                    dbPool = nil
                     dispatch_semaphore_signal(s2)
                 }
-                let dbPool = self.dbPool
                 let block2 = { [weak dbPool] () in
                     var statement: UpdateStatement? = nil
                     do {

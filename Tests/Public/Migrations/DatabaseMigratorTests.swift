@@ -3,7 +3,7 @@ import GRDB
 
 class DatabaseMigratorTests : GRDBTestCase {
     
-    func testMigrator() {
+    func testMigratorDatabaseQueue() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             
@@ -40,6 +40,41 @@ class DatabaseMigratorTests : GRDBTestCase {
             dbQueue.inDatabase { db in
                 XCTAssertTrue(db.tableExists("persons"))
                 XCTAssertFalse(db.tableExists("pets"))
+            }
+        }
+    }
+    
+    func testMigratorDatabasePool() {
+        assertNoError {
+            let dbPool = try makeDatabasePool()
+            
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("createPersons") { db in
+                try db.execute(
+                    "CREATE TABLE persons (" +
+                        "id INTEGER PRIMARY KEY, " +
+                        "name TEXT" +
+                    ")")
+            }
+            migrator.registerMigration("createPets") { db in
+                try db.execute(
+                    "CREATE TABLE pets (" +
+                        "id INTEGER PRIMARY KEY, " +
+                        "masterID INTEGER NOT NULL " +
+                        "         REFERENCES persons(id) " +
+                        "         ON DELETE CASCADE ON UPDATE CASCADE, " +
+                        "name TEXT" +
+                    ")")
+            }
+            
+            try migrator.migrate(dbPool)
+            dbPool.read { db in
+                XCTAssertTrue(db.tableExists("persons"))
+                XCTAssertTrue(db.tableExists("pets"))
+            }
+            
+            migrator.registerMigration("destroyPersons") { db in
+                try db.execute("DROP TABLE pets")
             }
             
             try migrator.migrate(dbPool)

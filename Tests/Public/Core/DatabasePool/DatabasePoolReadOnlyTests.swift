@@ -13,11 +13,11 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
     
     func testConcurrentRead() {
         assertNoError {
+            let databaseFileName = "db.sqlite"
+            
             // Create a non-WAL database:
-            let dbQueuePath: String
             do {
-                let dbQueue = try makeDatabaseQueue()
-                dbQueuePath = dbQueue.path
+                let dbQueue = try makeDatabaseQueue(databaseFileName)
                 try dbQueue.inDatabase { db in
                     try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                     for _ in 0..<3 {
@@ -27,9 +27,8 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
             }
             
             // Open a read-only pool on that database:
-            var configuration = Configuration()
-            configuration.readonly = true
-            dbPool = try! DatabasePool(path: dbQueuePath, configuration: configuration)
+            dbConfiguration.readonly = true
+            let dbPool = try makeDatabasePool(databaseFileName)
             
             // Make sure the database is not in WAL mode
             let mode = String.fetchOne(dbPool, "PRAGMA journal_mode")!
@@ -48,7 +47,7 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
             // end
             
             let block1 = { () in
-                self.dbPool.read { db in
+                dbPool.read { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s1)
@@ -59,7 +58,7 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
                 }
             }
             let block2 = { () in
-                self.dbPool.read { db in
+                dbPool.read { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)

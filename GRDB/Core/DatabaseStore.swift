@@ -4,10 +4,13 @@ import Foundation
 /// all database files (db.sqlite, db.sqlite-wal, db.sqlite-shm,
 /// db.sqlite-journal, etc.)
 class DatabaseStore {
+    let path: String
     private let source: dispatch_source_t?
     private let queue: dispatch_queue_t?
     
     init(path: String, attributes: [String: AnyObject]?) throws {
+        self.path = path
+        
         guard let attributes = attributes else {
             self.queue = nil
             self.source = nil
@@ -51,40 +54,6 @@ class DatabaseStore {
         dispatch_source_set_cancel_handler(source) {
             close(directoryDescriptor)
         }
-        dispatch_resume(source)
-    }
-    
-    private init() {
-        self.queue = nil
-        self.source = nil
-    }
-    
-    private init(directoryPath: String, databaseFileName: String, directoryDescriptor: CInt, attributes: [String: AnyObject]) {
-        let queue = dispatch_queue_create("GRDB.DatabaseStore", nil)
-        let source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, UInt(directoryDescriptor), DISPATCH_VNODE_WRITE, queue)
-        
-        // Configure dispatch source
-        dispatch_source_set_event_handler(source) {
-            // Directory has been modified: apply file attributes on unprocessed files
-            DatabaseStore.setFileAttributes(
-                directoryPath: directoryPath,
-                databaseFileName: databaseFileName,
-                attributes: attributes)
-        }
-        dispatch_source_set_cancel_handler(source) {
-            close(directoryDescriptor)
-        }
-        
-        self.queue = queue
-        self.source = source
-        
-        // Apply file attributes on existing files
-        DatabaseStore.setFileAttributes(
-            directoryPath: directoryPath,
-            databaseFileName: databaseFileName,
-            attributes: attributes)
-        
-        // Wait for directory modifications
         dispatch_resume(source)
     }
     

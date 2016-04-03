@@ -73,6 +73,7 @@ class DatabaseReaderTests : GRDBTestCase {
     func testDatabaseValueConvertibleFetch() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue("DatabaseQueue.swift")
+            let dbPool = try makeDatabasePool("DatabasePool.swift")
             
             XCTAssertEqual(WrappedInt.fetchOne(dbQueue, "SELECT 123")!.int, 123)
             XCTAssertEqual(WrappedInt.fetchAll(dbQueue, "SELECT 123 UNION SELECT 321").map { $0.int }, [123, 321])
@@ -90,6 +91,7 @@ class DatabaseReaderTests : GRDBTestCase {
     func testStatementColumnConvertibleFetch() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue("DatabaseQueue.swift")
+            let dbPool = try makeDatabasePool("DatabasePool.swift")
             
             XCTAssertEqual(FastWrappedInt.fetchOne(dbQueue, "SELECT 123")!.int, 123)
             XCTAssertEqual(FastWrappedInt.fetchAll(dbQueue, "SELECT 123 UNION SELECT 321").map { $0.int }, [123, 321])
@@ -107,6 +109,7 @@ class DatabaseReaderTests : GRDBTestCase {
     func testRowConvertibleFetch() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue("DatabaseQueue.swift")
+            let dbPool = try makeDatabasePool("DatabasePool.swift")
             
             XCTAssertEqual(Item.fetchOne(dbQueue, "SELECT 123 AS id")!.id, 123)
             XCTAssertEqual(Item.fetchAll(dbQueue, "SELECT 123 AS id UNION SELECT 321").map { $0.id }, [123, 321])
@@ -124,6 +127,7 @@ class DatabaseReaderTests : GRDBTestCase {
     func testTableMappingFetch() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue("DatabaseQueue.swift")
+            let dbPool = try makeDatabasePool("DatabasePool.swift")
             
             let populateDatabase = { (db: Database) -> () in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
@@ -151,6 +155,7 @@ class DatabaseReaderTests : GRDBTestCase {
     func testFetchRequestFetch() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue("DatabaseQueue.swift")
+            let dbPool = try makeDatabasePool("DatabasePool.swift")
             
             let populateDatabase = { (db: Database) -> () in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")

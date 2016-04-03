@@ -96,9 +96,7 @@ private struct PersistableCustomizedCountry : Persistable {
 
 class DatabasePoolPersistableTests: GRDBTestCase {
     
-    override func setUp() {
-        super.setUp()
-        
+    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("setUp") { db in
             try db.execute(
@@ -113,10 +111,7 @@ class DatabasePoolPersistableTests: GRDBTestCase {
                     "name TEXT NOT NULL " +
                 ")")
         }
-        
-        assertNoError {
-            try migrator.migrate(dbPool)
-        }
+        try migrator.migrate(dbWriter)
     }
     
     
@@ -124,6 +119,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testInsertPersistablePerson() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let person = PersistablePerson(name: "Arthur", age: 42)
             try person.insert(dbPool)
             
@@ -138,6 +135,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testInsertPersistablePersonClass() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
             try person.insert(dbPool)
             
@@ -150,6 +149,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testUpdatePersistablePersonClass() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
             try person1.insert(dbPool)
             let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
@@ -169,6 +170,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testDeletePersistablePersonClass() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let person1 = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
             try person1.insert(dbPool)
             let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
@@ -185,6 +188,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testExistsPersistablePersonClass() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let person = PersistablePersonClass(id: nil, name: "Arthur", age: 42)
             try person.insert(dbPool)
             XCTAssertTrue(person.exists(dbPool))
@@ -200,6 +205,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testInsertPersistableCountry() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let country = PersistableCountry(isoCode: "FR", name: "France")
             try country.insert(dbPool)
             
@@ -212,6 +219,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testUpdatePersistableCountry() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             var country1 = PersistableCountry(isoCode: "FR", name: "France")
             try country1.insert(dbPool)
             let country2 = PersistableCountry(isoCode: "US", name: "United States")
@@ -231,6 +240,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testDeletePersistableCountry() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let country1 = PersistableCountry(isoCode: "FR", name: "France")
             try country1.insert(dbPool)
             let country2 = PersistableCountry(isoCode: "US", name: "United States")
@@ -247,6 +258,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testExistsPersistableCountry() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             let country = PersistableCountry(isoCode: "FR", name: "France")
             try country.insert(dbPool)
             XCTAssertTrue(country.exists(dbPool))
@@ -262,6 +275,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testInsertPersistableCustomizedCountry() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             var insertCount: Int = 0
             var updateCount: Int = 0
             var saveCount: Int = 0
@@ -292,6 +307,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testUpdatePersistableCustomizedCountry() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             var insertCount: Int = 0
             var updateCount: Int = 0
             var saveCount: Int = 0
@@ -336,6 +353,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testDeletePersistableCustomizedCountry() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             var insertCount: Int = 0
             var updateCount: Int = 0
             var saveCount: Int = 0
@@ -377,6 +396,8 @@ class DatabasePoolPersistableTests: GRDBTestCase {
     
     func testExistsPersistableCustomizedCountry() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
+            
             var insertCount: Int = 0
             var updateCount: Int = 0
             var saveCount: Int = 0

@@ -5,6 +5,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testUnwrappedReadWrite() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             try dbPool.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             try dbPool.execute("INSERT INTO items (id) VALUES (NULL)")
             let id = Int.fetchOne(dbPool, "SELECT id FROM items")!
@@ -14,6 +15,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testWrappedReadWrite() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 try db.execute("INSERT INTO items (id) VALUES (NULL)")
@@ -27,6 +29,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testConcurrentRead() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 for _ in 0..<3 {
@@ -47,7 +50,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // end
             
             let block1 = { () in
-                self.dbPool.read { db in
+                dbPool.read { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s1)
@@ -58,7 +61,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 }
             }
             let block2 = { () in
-                self.dbPool.read { db in
+                dbPool.read { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
@@ -77,6 +80,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testReadMethodIsolationOfStatement() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 for _ in 0..<2 {
@@ -96,7 +100,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // end
             
             let block1 = { () in
-                self.dbPool.read { db in
+                dbPool.read { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s1)
@@ -109,7 +113,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                     defer { dispatch_semaphore_signal(s2) }
-                    try self.dbPool.write { db in
+                    try dbPool.write { db in
                         try db.execute("DELETE FROM items")
                     }
                 } catch {
@@ -125,6 +129,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testReadMethodIsolationOfStatementWithCheckpoint() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 for _ in 0..<2 {
@@ -145,7 +150,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // end
             
             let block1 = { () in
-                self.dbPool.read { db in
+                dbPool.read { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s1)
@@ -158,10 +163,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                     defer { dispatch_semaphore_signal(s2) }
-                    try self.dbPool.write { db in
+                    try dbPool.write { db in
                         try db.execute("DELETE FROM items")
                     }
-                    try self.dbPool.checkpoint()
+                    try dbPool.checkpoint()
                 } catch {
                     XCTFail("error: \(error)")
                 }
@@ -175,6 +180,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testReadMethodIsolationOfBlock() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
@@ -190,7 +196,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT COUNT(*) FROM items
             
             let block1 = { () in
-                self.dbPool.read { db in
+                dbPool.read { db in
                     XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
@@ -201,10 +207,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                     defer { dispatch_semaphore_signal(s2) }
-                    try self.dbPool.write { db in
+                    try dbPool.write { db in
                         try db.execute("INSERT INTO items (id) VALUES (NULL)")
                     }
-                    try self.dbPool.checkpoint()
+                    try dbPool.checkpoint()
                 } catch {
                     XCTFail("error: \(error)")
                 }
@@ -218,6 +224,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testNonIsolatedReadMethodIsolationOfStatement() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 for _ in 0..<2 {
@@ -238,7 +245,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT COUNT(*) FROM items -> 0
             
             let block1 = { () in
-                self.dbPool.nonIsolatedRead { db in
+                dbPool.nonIsolatedRead { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s1)
@@ -252,7 +259,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                     defer { dispatch_semaphore_signal(s2) }
-                    try self.dbPool.write { db in
+                    try dbPool.write { db in
                         try db.execute("DELETE FROM items")
                     }
                 } catch {
@@ -268,6 +275,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testNonIsolatedReadMethodIsolationOfStatementWithCheckpoint() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 for _ in 0..<2 {
@@ -288,7 +296,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // end
             
             let block1 = { () in
-                self.dbPool.nonIsolatedRead { db in
+                dbPool.nonIsolatedRead { db in
                     let generator = Row.fetch(db, "SELECT * FROM items").generate()
                     XCTAssertTrue(generator.next() != nil)
                     dispatch_semaphore_signal(s1)
@@ -301,10 +309,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                     defer { dispatch_semaphore_signal(s2) }
-                    try self.dbPool.write { db in
+                    try dbPool.write { db in
                         try db.execute("DELETE FROM items")
                     }
-                    try self.dbPool.checkpoint()
+                    try dbPool.checkpoint()
                 } catch {
                     XCTFail("error: \(error)")
                 }
@@ -318,6 +326,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testNonIsolatedReadMethodIsolationOfBlock() {
         assertNoError {
+            let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
@@ -333,7 +342,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT COUNT(*) FROM items
             
             let block1 = { () in
-                self.dbPool.nonIsolatedRead { db in
+                dbPool.nonIsolatedRead { db in
                     XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
@@ -344,10 +353,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                     defer { dispatch_semaphore_signal(s2) }
-                    try self.dbPool.write { db in
+                    try dbPool.write { db in
                         try db.execute("INSERT INTO items (id) VALUES (NULL)")
                     }
-                    try self.dbPool.checkpoint()
+                    try dbPool.checkpoint()
                 } catch {
                     XCTFail("error: \(error)")
                 }
