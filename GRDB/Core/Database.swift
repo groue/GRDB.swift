@@ -163,7 +163,7 @@ public final class Database {
         addFunction(.lowercaseString)
         addFunction(.uppercaseString)
         
-        if #available(iOSApplicationExtension 9.0, OSXApplicationExtension 10.11, *) {
+        if #available(iOS 9.0, OSX 10.11, *) {
             addFunction(.localizedCapitalizedString)
             addFunction(.localizedLowercaseString)
             addFunction(.localizedUppercaseString)
@@ -638,7 +638,7 @@ extension DatabaseFunction {
     }
 }
 
-@available(iOSApplicationExtension 9.0, OSXApplicationExtension 10.11, *)
+@available(iOS 9.0, OSX 10.11, *)
 extension DatabaseFunction {
     /// An SQL function that returns the Swift built-in
     /// localizedCapitalizedString String property.

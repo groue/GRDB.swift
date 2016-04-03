@@ -135,7 +135,7 @@ extension _SQLDerivedExpressionType {
     }
 }
 
-@available(iOSApplicationExtension 9.0, OSXApplicationExtension 10.11, *)
+@available(iOS 9.0, OSX 10.11, *)
 extension _SQLDerivedExpressionType {
     /// Returns an SQL expression that applies the Swift's built-in
     /// localizedCapitalizedString String property. It is NULL for non-String arguments.
