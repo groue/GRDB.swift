@@ -67,8 +67,20 @@ public final class Database {
         }
         
         #if SQLITE_HAS_CODEC
-            if let passphrase = configuration.passphrase {
-                try Database.setPassphrase(passphrase, forConnection: sqliteConnection)
+            do {
+                if let passphrase = configuration.passphrase {
+                    try Database.setPassphrase(passphrase, forConnection: sqliteConnection)
+                }
+                
+                // Fail early if key is wrong or missing
+                let readCode = sqlite3_exec(sqliteConnection, "SELECT * FROM sqlite_master LIMIT 1", nil, nil, nil)
+                guard readCode == SQLITE_OK else {
+                    throw DatabaseError(code: readCode, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
+                }
+            } catch {
+                // deinit is not called: close connection
+                sqlite3_close(sqliteConnection)
+                throw error
             }
         #endif
         

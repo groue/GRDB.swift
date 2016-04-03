@@ -325,6 +325,7 @@
 		567156641CB16729007DC145 /* GRDBTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */; };
 		567156651CB16729007DC145 /* DatabaseQueueFileAttributesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363DB1C95891E000BE133 /* DatabaseQueueFileAttributesTests.swift */; };
 		567156671CB16729007DC145 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC54D1CB003810014AA8E /* GRDB.framework */; };
+		567156711CB18050007DC145 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156701CB18050007DC145 /* EncryptionTests.swift */; };
 		5683C2691B4D445E00296494 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5683C2681B4D445E00296494 /* libsqlite3.dylib */; };
 		568BE5231CB0371D00270F93 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC54D1CB003810014AA8E /* GRDB.framework */; };
 		568E1CB21CB037BA008D97A6 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 568BE5191CB035A900270F93 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -652,6 +653,7 @@
 		565D5D731BBC70AE00DC9BD4 /* StatementArguments+FoundationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StatementArguments+FoundationTests.swift"; sourceTree = "<group>"; };
 		567156151CB142AA007DC145 /* ReadOnlyDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadOnlyDatabaseTests.swift; sourceTree = "<group>"; };
 		5671566C1CB16729007DC145 /* GRDBCipherOSXEncryptedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipherOSXEncryptedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		567156701CB18050007DC145 /* EncryptionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptionTests.swift; sourceTree = "<group>"; };
 		5683C2681B4D445E00296494 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk/usr/lib/libsqlite3.dylib; sourceTree = DEVELOPER_DIR; };
 		568BE5191CB035A900270F93 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = SQLCipher/src/sqlite3.h; sourceTree = "<group>"; };
 		568BE51F1CB0360500270F93 /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDB.xcconfig; path = SQLCipher/GRDB.xcconfig; sourceTree = "<group>"; };
@@ -1008,6 +1010,14 @@
 			path = Collation;
 			sourceTree = "<group>";
 		};
+		5671566F1CB18039007DC145 /* Encryption */ = {
+			isa = PBXGroup;
+			children = (
+				567156701CB18050007DC145 /* EncryptionTests.swift */,
+			);
+			path = Encryption;
+			sourceTree = "<group>";
+		};
 		567D10621C9A911C00ACC500 /* GRDBiOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -1057,6 +1067,7 @@
 			children = (
 				56A238111B9C74A90082EB20 /* Core */,
 				56B7F4281BE149F600E39BBF /* CoreGraphics */,
+				5671566F1CB18039007DC145 /* Encryption */,
 				56300B5C1C53C38F005A543B /* FetchRequest */,
 				56F0B98C1B6001C600A2F135 /* Foundation */,
 				56A238231B9C74A90082EB20 /* Migrations */,
@@ -1962,6 +1973,7 @@
 				567156281CB16729007DC145 /* SQLSupportTests.swift in Sources */,
 				567156291CB16729007DC145 /* CollationTests.swift in Sources */,
 				5671562A1CB16729007DC145 /* UpdateStatementTests.swift in Sources */,
+				567156711CB18050007DC145 /* EncryptionTests.swift in Sources */,
 				5671562B1CB16729007DC145 /* DatabaseMigratorTests.swift in Sources */,
 				5671562C1CB16729007DC145 /* DatabasePoolPersistableTests.swift in Sources */,
 				5671562D1CB16729007DC145 /* RecordAwakeFromFetchTests.swift in Sources */,
