@@ -1,5 +1,6 @@
-- [ ] Fix the proper fix to https://github.com/sqlcipher/sqlcipher/issues/162
-- [ ] Encrypt an existing database: https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868
+- [ ] GRDBCipher: rekey a database
+- [ ] GRDBCipher: Fix the proper fix to https://github.com/sqlcipher/sqlcipher/issues/162
+- [ ] GRDBCipher: Encrypt an existing database: https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868
 - [ ] Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [ ] Make FetchRequest adopt Equatable
 - [ ] FetchedRecordsController needs a property that disables changes computation and calls to delegate.controller(_:didChangeRecord:withEvent:).
