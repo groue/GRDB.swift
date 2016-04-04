@@ -210,4 +210,28 @@ class EncryptionTests: GRDBTestCase {
             }
         }
     }
+    
+    func testDatabaseQueueWithPragmaPassphraseToDatabaseQueueWithoutPassphrase() {
+        assertNoError {
+            do {
+                dbConfiguration.passphrase = nil
+                let dbQueue = try makeDatabaseQueue()
+                try dbQueue.execute("PRAGMA key = 'secret'")
+                try dbQueue.execute("CREATE TABLE data (value INTEGER)")
+                try dbQueue.execute("INSERT INTO data (value) VALUES (1)")
+            }
+            
+            do {
+                dbConfiguration.passphrase = nil
+                do {
+                    _ = try makeDatabaseQueue()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 26) // SQLITE_NOTADB
+                    XCTAssertEqual(error.message!, "file is encrypted or is not a database")
+                    XCTAssertTrue(error.sql == nil)
+                    XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
+                }
+            }
+        }
+    }
 }
