@@ -43,9 +43,10 @@ class GRDBTestCase: XCTestCase {
     
     override func setUp() {
         super.setUp()
-
+        
         let dbPoolDirectoryName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString)"
         dbDirectoryPath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbPoolDirectoryName)
+        do { try NSFileManager.defaultManager().removeItemAtPath(dbDirectoryPath) } catch { }
         
         dbConfiguration = Configuration()
         dbConfiguration.trace = { (sql) in
@@ -55,13 +56,12 @@ class GRDBTestCase: XCTestCase {
         }
         
         #if GRDBCIPHER_USE_ENCRYPTION
+            // We are testing encrypted databases.
             dbConfiguration.passphrase = "secret"
         #endif
         
         sqlQueries = []
         lastSQLQuery = nil
-        
-        do { try NSFileManager.defaultManager().removeItemAtPath(dbDirectoryPath) } catch { }
     }
     
     override func tearDown() {
