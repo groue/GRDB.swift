@@ -311,4 +311,30 @@ class EncryptionTests: GRDBTestCase {
             }
         }
     }
+    
+    func testExportPlainTextDatabaseToEncryptedDatabase() {
+        // See https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868?source_topic_id=939
+        assertNoError {
+            do {
+                dbConfiguration.passphrase = nil
+                let plainTextDBQueue = try makeDatabaseQueue("plaintext.sqlite")
+                try plainTextDBQueue.execute("CREATE TABLE data (value INTEGER)")
+                try plainTextDBQueue.execute("INSERT INTO data (value) VALUES (1)")
+                
+                dbConfiguration.passphrase = "secret"
+                let encryptedDBQueue = try makeDatabaseQueue("encrypted.sqlite")
+                
+                try plainTextDBQueue.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
+                try plainTextDBQueue.execute("SELECT sqlcipher_export('encrypted')")
+                try plainTextDBQueue.execute("DETACH DATABASE encrypted")
+            }
+            
+            do {
+                dbConfiguration.passphrase = "secret"
+                let dbQueue = try makeDatabaseQueue("encrypted.sqlite")
+                XCTAssertEqual(Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM data")!, 1)
+            }
+        }
+    }
+    
 }
