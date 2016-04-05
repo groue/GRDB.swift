@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.56.1
+
+Released April 5, 2016
+
+**Fixed**
+
+- Restored CocoaPods support for iOS 8+ and OS X 10.9+
+
+
 ## 0.56.0
 
 Released April 5, 2016
