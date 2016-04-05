@@ -204,6 +204,8 @@ public final class DatabaseQueue {
 
 #if SQLITE_HAS_CODEC
     extension DatabaseQueue {
+        
+        /// Changes the passphrase of an encrypted database
         public func changePassphrase(passphrase: String) throws {
             try serializedDatabase.performSync { db in
                 try db.changePassphrase(passphrase)

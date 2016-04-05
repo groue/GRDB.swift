@@ -213,6 +213,8 @@ public enum CheckpointMode: Int32 {
 
 #if SQLITE_HAS_CODEC
     extension DatabasePool {
+        
+        /// Changes the passphrase of an encrypted database
         public func changePassphrase(passphrase: String) throws {
             try readerPool.clear {
                 try self.writer.performSync { db in
