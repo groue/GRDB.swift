@@ -1,4 +1,4 @@
-#if SQLITE_MODULE
+#if !SQLITE_HAS_CODEC
     #if os(OSX)
         import SQLiteMacOSX
     #elseif os(iOS)
