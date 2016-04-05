@@ -1,20 +1,22 @@
 Release Notes
 =============
 
-## Next Version
+## 0.56.0
+
+Released April 5, 2016
 
 **New**
 
-- New framework GRDBCipher that embeds [SQLCipher](http://sqlcipher.net).
+- The new framework GRDBCipher embeds [SQLCipher](http://sqlcipher.net) and can encrypt databases ([documentation](https://github.com/groue/GRDB.swift#encryption))
 - `DatabaseQueue.path` and `DatabasePool.path` give the path to the database.
-
-**Breaking Changes**
-
-- The `save()` method now only accepts a database connection, and won't accept a database queue or database pool as an argument. This change makes sure that this method that may call several statements is called in an isolated context.
 
 **Fixed**
 
 - Restored iOS 7 compatibility
+
+**Breaking Changes**
+
+- The `save()` method now only accepts a database connection, and won't accept a database queue or database pool as an argument. This change makes sure that this method that may call several statements is called in an isolated context.
 
 
 ## 0.55.0
