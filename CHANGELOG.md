@@ -25,7 +25,7 @@ Released April 5, 2016
 
 **Breaking Changes**
 
-- The `save()` method now only accepts a database connection, and won't accept a database queue or database pool as an argument. This change makes sure that this method that may call several statements is called in an isolated context.
+- The `save()` method now only accepts a database connection, and won't accept a database queue or database pool as an argument. This change makes sure that this method that may execute several SQL statements is called in an isolated fashion.
 
 
 ## 0.55.0
