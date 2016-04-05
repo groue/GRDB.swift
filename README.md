@@ -162,7 +162,7 @@ use_frameworks!
 pod 'GRDB.swift', '~> 0.55.0'
 ```
 
-> :warning: **Warning**: Due to a pending [issue](https://github.com/CocoaPods/CocoaPods/issues/5108), CocoaPods requires your application to target iOS 9.0+ or OSX 10.11+. Use other installation techniques if you want to target iOS 8.0 or OSX 10.9.
+> :warning: **Warning**: Due to a pending [issue](https://github.com/CocoaPods/CocoaPods/issues/5108), CocoaPods requires your application to target iOS 9.0+ or OSX 10.11+. Use other installation techniques if you want to target iOS 7.0 or OSX 10.9.
 
 
 #### Carthage
