@@ -15,7 +15,7 @@ class EncryptionTests: GRDBTestCase {
             do {
                 dbConfiguration.passphrase = "secret"
                 let dbQueue = try makeDatabaseQueue()
-                XCTAssertEqual(Int.fetchOne(dbQueue, "SELECT value FROM data")!, 1)
+                XCTAssertEqual(Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -67,6 +67,32 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
+    func testDatabaseQueueWithPassphraseToDatabaseQueueWithNewPassphrase() {
+        assertNoError {
+            
+            do {
+                dbConfiguration.passphrase = "secret"
+                let dbQueue = try makeDatabaseQueue()
+                try dbQueue.execute("CREATE TABLE data (value INTEGER)")
+                try dbQueue.execute("INSERT INTO data (value) VALUES (1)")
+            }
+            
+            do {
+                dbConfiguration.passphrase = "secret"
+                let dbQueue = try makeDatabaseQueue()
+                try dbQueue.changePassphrase("newSecret")
+                try dbQueue.execute("INSERT INTO data (value) VALUES (2)")
+                XCTAssertEqual(Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM data")!, 2)
+            }
+            
+            do {
+                dbConfiguration.passphrase = "newSecret"
+                let dbQueue = try makeDatabaseQueue()
+                XCTAssertEqual(Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+    }
+    
     func testDatabaseQueueWithPassphraseToDatabasePoolWithPassphrase() {
         assertNoError {
             do {
@@ -79,7 +105,7 @@ class EncryptionTests: GRDBTestCase {
             do {
                 dbConfiguration.passphrase = "secret"
                 let dbPool = try makeDatabasePool()
-                XCTAssertEqual(Int.fetchOne(dbPool, "SELECT value FROM data")!, 1)
+                XCTAssertEqual(Int.fetchOne(dbPool, "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -130,6 +156,31 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
+    func testDatabaseQueueWithPassphraseToDatabasePoolWithNewPassphrase() {
+        assertNoError {
+            do {
+                dbConfiguration.passphrase = "secret"
+                let dbQueue = try makeDatabaseQueue()
+                try dbQueue.execute("CREATE TABLE data (value INTEGER)")
+                try dbQueue.execute("INSERT INTO data (value) VALUES (1)")
+            }
+            
+            do {
+                dbConfiguration.passphrase = "secret"
+                let dbPool = try makeDatabasePool()
+                try dbPool.changePassphrase("newSecret")
+                try dbPool.execute("INSERT INTO data (value) VALUES (2)")
+                XCTAssertEqual(Int.fetchOne(dbPool, "SELECT COUNT(*) FROM data")!, 2)
+            }
+            
+            do {
+                dbConfiguration.passphrase = "newSecret"
+                let dbPool = try makeDatabasePool()
+                XCTAssertEqual(Int.fetchOne(dbPool, "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+    }
+    
     func testDatabasePoolWithPassphraseToDatabasePoolWithPassphrase() {
         assertNoError {
             do {
@@ -142,7 +193,7 @@ class EncryptionTests: GRDBTestCase {
             do {
                 dbConfiguration.passphrase = "secret"
                 let dbPool = try makeDatabasePool()
-                XCTAssertEqual(Int.fetchOne(dbPool, "SELECT value FROM data")!, 1)
+                XCTAssertEqual(Int.fetchOne(dbPool, "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -193,6 +244,32 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
+    func testDatabasePoolWithPassphraseToDatabasePoolWithNewPassphrase() {
+        assertNoError {
+            
+            do {
+                dbConfiguration.passphrase = "secret"
+                let dbPool = try makeDatabasePool()
+                try dbPool.execute("CREATE TABLE data (value INTEGER)")
+                try dbPool.execute("INSERT INTO data (value) VALUES (1)")
+            }
+            
+            do {
+                dbConfiguration.passphrase = "secret"
+                let dbPool = try makeDatabasePool()
+                try dbPool.changePassphrase("newSecret")
+                try dbPool.execute("INSERT INTO data (value) VALUES (2)")
+                XCTAssertEqual(Int.fetchOne(dbPool, "SELECT COUNT(*) FROM data")!, 2)
+            }
+            
+            do {
+                dbConfiguration.passphrase = "newSecret"
+                let dbPool = try makeDatabasePool()
+                XCTAssertEqual(Int.fetchOne(dbPool, "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+    }
+    
     func testDatabaseQueueWithPragmaPassphraseToDatabaseQueueWithPassphrase() {
         assertNoError {
             do {
@@ -206,7 +283,7 @@ class EncryptionTests: GRDBTestCase {
             do {
                 dbConfiguration.passphrase = "secret"
                 let dbQueue = try makeDatabaseQueue()
-                XCTAssertEqual(Int.fetchOne(dbQueue, "SELECT value FROM data")!, 1)
+                XCTAssertEqual(Int.fetchOne(dbQueue, "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }

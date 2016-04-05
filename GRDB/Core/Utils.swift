@@ -221,11 +221,16 @@ final class Pool<T> {
     }
     
     /// Empty the pool. Currently used items won't be reused.
-    /// Eventual block is executed before any other thread can load another element.
-    func clear(block: (() -> ())? = nil) {
-        dispatch_sync(queue) {
+    func clear() {
+        clear {}
+    }
+    
+    /// Empty the pool. Currently used items won't be reused.
+    /// Eventual block is executed before any other element is dequeued.
+    func clear(block: () throws -> ()) rethrows {
+        try dispatchSync(queue) {
             self.items = []
-            block?()
+            try block()
         }
     }
     

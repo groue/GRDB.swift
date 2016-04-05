@@ -887,6 +887,14 @@ extension Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
     }
+
+    func changePassphrase(passphrase: String) throws {
+        let data = passphrase.dataUsingEncoding(NSUTF8StringEncoding)!
+        let code = sqlite3_rekey(sqliteConnection, data.bytes, Int32(data.length))
+        guard code == SQLITE_OK else {
+            throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
+        }
+    }
 }
 #endif
 

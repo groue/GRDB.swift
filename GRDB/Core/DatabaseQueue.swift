@@ -200,6 +200,20 @@ public final class DatabaseQueue {
 
 
 // =========================================================================
+// MARK: - Encryption
+
+#if SQLITE_HAS_CODEC
+    extension DatabaseQueue {
+        public func changePassphrase(passphrase: String) throws {
+            try serializedDatabase.performSync { db in
+                try db.changePassphrase(passphrase)
+            }
+        }
+    }
+#endif
+
+
+// =========================================================================
 // MARK: - DatabaseReader
 
 extension DatabaseQueue : DatabaseReader {

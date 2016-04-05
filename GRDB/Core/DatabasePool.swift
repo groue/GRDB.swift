@@ -56,7 +56,7 @@ public final class DatabasePool {
         }
         
         // Readers
-        var readerConfig = configuration
+        readerConfig = configuration
         readerConfig.readonly = true
         readerConfig.defaultTransactionKind = .Deferred // Make it the default. Other transaction kinds are forbidden by SQLite in read-only connections.
         
@@ -64,7 +64,7 @@ public final class DatabasePool {
         readerPool.makeElement = { [unowned self] in
             let serializedDatabase = try! SerializedDatabase(
                 path: path,
-                configuration: readerConfig,
+                configuration: self.readerConfig,
                 schemaCache: databaseSchemaCache)
             
             serializedDatabase.performSync { db in
@@ -192,6 +192,7 @@ public final class DatabasePool {
     
     let store: DatabaseStore    // Not private for tests that require syncing with the store
     private let writer: SerializedDatabase
+    private var readerConfig: Configuration
     private let readerPool: Pool<SerializedDatabase>
     
     private var functions = Set<DatabaseFunction>()
@@ -205,6 +206,23 @@ public enum CheckpointMode: Int32 {
     case Restart = 2    // SQLITE_CHECKPOINT_RESTART
     case Truncate = 3   // SQLITE_CHECKPOINT_TRUNCATE
 }
+
+
+// =========================================================================
+// MARK: - Encryption
+
+#if SQLITE_HAS_CODEC
+    extension DatabasePool {
+        public func changePassphrase(passphrase: String) throws {
+            try readerPool.clear {
+                try self.writer.performSync { db in
+                    try db.changePassphrase(passphrase)
+                }
+                self.readerConfig.passphrase = passphrase
+            }
+        }
+    }
+#endif
 
 
 // =========================================================================
