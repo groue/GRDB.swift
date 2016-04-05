@@ -151,7 +151,18 @@ You can use GRDB in a project targetting iOS7. See [GRDBDemoiOS7](DemoApps/GRDBD
 
 #### CocoaPods
 
-[CocoaPods](http://cocoapods.org/) will be supported when [#5108](https://github.com/CocoaPods/CocoaPods/issues/5108) is solved.
+[CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
+
+To use GRDB with CocoaPods, specify in your Podfile:
+
+```ruby
+source 'https://github.com/CocoaPods/Specs.git'
+use_frameworks!
+
+pod 'GRDB.swift', '~> 0.56.0'
+```
+
+> :warning: **Warning**: Due to a pending [issue](https://github.com/CocoaPods/CocoaPods/issues/5108), CocoaPods requires your application to target iOS 9.0+ or OSX 10.11+. Use other installation techniques if you want to target iOS 7.0 or OSX 10.9.
 
 
 #### Carthage
