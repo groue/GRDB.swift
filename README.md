@@ -128,6 +128,7 @@ Documentation
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Let GRDB manage your UITableView for you.
+- [Encryption](#encryption)
 
 **Good to know**
 
@@ -161,7 +162,7 @@ use_frameworks!
 pod 'GRDB.swift', '~> 0.55.0'
 ```
 
-> :warning: **Warning**: Due to a pending [issue](https://github.com/CocoaPods/trunk.cocoapods.org/issues/175), CocoaPods requires your application to target iOS 9.0+ or OSX 10.11+. Use other installation techniques if you want to target iOS 8.0 or OSX 10.9.
+> :warning: **Warning**: Due to a pending [issue](https://github.com/CocoaPods/CocoaPods/issues/5108), CocoaPods requires your application to target iOS 9.0+ or OSX 10.11+. Use other installation techniques if you want to target iOS 8.0 or OSX 10.9.
 
 
 #### Carthage
@@ -2538,6 +2539,29 @@ func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
 
+## Encryption
+
+**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net).**
+
+In the [installation](#installation) phase, use the GRDBCipher framework instead of GRDB. CocoaPods is not supported.
+
+Set the `passphrase` property of the database configuration before opening your [database connection](#database-connections):
+
+```swift
+import GRDBCipher
+
+var configuration = Configuration()
+configuration.passphrase = "secret"
+let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
+```
+
+You can change the passphrase of an encrypted database:
+
+```swift
+try dbQueue.changePassphrase("newSecret")
+```
+
+
 Good To Know
 ============
 
@@ -2546,6 +2570,7 @@ This chapter covers general topics that you should be aware of.
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
+- [Concurrency](#concurrency)
 
 
 ## Error Handling
