@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.56.2
+
+Released April 5, 2016
+
+**Fixed**
+
+- The `save()` method accepts again DatabaseQueue and DatabasePool arguments.
+
+
 ## 0.56.1
 
 Released April 5, 2016
@@ -23,7 +32,7 @@ Released April 5, 2016
 
 - Restored iOS 7 compatibility
 
-**Breaking Changes**
+**Breaking Changes** (reverted in [0.56.2](#0562))
 
 - The `save()` method now only accepts a database connection, and won't accept a database queue or database pool as an argument. This change makes sure that this method that may execute several SQL statements is called in an isolated fashion.
 

@@ -1555,14 +1555,13 @@ try pointOfInterest.delete(db) // DELETE
 pointOfInterest.exists(db)     // Bool
 ```
 
-- The argument is any object able to write in a database, with the only exception of `save` which requires a raw database connection:
+- The argument of persistence methods is any object able to write in a database:
 
     ```swift
     pointOfInterest.insert(dbQueue) // DatabaseQueue
     pointOfInterest.insert(dbPool)  // DatabasePool
     dbQueue.inDatabase { db in
         pointOfInterest.insert(db)  // Database
-        pointOfInterest.save(db)    // Database
     }
     ```
 
