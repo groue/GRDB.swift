@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- Support for [SQLCipher](http://sqlcipher.net)
+- New framework GRDBCipher that embeds [SQLCipher](http://sqlcipher.net).
 - `DatabaseQueue.path` and `DatabasePool.path` give the path to the database.
 
 **Breaking Changes**
