@@ -371,4 +371,45 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
     }
+    
+    func testReadDuringWrite() {
+        assertNoError {
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            }
+            
+            // Block 1                      Block 2
+            // BEGIN IMMEDIATE TRANSACTION
+            // >
+            let s1 = dispatch_semaphore_create(0)
+            //                              SELECT COUNT(*) FROM items
+            //                              <
+            let s2 = dispatch_semaphore_create(0)
+            // COMMIT
+            
+            let block1 = { () in
+                do {
+                    try dbPool.writeInTransaction { db in
+                        dispatch_semaphore_signal(s1)
+                        dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                        return .Commit
+                    }
+                } catch {
+                    XCTFail("error: \(error)")
+                }
+            }
+            let block2 = { () in
+                dbPool.read { db in
+                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    dispatch_semaphore_signal(s2)
+                }
+            }
+            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            dispatch_apply(2, queue) { index in
+                [block1, block2][index]()
+            }
+        }
+    }
 }
