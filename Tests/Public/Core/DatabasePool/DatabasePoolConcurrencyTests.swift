@@ -390,7 +390,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             
             let block1 = { () in
                 do {
-                    try dbPool.writeInTransaction { db in
+                    try dbPool.writeInTransaction(.Immediate) { db in
                         dispatch_semaphore_signal(s1)
                         dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                         return .Commit
