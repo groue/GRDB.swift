@@ -1,9 +1,7 @@
 - [ ] Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
-- [ ] Make FetchRequest adopt Equatable
 - [ ] FetchedRecordsController needs a property that disables changes computation and calls to delegate.controller(_:didChangeRecord:withEvent:).
 - [ ] DatabaseValue.failableValue() is not a nice name.
 - [ ] Support for resource values (see https://developer.apple.com/library/ios/qa/qa1719/_index.html)
-- [ ] DOC: Write an app like http://www.appcoda.com/swiftydb/ ?
 - [ ] DOC: Since commit e6010e334abdf98eb9f62c1d6abbb2a9e8cd7d19, one can not use the raw SQLite API without importing the SQLite module for the platform. We need to document that.
 - [ ] Query builder
     - [ ] SELECT readers.*, books.* FROM ... JOIN ...
@@ -18,6 +16,7 @@
 
 Not sure:
 
+- [ ] Make FetchRequest adopt Equatable
 - [ ] Turn DatabaseWriter.readFromWrite to Database.readFromCurrentState { ... } ?
 - [ ] Refactor errors in a single type?
 - [ ] Since Records' primary key are infered, no operation is possible on the primary key unless we have a Database instance. It's impossible to define the record.primaryKey property, or to provide a copy() function that does not clone the primary key: they miss the database that is the only object aware of the primary key. Should we change our mind, and have Record explicitly expose their primary key again?
