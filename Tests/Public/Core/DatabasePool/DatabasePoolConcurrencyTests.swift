@@ -41,17 +41,19 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 }
             }
             
-            // Block 1                  Block 2
-            // SELECT * FROM items      SELECT * FROM items
-            // step                     step
+            // Block 1                      Block 2
+            // BEGIN DEFERRED TRANSACTION   BEGIN DEFERRED TRANSACTION
+            // SELECT * FROM items          SELECT * FROM items
+            // step                         step
             // >
             let s1 = dispatch_semaphore_create(0)
-            //                          step
-            //                          <
+            //                              step
+            //                              <
             let s2 = dispatch_semaphore_create(0)
-            // step                     step
-            // step                     end
-            // end
+            // step                         step
+            // step                         end
+            // end                          COMMIT
+            // COMMIT
             
             let block1 = { () in
                 dbPool.read { db in
@@ -92,16 +94,18 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 }
             }
             
-            // Block 1                  Block 2
+            // Block 1                      Block 2
+            // BEGIN DEFERRED TRANSACTION
             // SELECT * FROM items
             // step
             // >
             let s1 = dispatch_semaphore_create(0)
-            //                          DELETE * FROM items
-            //                          <
+            //                              DELETE * FROM items
+            //                              <
             let s2 = dispatch_semaphore_create(0)
             // step
             // end
+            // COMMIT
             
             let block1 = { () in
                 dbPool.read { db in
@@ -141,17 +145,19 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 }
             }
             
-            // Block 1                  Block 2
+            // Block 1                      Block 2
+            // BEGIN DEFERRED TRANSACTION
             // SELECT * FROM items
             // step
             // >
             let s1 = dispatch_semaphore_create(0)
-            //                          DELETE * FROM items
-            //                          Checkpoint
-            //                          <
+            //                              DELETE * FROM items
+            //                              Checkpoint
+            //                              <
             let s2 = dispatch_semaphore_create(0)
             // step
             // end
+            // COMMIT
             
             let block1 = { () in
                 dbPool.read { db in
@@ -182,7 +188,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
-    func testReadMethodIsolationOfBlock() {
+    func testReadBlockIsolationStartingWithRead() {
         assertNoError {
             let dbPool = try makeDatabasePool()
             try dbPool.write { db in
@@ -190,14 +196,16 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
             
             // Block 1                      Block 2
-            // SELECT COUNT(*) FROM items
+            // BEGIN DEFERRED TRANSACTION
+            // SELECT COUNT(*) FROM items -> 0
             // >
             let s1 = dispatch_semaphore_create(0)
             //                              INSERT INTO items (id) VALUES (NULL)
             //                              Checkpoint
             //                              <
             let s2 = dispatch_semaphore_create(0)
-            // SELECT COUNT(*) FROM items
+            // SELECT COUNT(*) FROM items -> 0
+            // COMMIT
             
             let block1 = { () in
                 dbPool.read { db in
@@ -226,6 +234,69 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
+    func testReadBlockIsolationStartingWithWrite() {
+        assertNoError {
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            }
+            
+            // Block 1                      Block 2
+            // BEGIN IMMEDIATE TRANSACTION
+            // INSERT INTO items (id) VALUES (NULL)
+            // >
+            let s1 = dispatch_semaphore_create(0)
+            //                              BEGIN DEFERRED TRANSACTION
+            //                              SELECT COUNT(*) FROM items -> 0
+            //                              <
+            let s2 = dispatch_semaphore_create(0)
+            // INSERT INTO items (id) VALUES (NULL)
+            // >
+            let s3 = dispatch_semaphore_create(0)
+            //                              SELECT COUNT(*) FROM items -> 0
+            //                              <
+            let s4 = dispatch_semaphore_create(0)
+            // COMMIT
+            // >
+            let s5 = dispatch_semaphore_create(0)
+            //                              SELECT COUNT(*) FROM items -> 0
+            //                              COMMIT
+            
+            let block1 = { () in
+                do {
+                    try dbPool.writeInTransaction(.Immediate) { db in
+                        try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                        dispatch_semaphore_signal(s1)
+                        dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                        try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                        dispatch_semaphore_signal(s3)
+                        dispatch_semaphore_wait(s4, DISPATCH_TIME_FOREVER)
+                        return .Commit
+                    }
+                    dispatch_semaphore_signal(s5)
+                } catch {
+                    XCTFail("error: \(error)")
+                }
+            }
+            let block2 = { () in
+                dbPool.read { db in
+                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    dispatch_semaphore_signal(s2)
+                    dispatch_semaphore_wait(s3, DISPATCH_TIME_FOREVER)
+                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                    dispatch_semaphore_signal(s4)
+                    dispatch_semaphore_wait(s5, DISPATCH_TIME_FOREVER)
+                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                }
+            }
+            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            dispatch_apply(2, queue) { index in
+                [block1, block2][index]()
+            }
+        }
+    }
+    
     func testNonIsolatedReadMethodIsolationOfStatement() {
         assertNoError {
             let dbPool = try makeDatabasePool()
@@ -236,13 +307,13 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 }
             }
             
-            // Block 1                  Block 2
+            // Block 1                      Block 2
             // SELECT * FROM items
             // step
             // >
             let s1 = dispatch_semaphore_create(0)
-            //                          DELETE * FROM items
-            //                          <
+            //                              DELETE * FROM items
+            //                              <
             let s2 = dispatch_semaphore_create(0)
             // step
             // end
@@ -287,14 +358,14 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 }
             }
             
-            // Block 1                  Block 2
+            // Block 1                      Block 2
             // SELECT * FROM items
             // step
             // >
             let s1 = dispatch_semaphore_create(0)
-            //                          DELETE * FROM items
-            //                          Checkpoint
-            //                          <
+            //                              DELETE * FROM items
+            //                              Checkpoint
+            //                              <
             let s2 = dispatch_semaphore_create(0)
             // step
             // end
@@ -336,14 +407,14 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
             
             // Block 1                      Block 2
-            // SELECT COUNT(*) FROM items
+            // SELECT COUNT(*) FROM items -> 0
             // >
             let s1 = dispatch_semaphore_create(0)
             //                              INSERT INTO items (id) VALUES (NULL)
             //                              Checkpoint
             //                              <
             let s2 = dispatch_semaphore_create(0)
-            // SELECT COUNT(*) FROM items
+            // SELECT COUNT(*) FROM items -> 1
             
             let block1 = { () in
                 dbPool.nonIsolatedRead { db in
@@ -363,47 +434,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                     try dbPool.checkpoint()
                 } catch {
                     XCTFail("error: \(error)")
-                }
-            }
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
-            dispatch_apply(2, queue) { index in
-                [block1, block2][index]()
-            }
-        }
-    }
-    
-    func testReadDuringWrite() {
-        assertNoError {
-            let dbPool = try makeDatabasePool()
-            try dbPool.write { db in
-                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            }
-            
-            // Block 1                      Block 2
-            // BEGIN IMMEDIATE TRANSACTION
-            // >
-            let s1 = dispatch_semaphore_create(0)
-            //                              SELECT COUNT(*) FROM items
-            //                              <
-            let s2 = dispatch_semaphore_create(0)
-            // COMMIT
-            
-            let block1 = { () in
-                do {
-                    try dbPool.writeInTransaction(.Immediate) { db in
-                        dispatch_semaphore_signal(s1)
-                        dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                        return .Commit
-                    }
-                } catch {
-                    XCTFail("error: \(error)")
-                }
-            }
-            let block2 = { () in
-                dbPool.read { db in
-                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
-                    dispatch_semaphore_signal(s2)
                 }
             }
             let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
