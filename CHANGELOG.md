@@ -1,6 +1,36 @@
 Release Notes
 =============
 
+## 0.57.0
+
+Released April 8, 2016
+
+**Breaking Change**
+
+- Direct access to the database through DatabaseQueue and DatabasePool is no longer supported, because it can hide subtle concurrency bugs in your application:
+    
+    ```swift
+    // No longer supported, because too dangerous:
+    try dbQueue.execute("INSERT ...")
+    let person = Person.fetchOne(dbQueue, key: 1)
+    
+    // Use an explicit DatabaseQueue or DatabasePool method instead:
+    try dbQueue.inDatabase { db in
+        try db.execute("INSERT ...")
+        let person = Person.fetchOne(db, key: 1)
+    }
+    
+    // When simply extract values:
+    let person = dbQueue.inDatabase { db in
+        Person.fetchOne(db, key: 1)
+    }
+    ```
+    
+    For more information, see [database connections](https://github.com/groue/GRDB.swift#database-connections).
+    
+    If you are interested in the reasons behind a change that may look like a regression, read https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e.
+
+
 ## 0.56.2
 
 Released April 5, 2016
