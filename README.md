@@ -1581,7 +1581,7 @@ When you subclass [Record](#record-class), you simply have to override the custo
 class Person : Record {
     var uuid: String?
     
-    override func insert(db: DatabaseWriter) throws {
+    override func insert(db: Database) throws {
         if uuid == nil {
             uuid = NSUUID().UUIDString
         }
@@ -1596,12 +1596,12 @@ If you use the raw [Persistable](#persistable-protocol) protocol, use one of the
 struct Link : Persistable {
     var url: NSURL
     
-    func insert(db: DatabaseWriter) throws {
+    func insert(db: Database) throws {
         try validate()
         try performInsert(db)
     }
     
-    func update(db: DatabaseWriter) throws {
+    func update(db: Database) throws {
         try validate()
         try performUpdate(db)
     }
