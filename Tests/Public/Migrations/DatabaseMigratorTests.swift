@@ -169,20 +169,22 @@ class DatabaseMigratorTests : GRDBTestCase {
                 XCTAssertTrue(error.sql == nil)
                 XCTAssertEqual(error.description, "SQLite error 19: FOREIGN KEY constraint failed")
                 
-                // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
-                var rows = Row.fetchAll(dbQueue, "SELECT * FROM persons")
-                XCTAssertEqual(rows.count, 1)
-                var row = rows.first!
-                XCTAssertEqual(row.value(named: "name") as String, "Arthur")
-                
-                // persons table has no "tmp" column (migration 2)
-                XCTAssertEqual(Array(row.columnNames), ["id", "name"])
-                
-                // Bobby inserted (migration 1), not deleted by migration 2.
-                rows = Row.fetchAll(dbQueue, "SELECT * FROM pets")
-                XCTAssertEqual(rows.count, 1)
-                row = rows.first!
-                XCTAssertEqual(row.value(named: "name") as String, "Bobby")
+                dbQueue.inDatabase { db in
+                    // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
+                    var rows = Row.fetchAll(db, "SELECT * FROM persons")
+                    XCTAssertEqual(rows.count, 1)
+                    var row = rows.first!
+                    XCTAssertEqual(row.value(named: "name") as String, "Arthur")
+                    
+                    // persons table has no "tmp" column (migration 2)
+                    XCTAssertEqual(Array(row.columnNames), ["id", "name"])
+                    
+                    // Bobby inserted (migration 1), not deleted by migration 2.
+                    rows = Row.fetchAll(db, "SELECT * FROM pets")
+                    XCTAssertEqual(rows.count, 1)
+                    row = rows.first!
+                    XCTAssertEqual(row.value(named: "name") as String, "Bobby")
+                }
             }
         }
     }

@@ -24,16 +24,6 @@ class ConcurrencyTests: GRDBTestCase {
         dbConfiguration.busyMode = .Callback(busyCallback)
     }
     
-    func testUnwrappedReadWrite() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            try dbQueue.execute("INSERT INTO items (id) VALUES (NULL)")
-            let id = Int.fetchOne(dbQueue, "SELECT id FROM items")!
-            XCTAssertEqual(id, 1)
-        }
-    }
-    
     func testWrappedReadWrite() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -55,7 +45,9 @@ class ConcurrencyTests: GRDBTestCase {
                 // Work around SQLCipher bug when two connections are open to the
                 // same empty database: make sure the database is not empty before
                 // running this test
-                try dbQueue1.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                try dbQueue1.inDatabase { db in
+                    try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                }
             #endif
             let dbQueue2 = try makeDatabaseQueue()
             
@@ -250,7 +242,9 @@ class ConcurrencyTests: GRDBTestCase {
                 // Work around SQLCipher bug when two connections are open to the
                 // same empty database: make sure the database is not empty before
                 // running this test
-                try dbQueue1.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                try dbQueue1.inDatabase { db in
+                    try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                }
             #endif
             let dbQueue2 = try makeDatabaseQueue()
             
@@ -314,7 +308,9 @@ class ConcurrencyTests: GRDBTestCase {
                 // Work around SQLCipher bug when two connections are open to the
                 // same empty database: make sure the database is not empty before
                 // running this test
-                try dbQueue1.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                try dbQueue1.inDatabase { db in
+                    try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                }
             #endif
             let dbQueue2 = try makeDatabaseQueue()
             
@@ -380,7 +376,9 @@ class ConcurrencyTests: GRDBTestCase {
                 // Work around SQLCipher bug when two connections are open to the
                 // same empty database: make sure the database is not empty before
                 // running this test
-                try dbQueue1.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                try dbQueue1.inDatabase { db in
+                    try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                }
             #endif
             let dbQueue2 = try makeDatabaseQueue()
             

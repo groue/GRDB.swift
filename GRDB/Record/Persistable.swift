@@ -101,10 +101,9 @@ public protocol MutablePersistable : TableMapping {
     /// implementation of insert(). In their implementation, it is recommended
     /// that they invoke the performInsert() method.
     ///
-    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
-    ///   Database).
+    /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    mutating func insert(db: DatabaseWriter) throws
+    mutating func insert(db: Database) throws
     
     /// Executes an UPDATE statement.
     ///
@@ -116,12 +115,11 @@ public protocol MutablePersistable : TableMapping {
     /// implementation of update(). In their implementation, it is recommended
     /// that they invoke the performUpdate() method.
     ///
-    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
-    ///   Database).
+    /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.NotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update(db: DatabaseWriter) throws
+    func update(db: Database) throws
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
@@ -139,11 +137,10 @@ public protocol MutablePersistable : TableMapping {
     /// implementation of save(). In their implementation, it is recommended
     /// that they invoke the performSave() method.
     ///
-    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
-    ///   Database).
+    /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    mutating func save(db: DatabaseWriter) throws
+    mutating func save(db: Database) throws
     
     /// Executes a DELETE statement.
     ///
@@ -152,11 +149,10 @@ public protocol MutablePersistable : TableMapping {
     /// implementation of delete(). In their implementation, it is recommended
     /// that they invoke the performDelete() method.
     ///
-    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
-    ///   Database).
+    /// - parameter db: A database connection.
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    func delete(db: DatabaseWriter) throws -> Bool
+    func delete(db: Database) throws -> Bool
     
     /// Returns true if and only if the primary key matches a row in
     /// the database.
@@ -166,9 +162,9 @@ public protocol MutablePersistable : TableMapping {
     /// implementation of exists(). In their implementation, it is recommended
     /// that they invoke the performExists() method.
     ///
-    /// - parameter db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    /// - parameter db: A database connection.
     /// - returns: Whether the primary key matches a row in the database.
-    func exists(db: DatabaseReader) -> Bool
+    func exists(db: Database) -> Bool
 }
 
 public extension MutablePersistable {
@@ -185,14 +181,14 @@ public extension MutablePersistable {
     /// Executes an INSERT statement.
     ///
     /// The default implementation for insert() invokes performInsert().
-    mutating func insert(db: DatabaseWriter) throws {
+    mutating func insert(db: Database) throws {
         try performInsert(db)
     }
     
     /// Executes an UPDATE statement.
     ///
     /// The default implementation for update() invokes performUpdate().
-    func update(db: DatabaseWriter) throws {
+    func update(db: Database) throws {
         try performUpdate(db)
     }
     
@@ -200,14 +196,14 @@ public extension MutablePersistable {
     /// the database.
     ///
     /// The default implementation for save() invokes performSave().
-    mutating func save(db: DatabaseWriter) throws {
+    mutating func save(db: Database) throws {
         try performSave(db)
     }
     
     /// Executes a DELETE statement.
     ///
     /// The default implementation for delete() invokes performDelete().
-    func delete(db: DatabaseWriter) throws -> Bool {
+    func delete(db: Database) throws -> Bool {
         return try performDelete(db)
     }
     
@@ -215,7 +211,7 @@ public extension MutablePersistable {
     /// the database.
     ///
     /// The default implementation for exists() invokes performExists().
-    func exists(db: DatabaseReader) -> Bool {
+    func exists(db: Database) -> Bool {
         return performExists(db)
     }
     
@@ -241,13 +237,11 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    mutating func performInsert(db: DatabaseWriter) throws {
-        try db.write { db in
-            let dataMapper = DataMapper(db, self)
-            let changes = try dataMapper.insertStatement().execute()
-            if let rowID = changes.insertedRowID {
-                self.didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
-            }
+    mutating func performInsert(db: Database) throws {
+        let dataMapper = DataMapper(db, self)
+        let changes = try dataMapper.insertStatement().execute()
+        if let rowID = changes.insertedRowID {
+            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
         }
     }
     
@@ -258,12 +252,10 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performUpdate() in their
     /// implementation of update(). They should not provide their own
     /// implementation of performUpdate().
-    func performUpdate(db: DatabaseWriter) throws {
-        try db.write { db in
-            let changes = try DataMapper(db, self).updateStatement().execute()
-            if changes.changedRowCount == 0 {
-                throw PersistenceError.NotFound(self)
-            }
+    func performUpdate(db: Database) throws {
+        let changes = try DataMapper(db, self).updateStatement().execute()
+        if changes.changedRowCount == 0 {
+            throw PersistenceError.NotFound(self)
         }
     }
     
@@ -276,25 +268,23 @@ public extension MutablePersistable {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    mutating func performSave(db: DatabaseWriter) throws {
+    mutating func performSave(db: Database) throws {
         // Make sure we call self.insert and self.update so that classes
         // that override insert or save have opportunity to perform their
         // custom job.
         
-        try db.write { db in
-            if self.canUpdateInDatabase(db) {
-                do {
-                    try self.update(db)
-                } catch PersistenceError.NotFound {
-                    // TODO: check that the not persisted objet is self
-                    //
-                    // Why? Adopting types could override update() and update
-                    // another object which may be the one throwing this error.
-                    try self.insert(db)
-                }
-            } else {
-                try self.insert(db)
+        if self.canUpdateInDatabase(db) {
+            do {
+                try update(db)
+            } catch PersistenceError.NotFound {
+                // TODO: check that the not persisted objet is self
+                //
+                // Why? Adopting types could override update() and update
+                // another object which may be the one throwing this error.
+                try insert(db)
             }
+        } else {
+            try insert(db)
         }
     }
     
@@ -305,10 +295,8 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performDelete() in
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
-    func performDelete(db: DatabaseWriter) throws -> Bool {
-        return try db.write { db in
-            try DataMapper(db, self).deleteStatement().execute().changedRowCount > 0
-        }
+    func performDelete(db: Database) throws -> Bool {
+        return try DataMapper(db, self).deleteStatement().execute().changedRowCount > 0
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -318,10 +306,8 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performExists() in
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
-    func performExists(db: DatabaseReader) -> Bool {
-        return db.nonIsolatedRead { db in
-            (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
-        }
+    func performExists(db: Database) -> Bool {
+        return (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
     }
     
 }
@@ -414,10 +400,9 @@ public protocol Persistable : MutablePersistable {
     /// implementation of insert(). In their implementation, it is recommended
     /// that they invoke the performInsert() method.
     ///
-    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
-    ///   Database).
+    /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    func insert(db: DatabaseWriter) throws
+    func insert(db: Database) throws
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
@@ -435,11 +420,10 @@ public protocol Persistable : MutablePersistable {
     /// implementation of save(). In their implementation, it is recommended
     /// that they invoke the performSave() method.
     ///
-    /// - parameter db: A DatabaseWriter (DatabaseQueue, DatabasePool, or
-    ///   Database).
+    /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    func save(db: DatabaseWriter) throws
+    func save(db: Database) throws
 }
 
 public extension Persistable {
@@ -455,7 +439,7 @@ public extension Persistable {
     /// Executes an INSERT statement.
     ///
     /// The default implementation for insert() invokes performInsert().
-    func insert(db: DatabaseWriter) throws {
+    func insert(db: Database) throws {
         try performInsert(db)
     }
     
@@ -463,7 +447,7 @@ public extension Persistable {
     /// the database.
     ///
     /// The default implementation for save() invokes performSave().
-    func save(db: DatabaseWriter) throws {
+    func save(db: Database) throws {
         try performSave(db)
     }
     
@@ -477,13 +461,11 @@ public extension Persistable {
     /// that adopt Persistable can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    func performInsert(db: DatabaseWriter) throws {
-        try db.write { db in
-            let dataMapper = DataMapper(db, self)
-            let changes = try dataMapper.insertStatement().execute()
-            if let rowID = changes.insertedRowID {
-                self.didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
-            }
+    func performInsert(db: Database) throws {
+        let dataMapper = DataMapper(db, self)
+        let changes = try dataMapper.insertStatement().execute()
+        if let rowID = changes.insertedRowID {
+            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
         }
     }
     
@@ -496,24 +478,22 @@ public extension Persistable {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    func performSave(db: DatabaseWriter) throws {
+    func performSave(db: Database) throws {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         
-        try db.write { db in
-            if self.canUpdateInDatabase(db) {
-                do {
-                    try self.update(db)
-                } catch PersistenceError.NotFound {
-                    // TODO: check that the not persisted objet is self
-                    //
-                    // Why? Adopting types could override update() and update another
-                    // object which may be the one throwing this error.
-                    try self.insert(db)
-                }
-            } else {
-                try self.insert(db)
+        if canUpdateInDatabase(db) {
+            do {
+                try update(db)
+            } catch PersistenceError.NotFound {
+                // TODO: check that the not persisted objet is self
+                //
+                // Why? Adopting types could override update() and update another
+                // object which may be the one throwing this error.
+                try insert(db)
             }
+        } else {
+            try insert(db)
         }
     }
     

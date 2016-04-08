@@ -36,10 +36,10 @@ class GRDBTestCase: XCTestCase {
     private var dbDirectoryPath: String!
     
     // Populated by default configuration
-    var sqlQueries: [String]!
+    var sqlQueries: [String]!   // TODO: protect against concurrent accesses
     
     // Populated by default configuration
-    var lastSQLQuery: String!
+    var lastSQLQuery: String!   // TODO: protect against concurrent accesses
     
     override func setUp() {
         super.setUp()

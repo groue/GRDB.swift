@@ -12,7 +12,9 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
             let dbPool = try makeDatabasePool()
             let fm = NSFileManager.defaultManager()
             
-            try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
+            try dbPool.write { db in
+                try db.execute("CREATE TABLE foo (bar INTEGER)")
+            }
             var attributes = try fm.attributesOfItemAtPath(dbPool.path)
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
             attributes = try fm.attributesOfItemAtPath(dbPool.path + "-wal")
@@ -28,7 +30,9 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
             
             do {
                 let dbPool = try makeDatabasePool()
-                try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
+                try dbPool.write { db in
+                    try db.execute("CREATE TABLE foo (bar INTEGER)")
+                }
                 var attributes = try fm.attributesOfItemAtPath(dbPool.path)
                 XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
                 attributes = try fm.attributesOfItemAtPath(dbPool.path + "-wal")
@@ -59,7 +63,9 @@ class DatabasePoolFileAttributesTests: GRDBTestCase {
             
             dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
             let dbPool = try makeDatabasePool()
-            try dbPool.execute("CREATE TABLE foo (bar INTEGER)")
+            try dbPool.write { db in
+                try db.execute("CREATE TABLE foo (bar INTEGER)")
+            }
             // TODO: this test is fragile: we have to wait until the database
             // store has been notified of file creation.
             NSThread.sleepForTimeInterval(0.1)

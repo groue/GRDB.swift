@@ -1,19 +1,11 @@
 /// The protocol for all types that can fetch values from a database.
 ///
-/// It is adopted by DatabaseQueue, DatabasePool, and Database.
-///
-/// You typically provide a DatabaseReader to fetching methods:
-///
-///     let persons = Person.fetchAll(dbQueue)
-///     let persons = Person.fetchAll(dbPool)
-///     dbQueue.inDatabase { db in
-///         let persons = Person.fetchAll(db)
-///     }
+/// It is adopted by DatabaseQueue and DatabasePool.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
 /// adopting types in a multithreaded application.
 ///
-/// Types that adopt the protocol can provide stronger guarantees in practice.
+/// Types that adopt the protocol can provide in practice stronger guarantees.
 /// For example, DatabaseQueue provides a stronger isolation level
 /// than DatabasePool.
 ///

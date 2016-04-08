@@ -444,10 +444,12 @@ extension DatabasePool : DatabaseWriter {
         let semaphore = dispatch_semaphore_create(0)
         self.readerPool.get { reader in
             reader.performAsync { db in
-                db.read { db in
+                // Assume COMMIT DEFERRED TRANSACTION does not throw error.
+                try! db.inTransaction(.Deferred) {
                     // Now we're isolated: release the writing queue
                     dispatch_semaphore_signal(semaphore)
                     block(db: db)
+                    return .Commit
                 }
             }
         }

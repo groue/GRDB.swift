@@ -1,18 +1,11 @@
 /// The protocol for all types that can update a database.
 ///
-/// It is adopted by DatabaseQueue, DatabasePool, and Database.
-///
-///     let person = Person(...)
-///     try person.insert(dbQueue)
-///     try person.insert(dbPool)
-///     try dbQueue.inDatabase { db in
-///         try person.insert(db)
-///     }
+/// It is adopted by DatabaseQueue and DatabasePool.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
 /// adopting types in a multithreaded application.
 ///
-/// Types that adopt the protocol can provide stronger guarantees in practice.
+/// Types that adopt the protocol can in practice provide stronger guarantees.
 /// For example, DatabaseQueue provides a stronger isolation level
 /// than DatabasePool.
 ///
@@ -64,38 +57,7 @@ public protocol DatabaseWriter : DatabaseReader {
     func readFromWrite(block: (db: Database) -> Void)
 }
 
-extension DatabaseWriter {
-    
-    // MARK: - Writing in Database
-    
-    /// Executes one or several SQL statements, separated by semi-colons.
-    ///
-    ///     try writer.execute(
-    ///         "INSERT INTO persons (name) VALUES (:name)",
-    ///         arguments: ["name": "Arthur"])
-    ///
-    ///     try writer.execute(
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);" +
-    ///         "INSERT INTO persons (name) VALUES (?);",
-    ///         arguments; ['Arthur', 'Barbara', 'Craig'])
-    ///
-    /// This method may throw a DatabaseError.
-    ///
-    /// See documentation of the write() method for information about the
-    /// isolation from concurrent database updates.
-    ///
-    /// - parameters:
-    ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
-    /// - returns: A DatabaseChanges.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
-        return try write { db in
-            try db.execute(sql, arguments: arguments)
-        }
-    }
-    
+extension DatabaseWriter {    
     
     // MARK: - Transaction Observers
     

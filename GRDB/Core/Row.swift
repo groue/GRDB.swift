@@ -536,13 +536,13 @@ extension Row {
     ///     let rows = Row.fetchAll(db, "SELECT ...")
     ///
     /// - parameters:
-    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An array of rows.
     @warn_unused_result
-    public static func fetchAll(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
-        return db.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
+        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -550,13 +550,13 @@ extension Row {
     ///     let row = Row.fetchOne(db, "SELECT ...")
     ///
     /// - parameters:
-    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An optional row.
     @warn_unused_result
-    public static func fetchOne(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
-        return db.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
+        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
 }
 

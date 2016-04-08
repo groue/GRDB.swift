@@ -149,13 +149,13 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     let names = String.fetchAll(db, "SELECT name FROM ...") // [String]
     ///
     /// - parameters:
-    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An array of values.
     @warn_unused_result
-    public static func fetchAll(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return db.nonIsolatedRead { db in fetchAll(try! db.selectStatement(sql), arguments: arguments) }
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
+        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -163,12 +163,12 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     let name = String.fetchOne(db, "SELECT name FROM ...") // String?
     ///
     /// - parameters:
-    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
     /// - returns: An optional value.
     @warn_unused_result
-    public static func fetchOne(db: DatabaseReader, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return db.nonIsolatedRead { db in fetchOne(try! db.selectStatement(sql), arguments: arguments) }
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
+        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
 }

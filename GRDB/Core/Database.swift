@@ -1465,75 +1465,75 @@ public struct DatabaseEvent {
 }
 
 
-// =========================================================================
-// MARK: - DatabaseReader
-
-extension Database : DatabaseReader {
-    
-    // MARK: - DatabaseReader Protocol Adoption
-    
-    /// Synchronously evalutes the *block* argument in a deferred transaction,
-    /// and returns its result.
-    ///
-    /// This method is part of the DatabaseReader protocol adoption.
-    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
-        // The isolation guarantees required by DatabaseReader.read require that
-        // we run the block in a transaction.
-        //
-        // Problem is, our inTransaction() method is declared as a `throws`
-        // function, not a `rethrows` function. That's on purpose: immediate and
-        // exclusive transactions may throw their own locking errors.
-        //
-        // We could update DatabaseReader and make the read() method `throws`.
-        //
-        // Instead we assume that read-only deferred transaction always
-        // succeeds: let's turn our throwing inTransaction() into a rethrowing
-        // function with this little trick:
-        func impl(@noescape block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
-            var result: T? = nil
-            do {
-                try inTransaction(.Deferred) {
-                    result = try block(db: self)
-                    return .Commit
-                }
-            } catch {
-                try onError(error)
-            }
-            return result!
-        }
-        preconditionValidQueue()
-        return try impl(block, onError: { throw $0 })
-    }
-    
-    /// Synchronously evalutes the *block* argument, and returns its result.
-    ///
-    /// This method is part of the DatabaseReader protocol adoption.
-    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
-        preconditionValidQueue()
-        return try block(db: self)
-    }
-}
-
-
-// =========================================================================
-// MARK: - DatabaseWriter
-
-extension Database : DatabaseWriter {
-    
-    // MARK: - DatabaseWriter Protocol Adoption
-    
-    /// Synchronously evalutes the *block* argument, and returns its result.
-    ///
-    /// This method is part of the DatabaseWriter protocol adoption.
-    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
-        preconditionValidQueue()
-        return try block(db: self)
-    }
-    
-    /// Synchronously evalutes the *block* argument in a deferred transaction.
-    ///
-    /// This method is part of the DatabaseWriter protocol adoption.
-    public func readFromWrite(block: (db: Database) -> Void) {
-        read(block)
-    }
-}
+//// =========================================================================
+//// MARK: - DatabaseReader
+//
+//extension Database : DatabaseReader {
+//    
+//    // MARK: - DatabaseReader Protocol Adoption
+//    
+//    /// Synchronously evalutes the *block* argument in a deferred transaction,
+//    /// and returns its result.
+//    ///
+//    /// This method is part of the DatabaseReader protocol adoption.
+//    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+//        // The isolation guarantees required by DatabaseReader.read require that
+//        // we run the block in a transaction.
+//        //
+//        // Problem is, our inTransaction() method is declared as a `throws`
+//        // function, not a `rethrows` function. That's on purpose: immediate and
+//        // exclusive transactions may throw their own locking errors.
+//        //
+//        // We could update DatabaseReader and make the read() method `throws`.
+//        //
+//        // Instead we assume that read-only deferred transaction always
+//        // succeeds: let's turn our throwing inTransaction() into a rethrowing
+//        // function with this little trick:
+//        func impl(@noescape block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+//            var result: T? = nil
+//            do {
+//                try inTransaction(.Deferred) {
+//                    result = try block(db: self)
+//                    return .Commit
+//                }
+//            } catch {
+//                try onError(error)
+//            }
+//            return result!
+//        }
+//        preconditionValidQueue()
+//        return try impl(block, onError: { throw $0 })
+//    }
+//    
+//    /// Synchronously evalutes the *block* argument, and returns its result.
+//    ///
+//    /// This method is part of the DatabaseReader protocol adoption.
+//    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
+//        preconditionValidQueue()
+//        return try block(db: self)
+//    }
+//}
+//
+//
+//// =========================================================================
+//// MARK: - DatabaseWriter
+//
+//extension Database : DatabaseWriter {
+//    
+//    // MARK: - DatabaseWriter Protocol Adoption
+//    
+//    /// Synchronously evalutes the *block* argument, and returns its result.
+//    ///
+//    /// This method is part of the DatabaseWriter protocol adoption.
+//    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
+//        preconditionValidQueue()
+//        return try block(db: self)
+//    }
+//    
+//    /// Synchronously evalutes the *block* argument in a deferred transaction.
+//    ///
+//    /// This method is part of the DatabaseWriter protocol adoption.
+//    public func readFromWrite(block: (db: Database) -> Void) {
+//        read(block)
+//    }
+//}

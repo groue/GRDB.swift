@@ -32,9 +32,11 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 // Create and release DatabasePool
                 let dbPool = try makeDatabasePool()
                 // Writer connection
-                try dbPool.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try dbPool.write { db in
+                    try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                }
                 // Reader connection
-                _ = Int.fetchOne(dbPool, "SELECT COUNT(*) FROM items")
+                dbPool.read { _ in }
             }
             
             // One reader, one writer
@@ -65,9 +67,11 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             }
             
             let dbPool = try makeDatabasePool()
-            try dbPool.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            for _ in 0..<2 {
-                try dbPool.execute("INSERT INTO items (id) VALUES (NULL)")
+            try dbPool.write { db in
+                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                for _ in 0..<2 {
+                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                }
             }
             
             // Block 1                  Block 2                 Block3
@@ -153,7 +157,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
                 var dbPool: DatabasePool? = try! makeDatabasePool()
-                try! dbPool!.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try! dbPool!.write { db in
+                    try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                }
                 
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
@@ -221,9 +227,11 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
                 var dbPool: DatabasePool? = try! makeDatabasePool()
-                try! dbPool!.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                try! dbPool!.execute("INSERT INTO items (id) VALUES (NULL)")
-                try! dbPool!.execute("INSERT INTO items (id) VALUES (NULL)")
+                try! dbPool!.write { db in
+                    try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                }
                 
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)

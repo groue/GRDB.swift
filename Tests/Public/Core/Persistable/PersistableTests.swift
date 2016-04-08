@@ -72,33 +72,33 @@ private struct PersistableCustomizedCountry : Persistable {
         return ["isoCode": isoCode, "name": name]
     }
     
-    func insert(db: DatabaseWriter) throws {
+    func insert(db: Database) throws {
         willInsert()
         try performInsert(db)
     }
     
-    func update(db: DatabaseWriter) throws {
+    func update(db: Database) throws {
         willUpdate()
         try performUpdate(db)
     }
     
-    func save(db: DatabaseWriter) throws {
+    func save(db: Database) throws {
         willSave()
         try performSave(db)
     }
     
-    func delete(db: DatabaseWriter) throws {
+    func delete(db: Database) throws {
         willDelete()
         try performDelete(db)
     }
     
-    func exists(db: DatabaseReader) -> Bool {
+    func exists(db: Database) -> Bool {
         willExists()
         return performExists(db)
     }
 }
 
-class DatabasePersistableTests: GRDBTestCase {
+class PersistableTests: GRDBTestCase {
     
     override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()

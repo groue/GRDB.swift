@@ -70,7 +70,9 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
                 var dbQueue: DatabaseQueue? = try! makeDatabaseQueue()
-                try! dbQueue!.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try! dbQueue!.write { db in
+                    try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                }
                 
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
@@ -138,9 +140,11 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
                 var dbQueue: DatabaseQueue? = try! makeDatabaseQueue()
-                try! dbQueue!.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                try! dbQueue!.execute("INSERT INTO items (id) VALUES (NULL)")
-                try! dbQueue!.execute("INSERT INTO items (id) VALUES (NULL)")
+                try! dbQueue!.write { db in
+                    try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                }
                 
                 let block1 = { () in
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)

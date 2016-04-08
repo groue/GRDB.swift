@@ -42,17 +42,15 @@ extension RowConvertible where Self: TableMapping {
     /// The order of records in the returned array is undefined.
     ///
     /// - parameters:
-    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
     @warn_unused_result
-    public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: DatabaseReader, keys: Sequence) -> [Self] {
-        return db.nonIsolatedRead { db in
-            guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
-                return []
-            }
-            return fetchAll(statement)
+    public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> [Self] {
+        guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
+            return []
         }
+        return fetchAll(statement)
     }
     
     /// Returns a single record given its primary key.
@@ -60,17 +58,15 @@ extension RowConvertible where Self: TableMapping {
     ///     let person = Person.fetchOne(db, key: 123) // Person?
     ///
     /// - parameters:
-    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    ///     - db: A database connection.
     ///     - key: A primary key value.
     /// - returns: An optional record.
     @warn_unused_result
-    public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(db: DatabaseReader, key: PrimaryKeyType?) -> Self? {
+    public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(db: Database, key: PrimaryKeyType?) -> Self? {
         guard let key = key else {
             return nil
         }
-        return db.nonIsolatedRead { db in
-            return fetchOne(fetchByPrimaryKeyStatement(db, values: [key])!)
-        }
+        return fetchOne(fetchByPrimaryKeyStatement(db, values: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE id IN (?,?,?)"
@@ -136,17 +132,15 @@ extension RowConvertible where Self: TableMapping {
     /// The order of records in the returned array is undefined.
     ///
     /// - parameters:
-    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
     /// - returns: An array of records.
     @warn_unused_result
-    public static func fetchAll(db: DatabaseReader, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
-        return db.nonIsolatedRead { db in
-            guard let statement = fetchByKeyStatement(db, keys: keys) else {
-                return []
-            }
-            return fetchAll(statement)
+    public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
+        guard let statement = fetchByKeyStatement(db, keys: keys) else {
+            return []
         }
+        return fetchAll(statement)
     }
     
     /// Returns a single record given a key dictionary.
@@ -154,12 +148,12 @@ extension RowConvertible where Self: TableMapping {
     ///     let person = Person.fetchOne(db, key: ["name": Arthur"]) // Person?
     ///
     /// - parameters:
-    ///     - db: A DatabaseReader (DatabaseQueue, DatabasePool, or Database).
+    ///     - db: A database connection.
     ///     - key: A dictionary of values.
     /// - returns: An optional record.
     @warn_unused_result
-    public static func fetchOne(db: DatabaseReader, key: [String: DatabaseValueConvertible?]) -> Self? {
-        return db.nonIsolatedRead { db in fetchOne(fetchByKeyStatement(db, keys: [key])!) }
+    public static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
+        return fetchOne(fetchByKeyStatement(db, keys: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE (a = ? AND b = ?) OR (a = ? AND b = ?) ...

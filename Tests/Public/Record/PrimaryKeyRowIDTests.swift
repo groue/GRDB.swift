@@ -53,7 +53,7 @@ class Person : Record {
         ]
     }
     
-    override func insert(db: DatabaseWriter) throws {
+    override func insert(db: Database) throws {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = NSDate()
