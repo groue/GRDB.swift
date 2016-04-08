@@ -78,7 +78,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func fetchRecords() {
         let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
-        let items = Item.fetchAll(dbQueue)
+        let items = dbQueue.inDatabase { db in
+            Item.fetchAll(db)
+        }
         assert(items.count == expectedRowCount)
         assert(items[0].i0 == 0)
         assert(items[1].i1 == 1)
