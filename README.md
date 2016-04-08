@@ -2765,10 +2765,10 @@ Isolation is only guaranteed *inside* the closure argument of those methods. Two
 // Those two values may be different because some other thread may have inserted
 // or deleted a point of interest between the two statements:
 let count1 = dbQueue.inDatabase { db in
-    return PointOfInterest.fetchCount(db)
+    PointOfInterest.fetchCount(db)
 }
 let count2 = dbQueue.inDatabase { db in
-    return PointOfInterest.fetchCount(db)
+    PointOfInterest.fetchCount(db)
 }
 ```
 
