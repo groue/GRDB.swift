@@ -5,7 +5,7 @@ Release Notes
 
 Released April 8, 2016
 
-**Breaking Change**
+**Breaking Changes**
 
 - Direct access to the database through DatabaseQueue and DatabasePool is no longer supported, because it can hide subtle concurrency bugs in your application:
     
