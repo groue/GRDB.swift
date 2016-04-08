@@ -30,6 +30,31 @@ Released April 8, 2016
     
     If you are interested in the reasons behind a change that may look like a regression, read https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e.
 
+- The following methods have changed their signatures:
+    
+    ```swift
+    protocol MutablePersistable {
+        mutating func insert(db: Database) throws
+        func update(db: Database) throws
+        mutating func save(db: Database) throws
+        func delete(db: Database) throws -> Bool
+        func exists(db: Database) -> Bool
+    }
+    
+    protocol Persistable {
+        func insert(db: Database) throws
+        func save(db: Database) throws
+    }
+    
+    class Record {
+        func insert(db: Database) throws
+        func update(db: Database) throws
+        func save(db: Database) throws
+        func delete(db: Database) throws -> Bool
+        func exists(db: Database) -> Bool
+    }
+    ```
+
 
 ## 0.56.2
 
