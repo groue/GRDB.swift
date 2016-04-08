@@ -372,9 +372,6 @@ See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.57.0/Structs/Confi
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
 
-> :warning: **Warning**: database pools, although well tested, are still experimental. In particular, the best number of concurrent reads is unknown. Please share the results of your experiments!
-
-
 
 SQLite API
 ==========
