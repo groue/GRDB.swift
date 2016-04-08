@@ -109,7 +109,9 @@ extension PersonsViewController {
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
         let person = personsController.recordAtIndexPath(indexPath)
-        try! person.delete(dbQueue)
+        try! dbQueue.inDatabase { db in
+            try person.delete(db)
+        }
     }
 }
 

@@ -20,7 +20,9 @@ class SimplePersonsViewController: UITableViewController {
     }
     
     private func loadPersons() {
-        persons = Person.order(SQLColumn("score").desc, SQLColumn("name")).fetchAll(dbQueue)
+        persons = dbQueue.inDatabase { db in
+            Person.order(SQLColumn("score").desc, SQLColumn("name")).fetchAll(db)
+        }
     }
 }
 
@@ -103,7 +105,9 @@ extension SimplePersonsViewController {
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         // Delete the person
         let person = persons[indexPath.row]
-        try! person.delete(dbQueue)
+        try! dbQueue.inDatabase { db in
+            try person.delete(db)
+        }
         persons.removeAtIndex(indexPath.row)
         tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
     }
