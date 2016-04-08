@@ -99,27 +99,30 @@ try dbQueue.inDatabase { db in
 
 //: ## Fetching Records
 
-//: Fetch records from the database:
-let allPersons = Person.fetchAll(dbQueue)
+dbQueue.inDatabase { db in
+    
+    //: Fetch records from the database:
+    let allPersons = Person.fetchAll(db)
 
-//: Fetch record by primary key:
-let person = Person.fetchOne(dbQueue, key: arthur.id)!
-person.fullName
+    //: Fetch record by primary key:
+    let person = Person.fetchOne(db, key: arthur.id)!
+    person.fullName
 
-//: Fetch persons with an SQL query:
-let millers = Person.fetchAll(dbQueue, "SELECT * FROM persons WHERE lastName = ?", arguments: ["Miller"])
-millers.first!.fullName
+    //: Fetch persons with an SQL query:
+    let millers = Person.fetchAll(db, "SELECT * FROM persons WHERE lastName = ?", arguments: ["Miller"])
+    millers.first!.fullName
 
 
-//: To fetch persons using the query interface, you need some colums that can filter or sort:
+    //: To fetch persons using the query interface, you need some colums that can filter or sort:
 
-struct Col {
-    static let firstName = SQLColumn("firstName")
-    static let lastName = SQLColumn("lastName")
+    struct Col {
+        static let firstName = SQLColumn("firstName")
+        static let lastName = SQLColumn("lastName")
+    }
+
+    //: Sort
+    let personsSortedByName = Person.order(Col.firstName, Col.lastName).fetchAll(db)
+
+    //: Filter
+    let streisands = Person.filter(Col.lastName == "Streisand").fetchAll(db)
 }
-
-//: Sort
-let personsSortedByName = Person.order(Col.firstName, Col.lastName).fetchAll(dbQueue)
-
-//: Filter
-let streisands = Person.filter(Col.lastName == "Streisand").fetchAll(dbQueue)
