@@ -14,13 +14,13 @@ Released April 8, 2016
     try dbQueue.execute("INSERT ...")
     let person = Person.fetchOne(dbQueue, key: 1)
     
-    // Use an explicit DatabaseQueue or DatabasePool method instead:
+    // Always use an explicit DatabaseQueue or DatabasePool method instead:
     try dbQueue.inDatabase { db in
         try db.execute("INSERT ...")
         let person = Person.fetchOne(db, key: 1)
     }
     
-    // When simply extract values:
+    // Extract values:
     let person = dbQueue.inDatabase { db in
         Person.fetchOne(db, key: 1)
     }
