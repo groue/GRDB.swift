@@ -49,6 +49,7 @@ try dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
+    if let row = Row.fetchOne(db, "SELECT * FROM pointOfInterests WHERE id = ?")
     for row in Row.fetch(db, "SELECT * FROM pointOfInterests") {
         let title: String = row.value(named: "title")
         let favorite: Bool = row.value(named: "favorite")
@@ -81,25 +82,21 @@ struct PointOfInterest {
 // snip: turn PointOfInterest into a "record" by adopting the protocols that
 // provide fetching and persistence methods.
 
-var berlin = PointOfInterest(
-    id: nil,
-    title: "Berlin",
-    favorite: false,
-    coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
-
 try dbQueue.inDatabase { db in
+    var berlin = PointOfInterest(
+        id: nil,
+        title: "Berlin",
+        favorite: false,
+        coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
+
     try berlin.insert(dbQueue)
-}
-print(berlin.id) // some value
+    print(berlin.id) // some value
 
-berlin.favorite = true
-try dbQueue.inDatabase { db in
+    berlin.favorite = true
     try berlin.update(dbQueue)
-}
     
-// Fetch from SQL
-let pois = dbQueue.inDatabase { db in    // [PointOfInterest]
-    PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
+    // Fetch [PointOfInterest] from SQL
+    let pois = PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests")
 }
 ```
 
