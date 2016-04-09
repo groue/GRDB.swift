@@ -49,7 +49,7 @@ try dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    for row in Row.fetchAll(db, "SELECT * FROM pointOfInterests") {
+    for row in Row.fetch(db, "SELECT * FROM pointOfInterests") {
         let title: String = row.value(named: "title")
         let favorite: Bool = row.value(named: "favorite")
         let coordinate = CLLocationCoordinate2DMake(
