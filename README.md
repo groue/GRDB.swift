@@ -49,7 +49,6 @@ try dbQueue.inDatabase { db in
 
 ```swift
 dbQueue.inDatabase { db in
-    if let row = Row.fetchOne(db, "SELECT * FROM pointOfInterests WHERE id = ?")
     for row in Row.fetch(db, "SELECT * FROM pointOfInterests") {
         let title: String = row.value(named: "title")
         let favorite: Bool = row.value(named: "favorite")
