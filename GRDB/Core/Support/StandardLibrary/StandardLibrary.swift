@@ -10,6 +10,9 @@
     #endif
 #endif
 
+
+// MARK: - Value Types
+
 /// Bool adopts DatabaseValueConvertible and StatementColumnConvertible.
 extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
     
@@ -272,5 +275,222 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
         default:
             return nil
         }
+    }
+}
+
+
+// MARK: - SQL Functions
+
+extension DatabaseFunction {
+    /// An SQL function that returns the Swift built-in capitalizedString
+    /// String property.
+    ///
+    /// The function returns NULL for non-strings values.
+    ///
+    /// This function is automatically added by GRDB to your database
+    /// connections. It is the function used by the query interface's
+    /// capitalizedString:
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn.capitalizedString)
+    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    public static let capitalizedString = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
+        guard let string: String = databaseValues[0].failableValue() else {
+            return nil
+        }
+        return string.capitalizedString
+    }
+    
+    /// An SQL function that returns the Swift built-in lowercaseString
+    /// String property.
+    ///
+    /// The function returns NULL for non-strings values.
+    ///
+    /// This function is automatically added by GRDB to your database
+    /// connections. It is the function used by the query interface's
+    /// lowercaseString:
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn.lowercaseString)
+    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    public static let lowercaseString = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { databaseValues in
+        guard let string: String = databaseValues[0].failableValue() else {
+            return nil
+        }
+        return string.lowercaseString
+    }
+    
+    /// An SQL function that returns the Swift built-in uppercaseString
+    /// String property.
+    ///
+    /// The function returns NULL for non-strings values.
+    ///
+    /// This function is automatically added by GRDB to your database
+    /// connections. It is the function used by the query interface's
+    /// uppercaseString:
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn.uppercaseString)
+    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    public static let uppercaseString = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { databaseValues in
+        guard let string: String = databaseValues[0].failableValue() else {
+            return nil
+        }
+        return string.uppercaseString
+    }
+}
+
+@available(iOS 9.0, OSX 10.11, *)
+extension DatabaseFunction {
+    /// An SQL function that returns the Swift built-in
+    /// localizedCapitalizedString String property.
+    ///
+    /// The function returns NULL for non-strings values.
+    ///
+    /// This function is automatically added by GRDB to your database
+    /// connections. It is the function used by the query interface's
+    /// localizedCapitalizedString:
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn.localizedCapitalizedString)
+    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    public static let localizedCapitalizedString = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
+        guard let string: String = databaseValues[0].failableValue() else {
+            return nil
+        }
+        return string.localizedCapitalizedString
+    }
+    
+    /// An SQL function that returns the Swift built-in
+    /// localizedLowercaseString String property.
+    ///
+    /// The function returns NULL for non-strings values.
+    ///
+    /// This function is automatically added by GRDB to your database
+    /// connections. It is the function used by the query interface's
+    /// localizedLowercaseString:
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn.localizedLowercaseString)
+    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    public static let localizedLowercaseString = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { databaseValues in
+        guard let string: String = databaseValues[0].failableValue() else {
+            return nil
+        }
+        return string.localizedLowercaseString
+    }
+    
+    /// An SQL function that returns the Swift built-in
+    /// localizedUppercaseString String property.
+    ///
+    /// The function returns NULL for non-strings values.
+    ///
+    /// This function is automatically added by GRDB to your database
+    /// connections. It is the function used by the query interface's
+    /// localizedUppercaseString:
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn.localizedUppercaseString)
+    ///     let names = String.fetchAll(dbQueue, request)   // [String]
+    public static let localizedUppercaseString = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { databaseValues in
+        guard let string: String = databaseValues[0].failableValue() else {
+            return nil
+        }
+        return string.localizedUppercaseString
+    }
+}
+
+
+// MARK: - SQLite Collations
+
+extension DatabaseCollation {
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in == and <= operators.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let unicodeCompare = DatabaseCollation("swiftCompare") { (lhs, rhs) in
+        return (lhs < rhs) ? .OrderedAscending : ((lhs == rhs) ? .OrderedSame : .OrderedDescending)
+    }
+    
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in caseInsensitiveCompare(_:) method.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let caseInsensitiveCompare = DatabaseCollation("swiftCaseInsensitiveCompare") { (lhs, rhs) in
+        return lhs.caseInsensitiveCompare(rhs)
+    }
+    
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in localizedCaseInsensitiveCompare(_:) method.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.localizedCaseInsensitiveCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let localizedCaseInsensitiveCompare = DatabaseCollation("swiftLocalizedCaseInsensitiveCompare") { (lhs, rhs) in
+        return lhs.localizedCaseInsensitiveCompare(rhs)
+    }
+    
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in localizedCompare(_:) method.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.localizedCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let localizedCompare = DatabaseCollation("swiftLocalizedCompare") { (lhs, rhs) in
+        return lhs.localizedCompare(rhs)
+    }
+    
+    /// A collation, or SQL string comparison function, that compares strings
+    /// according to the the Swift built-in localizedStandardCompare(_:) method.
+    ///
+    /// This collation is automatically added by GRDB to your database
+    /// connections.
+    ///
+    /// You can use it when creating database tables:
+    ///
+    ///     let collationName = DatabaseCollation.localizedStandardCompare.name
+    ///     dbQueue.execute(
+    ///         "CREATE TABLE persons (" +
+    ///             "name TEXT COLLATE \(collationName)" +
+    ///         ")"
+    ///     )
+    public static let localizedStandardCompare = DatabaseCollation("swiftLocalizedStandardCompare") { (lhs, rhs) in
+        return lhs.localizedStandardCompare(rhs)
     }
 }
