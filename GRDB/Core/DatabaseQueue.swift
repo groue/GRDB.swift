@@ -70,8 +70,8 @@ public final class DatabaseQueue {
     
     // MARK: - Database access
     
-    /// Synchronously executes a block a protected dispatch queue, and returns
-    /// its result.
+    /// Synchronously executes a block in a protected dispatch queue, and
+    /// returns its result.
     ///
     ///     let persons = dbQueue.inDatabase { db in
     ///         Person.fetchAll(...)
