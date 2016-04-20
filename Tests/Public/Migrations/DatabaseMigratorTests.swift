@@ -134,7 +134,8 @@ class DatabaseMigratorTests : GRDBTestCase {
         migrator.registerMigration("createPersons") { db in
             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, tmp TEXT)")
             try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
-            let personId = try db.execute("INSERT INTO persons (name) VALUES ('Arthur')").insertedRowID
+            try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
+            let personId = db.lastInsertedRowID
             try db.execute("INSERT INTO pets (masterId, name) VALUES (?, 'Bobby')", arguments:[personId])
         }
         migrator.registerMigration("removePersonTmpColumn", withDisabledForeignKeyChecks: true) { db in

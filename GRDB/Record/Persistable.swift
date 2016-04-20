@@ -239,10 +239,8 @@ public extension MutablePersistable {
     /// implementation of performInsert().
     mutating func performInsert(db: Database) throws {
         let dataMapper = DataMapper(db, self)
-        let changes = try dataMapper.insertStatement().execute()
-        if let rowID = changes.insertedRowID {
-            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
-        }
+        try dataMapper.insertStatement().execute()
+        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -253,8 +251,8 @@ public extension MutablePersistable {
     /// implementation of update(). They should not provide their own
     /// implementation of performUpdate().
     func performUpdate(db: Database) throws {
-        let changes = try DataMapper(db, self).updateStatement().execute()
-        if changes.changedRowCount == 0 {
+        try DataMapper(db, self).updateStatement().execute()
+        if db.changesCount == 0 {
             throw PersistenceError.NotFound(self)
         }
     }
@@ -296,7 +294,8 @@ public extension MutablePersistable {
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
     func performDelete(db: Database) throws -> Bool {
-        return try DataMapper(db, self).deleteStatement().execute().changedRowCount > 0
+        try DataMapper(db, self).deleteStatement().execute()
+        return db.changesCount > 0
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -463,10 +462,8 @@ public extension Persistable {
     /// implementation of performInsert().
     func performInsert(db: Database) throws {
         let dataMapper = DataMapper(db, self)
-        let changes = try dataMapper.insertStatement().execute()
-        if let rowID = changes.insertedRowID {
-            didInsertWithRowID(rowID, forColumn: dataMapper.primaryKey.rowIDColumn)
-        }
+        try dataMapper.insertStatement().execute()
+        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types

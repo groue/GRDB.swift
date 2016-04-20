@@ -38,10 +38,11 @@ try dbQueue.inDatabase { db in
             "longitude DOUBLE NOT NULL" +
         ")")
 
-    let parisId = try db.execute(
+    try db.execute(
         "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
         "VALUES (?, ?, ?, ?)",
-        arguments: ["Paris", true, 48.85341, 2.3488]).insertedRowID
+        arguments: ["Paris", true, 48.85341, 2.3488])
+    let parisId = db.lastInsertedRowID
 }
 ```
 
@@ -382,11 +383,10 @@ try dbQueue.inDatabase { db in
     try db.execute("CREATE TABLE wines (...)")
 
     // Insert:
-    let wineId = try db.execute(
+    try db.execute(
         "INSERT INTO wines (color, name) VALUES (?, ?)",
         arguments: [Color.Red, "Pomerol"])
-        .insertedRowID
-    print("Inserted wine id: \(wineId)")
+    let wineId = db.lastInsertedRowID
     
     // Fetch arrays and single values:
     let rows = Row.fetchAll(db, "SELECT * FROM wines")                 // [Row]
@@ -448,12 +448,13 @@ try db.execute(
 
 The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
 
-**After an INSERT statement**, you extract the inserted Row ID from the result of the `execute` method:
+**After an INSERT statement**, you can get the row ID of the inserted row:
 
 ```swift
-let personID = try db.execute(
+try db.execute(
     "INSERT INTO persons (name, age) VALUES (?, ?)",
-    arguments: ["Arthur", 36]).insertedRowID!
+    arguments: ["Arthur", 36])
+let personId = db.lastInsertedRowID
 ```
 
 Don't miss [Records](#records), that provide classic **persistence methods**:
@@ -1133,9 +1134,7 @@ selectStatement.arguments = ["Arthur"]
 After arguments are set, you can execute the prepared statement:
 
 ```swift
-let changes = try updateStatement.execute()
-changes.changedRowCount // The number of rows changed by the statement.
-changes.insertedRowID   // For INSERT statements, the inserted Row ID.
+try updateStatement.execute()
 ```
 
 Select statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):

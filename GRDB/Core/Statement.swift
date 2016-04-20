@@ -436,23 +436,18 @@ public final class UpdateStatement : Statement {
     /// Executes the SQL query.
     ///
     /// - parameter arguments: Statement arguments.
-    /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(arguments arguments: StatementArguments? = nil) throws -> DatabaseChanges {
+    public func execute(arguments arguments: StatementArguments? = nil) throws {
         database.preconditionValidQueue()
         
         // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
         try! prepareWithArguments(arguments)
         try! reset()
         
-        let changes: DatabaseChanges
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
             // Success
-            let changedRowCount = Int(sqlite3_changes(database.sqliteConnection))
-            let lastInsertedRowID = sqlite3_last_insert_rowid(database.sqliteConnection)
-            let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
-            changes = DatabaseChanges(changedRowCount: changedRowCount, insertedRowID: insertedRowID)
+            break
             
         case SQLITE_ROW:
             // A row? The UpdateStatement is not supposed to return any...
@@ -475,7 +470,7 @@ public final class UpdateStatement : Statement {
             // The problem with 3 is that there is no way to avoid this warning.
             //
             // So let's just silently ignore the row, and return successfully.
-            changes = DatabaseChanges(changedRowCount: 0, insertedRowID: nil)
+            break
             
         case let errorCode:
             // Failure
@@ -494,23 +489,7 @@ public final class UpdateStatement : Statement {
         // Now that changes information has been loaded, let transaction
         // observers do whatever they want:
         database.updateStatementDidExecute()
-        
-        return changes
     }
-}
-
-/// Represents the various changes made to the database via execution of one or
-/// more SQL statements.
-public struct DatabaseChanges {
-    
-    /// The number of rows affected by the statement(s)
-    public let changedRowCount: Int
-    
-    /// The inserted Row ID.
-    ///
-    /// This value is only relevant after the execution of a single INSERT
-    /// statement, via Database.execute() or UpdateStatement.execute().
-    public let insertedRowID: Int64?
 }
 
 

@@ -32,13 +32,47 @@ typealias SQLiteValue = COpaquePointer
 ///     }
 public final class Database {
     
+    // MARK: - Database Information
+    
     /// The database configuration
     public let configuration: Configuration
     
     /// The raw SQLite connection, suitable for the SQLite C API.
     public let sqliteConnection: SQLiteConnection
     
-    var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
+    /// The rowID of the most recent successful INSERT.
+    ///
+    /// If no successful INSERT has ever occurred on the database connection,
+    /// returns zero.
+    ///
+    /// For more detailed information, see https://www.sqlite.org/c3ref/last_insert_rowid.html
+    public var lastInsertedRowID: Int64 {
+        preconditionValidQueue()
+        return sqlite3_last_insert_rowid(sqliteConnection)
+    }
+    
+    /// The number of rows modified, inserted or deleted by the most recent
+    /// successful INSERT, UPDATE or DELETE statement.
+    ///
+    /// For more detailed information, see https://www.sqlite.org/c3ref/changes.html
+    public var changesCount: Int {
+        preconditionValidQueue()
+        return Int(sqlite3_changes(sqliteConnection))
+    }
+    
+    /// The total number of rows modified, inserted or deleted by all successful
+    /// INSERT, UPDATE or DELETE statements since the database connection was
+    /// opened.
+    ///
+    /// For more detailed information, see https://www.sqlite.org/c3ref/total_changes.html
+    public var totalChangesCount: Int {
+        preconditionValidQueue()
+        return Int(sqlite3_total_changes(sqliteConnection))
+    }
+    
+    var lastErrorMessage: String? {
+        return String.fromCString(sqlite3_errmsg(sqliteConnection))
+    }
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
@@ -341,9 +375,8 @@ extension Database {
     /// - parameters:
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
-    /// - returns: A DatabaseChanges.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(sql: String, arguments: StatementArguments? = nil) throws -> DatabaseChanges {
+    public func execute(sql: String, arguments: StatementArguments? = nil) throws {
         preconditionValidQueue()
         
         // The tricky part is to consume arguments as statements are executed.
@@ -392,7 +425,6 @@ extension Database {
         
         // Execute statements
         
-        let changedRowsBefore = sqlite3_total_changes(sqliteConnection)
         let sqlCodeUnits = sql.nulTerminatedUTF8
         var error: ErrorType?
         
@@ -441,11 +473,6 @@ extension Database {
         
         // Force arguments validity. See UpdateStatement.execute(), and SelectStatement.fetchSequence()
         try! validateRemainingArguments()
-        
-        let changedRowsAfter = sqlite3_total_changes(sqliteConnection)
-        let lastInsertedRowID = sqlite3_last_insert_rowid(sqliteConnection)
-        let insertedRowID: Int64? = (lastInsertedRowID == 0) ? nil : lastInsertedRowID
-        return DatabaseChanges(changedRowCount: changedRowsAfter - changedRowsBefore, insertedRowID: insertedRowID)
     }
 }
 
