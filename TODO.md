@@ -1,4 +1,3 @@
-- [ ] Should lastInsertedId handle 0? If someone inserts 0 id then it must be explicit... Take a look at those scenarios and see it something can turn wrong.
 - [ ] What is the SQLITE_OPEN_WAL open flag?
 - [ ] Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [ ] FetchedRecordsController needs a property that disables changes computation and calls to delegate.controller(_:didChangeRecord:withEvent:).
