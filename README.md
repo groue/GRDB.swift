@@ -3,7 +3,7 @@ GRDB.swift
 
 GRDB.swift is an SQLite toolkit for Swift 2.2.
 
-It ships with an SQL API, protocols that turn your custom types in ORM-like objects, safe concurrent accesses to the database (that's pretty unique), a Swift query interface which lets SQL-allergic developers avoid their most dreaded language, and a "fetched records controller" that behaves like Core Data's NSFetchedResultsController and tracks database changes for you.
+It ships with an SQL API, protocols that grant your custom types with fetching and persistence methods, a Swift query interface which lets SQL-allergic developers avoid their most dreaded language, database encryption, support for "WAL mode" -- that means extra performance in multi-threaded applications -- and a "fetched records controller" that behaves like Core Data's NSFetchedResultsController and tracks database changes for you.
 
 And it's well-documented, tested, and [fast](https://github.com/groue/GRDB.swift/wiki/Performance).
 
@@ -375,32 +375,6 @@ SQLite API
 
 **In this section of the documentation, we will talk SQL only.** Jump to the [query interface](#the-query-interface) if SQL if not your cup of tea.
 
-Once granted with a [database connection](#database-connections), you can perform SQL requests:
-
-```swift
-try dbQueue.inDatabase { db in
-    // Create tables:
-    try db.execute("CREATE TABLE wines (...)")
-
-    // Insert:
-    try db.execute(
-        "INSERT INTO wines (color, name) VALUES (?, ?)",
-        arguments: [Color.Red, "Pomerol"])
-    let wineId = db.lastInsertedRowID
-    
-    // Fetch arrays and single values:
-    let rows = Row.fetchAll(db, "SELECT * FROM wines")                 // [Row]
-    let redWineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")! // Int
-
-    // Iterate sequences:
-    for row in Row.fetch(db, "SELECT * FROM wines") {
-        let name: String = row.value(named: "name")
-        let color: Color = row.value(named: "color")
-        print(name, color)
-    }
-}
-```
-
 - [Executing Updates](#executing-updates)
 - [Fetch Queries](#fetch-queries)
     - [Fetching Methods](#fetching-methods)
@@ -423,7 +397,7 @@ Advanced topics:
 
 ## Executing Updates
 
-The `execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
+Once granted with a [database connection](#database-connections), the `execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
 
 For example:
 
@@ -462,7 +436,7 @@ Don't miss [Records](#records), that provide classic **persistence methods**:
 ```swift
 let person = Person(name: "Arthur", age: 36)
 try person.insert(db)
-print("Inserted \(person.id)")
+let personId = person.id
 ```
 
 
@@ -473,7 +447,7 @@ You can fetch database rows, plain values, and custom models aka "records".
 **Rows** are the raw results of SQL queries:
 
 ```swift
-for row in Row.fetch(db, "SELECT * FROM wines") {
+if row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) { // Row?
     let name: String = row.value(named: "name")
     let color: Color = row.value(named: "color")
     print(name, color)
@@ -484,16 +458,16 @@ for row in Row.fetch(db, "SELECT * FROM wines") {
 **Values** are the Bool, Int, String, NSDate, Swift enums, etc. stored in row columns:
 
 ```swift
-let wineCount = Int.fetchOne(db, "SELECT COUNT(*) FROM wines")! // Int
-let urls = NSURL.fetchAll(db, "SELECT url FROM wines")          // [NSURL]
+for url in NSURL.fetch(db, "SELECT url FROM wines") { // DatabaseSequence<NSURL>
+    print(url)
+}
 ```
 
 
 **Records** are your application objects that can initialize themselves from rows:
 
 ```swift
-let wines = Wine.fetchAll(db, "SELECT * FROM wines")            // [Wine]
-let anyWine = Wine.fetchOne(db, "SELECT * FROM wines LIMIT 1")  // Wine?
+let wines = Wine.fetchAll(db, "SELECT * FROM wines")  // [Wine]
 ```
 
 - [Fetching Methods](#fetching-methods)
