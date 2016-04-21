@@ -146,7 +146,7 @@ Documentation
 - [Query Interface](#the-query-interface): A swift way to generate SQL.
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
-- [FetchedRecordsController](#fetchedrecordscontroller): Let GRDB manage your UITableView for you.
+- [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
 - [Encryption](#encryption)
 
 **Good to know**
@@ -1273,7 +1273,7 @@ On top of the SQLite API described above, GRDB provides a toolkit for applicatio
 - [Query Interface](#the-query-interface): A swift way to generate SQL.
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
-- [FetchedRecordsController](#fetchedrecordscontroller): Let GRDB manage your UITableView for you.
+- [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
 
 
 ## Records
