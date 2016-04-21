@@ -489,7 +489,7 @@ Type.fetchOne(...) // Type?
 - `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise).
     
     ```swift
-    for row in Row.fetch(db, "SELECT ...") {
+    for row in Row.fetch(db, "SELECT ...") {            // DatabaseSequence<Row>
         ...
     }
     ```
@@ -556,9 +556,11 @@ let rows = Row.fetchAll(db,
 
 See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
 
+Unlike row arrays that contain copies of the database rows, row sequences are close to the SQLite metal, and require a little care:
+
 > :point_up: **Don't turn a row sequence into an array** with `Array(rowSequence)` or `rowSequence.filter { ... }`: you would not get the distinct rows you expect. To get an array, use `Row.fetchAll(...)`.
 > 
-> :point_up: **Make sure you copy a row** whenever you extract it from a sequence for later use: `row.copy()`. This does not apply to row arrays, which already contain independent copies of the database rows.
+> :point_up: **Make sure you copy a row** whenever you extract it from a sequence for later use: `row.copy()`.
 
 
 #### Column Values
