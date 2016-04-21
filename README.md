@@ -718,12 +718,14 @@ let date: NSDate   = dbv.value()     // NSDate
 self.date          = dbv.value()     // Depends on the type of the property.
 ```
 
-Use the `failableValue()` method when you want to check if the value can be converted to the requested type:
+Invalid conversions from non-NULL values raise a fatal error. Use `failableValue()` when you want to check if conversion is valid:
 
 ```swift
-if let date: NSDate? = dbv.failableValue() {
-    // conversion successful
-}
+let row = Row.fetchOne(db, "SELECT 'foo' AS foo")!
+let dbv = row.databaseValue(at: 0)
+dbv.value() as String          // "foo"
+dbv.value() as NSDate?         // fatal error: could not convert "foo" to NSDate.
+dbv.failableValue() as NSDate? // nil
 ```
 
 
