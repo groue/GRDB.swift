@@ -609,15 +609,13 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 
 - **Successful conversions include:**
     
-    - All numeric (integer and real) SQLite values to numeric Swift types (Int, Int32, Int64, Double), plus Bool (zero is the only false boolean).
+    - Numeric SQLite values to numeric Swift types, and Bool (zero is the only false boolean).
     - Text SQLite values to Swift String.
     - Blob SQLite values to NSData.
     
     See [Values](#values) for more information on supported types (Bool, Int, String, NSDate, Swift enums, etc.)
 
-- **Invalid conversions throw a fatal error.**
-    
-    NULL can not be turned into a non-optional:
+- **NULL is converted to nil.**
 
     ```swift
     let row = Row.fetchOne(db, "SELECT NULL")!
@@ -625,7 +623,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row.value(atIndex: 0) as Int  // fatal error: could not convert NULL to Int.
     ```
     
-    Non-NULL values are not silently discarded:
+- **Invalid conversions throw a fatal error.**
     
     ```swift
     let row = Row.fetchOne(db, "SELECT 'foo'")!
@@ -634,7 +632,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
     ```
     
-    See [DatabaseValue.failableValue()](#databasevalue) method below if you need weak conversions.
+    This fatal error can be avoided with the [DatabaseValue.failableValue()](#databasevalue) method.
     
 - **Missing columns return nil.**
     
