@@ -68,13 +68,18 @@ public struct _SQLSelectQuery {
         var sortDescriptors = self.sortDescriptors
         if reversed {
             if sortDescriptors.isEmpty {
-                guard let source = source, case .Table(let tableName, let alias) = source else {
-                    throw DatabaseError(message: "can't reverse without a source table")
-                }
-                guard case let columns = try db.primaryKey(tableName).columns where !columns.isEmpty else {
-                    throw DatabaseError(message: "can't reverse a table without primary key")
-                }
-                sortDescriptors = columns.map { _SQLSortDescriptor.Desc(_SQLExpression.Identifier(identifier: $0, sourceName: alias)) }
+                // https://www.sqlite.org/lang_createtable.html#rowid
+                //
+                // > The rowid value can be accessed using one of the special
+                // > case-independent names "rowid", "oid", or "_rowid_" in
+                // > place of a column name. If a table contains a user defined
+                // > column named "rowid", "oid" or "_rowid_", then that name
+                // > always refers the explicitly declared column and cannot be
+                // > used to retrieve the integer rowid value.
+                //
+                // Here we assume that _rowid_ is not a custom column.
+                // FIXME: support for user-defined _rowid_ column.
+                sortDescriptors = [SQLColumn("_rowid_").desc]
             } else {
                 sortDescriptors = sortDescriptors.map { $0.reversedSortDescriptor }
             }

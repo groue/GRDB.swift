@@ -329,7 +329,7 @@ class FetchRequestTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.reverse()),
-            "SELECT * FROM \"readers\" ORDER BY \"id\" DESC")
+            "SELECT * FROM \"readers\" ORDER BY \"_rowid_\" DESC")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.age).reverse()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")

@@ -1888,10 +1888,10 @@ All the methods above return another request, which you can further refine by ap
     Person.order(Col.score.desc, Col.name).reverse()
     ```
     
-    If no ordering was specified, the result is ordered by the primary key in reverse order.
+    If no ordering was specified, the result is ordered by rowID in reverse order.
     
     ```swift
-    // SELECT * FROM "persons" ORDER BY "id" DESC
+    // SELECT * FROM "persons" ORDER BY "_rowid_" DESC
     Person.all().reverse()
     ```
 

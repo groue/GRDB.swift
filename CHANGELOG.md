@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+**Fixed**
+
+- FetchRequest.reverse() sorts by reversed RowID when no base ordering has been specified.
+
+
 ## 0.58.0
 
 **Breaking Changes**

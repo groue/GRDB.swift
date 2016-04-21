@@ -1,4 +1,3 @@
-- [ ] FethcRequest.reverse(): sort by rowID reversed, not primary key reversed.
 - [ ] What is the SQLITE_OPEN_WAL open flag?
 - [ ] Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [ ] FetchedRecordsController needs a property that disables changes computation and calls to delegate.controller(_:didChangeRecord:withEvent:).
