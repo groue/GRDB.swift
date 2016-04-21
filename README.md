@@ -447,7 +447,7 @@ You can fetch database rows, plain values, and custom models aka "records".
 **Rows** are the raw results of SQL queries:
 
 ```swift
-if row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) { // Row?
+if let row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) { // Row?
     let name: String = row.value(named: "name")
     let color: Color = row.value(named: "color")
     print(name, color)
