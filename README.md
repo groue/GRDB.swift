@@ -447,7 +447,7 @@ You can fetch database rows, plain values, and custom models aka "records".
 **Rows** are the raw results of SQL queries:
 
 ```swift
-if let row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) { // Row?
+if let row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]) {
     let name: String = row.value(named: "name")
     let color: Color = row.value(named: "color")
     print(name, color)
@@ -458,7 +458,7 @@ if let row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]
 **Values** are the Bool, Int, String, NSDate, Swift enums, etc. stored in row columns:
 
 ```swift
-for url in NSURL.fetch(db, "SELECT url FROM wines") { // DatabaseSequence<NSURL>
+for url in NSURL.fetch(db, "SELECT url FROM wines") {
     print(url)
 }
 ```
@@ -467,7 +467,7 @@ for url in NSURL.fetch(db, "SELECT url FROM wines") { // DatabaseSequence<NSURL>
 **Records** are your application objects that can initialize themselves from rows:
 
 ```swift
-let wines = Wine.fetchAll(db, "SELECT * FROM wines")  // [Wine]
+let wines = Wine.fetchAll(db, "SELECT * FROM wines")
 ```
 
 - [Fetching Methods](#fetching-methods)
