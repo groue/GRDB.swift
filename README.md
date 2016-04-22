@@ -1210,16 +1210,16 @@ try dbQueue.inDatabase { db in
 > :point_up: **Notes**
 >
 > - Those pointers are owned by GRDB: don't close connections or finalize statements created by GRDB.
-> - SQLite connections are opened in the [multi-thread mode](https://www.sqlite.org/threadsafe.html), which means that **they are not thread-safe**. Make sure you touch raw databases and statements inside the database queues.
+> - SQLite connections are opened in the "[multi-thread mode](https://www.sqlite.org/threadsafe.html)", which (oddly) means that **they are not thread-safe**. Make sure you touch raw databases and statements inside their dedicated dispatch queues.
 
-Before jumping in the low-level wagon, here is a reminder of SQLite APIs supported by GRDB:
+Before jumping in the low-level wagon, here is a reminder of most SQLite APIs used by GRDB:
 
 - Connections & statements, obviously.
 - Errors (pervasive)
     - [sqlite3_errmsg](https://www.sqlite.org/c3ref/errcode.html)
-- Inserted Row IDs (as the result of Database.execute()).
+- Inserted Row IDs (`Database.lastInsertedRowID`).
     - [sqlite3_last_insert_rowid](https://www.sqlite.org/c3ref/last_insert_rowid.html)
-- Changes count (as the result of Database.execute()).
+- Changes count (`Database.changesCount`).
     - [sqlite3_changes](https://www.sqlite.org/c3ref/changes.html)
 - Custom SQL functions (see [Custom SQL Functions](#custom-sql-functions))
     - [sqlite3_create_function_v2](https://www.sqlite.org/c3ref/create_function.html)
