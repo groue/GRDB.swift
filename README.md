@@ -1167,7 +1167,7 @@ When you don't provide any explicit *argumentCount*, the function can take any n
 
 ```swift
 let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [DatabaseValue]) in
-    let doubles: [Double] = databaseValues.flatMap { $0.value() }
+    let doubles: [Double] = databaseValues.map { $0.value() }
     return doubles.reduce(0, combine: +) / Double(doubles.count)
 }
 dbQueue.addFunction(averageOf)
