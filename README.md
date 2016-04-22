@@ -920,9 +920,9 @@ components.day = 18
 
 // Store "1973-09-18"
 let dbComponents = DatabaseDateComponents(components, format: .YMD)
-try db.execute("INSERT INTO persons (birthDate, ...) " +
-                            "VALUES (?, ...)",
-                         arguments: [dbComponents, ...])
+try db.execute(
+    "INSERT INTO persons (birthDate, ...) VALUES (?, ...)",
+    arguments: [dbComponents, ...])
 
 // Read "1973-09-18"
 let row = Row.fetchOne(db, "SELECT birthDate ...")!
