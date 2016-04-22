@@ -10,6 +10,12 @@ Release Notes
 
 ## 0.58.0
 
+**New**
+
+- `Database.lastInsertedRowID`: The rowID of the most recent successful INSERT.
+- `Database.changesCount`: The number of rows modified, inserted or deleted by the most recent successful INSERT, UPDATE or DELETE statement.
+- `Database.totalChangesCount`: The total number of rows modified, inserted or deleted by all successful INSERT, UPDATE or DELETE statements since the database connection was opened.
+
 **Breaking Changes**
 
 - `Database.execute()` and `UpdateStatement.execute()` now return Void. To get the last inserted rowId, use the `Database.lastInsertedRowID` property.
