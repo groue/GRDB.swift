@@ -977,7 +977,7 @@ let amount = NSDecimalNumber(longLong: integer)                        // 0.1
 
 ### Swift Enums
 
-**Swift enums** get full support from GRDB as long as their raw values are supported (Int, Int32, Int64 or String):
+**Swift enums** and generally all types that adopt the [RawRepresentable](https://developer.apple.com/library/tvos/documentation/Swift/Reference/Swift_RawRepresentable_Protocol/index.html) protocol can be stored and fetched from the database just like their raw [values](#values):
 
 ```swift
 enum Color : Int {
@@ -987,17 +987,15 @@ enum Color : Int {
 enum Grape : String {
     case Chardonnay, Merlot, Riesling
 }
-```
 
-Declare adoption of the `DatabaseValueConvertible` protocol, and the enum type can be stored and fetched from the database just like other [value types](#values):
-
-```swift
+// Declare DatabaseValueConvertible adoption
 extension Color : DatabaseValueConvertible { }
 extension Grape : DatabaseValueConvertible { }
 
 // Store
-try db.execute("INSERT INTO wines (grape, color) VALUES (?, ?)",
-               arguments: [Grape.Merlot, Color.Red])
+try db.execute(
+    "INSERT INTO wines (grape, color) VALUES (?, ?)",
+    arguments: [Grape.Merlot, Color.Red])
 
 // Read
 for rows in Row.fetch(db, "SELECT * FROM wines") {
