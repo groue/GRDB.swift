@@ -1041,11 +1041,12 @@ try dbQueue.inDatabase { db in  // or dbPool.write { db in
 }
 ```
 
-SQLite supports [three kinds of transactions](https://www.sqlite.org/lang_transaction.html): DEFERRED, IMMEDIATE, and EXCLUSIVE. GRDB defaults to IMMEDIATE.
+SQLite supports [three kinds of transactions](https://www.sqlite.org/lang_transaction.html): deferred, immediate, and exclusive. GRDB defaults to immediate.
 
 The transaction kind can be changed in the database configuration, or for each transaction:
 
 ```swift
+// A connection with default DEFERRED transactions:
 var config = Configuration()
 config.defaultTransactionKind = .Deferred
 let dbQueue = try DatabaseQueue(path: "...", configuration: config)
