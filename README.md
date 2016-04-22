@@ -2035,14 +2035,13 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     The query interface does not give access to those SQLite functions. Nothing against them, but they are not unicode aware.
     
-    Instead, GRDB extends SQLite with SQL functions that call the Swift string functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString` and `localizedUppercaseString`:
+    Instead, GRDB extends SQLite with SQL functions that call the Swift built-in string functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString` and `localizedUppercaseString`:
     
     ```swift
-    // SELECT swiftCapitalizedString(name) FROM persons
     Person.select(nameColumn.capitalizedString)
     ```
     
-    > :point_up: **Note**: When *comparing* strings, you may prefer a [custom comparison function](#string-comparison).
+    > :point_up: **Note**: When *comparing* strings, you'd rather use a [custom comparison function](#string-comparison).
 
 - Custom SQL functions
     
