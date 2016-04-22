@@ -1219,8 +1219,9 @@ Before jumping in the low-level wagon, here is a reminder of most SQLite APIs us
     - [sqlite3_errmsg](https://www.sqlite.org/c3ref/errcode.html)
 - Inserted Row IDs (`Database.lastInsertedRowID`).
     - [sqlite3_last_insert_rowid](https://www.sqlite.org/c3ref/last_insert_rowid.html)
-- Changes count (`Database.changesCount`).
+- Changes count (`Database.changesCount` and `Database.totalChangesCount`).
     - [sqlite3_changes](https://www.sqlite.org/c3ref/changes.html)
+    - [sqlite3_total_changes](https://www.sqlite.org/c3ref/total_changes.html)
 - Custom SQL functions (see [Custom SQL Functions](#custom-sql-functions))
     - [sqlite3_create_function_v2](https://www.sqlite.org/c3ref/create_function.html)
 - Custom collations (see [String Comparison](#string-comparison))
