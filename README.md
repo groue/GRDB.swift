@@ -1484,7 +1484,7 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 
 The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
 
-The `didInsertWithRowID` method is called in a protected dispatch queue.
+The optional `didInsertWithRowID` method lets the adopting type store its rowID after successful insertion. It is called from an arbitrary dispatch queue.
 
 **To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitely. For example:
 
