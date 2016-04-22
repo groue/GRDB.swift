@@ -2624,23 +2624,25 @@ SQLite lets you store unicode strings in the database.
 
 However, SQLite does not provide any unicode-aware string transformations or comparisons.
 
-GRDB has built-in tools that improve unicode support:
-
 
 ### Unicode functions
 
-The `UPPER` and `LOWER` SQLite functions are not unicode-aware.
-
-GRDB extends all your database connections with built-in [SQL Functions](#sql-functions) that give access to the standard Swift String unicode-aware functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString`, and `localizedUppercaseString`:
+The `UPPER` and `LOWER` built-in SQLite functions are not unicode-aware:
 
 ```swift
-// "JéRôME" vs. "JÉRÔME"
-let uppercaseString = DatabaseFunction.uppercaseString
+// "JéRôME"
 String.fetchOne(db, "SELECT UPPER('Jérôme')")
+```
+
+GRDB extends SQLite with SQL functions that call the Swift built-in string functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString` and `localizedUppercaseString`:
+
+```swift
+// "JÉRÔME"
+let uppercaseString = DatabaseFunction.uppercaseString
 String.fetchOne(db, "SELECT \(uppercaseString.name)('Jérôme')")
 ```
 
-Those built-in functions are also available in the [query interface](#sql-functions):
+Those unicode-aware string functions are also readily available in the [query interface](#sql-functions):
 
 ```
 Person.select(nameColumn.capitalizedString)
@@ -2777,7 +2779,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.58.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.58.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.58.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.58.0/Protocols/DatabaseWriter.html) protocols.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.58.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.58.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.58.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.58.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
