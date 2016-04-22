@@ -2427,6 +2427,8 @@ controller.setRequest(Person.order(SQLColumn("name")))
 controller.setRequest(sql: "SELECT ...", arguments: ...)
 ```
 
+> :point_up: **Note**: This behavior differs from Core Data's NSFetchedResultsController, which does not notify the delegate of record changes when the fetch request is replaced.
+
 
 ### FetchedRecordsController Concurrency
 
