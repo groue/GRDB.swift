@@ -961,16 +961,16 @@ A classic technique is to store *integers* instead, since SQLite performs exact 
 
 ```swift
 // Store
-let amount = NSDecimalNumber(string: "0.1")
-let integerAmount = amount
+let amount = NSDecimalNumber(string: "0.1")                            // 0.1
+let integer = amount                                                   // 100
     .decimalNumberByMultiplyingByPowerOf10(2)
     .longLongValue
 // INSERT INTO transfers (amount) VALUES (100)
-try db.execute("INSERT INTO transfers (amount) VALUES (?)", arguments: [integerAmount])
+try db.execute("INSERT INTO transfers (amount) VALUES (?)", arguments: [integer])
 
 // Read
-let integerAmount = Int64.fetchOne(db, "SELECT SUM(amount) FROM transfers")!
-let amount = NSDecimalNumber(longLong: integerAmount)
+let integer = Int64.fetchOne(db, "SELECT SUM(amount) FROM transfers")! // 100
+let amount = NSDecimalNumber(longLong: integer)                        // 0.1
     .decimalNumberByMultiplyingByPowerOf10(-2)
 ```
 
