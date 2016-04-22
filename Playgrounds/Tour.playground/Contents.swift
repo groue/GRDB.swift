@@ -29,10 +29,11 @@ try dbQueue.inDatabase { db in
             "longitude DOUBLE NOT NULL" +
         ")")
     
-    let parisId = try db.execute(
+    try db.execute(
         "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
         "VALUES (?, ?, ?, ?)",
-        arguments: ["Paris", true, 48.85341, 2.3488]).insertedRowID!
+        arguments: ["Paris", true, 48.85341, 2.3488])
+    let parisId = db.lastInsertedRowID
 }
 
 
