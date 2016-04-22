@@ -103,20 +103,20 @@ try dbQueue.inDatabase { db in
 Avoid SQL with the [query interface](#the-query-interface):
 
 ```swift
-let title = SQLColumn("title")
-let favorite = SQLColumn("favorite")
+let titleColumn = SQLColumn("title")
+let favoriteColumn = SQLColumn("favorite")
 
 dbQueue.inDatabase { db in
     // PointOfInterest?
     let paris = PointOfInterest.fetchOne(db, key: 1)
     
     // PointOfInterest?
-    let berlin = PointOfInterest.filter(title == "Berlin").fetchOne(db)
+    let berlin = PointOfInterest.filter(titleColumn == "Berlin").fetchOne(db)
     
     // [PointOfInterest]
     let favoritePois = PointOfInterest
-        .filter(favorite)
-        .order(title)
+        .filter(favoriteColumn)
+        .order(titleColumn)
         .fetchAll(db)
 }
 ```
@@ -819,7 +819,7 @@ Use values in the [query interface](#the-query-interface):
 
 ```swift
 let url: NSURL = ...
-let link = Link.filter(Col.url == url).fetchOne(db)
+let link = Link.filter(urlColumn == url).fetchOne(db)
 ```
 
 
@@ -1182,8 +1182,8 @@ dbQueue.inDatabase { db in
 **Use custom functions in the [query interface](#the-query-interface):**
 
 ```swift
-// SELECT reverseString("name") AS "reversedName" FROM persons
-Person.select(reverseString.apply(Col.name).aliased("reversedName"))
+// SELECT reverseString("name") FROM persons
+Person.select(reverseString.apply(nameColumn))
 ```
 
 
@@ -1283,7 +1283,7 @@ let persons = Person.fetchAll(db, "SELECT ...", arguments: ...)
 Add the [TableMapping](#tablemapping-protocol) protocol and you can stop writing SQL:
 
 ```swift
-let persons = Person.filter(email != nil).order(name).fetchAll(db)
+let persons = Person.filter(emailColumn != nil).order(nameColumn).fetchAll(db)
 let person = Person.fetchOne(db, key: 1)
 ```
 
@@ -1424,7 +1424,7 @@ extension PointOfInterest : TableMapping {
 Adopting types can be fetched using the [query interface](#the-query-interface):
 
 ```swift
-let paris = PointOfInterest.filter(name == "Paris").fetchOne(db)
+let paris = PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
 You can also fetch records according to their primary key (see [fetching methods](#fetching-methods)):
@@ -1479,7 +1479,10 @@ public protocol Persistable : MutablePersistable {
 
 Yes, two protocols instead of one. Both grant exactly the same advantages. Here is how you pick one or the other:
 
-- *If your type is a struct that mutates on insertion*, choose `MutablePersistable`. For example, your table has an INTEGER PRIMARY KEY and you want to store the inserted id on successful insertion. Or your table has a UUID primary key, and you want to automatically generate one on insertion.
+- *If your type is a struct that mutates on insertion*, choose `MutablePersistable`.
+    
+    For example, your table has an INTEGER PRIMARY KEY and you want to store the inserted id on successful insertion. Or your table has a UUID primary key, and you want to automatically generate one on insertion.
+
 - Otherwise, stick with `Persistable`. Particularly if your type is a class.
 
 The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
@@ -1663,7 +1666,7 @@ try poi.insert(db)
 
 ```swift
 // Using the query interface
-let pois = PointOfInterest.order(title).fetchAll(db)
+let pois = PointOfInterest.order(titleColumn).fetchAll(db)
 
 // By key
 let poi = PointOfInterest.fetchOne(db, key: 1)
@@ -1767,18 +1770,9 @@ class Person: Record { ... }
 Declare the table **columns** that you want to use for filtering, or sorting:
 
 ```swift
-let id = SQLColumn("id")
-let name = SQLColumn("name")
+let idColumn = SQLColumn("id")
+let nameColumn = SQLColumn("name")
 ```
-
-> :bowtie: **Tip**: you don't want to lock a variable such as `name` for GRDB's fancy API, do you? My own practice is to declare a dedicated `Col` struct as below (see example [declaration](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift#L3-L11) and [usage](DemoApps/GRDBDemoiOS/GRDBDemoiOS/MasterViewController.swift#L25-L29)):
->
-> ```swift
-> struct Col {
->    static let id = SQLColumn("id")
->    static let name = SQLColumn("name")
-> }
-> ```
 
 You can now derive requests with the following methods:
 
@@ -1805,27 +1799,27 @@ All the methods above return another request, which you can further refine by ap
     
     ```swift
     // SELECT "id", "name" FROM "persons"
-    Person.select(Col.id, Col.name)
+    Person.select(idColumn, nameColumn)
     
     // SELECT MAX("age") AS "maxAge" FROM "persons"
-    Person.select(max(Col.age).aliased("maxAge"))
+    Person.select(max(ageColumn).aliased("maxAge"))
     ```
 
 - `distinct` performs uniquing:
     
     ```swift
     // SELECT DISTINCT "name" FROM "persons"
-    Person.select(Col.name).distinct
+    Person.select(nameColumn).distinct
     ```
 
 - `filter(expression)` applies conditions.
     
     ```swift
     // SELECT * FROM "persons" WHERE ("id" IN (1, 2, 3))
-    Person.filter([1,2,3].contains(Col.id))
+    Person.filter([1,2,3].contains(idColumn))
     
     // SELECT * FROM "persons" WHERE (("name" IS NOT NULL) AND ("height" > 1.75))
-    Person.filter(Col.name != nil && Col.height > 1.75)
+    Person.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
 - `group(expression, ...)` groups rows.
@@ -1833,8 +1827,8 @@ All the methods above return another request, which you can further refine by ap
     ```swift
     // SELECT "name", MAX("age") FROM "persons" GROUP BY "name"
     Person
-        .select(Col.name, max(Col.age))
-        .group(Col.name)
+        .select(nameColumn, max(ageColumn))
+        .group(nameColumn)
     ```
 
 - `having(expression)` applies conditions on grouped rows.
@@ -1842,26 +1836,26 @@ All the methods above return another request, which you can further refine by ap
     ```swift
     // SELECT "name", MAX("age") FROM "persons" GROUP BY "name" HAVING MIN("age") >= 18
     Person
-        .select(Col.name, max(Col.age))
-        .group(Col.name)
-        .having(min(Col.age) >= 18)
+        .select(nameColumn, max(ageColumn))
+        .group(nameColumn)
+        .having(min(ageColumn) >= 18)
     ```
 
 - `order(sortDescriptor, ...)` sorts.
     
     ```swift
     // SELECT * FROM "persons" ORDER BY "name"
-    Person.order(Col.name)
+    Person.order(nameColumn)
     
     // SELECT * FROM "persons" ORDER BY "score" DESC, "name"
-    Person.order(Col.score.desc, Col.name)
+    Person.order(scoreColumn.desc, nameColumn)
     ```
 
 - `reverse()` reverses the eventual sort descriptors.
     
     ```swift
     // SELECT * FROM "persons" ORDER BY "score" ASC, "name" DESC
-    Person.order(Col.score.desc, Col.name).reverse()
+    Person.order(scoreColumn.desc, nameColumn).reverse()
     ```
     
     If no ordering was specified, the result is ordered by rowID in reverse order.
@@ -1885,16 +1879,16 @@ You can refine requests by chaining those methods, in any order.
 
 ```swift
 // SELECT * FROM "persons" WHERE ("email" IS NOT NULL) ORDER BY "name"
-Person.order(Col.name).filter(Col.email != nil)
+Person.order(nameColumn).filter(emailColumn != nil)
 ```
 
 The `select`, `group` and `limit` methods ignore and replace previously applied selection, grouping and limits. On the opposite, `filter`, `having`, and `order` methods extend the query:
 
 ```swift
 Person                          // SELECT * FROM "persons"
-    .filter(Col.name != nil)    // WHERE (("name" IS NOT NULL)
-    .filter(Col.email != nil)   //        AND ("email IS NOT NULL"))
-    .order(Col.name)            // ORDER BY "name"
+    .filter(nameColumn != nil)  // WHERE (("name" IS NOT NULL)
+    .filter(emailColumn != nil) //        AND ("email IS NOT NULL"))
+    .order(nameColumn)          // ORDER BY "name"
     .limit(20, offset: 40)      // - ignored -
     .limit(10)                  // LIMIT 10
 ```
@@ -1923,19 +1917,19 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     ```swift
     // SELECT * FROM "persons" WHERE ("name" = 'Arthur')
-    Person.filter(Col.name == "Arthur")
+    Person.filter(nameColumn == "Arthur")
     
     // SELECT * FROM "persons" WHERE ("name" IS NULL)
-    Person.filter(Col.name == nil)
+    Person.filter(nameColumn == nil)
     
     // SELECT * FROM "persons" WHERE ("age" <> 18)
-    Person.filter(Col.age != 18)
+    Person.filter(ageColumn != 18)
     
     // SELECT * FROM "persons" WHERE ("age" IS NOT 18)
-    Person.filter(Col.age !== 18)
+    Person.filter(ageColumn !== 18)
     
     // SELECT * FROM "rectangles" WHERE ("width" < "height")
-    Rectangle.filter(Col.width < Col.height)
+    Rectangle.filter(widthColumn < heightColumn)
     ```
     
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
@@ -1947,10 +1941,10 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     ```swift
     // SELECT (("temperature" * 1.8) + 32) AS "farenheit" FROM "persons"
-    Planet.select((Col.temperature * 1.8 + 32).aliased("farenheit"))
+    Planet.select((temperatureColumn * 1.8 + 32).aliased("farenheit"))
     ```
     
-    > :point_up: **Note**: an expression like `Col.name + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation.
+    > :point_up: **Note**: an expression like `nameColumn + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation.
 
 - `AND`, `OR`, `NOT`
     
@@ -1958,7 +1952,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     ```swift
     // SELECT * FROM "persons" WHERE ((NOT "verified") OR ("age" < 18))
-    Person.filter(!Col.verified || Col.age < 18)
+    Person.filter(!verifiedColumn || ageColumn < 18)
     ```
 
 - `BETWEEN`, `IN`, `IN (subquery)`, `NOT IN`, `NOT IN (subquery)`
@@ -1967,22 +1961,22 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     ```swift
     // SELECT * FROM "persons" WHERE ("id" IN (1, 2, 3))
-    Person.filter([1, 2, 3].contains(Col.id))
+    Person.filter([1, 2, 3].contains(idColumn))
     
     // SELECT * FROM "persons" WHERE ("id" NOT IN (1, 2, 3))
-    Person.filter(![1, 2, 3].contains(Col.id))
+    Person.filter(![1, 2, 3].contains(idColumn))
     
     // SELECT * FROM "persons" WHERE ("age" BETWEEN 0 AND 17)
-    Person.filter((0..<18).contains(Col.age))
+    Person.filter((0..<18).contains(ageColumn))
     
     // SELECT * FROM "persons" WHERE ("age" BETWEEN 0 AND 17)
-    Person.filter((0...17).contains(Col.age))
+    Person.filter((0...17).contains(ageColumn))
     
     // SELECT * FROM "persons" WHERE ("name" BETWEEN 'A' AND 'z')
-    Person.filter(("A"..."z").contains(Col.name))
+    Person.filter(("A"..."z").contains(nameColumn))
     
     // SELECT * FROM "persons" WHERE (("name" >= 'A') AND ("name" < 'z'))
-    Person.filter(("A"..<"z").contains(Col.name))
+    Person.filter(("A"..<"z").contains(nameColumn))
     ```
     
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
@@ -1992,8 +1986,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```swift
     // SELECT * FROM "events"
     //  WHERE ("userId" IN (SELECT "id" FROM "persons" WHERE "verified"))
-    let verifiedUsers = User.filter(Col.verified)
-    Event.filter(verifiedUsers.select(Col.id).contains(Col.userId))
+    let verifiedUsers = User.filter(verifiedColumn)
+    Event.filter(verifiedUsers.select(idColumn).contains(userIdColumn))
     ```
 
 - `EXISTS (subquery)`, `NOT EXISTS (subquery)`
@@ -2016,13 +2010,13 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     ```swift
     // SELECT MIN("age"), MAX("age") FROM persons
-    Person.select(min(Col.age), max(Col.age))
+    Person.select(min(ageColumn), max(ageColumn))
     
     // SELECT COUNT("name") FROM persons
-    Person.select(count(Col.name))
+    Person.select(count(nameColumn))
     
     // SELECT COUNT(DISTINCT "name") FROM persons
-    Person.select(count(distinct: Col.name))
+    Person.select(count(distinct: nameColumn))
     ```
 
 - `IFNULL`
@@ -2031,10 +2025,10 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     ```swift
     // SELECT IFNULL("name", 'Anonymous') FROM persons
-    Person.select(Col.name ?? "Anonymous")
+    Person.select(nameColumn ?? "Anonymous")
     
     // SELECT IFNULL("name", "email") FROM persons
-    Person.select(Col.name ?? Col.email)
+    Person.select(nameColumn ?? emailColumn)
     ```
 
 - `LOWER`, `UPPER`
@@ -2045,7 +2039,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     ```swift
     // SELECT swiftCapitalizedString(name) FROM persons
-    Person.select(Col.name.capitalizedString)
+    Person.select(nameColumn.capitalizedString)
     ```
     
     > :point_up: **Note**: When *comparing* strings, you may prefer a [custom comparison function](#string-comparison).
@@ -2058,7 +2052,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     let f = DatabaseFunction("f", ...)
     
     // SELECT f("name") FROM persons
-    Person.select(f.apply(Col.name))
+    Person.select(f.apply(nameColumn))
     ```
 
     
@@ -2081,8 +2075,8 @@ See [fetching methods](#fetching-methods) for information about the `fetch`, `fe
 For example:
 
 ```swift
-let allPersons = Person.fetchAll(db)                          // [Person]
-let arthur = Person.filter(Col.name == "Arthur").fetchOne(db) // Person?
+let allPersons = Person.fetchAll(db)                            // [Person]
+let arthur = Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
 ```
 
 
@@ -2090,11 +2084,11 @@ let arthur = Person.filter(Col.name == "Arthur").fetchOne(db) // Person?
 
 ```swift
 // Double
-let request = Person.select(min(Col.height))
+let request = Person.select(min(heightColumn))
 let minHeight = Double.fetchOne(db, request)!
 
 // Row
-let request = Person.select(min(Col.height), max(Col.height))
+let request = Person.select(min(heightColumn), max(heightColumn))
 let row = Row.fetchOne(db, request)!
 let minHeight = row.value(atIndex: 0) as Double
 let maxHeight = row.value(atIndex: 1) as Double
@@ -2129,23 +2123,23 @@ Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 let count = Person.fetchCount(db) // Int
 
 // SELECT COUNT(*) FROM "persons" WHERE "email" IS NOT NULL
-let count = Person.filter(Col.email != nil).fetchCount(db)
+let count = Person.filter(emailColumn != nil).fetchCount(db)
 
 // SELECT COUNT(DISTINCT "name") FROM "persons"
-let count = Person.select(Col.name).distinct.fetchCount(db)
+let count = Person.select(nameColumn).distinct.fetchCount(db)
 
 // SELECT COUNT(*) FROM (SELECT DISTINCT "name", "age" FROM "persons")
-let count = Person.select(Col.name, Col.age).distinct.fetchCount(db)
+let count = Person.select(nameColumn, ageColumn).distinct.fetchCount(db)
 ```
 
 
 **Other aggregated values** can also be selected and fetched (see [SQL Functions](#sql-functions)):
 
 ```swift
-let request = Person.select(min(Col.height))
+let request = Person.select(min(heightColumn))
 let minHeight = Double.fetchOne(db, request)  // Int?
 
-let request = Person.select(min(Col.height), max(Col.height))
+let request = Person.select(min(heightColumn), max(heightColumn))
 let row = Row.fetchOne(db, request)!
 let minHeight = row.value(atIndex: 0) as Double?
 let maxHeight = row.value(atIndex: 1) as Double?
@@ -2624,7 +2618,7 @@ String.fetchOne(db, "SELECT \(uppercaseString.name)('Jérôme')")
 Those built-in functions are also available in the [query interface](#sql-functions):
 
 ```
-Person.select(Col.name.capitalizedString)
+Person.select(nameColumn.capitalizedString)
 ```
 
 
