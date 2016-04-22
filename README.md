@@ -708,13 +708,12 @@ dbv.failableValue() as NSDate? // nil
 Row adopts the standard [CollectionType](https://developer.apple.com/library/ios/documentation/Swift/Reference/Swift_CollectionType_Protocol/index.html) protocol, and can be seen as a dictionary of [DatabaseValue](#databasevalue):
 
 ```swift
-// Test if the column `date` is present:
-if let databaseValue = row["date"] {
+// All the (columnName, databaseValue) tuples, from left to right:
+for (columnName, databaseValue) in row {
     ...
 }
 
-// All the (columnName, databaseValue) tuples, from left to right:
-for (columnName, databaseValue) in row {
+if let databaseValue = row["date"] {
     ...
 }
 ```
@@ -819,8 +818,8 @@ class Link : Record {
 Use values in the [query interface](#the-query-interface):
 
 ```swift
-let url = NSURL(string: "http://example.com")!
-let link = Link.filter(Col.url == url).fetchOne(db)
+let url: NSURL = ...
+let link = Link.filter(SQLColumn("url") == url).fetchOne(db)
 ```
 
 
@@ -899,9 +898,9 @@ This format may not fit your needs. We provide below some sample code for [stori
 NSDate can be stored and fetched from the database just like other [value types](#values):
 
 ```swift
-try db.execute("INSERT INTO persons (creationDate, ...) " +
-                            "VALUES (?, ...)",
-                         arguments: [NSDate(), ...])
+try db.execute(
+    "INSERT INTO persons (creationDate, ...) VALUES (?, ...)",
+    arguments: [NSDate(), ...])
 ```
 
 
