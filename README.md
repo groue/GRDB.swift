@@ -2530,7 +2530,7 @@ This chapter covers general topics that you should be aware of.
 
 **No SQLite error goes unnoticed.**
 
-Some GRDB functions throw a DatabaseError (see [SQLite error](https://www.sqlite.org/rescode.html) for the list of SQLite error codes):
+Some GRDB functions throw a DatabaseError (see [the list of SQLite error codes](https://www.sqlite.org/rescode.html)):
 
 ```swift
 do {
