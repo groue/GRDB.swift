@@ -1986,8 +1986,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     ```swift
     // SELECT * FROM "events"
     //  WHERE ("userId" IN (SELECT "id" FROM "persons" WHERE "verified"))
-    let verifiedUserIDs = User.select(idColumn).filter(verifiedColumn)
-    Event.filter(verifiedUserIDs.contains(userIdColumn))
+    let verifiedUserIds = User.select(idColumn).filter(verifiedColumn)
+    Event.filter(verifiedUserIds.contains(userIdColumn))
     ```
 
 - `EXISTS (subquery)`, `NOT EXISTS (subquery)`
