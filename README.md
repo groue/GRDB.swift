@@ -615,24 +615,13 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     
     See [Values](#values) for more information on supported types (Bool, Int, String, NSDate, Swift enums, etc.)
 
-- **NULL is converted to nil.**
+- **NULL returns nil.**
 
     ```swift
     let row = Row.fetchOne(db, "SELECT NULL")!
     row.value(atIndex: 0) as Int? // nil
     row.value(atIndex: 0) as Int  // fatal error: could not convert NULL to Int.
     ```
-    
-- **Invalid conversions throw a fatal error.**
-    
-    ```swift
-    let row = Row.fetchOne(db, "SELECT 'foo'")!
-    row.value(atIndex: 0) as String  // "foo"
-    row.value(atIndex: 0) as NSDate? // fatal error: could not convert "foo" to NSDate.
-    row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
-    ```
-    
-    This fatal error can be avoided with the [DatabaseValue.failableValue()](#databasevalue) method.
     
 - **Missing columns return nil.**
     
@@ -644,6 +633,17 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     
     You can explicitly check for a column presence with the `hasColumn` method.
 
+- **Invalid conversions throw a fatal error.**
+    
+    ```swift
+    let row = Row.fetchOne(db, "SELECT 'foo'")!
+    row.value(atIndex: 0) as String  // "foo"
+    row.value(atIndex: 0) as NSDate? // fatal error: could not convert "foo" to NSDate.
+    row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
+    ```
+    
+    This fatal error can be avoided with the [DatabaseValue.failableValue()](#databasevalue) method.
+    
 - **SQLite has a weak type system, and provides [convenience conversions](https://www.sqlite.org/c3ref/column_blob.html) that can turn Blob to String, String to Int, etc.**
     
     GRDB will sometimes let those conversions go through:
