@@ -695,7 +695,7 @@ self.date          = dbv.value()     // Depends on the type of the property.
 Invalid conversions from non-NULL values raise a fatal error. Use `failableValue()` when you want to check if conversion is valid:
 
 ```swift
-let row = Row.fetchOne(db, "SELECT 'foo' AS foo")!
+let row = Row.fetchOne(db, "SELECT 'foo'")!
 let dbv = row.databaseValue(at: 0)
 dbv.value() as String          // "foo"
 dbv.value() as NSDate?         // fatal error: could not convert "foo" to NSDate.
