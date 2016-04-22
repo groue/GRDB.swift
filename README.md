@@ -819,7 +819,7 @@ Use values in the [query interface](#the-query-interface):
 
 ```swift
 let url: NSURL = ...
-let link = Link.filter(SQLColumn("url") == url).fetchOne(db)
+let link = Link.filter(Col.url == url).fetchOne(db)
 ```
 
 
@@ -1197,13 +1197,13 @@ Not all SQLite APIs are exposed in GRDB.
 The `Database.sqliteConnection` and `Statement.sqliteStatement` properties provide the raw pointers that are suitable for [SQLite C API](https://www.sqlite.org/c3ref/funclist.html):
 
 ```swift
-dbQueue.inDatabase { db in
+try dbQueue.inDatabase { db in
+    // The raw pointer to a database connection:
     let sqliteConnection = db.sqliteConnection
-    sqlite3_db_config(sqliteConnection, ...)
-    
-    let statement = db.selectStatement("SELECT ...")
+
+    // The raw pointer to a statement:
+    let statement = try db.selectStatement("SELECT ...")
     let sqliteStatement = statement.sqliteStatement
-    sqlite3_step(sqliteStatement)
 }
 ```
 
