@@ -2530,37 +2530,61 @@ This chapter covers general topics that you should be aware of.
 
 **No SQLite error goes unnoticed.**
 
-When an [SQLite error](https://www.sqlite.org/rescode.html) happens, some GRDB functions throw a DatabaseError, and some crash with a fatal error:
+Some GRDB functions throw a DatabaseError (see [SQLite error](https://www.sqlite.org/rescode.html) for the list of SQLite error codes):
 
 ```swift
-// fatal error:
-// SQLite error 1 with statement `SELECT * FROM bar`: no such table: bar
-Row.fetchAll(db, "SELECT * FROM bar")
-
 do {
     try db.execute(
         "INSERT INTO pets (masterId, name) VALUES (?, ?)",
         arguments: [1, "Bobby"])
 } catch let error as DatabaseError {
-    // SQLite error 19 with statement `INSERT INTO pets (masterId, name)
-    // VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed
-    error.description
-    
-    // The SQLite result code: 19 (SQLITE_CONSTRAINT)
+    // The SQLite error code: 19 (SQLITE_CONSTRAINT)
     error.code
     
-    // The eventual SQLite message
-    // "FOREIGN KEY constraint failed"
+    // The eventual SQLite message: FOREIGN KEY constraint failed
     error.message
     
     // The eventual erroneous SQL query
     // "INSERT INTO pets (masterId, name) VALUES (?, ?)"
     error.sql
+
+    // Full error description:
+    // "SQLite error 19 with statement `INSERT INTO pets (masterId, name)
+    //  VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed""
+    error.description
 }
 ```
 
+Fatal errors uncover programmer errors, false assumptions, and prevent misuses:
 
-**Fatal errors can be avoided.** For example, let's consider the code below:
+```swift
+// fatal error:
+// SQLite error 1 with statement `SELECT * FROM boooks`:
+// no such table: boooks
+Row.fetchAll(db, "SELECT * FROM boooks")
+// solution: fix the SQL query:
+Row.fetchAll(db, "SELECT * FROM books")
+
+// fatal error: could not convert NULL to String.
+let name: String = row.value(named: "name")
+// solution: fix the contents of the database, or load an optional:
+let name: String? = row.value(named: "name")
+
+// fatal error: could not convert "0000-00-00 00:00:00" to NSDate.
+let date: NSDate? = row.value(named: "date")
+// solution: fix the contents of the database, or allow explicit data loss with failable conversion:
+let date: NSDate? = row.databaseValue(named: "date").failableValue()
+
+// fatal error: Database methods are not reentrant.
+dbQueue.inDatabase { db in
+    dbQueue.inDatabase { db in
+        ...
+    }
+}
+// solution: avoid reentrancy, and instead pass a database connection along.
+```
+
+**Fatal errors can be avoided**. For example, let's consider the code below:
 
 ```swift
 let sql = "SELECT ..."
@@ -2568,13 +2592,13 @@ let arguments: NSDictionary = ...
 let rows = Row.fetchAll(db, sql, arguments: StatementArguments(arguments))
 ```
 
-It has many opportunities to fail:
+It has several opportunities to throw fatal errors:
 
 - The sql string may contain invalid sql, or refer to non-existing tables or columns.
-- The arguments NSDictionary may contain unsuitable values.
-- The arguments NSDictionary may miss values required by the statement.
+- The dictionary may contain objects that can't be converted to database values.
+- The dictionary may miss values required by the statement.
 
-The safe version of the code above goes down a level in GRDB API, in order to expose each failure point:
+To avoid fatal errors, you have to expose and handle each failure point by going down one level in GRDB API:
 
 ```swift
 // Dictionary arguments may contain invalid values:
