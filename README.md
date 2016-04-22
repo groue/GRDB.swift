@@ -1875,7 +1875,7 @@ All the methods above return another request, which you can further refine by ap
     Person.limit(5, offset: 10)
     ```
 
-You can refine requests by chaining those methods, in any order.
+You can refine requests by chaining those methods:
 
 ```swift
 // SELECT * FROM "persons" WHERE ("email" IS NOT NULL) ORDER BY "name"
