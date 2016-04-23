@@ -2648,7 +2648,7 @@ Person.select(nameColumn.capitalizedString)
 
 SQLite compares strings in many occasions: when you sort rows according to a string column, or when you use a comparison operator such as `=` and `<=`.
 
-The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation) that do not support Unicode. For SQLite, "Jérôme" and "jerome" will never match.
+The comparison result comes from a *collating function*, or *collation*. SQLite comes with [three built-in collations](https://www.sqlite.org/datatype3.html#collation) that do not support Unicode.
 
 GRDB comes with five extra collations that leverage unicode-aware comparisons based on the standard Swift String comparison functions and operators:
 
@@ -2667,24 +2667,20 @@ try db.execute(
         "name TEXT COLLATE \(collation.name)" +
     ")")
 
-// Persons are sorted as expected:
-let persons = Person.order(name).fetchAll(db)
-
-// Matches "Jérôme", "jerome", etc.
-let persons = Person.filter(name == "Jérôme").fetchAll(db)
+// Persons are sorted in a localized case insensitive way:
+let persons = Person.order(nameColumn).fetchAll(db)
 ```
 
-If you can't or don't want to define the comparison behavior of a column, you can still use an explicit collation on particular requests:
+If you can't or don't want to define the comparison behavior of a column, you can still use an explicit collation in SQL requests and in the [query interface](#the-query-interface):
 
 ```swift
-// SELECT * FROM "persons" WHERE ("name" = 'foo' COLLATE NOCASE)
-let persons = Person.filter(name.collating("NOCASE") == "foo").fetchAll(db)
-
-// SELECT * FROM "persons" WHERE ("name" = 'Jérôme' COLLATE swiftLocalizedCaseInsensitiveCompare)
-let persons = Person.filter(name.collating(collation) == "Jérôme").fetchAll(db)
+let collation = DatabaseCollation.localizedCaseInsensitiveCompare
+let persons = Person.fetchAll(db,
+    "SELECT * FROM persons WHERE ORDER BY name COLLATE \(collation.name))")
+let persons = Person.order(nameColumn.collating(collation)).fetchAll(db)
+let persons = Person.filter(uuidColumn.collating("NOCASE") == uuid).fetchAll(db)
 ```
 
-See the [query interface](#the-query-interface) for more information.
 
 **You can also define your own collations**:
 
