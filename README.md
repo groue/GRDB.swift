@@ -2038,7 +2038,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Instead, GRDB extends SQLite with SQL functions that call the Swift built-in string functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString` and `localizedUppercaseString`:
     
     ```swift
-    Person.select(nameColumn.capitalizedString)
+    Person.select(nameColumn.uppercaseString)
     ```
     
     > :point_up: **Note**: When *comparing* strings, you'd rather use a [custom comparison function](#string-comparison).
@@ -2640,7 +2640,7 @@ String.fetchOne(db, "SELECT \(uppercaseString.name)('Jérôme')")
 Those unicode-aware string functions are also readily available in the [query interface](#sql-functions):
 
 ```
-Person.select(nameColumn.capitalizedString)
+Person.select(nameColumn.uppercaseString)
 ```
 
 
