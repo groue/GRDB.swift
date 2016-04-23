@@ -61,15 +61,16 @@ dbQueue.addTransactionObserver(observer)
 
 print("-- Changes 1")
 try! dbQueue.inDatabase { db in
-    let arthurId = try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"]).insertedRowID
-    let barbaraId = try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"]).insertedRowID
-    let pet = try db.execute("INSERT INTO pets (ownerId, name) VALUES (?, ?)", arguments: [arthurId, "Barbara"]).insertedRowID
+    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+    let arthurId = db.lastInsertedRowID
+    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
+    try db.execute("INSERT INTO pets (ownerId, name) VALUES (?, ?)", arguments: [arthurId, "Barbara"])
 }
 
 print("-- Changes 2")
 try dbQueue.inTransaction { db in
-    try db.execute("INSERT INTO persons (name) VALUES ('Arthur')").insertedRowID
-    try db.execute("INSERT INTO persons (name) VALUES ('Barbara')").insertedRowID
+    try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
+    try db.execute("INSERT INTO persons (name) VALUES ('Barbara')")
     return .Rollback
 }
 

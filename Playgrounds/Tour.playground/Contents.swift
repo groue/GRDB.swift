@@ -123,7 +123,7 @@ try dbQueue.inDatabase { db in
     
     berlin = PointOfInterest.filter(title == "Berlin").fetchOne(db)!   // PointOfInterest
     let paris = PointOfInterest.fetchOne(db, key: 1)                   // PointOfInterest?
-    let favoritePois = PointOfInterest                                      // [PointOfInterest]
+    let favoritePois = PointOfInterest                                 // [PointOfInterest]
         .filter(favorite)
         .order(title)
         .fetchAll(db)
