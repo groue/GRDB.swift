@@ -1,4 +1,4 @@
-- [] Add Database.isInTransaction
+- [ ] Add Database.isInTransaction
 - [ ] Support for WITHOUT ROWID tables (check didInsertWithRowID and FetchRequest.reverse())
 - [ ] What is the SQLITE_OPEN_WAL open flag?
 - [ ] Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
