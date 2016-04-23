@@ -2570,11 +2570,6 @@ let name: String = row.value(named: "name")
 // solution: fix the contents of the database, or load an optional:
 let name: String? = row.value(named: "name")
 
-// fatal error: could not convert "0000-00-00 00:00:00" to NSDate.
-let date: NSDate? = row.value(named: "date")
-// solution: fix the contents of the database, or allow explicit data loss with failable conversion:
-let date: NSDate? = row.databaseValue(named: "date").failableValue()
-
 // fatal error: Database methods are not reentrant.
 dbQueue.inDatabase { db in
     dbQueue.inDatabase { db in
