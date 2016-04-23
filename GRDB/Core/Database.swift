@@ -70,6 +70,9 @@ public final class Database {
         return Int(sqlite3_total_changes(sqliteConnection))
     }
     
+    /// True if the database connection is currently in a transaction.
+    public private(set) var isInsideTransaction: Bool = false
+    
     var lastErrorMessage: String? {
         return String.fromCString(sqlite3_errmsg(sqliteConnection))
     }
@@ -1034,14 +1037,17 @@ extension Database {
         case .Exclusive:
             try execute("BEGIN EXCLUSIVE TRANSACTION")
         }
+        isInsideTransaction = true
     }
     
     private func rollback() throws {
         try execute("ROLLBACK TRANSACTION")
+        isInsideTransaction = false
     }
     
     private func commit() throws {
         try execute("COMMIT TRANSACTION")
+        isInsideTransaction = false
     }
     
     /// Add a transaction observer, so that it gets notified of all

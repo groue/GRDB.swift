@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Version
 
+**New**
+
+- `Database.isInsideTransaction` is true if database is currently inside a transaction.
+
 **Fixed**
 
 - FetchRequest.reverse() sorts by reversed RowID when no base ordering has been specified.
