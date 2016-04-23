@@ -2,34 +2,23 @@
 
 import GRDB
 
-// UserDefaults can work with both DatabaseQueue and DatabasePool
-public protocol UserDefaultsBackEnd: class, DatabaseReader, DatabaseWriter { }
-extension DatabaseQueue : UserDefaultsBackEnd { }
-extension DatabasePool : UserDefaultsBackEnd { }
-extension Database : UserDefaultsBackEnd { }
-
 /// UserDefaults is a class that behaves like NSUserDefaults.
 ///
 /// Usage:
 ///
 ///     let dbQueue = DatabaseQueue(...)
-///     let defaults = UserDefaults.inDatabase(db)
-///
-///     defaults.integerForKey("bar") // 0
-///     defaults.setInteger(12, forKey: "bar")
-///     defaults.integerForKey("bar") // 12
-///
 ///     dbQueue.inDatabase { db in
 ///         let defaults = UserDefaults.inDatabase(db)
+///         defaults.setInteger(12, forKey: "bar")
 ///         defaults.integerForKey("bar") // 12
 ///     }
 public class UserDefaults {
-    private weak var db: UserDefaultsBackEnd!
+    private weak var db: Database!
     private var needsTable: Bool = true
     private static var registeredDefaults: [UserDefaults] = []
     
     /// Returns the defaults for the database
-    public static func inDatabase(db: UserDefaultsBackEnd) -> UserDefaults {
+    public static func inDatabase(db: Database) -> UserDefaults {
         registeredDefaults = registeredDefaults.filter { $0.db != nil }
         for defaults in registeredDefaults where defaults.db === db { return defaults }
         let defaults = UserDefaults(db: db)
@@ -37,7 +26,7 @@ public class UserDefaults {
         return defaults
     }
     
-    private init(db: UserDefaultsBackEnd) {
+    private init(db: Database) {
         self.db = db
     }
     
@@ -178,13 +167,10 @@ private let UserDefaultsItemTableName = "grdb_UserDefaults"
 // ============================================================
 
 let dbQueue = DatabaseQueue()
-let defaults = UserDefaults.inDatabase(dbQueue)
-
-defaults.integerForKey("bar") // 0
-defaults.setInteger(12, forKey: "bar")
-defaults.integerForKey("bar") // 12
-
 dbQueue.inDatabase { db in
     let defaults = UserDefaults.inDatabase(db)
+    
+    defaults.integerForKey("bar") // 0
+    defaults.setInteger(12, forKey: "bar")
     defaults.integerForKey("bar") // 12
 }
