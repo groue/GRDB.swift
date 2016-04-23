@@ -2676,7 +2676,7 @@ If you can't or don't want to define the comparison behavior of a column, you ca
 ```swift
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
 let persons = Person.fetchAll(db,
-    "SELECT * FROM persons WHERE ORDER BY name COLLATE \(collation.name))")
+    "SELECT * FROM persons ORDER BY name COLLATE \(collation.name))")
 let persons = Person.order(nameColumn.collating(collation)).fetchAll(db)
 let persons = Person.filter(uuidColumn.collating("NOCASE") == uuid).fetchAll(db)
 ```
