@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.59.1
+
+Released April 25, 2016
+
+**Fixed**
+
+- Carthage support is restored. Fixes [#41](https://github.com/groue/GRDB.swift/issues/41).
+
+
 ## 0.59.0
 
 Released April 23, 2016
