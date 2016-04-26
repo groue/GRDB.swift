@@ -65,6 +65,13 @@ class DatabaseStore {
     
     private static func setFileAttributes(directoryPath directoryPath: String, databaseFileName: String, attributes: [String: AnyObject]) {
         let fm = NSFileManager.defaultManager()
+        // TODO: handle symbolic links:
+        //
+        // According to https://www.sqlite.org/changes.html
+        // > 2016-01-06 (3.10.0)
+        // > On unix, if a symlink to a database file is opened, then the
+        // > corresponding journal files are based on the actual filename,
+        // > not the symlink name.
         let fileNames = try! fm.contentsOfDirectoryAtPath(directoryPath).filter({ $0.hasPrefix(databaseFileName) })
         for fileName in fileNames {
             do {
