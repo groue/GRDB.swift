@@ -1077,7 +1077,7 @@ All types that adopt this protocol can be used like all other [value types](#val
 
 The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
 
-The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value.
+The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value. If it does not, return nil, and avoid failing with a fatal error: this method is not the place where failed conversions are handled.
 
 As an example, see [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift): it shows how to store dates as timestamps, unlike the built-in [NSDate](#nsdate-and-nsdatecomponents).
 
