@@ -2275,7 +2275,7 @@ do {
 }
 ```
 
-> :point_up: **Note**: all callbacks are called on a protected dispatch queue.
+> :point_up: **Note**: all callbacks are called in a protected dispatch queue, and serialized with all database updates.
 >
 > :point_up: **Note**: the databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
