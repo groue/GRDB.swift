@@ -437,6 +437,9 @@ public indirect enum _SQLExpression {
     
     ///
     func sql(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
+        // TODO: this method is slow to compile
+        // https://medium.com/swift-programming/speeding-up-slow-swift-build-times-922feeba5780#.s77wmh4h0
+        // 10746.4ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/FetchRequest/SQLSelectQuery.swift:439:10	func sql(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
         switch self {
         case .Literal(let sql):
             return sql

@@ -161,6 +161,10 @@ extension RowConvertible where Self: TableMapping {
     // Returns nil if keys is empty.
     @warn_unused_result
     private static func fetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> SelectStatement? {
+        // TODO: this method is slow to compile
+        // https://medium.com/swift-programming/speeding-up-slow-swift-build-times-922feeba5780#.s77wmh4h0
+        // 586.8ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Record/TableMapping.swift:163:25	@warn_unused_result private static func fetchByKeyStatement(db: Database, keys: [[String : DatabaseValueConvertible?]]) -> SelectStatement?
+        
         // Avoid performing useless SELECT
         guard keys.count > 0 else {
             return nil
