@@ -2256,8 +2256,10 @@ try dbQueue.inTransaction { db in
 Database statements that are executed outside of an explicit transaction do not drop off the radar:
 
 ```swift
-try db.execute("INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
-try db.execute("UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
+try dbQueue.inDatabase { db in
+    try db.execute("INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
+    try db.execute("UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
+}
 ```
 
 **Eventual errors** thrown from `databaseWillCommit` are exposed to the application code:
