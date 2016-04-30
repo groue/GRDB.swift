@@ -2362,7 +2362,7 @@ let controller = FetchedRecordsController<Person>(
     dbQueue,
     sql: "SELECT persons.*, COUNT(books.id) AS bookCount " +
          "FROM persons " +
-         "LEFT JOIN books ON books.owner_id = persons.id " +
+         "LEFT JOIN books ON books.ownerId = persons.id " +
          "GROUP BY persons.id " +
          "ORDER BY persons.name",
     compareRecordsByPrimaryKey: true)
