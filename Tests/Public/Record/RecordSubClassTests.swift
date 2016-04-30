@@ -5,7 +5,68 @@ import XCTest
     import GRDB
 #endif
 
-class MinimalPersonWithOverrides : Person {
+private class Person : Record {
+    var id: Int64!
+    var name: String!
+    var age: Int?
+    var creationDate: NSDate!
+    
+    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+        self.id = id
+        self.name = name
+        self.age = age
+        self.creationDate = creationDate
+        super.init()
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE persons (" +
+                "id INTEGER PRIMARY KEY, " +
+                "creationDate TEXT NOT NULL, " +
+                "name TEXT NOT NULL, " +
+                "age INT" +
+            ")")
+    }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "persons"
+    }
+    
+    required init(_ row: Row) {
+        id = row.value(named: "id")
+        age = row.value(named: "age")
+        name = row.value(named: "name")
+        creationDate = row.value(named: "creationDate")
+        super.init(row)
+    }
+    
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return [
+            "id": id,
+            "name": name,
+            "age": age,
+            "creationDate": creationDate,
+        ]
+    }
+    
+    override func insert(db: Database) throws {
+        // This is implicitely tested with the NOT NULL constraint on creationDate
+        if creationDate == nil {
+            creationDate = NSDate()
+        }
+        
+        try super.insert(db)
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
+    }
+}
+
+private class MinimalPersonWithOverrides : Person {
     var extra: Int!
     
     // Record
@@ -16,7 +77,7 @@ class MinimalPersonWithOverrides : Person {
     }
 }
 
-class PersonWithOverrides : Person {
+private class PersonWithOverrides : Person {
     enum SavingMethod {
         case Insert
         case Update

@@ -5,6 +5,53 @@ import XCTest
     import GRDB
 #endif
 
+private class Person : Record {
+    var id: Int64!
+    var name: String!
+    var age: Int?
+    
+    init(id: Int64? = nil, name: String? = nil, age: Int? = nil) {
+        self.id = id
+        self.name = name
+        self.age = age
+        super.init()
+    }
+    
+    static func setupInDatabase(db: Database) throws {
+        try db.execute(
+            "CREATE TABLE persons (" +
+                "id INTEGER PRIMARY KEY, " +
+                "name TEXT NOT NULL, " +
+                "age INT" +
+            ")")
+    }
+    
+    // Record
+    
+    override class func databaseTableName() -> String {
+        return "persons"
+    }
+    
+    required init(_ row: Row) {
+        id = row.value(named: "id")
+        age = row.value(named: "age")
+        name = row.value(named: "name")
+        super.init(row)
+    }
+    
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return [
+            "id": id,
+            "name": name,
+            "age": age,
+        ]
+    }
+    
+    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+        self.id = rowID
+    }
+}
+
 class RecordFetchTests: GRDBTestCase {
     
     override func setUpDatabase(dbWriter: DatabaseWriter) throws {
@@ -12,7 +59,6 @@ class RecordFetchTests: GRDBTestCase {
         migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
         try migrator.migrate(dbWriter)
     }
-    
     
     func testSelectStatement() {
         assertNoError {

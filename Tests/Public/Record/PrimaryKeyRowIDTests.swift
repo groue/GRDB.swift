@@ -6,7 +6,7 @@ import XCTest
 #endif
 
 // Person has a RowID primary key, and a overriden insert() method.
-class Person : Record {
+private class Person : Record {
     var id: Int64!
     var name: String!
     var age: Int?

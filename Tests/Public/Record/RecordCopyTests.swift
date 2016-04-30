@@ -5,6 +5,40 @@ import XCTest
     import GRDB
 #endif
 
+private class Person : Record {
+    var id: Int64!
+    var name: String!
+    var age: Int?
+    var creationDate: NSDate
+    
+    init(id: Int64?, name: String?, age: Int?, creationDate: NSDate) {
+        self.id = id
+        self.name = name
+        self.age = age
+        self.creationDate = creationDate
+        super.init()
+    }
+    
+    // Record
+    
+    required init(_ row: Row) {
+        id = row.value(named: "id")
+        age = row.value(named: "age")
+        name = row.value(named: "name")
+        creationDate = row.value(named: "creationDate")
+        super.init(row)
+    }
+    
+    override var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return [
+            "id": id,
+            "name": name,
+            "age": age,
+            "creationDate": creationDate,
+        ]
+    }
+}
+
 class RecordCopyTests: GRDBTestCase {
     
     func testRecordCopy() {
