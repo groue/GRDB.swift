@@ -1075,7 +1075,7 @@ public protocol DatabaseValueConvertible {
 
 All types that adopt this protocol can be used like all other [value types](#values) (Bool, Int, String, NSDate, Swift enums, etc.)
 
-The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five types supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
+The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value. If it does not, return nil, and avoid failing with a fatal error: this method is not the place where failed conversions are handled.
 
@@ -2209,19 +2209,22 @@ The `TransactionObserverType` protocol lets you **observe database changes**:
 
 ```swift
 public protocol TransactionObserverType : class {
-    // Notifies a database change:
-    // - event.kind (insert, update, or delete)
-    // - event.tableName
-    // - event.rowID
+    /// Notifies a database change:
+    /// - event.kind (insert, update, or delete)
+    /// - event.tableName
+    /// - event.rowID
+    ///
+    /// The event is only valid for the duration of this method call. If you
+    /// need to keep it longer, store a copy of its properties.
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
-    // An opportunity to rollback pending changes by throwing an error.
+    /// An opportunity to rollback pending changes by throwing an error.
     func databaseWillCommit() throws
     
-    // Database changes have been committed.
+    /// Database changes have been committed.
     func databaseDidCommit(db: Database)
     
-    // Database changes have been rollbacked.
+    /// Database changes have been rollbacked.
     func databaseDidRollback(db: Database)
 }
 ```
