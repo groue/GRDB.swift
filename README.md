@@ -2551,6 +2551,7 @@ SQL injection is a technique that lets an attacker nuke your database.
 Here is an example of code that is vulnerable to SQL injection:
 
 ```swift
+// BAD BAD BAD
 let name = textField.text
 try dbQueue.inDatabase { db in
     try db.execute("UPDATE students SET name = '\(name)' WHERE id = \(id)")
@@ -2568,6 +2569,7 @@ DROP TABLE students;
 To avoid those problems, **never embed raw values in your SQL queries**. The correct technique is to provide arguments to your SQL queries:
 
 ```swift
+// Good
 let name = textField.text
 try dbQueue.inDatabase { db in
     try db.execute(
