@@ -1719,7 +1719,7 @@ if person.hasPersistentChangedValues {
 }
 ```
 
-The `hasPersistentChangedValues` flag is false after a record has been fetched or saved into the database. Subsequent modifications may set it: `hasPersistentChangedValues` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
+The `hasPersistentChangedValues` flag is false after a record has been fetched or saved into the database. Subsequent modifications may set it, or not: `hasPersistentChangedValues` is based on value comparison. **Setting a property to the same value does not set the changed flag**:
 
 ```swift
 let person = Person(name: "Barbara", age: 35)
