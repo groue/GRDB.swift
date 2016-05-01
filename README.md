@@ -1541,7 +1541,7 @@ pointOfInterest.exists(db)     // Bool
 
     It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly perfoms an INSERT if the record has no primary key, or a null primary key.
     
-    Despite the fact that it may execute two SQL statements, `save` behaves as an atomic operation, because GRDB serializes all database writes, and won't allow any concurrent thread to alter the database state (see [concurrency](#concurrency)).
+    Despite the fact that it may execute two SQL statements, `save` behaves as an atomic operation: GRDB won't allow any concurrent thread to sneak in (see [concurrency](#concurrency)).
 
 - `delete` returns whether a database row was deleted or not.
 
