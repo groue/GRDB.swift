@@ -2566,7 +2566,7 @@ DROP TABLE students;
 --' WHERE id = 1
 ```
 
-To avoid those problems, **never embed raw values in your SQL queries**. The correct technique is to provide arguments to your SQL queries:
+To avoid those problems, **never embed raw values in your SQL queries**. The only correct technique is to provide arguments to your SQL queries:
 
 ```swift
 // Good
