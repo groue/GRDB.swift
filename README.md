@@ -1600,9 +1600,12 @@ struct Link : Persistable {
 
 ### Record Class
 
-**Record** is a class that builds on top of the [RowConvertible](#rowconvertible-protocol), [TableMapping](#tablemapping-protocol) and [Persistable](#persistable-protocol) protocols, and is designed to be subclassed.
+**Record** is a class that is designed to be subclassed, and provides the full GRDB Record toolkit in one go:
 
-It provides [persistence methods](#persistence-methods), [changes tracking](#changes-tracking), and the [query interface](#the-query-interface).
+- Fetching methods (from the [RowConvertible](#rowconvertible-protocol) protocol)
+- [Persistence methods](#persistence-methods) (from the [Persistable](#persistable-protocol) protocol)
+- The [query interface](#the-query-interface) (from the [TableMapping](#tablemapping-protocol) protocol)
+- [Changes tracking](#changes-tracking) (unique to the Record class)
 
 **Record subclasses override the four core methods that define their relationship with the database:**
 
