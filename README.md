@@ -1539,7 +1539,7 @@ pointOfInterest.exists(db)     // Bool
 
 - `save` makes sure your values are stored in the database.
 
-    It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly perfoms an INSERT if the record has a null primary key.
+    It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly perfoms an INSERT if the record has no primary key, or a null primary key.
     
     Despite the fact that it may execute two SQL statements, `save` behaves as an atomic operation, because GRDB serialize all database writes (see [concurrency](#concurrency)).
 
