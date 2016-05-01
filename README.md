@@ -1545,7 +1545,7 @@ pointOfInterest.exists(db)     // Bool
 
 - `delete` returns whether a database row was deleted or not.
 
-All primary keys are supported, including primary keys that span on several columns.
+**All primary keys are supported**, including primary keys that span several columns.
 
 
 #### Customizing the Persistence Methods
