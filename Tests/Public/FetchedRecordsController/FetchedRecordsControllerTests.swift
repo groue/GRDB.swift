@@ -464,6 +464,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                 }
             }
             
+            // A list of random updates. We hope to cover most cases if not all cases here.
             let steps: [(word: String, events: [EventTest])] = [
                 (word: "B", events: [.I("B",0)]),
                 (word: "BA", events: [.I("A",0)]),
