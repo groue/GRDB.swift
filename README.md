@@ -151,6 +151,7 @@ Documentation
 
 **Good to know**
 
+- [Avoiding SQL Injection](#avoiding-sql-injection)
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
@@ -2532,10 +2533,49 @@ Good To Know
 
 This chapter covers general topics that you should be aware of.
 
+- [Avoiding SQL Injection](#avoiding-sql-injection)
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
 - [Concurrency](#concurrency)
+
+
+## Avoiding SQL Injection
+
+SQL injection is a technique that lets an attacker nuke your database.
+
+> ![XKCD: Exploits of a Mom](https://imgs.xkcd.com/comics/exploits_of_a_mom.png)
+> https://xkcd.com/327/
+
+Here is an example of code that is vulnerable to SQL injection:
+
+```swift
+let name = textField.text
+try dbQueue.inDatabase { db in
+    try db.execute("UPDATE students SET name = '\(name)' WHERE id = \(id)")
+}
+```
+
+If the user enters a funny string like `Robert'; DROP TABLE students; --`, SQLite will see the following SQL, and drop your database table instead of updating a name as intended:
+
+```sql
+UPDATE students SET name = 'Robert';
+DROP TABLE students;
+--' WHERE id = 1
+```
+
+To avoid those problems, **never embed raw values in your SQL queries**. The correct technique is to provide arguments to your SQL queries:
+
+```swift
+let name = textField.text
+try dbQueue.inDatabase { db in
+    try db.execute(
+        "UPDATE students SET name = ? WHERE id = ?",
+        arguments: [name, id])
+}
+```
+
+See [Executing Updates](#executing-updates) for more information on statement arguments.
 
 
 ## Error Handling
