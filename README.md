@@ -1535,9 +1535,17 @@ pointOfInterest.exists(db)     // Bool
 
 - `update` can also throw a PersistenceError of type NotFound, should the update fail because there is no matching row in the database.
     
-    When saving an object that may or may not already exist in the database, prefer the `save` method: it performs the UPDATE or INSERT statement that makes sure your values are saved in the database.
+    When saving an object that may or may not already exist in the database, prefer the `save` method:
+
+- `save` makes sure your values are stored in the database.
+
+    It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly perfoms an INSERT if the record has a null primary key.
+    
+    Despite the fact that it may execute two SQL statements, `save` behaves as an atomic operation, because GRDB serialize all database writes (see [concurrency](#concurrency)).
 
 - `delete` returns whether a database row was deleted or not.
+
+All primary keys are supported, including primary keys that span on several columns.
 
 
 #### Customizing the Persistence Methods
