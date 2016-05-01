@@ -803,7 +803,6 @@
 
 /* Begin PBXFileReference section */
 		31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsController.swift; sourceTree = "<group>"; };
-		31A778801C6A4DE000F507F6 /* FetchedResultsControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedResultsControllerTests.swift; sourceTree = "<group>"; };
 		5605F1491C672E4000235C62 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
 		5605F14B1C672E4000235C62 /* DatabaseCoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCoder.swift; sourceTree = "<group>"; };
 		5605F14C1C672E4000235C62 /* DatabaseDateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDateComponents.swift; sourceTree = "<group>"; };
@@ -1574,7 +1573,6 @@
 		56FC78631BBAEB6D00CA1285 /* Experimental */ = {
 			isa = PBXGroup;
 			children = (
-				31A778801C6A4DE000F507F6 /* FetchedResultsControllerTests.swift */,
 				56FC78641BBAEB8C00CA1285 /* MappingTests.swift */,
 				56FC78651BBAEB8C00CA1285 /* ManagedDataControllerTests.swift */,
 			);
