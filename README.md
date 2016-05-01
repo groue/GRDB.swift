@@ -2545,6 +2545,7 @@ This chapter covers general topics that you should be aware of.
 SQL injection is a technique that lets an attacker nuke your database.
 
 > ![XKCD: Exploits of a Mom](https://imgs.xkcd.com/comics/exploits_of_a_mom.png)
+>
 > https://xkcd.com/327/
 
 Here is an example of code that is vulnerable to SQL injection:
