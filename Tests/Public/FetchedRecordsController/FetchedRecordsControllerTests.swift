@@ -471,6 +471,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                 (word: "AB", events: [.D("F",2)]),
                 (word: "A", events: [.D("B",1)]),
                 (word: "C", events: [.U("C",0,"A")]),
+                (word: "", events: [.D("C",0)]),
+                (word: "C", events: [.I("C",0)]),
                 (word: "CD", events: [.I("D",1)]),
                 (word: "B", events: [.D("D",1), .U("B",0,"C")]),
                 (word: "BCAEFD", events: [.I("A",0), .I("C",2), .I("D",3), .I("E",4), .I("F",5)]),
@@ -639,7 +641,7 @@ private func synchronizePersons(db: Database, _ newPersons: [Person]) throws {
             try databasePerson.delete(db)
         case .Right(let newPerson):
             try newPerson.insert(db)
-        case .Common(let databasePerson, let newPerson):
+        case .Common(let _, let newPerson):
             try newPerson.update(db)
         }
     }
