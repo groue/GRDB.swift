@@ -261,7 +261,13 @@ try dbQueue.inTransaction { db in
     return .Commit
 }
 
-// Extract values from the database:
+// Read values:
+dbQueue.inDatabase { db in
+    let pois = PointOfInterest.fetchAll(db)
+    let poiCount = PointOfInterest.fetchCount(db)
+}
+
+// Extract a value from the database:
 let poiCount = dbQueue.inDatabase { db in
     PointOfInterest.fetchCount(db)
 }
@@ -325,7 +331,13 @@ try dbPool.writeInTransaction { db in
     return .Commit
 }
 
-// Extract values from the database:
+// Read values:
+dbPool.read { db in
+    let pois = PointOfInterest.fetchAll(db)
+    let poiCount = PointOfInterest.fetchCount(db)
+}
+
+// Extract a value from the database:
 let poiCount = dbPool.read { db in
     PointOfInterest.fetchCount(db)
 }
