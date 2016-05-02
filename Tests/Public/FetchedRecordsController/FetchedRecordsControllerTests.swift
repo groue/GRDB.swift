@@ -642,7 +642,7 @@ private func synchronizePersons(db: Database, _ newPersons: [Person]) throws {
             try databasePerson.delete(db)
         case .Right(let newPerson):
             try newPerson.insert(db)
-        case .Common(let _, let newPerson):
+        case .Common(_, let newPerson):
             try newPerson.update(db)
         }
     }
