@@ -2105,13 +2105,13 @@ let arthur = Person.filter(nameColumn == "Arthur").fetchOne(db) // Person?
 ```swift
 // Double
 let request = Person.select(min(heightColumn))
-let minHeight = Double.fetchOne(db, request)!
+let minHeight = Double.fetchOne(db, request)
 
 // Row
 let request = Person.select(min(heightColumn), max(heightColumn))
 let row = Row.fetchOne(db, request)!
-let minHeight = row.value(atIndex: 0) as Double
-let maxHeight = row.value(atIndex: 1) as Double
+let minHeight = row.value(atIndex: 0) as Double?
+let maxHeight = row.value(atIndex: 1) as Double?
 ```
 
 
@@ -2157,7 +2157,7 @@ let count = Person.select(nameColumn, ageColumn).distinct.fetchCount(db)
 
 ```swift
 let request = Person.select(min(heightColumn))
-let minHeight = Double.fetchOne(db, request)  // Int?
+let minHeight = Double.fetchOne(db, request)
 
 let request = Person.select(min(heightColumn), max(heightColumn))
 let row = Row.fetchOne(db, request)!
