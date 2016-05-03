@@ -3,9 +3,21 @@ GRDB.swift
 
 GRDB.swift is an SQLite toolkit for Swift 2.2.
 
-It ships with an SQL API, protocols that grant your custom types with fetching and persistence methods, a Swift query interface which lets SQL-allergic developers avoid their most dreaded language, database encryption, support for "WAL mode" -- that means extra performance in multi-threaded applications -- and a "fetched records controller" that behaves like Core Data's NSFetchedResultsController and tracks database changes for you.
+It ships with a low-level SQLite API, and high-level tools that help dealing with databases:
 
-And it's well-documented, tested, and [fast](https://github.com/groue/GRDB.swift/wiki/Performance).
+- **Records**: fetching and persistence methods for your custom structs and class hierarchies
+- **Query Interface**: a swift way to avoid the SQL language
+- **WAL Mode Support**: that means extra performance for multi-threaded applications
+- **Migrations**: transform your database as your application evolves
+- **Database Changes Observation**: perform post-commit and post-rollback actions
+- **Fetched Records Controller**: automated tracking of changes in a query results, and UITableView animations
+- **Encryption** with SQLCipher
+
+More than set of features, GRDB is also:
+
+- **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
+- **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)**
+- Well documented & tested
 
 You should give it a try.
 
@@ -42,6 +54,7 @@ try dbQueue.inDatabase { db in
         "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
         "VALUES (?, ?, ?, ?)",
         arguments: ["Paris", true, 48.85341, 2.3488])
+    
     let parisId = db.lastInsertedRowID
 }
 ```
@@ -56,7 +69,6 @@ dbQueue.inDatabase { db in
         let coordinate = CLLocationCoordinate2DMake(
             row.value(named: "latitude"),
             row.value(named: "longitude"))
-        print(title, favorite, coordinate)
     }
 
     let poiCount = Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
@@ -90,7 +102,7 @@ try dbQueue.inDatabase { db in
         coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
 
     try berlin.insert(dbQueue)
-    print(berlin.id) // some value
+    berlin.id // some value
 
     berlin.favorite = true
     try berlin.update(dbQueue)
