@@ -18,6 +18,7 @@ More than a set of features, GRDB is also:
 - **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
 - **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)
 - Well documented & tested
+- Suited for experienced SQLite users as well as beginners.
 
 You should give it a try.
 
