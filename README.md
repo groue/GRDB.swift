@@ -3,7 +3,7 @@ GRDB.swift
 
 GRDB.swift is an SQLite toolkit for Swift 2.2.
 
-It ships with a low-level SQLite API, and high-level tools that help dealing with databases:
+It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
 - **Records**: fetching and persistence methods for your custom structs and class hierarchies
 - **Query Interface**: a swift way to avoid the SQL language
@@ -16,7 +16,7 @@ It ships with a low-level SQLite API, and high-level tools that help dealing wit
 More than set of features, GRDB is also:
 
 - **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
-- **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)**
+- **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)
 - Well documented & tested
 
 You should give it a try.
