@@ -5,6 +5,24 @@ import XCTest
     import GRDB
 #endif
 
+/// Same as NSIndexPath(forRow:inSection:), but works on OSX as well.
+private func makeIndexPath(forRow row:Int, inSection section: Int) -> NSIndexPath {
+    #if os(iOS)
+        return NSIndexPath(forRow: row, inSection: section)
+    #else
+        return [section, row].withUnsafeBufferPointer { buffer in NSIndexPath(indexes: buffer.baseAddress, length: buffer.count) }
+    #endif
+}
+
+/// Same as NSIndexPath.row, but works on OSX as well.
+private func row(for indexPath:NSIndexPath) -> Int {
+    #if os(iOS)
+        return indexPath.row
+    #else
+        return indexPath.indexAtPosition(1)
+    #endif
+}
+
 private class ChangesRecorder<Record>: FetchedRecordsControllerDelegate {
     var changes: [(record: Record, event: FetchedRecordsEvent)] = []
     var recordsBeforeChanges: [Record]!
@@ -110,8 +128,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(controller.sections[0].records[0].name, "Arthur")
             XCTAssertEqual(controller.fetchedRecords!.count, 1)
             XCTAssertEqual(controller.fetchedRecords![0].name, "Arthur")
-            XCTAssertEqual(controller.recordAtIndexPath(NSIndexPath(forRow: 0, inSection: 0)).name, "Arthur")
-            XCTAssertEqual(controller.indexPathForRecord(arthur), NSIndexPath(forRow: 0, inSection: 0))
+            XCTAssertEqual(controller.recordAtIndexPath(makeIndexPath(forRow: 0, inSection: 0)).name, "Arthur")
+            XCTAssertEqual(controller.indexPathForRecord(arthur), makeIndexPath(forRow: 0, inSection: 0))
         }
     }
     
@@ -146,7 +164,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
             switch recorder.changes[0].event {
             case .Insertion(let indexPath):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 0, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 0, inSection: 0))
             default:
                 XCTFail()
             }
@@ -170,7 +188,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
             switch recorder.changes[0].event {
             case .Insertion(let indexPath):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 1, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 1, inSection: 0))
             default:
                 XCTFail()
             }
@@ -221,7 +239,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.name, "Craig")
             switch recorder.changes[0].event {
             case .Update(let indexPath, let changes):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 0, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 0, inSection: 0))
                 XCTAssertEqual(changes, ["name": "Arthur".databaseValue])
             default:
                 XCTFail()
@@ -246,7 +264,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.name, "Danielle")
             switch recorder.changes[0].event {
             case .Update(let indexPath, let changes):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 1, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 1, inSection: 0))
                 XCTAssertEqual(changes, ["name": "Barbara".databaseValue])
             default:
                 XCTFail()
@@ -290,7 +308,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
             switch recorder.changes[0].event {
             case .Deletion(let indexPath):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 0, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 0, inSection: 0))
             default:
                 XCTFail()
             }
@@ -311,7 +329,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
             switch recorder.changes[0].event {
             case .Deletion(let indexPath):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 0, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 0, inSection: 0))
             default:
                 XCTFail()
             }
@@ -355,8 +373,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.name, "Craig")
             switch recorder.changes[0].event {
             case .Move(let indexPath, let newIndexPath, let changes):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 0, inSection: 0))
-                XCTAssertEqual(newIndexPath, NSIndexPath(forRow: 1, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 0, inSection: 0))
+                XCTAssertEqual(newIndexPath, makeIndexPath(forRow: 1, inSection: 0))
                 XCTAssertEqual(changes, ["name": "Arthur".databaseValue])
             default:
                 XCTFail()
@@ -408,7 +426,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.bookCount, 0)
             switch recorder.changes[0].event {
             case .Update(let indexPath, let changes):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 0, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 0, inSection: 0))
                 XCTAssertEqual(changes, ["bookCount": 1.databaseValue])
             default:
                 XCTFail()
@@ -435,28 +453,28 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                     case .I(let s, let i):
                         switch event {
                         case .Insertion(let indexPath):
-                            return s == name && i == indexPath.row
+                            return s == name && i == row(for: indexPath)
                         default:
                             return false
                         }
                     case .M(let s, let i, let j, let c):
                         switch event {
                         case .Move(let indexPath, let newIndexPath, let changes):
-                            return s == name && i == indexPath.row && j == newIndexPath.row && c == changes["name"]!.value()
+                            return s == name && i == row(for: indexPath) && j == row(for: newIndexPath) && c == changes["name"]!.value()
                         default:
                             return false
                         }
                     case .D(let s, let i):
                         switch event {
                         case .Deletion(let indexPath):
-                            return s == name && i == indexPath.row
+                            return s == name && i == row(for: indexPath)
                         default:
                             return false
                         }
                     case .U(let s, let i, let c):
                         switch event {
                         case .Update(let indexPath, let changes):
-                            return s == name && i == indexPath.row && c == changes["name"]!.value()
+                            return s == name && i == row(for: indexPath) && c == changes["name"]!.value()
                         default:
                             return false
                         }
@@ -578,8 +596,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
             switch recorder.changes[0].event {
             case .Move(let indexPath, let newIndexPath, let changes):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 1, inSection: 0))
-                XCTAssertEqual(newIndexPath, NSIndexPath(forRow: 0, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 1, inSection: 0))
+                XCTAssertEqual(newIndexPath, makeIndexPath(forRow: 0, inSection: 0))
                 XCTAssertTrue(changes.isEmpty)
             default:
                 XCTFail()
@@ -601,7 +619,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             XCTAssertEqual(recorder.changes[1].record.name, "Craig")
             switch recorder.changes[0].event {
             case .Deletion(let indexPath):
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 0, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 0, inSection: 0))
             default:
                 XCTFail()
             }
@@ -609,8 +627,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             case .Move(let indexPath, let newIndexPath, let changes):
                 // TODO: is it really what we should expect? Wouldn't an update fit better?
                 // What does UITableView think?
-                XCTAssertEqual(indexPath, NSIndexPath(forRow: 1, inSection: 0))
-                XCTAssertEqual(newIndexPath, NSIndexPath(forRow: 0, inSection: 0))
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 1, inSection: 0))
+                XCTAssertEqual(newIndexPath, makeIndexPath(forRow: 0, inSection: 0))
                 XCTAssertEqual(changes, ["name": "Arthur".databaseValue])
             default:
                 XCTFail()
