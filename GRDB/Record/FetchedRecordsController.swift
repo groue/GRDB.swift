@@ -365,7 +365,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         guard let fetchedItems = fetchedItems, let index = fetchedItems.indexOf({ isSameRecord($0.record, record) }) else {
             return nil
         }
-        return indexPath(forRow: index, inSection: 0)
+        return makeIndexPath(forRow: index, inSection: 0)
     }
     
     
@@ -630,14 +630,14 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         
         var changes = [ItemChange<Record>]()
         for (row, item) in s.enumerate() {
-            let deletion = ItemChange.Deletion(item: item, indexPath: indexPath(forRow: row, inSection: 0))
+            let deletion = ItemChange.Deletion(item: item, indexPath: makeIndexPath(forRow: row, inSection: 0))
             changes.append(deletion)
             d[row + 1][0] = changes
         }
         
         changes.removeAll()
         for (col, item) in t.enumerate() {
-            let insertion = ItemChange.Insertion(item: item, indexPath: indexPath(forRow: col, inSection: 0))
+            let insertion = ItemChange.Insertion(item: item, indexPath: makeIndexPath(forRow: col, inSection: 0))
             changes.append(insertion)
             d[0][col + 1] = changes
         }
@@ -660,16 +660,16 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                     // Record operation.
                     let minimumCount = min(del.count, ins.count, sub.count)
                     if del.count == minimumCount {
-                        let deletion = ItemChange.Deletion(item: s[sx], indexPath: indexPath(forRow: sx, inSection: 0))
+                        let deletion = ItemChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
                         del.append(deletion)
                         d[sx+1][tx+1] = del
                     } else if ins.count == minimumCount {
-                        let insertion = ItemChange.Insertion(item: t[tx], indexPath: indexPath(forRow: tx, inSection: 0))
+                        let insertion = ItemChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
                         ins.append(insertion)
                         d[sx+1][tx+1] = ins
                     } else {
-                        let deletion = ItemChange.Deletion(item: s[sx], indexPath: indexPath(forRow: sx, inSection: 0))
-                        let insertion = ItemChange.Insertion(item: t[tx], indexPath: indexPath(forRow: tx, inSection: 0))
+                        let deletion = ItemChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
+                        let insertion = ItemChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
                         sub.append(deletion)
                         sub.append(insertion)
                         d[sx+1][tx+1] = sub
@@ -1032,7 +1032,7 @@ extension ItemChange: CustomStringConvertible {
 // MARK: - Utils
 
 /// Same as NSIndexPath(forRow:inSection:); works when UIKit is not available.
-private func indexPath(forRow row:Int, inSection section: Int) -> NSIndexPath {
+private func makeIndexPath(forRow row:Int, inSection section: Int) -> NSIndexPath {
     return [section, row].withUnsafeBufferPointer { buffer in NSIndexPath(indexes: buffer.baseAddress, length: buffer.count) }
 }
 
