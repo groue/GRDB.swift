@@ -1,3 +1,4 @@
+- [ ] Reimplement ReadWriteBox with GCD (look for dispatch_barrier_sync in http://khanlou.com/2016/04/the-GCD-handbook/)
 - [ ] In-memory DatabasePool (https://www.sqlite.org/inmemorydb.html)
 - [ ] Use "unchecked" instead of "unsafe" when appropriate
 - [ ] What is the SQLITE_OPEN_WAL open flag?
