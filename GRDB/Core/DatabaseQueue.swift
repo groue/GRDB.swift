@@ -60,9 +60,7 @@ public final class DatabaseQueue {
         return serializedDatabase.configuration
     }
     
-    /// The path to the database.
-    ///
-    /// It is nil for in-memory databases.
+    /// The path to the database file; nil for in-memory databases.
     public var path: String! {
         return store?.path
     }
