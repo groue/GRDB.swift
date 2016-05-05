@@ -1,5 +1,4 @@
 - [ ] Reimplement ReadWriteBox with GCD (look for dispatch_barrier_sync in http://khanlou.com/2016/04/the-GCD-handbook/)
-- [ ] In-memory DatabasePool (https://www.sqlite.org/inmemorydb.html)
 - [ ] Use "unchecked" instead of "unsafe" when appropriate
 - [ ] What is the SQLITE_OPEN_WAL open flag?
 - [ ] Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
@@ -25,6 +24,11 @@ Not sure:
 - [ ] Refactor errors in a single type?
 - [ ] Since Records' primary key are infered, no operation is possible on the primary key unless we have a Database instance. It's impossible to define the record.primaryKey property, or to provide a copy() function that does not clone the primary key: they miss the database that is the only object aware of the primary key. Should we change our mind, and have Record explicitly expose their primary key again?
 - [ ] Have Record adopt Hashable and Equatable, based on primary key. Problem: we can't do it know because we don't know the primary key until we have a database connection.
+
+
+Difficult:
+
+- [ ] In-memory DatabasePool (https://www.sqlite.org/inmemorydb.html). Unfortunately, a shared cache is not enough, and SQLite does not provide WAL mode for in-memory databases: we get "database is locked" errors. A solution could be a WAL database on a RAM disk, and this is difficult.
 
 
 Require changes in the Swift language:
