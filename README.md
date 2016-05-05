@@ -160,7 +160,8 @@ Documentation
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
-- [Encryption](#encryption)
+- [Encryption](#encryption): Encrypt your database with SQLCipher.
+- [Backup](#backup): Dump the content of a database to another.
 
 **Good to know**
 
@@ -1244,6 +1245,7 @@ Before jumping in the low-level wagon, here is a reminder of most SQLite APIs us
 - Connections & statements, obviously.
 - Errors (pervasive)
     - [sqlite3_errmsg](https://www.sqlite.org/c3ref/errcode.html)
+    - [sqlite3_errcode](https://www.sqlite.org/c3ref/errcode.html)
 - Inserted Row IDs (`Database.lastInsertedRowID`).
     - [sqlite3_last_insert_rowid](https://www.sqlite.org/c3ref/last_insert_rowid.html)
 - Changes count (`Database.changesCount` and `Database.totalChangesCount`).
@@ -1260,6 +1262,10 @@ Before jumping in the low-level wagon, here is a reminder of most SQLite APIs us
     - [sqlite3_update_hook](https://www.sqlite.org/c3ref/update_hook.html)
     - [sqlite3_commit_hook](https://www.sqlite.org/c3ref/commit_hook.html)
     - [sqlite3_rollback_hook](https://www.sqlite.org/c3ref/commit_hook.html)
+- Backup (see [Backup](#backup)):
+    - [sqlite3_backup_init](https://www.sqlite.org/c3ref/backup_finish.html)
+    - [sqlite3_backup_step](https://www.sqlite.org/c3ref/backup_finish.html)
+    - [sqlite3_backup_finish](https://www.sqlite.org/c3ref/backup_finish.html)
 - Authorizations callbacks are *reserved* by GRDB:
     - [sqlite3_set_authorizer](https://www.sqlite.org/c3ref/set_authorizer.html)
 
@@ -1274,7 +1280,8 @@ On top of the SQLite API described above, GRDB provides a toolkit for applicatio
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
 - [FetchedRecordsController](#fetchedrecordscontroller): Automatic database changes tracking, plus UITableView animations.
-- [Encryption](#encryption)
+- [Encryption](#encryption): Encrypt your database with SQLCipher.
+- [Backup](#backup): Dump the content of a database to another.
 
 
 ## Records
@@ -2552,6 +2559,29 @@ You can change the passphrase of an encrypted database:
 ```swift
 try dbQueue.changePassphrase("newSecret")
 ```
+
+
+## Backup
+
+**You can backup (copy) a database into another.**
+
+Backups can for example help you copying an in-memory database to and from a database file when you implement NSDocument subclasses.
+
+```swift
+let source: DatabaseQueue = ...      // or DatabasePool
+let destination: DatabaseQueue = ... // or DatabasePool
+try source.backup(to: destination)
+```
+
+The `backup` method blocks the current thread until the destination database contains the same contents as the source database.
+
+When the source is a [database pool](#database-pools), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
+
+Conversely, the destination database **must not** be used during the backup. Quoting [SQLite documentation](https://www.sqlite.org/c3ref/backup_finish.html): 
+
+> SQLite does not currently check to see if the application incorrectly accesses the destination database connection and so no error code is reported, but the operations may malfunction nevertheless. Use of the destination database connection while a backup is in progress might also also cause a mutex deadlock.
+
+For a detailed discussion, see https://www.sqlite.org/c3ref/backup_finish.html.
 
 
 Good To Know

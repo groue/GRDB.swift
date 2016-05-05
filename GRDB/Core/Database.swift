@@ -73,6 +73,10 @@ public final class Database {
     /// True if the database connection is currently in a transaction.
     public private(set) var isInsideTransaction: Bool = false
     
+    var lastErrorCode: Int32 {
+        return sqlite3_errcode(sqliteConnection)
+    }
+    
     var lastErrorMessage: String? {
         return String.fromCString(sqlite3_errmsg(sqliteConnection))
     }

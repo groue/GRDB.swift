@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `DatabaseReader.backup(to destination: DatabaseWriter)` backups a database to another ([documentation](https://github.com/groue/GRDB.swift#backup)).
+
+
 ## 0.59.1
 
 Released April 25, 2016

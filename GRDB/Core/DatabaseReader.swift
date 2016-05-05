@@ -1,3 +1,15 @@
+#if !SQLITE_HAS_CODEC
+    #if os(OSX)
+        import SQLiteMacOSX
+    #elseif os(iOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteiPhoneSimulator
+        #else
+            import SQLiteiPhoneOS
+        #endif
+    #endif
+#endif
+
 /// The protocol for all types that can fetch values from a database.
 ///
 /// It is adopted by DatabaseQueue and DatabasePool.
@@ -94,4 +106,71 @@ public protocol DatabaseReader : class {
     
     /// Remove a collation.
     func removeCollation(collation: DatabaseCollation)
+}
+
+extension DatabaseReader {
+    
+    // MARK: - Backup
+    
+    /// Copies the database contents into another database.
+    ///
+    /// The `backup` method blocks the current thread until the destination
+    /// database contains the same contents as the source database.
+    ///
+    /// When the source is a DatabasePool, concurrent writes can happen during
+    /// the backup. Those writes may, or may not, be reflected in the backup,
+    /// but they won't trigger any error.
+    ///
+    /// Conversely, the destination database **must not** be used during the
+    /// backup. Quoting https://www.sqlite.org/c3ref/backup_finish.html:
+    ///
+    /// > SQLite does not currently check to see if the application incorrectly
+    /// > accesses the destination database connection and so no error code is
+    /// > reported, but the operations may malfunction nevertheless. Use of the
+    /// > destination database connection while a backup is in progress might
+    /// > also also cause a mutex deadlock.
+    public func backup(to writer: DatabaseWriter) throws {
+        try backup(to: writer, afterBackupInit: nil, afterBackupStep: nil)
+    }
+    
+    func backup(to writer: DatabaseWriter, afterBackupInit: (() -> ())?, afterBackupStep: (() -> ())?) throws {
+        try read { dbFrom in
+            try writer.write { dbDest in
+                let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main")
+                // TODO: use the future Int <-> Pointer APIs https://github.com/apple/swift-evolution/blob/master/proposals/0016-initializers-for-converting-unsafe-pointers-to-ints.md
+                guard backup != unsafeBitCast(Int(SQLITE_ERROR), COpaquePointer.self) else {
+                    throw DatabaseError(code: SQLITE_ERROR)
+                }
+                guard backup != nil else {
+                    throw DatabaseError(code: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
+                }
+                
+                afterBackupInit?()
+                
+                do {
+                    backupLoop: while true {
+                        switch sqlite3_backup_step(backup, -1) {
+                        case SQLITE_DONE:
+                            afterBackupStep?()
+                            break backupLoop
+                        case SQLITE_OK:
+                            afterBackupStep?()
+                        case let code:
+                            throw DatabaseError(code: code, message: dbDest.lastErrorMessage)
+                        }
+                    }
+                } catch {
+                    sqlite3_backup_finish(backup)
+                    throw error
+                }
+                
+                switch sqlite3_backup_finish(backup) {
+                case SQLITE_OK:
+                    break
+                case let code:
+                    throw DatabaseError(code: code, message: dbDest.lastErrorMessage)
+                }
+            }
+        }
+    }
 }
