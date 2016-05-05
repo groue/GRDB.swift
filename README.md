@@ -2577,12 +2577,6 @@ The `backup` method blocks the current thread until the destination database con
 
 When the source is a [database pool](#database-pools), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
 
-Conversely, the destination database **must not** be used during the backup. Quoting [SQLite documentation](https://www.sqlite.org/c3ref/backup_finish.html): 
-
-> SQLite does not currently check to see if the application incorrectly accesses the destination database connection and so no error code is reported, but the operations may malfunction nevertheless. Use of the destination database connection while a backup is in progress might also also cause a mutex deadlock.
-
-For a detailed discussion, see https://www.sqlite.org/c3ref/backup_finish.html.
-
 
 Good To Know
 ============

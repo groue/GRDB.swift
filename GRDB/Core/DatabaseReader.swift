@@ -120,15 +120,6 @@ extension DatabaseReader {
     /// When the source is a DatabasePool, concurrent writes can happen during
     /// the backup. Those writes may, or may not, be reflected in the backup,
     /// but they won't trigger any error.
-    ///
-    /// Conversely, the destination database **must not** be used during the
-    /// backup. Quoting https://www.sqlite.org/c3ref/backup_finish.html:
-    ///
-    /// > SQLite does not currently check to see if the application incorrectly
-    /// > accesses the destination database connection and so no error code is
-    /// > reported, but the operations may malfunction nevertheless. Use of the
-    /// > destination database connection while a backup is in progress might
-    /// > also also cause a mutex deadlock.
     public func backup(to writer: DatabaseWriter) throws {
         try backup(to: writer, afterBackupInit: nil, afterBackupStep: nil)
     }
