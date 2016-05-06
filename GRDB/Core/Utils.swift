@@ -128,9 +128,7 @@ final class ReadWriteBox<T> {
     
     func write(block: (inout T) -> Void) {
         dispatch_barrier_sync(queue) {
-            var value = self._value
-            block(&value)
-            self._value = value
+            block(&self._value)
         }
     }
 
