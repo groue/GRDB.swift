@@ -286,8 +286,6 @@ let poiCount = dbQueue.inDatabase { db in
 }
 ```
 
-See [Transactions](#transactions) for more information.
-
 
 **Your application should create a single DatabaseQueue per database file.** See, for example, [DemoApps/GRDBDemoiOS/Database.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/Database.swift) for a sample code that properly sets up a single database queue that is available throughout the application.
 
@@ -355,8 +353,6 @@ let poiCount = dbPool.read { db in
     PointOfInterest.fetchCount(db)
 }
 ```
-
-See [Transactions](#transactions) for more information.
 
 
 **Your application should create a single DatabasePool per database file.**
