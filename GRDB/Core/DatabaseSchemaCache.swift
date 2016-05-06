@@ -1,4 +1,4 @@
-/// An thread-unsafe database schema cache
+/// A thread-unsafe database schema cache
 class DatabaseSchemaCache: DatabaseSchemaCacheType {
     private var primaryKeys: [String: PrimaryKey] = [:]
     private var updateStatements: [String: UpdateStatement] = [:]
