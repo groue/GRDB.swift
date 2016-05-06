@@ -221,9 +221,7 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
 Database Connections
 ====================
 
-GRDB provides two classes for accessing SQLite databases: `DatabaseQueue` and `DatabasePool`.
-
-Both grant safe database access from any thread of your application.
+GRDB provides two classes for accessing SQLite databases: `DatabaseQueue` and `DatabasePool`:
 
 ```swift
 import GRDB
@@ -237,6 +235,7 @@ The differences are:
 
 - Database pools allow concurrent database accesses (this can improve the performance of multithreaded applications).
 - Unless read-only, database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html).
+- Database queues support [in-memory databases](https://www.sqlite.org/inmemorydb.html).
 
 **If you are not sure, choose DatabaseQueue.** You will always be able to switch to DatabasePool later.
 
