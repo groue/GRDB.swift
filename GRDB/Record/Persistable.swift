@@ -621,15 +621,15 @@ private func == (lhs: InsertQuery, rhs: InsertQuery) -> Bool {
 }
 
 extension InsertQuery {
-    static var sqlCache: [InsertQuery: String] = [:]
+    static let sqlCache = ReadWriteBox([InsertQuery: String]())
     var sql: String {
-        if let sql = InsertQuery.sqlCache[self] {
+        if let sql = InsertQuery.sqlCache.read({ $0[self] }) {
             return sql
         }
         let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
         let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
         let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) VALUES (\(valuesSQL))"
-        InsertQuery.sqlCache[self] = sql
+        InsertQuery.sqlCache.write { $0[self] = sql }
         return sql
     }
 }
@@ -654,15 +654,15 @@ private func == (lhs: UpdateQuery, rhs: UpdateQuery) -> Bool {
 }
 
 extension UpdateQuery {
-    static var sqlCache: [UpdateQuery: String] = [:]
+    static let sqlCache = ReadWriteBox([UpdateQuery: String]())
     var sql: String {
-        if let sql = UpdateQuery.sqlCache[self] {
+        if let sql = UpdateQuery.sqlCache.read({ $0[self] }) {
             return sql
         }
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(",")
         let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
         let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
-        UpdateQuery.sqlCache[self] = sql
+        UpdateQuery.sqlCache.write { $0[self] = sql }
         return sql
     }
 }
