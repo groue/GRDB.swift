@@ -106,44 +106,36 @@ extension SequenceType where Generator.Element: Equatable {
     }
 }
 
-/// A ReadWriteBox protects a value with a pthread_rwlock_t (single writer, several readers)
+/// A ReadWriteBox grants multiple readers and single-writer guarantees on a value.
 final class ReadWriteBox<T> {
     var value: T {
-        get {
-            pthread_rwlock_rdlock(&rwLock)
-            defer { pthread_rwlock_unlock(&rwLock) }
-            return _value
-        }
-        set {
-            pthread_rwlock_wrlock(&rwLock)
-            defer { pthread_rwlock_unlock(&rwLock) }
-            _value = newValue
-        }
+        get { return read { $0 } }
+        set { write { $0 = newValue } }
     }
     
     init(_ value: T) {
         self._value = value
-        pthread_rwlock_init(&rwLock, nil)
-    }
-    
-    deinit {
-        pthread_rwlock_destroy(&rwLock)
+        self.queue = dispatch_queue_create("GRDB.ReadWriteBox", DISPATCH_QUEUE_CONCURRENT)
     }
     
     func read<U>(block: (T) -> U) -> U {
-        pthread_rwlock_rdlock(&rwLock)
-        defer { pthread_rwlock_unlock(&rwLock) }
-        return block(_value)
+        var result: U? = nil
+        dispatch_sync(queue) {
+            result = block(self._value)
+        }
+        return result!
     }
     
-    func write(block: (T) -> Void) {
-        pthread_rwlock_wrlock(&rwLock)
-        defer { pthread_rwlock_unlock(&rwLock) }
-        block(_value)
+    func write(block: (inout T) -> Void) {
+        dispatch_barrier_sync(queue) {
+            var value = self._value
+            block(&value)
+            self._value = value
+        }
     }
 
     private var _value: T
-    private var rwLock = pthread_rwlock_t()
+    private var queue: dispatch_queue_t
 }
 
 /// A Pool maintains a set of elements that are built them on demand. A pool has
