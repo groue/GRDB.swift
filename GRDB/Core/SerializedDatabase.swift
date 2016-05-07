@@ -89,7 +89,7 @@ final class SerializedDatabase {
     ///
     /// - precondition: the current dispatch queue is valid.
     func perform<T>(block: (db: Database) throws -> T) rethrows -> T {
-        db.preconditionValidQueue()
+        preconditionValidQueue()
         return try block(db: db)
     }
     
