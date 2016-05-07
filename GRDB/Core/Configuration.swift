@@ -61,6 +61,7 @@ public struct Configuration {
     
     var threadingMode: ThreadingMode = .Default
     var SQLiteConnectionDidOpen: (() -> ())?
+    var SQLiteConnectionWillClose: ((SQLiteConnection) -> ())?
     var SQLiteConnectionDidClose: (() -> ())?
     
     

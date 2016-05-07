@@ -1,8 +1,17 @@
 import XCTest
 #if SQLITE_HAS_CODEC
-    import GRDBCipher
+    @testable import GRDBCipher // @testable so that we have access to SQLiteConnectionWillClose
 #else
-    import GRDB
+    @testable import GRDB       // @testable so that we have access to SQLiteConnectionWillClose
+    #if os(OSX)
+        import SQLiteMacOSX
+    #elseif os(iOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteiPhoneSimulator
+        #else
+            import SQLiteiPhoneOS
+        #endif
+    #endif
 #endif
 
 class GRDBTestCase: XCTestCase {
@@ -49,6 +58,37 @@ class GRDBTestCase: XCTestCase {
         do { try NSFileManager.defaultManager().removeItemAtPath(dbDirectoryPath) } catch { }
         
         dbConfiguration = Configuration()
+        
+        // Test that database are deallocated in a clean state
+        dbConfiguration.SQLiteConnectionWillClose = { sqliteConnection in
+            // https://www.sqlite.org/capi3ref.html#sqlite3_close:
+            // > If sqlite3_close_v2() is called on a database connection that still
+            // > has outstanding prepared statements, BLOB handles, and/or
+            // > sqlite3_backup objects then it returns SQLITE_OK and the
+            // > deallocation of resources is deferred until all prepared
+            // > statements, BLOB handles, and sqlite3_backup objects are also
+            // > destroyed.
+            //
+            // Let's assert that there is no longer any busy update statements.
+            //
+            // SQLite would allow that. But not GRDB, since all updates happen
+            // in closures that retain database connections, preventing
+            // Database.deinit to fire.
+            //
+            // What we gain from this test is a guarantee that database
+            // deallocation implies that there is no pending lock in the
+            // database.
+            //
+            // See:
+            // - sqlite3_next_stmt https://www.sqlite.org/capi3ref.html#sqlite3_next_stmt
+            // - sqlite3_stmt_busy https://www.sqlite.org/capi3ref.html#sqlite3_stmt_busy
+            // - sqlite3_stmt_readonly https://www.sqlite.org/capi3ref.html#sqlite3_stmt_readonly
+            var stmt: SQLiteStatement = sqlite3_next_stmt(sqliteConnection, nil)
+            while stmt != nil {
+                XCTAssertTrue(sqlite3_stmt_readonly(stmt) != 0 || sqlite3_stmt_busy(stmt) == 0)
+                stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+            }
+        }
         dbConfiguration.trace = { (sql) in
             self.sqlQueries.append(sql)
             self.lastSQLQuery = sql

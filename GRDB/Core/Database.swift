@@ -143,22 +143,11 @@ public final class Database {
     }
     
     deinit {
+        configuration.SQLiteConnectionWillClose?(sqliteConnection)
         let code = sqlite3_close_v2(sqliteConnection)
         guard code == SQLITE_OK else {
             fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
         }
-        
-        // TODO: callback for actual database closing.
-        //
-        // https://www.sqlite.org/capi3ref.html#sqlite3_close:
-        // > If sqlite3_close_v2() is called on a database connection that still
-        // > has outstanding prepared statements, BLOB handles, and/or
-        // > sqlite3_backup objects then it returns SQLITE_OK and the
-        // > deallocation of resources is deferred until all prepared
-        // > statements, BLOB handles, and sqlite3_backup objects are also
-        // > destroyed.
-        //
-        // See sqlite3_next_stmt https://www.sqlite.org/capi3ref.html#sqlite3_next_stmt
         configuration.SQLiteConnectionDidClose?()
     }
     
