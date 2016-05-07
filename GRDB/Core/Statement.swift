@@ -25,14 +25,15 @@ public class Statement {
     public let sqliteStatement: SQLiteStatement
     
     /// The SQL query
-    public let sql: String
+    public var sql: String {
+        return String.fromCString(sqlite3_sql(sqliteStatement))!
+    }
     
     /// The database
     unowned let database: Database
     
-    init(database: Database, sql: String, sqliteStatement: SQLiteStatement) {
+    init(database: Database, sqliteStatement: SQLiteStatement) {
         self.database = database
-        self.sql = sql
         self.sqliteStatement = sqliteStatement
     }
     
@@ -55,7 +56,6 @@ public class Statement {
         }
         
         self.database = database
-        self.sql = sql
         self.sqliteStatement = sqliteStatement
         
         guard code == SQLITE_OK else {
@@ -418,11 +418,11 @@ public class DatabaseGenerator<Element>: GeneratorType {
 public final class UpdateStatement : Statement {
     /// If true, the database schema cache gets invalidated after this statement
     /// is executed.
-    var invalidatesDatabaseSchemaCache: Bool
+    private(set) var invalidatesDatabaseSchemaCache: Bool
     
-    init(database: Database, sql: String, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool) {
+    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool) {
         self.invalidatesDatabaseSchemaCache = invalidatesDatabaseSchemaCache
-        super.init(database: database, sql: sql, sqliteStatement: sqliteStatement)
+        super.init(database: database, sqliteStatement: sqliteStatement)
     }
     
     init(database: Database, sql: String) throws {
@@ -445,12 +445,9 @@ public final class UpdateStatement : Statement {
         try! reset()
         
         switch sqlite3_step(sqliteStatement) {
-        case SQLITE_DONE:
-            // Success
-            break
-            
-        case SQLITE_ROW:
-            // A row? The UpdateStatement is not supposed to return any...
+        case SQLITE_DONE, SQLITE_ROW:
+            // When SQLITE_ROW, the statement did return a row. That's
+            // unexpected from an update statement.
             //
             // What are our options?
             //
@@ -469,8 +466,9 @@ public final class UpdateStatement : Statement {
             //
             // The problem with 3 is that there is no way to avoid this warning.
             //
-            // So let's just silently ignore the row, and return successfully.
-            break
+            // So let's just silently ignore the row, and behave just like
+            // SQLITE_DONE: this is a success.
+            database.updateStatementDidExecute(self)
             
         case let errorCode:
             // Failure
@@ -480,15 +478,6 @@ public final class UpdateStatement : Statement {
             
             throw DatabaseError(code: errorCode, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
         }
-        
-        // Now that statement has been executed, clear database schema cache if needed
-        if invalidatesDatabaseSchemaCache {
-            database.clearSchemaCache()
-        }
-        
-        // Now that changes information has been loaded, let transaction
-        // observers do whatever they want:
-        database.updateStatementDidExecute()
     }
 }
 
