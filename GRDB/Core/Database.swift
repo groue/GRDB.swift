@@ -85,6 +85,8 @@ public final class Database {
     private var collations = Set<DatabaseCollation>()
     
     var schemaCache: DatabaseSchemaCacheType    // internal so that it can be tested
+    private var selectStatementCache: [String: SelectStatement] = [:]
+    private var updateStatementCache: [String: UpdateStatement] = [:]
     
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
     private var transactionState: TransactionState = .WaitForTransactionCompletion
@@ -163,6 +165,8 @@ public final class Database {
     func releaseMemory() {
         sqlite3_db_release_memory(sqliteConnection)
         schemaCache.clear()
+        updateStatementCache = [:]
+        selectStatementCache = [:]
     }
     
     private func setupForeignKeys() throws {
@@ -344,12 +348,12 @@ extension Database {
     
     @warn_unused_result
     func cachedSelectStatement(sql: String) throws -> SelectStatement {
-        if let statement = schemaCache.selectStatement(sql: sql) {
+        if let statement = selectStatementCache[sql] {
             return statement
         }
         
         let statement = try selectStatement(sql)
-        schemaCache.setSelectStatement(statement, forSQL: sql)
+        selectStatementCache[sql] = statement
         return statement
     }
     
@@ -371,12 +375,12 @@ extension Database {
     
     @warn_unused_result
     func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        if let statement = schemaCache.updateStatement(sql: sql) {
+        if let statement = updateStatementCache[sql] {
             return statement
         }
         
         let statement = try updateStatement(sql)
-        schemaCache.setUpdateStatement(statement, forSQL: sql)
+        updateStatementCache[sql] = statement
         return statement
     }
     
@@ -745,12 +749,6 @@ protocol DatabaseSchemaCacheType {
     
     func primaryKey(tableName tableName: String) -> PrimaryKey?
     mutating func setPrimaryKey(primaryKey: PrimaryKey, forTableName tableName: String)
-
-    func updateStatement(sql sql: String) -> UpdateStatement?
-    mutating func setUpdateStatement(statement: UpdateStatement, forSQL sql: String)
-    
-    func selectStatement(sql sql: String) -> SelectStatement?
-    mutating func setSelectStatement(statement: SelectStatement, forSQL sql: String)
 }
 
 extension Database {
@@ -762,6 +760,13 @@ extension Database {
     public func clearSchemaCache() {
         preconditionValidQueue()
         schemaCache.clear()
+        
+        // We also clear updateStatementCache and selectStatementCache despite
+        // the automatic statement recompilation (see https://www.sqlite.org/c3ref/prepare.html)
+        // because the automatic statement recompilation only happens a
+        // limited number of times.
+        updateStatementCache = [:]
+        selectStatementCache = [:]
     }
     
     /// Returns whether a table exists.

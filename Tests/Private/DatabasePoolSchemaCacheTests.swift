@@ -71,4 +71,45 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             }
         }
     }
+    
+    func testCachedStatementsAreNotShared() {
+        // This is a regression test.
+        //
+        // If cached statements were shared between reader connections, this
+        // test would crash with fatal error: Database was not used on the
+        // correct thread.
+        
+        assertNoError {
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try db.execute("INSERT INTO items (id) VALUES (1)")
+            }
+            
+            // Block 1                              Block 2
+            // SELECT 1 FROM items WHERE id = 1
+            // >
+            let s1 = dispatch_semaphore_create(0)
+            //                                      SELECT 1 FROM items WHERE id = 1
+            
+            let block1 = { () in
+                dbPool.read { db in
+                    let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
+                    XCTAssertEqual(Int.fetchOne(stmt)!, 1)
+                    dispatch_semaphore_signal(s1)
+                }
+            }
+            let block2 = { () in
+                dbPool.read { db in
+                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
+                    XCTAssertEqual(Int.fetchOne(stmt)!, 1)
+                }
+            }
+            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            dispatch_apply(2, queue) { index in
+                [block1, block2][index]()
+            }
+        }
+    }
 }
