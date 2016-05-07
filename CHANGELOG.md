@@ -1,6 +1,16 @@
 Release Notes
 =============
 
+## 0.60.1
+
+Released May 7, 2016
+
+**Fixed**
+
+- A crash that did happen when DatabasePool would incorrectly share database statement between several reader connections.
+- A memory leak that did happen when a Database connection was deallocated while some database statements were still alive.
+
+
 ## 0.60.0
 
 Released May 5, 2016
