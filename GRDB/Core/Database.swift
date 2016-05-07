@@ -141,8 +141,11 @@ public final class Database {
     }
     
     deinit {
+        let code = sqlite3_close_v2(sqliteConnection)
+        guard code == SQLITE_OK else {
+            fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+        }
         configuration.SQLiteConnectionDidClose?()
-        sqlite3_close_v2(sqliteConnection)
     }
     
     func releaseMemory() {
