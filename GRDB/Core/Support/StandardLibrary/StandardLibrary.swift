@@ -404,6 +404,17 @@ extension DatabaseFunction {
 // MARK: - SQLite Collations
 
 extension DatabaseCollation {
+    // Here we define a set of predefined collations.
+    //
+    // We should avoid renaming those collations, because database created with
+    // earlier versions of the library may have used those collations in the
+    // definition of tables. A renaming would prevent SQLite to find the
+    // collation.
+    //
+    // Yet we're not absolutely stuck: we could register support for obsolete
+    // collation names with sqlite3_collation_needed().
+    // See https://www.sqlite.org/capi3ref.html#sqlite3_collation_needed
+    
     /// A collation, or SQL string comparison function, that compares strings
     /// according to the the Swift built-in == and <= operators.
     ///
