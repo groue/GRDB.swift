@@ -120,7 +120,7 @@ public final class Database {
                 }
             } catch {
                 // deinit is not called: close connection
-                sqlite3_close(sqliteConnection)
+                sqlite3_close_v2(sqliteConnection)
                 throw error
             }
         #endif
@@ -142,7 +142,7 @@ public final class Database {
     
     deinit {
         configuration.SQLiteConnectionDidClose?()
-        sqlite3_close(sqliteConnection)
+        sqlite3_close_v2(sqliteConnection)
     }
     
     func releaseMemory() {
