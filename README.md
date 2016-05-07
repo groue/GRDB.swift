@@ -1450,21 +1450,13 @@ extension PointOfInterest : TableMapping {
 }
 ```
 
-Adopting types can be fetched using the [query interface](#the-query-interface):
+Adopting types can be fetched without SQL, using the [query interface](#the-query-interface):
 
 ```swift
 let paris = PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
-You can also fetch records according to their primary key (see [fetching methods](#fetching-methods)):
-
-```swift
-PointOfInterest.fetch(db, keys: ...)    // DatabaseSequence<PointOfInterest>
-PointOfInterest.fetchAll(db, keys: ...) // [PointOfInterest]
-PointOfInterest.fetchOne(db, key: ...)  // PointOfInterest?
-```
-
-Any single-column primary key is OK:
+You can also fetch records according to their primary key:
 
 ```swift
 // SELECT * FROM persons WHERE id = 1
