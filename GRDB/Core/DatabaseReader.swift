@@ -128,12 +128,11 @@ extension DatabaseReader {
         try read { dbFrom in
             try writer.write { dbDest in
                 let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main")
-                // TODO: use the future Int <-> Pointer APIs https://github.com/apple/swift-evolution/blob/master/proposals/0016-initializers-for-converting-unsafe-pointers-to-ints.md
-                guard backup != unsafeBitCast(Int(SQLITE_ERROR), COpaquePointer.self) else {
-                    throw DatabaseError(code: SQLITE_ERROR)
-                }
                 guard backup != nil else {
                     throw DatabaseError(code: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
+                }
+                guard backup != unsafeBitCast(Int(SQLITE_ERROR), COpaquePointer.self) else {
+                    throw DatabaseError(code: SQLITE_ERROR)
                 }
                 
                 afterBackupInit?()
