@@ -991,53 +991,38 @@ extension Database {
     ///       .Commit or .Rollback.
     /// - throws: The error thrown by the block.
     public func inTransaction(kind: TransactionKind? = nil, @noescape _ block: () throws -> TransactionCompletion) throws {
+        // Begin transaction
         try beginTransaction(kind ?? configuration.defaultTransactionKind)
         
-        var completion: TransactionCompletion = .Rollback
-        var blockError: ErrorType? = nil
+        // Now that transcation is open, we'll rollback in case of error.
+        // But we'll throw the first caught error, so that user knows
+        // what happened.
+        var firstError: ErrorType? = nil
+        let needsRollback: Bool
         do {
-            completion = try block()
+            let completion = try block()
+            switch completion {
+            case .Commit:
+                try commit()
+                needsRollback = false
+            case .Rollback:
+                needsRollback = true
+            }
         } catch {
-            completion = .Rollback
-            blockError = error
+            firstError = error
+            needsRollback = true
         }
         
-        switch completion {
-        case .Commit:
-            try commit()
-        case .Rollback:
-            // https://www.sqlite.org/lang_transaction.html#immediate
-            //
-            // > Response To Errors Within A Transaction
-            // >
-            // > If certain kinds of errors occur within a transaction, the
-            // > transaction may or may not be rolled back automatically. The
-            // > errors that can cause an automatic rollback include:
-            // >
-            // > - SQLITE_FULL: database or disk full
-            // > - SQLITE_IOERR: disk I/O error
-            // > - SQLITE_BUSY: database in use by another process
-            // > - SQLITE_NOMEM: out or memory
-            // >
-            // > [...] It is recommended that applications respond to the errors
-            // > listed above by explicitly issuing a ROLLBACK command. If the
-            // > transaction has already been rolled back automatically by the
-            // > error response, then the ROLLBACK command will fail with an
-            // > error, but no harm is caused by this.
-            if let databaseError = blockError as? DatabaseError {
-                switch Int32(databaseError.code) {
-                case SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM:
-                    do { try rollback() } catch { }
-                default:
-                    try rollback()
-                }
+        if needsRollback {
+            if firstError != nil {
+                do { try rollback() } catch { }
             } else {
                 try rollback()
             }
         }
-        
-        if let blockError = blockError {
-            throw blockError
+
+        if let firstError = firstError {
+            throw firstError
         }
     }
     
