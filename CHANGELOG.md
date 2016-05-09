@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next version
+
+**Fixed**
+
+- Transactions that fail precisely on the COMMIT statement are rollbacked (they used to remain open).
+
+
 ## 0.60.1
 
 Released May 7, 2016
