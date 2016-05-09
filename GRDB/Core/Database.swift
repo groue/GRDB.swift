@@ -1014,8 +1014,35 @@ extension Database {
         }
         
         if needsRollback {
-            if firstError != nil {
-                do { try rollback() } catch { }
+            if let firstError = firstError {
+                // https://www.sqlite.org/lang_transaction.html#immediate
+                //
+                // > Response To Errors Within A Transaction
+                // >
+                // > If certain kinds of errors occur within a transaction, the
+                // > transaction may or may not be rolled back automatically.
+                // > The errors that can cause an automatic rollback include:
+                // >
+                // > - SQLITE_FULL: database or disk full
+                // > - SQLITE_IOERR: disk I/O error
+                // > - SQLITE_BUSY: database in use by another process
+                // > - SQLITE_NOMEM: out or memory
+                // >
+                // > [...] It is recommended that applications respond to the
+                // > errors listed above by explicitly issuing a ROLLBACK
+                // > command. If the transaction has already been rolled back
+                // > automatically by the error response, then the ROLLBACK
+                // > command will fail with an error, but no harm is caused
+                // > by this.
+                //
+                // Rollback and ignore error because we'll throw firstError.
+                do {
+                    try rollback()
+                } catch {
+                    if let error = firstError as? DatabaseError where [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(Int32(error.code)) {
+                        isInsideTransaction = false
+                    }
+                }
             } else {
                 try rollback()
             }
