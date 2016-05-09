@@ -78,7 +78,8 @@ public struct _SQLSelectQuery {
                 // > used to retrieve the integer rowid value.
                 //
                 // Here we assume that _rowid_ is not a custom column.
-                // FIXME: support for user-defined _rowid_ column.
+                // TODO: support for user-defined _rowid_ column.
+                // TODO: support for WITHOUT ROWID tables.
                 sortDescriptors = [SQLColumn("_rowid_").desc]
             } else {
                 sortDescriptors = sortDescriptors.map { $0.reversedSortDescriptor }
