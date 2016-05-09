@@ -317,4 +317,35 @@ class DatabaseTests : GRDBTestCase {
             }
         }
     }
+    
+    func testFailedCommitIsRollbacked() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE parent (id INTEGER PRIMARY KEY)")
+                try db.execute("CREATE TABLE child (parentID INTEGER NOT NULL REFERENCES parent(id))")
+            }
+            
+            do {
+                try dbQueue.inTransaction { db in
+                    do {
+                        try db.execute("PRAGMA defer_foreign_keys = ON")
+                        try db.execute("INSERT INTO child (parentID) VALUES (1)")
+                    } catch {
+                        XCTFail()
+                    }
+                    return .Commit
+                }
+                XCTFail()
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
+                XCTAssertEqual(error.message!, "FOREIGN KEY constraint failed")
+                XCTAssertEqual(error.sql!, "COMMIT TRANSACTION")
+                XCTAssertEqual(error.description, "SQLite error 19 with statement `COMMIT TRANSACTION`: FOREIGN KEY constraint failed")
+            }
+            
+            // Make sure we can open another transaction
+            try dbQueue.inTransaction { db in .Commit }
+        }
+    }
 }
