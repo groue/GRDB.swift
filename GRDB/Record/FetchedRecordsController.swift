@@ -573,7 +573,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         //
         // We have to make sure that our fetch is processed *before* the next
         // fetch: let's immediately dispatch the processing task in our
-        // serialized FIFO queue, but have it wait for our fetch to complete
+        // serialized FIFO queue, but have it wait for our fetch to complete,
         // with a semaphore:
         let semaphore = dispatch_semaphore_create(0)
         var fetchedItems: [Item<Record>]! = nil
@@ -597,12 +597,12 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             // Invalidated?
             guard let controller = self.controller else { return }
             
-            // Compute changes
-            let changes = self.computeChanges(from: self.items, to: fetchedItems)
-            self.items = fetchedItems
-            
             // No changes?
+            let changes = self.computeChanges(from: self.items, to: fetchedItems)
             guard !changes.isEmpty else { return }
+            
+            // Ready for next check
+            self.items = fetchedItems
             
             dispatch_async(controller.queue) {
                 // Invalidated?
