@@ -635,6 +635,40 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             }
         }
     }
+    
+    func testSetDelegateAfterUpdate() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("name")), compareRecordsByPrimaryKey: true)
+            let recorder = ChangesRecorder<Person>()
+            controller.performFetch()
+            
+            // Insert
+            try dbQueue.inTransaction { db in
+                try synchronizePersons(db, [
+                    Person(id: 1, name: "Arthur")])
+                return .Commit
+            }
+            
+            // Set delegate
+            recorder.transactionExpectation = expectationWithDescription("expectation")
+            controller.delegate = recorder
+            waitForExpectationsWithTimeout(1, handler: nil)
+            
+            XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
+            XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.changes.count, 1)
+            XCTAssertEqual(recorder.changes[0].record.id, 1)
+            XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
+            switch recorder.changes[0].event {
+            case .Insertion(let indexPath):
+                XCTAssertEqual(indexPath, makeIndexPath(forRow: 0, inSection: 0))
+            default:
+                XCTFail()
+            }
+        }
+    }
 }
 
 

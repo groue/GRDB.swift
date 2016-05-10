@@ -268,6 +268,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     // MARK: - Configuration
     
     /// The object that is notified when the fetched records changed.
+    ///
+    /// If you do not specify a delegate, the controller does not track changes
+    /// to managed objects associated with its managed object context.
     public weak var delegate: FetchedRecordsControllerDelegate? {
         didSet {
             // Setting the delegate to nil *will* stop database changes
@@ -292,6 +295,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                         isSameRecord: self.isSameRecordBuilder(db))
                     self.observer = observer
                     db.addTransactionObserver(observer)
+                    observer.checkForChangesInDatabase(db)
                 }
             }
         }
