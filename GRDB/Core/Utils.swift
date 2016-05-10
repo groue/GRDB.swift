@@ -106,6 +106,19 @@ extension SequenceType where Generator.Element: Equatable {
     }
 }
 
+extension SequenceType {
+    /// Return true if one element matches the predicate
+    func any(predicate: (Generator.Element -> Bool)) -> Bool {
+        for element in self where predicate(element) { return true }
+        return false
+    }
+    
+    func all(predicate: (Generator.Element -> Bool)) -> Bool {
+        for element in self where !predicate(element) { return false }
+        return true
+    }
+}
+
 /// A ReadWriteBox grants multiple readers and single-writer guarantees on a value.
 final class ReadWriteBox<T> {
     var value: T {

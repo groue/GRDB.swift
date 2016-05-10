@@ -23,8 +23,8 @@ private func row(for indexPath:NSIndexPath) -> Int {
     #endif
 }
 
-private class ChangesRecorder<Record>: FetchedRecordsControllerDelegate {
-    var changes: [(record: Record, event: FetchedRecordsEvent)] = []
+private class ChangesRecorder<Record: RowConvertible> {
+    var changes: [(record: Record, event: TableViewEvent)] = []
     var recordsBeforeChanges: [Record]!
     var recordsOnFirstEvent: [Record]!
     var transactionExpectation: XCTestExpectation? {
@@ -35,20 +35,20 @@ private class ChangesRecorder<Record>: FetchedRecordsControllerDelegate {
         }
     }
     
-    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) {
-        recordsBeforeChanges = controller.fetchedRecords!.map { $0 as! Record }
+    func controllerWillChange(controller: FetchedRecordsController<Record>) {
+        recordsBeforeChanges = controller.fetchedRecords!
     }
     
     /// The default implementation does nothing.
-    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) {
+    func controller(controller: FetchedRecordsController<Record>, didChangeRecord record: Record, withEvent event:TableViewEvent) {
         if recordsOnFirstEvent == nil {
-            recordsOnFirstEvent = controller.fetchedRecords!.map { $0 as! Record }
+            recordsOnFirstEvent = controller.fetchedRecords!
         }
-        changes.append((record: record as! Record, event: event))
+        changes.append((record: record, event: event))
     }
     
     /// The default implementation does nothing.
-    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
+    func controllerDidChange(controller: FetchedRecordsController<Record>) {
         if let transactionExpectation = transactionExpectation {
             transactionExpectation.fulfill()
         }
@@ -144,7 +144,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("id")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
-            controller.delegate = recorder
+            controller.willChange { recorder.controllerWillChange($0) }
+            controller.didChange { recorder.controllerDidChange($0) }
+            controller.onTableViewEvent { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) }
             controller.performFetch()
             
             // First insert
@@ -201,7 +203,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("id")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
-            controller.delegate = recorder
+            controller.willChange { recorder.controllerWillChange($0) }
+            controller.didChange { recorder.controllerDidChange($0) }
+            controller.onTableViewEvent { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) }
             controller.performFetch()
             
             // Insert
@@ -277,7 +281,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("id")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
-            controller.delegate = recorder
+            controller.willChange { recorder.controllerWillChange($0) }
+            controller.didChange { recorder.controllerDidChange($0) }
+            controller.onTableViewEvent { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) }
             controller.performFetch()
             
             // Insert
@@ -341,7 +347,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("name")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
-            controller.delegate = recorder
+            controller.willChange { recorder.controllerWillChange($0) }
+            controller.didChange { recorder.controllerDidChange($0) }
+            controller.onTableViewEvent { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) }
             controller.performFetch()
             
             // Insert
@@ -394,7 +402,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                     "ORDER BY persons.name"),
                 compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
-            controller.delegate = recorder
+            controller.willChange { recorder.controllerWillChange($0) }
+            controller.didChange { recorder.controllerDidChange($0) }
+            controller.onTableViewEvent { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) }
             controller.performFetch()
             
             // Insert
@@ -439,7 +449,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("name")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
-            controller.delegate = recorder
+            controller.willChange { recorder.controllerWillChange($0) }
+            controller.didChange { recorder.controllerDidChange($0) }
+            controller.onTableViewEvent { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) }
             controller.performFetch()
             
             enum EventTest {
@@ -448,7 +460,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                 case D(String, Int) // delete string at index
                 case U(String, Int, String) // update string at index with changed string
                 
-                func match(name: String, event: FetchedRecordsEvent) -> Bool {
+                func match(name: String, event: TableViewEvent) -> Bool {
                     switch self {
                     case .I(let s, let i):
                         switch event {
@@ -569,7 +581,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("name")), compareRecordsByPrimaryKey: true)
             let recorder = ChangesRecorder<Person>()
-            controller.delegate = recorder
+            controller.willChange { recorder.controllerWillChange($0) }
+            controller.didChange { recorder.controllerDidChange($0) }
+            controller.onTableViewEvent { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) }
             controller.performFetch()
             
             // Insert
@@ -636,7 +650,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         }
     }
     
-    func testSetDelegateAfterUpdate() {
+    func testSetCallbacksAfterUpdate() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("name")), compareRecordsByPrimaryKey: true)
@@ -650,9 +664,11 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                 return .Commit
             }
             
-            // Set delegate
+            // Set callbacks
             recorder.transactionExpectation = expectationWithDescription("expectation")
-            controller.delegate = recorder
+            controller.willChange { recorder.controllerWillChange($0) }
+            controller.didChange { recorder.controllerDidChange($0) }
+            controller.onTableViewEvent { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) }
             waitForExpectationsWithTimeout(1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)

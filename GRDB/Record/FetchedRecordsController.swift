@@ -251,55 +251,19 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             self.fetchedItems = items
             self.isSameRecord = self.isSameRecordBuilder(db)
             
-            if self.delegate != nil {
-                // Setup a new transaction observer.
-                let observer = FetchedRecordsObserver(
-                    controller: self,
-                    initialItems: items,
-                    observedTables: statement.sourceTables,
-                    isSameRecord: self.isSameRecord)
-                self.observer = observer
-                db.addTransactionObserver(observer)
-            }
+            // Setup a new transaction observer.
+            let observer = FetchedRecordsObserver(
+                controller: self,
+                initialItems: items,
+                observedTables: statement.sourceTables,
+                isSameRecord: self.isSameRecord)
+            self.observer = observer
+            db.addTransactionObserver(observer)
         }
     }
     
     
     // MARK: - Configuration
-    
-    /// The object that is notified when the fetched records changed.
-    ///
-    /// If you do not specify a delegate, the controller does not track changes
-    /// to managed objects associated with its managed object context.
-    public weak var delegate: FetchedRecordsControllerDelegate? {
-        didSet {
-            // Setting the delegate to nil *will* stop database changes
-            // observation only after last changes are processed, in
-            // FetchedRecordsObserver.databaseDidCommit. This allows user code
-            // to change the delegate multiple times: tracking will stop if and
-            // only if the last delegate value is nil.
-            //
-            // Conversely, setting the delegate to a non-nil value must make
-            // sure that database changes are observed. But only if
-            // performFetch() has been called.
-            if let items = fetchedItems where delegate != nil && observer == nil {
-                // Setup a new transaction observer. Use
-                // database.write, so that the transaction observer is added on the
-                // same serialized queue as transaction callbacks.
-                databaseWriter.write { db in
-                    let statement = try! self.source.selectStatement(db)
-                    let observer = FetchedRecordsObserver(
-                        controller: self,
-                        initialItems: items,
-                        observedTables: statement.sourceTables,
-                        isSameRecord: self.isSameRecordBuilder(db))
-                    self.observer = observer
-                    db.addTransactionObserver(observer)
-                    observer.checkForChangesInDatabase(db)
-                }
-            }
-        }
-    }
     
     /// The database writer used to fetch records.
     ///
@@ -329,6 +293,22 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// called.
     public func setRequest(sql sql: String, arguments: StatementArguments? = nil) {
         self.source = DatabaseSource.sql(sql, arguments)
+    }
+    
+    private var willChangeCallback: (FetchedRecordsController<Record> -> ())?
+    private var didChangeCallback: (FetchedRecordsController<Record> -> ())?
+    private var tableViewEventCallback: ((controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ())?
+    
+    public func willChange(callback: FetchedRecordsController<Record> -> ()) {
+        willChangeCallback = callback
+    }
+    
+    public func didChange(callback: FetchedRecordsController<Record> -> ()) {
+        didChangeCallback = callback
+    }
+    
+    public func onTableViewEvent(callback: (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()) {
+        tableViewEventCallback = callback
     }
     
     
@@ -412,11 +392,6 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     // The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
-    
-    private func stopTrackingChanges() {
-        observer?.invalidate()
-        observer = nil
-    }
 }
 
 
@@ -597,9 +572,20 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             // Invalidated?
             guard let controller = self.controller else { return }
             
-            // No changes?
-            let changes = self.computeChanges(from: self.items, to: fetchedItems)
-            guard !changes.isEmpty else { return }
+            // Changes?
+            let tableViewChanges: [TableViewChange<Record>]?
+            if controller.tableViewEventCallback != nil {
+                let changes = self.computeTableViewChanges(from: self.items, to: fetchedItems)
+                guard !changes.isEmpty else {
+                    return
+                }
+                tableViewChanges = changes
+            } else {
+                guard fetchedItems.count != self.items.count || zip(fetchedItems, self.items).any({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                    return
+                }
+                tableViewChanges = nil
+            }
             
             // Ready for next check
             self.items = fetchedItems
@@ -608,40 +594,36 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                 // Invalidated?
                 guard let controller = self.controller else { return }
                 
-                if let delegate = controller.delegate {
-                    delegate.controllerWillChangeRecords(controller)
-                    controller.fetchedItems = fetchedItems
-                    for change in changes {
-                        delegate.controller(controller, didChangeRecord: change.record, withEvent: change.event)
+                controller.willChangeCallback?(controller)
+                controller.fetchedItems = fetchedItems
+                if let tableViewEventCallback = controller.tableViewEventCallback {
+                    for change in tableViewChanges! {
+                        tableViewEventCallback(controller: controller, record: change.record, event: change.event)
                     }
-                    delegate.controllerDidChangeRecords(controller)
-                } else {
-                    // There is no delegate interested in changes: stop tracking
-                    // changes.
-                    controller.stopTrackingChanges()
                 }
+                controller.didChangeCallback?(controller)
             }
         }
     }
     
-    func computeChanges(from s: [Item<Record>], to t: [Item<Record>]) -> [ItemChange<Record>] {
+    func computeTableViewChanges(from s: [Item<Record>], to t: [Item<Record>]) -> [TableViewChange<Record>] {
         let m = s.count
         let n = t.count
         
         // Fill first row and column of insertions and deletions.
         
-        var d: [[[ItemChange<Record>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
+        var d: [[[TableViewChange<Record>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
         
-        var changes = [ItemChange<Record>]()
+        var changes = [TableViewChange<Record>]()
         for (row, item) in s.enumerate() {
-            let deletion = ItemChange.Deletion(item: item, indexPath: makeIndexPath(forRow: row, inSection: 0))
+            let deletion = TableViewChange.Deletion(item: item, indexPath: makeIndexPath(forRow: row, inSection: 0))
             changes.append(deletion)
             d[row + 1][0] = changes
         }
         
         changes.removeAll()
         for (col, item) in t.enumerate() {
-            let insertion = ItemChange.Insertion(item: item, indexPath: makeIndexPath(forRow: col, inSection: 0))
+            let insertion = TableViewChange.Insertion(item: item, indexPath: makeIndexPath(forRow: col, inSection: 0))
             changes.append(insertion)
             d[0][col + 1] = changes
         }
@@ -664,16 +646,16 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                     // Record operation.
                     let minimumCount = min(del.count, ins.count, sub.count)
                     if del.count == minimumCount {
-                        let deletion = ItemChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
+                        let deletion = TableViewChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
                         del.append(deletion)
                         d[sx+1][tx+1] = del
                     } else if ins.count == minimumCount {
-                        let insertion = ItemChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
+                        let insertion = TableViewChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
                         ins.append(insertion)
                         d[sx+1][tx+1] = ins
                     } else {
-                        let deletion = ItemChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
-                        let insertion = ItemChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
+                        let deletion = TableViewChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
+                        let insertion = TableViewChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
                         sub.append(deletion)
                         sub.append(insertion)
                         d[sx+1][tx+1] = sub
@@ -683,13 +665,13 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         }
         
         /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
-        func standardizeChanges(changes: [ItemChange<Record>]) -> [ItemChange<Record>] {
+        func standardizeChanges(changes: [TableViewChange<Record>]) -> [TableViewChange<Record>] {
             
             /// Returns a potential .Move or .Update if *change* has a matching change in *changes*:
             /// If *change* is a deletion or an insertion, and there is a matching inverse
             /// insertion/deletion with the same value in *changes*, a corresponding .Move or .Update is returned.
             /// As a convenience, the index of the matched change is returned as well.
-            func mergedChange(change: ItemChange<Record>, inChanges changes: [ItemChange<Record>]) -> (mergedChange: ItemChange<Record>, mergedIndex: Int)? {
+            func mergedChange(change: TableViewChange<Record>, inChanges changes: [TableViewChange<Record>]) -> (mergedChange: TableViewChange<Record>, mergedIndex: Int)? {
                 
                 /// Returns the changes between two rows: a dictionary [key: oldValue]
                 /// Precondition: both rows have the same columns
@@ -712,9 +694,9 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                         guard isSameRecord(oldItem.record, newItem.record) else { continue }
                         let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                         if oldIndexPath == newIndexPath {
-                            return (ItemChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                            return (TableViewChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
                         } else {
-                            return (ItemChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                            return (TableViewChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
                         }
                     }
                     return nil
@@ -726,9 +708,9 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                         guard isSameRecord(oldItem.record, newItem.record) else { continue }
                         let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                         if oldIndexPath == newIndexPath {
-                            return (ItemChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                            return (TableViewChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
                         } else {
-                            return (ItemChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                            return (TableViewChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
                         }
                     }
                     return nil
@@ -739,8 +721,8 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             }
             
             // Updates must be pushed at the end
-            var mergedChanges: [ItemChange<Record>] = []
-            var updateChanges: [ItemChange<Record>] = []
+            var mergedChanges: [TableViewChange<Record>] = []
+            var updateChanges: [TableViewChange<Record>] = []
             for change in changes {
                 if let (mergedChange, mergedIndex) = mergedChange(change, inChanges: mergedChanges) {
                     mergedChanges.removeAtIndex(mergedIndex)
@@ -764,106 +746,106 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 
 // MARK: - FetchedRecordsControllerDelegate
 
-/// An instance of FetchedRecordsController uses methods in this protocol to
-/// notify its delegate that the controller’s fetched records have been changed
-/// due to some add, remove, move, or update operations.
-///
-///
-/// # Typical Use
-///
-/// You can use controllerWillChangeRecords: and controllerDidChangeRecord: to
-/// bracket updates to a table view whose content is provided by the fetched
-/// records controller as illustrated in the following example:
-///
-///     // Assume self has a tableView property, and a
-///     // configureCell(_:atIndexPath:) method which updates the contents of a
-///     // given cell.
-///
-///     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) {
-///         tableView.beginUpdates()
-///     }
-///
-///     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) {
-///         switch event {
-///         case .Insertion(let indexPath):
-///             tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-///
-///         case .Deletion(let indexPath):
-///             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-///
-///         case .Update(let indexPath, _):
-///             if let cell = tableView.cellForRowAtIndexPath(indexPath) {
-///                 configureCell(cell, atIndexPath: indexPath)
-///             }
-///
-///         case .Move(let indexPath, let newIndexPath, _):
-///             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-///             tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
-///
-///             // // Alternate technique (which actually moves cells around):
-///             // let cell = tableView.cellForRowAtIndexPath(indexPath)
-///             // tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
-///             // if let cell = cell {
-///             //     configureCell(cell, atIndexPath: newIndexPath)
-///             // }
-///         }
-///     }
-///
-///     func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
-///         tableView.endUpdates()
-///     }
-public protocol FetchedRecordsControllerDelegate : class {
-    /// Notifies that the fetched records controller is about to start
-    /// processing of one or more changes due to an add, remove, move,
-    // or update.
-    ///
-    /// - parameter controller: The fetched records controller that sent
-    ///   the message.
-    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>)
-    
-    /// Notifies that a record has been changed due to an add, remove, move,
-    /// or update.
-    ///
-    /// Swift mandates the delegate to implement this method as a generic
-    /// method on the type of the changed record.
-    ///
-    /// The advantage is that a single object can be the delegate of multiple
-    /// fetched records controllers that fetch multiple types of records. The
-    /// downside is that the actual type of the changed record is erased: you
-    /// must cast it to the expected type:
-    ///
-    ///     let personsController: FetchedRecordsController<Person>
-    ///
-    ///     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) {
-    ///         if controller === personsController {
-    ///             let person = record as! Person // Explicit cast
-    ///         }
-    ///     }
-    ///
-    /// - parameters:
-    ///     - controller: The fetched records controller that sent the message.
-    ///     - record: The record that changed.
-    ///     - event: The type of change (see FetchedRecordsEvent).
-    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent)
-    
-    /// Notifies that the fetched records controller has completed processing
-    /// of one or more changes due to an add, remove, move, or update.
-    ///
-    /// - parameter controller: The fetched records controller that sent
-    ///   the message.
-    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>)
-}
-
-public extension FetchedRecordsControllerDelegate {
-    /// The default implementation does nothing.
-    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) { }
-
-    /// The default implementation does nothing.
-    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) { }
-    
-    /// The default implementation does nothing.
-    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) { }
-}
+///// An instance of FetchedRecordsController uses methods in this protocol to
+///// notify its delegate that the controller’s fetched records have been changed
+///// due to some add, remove, move, or update operations.
+/////
+/////
+///// # Typical Use
+/////
+///// You can use controllerWillChangeRecords: and controllerDidChangeRecord: to
+///// bracket updates to a table view whose content is provided by the fetched
+///// records controller as illustrated in the following example:
+/////
+/////     // Assume self has a tableView property, and a
+/////     // configureCell(_:atIndexPath:) method which updates the contents of a
+/////     // given cell.
+/////
+/////     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) {
+/////         tableView.beginUpdates()
+/////     }
+/////
+/////     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:TableViewEvent) {
+/////         switch event {
+/////         case .Insertion(let indexPath):
+/////             tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+/////
+/////         case .Deletion(let indexPath):
+/////             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+/////
+/////         case .Update(let indexPath, _):
+/////             if let cell = tableView.cellForRowAtIndexPath(indexPath) {
+/////                 configureCell(cell, atIndexPath: indexPath)
+/////             }
+/////
+/////         case .Move(let indexPath, let newIndexPath, _):
+/////             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+/////             tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
+/////
+/////             // // Alternate technique (which actually moves cells around):
+/////             // let cell = tableView.cellForRowAtIndexPath(indexPath)
+/////             // tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+/////             // if let cell = cell {
+/////             //     configureCell(cell, atIndexPath: newIndexPath)
+/////             // }
+/////         }
+/////     }
+/////
+/////     func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
+/////         tableView.endUpdates()
+/////     }
+//public protocol FetchedRecordsControllerDelegate : class {
+//    /// Notifies that the fetched records controller is about to start
+//    /// processing of one or more changes due to an add, remove, move,
+//    // or update.
+//    ///
+//    /// - parameter controller: The fetched records controller that sent
+//    ///   the message.
+//    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>)
+//    
+//    /// Notifies that a record has been changed due to an add, remove, move,
+//    /// or update.
+//    ///
+//    /// Swift mandates the delegate to implement this method as a generic
+//    /// method on the type of the changed record.
+//    ///
+//    /// The advantage is that a single object can be the delegate of multiple
+//    /// fetched records controllers that fetch multiple types of records. The
+//    /// downside is that the actual type of the changed record is erased: you
+//    /// must cast it to the expected type:
+//    ///
+//    ///     let personsController: FetchedRecordsController<Person>
+//    ///
+//    ///     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:TableViewEvent) {
+//    ///         if controller === personsController {
+//    ///             let person = record as! Person // Explicit cast
+//    ///         }
+//    ///     }
+//    ///
+//    /// - parameters:
+//    ///     - controller: The fetched records controller that sent the message.
+//    ///     - record: The record that changed.
+//    ///     - event: The type of change (see TableViewEvent).
+//    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:TableViewEvent)
+//    
+//    /// Notifies that the fetched records controller has completed processing
+//    /// of one or more changes due to an add, remove, move, or update.
+//    ///
+//    /// - parameter controller: The fetched records controller that sent
+//    ///   the message.
+//    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>)
+//}
+//
+//public extension FetchedRecordsControllerDelegate {
+//    /// The default implementation does nothing.
+//    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) { }
+//
+//    /// The default implementation does nothing.
+//    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:TableViewEvent) { }
+//    
+//    /// The default implementation does nothing.
+//    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) { }
+//}
 
 
 
@@ -887,13 +869,13 @@ public struct FetchedRecordsSectionInfo<T: RowConvertible> {
 }
 
 
-// MARK: - FetchedRecordsEvent
+// MARK: - TableViewEvent
 
 /// A change event given by a FetchedRecordsController to its delegate.
 ///
 /// The move and update events hold a *changes* dictionary. Its keys are column
 /// names, and values the old values that have been changed.
-public enum FetchedRecordsEvent {
+public enum TableViewEvent {
     
     /// An insertion event, at given indexPath.
     case Insertion(indexPath: NSIndexPath)
@@ -912,7 +894,7 @@ public enum FetchedRecordsEvent {
     case Update(indexPath: NSIndexPath, changes: [String: DatabaseValue])
 }
 
-extension FetchedRecordsEvent: CustomStringConvertible {
+extension TableViewEvent: CustomStringConvertible {
     
     /// A textual representation of `self`.
     public var description: String {
@@ -977,16 +959,16 @@ private func ==<T>(lhs: Item<T>, rhs: Item<T>) -> Bool {
 }
 
 
-// MARK: - ItemChange
+// MARK: - TableViewChange
 
-private enum ItemChange<T: RowConvertible> {
+private enum TableViewChange<T: RowConvertible> {
     case Insertion(item: Item<T>, indexPath: NSIndexPath)
     case Deletion(item: Item<T>, indexPath: NSIndexPath)
     case Move(item: Item<T>, indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
     case Update(item: Item<T>, indexPath: NSIndexPath, changes: [String: DatabaseValue])
 }
 
-extension ItemChange {
+extension TableViewChange {
     var record: T {
         switch self {
         case .Insertion(item: let item, indexPath: _):
@@ -1000,7 +982,7 @@ extension ItemChange {
         }
     }
     
-    var event: FetchedRecordsEvent {
+    var event: TableViewEvent {
         switch self {
         case .Insertion(item: _, indexPath: let indexPath):
             return .Insertion(indexPath: indexPath)
@@ -1014,7 +996,7 @@ extension ItemChange {
     }
 }
 
-extension ItemChange: CustomStringConvertible {
+extension TableViewChange: CustomStringConvertible {
     var description: String {
         switch self {
         case .Insertion(let item, let indexPath):
