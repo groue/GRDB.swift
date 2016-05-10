@@ -1,11 +1,17 @@
 Release Notes
 =============
 
-## Next version
+## 0.61.0
+
+Released May 10, 2016
+
+**New**
+
+- `FetchedRecordsController` is now exposed in OSX CocoaPods framework ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller)
 
 **Fixed**
 
-- Transactions that fail precisely on the COMMIT statement are rollbacked (they used to remain open).
+- Transactions that fail precisely on the COMMIT statement are now rollbacked (they used to remain open).
 
 
 ## 0.60.1
