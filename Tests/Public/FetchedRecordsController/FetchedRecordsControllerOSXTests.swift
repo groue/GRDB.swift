@@ -5,24 +5,6 @@ import XCTest
     import GRDB
 #endif
 
-/// Same as NSIndexPath(forRow:inSection:), but works on OSX as well.
-private func makeIndexPath(forRow row:Int, inSection section: Int) -> NSIndexPath {
-    #if os(iOS)
-        return NSIndexPath(forRow: row, inSection: section)
-    #else
-        return [section, row].withUnsafeBufferPointer { buffer in NSIndexPath(indexes: buffer.baseAddress, length: buffer.count) }
-    #endif
-}
-
-/// Same as NSIndexPath.row, but works on OSX as well.
-private func row(for indexPath:NSIndexPath) -> Int {
-    #if os(iOS)
-        return indexPath.row
-    #else
-        return indexPath.indexAtPosition(1)
-    #endif
-}
-
 private class ChangesRecorder<Record: RowConvertible> {
     var recordsBeforeChanges: [Record]!
     var recordsAfterChanges: [Record]!
@@ -113,14 +95,8 @@ class FetchedRecordsControllerOSXTests: GRDBTestCase {
             let controller = FetchedRecordsController<Person>(dbQueue, request: request, compareRecordsByPrimaryKey: true)
             XCTAssertTrue(controller.fetchedRecords == nil)
             controller.performFetch()
-            XCTAssertEqual(controller.sections.count, 1)
-            XCTAssertEqual(controller.sections[0].numberOfRecords, 1)
-            XCTAssertEqual(controller.sections[0].records.count, 1)
-            XCTAssertEqual(controller.sections[0].records[0].name, "Arthur")
             XCTAssertEqual(controller.fetchedRecords!.count, 1)
             XCTAssertEqual(controller.fetchedRecords![0].name, "Arthur")
-            XCTAssertEqual(controller.recordAtIndexPath(makeIndexPath(forRow: 0, inSection: 0)).name, "Arthur")
-            XCTAssertEqual(controller.indexPathForRecord(arthur), makeIndexPath(forRow: 0, inSection: 0))
         }
     }
     
