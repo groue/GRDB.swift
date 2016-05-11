@@ -251,14 +251,16 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             self.fetchedItems = items
             self.isSameRecord = self.isSameRecordBuilder(db)
             
-            // Setup a new transaction observer.
-            let observer = FetchedRecordsObserver(
-                controller: self,
-                initialItems: items,
-                observedTables: statement.sourceTables,
-                isSameRecord: self.isSameRecord)
-            self.observer = observer
-            db.addTransactionObserver(observer)
+            if self.hasChangesCallbacks {
+                // Setup a new transaction observer.
+                let observer = FetchedRecordsObserver(
+                    controller: self,
+                    initialItems: items,
+                    observedTables: statement.sourceTables,
+                    isSameRecord: self.isSameRecord)
+                self.observer = observer
+                db.addTransactionObserver(observer)
+            }
         }
     }
     
@@ -295,20 +297,49 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         self.source = DatabaseSource.sql(sql, arguments)
     }
     
-    private var willChangeCallback: (FetchedRecordsController<Record> -> ())?
-    private var didChangeCallback: (FetchedRecordsController<Record> -> ())?
-    private var tableViewEventCallback: ((controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ())?
+    public typealias WillChangeCallback = FetchedRecordsController<Record> -> ()
+    public typealias DidChangeCallback = FetchedRecordsController<Record> -> ()
+    public typealias TableViewEventCallback = (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()
     
-    public func willChange(callback: FetchedRecordsController<Record> -> ()) {
-        willChangeCallback = callback
+    private var willChangeCallback: WillChangeCallback?
+    private var didChangeCallback: DidChangeCallback?
+    private var tableViewEventCallback: TableViewEventCallback?
+    
+    public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordEventInTableView tableViewEventCallback: TableViewEventCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
+        self.willChangeCallback = willChangeCallback
+        self.tableViewEventCallback = tableViewEventCallback
+        self.didChangeCallback = didChangeCallback
+        self.hasChangesCallbacks = (willChangeCallback != nil) || (tableViewEventCallback != nil) || (didChangeCallback != nil)
     }
     
-    public func didChange(callback: FetchedRecordsController<Record> -> ()) {
-        didChangeCallback = callback
-    }
-    
-    public func onTableViewEvent(callback: (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()) {
-        tableViewEventCallback = callback
+    private var hasChangesCallbacks: Bool = false {
+        didSet {
+            // Setting hasChangesCallbacks to false *will* stop database changes
+            // observation only after last changes are processed, in
+            // FetchedRecordsObserver.databaseDidCommit. This allows user code
+            // to change callbacks multiple times: tracking will stop if and
+            // only if the last set callbacks are nil.
+            //
+            // Conversely, setting hasChangesCallbacks to true must make
+            // sure that database changes are observed. But only if
+            // performFetch() has been called.
+            if let items = fetchedItems where hasChangesCallbacks && observer == nil {
+                // Setup a new transaction observer. Use
+                // database.write, so that the transaction observer is added on the
+                // same serialized queue as transaction callbacks.
+                databaseWriter.write { db in
+                    let statement = try! self.source.selectStatement(db)
+                    let observer = FetchedRecordsObserver(
+                        controller: self,
+                        initialItems: items,
+                        observedTables: statement.sourceTables,
+                        isSameRecord: self.isSameRecordBuilder(db))
+                    self.observer = observer
+                    db.addTransactionObserver(observer)
+                    observer.checkForChangesInDatabase(db)
+                }
+            }
+        }
     }
     
     
@@ -392,6 +423,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     // The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
+    
+    private func stopTrackingChanges() {
+        observer?.invalidate()
+        observer = nil
+    }
 }
 
 
@@ -594,14 +630,18 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                 // Invalidated?
                 guard let controller = self.controller else { return }
                 
-                controller.willChangeCallback?(controller)
-                controller.fetchedItems = fetchedItems
-                if let tableViewEventCallback = controller.tableViewEventCallback {
-                    for change in tableViewChanges! {
-                        tableViewEventCallback(controller: controller, record: change.record, event: change.event)
+                if controller.hasChangesCallbacks {
+                    controller.willChangeCallback?(controller)
+                    controller.fetchedItems = fetchedItems
+                    if let tableViewEventCallback = controller.tableViewEventCallback, let tableViewChanges = tableViewChanges {
+                        for change in tableViewChanges {
+                            tableViewEventCallback(controller: controller, record: change.record, event: change.event)
+                        }
                     }
+                    controller.didChangeCallback?(controller)
+                } else {
+                    controller.stopTrackingChanges()
                 }
-                controller.didChangeCallback?(controller)
             }
         }
     }
