@@ -693,6 +693,28 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             }
         }
     }
+    
+    func testTrailingClosureCallback() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("name")), compareRecordsByPrimaryKey: true)
+            var persons: [Person] = []
+            controller.performFetch()
+            
+            let expectation = expectationWithDescription("expectation")
+            controller.trackChanges {
+                persons = $0.fetchedRecords!
+                expectation.fulfill()
+            }
+            try dbQueue.inTransaction { db in
+                try synchronizePersons(db, [
+                    Person(id: 1, name: "Arthur")])
+                return .Commit
+            }
+            waitForExpectationsWithTimeout(1, handler: nil)
+            XCTAssertEqual(persons.map { $0.name }, ["Arthur"])
+        }
+    }
 }
 
 
