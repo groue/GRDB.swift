@@ -299,10 +299,12 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     
     public typealias WillChangeCallback = FetchedRecordsController<Record> -> ()
     public typealias DidChangeCallback = FetchedRecordsController<Record> -> ()
-    public typealias TableViewEventCallback = (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()
     
     private var willChangeCallback: WillChangeCallback?
     private var didChangeCallback: DidChangeCallback?
+    
+    #if os(iOS)
+    public typealias TableViewEventCallback = (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()
     private var tableViewEventCallback: TableViewEventCallback?
     
     public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordEventInTableView tableViewEventCallback: TableViewEventCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
@@ -311,6 +313,13 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         self.didChangeCallback = didChangeCallback
         self.hasChangesCallbacks = (willChangeCallback != nil) || (tableViewEventCallback != nil) || (didChangeCallback != nil)
     }
+    #else
+    public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
+        self.willChangeCallback = willChangeCallback
+        self.didChangeCallback = didChangeCallback
+        self.hasChangesCallbacks = (willChangeCallback != nil) || (didChangeCallback != nil)
+    }
+    #endif
     
     private var hasChangesCallbacks: Bool = false {
         didSet {
@@ -609,19 +618,28 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             guard let controller = self.controller else { return }
             
             // Changes?
-            let tableViewChanges: [TableViewChange<Record>]?
-            if controller.tableViewEventCallback != nil {
-                let changes = self.computeTableViewChanges(from: self.items, to: fetchedItems)
-                guard !changes.isEmpty else {
-                    return
+            #if os(iOS)
+                let tableViewChanges: [TableViewChange<Record>]?
+                if controller.tableViewEventCallback != nil {
+                    // Compute table view changes
+                    let changes = self.computeTableViewChanges(from: self.items, to: fetchedItems)
+                    guard !changes.isEmpty else {
+                        return
+                    }
+                    tableViewChanges = changes
+                } else {
+                    // Look for a row difference
+                    guard fetchedItems.count != self.items.count || zip(fetchedItems, self.items).any({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                        return
+                    }
+                    tableViewChanges = nil
                 }
-                tableViewChanges = changes
-            } else {
+            #else
+                // Look for a row difference
                 guard fetchedItems.count != self.items.count || zip(fetchedItems, self.items).any({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
                     return
                 }
-                tableViewChanges = nil
-            }
+            #endif
             
             // Ready for next check
             self.items = fetchedItems
@@ -633,11 +651,13 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                 if controller.hasChangesCallbacks {
                     controller.willChangeCallback?(controller)
                     controller.fetchedItems = fetchedItems
-                    if let tableViewEventCallback = controller.tableViewEventCallback, let tableViewChanges = tableViewChanges {
-                        for change in tableViewChanges {
-                            tableViewEventCallback(controller: controller, record: change.record, event: change.event)
+                    #if os(iOS)
+                        if let tableViewEventCallback = controller.tableViewEventCallback, let tableViewChanges = tableViewChanges {
+                            for change in tableViewChanges {
+                                tableViewEventCallback(controller: controller, record: change.record, event: change.event)
+                            }
                         }
-                    }
+                    #endif
                     controller.didChangeCallback?(controller)
                 } else {
                     controller.stopTrackingChanges()
@@ -645,144 +665,246 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             }
         }
     }
-    
-    func computeTableViewChanges(from s: [Item<Record>], to t: [Item<Record>]) -> [TableViewChange<Record>] {
-        let m = s.count
-        let n = t.count
-        
-        // Fill first row and column of insertions and deletions.
-        
-        var d: [[[TableViewChange<Record>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
-        
-        var changes = [TableViewChange<Record>]()
-        for (row, item) in s.enumerate() {
-            let deletion = TableViewChange.Deletion(item: item, indexPath: makeIndexPath(forRow: row, inSection: 0))
-            changes.append(deletion)
-            d[row + 1][0] = changes
-        }
-        
-        changes.removeAll()
-        for (col, item) in t.enumerate() {
-            let insertion = TableViewChange.Insertion(item: item, indexPath: makeIndexPath(forRow: col, inSection: 0))
-            changes.append(insertion)
-            d[0][col + 1] = changes
-        }
-        
-        if m == 0 || n == 0 {
-            // Pure deletions or insertions
-            return d[m][n]
-        }
-        
-        // Fill body of matrix.
-        for tx in 0..<n {
-            for sx in 0..<m {
-                if s[sx] == t[tx] {
-                    d[sx+1][tx+1] = d[sx][tx] // no operation
-                } else {
-                    var del = d[sx][tx+1]     // a deletion
-                    var ins = d[sx+1][tx]     // an insertion
-                    var sub = d[sx][tx]       // a substitution
-                    
-                    // Record operation.
-                    let minimumCount = min(del.count, ins.count, sub.count)
-                    if del.count == minimumCount {
-                        let deletion = TableViewChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
-                        del.append(deletion)
-                        d[sx+1][tx+1] = del
-                    } else if ins.count == minimumCount {
-                        let insertion = TableViewChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
-                        ins.append(insertion)
-                        d[sx+1][tx+1] = ins
-                    } else {
-                        let deletion = TableViewChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
-                        let insertion = TableViewChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
-                        sub.append(deletion)
-                        sub.append(insertion)
-                        d[sx+1][tx+1] = sub
-                    }
-                }
-            }
-        }
-        
-        /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
-        func standardizeChanges(changes: [TableViewChange<Record>]) -> [TableViewChange<Record>] {
-            
-            /// Returns a potential .Move or .Update if *change* has a matching change in *changes*:
-            /// If *change* is a deletion or an insertion, and there is a matching inverse
-            /// insertion/deletion with the same value in *changes*, a corresponding .Move or .Update is returned.
-            /// As a convenience, the index of the matched change is returned as well.
-            func mergedChange(change: TableViewChange<Record>, inChanges changes: [TableViewChange<Record>]) -> (mergedChange: TableViewChange<Record>, mergedIndex: Int)? {
-                
-                /// Returns the changes between two rows: a dictionary [key: oldValue]
-                /// Precondition: both rows have the same columns
-                func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
-                    var changedValues: [String: DatabaseValue] = [:]
-                    for (column, newValue) in newRow {
-                        let oldValue = oldRow[column]!
-                        if newValue != oldValue {
-                            changedValues[column] = oldValue
-                        }
-                    }
-                    return changedValues
-                }
-                
-                switch change {
-                case .Insertion(let newItem, let newIndexPath):
-                    // Look for a matching deletion
-                    for (index, otherChange) in changes.enumerate() {
-                        guard case .Deletion(let oldItem, let oldIndexPath) = otherChange else { continue }
-                        guard isSameRecord(oldItem.record, newItem.record) else { continue }
-                        let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
-                        if oldIndexPath == newIndexPath {
-                            return (TableViewChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
-                        } else {
-                            return (TableViewChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
-                        }
-                    }
-                    return nil
-                    
-                case .Deletion(let oldItem, let oldIndexPath):
-                    // Look for a matching insertion
-                    for (index, otherChange) in changes.enumerate() {
-                        guard case .Insertion(let newItem, let newIndexPath) = otherChange else { continue }
-                        guard isSameRecord(oldItem.record, newItem.record) else { continue }
-                        let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
-                        if oldIndexPath == newIndexPath {
-                            return (TableViewChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
-                        } else {
-                            return (TableViewChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
-                        }
-                    }
-                    return nil
-                    
-                default:
-                    return nil
-                }
-            }
-            
-            // Updates must be pushed at the end
-            var mergedChanges: [TableViewChange<Record>] = []
-            var updateChanges: [TableViewChange<Record>] = []
-            for change in changes {
-                if let (mergedChange, mergedIndex) = mergedChange(change, inChanges: mergedChanges) {
-                    mergedChanges.removeAtIndex(mergedIndex)
-                    switch mergedChange {
-                    case .Update:
-                        updateChanges.append(mergedChange)
-                    default:
-                        mergedChanges.append(mergedChange)
-                    }
-                } else {
-                    mergedChanges.append(change)
-                }
-            }
-            return mergedChanges + updateChanges
-        }
-        
-        return standardizeChanges(d[m][n])
-    }
 }
 
+
+// MARK: iOS: UITableView Support
+
+#if os(iOS)
+    extension FetchedRecordsObserver {
+        func computeTableViewChanges(from s: [Item<Record>], to t: [Item<Record>]) -> [TableViewChange<Record>] {
+            let m = s.count
+            let n = t.count
+            
+            // Fill first row and column of insertions and deletions.
+            
+            var d: [[[TableViewChange<Record>]]] = Array(count: m + 1, repeatedValue: Array(count: n + 1, repeatedValue: []))
+            
+            var changes = [TableViewChange<Record>]()
+            for (row, item) in s.enumerate() {
+                let deletion = TableViewChange.Deletion(item: item, indexPath: makeIndexPath(forRow: row, inSection: 0))
+                changes.append(deletion)
+                d[row + 1][0] = changes
+            }
+            
+            changes.removeAll()
+            for (col, item) in t.enumerate() {
+                let insertion = TableViewChange.Insertion(item: item, indexPath: makeIndexPath(forRow: col, inSection: 0))
+                changes.append(insertion)
+                d[0][col + 1] = changes
+            }
+            
+            if m == 0 || n == 0 {
+                // Pure deletions or insertions
+                return d[m][n]
+            }
+            
+            // Fill body of matrix.
+            for tx in 0..<n {
+                for sx in 0..<m {
+                    if s[sx] == t[tx] {
+                        d[sx+1][tx+1] = d[sx][tx] // no operation
+                    } else {
+                        var del = d[sx][tx+1]     // a deletion
+                        var ins = d[sx+1][tx]     // an insertion
+                        var sub = d[sx][tx]       // a substitution
+                        
+                        // Record operation.
+                        let minimumCount = min(del.count, ins.count, sub.count)
+                        if del.count == minimumCount {
+                            let deletion = TableViewChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
+                            del.append(deletion)
+                            d[sx+1][tx+1] = del
+                        } else if ins.count == minimumCount {
+                            let insertion = TableViewChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
+                            ins.append(insertion)
+                            d[sx+1][tx+1] = ins
+                        } else {
+                            let deletion = TableViewChange.Deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
+                            let insertion = TableViewChange.Insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
+                            sub.append(deletion)
+                            sub.append(insertion)
+                            d[sx+1][tx+1] = sub
+                        }
+                    }
+                }
+            }
+            
+            /// Returns an array where deletion/insertion pairs of the same element are replaced by `.Move` change.
+            func standardizeChanges(changes: [TableViewChange<Record>]) -> [TableViewChange<Record>] {
+                
+                /// Returns a potential .Move or .Update if *change* has a matching change in *changes*:
+                /// If *change* is a deletion or an insertion, and there is a matching inverse
+                /// insertion/deletion with the same value in *changes*, a corresponding .Move or .Update is returned.
+                /// As a convenience, the index of the matched change is returned as well.
+                func mergedChange(change: TableViewChange<Record>, inChanges changes: [TableViewChange<Record>]) -> (mergedChange: TableViewChange<Record>, mergedIndex: Int)? {
+                    
+                    /// Returns the changes between two rows: a dictionary [key: oldValue]
+                    /// Precondition: both rows have the same columns
+                    func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
+                        var changedValues: [String: DatabaseValue] = [:]
+                        for (column, newValue) in newRow {
+                            let oldValue = oldRow[column]!
+                            if newValue != oldValue {
+                                changedValues[column] = oldValue
+                            }
+                        }
+                        return changedValues
+                    }
+                    
+                    switch change {
+                    case .Insertion(let newItem, let newIndexPath):
+                        // Look for a matching deletion
+                        for (index, otherChange) in changes.enumerate() {
+                            guard case .Deletion(let oldItem, let oldIndexPath) = otherChange else { continue }
+                            guard isSameRecord(oldItem.record, newItem.record) else { continue }
+                            let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
+                            if oldIndexPath == newIndexPath {
+                                return (TableViewChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                            } else {
+                                return (TableViewChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                            }
+                        }
+                        return nil
+                        
+                    case .Deletion(let oldItem, let oldIndexPath):
+                        // Look for a matching insertion
+                        for (index, otherChange) in changes.enumerate() {
+                            guard case .Insertion(let newItem, let newIndexPath) = otherChange else { continue }
+                            guard isSameRecord(oldItem.record, newItem.record) else { continue }
+                            let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
+                            if oldIndexPath == newIndexPath {
+                                return (TableViewChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                            } else {
+                                return (TableViewChange.Move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                            }
+                        }
+                        return nil
+                        
+                    default:
+                        return nil
+                    }
+                }
+                
+                // Updates must be pushed at the end
+                var mergedChanges: [TableViewChange<Record>] = []
+                var updateChanges: [TableViewChange<Record>] = []
+                for change in changes {
+                    if let (mergedChange, mergedIndex) = mergedChange(change, inChanges: mergedChanges) {
+                        mergedChanges.removeAtIndex(mergedIndex)
+                        switch mergedChange {
+                        case .Update:
+                            updateChanges.append(mergedChange)
+                        default:
+                            mergedChanges.append(mergedChange)
+                        }
+                    } else {
+                        mergedChanges.append(change)
+                    }
+                }
+                return mergedChanges + updateChanges
+            }
+            
+            return standardizeChanges(d[m][n])
+        }
+    }
+    
+    private enum TableViewChange<T: RowConvertible> {
+        case Insertion(item: Item<T>, indexPath: NSIndexPath)
+        case Deletion(item: Item<T>, indexPath: NSIndexPath)
+        case Move(item: Item<T>, indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
+        case Update(item: Item<T>, indexPath: NSIndexPath, changes: [String: DatabaseValue])
+    }
+    
+    extension TableViewChange {
+        var record: T {
+            switch self {
+            case .Insertion(item: let item, indexPath: _):
+                return item.record
+            case .Deletion(item: let item, indexPath: _):
+                return item.record
+            case .Move(item: let item, indexPath: _, newIndexPath: _, changes: _):
+                return item.record
+            case .Update(item: let item, indexPath: _, changes: _):
+                return item.record
+            }
+        }
+        
+        var event: TableViewEvent {
+            switch self {
+            case .Insertion(item: _, indexPath: let indexPath):
+                return .Insertion(indexPath: indexPath)
+            case .Deletion(item: _, indexPath: let indexPath):
+                return .Deletion(indexPath: indexPath)
+            case .Move(item: _, indexPath: let indexPath, newIndexPath: let newIndexPath, changes: let changes):
+                return .Move(indexPath: indexPath, newIndexPath: newIndexPath, changes: changes)
+            case .Update(item: _, indexPath: let indexPath, changes: let changes):
+                return .Update(indexPath: indexPath, changes: changes)
+            }
+        }
+    }
+    
+    extension TableViewChange: CustomStringConvertible {
+        var description: String {
+            switch self {
+            case .Insertion(let item, let indexPath):
+                return "Insert \(item) at \(indexPath)"
+                
+            case .Deletion(let item, let indexPath):
+                return "Delete \(item) from \(indexPath)"
+                
+            case .Move(let item, let indexPath, let newIndexPath, changes: let changes):
+                return "Move \(item) from \(indexPath) to \(newIndexPath) with changes: \(changes)"
+                
+            case .Update(let item, let indexPath, let changes):
+                return "Update \(item) at \(indexPath) with changes: \(changes)"
+            }
+        }
+    }
+    
+    /// A change event given by a FetchedRecordsController to its delegate.
+    ///
+    /// The move and update events hold a *changes* dictionary. Its keys are column
+    /// names, and values the old values that have been changed.
+    public enum TableViewEvent {
+        
+        /// An insertion event, at given indexPath.
+        case Insertion(indexPath: NSIndexPath)
+        
+        /// A deletion event, at given indexPath.
+        case Deletion(indexPath: NSIndexPath)
+        
+        /// A move event, from indexPath to newIndexPath. The *changes* are a
+        /// dictionary whose keys are column names, and values the old values that
+        /// have been changed.
+        case Move(indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
+        
+        /// An update event, at given indexPath. The *changes* are a dictionary
+        /// whose keys are column names, and values the old values that have
+        /// been changed.
+        case Update(indexPath: NSIndexPath, changes: [String: DatabaseValue])
+    }
+    
+    extension TableViewEvent: CustomStringConvertible {
+        
+        /// A textual representation of `self`.
+        public var description: String {
+            switch self {
+            case .Insertion(let indexPath):
+                return "Insertion at \(indexPath)"
+                
+            case .Deletion(let indexPath):
+                return "Deletion from \(indexPath)"
+                
+            case .Move(let indexPath, let newIndexPath, changes: let changes):
+                return "Move from \(indexPath) to \(newIndexPath) with changes: \(changes)"
+                
+            case .Update(let indexPath, let changes):
+                return "Update at \(indexPath) with changes: \(changes)"
+            }
+        }
+    }
+#endif
 
 // MARK: - FetchedRecordsControllerDelegate
 
@@ -909,52 +1031,6 @@ public struct FetchedRecordsSectionInfo<T: RowConvertible> {
 }
 
 
-// MARK: - TableViewEvent
-
-/// A change event given by a FetchedRecordsController to its delegate.
-///
-/// The move and update events hold a *changes* dictionary. Its keys are column
-/// names, and values the old values that have been changed.
-public enum TableViewEvent {
-    
-    /// An insertion event, at given indexPath.
-    case Insertion(indexPath: NSIndexPath)
-    
-    /// A deletion event, at given indexPath.
-    case Deletion(indexPath: NSIndexPath)
-    
-    /// A move event, from indexPath to newIndexPath. The *changes* are a
-    /// dictionary whose keys are column names, and values the old values that
-    /// have been changed.
-    case Move(indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
-    
-    /// An update event, at given indexPath. The *changes* are a dictionary
-    /// whose keys are column names, and values the old values that have
-    /// been changed.
-    case Update(indexPath: NSIndexPath, changes: [String: DatabaseValue])
-}
-
-extension TableViewEvent: CustomStringConvertible {
-    
-    /// A textual representation of `self`.
-    public var description: String {
-        switch self {
-        case .Insertion(let indexPath):
-            return "Insertion at \(indexPath)"
-            
-        case .Deletion(let indexPath):
-            return "Deletion from \(indexPath)"
-            
-        case .Move(let indexPath, let newIndexPath, changes: let changes):
-            return "Move from \(indexPath) to \(newIndexPath) with changes: \(changes)"
-            
-        case .Update(let indexPath, let changes):
-            return "Update at \(indexPath) with changes: \(changes)"
-        }
-    }
-}
-
-
 // MARK: - DatabaseSource
 
 private enum DatabaseSource<T> {
@@ -996,62 +1072,6 @@ private final class Item<T: RowConvertible> : RowConvertible, Equatable {
 
 private func ==<T>(lhs: Item<T>, rhs: Item<T>) -> Bool {
     return lhs.row == rhs.row
-}
-
-
-// MARK: - TableViewChange
-
-private enum TableViewChange<T: RowConvertible> {
-    case Insertion(item: Item<T>, indexPath: NSIndexPath)
-    case Deletion(item: Item<T>, indexPath: NSIndexPath)
-    case Move(item: Item<T>, indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
-    case Update(item: Item<T>, indexPath: NSIndexPath, changes: [String: DatabaseValue])
-}
-
-extension TableViewChange {
-    var record: T {
-        switch self {
-        case .Insertion(item: let item, indexPath: _):
-            return item.record
-        case .Deletion(item: let item, indexPath: _):
-            return item.record
-        case .Move(item: let item, indexPath: _, newIndexPath: _, changes: _):
-            return item.record
-        case .Update(item: let item, indexPath: _, changes: _):
-            return item.record
-        }
-    }
-    
-    var event: TableViewEvent {
-        switch self {
-        case .Insertion(item: _, indexPath: let indexPath):
-            return .Insertion(indexPath: indexPath)
-        case .Deletion(item: _, indexPath: let indexPath):
-            return .Deletion(indexPath: indexPath)
-        case .Move(item: _, indexPath: let indexPath, newIndexPath: let newIndexPath, changes: let changes):
-            return .Move(indexPath: indexPath, newIndexPath: newIndexPath, changes: changes)
-        case .Update(item: _, indexPath: let indexPath, changes: let changes):
-            return .Update(indexPath: indexPath, changes: changes)
-        }
-    }
-}
-
-extension TableViewChange: CustomStringConvertible {
-    var description: String {
-        switch self {
-        case .Insertion(let item, let indexPath):
-            return "Insert \(item) at \(indexPath)"
-            
-        case .Deletion(let item, let indexPath):
-            return "Delete \(item) from \(indexPath)"
-            
-        case .Move(let item, let indexPath, let newIndexPath, changes: let changes):
-            return "Move \(item) from \(indexPath) to \(newIndexPath) with changes: \(changes)"
-            
-        case .Update(let item, let indexPath, let changes):
-            return "Update \(item) at \(indexPath) with changes: \(changes)"
-        }
-    }
 }
 
 
