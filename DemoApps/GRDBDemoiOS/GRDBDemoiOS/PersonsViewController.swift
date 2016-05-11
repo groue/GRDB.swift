@@ -14,45 +14,39 @@ class PersonsViewController: UITableViewController {
         
         let request = personsSortedByScore
         personsController = FetchedRecordsController(dbQueue, request: request, compareRecordsByPrimaryKey: true)
-
         personsController.trackChanges(
-            recordsWillChange: { [weak self] _ in
-                self?.tableView?.beginUpdates()
+            recordsWillChange: { [unowned self] _ in
+                self.tableView.beginUpdates()
             },
-            recordEventInTableView: { [weak self] (controller, record, event) in
-                guard let strongSelf = self else {
-                    return
-                }
-                
+            recordEventInTableView: { [unowned self] (controller, record, event) in
                 switch event {
                 case .Insertion(let indexPath):
-                    strongSelf.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+                    self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
                     
                 case .Deletion(let indexPath):
-                    strongSelf.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+                    self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
                     
                 case .Update(let indexPath, _):
-                    if let cell = strongSelf.tableView.cellForRowAtIndexPath(indexPath) {
-                        strongSelf.configureCell(cell, atIndexPath: indexPath)
+                    if let cell = self.tableView.cellForRowAtIndexPath(indexPath) {
+                        self.configureCell(cell, atIndexPath: indexPath)
                     }
                     
                 case .Move(let indexPath, let newIndexPath, _):
                     // Actually move cells around for more demo effect :-)
-                    let cell = strongSelf.tableView.cellForRowAtIndexPath(indexPath)
-                    strongSelf.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+                    let cell = self.tableView.cellForRowAtIndexPath(indexPath)
+                    self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
                     if let cell = cell {
-                        strongSelf.configureCell(cell, atIndexPath: newIndexPath)
+                        self.configureCell(cell, atIndexPath: newIndexPath)
                     }
                     
                     // A quieter animation:
-                    // strongSelf.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-                    // strongSelf.tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
+                    // self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+                    // self.tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
                 }
             },
-            recordsDidChange: { [weak self] _ in
-                self?.tableView?.endUpdates()
+            recordsDidChange: { [unowned self] _ in
+                self.tableView.endUpdates()
             })
-
         personsController.performFetch()
         
         configureToolbar()
