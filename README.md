@@ -2317,34 +2317,37 @@ See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e63
 
 ## FetchedRecordsController
 
-**You use a FetchedRecordsController to feed a UITableView with the results returned from an SQLite request.**
+**You use FetchedRecordsController to track changes in the results of an SQLite request.**
 
-It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/). This documentation of FetchedRecordsController is indeed directly inspired from Apple's.
+**On iOS, FetchedRecordsController can feed a UITableView, and animate rows when the results of the request change.**
+
+It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/).
 
 > :point_up: **Note**: In its current state, FetchedRecordsController does not support grouping table view rows into custom sections: it generates a unique section.
 
-Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to return the results of the request in a form that is suitable for a UITableView, with one table view row per fetched record.
+Given a fetch request, and a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, and notify of those changes.
 
-FetchedRecordsController can also track changes in the results of the fetch request, and notify its delegate of those changes. Change tracking is active if and only if the delegate is not nil.
+On iOS, FetchedRecordsController is able to return the results of the request in a form that is suitable for a UITableView, with one table view row per fetched record.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
-- [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource methods)
 - [Responding to Changes](#responding-to-changes)
+- [The Changes Notifications](#the-changes-notifications)
 - [Modifying the Fetch Request](#modifying-the-fetch-request)
+- [Implementing the Table View Datasource Methods](#implementing-the-table-view-datasource methods)
+- [Implementing Table View Updates](#implementing-table-view-updates)
 - [FetchedRecordsController Concurrency](#fetchedrecordscontroller-concurrency)
-- [FetchedRecordsControllerDelegate](#fetchedrecordscontrollerdelegate)
 
 
 ### Creating the Fetched Records Controller
 
-You typically create an instance of FetchedRecordsController as a property of a table view controller. When you initialize the fetch records controller, you provide the following information:
+When you initialize a fetched records controller, you provide the following information:
 
 - A [database connection](#database-connections)
 - The type of the fetched records. It must be a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class.
 - A fetch request. It can be a raw SQL query with its eventual [arguments](#fetching-rows), or a FetchRequest from the [Query Interface](#the-query-interface).
-- Optionally, a way to tell if two records have the same identity. Without this identity comparison, all record updates are seen as replacements, and your table view updates are less smooth.
+- Optionally, a way to tell whether two records have the same identity.
 
 After creating an instance, you invoke `performFetch()` to actually execute
 the fetch.
@@ -2400,14 +2403,89 @@ let controller = FetchedRecordsController<Person>(
 ```
 
 
-### The Controller's Delegate
+### Responding to Changes
 
-Any change in the database that affects the record set is processed and the records are updated accordingly. The controller notifies the delegate when records change location (see [FetchedRecordsControllerDelegate](#fetchedrecordscontrollerdelegate)). You typically use these methods to update the display of the table view.
+In general, FetchedRecordsController is designed to respond to changes at *the database layer*, by [notifying](#the-changes-notifications) when *database rows* change location or values.
+
+Changes are not reflected until they are applied in the database by a successful [transaction](#transactions). Transactions can be explicit, or implicit:
+
+```swift
+try dbQueue.inTransaction { db in
+    try person1.insert(db)
+    try person2.insert(db)
+    return .Commit         // Explicit transaction
+}
+
+try dbQueue.inDatabase { db in
+    try person1.insert(db) // Implicit transaction
+    try person2.insert(db) // Implicit transaction
+}
+```
+
+When you apply several changes to the database, you should group them in a single explicit transaction. The controller will then notify of all changes together.
+
+
+### The Changes Notifications
+
+An instance of FetchedRecordsController notifies that the controller’s fetched records have been changed by the mean of *callbacks*:
+
+```swift
+controller.trackChanges(
+    // controller's records are about to change:
+    recordsWillChange: { controller in ... },
+    
+    // (iOS only) notification of individual record changes:
+    recordEventInTableView: { (controller, record, event) in ... },
+    
+    // controller's records have changed:
+    recordsDidChange: { controller in ... })
+```
+
+See [Implementing Table View Updates](#implementing-table-view-updates) for more detail on table view updates on iOS.
+
+All callbacks are optional. When you only need to grab the latest results, you can omit the `recordsDidChange` argument name:
+
+```swift
+controller.trackChanges { controller in
+    let persons = controller.fetchedRecords! // [Person]
+}
+```
+
+All callbacks have the fetched record controller itself as an argument: use it in order to avoid memory leaks:
+
+```swift
+// BAD: memory leak
+controller.trackChanges { _ in
+    let persons = controller.fetchedRecords!
+}
+
+// GOOD
+controller.trackChanges { controller in
+    let persons = controller.fetchedRecords!
+}
+controller.trackChanges {
+    let persons = $0.fetchedRecords!
+}
+```
+
+
+### Modifying the Fetch Request
+
+You can change a fetched records controller's fetch request or SQL query.
+
+The [notification callbacks](#the-changes-notifications) are notified of changes in the fetched records:
+
+```swift
+controller.setRequest(Person.order(SQLColumn("name")))
+controller.setRequest(sql: "SELECT ...", arguments: ...)
+```
+
+> :point_up: **Note**: This behavior differs from Core Data's NSFetchedResultsController, which does not notify of record changes when the fetch request is replaced.
 
 
 ### Implementing the Table View Datasource Methods
 
-The table view data source asks the fetched records controller to provide relevant information:
+On iOS, the table view data source asks the fetched records controller to provide relevant information:
 
 ```swift
 func numberOfSectionsInTableView(tableView: UITableView) -> Int {
@@ -2429,38 +2507,59 @@ func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexP
 > :point_up: **Note**: In its current state, FetchedRecordsController does not support grouping table view rows into custom sections: it generates a unique section.
 
 
-### Responding to Changes
+### Implementing Table View Updates
 
-In general, FetchedRecordsController is designed to respond to changes at *the database layer*, by informing its [delegate](#fetchedrecordscontrollerdelegate) when *database rows* change location or values.
-
-Changes are not reflected until they are applied in the database by a successful [transaction](#transactions). Transactions can be explicit, or implicit:
-
-```swift
-try dbQueue.inTransaction { db in
-    try person.insert(db)
-    return .Commit         // Explicit transaction
-}
-
-try dbQueue.inDatabase { db in
-    try person.insert(db)  // Implicit transaction
-}
-```
-
-When you apply several changes to the database, you should group them in a single explicit transaction. The controller will then notify its delegate of all changes together.
+On iOS, FetchedRecordsController notifies that the controller’s fetched records have been changed due to some add, remove, move, or update operations.
 
 
-### Modifying the Fetch Request
+**Typical Use**
 
-You can change a fetched records controller's fetch request or SQL query.
-
-If change tracking is active, the [delegate](#fetchedrecordscontrollerdelegate) gets notified of changes in the fetched records:
+You can use the `recordsWillChange` and `recordsDidChange` callbacks to bracket updates to a table view whose content is provided by the fetched records controller, as illustrated in the following example:
 
 ```swift
-controller.setRequest(Person.order(SQLColumn("name")))
-controller.setRequest(sql: "SELECT ...", arguments: ...)
+// Assume self has a tableView property, and a configureCell(_:atIndexPath:)
+// method which updates the contents of a given cell.
+
+controller.trackChanges(
+    // controller's records are about to change:
+    recordsWillChange: { [unowned self] _ in
+        self.tableView.beginUpdates()
+    },
+    
+    // notification of individual record changes:
+    recordEventInTableView: { [unowned self] (controller, record, event) in
+        switch event {
+        case .Insertion(let indexPath):
+            self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+            
+        case .Deletion(let indexPath):
+            self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+            
+        case .Update(let indexPath, _):
+            if let cell = self.tableView.cellForRowAtIndexPath(indexPath) {
+                self.configureCell(cell, atIndexPath: indexPath)
+            }
+            
+        case .Move(let indexPath, let newIndexPath, _):
+            self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+            self.tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
+
+            // // Alternate technique which actually moves cells around:
+            // let cell = self.tableView.cellForRowAtIndexPath(indexPath)
+            // self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+            // if let cell = cell {
+            //     self.configureCell(cell, atIndexPath: newIndexPath)
+            // }
+        }
+    },
+    
+    // controller's records have changed:
+    recordsDidChange: { [unowned self] _ in
+        self.tableView.endUpdates()
+    })
 ```
 
-> :point_up: **Note**: This behavior differs from Core Data's NSFetchedResultsController, which does not notify the delegate of record changes when the fetch request is replaced.
+See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
 
 ### FetchedRecordsController Concurrency
@@ -2469,60 +2568,9 @@ controller.setRequest(sql: "SELECT ...", arguments: ...)
 
 The database itself can be read and modified from [any thread](#database-connections), but fetched records controller methods like `performFetch` or `recordAtIndexPath` are constrained:
 
-By default, they must be used from the main thread, and the delegate is also notified of record changes on the main thread.
+By default, they must be used from the main thread. Record changes are also [notified](#the-changes-notifications) on the main thread.
 
-When you create a controller, you can give it a serial dispatch queue. The controller must then be used from this queue, and its delegate gets notified of record changes on this queue as well.
-
-
-### FetchedRecordsControllerDelegate
-
-An instance of FetchedRecordsController uses methods in this protocol to notify its delegate that the controller’s fetched records have been changed due to some add, remove, move, or update operations.
-
-
-**Typical Use**
-
-You can use `controllerWillChangeRecords` and `controllerDidChangeRecord` to bracket updates to a table view whose content is provided by the fetched records controller, as illustrated in the following example:
-
-```swift
-// Assume self has a tableView property, and a configureCell(_:atIndexPath:)
-// method which updates the contents of a given cell.
-
-func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) {
-    tableView.beginUpdates()
-}
-
-func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:FetchedRecordsEvent) {
-    switch event {
-    case .Insertion(let indexPath):
-        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-
-    case .Deletion(let indexPath):
-        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-
-    case .Update(let indexPath, _):
-        if let cell = tableView.cellForRowAtIndexPath(indexPath) {
-            configureCell(cell, atIndexPath: indexPath)
-        }
-
-    case .Move(let indexPath, let newIndexPath, _):
-        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-        tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
-
-        // // Alternate technique which actually moves cells around:
-        // let cell = tableView.cellForRowAtIndexPath(indexPath)
-        // tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
-        // if let cell = cell {
-        //     configureCell(cell, atIndexPath: newIndexPath)
-        // }
-    }
-}
-
-func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
-    tableView.endUpdates()
-}
-```
-
-See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
+When you create a controller, you can give it a serial dispatch queue. The controller must then be used from this queue, and record changes are notified on this queue as well.
 
 
 ## Encryption

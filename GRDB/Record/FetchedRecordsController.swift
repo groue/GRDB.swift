@@ -1,158 +1,11 @@
-/// You use a FetchedRecordsController to feed a UITableView with the results
-/// returned from an SQLite request.
+/// You use FetchedRecordsController to track changes in the results of an
+/// SQLite request.
 ///
-/// It looks and behaves very much like Core Data's NSFetchedResultsController.
+/// On iOS, FetchedRecordsController can feed a UITableView, and animate rows
+/// when the results of the request change.
 ///
-/// Given a fetch request, and a type that adopts the RowConvertible protocol,
-/// such as a subclass of the Record class, a FetchedRecordsController is able
-/// to return the results of the request in a form that is suitable for a
-/// UITableView, with one table view row per fetched record.
-///
-/// FetchedRecordsController can also track changes in the results of the fetch
-/// request, and notify its delegate of those changes. Change tracking is active
-/// if and only if the delegate is not nil.
-///
-///
-/// # Creating the Fetched Records Controller
-///
-/// You typically create an instance of FetchedRecordsController as a property
-/// of a table view controller. When you initialize the fetch records
-/// controller, you provide the following information:
-///
-/// - The type of the fetched records. It must be a type that adopts the
-///   RowConvertible protocol, such as a subclass of the Record class.
-///
-/// - A fetch request. It can be a raw SQL query with its arguments, or a
-///   FetchRequest from the GRDB [Query Interface](https://github.com/groue/GRDB.swift#the-query-interface).
-///
-/// - Optionally, a way to tell if two records have the same identity. Without
-///   this identity comparison, all record updates are seen as replacements,
-///   and your table view updates are less smooth.
-///
-/// After creating an instance, you invoke `performFetch()` to actually execute
-/// the fetch.
-///
-///     class Person : Record { ... }
-///
-///     let dbQueue = DatabaseQueue(...)
-///     let request = Person.order(SQLColumn("name"))
-///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
-///         dbQueue,
-///         request: request,
-///         compareRecordsByPrimaryKey: true)
-///     controller.performFetch()
-///
-/// In the example above, two persons are considered identical if they share
-/// the same primary key, thanks to the `compareRecordsByPrimaryKey` argument.
-/// This initializer argument is only available for types such as
-/// Record subclasses that adopt the RowConvertible protocol, and also the
-/// Persistable or MutablePersistable protocols.
-///
-/// If your type only adopts RowConvertible, you need to be more explicit, and
-/// provide your own identity comparison function:
-///
-///     struct Person : RowConvertible {
-///         let id: Int64
-///         ...
-///     }
-///
-///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
-///         dbQueue,
-///         request: request,
-///         isSameRecord: { (person1, person2) in person1.id == person2.id })
-///
-/// Instead of a FetchRequest object, you can also provide a raw SQL query:
-///
-///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
-///         dbQueue,
-///         sql: "SELECT * FROM persons ORDER BY name",
-///         compareRecordsByPrimaryKey: true)
-///
-/// The fetch request can involve several database tables:
-///
-///     let controller: FetchedRecordsController<Person> = FetchedRecordsController(
-///         dbQueue,
-///         sql: "SELECT persons.*, COUNT(books.id) AS bookCount " +
-///              "FROM persons " +
-///              "LEFT JOIN books ON books.owner_id = persons.id " +
-///              "GROUP BY persons.id " +
-///              "ORDER BY persons.name",
-///         compareRecordsByPrimaryKey: true)
-///
-///
-/// # The Controller's Delegate
-///
-/// Any change in the database that affects the record set is processed and the
-/// records are updated accordingly. The controller notifies the delegate when
-/// records change location (see FetchedRecordsControllerDelegate). You
-/// typically use these methods to update the display of the table view.
-///
-///
-/// # Implementing the Table View Datasource Methods
-///
-/// The table view data source asks the fetched records controller to provide
-/// relevant information:
-///
-///     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-///         return fetchedRecordsController.sections.count
-///     }
-///
-///     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-///         return fetchedRecordsController.sections[section].numberOfRecords
-///     }
-///
-///     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-///         let cell = /* Get the cell */
-///         let record = fetchedRecordsController.recordAtIndexPath(indexPath)
-///         /* Configure the cell */
-///         return cell
-///     }
-///
-///
-/// # Responding to Changes
-///
-/// In general, FetchedRecordsController is designed to respond to changes at
-/// the database layer, by informing its delegate when database rows change
-/// location or values.
-///
-/// Changes are not reflected until they are applied in the database by a
-/// successful transaction. Transactions can be explicit, or implicit:
-///
-///     try dbQueue.inTransaction { db in
-///         /* Change a person's attributes */
-///         try person.save(db)
-///         return .Commit      // Explicit transaction
-///     }
-///
-///     try dbQueue.inDatabase { db in
-///         /* Change a person's attributes */
-///         try person.save(db) // Implicit transaction
-///     }
-///
-/// When you apply several changes to the database, you should group them in a
-/// single transaction. The controller will then notify its delegate of all
-/// changes together.
-///
-///
-/// # Modifying the Fetch Request
-///
-/// You can change a fetched records controller's fetch request or SQL query.
-/// The delegate gets notified of changes in the fetched records:
-///
-///     controller.setRequest(Person.order(SQLColumn("name")))
-///     controller.setSQL("SELECT ...")
-///
-///
-/// # Concurrency
-///
-/// A fetched records controller *can not* be used from any thread.
-///
-/// By default, it must be used from the main thread, and its delegate is
-/// notified of record changes on the main thread.
-///
-/// When you create a controller, you can give it a serial dispatch queue. The
-/// controller must then be used from this queue, and its delegate gets notified
-/// of record changes on this queue as well.
+/// See https://github.com/groue/GRDB.swift#fetchedrecordscontroller for
+/// more information.
 public final class FetchedRecordsController<Record: RowConvertible> {
     
     // MARK: - Initialization
@@ -307,6 +160,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     public typealias TableViewEventCallback = (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()
     private var tableViewEventCallback: TableViewEventCallback?
     
+    /// TODO
     public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordEventInTableView tableViewEventCallback: TableViewEventCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
         self.willChangeCallback = willChangeCallback
         self.tableViewEventCallback = tableViewEventCallback
@@ -314,6 +168,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         self.hasChangesCallbacks = (willChangeCallback != nil) || (tableViewEventCallback != nil) || (didChangeCallback != nil)
     }
     #else
+    /// TODO
     public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
         self.willChangeCallback = willChangeCallback
         self.didChangeCallback = didChangeCallback
@@ -486,7 +341,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
         
         // MARK: - Accessing Records
         
-        /// Returns the object at the given index path.
+        /// Returns the object at the given index path (iOS only).
         ///
         /// - parameter indexPath: An index path in the fetched records.
         ///
@@ -499,7 +354,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
             return fetchedItems[indexPath.indexAtPosition(1)].record
         }
         
-        /// Returns the indexPath of a given record.
+        /// Returns the indexPath of a given record (iOS only).
         ///
         /// - returns: The index path of *record* in the fetched records, or nil
         ///   if record could not be found.
@@ -513,7 +368,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
         
         // MARK: - Querying Sections Information
         
-        /// The sections for the fetched records.
+        /// The sections for the fetched records (iOS only).
         ///
         /// You typically use the sections array when implementing
         /// UITableViewDataSource methods, such as `numberOfSectionsInTableView`.
@@ -757,6 +612,23 @@ extension FetchedRecordsController where Record: MutablePersistable {
             }
         }
     }
+    
+    /// A section given by a FetchedRecordsController.
+    public struct FetchedRecordsSectionInfo<T: RowConvertible> {
+        private let controller: FetchedRecordsController<T>
+        
+        /// The number of records (rows) in the section.
+        public var numberOfRecords: Int {
+            // We only support a single section
+            return controller.fetchedItems!.count
+        }
+        
+        /// The array of records in the section.
+        public var records: [T] {
+            // We only support a single section
+            return controller.fetchedItems!.map { $0.record }
+        }
+    }
 #endif
 
 
@@ -909,130 +781,6 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                 }
             }
         }
-    }
-}
-
-// MARK: - FetchedRecordsControllerDelegate
-
-///// An instance of FetchedRecordsController uses methods in this protocol to
-///// notify its delegate that the controller’s fetched records have been changed
-///// due to some add, remove, move, or update operations.
-/////
-/////
-///// # Typical Use
-/////
-///// You can use controllerWillChangeRecords: and controllerDidChangeRecord: to
-///// bracket updates to a table view whose content is provided by the fetched
-///// records controller as illustrated in the following example:
-/////
-/////     // Assume self has a tableView property, and a
-/////     // configureCell(_:atIndexPath:) method which updates the contents of a
-/////     // given cell.
-/////
-/////     func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) {
-/////         tableView.beginUpdates()
-/////     }
-/////
-/////     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:TableViewEvent) {
-/////         switch event {
-/////         case .Insertion(let indexPath):
-/////             tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-/////
-/////         case .Deletion(let indexPath):
-/////             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-/////
-/////         case .Update(let indexPath, _):
-/////             if let cell = tableView.cellForRowAtIndexPath(indexPath) {
-/////                 configureCell(cell, atIndexPath: indexPath)
-/////             }
-/////
-/////         case .Move(let indexPath, let newIndexPath, _):
-/////             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-/////             tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
-/////
-/////             // // Alternate technique (which actually moves cells around):
-/////             // let cell = tableView.cellForRowAtIndexPath(indexPath)
-/////             // tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
-/////             // if let cell = cell {
-/////             //     configureCell(cell, atIndexPath: newIndexPath)
-/////             // }
-/////         }
-/////     }
-/////
-/////     func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) {
-/////         tableView.endUpdates()
-/////     }
-//public protocol FetchedRecordsControllerDelegate : class {
-//    /// Notifies that the fetched records controller is about to start
-//    /// processing of one or more changes due to an add, remove, move,
-//    // or update.
-//    ///
-//    /// - parameter controller: The fetched records controller that sent
-//    ///   the message.
-//    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>)
-//    
-//    /// Notifies that a record has been changed due to an add, remove, move,
-//    /// or update.
-//    ///
-//    /// Swift mandates the delegate to implement this method as a generic
-//    /// method on the type of the changed record.
-//    ///
-//    /// The advantage is that a single object can be the delegate of multiple
-//    /// fetched records controllers that fetch multiple types of records. The
-//    /// downside is that the actual type of the changed record is erased: you
-//    /// must cast it to the expected type:
-//    ///
-//    ///     let personsController: FetchedRecordsController<Person>
-//    ///
-//    ///     func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:TableViewEvent) {
-//    ///         if controller === personsController {
-//    ///             let person = record as! Person // Explicit cast
-//    ///         }
-//    ///     }
-//    ///
-//    /// - parameters:
-//    ///     - controller: The fetched records controller that sent the message.
-//    ///     - record: The record that changed.
-//    ///     - event: The type of change (see TableViewEvent).
-//    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:TableViewEvent)
-//    
-//    /// Notifies that the fetched records controller has completed processing
-//    /// of one or more changes due to an add, remove, move, or update.
-//    ///
-//    /// - parameter controller: The fetched records controller that sent
-//    ///   the message.
-//    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>)
-//}
-//
-//public extension FetchedRecordsControllerDelegate {
-//    /// The default implementation does nothing.
-//    func controllerWillChangeRecords<T>(controller: FetchedRecordsController<T>) { }
-//
-//    /// The default implementation does nothing.
-//    func controller<T>(controller: FetchedRecordsController<T>, didChangeRecord record: T, withEvent event:TableViewEvent) { }
-//    
-//    /// The default implementation does nothing.
-//    func controllerDidChangeRecords<T>(controller: FetchedRecordsController<T>) { }
-//}
-
-
-
-// MARK: - FetchedRecordsSectionInfo
-
-/// A section given by a FetchedRecordsController.
-public struct FetchedRecordsSectionInfo<T: RowConvertible> {
-    private let controller: FetchedRecordsController<T>
-    
-    /// The number of records (rows) in the section.
-    public var numberOfRecords: Int {
-        // We only support a single section
-        return controller.fetchedItems!.count
-    }
-    
-    /// The array of records in the section.
-    public var records: [T] {
-        // We only support a single section
-        return controller.fetchedItems!.map { $0.record }
     }
 }
 
