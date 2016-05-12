@@ -3,6 +3,8 @@ Release Notes
 
 ## 0.62.0
 
+Released May 12, 2016
+
 **Breaking Changes**
 
 - FetchedRecordsController has been refactored ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller)):

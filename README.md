@@ -24,7 +24,7 @@ You should give it a try.
 
 ---
 
-**May 10, 2016: GRDB.swift 0.62.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**May 12, 2016: GRDB.swift 0.62.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7.3+
 
