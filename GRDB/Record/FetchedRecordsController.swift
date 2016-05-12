@@ -160,15 +160,25 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     public typealias TableViewEventCallback = (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()
     private var tableViewEventCallback: TableViewEventCallback?
     
-    /// TODO
-    public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordEventInTableView tableViewEventCallback: TableViewEventCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
+    /// Registers changes notification callbacks.
+    ///
+    /// - parameters:
+    ///     - willChangeCallback: Invoked before records are updated.
+    ///     - tableViewEventCallback: Invoked for each record that has been
+    ///       added, removed, moved, or updated.
+    ///     - didChangeCallback: Invoked after records have been updated.
+    public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, tableViewEvent tableViewEventCallback: TableViewEventCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
         self.willChangeCallback = willChangeCallback
         self.tableViewEventCallback = tableViewEventCallback
         self.didChangeCallback = didChangeCallback
         self.hasChangesCallbacks = (willChangeCallback != nil) || (tableViewEventCallback != nil) || (didChangeCallback != nil)
     }
     #else
-    /// TODO
+    /// Registers changes notification callbacks.
+    ///
+    /// - parameters:
+    ///     - willChangeCallback: Invoked before records are updated.
+    ///     - didChangeCallback: Invoked after records have been updated.
     public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
         self.willChangeCallback = willChangeCallback
         self.didChangeCallback = didChangeCallback

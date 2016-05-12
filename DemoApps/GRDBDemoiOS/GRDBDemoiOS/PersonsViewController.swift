@@ -18,7 +18,7 @@ class PersonsViewController: UITableViewController {
             recordsWillChange: { [unowned self] _ in
                 self.tableView.beginUpdates()
             },
-            recordEventInTableView: { [unowned self] (controller, record, event) in
+            tableViewEvent: { [unowned self] (controller, record, event) in
                 switch event {
                 case .Insertion(let indexPath):
                     self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)

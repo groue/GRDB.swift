@@ -2433,7 +2433,7 @@ controller.trackChanges(
     recordsWillChange: { controller in ... },
     
     // (iOS only) notification of individual record changes:
-    recordEventInTableView: { (controller, record, event) in ... },
+    tableViewEvent: { (controller, record, event) in ... },
     
     // controller's records have changed:
     recordsDidChange: { controller in ... })
@@ -2525,7 +2525,7 @@ controller.trackChanges(
     },
     
     // notification of individual record changes:
-    recordEventInTableView: { [unowned self] (controller, record, event) in
+    tableViewEvent: { [unowned self] (controller, record, event) in
         switch event {
         case .Insertion(let indexPath):
             self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)

@@ -19,7 +19,7 @@ Release Notes
     +        typealias WillChangeCallback = FetchedRecordsController<Record> -> ()
     +        typealias DidChangeCallback = FetchedRecordsController<Record> -> ()
     +        typealias TableViewEventCallback = (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()
-    +        func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordEventInTableView tableViewEventCallback: TableViewEventCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil)
+    +        func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, tableViewEvent tableViewEventCallback: TableViewEventCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil)
     +        func recordAtIndexPath(indexPath: NSIndexPath) -> Record
     +        func indexPathForRecord(record: Record) -> NSIndexPath?
     +        var sections: [FetchedRecordsSectionInfo<Record>]

@@ -146,7 +146,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
-                recordEventInTableView: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
+                tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             controller.performFetch()
             
@@ -206,7 +206,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
-                recordEventInTableView: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
+                tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             controller.performFetch()
             
@@ -285,7 +285,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
-                recordEventInTableView: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
+                tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             controller.performFetch()
             
@@ -352,7 +352,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
-                recordEventInTableView: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
+                tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             controller.performFetch()
             
@@ -408,7 +408,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
-                recordEventInTableView: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
+                tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             controller.performFetch()
             
@@ -456,7 +456,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
-                recordEventInTableView: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
+                tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             controller.performFetch()
             
@@ -589,7 +589,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             let recorder = ChangesRecorder<Person>()
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
-                recordEventInTableView: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
+                tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             controller.performFetch()
             
@@ -675,7 +675,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             recorder.transactionExpectation = expectationWithDescription("expectation")
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
-                recordEventInTableView: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
+                tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
             waitForExpectationsWithTimeout(1, handler: nil)
             
