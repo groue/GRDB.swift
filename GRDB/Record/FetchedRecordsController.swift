@@ -160,7 +160,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     public typealias TableViewEventCallback = (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()
     private var tableViewEventCallback: TableViewEventCallback?
     
-    /// Registers changes notification callbacks.
+    /// Registers changes notification callbacks (iOS only).
     ///
     /// - parameters:
     ///     - willChangeCallback: Invoked before records are updated.
