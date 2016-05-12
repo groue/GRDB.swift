@@ -1,7 +1,7 @@
 Release Notes
 =============
 
-## Next Release
+## 0.62.0
 
 **Breaking Changes**
 
