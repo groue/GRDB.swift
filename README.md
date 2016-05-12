@@ -2564,7 +2564,7 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecor
 
 **A fetched records controller *can not* be used from any thread.**
 
-The database itself can be read and modified from [any thread](#database-connections), but fetched records controller methods like `performFetch` or `recordAtIndexPath` are constrained:
+The database itself can be read and modified from [any thread](#database-connections), but fetched records controller methods like `performFetch` or `trackChanges` are constrained:
 
 By default, they must be used from the main thread. Record changes are also [notified](#the-changes-notifications) on the main thread.
 
