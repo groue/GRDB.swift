@@ -1,13 +1,45 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking Changes**
+
+- FetchedRecordsController has been refactored ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller)):
+    - delegate has been replaced by callbacks
+    - features that target UITableView are now iOS only.
+
+    ```diff
+     final class FetchedRecordsController<Record: RowConvertible> {
+    -    weak var delegate: FetchedRecordsControllerDelegate?
+    -    func recordAtIndexPath(indexPath: NSIndexPath) -> Record
+    -    func indexPathForRecord(record: Record) -> NSIndexPath?
+    -    var sections: [FetchedRecordsSectionInfo<Record>]
+    +    #if os(iOS)
+    +        typealias WillChangeCallback = FetchedRecordsController<Record> -> ()
+    +        typealias DidChangeCallback = FetchedRecordsController<Record> -> ()
+    +        typealias TableViewEventCallback = (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()
+    +        func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordEventInTableView tableViewEventCallback: TableViewEventCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil)
+    +        func recordAtIndexPath(indexPath: NSIndexPath) -> Record
+    +        func indexPathForRecord(record: Record) -> NSIndexPath?
+    +        var sections: [FetchedRecordsSectionInfo<Record>]
+    +    #else
+    +        typealias WillChangeCallback = FetchedRecordsController<Record> -> ()
+    +        typealias DidChangeCallback = FetchedRecordsController<Record> -> ()
+    +        func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil)
+    +    #endif
+     }
+    -public protocol FetchedRecordsControllerDelegate : class { }
+    ```
+
+
 ## 0.61.0
 
 Released May 10, 2016
 
 **New**
 
-- `FetchedRecordsController` is now exposed in OSX CocoaPods framework ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller)
+- `FetchedRecordsController` is now exposed in OSX CocoaPods framework ([documentation](https://github.com/groue/GRDB.swift#fetchedrecordscontroller))
 
 **Fixed**
 
