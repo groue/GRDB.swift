@@ -96,6 +96,12 @@ public final class Row {
         self.sqliteStatement = nil
         self.impl = StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: columnNames)
     }
+    
+    init(row: Row, adapter: RowAdapter) {
+        self.statementRef = nil
+        self.sqliteStatement = nil
+        self.impl = AdaptedRowImpl(row: row, adapter: adapter)
+    }
 }
 
 extension Row {
@@ -381,6 +387,15 @@ extension Row {
 
 extension Row {
     
+    // MARK: - Subrows
+    
+    public var subrows: [String: Row] {
+        return impl.subrows
+    }
+}
+
+extension Row {
+    
     // MARK: - Extracting DatabaseValue
     
     /// Returns the `DatabaseValue` at given column, if the row contains the
@@ -445,9 +460,14 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
     @warn_unused_result
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
-        let row = Row(statement: statement)
+        let row: Row
+        if let adapter = adapter {
+            row = Row(row: Row(statement: statement), adapter: adapter)
+        } else {
+            row = Row(statement: statement)
+        }
         return statement.fetchSequence(arguments: arguments) {
             return row
         }
@@ -463,11 +483,18 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     /// - returns: An array of rows.
     @warn_unused_result
-    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Row] {
+    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
         let sqliteStatement = statement.sqliteStatement
         let columnNames = statement.columnNames
-        let sequence = statement.fetchSequence(arguments: arguments) {
-            Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames)
+        let sequence: DatabaseSequence<Row>
+        if let adapter = adapter {
+            sequence = statement.fetchSequence(arguments: arguments) {
+                Row(row: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), adapter: adapter)
+            }
+        } else {
+            sequence = statement.fetchSequence(arguments: arguments) {
+                Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames)
+            }
         }
         return Array(sequence)
     }
@@ -482,13 +509,20 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     /// - returns: An optional row.
     @warn_unused_result
-    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Row? {
+    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
         let sqliteStatement = statement.sqliteStatement
         let columnNames = statement.columnNames
         let sequence = statement.fetchSequence(arguments: arguments) {
             Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames)
         }
-        return sequence.generate().next()
+        guard let row = sequence.generate().next() else {
+            return nil
+        }
+        if let adapter = adapter {
+            return Row(row: row, adapter: adapter)
+        } else {
+            return row
+        }
     }
     
     
@@ -527,8 +561,8 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     /// - returns: A sequence of rows.
     @warn_unused_result
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Row> {
-        return fetch(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
+        return fetch(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -541,8 +575,8 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     /// - returns: An array of rows.
     @warn_unused_result
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Row] {
-        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
+        return fetchAll(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -555,8 +589,8 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     /// - returns: An optional row.
     @warn_unused_result
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Row? {
-        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
+        return fetchOne(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
     }
 }
 
@@ -666,6 +700,73 @@ public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
 }
 
 
+// MARK: - RowAdapter
+
+public struct RowAdapter {
+    let mapping: [String: String]
+    let submappings: [String: [String: String]]?
+    public init(mapping: [String: String], subrows submappings: [String: [String: String]]? = nil) {
+        self.mapping = mapping
+        self.submappings = submappings
+    }
+}
+
+private struct AdaptedRowImpl : RowImpl {
+    let row: Row
+    let adapter: RowAdapter
+    
+    init(row: Row, adapter: RowAdapter) {
+        self.row = row
+        self.adapter = adapter
+    }
+    
+    func baseColumName(atIndex index: Int) -> String {
+        return adapter.mapping[adapter.mapping.startIndex.advancedBy(index)].1
+    }
+    
+    var count: Int {
+        return adapter.mapping.count
+    }
+    
+    func databaseValue(atIndex index: Int) -> DatabaseValue {
+        // Assume NULL for missing columns.
+        // Alternate choice: crash.
+        // TODO: think hard.
+        guard let dbv = row[baseColumName(atIndex: index)] else {
+            return .Null
+        }
+        return dbv
+    }
+
+    func dataNoCopy(atIndex index:Int) -> NSData? {
+        return row.dataNoCopy(named: baseColumName(atIndex: index))
+    }
+    
+    func columnName(atIndex index: Int) -> String {
+        return adapter.mapping[adapter.mapping.startIndex.advancedBy(index)].0
+    }
+    
+    func indexOfColumn(named name: String) -> Int? {
+        for (index, pair) in adapter.mapping.enumerate() where name.lowercaseString == pair.0.lowercaseString {
+            return index
+        }
+        return nil
+    }
+    
+    var subrows: [String: Row] {
+        guard let submappings = adapter.submappings else {
+            return [:]
+        }
+        return Dictionary(keyValueSequence: submappings.map { (identifier, mapping) in
+            (identifier, Row(row: row, adapter: RowAdapter(mapping: mapping)))
+        })
+    }
+    
+    func copy(row: Row) -> Row {
+        return Row(row: row.copy(), adapter: adapter)
+    }
+}
+
 // MARK: - RowImpl
 
 // The protocol for Row underlying implementation
@@ -678,6 +779,8 @@ protocol RowImpl {
     // This method MUST be case-insensitive, and returns the index of the
     // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int?
+    
+    var subrows: [String: Row] { get }
     
     // row.impl is guaranteed to be self.
     func copy(row: Row) -> Row
@@ -717,6 +820,8 @@ private struct DictionaryRowImpl : RowImpl {
         }
         return dictionary.startIndex.distanceTo(index)
     }
+    
+    var subrows: [String: Row] { return [:] }
     
     func copy(row: Row) -> Row {
         return row
@@ -758,6 +863,8 @@ private struct StatementCopyRowImpl : RowImpl {
         let lowercaseName = name.lowercaseString
         return columnNames.indexOf { $0.lowercaseString == lowercaseName }
     }
+    
+    var subrows: [String: Row] { return [:] }
     
     func copy(row: Row) -> Row {
         return row
@@ -810,6 +917,8 @@ private struct StatementRowImpl : RowImpl {
         return lowercaseColumnIndexes[name.lowercaseString]
     }
     
+    var subrows: [String: Row] { return [:] }
+    
     func copy(row: Row) -> Row {
         return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
     }
@@ -835,6 +944,8 @@ private struct EmptyRowImpl : RowImpl {
     func indexOfColumn(named name: String) -> Int? {
         return nil
     }
+    
+    var subrows: [String: Row] { return [:] }
     
     func copy(row: Row) -> Row {
         return row
