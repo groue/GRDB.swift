@@ -7,9 +7,14 @@ class RowAdapterTests: GRDBTestCase {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
             let adapter = RowAdapter(
+                // Main mapping
                 mapping: ["id": "fooid", "val": "fooval"],
                 subrows: [
+                    // Alternate mapping
                     "foo": ["id": "barid", "val": "barval"],
+                    // Other mapping which references a column that does not exist.
+                    // I still don't know if this should be supported. If not, we should
+                    // fatalError very early.
                     "odd": ["id": "missingid"]])
             let row = Row.fetchOne(db, "SELECT 1 AS fooid, 'foo' AS fooval, 2 as barid, 'bar' AS barval", adapter: adapter)!
             
@@ -49,7 +54,7 @@ class RowAdapterTests: GRDBTestCase {
             
             let row3 = row.subrows["odd"]!
             XCTAssertEqual(row3.count, 1)
-            XCTAssertTrue(row3.value(named: "id") == nil)
+            XCTAssertTrue(row3.value(named: "id") == nil)   // TODO: is that what we want? Should we crash instead?
         }
     }
 
