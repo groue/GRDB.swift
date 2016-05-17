@@ -158,15 +158,14 @@ public final class Database {
                 fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
             }
         } else {
-            var stmt: SQLiteStatement = sqlite3_next_stmt(sqliteConnection, nil)
-            while stmt != nil {
-                NSLog("%@", "Living statement: \(String.fromCString(sqlite3_sql(stmt))!)")
-                stmt = sqlite3_next_stmt(sqliteConnection, stmt)
-            }
-            
             let code = sqlite3_close(sqliteConnection)
-            guard code == SQLITE_OK else {
-                fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+            if code != SQLITE_OK {
+                NSLog("%@", "GRDB could not close database with error \(code): \(lastErrorMessage ?? "")")
+                var stmt: SQLiteStatement = sqlite3_next_stmt(sqliteConnection, nil)
+                while stmt != nil {
+                    NSLog("%@", "GRDB unfinalised statement: \(String.fromCString(sqlite3_sql(stmt))!)")
+                    stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+                }
             }
         }
         isClosed = true
