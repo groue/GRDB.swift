@@ -835,6 +835,13 @@ extension Database {
         // 1   | firstName | TEXT    | 0       | NULL       | 0  |
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  |
         
+        if #available(iOS 8.2, OSX 10.10, *) { } else {
+            // Work around a bug in SQLite where PRAGMA table_info would
+            // return a result even after the table was deleted.
+            if !tableExists(tableName) {
+                throw DatabaseError(message: "no such table: \(tableName)")
+            }
+        }
         let columnInfos = ColumnInfo.fetchAll(self, "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
         guard columnInfos.count > 0 else {
             throw DatabaseError(message: "no such table: \(tableName)")
