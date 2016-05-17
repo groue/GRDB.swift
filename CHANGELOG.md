@@ -1,6 +1,21 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking Changes**
+
+- Support for advanced migrations is not available until iOS 8.2 and OS X 10.10:
+    
+    ```diff
+     public struct DatabaseMigrator {
+    -    public mutating func registerMigration(identifier: String, withDisabledForeignKeyChecks disabledForeignKeyChecks: Bool = false, migrate: (Database) throws -> Void)
+    +    public mutating func registerMigration(identifier: String, migrate: (Database) throws -> Void)
+    +    @available(iOS 8.2, OSX 10.10, *)
+    +    public mutating func registerMigrationWithDisabledForeignKeyChecks(identifier: String, migrate: (Database) throws -> Void)
+    ```
+
+
 ## 0.62.0
 
 Released May 12, 2016

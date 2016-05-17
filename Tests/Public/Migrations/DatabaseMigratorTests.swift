@@ -130,6 +130,10 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testMigrationWithoutForeignKeyChecks() {
+        // Advanced migration are not available until iOS 8.2 and OSX 10.10
+        guard #available(iOS 8.2, OSX 10.10, *) else {
+            return
+        }
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, tmp TEXT)")
@@ -138,14 +142,14 @@ class DatabaseMigratorTests : GRDBTestCase {
             let personId = db.lastInsertedRowID
             try db.execute("INSERT INTO pets (masterId, name) VALUES (?, 'Bobby')", arguments:[personId])
         }
-        migrator.registerMigration("removePersonTmpColumn", withDisabledForeignKeyChecks: true) { db in
+        migrator.registerMigrationWithDisabledForeignKeyChecks("removePersonTmpColumn") { db in
             // Test the technique described at https://www.sqlite.org/lang_altertable.html#otheralter
             try db.execute("CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT)")
             try db.execute("INSERT INTO new_persons SELECT id, name FROM persons")
             try db.execute("DROP TABLE persons")
             try db.execute("ALTER TABLE new_persons RENAME TO persons")
         }
-        migrator.registerMigration("foreignKeyError", withDisabledForeignKeyChecks: true) { db in
+        migrator.registerMigrationWithDisabledForeignKeyChecks("foreignKeyError") { db in
             // Make sure foreign keys are checked at the end.
             try db.execute("INSERT INTO persons (name) VALUES ('Barbara')")
             do {
