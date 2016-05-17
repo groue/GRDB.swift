@@ -85,8 +85,8 @@ public final class Database {
     private var collations = Set<DatabaseCollation>()
     
     var schemaCache: DatabaseSchemaCacheType    // internal so that it can be tested
-    private var selectStatementCache: [String: SelectStatement] = [:]
-    private var updateStatementCache: [String: UpdateStatement] = [:]
+    private var selectStatementCache: [String: SelectStatement] = [:]   // unused until #available(iOS 8.2, OSX 10.10, *)
+    private var updateStatementCache: [String: UpdateStatement] = [:]   // unused until #available(iOS 8.2, OSX 10.10, *)
     
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
     private var transactionState: TransactionState = .WaitForTransactionCompletion
