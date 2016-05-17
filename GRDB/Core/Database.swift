@@ -143,10 +143,25 @@ public final class Database {
     }
     
     deinit {
+        // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         configuration.SQLiteConnectionWillClose?(sqliteConnection)
-        let code = sqlite3_close_v2(sqliteConnection)
-        guard code == SQLITE_OK else {
-            fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+        if #available(iOS 8.2, OSX 10.10, *) {
+            let code = sqlite3_close_v2(sqliteConnection)
+            guard code == SQLITE_OK else {
+                fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+            }
+        } else {
+            var stmt: SQLiteStatement = sqlite3_next_stmt(sqliteConnection, nil)
+            while stmt != nil {
+                NSLog("%@", "Living statement: \(String.fromCString(sqlite3_sql(stmt))!)")
+                stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+            }
+
+            let code = sqlite3_close(sqliteConnection)
+            guard code == SQLITE_OK else {
+                fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
+            }
         }
         configuration.SQLiteConnectionDidClose?()
     }
@@ -335,6 +350,9 @@ extension Database {
         return try SelectStatement(database: self, sql: sql)
     }
     
+    // Until iOS 8.2, OSX 10.10, GRDB does not support deallocating a
+    // database when some statements are not finalized. Avoid caching.
+    @available(iOS 8.2, OSX 10.10, *)
     @warn_unused_result
     func cachedSelectStatement(sql: String) throws -> SelectStatement {
         if let statement = selectStatementCache[sql] {
@@ -362,6 +380,9 @@ extension Database {
         return try UpdateStatement(database: self, sql: sql)
     }
     
+    // Until iOS 8.2, OSX 10.10, GRDB does not support deallocating a
+    // database when some statements are not finalized. Avoid caching.
+    @available(iOS 8.2, OSX 10.10, *)
     @warn_unused_result
     func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
         if let statement = updateStatementCache[sql] {
