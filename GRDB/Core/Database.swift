@@ -121,8 +121,7 @@ public final class Database {
                     throw DatabaseError(code: readCode, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
                 }
             } catch {
-                // deinit is not called: close connection
-                sqlite3_close_v2(sqliteConnection)
+                close()
                 throw error
             }
         #endif
@@ -142,7 +141,14 @@ public final class Database {
         setupDefaultCollations()
     }
     
-    deinit {
+    private var isClosed: Bool = false
+    func close() {
+        preconditionValidQueue()
+        assert(!isClosed)
+        
+        updateStatementCache = [:]
+        selectStatementCache = [:]
+        
         // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         configuration.SQLiteConnectionWillClose?(sqliteConnection)
@@ -157,13 +163,18 @@ public final class Database {
                 NSLog("%@", "Living statement: \(String.fromCString(sqlite3_sql(stmt))!)")
                 stmt = sqlite3_next_stmt(sqliteConnection, stmt)
             }
-
+            
             let code = sqlite3_close(sqliteConnection)
             guard code == SQLITE_OK else {
                 fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
             }
         }
+        isClosed = true
         configuration.SQLiteConnectionDidClose?()
+    }
+    
+    deinit {
+        assert(isClosed)
     }
     
     func releaseMemory() {

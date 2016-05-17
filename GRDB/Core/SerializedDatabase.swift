@@ -43,6 +43,12 @@ final class SerializedDatabase {
         db.dispatchQueueID = dispatchQueueID
     }
     
+    deinit {
+        performSync { db in
+            db.close()
+        }
+    }
+    
     /// Synchronously executes a block the serialized dispatch queue, and returns
     /// its result.
     ///
