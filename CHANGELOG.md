@@ -1,7 +1,13 @@
 Release Notes
 =============
 
-## Next Release
+## 0.63.0
+
+Released May 17, 2016
+
+**Fixed**
+
+- Restored support for iOS before 8.2 and OS X before 10.10. Fixes [#51](https://github.com/groue/GRDB.swift/issues/51).
 
 **Breaking Changes**
 
