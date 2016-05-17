@@ -1470,6 +1470,9 @@ Country.fetchOne(db, key: "FR")          // Country?
 
 // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
 Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
+
+// SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
+Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
 ```
 
 
@@ -2138,6 +2141,13 @@ Country.fetchOne(db, key: "FR")          // Country?
 
 // SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
 Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
+```
+
+For multiple-column primary keys, provide a dictionary:
+
+```swift
+// SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
+Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
 ```
 
 
