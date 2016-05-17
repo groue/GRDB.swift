@@ -319,6 +319,11 @@ class DatabaseTests : GRDBTestCase {
     }
     
     func testFailedCommitIsRollbacked() {
+        // PRAGMA defer_foreign_keys = ON was introduced in SQLite 3.12.0 http://www.sqlite.org/changes.html#version_3_8_0
+        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        guard #available(iOS 8.2, OSX 10.10, *) else {
+            return
+        }
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
