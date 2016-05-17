@@ -85,8 +85,8 @@ public final class Database {
     private var collations = Set<DatabaseCollation>()
     
     var schemaCache: DatabaseSchemaCacheType    // internal so that it can be tested
-    private var selectStatementCache: [String: SelectStatement] = [:]   // unused until #available(iOS 8.2, OSX 10.10, *)
-    private var updateStatementCache: [String: UpdateStatement] = [:]   // unused until #available(iOS 8.2, OSX 10.10, *)
+    private var selectStatementCache: [String: SelectStatement] = [:]
+    private var updateStatementCache: [String: UpdateStatement] = [:]
     
     /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
     private var transactionState: TransactionState = .WaitForTransactionCompletion
@@ -361,9 +361,6 @@ extension Database {
         return try SelectStatement(database: self, sql: sql)
     }
     
-    // Until iOS 8.2, OSX 10.10, GRDB does not support deallocating a
-    // database when some statements are not finalized. Avoid caching.
-    @available(iOS 8.2, OSX 10.10, *)
     @warn_unused_result
     func cachedSelectStatement(sql: String) throws -> SelectStatement {
         if let statement = selectStatementCache[sql] {
@@ -391,9 +388,6 @@ extension Database {
         return try UpdateStatement(database: self, sql: sql)
     }
     
-    // Until iOS 8.2, OSX 10.10, GRDB does not support deallocating a
-    // database when some statements are not finalized. Avoid caching.
-    @available(iOS 8.2, OSX 10.10, *)
     @warn_unused_result
     func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
         if let statement = updateStatementCache[sql] {

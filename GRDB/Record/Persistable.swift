@@ -539,12 +539,7 @@ final class DataMapper {
         let query = InsertQuery(
             tableName: databaseTableName,
             insertedColumns: Array(persistentDictionary.keys))
-        let statement: UpdateStatement
-        if #available(iOS 8.2, OSX 10.10, *) {
-            statement = try! db.cachedUpdateStatement(query.sql)
-        } else {
-            statement = try! db.updateStatement(query.sql)
-        }
+        let statement = try! db.cachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(persistentDictionary.values))
         return statement
     }
@@ -574,12 +569,7 @@ final class DataMapper {
             tableName: databaseTableName,
             updatedColumns: updatedColumns,
             conditionColumns: primaryKeyColumns)
-        let statement: UpdateStatement
-        if #available(iOS 8.2, OSX 10.10, *) {
-            statement = try! db.cachedUpdateStatement(query.sql)
-        } else {
-            statement = try! db.updateStatement(query.sql)
-        }
+        let statement = try! db.cachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(updatedValues + primaryKeyValues))
         return statement
     }
@@ -593,12 +583,7 @@ final class DataMapper {
         let query = DeleteQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement: UpdateStatement
-        if #available(iOS 8.2, OSX 10.10, *) {
-            statement = try! db.cachedUpdateStatement(query.sql)
-        } else {
-            statement = try! db.updateStatement(query.sql)
-        }
+        let statement = try! db.cachedUpdateStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
         return statement
     }
@@ -612,12 +597,7 @@ final class DataMapper {
         let query = ExistsQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement: SelectStatement
-        if #available(iOS 8.2, OSX 10.10, *) {
-            statement = try! db.cachedSelectStatement(query.sql)
-        } else {
-            statement = try! db.selectStatement(query.sql)
-        }
+        let statement = try! db.cachedSelectStatement(query.sql)
         statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
         return statement
     }

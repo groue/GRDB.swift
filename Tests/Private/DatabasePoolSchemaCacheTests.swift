@@ -78,12 +78,6 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         // If cached statements were shared between reader connections, this
         // test would crash with fatal error: Database was not used on the
         // correct thread.
-        
-        // Until iOS 8.2, OSX 10.10, GRDB does not support cached statements.
-        guard #available(iOS 8.2, OSX 10.10, *) else {
-            return
-        }
-        
         assertNoError {
             let dbPool = try makeDatabasePool()
             try dbPool.write { db in
