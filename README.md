@@ -735,10 +735,6 @@ Row adopts the standard [CollectionType](https://developer.apple.com/library/ios
 for (columnName, databaseValue) in row {
     ...
 }
-
-if let databaseValue = row["date"] {
-    ...
-}
 ```
 
 **You can build rows from dictionaries** (standard Swift dictionaries and NSDictionary). See [Values](#values) for more information on supported types:
@@ -753,7 +749,7 @@ Yet rows are not real dictionaries, because they may contain duplicate keys:
 let row = Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
 row.columnNames     // ["foo", "foo"]
 row.databaseValues  // [1, 2]
-row["foo"]          // 1 (the value for the leftmost column "foo")
+row.databaseValue(named: "foo") // 1 (the value for the leftmost column "foo")
 for (columnName, databaseValue) in row { ... } // ("foo", 1), ("foo", 2)
 ```
 
@@ -868,7 +864,7 @@ for row in Row.fetch(db, "SELECT data, ...") {
     let data: NSData = row.value(named: "data")
     
     // This data is copied:
-    if let databaseValue = row["data"] {
+    if let databaseValue = row.databaseValue(named: "data") {
         let data: NSData = databaseValue.value()
     }
     
