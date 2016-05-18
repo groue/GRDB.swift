@@ -295,7 +295,7 @@ extension DatabaseFunction {
     ///     let request = Person.select(nameColumn.capitalizedString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let capitalizedString = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string: String = databaseValues[0].failableValue() else {
+        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
         }
         return string.capitalizedString
@@ -314,7 +314,7 @@ extension DatabaseFunction {
     ///     let request = Person.select(nameColumn.lowercaseString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let lowercaseString = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string: String = databaseValues[0].failableValue() else {
+        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
         }
         return string.lowercaseString
@@ -333,7 +333,7 @@ extension DatabaseFunction {
     ///     let request = Person.select(nameColumn.uppercaseString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let uppercaseString = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string: String = databaseValues[0].failableValue() else {
+        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
         }
         return string.uppercaseString
@@ -355,7 +355,7 @@ extension DatabaseFunction {
     ///     let request = Person.select(nameColumn.localizedCapitalizedString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let localizedCapitalizedString = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string: String = databaseValues[0].failableValue() else {
+        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
         }
         return string.localizedCapitalizedString
@@ -374,7 +374,7 @@ extension DatabaseFunction {
     ///     let request = Person.select(nameColumn.localizedLowercaseString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let localizedLowercaseString = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string: String = databaseValues[0].failableValue() else {
+        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
         }
         return string.localizedLowercaseString
@@ -393,7 +393,7 @@ extension DatabaseFunction {
     ///     let request = Person.select(nameColumn.localizedUppercaseString)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
     public static let localizedUppercaseString = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { databaseValues in
-        guard let string: String = databaseValues[0].failableValue() else {
+        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
         }
         return string.localizedUppercaseString

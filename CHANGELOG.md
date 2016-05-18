@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking Changes**
+
+- `DatabaseValue.failableValue()` has been removed. Instead, use DatabaseConvertible.fromDatabaseValue():
+    
+    ```diff
+    - let date = dbv.failableValue() as NSDate?
+    + let date = NSDate.fromDatabaseValue(dbv)
+    ```
+
+
 ## 0.63.0
 
 Released May 17, 2016

@@ -78,8 +78,8 @@ public struct DatabaseValue {
     /// value is converted to the requested type `Value`. Should this conversion
     /// fail, a fatal error is raised.
     ///
-    /// If this fatal error is unacceptable to you, use the
-    /// failableValue() method.
+    /// If this fatal error is unacceptable to you, use
+    /// DatabaseValueConvertible.fromDatabaseValue() method.
     ///
     /// - returns: An optional *Value*.
     @warn_unused_result
@@ -105,20 +105,6 @@ public struct DatabaseValue {
             fatalError("could not convert \(self) to \(Value.self).")
         }
         return value
-    }
-    
-    /// Returns the value, converted to the requested type.
-    ///
-    /// The result is nil if the SQLite value is NULL, or if the SQLite value
-    /// can not be converted to `Value`.
-    ///
-    /// This method can return nil for non-NULL values. If this is unacceptable
-    /// to you, use the value() method.
-    ///
-    /// - returns: An optional *Value*.
-    @warn_unused_result
-    public func failableValue<Value: DatabaseValueConvertible>() -> Value? {
-        return Value.fromDatabaseValue(self)
     }
     
     

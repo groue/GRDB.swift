@@ -1,4 +1,4 @@
-- [ ] Remove DatabaseValue.failableValue() since DatabaseValueConvertible provides exactly the same service.
+- [X] Remove DatabaseValue.failableValue() since DatabaseValueConvertible provides exactly the same service.
     if let dbv = row.databaseValue(atIndex: 0), let date: NSDate = dbv.failableValue() { ... }  
     if let dbv = row.databaseValue(atIndex: 0), let date = NSDate.fromDatabaseValue(dbv) { ... }  
 - [ ] Remove Row subscripting by column name, and make Row.databaseValue(named:) return an optional.

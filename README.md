@@ -665,7 +665,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
     ```
     
-    This fatal error can be avoided with the [DatabaseValue.failableValue()](#databasevalue) method.
+    This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method.
     
 - **SQLite has a weak type system, and provides [convenience conversions](https://www.sqlite.org/c3ref/column_blob.html) that can turn Blob to String, String to Int, etc.**
     
@@ -715,14 +715,14 @@ let date: NSDate   = dbv.value()     // NSDate
 self.date          = dbv.value()     // Depends on the type of the property.
 ```
 
-Invalid conversions from non-NULL values raise a fatal error. Use `failableValue()` when you want to check if conversion is valid:
+Invalid conversions from non-NULL values raise a fatal error. This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 'foo'")!
 let dbv = row.databaseValue(at: 0)
-dbv.value() as String          // "foo"
-dbv.value() as NSDate?         // fatal error: could not convert "foo" to NSDate.
-dbv.failableValue() as NSDate? // nil
+let string = dbv.value() as String  // "foo"
+let date = dbv.value() as NSDate?   // fatal error: could not convert "foo" to NSDate.
+let date = NSDate.fromDatabaseValue(dbv) // nil
 ```
 
 
@@ -1100,7 +1100,7 @@ All types that adopt this protocol can be used like all other [value types](#val
 
 The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
 
-The `fromDatabaseValue()` factory method returns an instance of your custom type, if the databaseValue contains a suitable value. If it does not, return nil, and avoid failing with a fatal error: this method is not the place where failed conversions are handled.
+The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for NSDate, the method returns nil.
 
 As an example, see [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift): it shows how to store dates as timestamps, unlike the built-in [NSDate](#nsdate-and-nsdatecomponents).
 
@@ -1165,7 +1165,7 @@ let reverseString = DatabaseFunction(
     pure: true,       // True means that the result only depends on input
     function: { (databaseValues: [DatabaseValue]) in
         // Extract string value, if any...
-        guard let string: String = databaseValues[0].value() else {
+        guard let string: String = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
         }
         // ... and return reversed string:
@@ -1190,7 +1190,7 @@ When you don't provide any explicit *argumentCount*, the function can take any n
 
 ```swift
 let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [DatabaseValue]) in
-    let doubles: [Double] = databaseValues.map { $0.value() }
+    let doubles = databaseValues.flatMap { Double.fromDatabaseValue($0) }
     return doubles.reduce(0, combine: +) / Double(doubles.count)
 }
 dbQueue.addFunction(averageOf)
