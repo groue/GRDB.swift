@@ -180,4 +180,26 @@ class DictionaryRowTests: GRDBTestCase {
         XCTAssertTrue(row.hasColumn("Foo"))
         XCTAssertTrue(row.hasColumn("FOO"))
     }
+    
+    func testSubRows() {
+        let row = Row(["a": 0, "b": 1, "c": 2])
+        XCTAssertTrue(row.subrow(named: "missing") == nil)
+    }
+    
+    func testCopy() {
+        let row = Row(["a": 0, "b": 1, "c": 2])
+        
+        let copiedRow = row.copy()
+        XCTAssertEqual(copiedRow.count, 3)
+        XCTAssertEqual(copiedRow.value(named: "a") as Int, 0)
+        XCTAssertEqual(copiedRow.value(named: "b") as Int, 1)
+        XCTAssertEqual(copiedRow.value(named: "c") as Int, 2)
+    }
+    
+    func testEqualityWithCopy() {
+        let row = Row(["a": 0, "b": 1, "c": 2])
+        
+        let copiedRow = row.copy()
+        XCTAssertEqual(row, copiedRow)
+    }
 }

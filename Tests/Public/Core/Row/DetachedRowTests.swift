@@ -249,4 +249,43 @@ class DetachedRowTests: GRDBTestCase {
             }
         }
     }
+    
+    func testSubRows() {
+        let dbQueue = DatabaseQueue()
+        dbQueue.inDatabase { db in
+            let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
+            XCTAssertTrue(row.subrow(named: "missing") == nil)
+        }
+    }
+    
+    func testCopy() {
+        assertNoError {
+            let dbQueue = DatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                
+                let copiedRow = row.copy()
+                XCTAssertEqual(copiedRow.count, 3)
+                XCTAssertEqual(copiedRow.value(named: "a") as Int, 0)
+                XCTAssertEqual(copiedRow.value(named: "b") as Int, 1)
+                XCTAssertEqual(copiedRow.value(named: "c") as Int, 2)
+            }
+        }
+    }
+    
+    func testEqualityWithCopy() {
+        assertNoError {
+            let dbQueue = DatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+                
+                let copiedRow = row.copy()
+                XCTAssertEqual(row, copiedRow)
+            }
+        }
+    }
 }
