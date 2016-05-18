@@ -17,8 +17,12 @@ class RowAdapterTests: GRDBTestCase {
             // # Row values
             
             XCTAssertEqual(row.count, 2)
+            XCTAssertEqual(row.value(atIndex: 0) as Int, 1)
+            XCTAssertEqual(row.value(atIndex: 1) as String, "foo")
             XCTAssertEqual(row.value(named: "id") as Int, 1)
             XCTAssertEqual(row.value(named: "val") as String, "foo")
+            XCTAssertEqual(row.databaseValue(atIndex: 0), 1.databaseValue)
+            XCTAssertEqual(row.databaseValue(atIndex: 1), "foo".databaseValue)
             XCTAssertEqual(row.databaseValue(named: "id"), 1.databaseValue)
             XCTAssertEqual(row.databaseValue(named: "val"), "foo".databaseValue)
             XCTAssertTrue(row.value(named: "barid") == nil)
@@ -27,14 +31,17 @@ class RowAdapterTests: GRDBTestCase {
             XCTAssertTrue(row.hasColumn("val"))
             XCTAssertFalse(row.hasColumn("barid"))
             XCTAssertFalse(row.hasColumn("missing"))
-            // TODO: test row.value(atIndex: 0) and row.value(atIndex: 1)
-            // TODO: test for (key, value) in row { ... }
+            XCTAssertEqual(Array(row.columnNames), ["id", "val"])
+            XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, "foo".databaseValue])
+            let pairs = row.map { (columnName: $0, databaseValue: $1) }
+            XCTAssertEqual(pairs[0].columnName, "id")
+            XCTAssertEqual(pairs[0].databaseValue, 1.databaseValue)
+            XCTAssertEqual(pairs[1].columnName, "val")
+            XCTAssertEqual(pairs[1].databaseValue, "foo".databaseValue)
             
             
             // # Row equality
             
-            // One of this tests is failing - can't know which one because dictionaries are unordered.
-            // TODO: think about that.
             let altRow1 = Row.fetchOne(db, "SELECT 1 AS id, 'foo' AS val")!
             XCTAssertEqual(row, altRow1)
             let altRow2 = Row.fetchOne(db, "SELECT 'foo' AS val, 1 AS id")!

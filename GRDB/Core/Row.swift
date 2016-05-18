@@ -97,10 +97,17 @@ public final class Row {
         self.impl = StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: columnNames)
     }
     
-    init(row: Row, adapter: ValidatedRowAdapter) {
+    convenience init(baseRow: Row, adapter: ValidatedRowAdapter) {
+        // orderedMapping preserves column ordering of base row.
+        let orderedMapping = baseRow.impl.orderedMapping(adapter.mapping)
+        let lowercaseColumnIndexes = Dictionary(keyValueSequence: orderedMapping.enumerate().map { ($1.0.lowercaseString, $0) })
+        self.init(baseRow: baseRow, adapter: adapter, orderedMapping: orderedMapping, lowercaseColumnIndexes: lowercaseColumnIndexes)
+    }
+    
+    init(baseRow: Row, adapter: ValidatedRowAdapter, orderedMapping: [(String, String)], lowercaseColumnIndexes: [String: Int]) {
         self.statementRef = nil
         self.sqliteStatement = nil
-        self.impl = AdaptedRowImpl(row: row, adapter: adapter)
+        self.impl = AdaptedRowImpl(baseRow: baseRow, adapter: adapter, orderedMapping: orderedMapping, lowercaseColumnIndexes: lowercaseColumnIndexes)
     }
 }
 
@@ -465,7 +472,7 @@ extension Row {
         let row: Row
         if let adapter = adapter {
             let validatedAdapter = try! statement.validateRowAdapter(adapter)
-            row = Row(row: Row(statement: statement), adapter: validatedAdapter)
+            row = Row(baseRow: Row(statement: statement), adapter: validatedAdapter)
         } else {
             row = Row(statement: statement)
         }
@@ -491,7 +498,7 @@ extension Row {
         if let adapter = adapter {
             let validatedAdapter = try! statement.validateRowAdapter(adapter)
             sequence = statement.fetchSequence(arguments: arguments) {
-                Row(row: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), adapter: validatedAdapter)
+                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), adapter: validatedAdapter)
             }
         } else {
             sequence = statement.fetchSequence(arguments: arguments) {
@@ -522,7 +529,7 @@ extension Row {
         }
         if let adapter = adapter {
             let validatedAdapter = try! statement.validateRowAdapter(adapter)
-            return Row(row: row, adapter: validatedAdapter)
+            return Row(baseRow: row, adapter: validatedAdapter)
         } else {
             return row
         }
@@ -928,16 +935,20 @@ private struct EmptyRowImpl : RowImpl {
 
 // See Row.init(row:adapter:)
 private struct AdaptedRowImpl : RowImpl {
-    let row: Row
+    let baseRow: Row
     let adapter: ValidatedRowAdapter
+    let orderedMapping: [(String, String)]  // [(mappedColumn, baseColumn), ...]
+    let lowercaseColumnIndexes: [String: Int]
     
-    init(row: Row, adapter: ValidatedRowAdapter) {
-        self.row = row
+    init(baseRow: Row, adapter: ValidatedRowAdapter, orderedMapping: [(String, String)], lowercaseColumnIndexes: [String: Int]) {
+        self.baseRow = baseRow
         self.adapter = adapter
+        self.orderedMapping = orderedMapping
+        self.lowercaseColumnIndexes = lowercaseColumnIndexes
     }
     
     func baseColumName(atIndex index: Int) -> String {
-        return adapter.mapping[adapter.mapping.startIndex.advancedBy(index)].1
+        return orderedMapping[index].1
     }
     
     var count: Int {
@@ -945,31 +956,43 @@ private struct AdaptedRowImpl : RowImpl {
     }
     
     func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return row.databaseValue(named: baseColumName(atIndex: index))
+        return baseRow.databaseValue(named: baseColumName(atIndex: index))
     }
     
     func dataNoCopy(atIndex index:Int) -> NSData? {
-        return row.dataNoCopy(named: baseColumName(atIndex: index))
+        return baseRow.dataNoCopy(named: baseColumName(atIndex: index))
     }
     
     func columnName(atIndex index: Int) -> String {
-        return adapter.mapping[adapter.mapping.startIndex.advancedBy(index)].0
+        return orderedMapping[index].0
     }
     
     func indexOfColumn(named name: String) -> Int? {
-        for (index, pair) in adapter.mapping.enumerate() where name.lowercaseString == pair.0.lowercaseString {
+        if let index = lowercaseColumnIndexes[name] {
             return index
         }
-        return nil
+        return lowercaseColumnIndexes[name.lowercaseString]
     }
     
     var subrows: [String: Row] {
         return Dictionary(keyValueSequence: adapter.subrowMappings.map { (identifier, mapping) in
-            (identifier, Row(row: row, adapter: ValidatedRowAdapter(mapping: mapping)))
+            (identifier, Row(baseRow: baseRow, adapter: ValidatedRowAdapter(mapping: mapping)))
             })
     }
     
     func copy(row: Row) -> Row {
-        return Row(row: row.copy(), adapter: adapter)
+        return Row(baseRow: row.copy(), adapter: adapter, orderedMapping: orderedMapping, lowercaseColumnIndexes: lowercaseColumnIndexes)
+    }
+}
+
+extension RowImpl {
+    func orderedMapping(mapping: [String: String]) -> [(String, String)] {
+        return mapping.sort { (pair1, pair2) in
+            let (_, baseColumn1) = pair1
+            let (_, baseColumn2) = pair2
+            let index1 = indexOfColumn(named: baseColumn1)
+            let index2 = indexOfColumn(named: baseColumn2)
+            return index1 < index2
+        }
     }
 }
