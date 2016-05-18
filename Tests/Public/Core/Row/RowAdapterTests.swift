@@ -9,13 +9,9 @@ class RowAdapterTests: GRDBTestCase {
             let adapter = RowAdapter(
                 // Main mapping
                 mapping: ["id": "fooid", "val": "fooval"],
-                subrows: [
+                subrowMappings: [
                     // Alternate mapping
-                    "foo": ["id": "barid", "val": "barval"],
-                    // Other mapping which references a column that does not exist.
-                    // I still don't know if this should be supported. If not, we should
-                    // fatalError very early.
-                    "odd": ["id": "missingid"]])
+                    "foo": ["id": "BARID", "val": "BARVAL"]])
             let row = Row.fetchOne(db, "SELECT 1 AS fooid, 'foo' AS fooval, 2 as barid, 'bar' AS barval", adapter: adapter)!
             
             // # Row values
@@ -42,7 +38,7 @@ class RowAdapterTests: GRDBTestCase {
             let altRow1 = Row.fetchOne(db, "SELECT 1 AS id, 'foo' AS val")!
             XCTAssertEqual(row, altRow1)
             let altRow2 = Row.fetchOne(db, "SELECT 'foo' AS val, 1 AS id")!
-            XCTAssertEqual(row, altRow2)
+            XCTAssertNotEqual(row, altRow2)
             
             
             // # Subrows
@@ -51,10 +47,7 @@ class RowAdapterTests: GRDBTestCase {
             XCTAssertEqual(row2.count, 2)
             XCTAssertEqual(row2.value(named: "id") as Int, 2)
             XCTAssertEqual(row2.value(named: "val") as String, "bar")
-            
-            let row3 = row.subrows["odd"]!
-            XCTAssertEqual(row3.count, 1)
-            XCTAssertTrue(row3.value(named: "id") == nil)   // TODO: is that what we want? Should we crash instead?
+            XCTAssertTrue(row2.subrows.isEmpty)
         }
     }
 
