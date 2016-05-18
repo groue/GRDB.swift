@@ -1,3 +1,4 @@
+- [ ] Remove Row subscripting by column name, and make Row.databaseValue(named:) return an optional.
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] Use "unchecked" instead of "unsafe" when appropriate
 - [ ] What is the SQLITE_OPEN_WAL open flag?
