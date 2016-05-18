@@ -56,6 +56,8 @@ class RowAdapterTests: GRDBTestCase {
             
             // # Subrows
             
+            XCTAssertEqual(row.subrows.count, 1)
+            XCTAssertEqual(Array(row.subrows.keys), ["foo"])
             let row2 = row.subrows["foo"]!
             XCTAssertEqual(row2.count, 2)
             XCTAssertEqual(row2.value(named: "id") as Int, 2)
