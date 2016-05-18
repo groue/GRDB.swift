@@ -1,23 +1,29 @@
 Release Notes
 =============
 
-## Next Release
+## 0.64.0
+
+Released May 18, 2016
+
+**Fixed**
+
+- Restored GRDBCipher framework.
 
 **Breaking Changes**
 
 - `DatabaseValue.failableValue()` has been removed. Instead, use DatabaseConvertible.fromDatabaseValue():
     
     ```diff
-    - let date = dbv.failableValue() as NSDate?
-    + let date = NSDate.fromDatabaseValue(dbv)
+    -let date = dbv.failableValue() as NSDate?
+    +let date = NSDate.fromDatabaseValue(dbv)
     ```
 
 - `Row.databaseValue(named:)` now returns an optional DatabaseValue. It is nil when the column does not exist in the row.
     
     ```diff
      class Row {
-    - func databaseValue(named columnName: String) -> DatabaseValue
-    + func databaseValue(named columnName: String) -> DatabaseValue?
+    -    func databaseValue(named columnName: String) -> DatabaseValue
+    +    func databaseValue(named columnName: String) -> DatabaseValue?
      }
     ```
 
@@ -25,7 +31,7 @@ Release Notes
     
     ```diff
      class Row {
-    - subscript(columnName: String) -> DatabaseValue?
+    -    subscript(columnName: String) -> DatabaseValue?
      }
     ```
 
