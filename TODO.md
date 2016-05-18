@@ -1,8 +1,9 @@
+- [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [X] Remove DatabaseValue.failableValue() since DatabaseValueConvertible provides exactly the same service.
     if let dbv = row.databaseValue(atIndex: 0), let date: NSDate = dbv.failableValue() { ... }  
     if let dbv = row.databaseValue(atIndex: 0), let date = NSDate.fromDatabaseValue(dbv) { ... }  
-- [ ] Remove Row subscripting by column name
-- [ ] Have Row.databaseValue(named:) return an optional.
+- [X] Remove Row subscripting by column name
+- [X] Have Row.databaseValue(named:) return an optional.
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] Use "unchecked" instead of "unsafe" when appropriate
 - [ ] What is the SQLITE_OPEN_WAL open flag?

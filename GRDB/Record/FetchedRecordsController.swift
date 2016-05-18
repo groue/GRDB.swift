@@ -615,7 +615,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                     func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
                         var changedValues: [String: DatabaseValue] = [:]
                         for (column, newValue) in newRow {
-                            let oldValue = oldRow[column]!
+                            let oldValue = oldRow.databaseValue(named: column)
                             if newValue != oldValue {
                                 changedValues[column] = oldValue
                             }

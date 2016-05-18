@@ -190,7 +190,7 @@ class RecordEditedTests: GRDBTestCase {
                 
                 // Load a double...
                 let row1 = Row.fetchOne(db, "SELECT * FROM t")!
-                switch row1["value"]!.storage {
+                switch row1.databaseValue(named: "value")!.storage {
                 case .Double(let double):
                     XCTAssertEqual(double, 1.0)
                 default:
@@ -200,7 +200,7 @@ class RecordEditedTests: GRDBTestCase {
                 // Compare to an Int
                 let record = IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
                 let row2 = Row(record.persistentDictionary)
-                switch row2["value"]!.storage {
+                switch row2.databaseValue(named: "value")!.storage {
                 case .Int64(let int64):
                     XCTAssertEqual(int64, 1)
                 default:

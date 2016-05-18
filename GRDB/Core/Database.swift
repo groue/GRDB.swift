@@ -909,7 +909,7 @@ extension Database {
             name = row.value(named: "name")
             type = row.value(named: "type")
             notNull = row.value(named: "notnull")
-            defaultDatabaseValue = row["dflt_value"]!
+            defaultDatabaseValue = row.databaseValue(named: "dflt_value")!
             primaryKeyIndex = row.value(named: "pk")
         }
     }

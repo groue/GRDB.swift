@@ -130,11 +130,11 @@ class DictionaryRowTests: GRDBTestCase {
             let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".dataUsingEncoding(NSUTF8StringEncoding)]
             let row = Row(dictionary)
 
-            guard case .Null = row.databaseValue(named: "null").storage else { XCTFail(); return }
-            guard case .Int64(let int64) = row.databaseValue(named: "int64").storage where int64 == 1 else { XCTFail(); return }
-            guard case .Double(let double) = row.databaseValue(named: "double").storage where double == 1.1 else { XCTFail(); return }
-            guard case .String(let string) = row.databaseValue(named: "string").storage where string == "foo" else { XCTFail(); return }
-            guard case .Blob(let data) = row.databaseValue(named: "blob").storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+            guard case .Null = row.databaseValue(named: "null")!.storage else { XCTFail(); return }
+            guard case .Int64(let int64) = row.databaseValue(named: "int64")!.storage where int64 == 1 else { XCTFail(); return }
+            guard case .Double(let double) = row.databaseValue(named: "double")!.storage where double == 1.1 else { XCTFail(); return }
+            guard case .String(let string) = row.databaseValue(named: "string")!.storage where string == "foo" else { XCTFail(); return }
+            guard case .Blob(let data) = row.databaseValue(named: "blob")!.storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
         }
     }
     
@@ -155,9 +155,9 @@ class DictionaryRowTests: GRDBTestCase {
     
     func testRowIsCaseInsensitive() {
         let row = Row(["name": "foo"])
-        XCTAssertEqual(row["name"], "foo".databaseValue)
-        XCTAssertEqual(row["NAME"], "foo".databaseValue)
-        XCTAssertEqual(row["NaMe"], "foo".databaseValue)
+        XCTAssertEqual(row.databaseValue(named: "name"), "foo".databaseValue)
+        XCTAssertEqual(row.databaseValue(named: "NAME"), "foo".databaseValue)
+        XCTAssertEqual(row.databaseValue(named: "NaMe"), "foo".databaseValue)
         XCTAssertEqual(row.value(named: "name") as String, "foo")
         XCTAssertEqual(row.value(named: "NAME") as String, "foo")
         XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
