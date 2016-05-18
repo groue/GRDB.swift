@@ -107,6 +107,11 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
     }
     
     func testDatabaseGeneratorRetainConnection() {
+        // Until iOS 8.2, OSX 10.10, GRDB does not support deallocating a
+        // database when some statements are not finalized.
+        guard #available(iOS 8.2, OSX 10.10, *) else {
+            return
+        }
         assertNoError {
             let countQueue = dispatch_queue_create(nil, nil)
             var openConnectionCount = 0
@@ -192,6 +197,11 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
     }
     
     func testStatementDoNotRetainDatabaseConnection() {
+        // Until iOS 8.2, OSX 10.10, GRDB does not support deallocating a
+        // database when some statements are not finalized.
+        guard #available(iOS 8.2, OSX 10.10, *) else {
+            return
+        }
         assertNoError {
             // Block 1                  Block 2
             //                          create statement INSERT

@@ -712,16 +712,17 @@ class SQLSupportTests: GRDBTestCase {
             sql(dbQueue, tableRequest.select(Col.name.uppercaseString)),
             "SELECT swiftUppercaseString(\"name\") FROM \"readers\"")
         
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(Col.name.localizedCapitalizedString)),
-            "SELECT swiftLocalizedCapitalizedString(\"name\") FROM \"readers\"")
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(Col.name.localizedLowercaseString)),
-            "SELECT swiftLocalizedLowercaseString(\"name\") FROM \"readers\"")
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(Col.name.localizedUppercaseString)),
-            "SELECT swiftLocalizedUppercaseString(\"name\") FROM \"readers\"")
-
+        if #available(iOS 9.0, OSX 10.11, *) {
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.select(Col.name.localizedCapitalizedString)),
+                "SELECT swiftLocalizedCapitalizedString(\"name\") FROM \"readers\"")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.select(Col.name.localizedLowercaseString)),
+                "SELECT swiftLocalizedLowercaseString(\"name\") FROM \"readers\"")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.select(Col.name.localizedUppercaseString)),
+                "SELECT swiftLocalizedUppercaseString(\"name\") FROM \"readers\"")
+        }
     }
     
     

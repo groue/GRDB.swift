@@ -78,7 +78,6 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         // If cached statements were shared between reader connections, this
         // test would crash with fatal error: Database was not used on the
         // correct thread.
-        
         assertNoError {
             let dbPool = try makeDatabasePool()
             try dbPool.write { db in

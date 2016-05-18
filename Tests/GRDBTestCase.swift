@@ -92,7 +92,6 @@ class GRDBTestCase: XCTestCase {
         dbConfiguration.trace = { (sql) in
             self.sqlQueries.append(sql)
             self.lastSQLQuery = sql
-            // LogSQL(sql) // Uncomment for verbose tests
         }
         
         #if GRDBCIPHER_USE_ENCRYPTION
