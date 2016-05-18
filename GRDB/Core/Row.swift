@@ -661,6 +661,20 @@ public func ==(lhs: Row, rhs: Row) -> Bool {
         }
     }
     
+    let lsubrowNames = lhs.impl.subrowNames
+    let rsubrowNames = rhs.impl.subrowNames
+    guard lsubrowNames == rsubrowNames else {
+        return false
+    }
+    
+    for name in lsubrowNames {
+        let lsubrow = lhs.subrow(named: name)
+        let rsubrow = rhs.subrow(named: name)
+        guard lsubrow == rsubrow else {
+            return false
+        }
+    }
+    
     return true
 }
 
@@ -784,6 +798,8 @@ protocol RowImpl {
     
     func subrow(named name: String) -> Row?
     
+    var subrowNames: Set<String> { get }
+    
     // row.impl is guaranteed to be self.
     func copy(row: Row) -> Row
 }
@@ -825,6 +841,10 @@ private struct DictionaryRowImpl : RowImpl {
     
     func subrow(named name: String) -> Row? {
         return nil
+    }
+    
+    var subrowNames: Set<String> {
+        return []
     }
     
     func copy(row: Row) -> Row {
@@ -870,6 +890,10 @@ private struct StatementCopyRowImpl : RowImpl {
     
     func subrow(named name: String) -> Row? {
         return nil
+    }
+    
+    var subrowNames: Set<String> {
+        return []
     }
     
     func copy(row: Row) -> Row {
@@ -927,6 +951,10 @@ private struct StatementRowImpl : RowImpl {
         return nil
     }
     
+    var subrowNames: Set<String> {
+        return []
+    }
+    
     func copy(row: Row) -> Row {
         return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
     }
@@ -955,6 +983,10 @@ private struct EmptyRowImpl : RowImpl {
     
     func subrow(named name: String) -> Row? {
         return nil
+    }
+    
+    var subrowNames: Set<String> {
+        return []
     }
     
     func copy(row: Row) -> Row {
@@ -1000,6 +1032,10 @@ private struct MappedRowImpl : RowImpl {
             return nil
         }
         return Row(baseRow: baseRow, columnMapping: columnMapping, subrowColumnMappings: [:])
+    }
+    
+    var subrowNames: Set<String> {
+        return Set(subrowColumnMappings.keys)
     }
     
     func copy(row: Row) -> Row {

@@ -1406,8 +1406,8 @@
 			children = (
 				56A2381F1B9C74A90082EB20 /* DetachedRowTests.swift */,
 				56A2381E1B9C74A90082EB20 /* DictionaryRowTests.swift */,
-				56FDECE11BB32DFD009AD709 /* MetalRowTests.swift */,
 				565F03C11CE5D3AA00DE108F /* MappedRowTests.swift */,
+				56FDECE11BB32DFD009AD709 /* MetalRowTests.swift */,
 				565B0FEE1BBC7D980098DE03 /* RowConvertibleTests.swift */,
 			);
 			path = Row;
