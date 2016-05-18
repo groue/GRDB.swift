@@ -1,19 +1,42 @@
 import XCTest
-#if SQLITE_HAS_CODEC
-    import GRDBCipher
-#else
-    import GRDB
-#endif
+import GRDB
 
-class DetachedRowTests: GRDBTestCase {
+class MappedRowTests: GRDBTestCase {
     
+    func testRowAdapter() {
+        let dbQueue = DatabaseQueue()
+        dbQueue.inDatabase { db in
+            let adapter = RowAdapter(
+                mapping: ["id": "fooid", "val": "FOOVAL"],   // case insensitivity of base column names
+                subrowMappings: [
+                    "foo": ["id": "barid", "val": "barval"]])
+            let row = Row.fetchOne(db, "SELECT 1 AS fooid, 'foo' AS fooval, 2 as barid, 'bar' AS barval", adapter: adapter)!
+            
+            
+            // # Row equality
+            
+            XCTAssertEqual(row, Row.fetchOne(db, "SELECT 1 AS id, 'foo' AS val")!)
+            XCTAssertNotEqual(row, Row.fetchOne(db, "SELECT 'foo' AS val, 1 AS id")!)
+            
+            
+            // # Subrows
+            
+            let row2 = row.subrow(named: "foo")!
+            XCTAssertEqual(row2.count, 2)
+            XCTAssertEqual(row2.value(named: "id") as Int, 2)
+            XCTAssertEqual(row2.value(named: "val") as String, "bar")
+            
+            
+            // # TODO: test row.copy
+        }
+    }
+
     func testRowAsSequence() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(mapping: ["a": "basea", "b": "baseb", "c": "basec"])
+                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 var columnNames = [String]()
                 var ints = [Int]()
@@ -34,10 +57,9 @@ class DetachedRowTests: GRDBTestCase {
     func testRowValueAtIndex() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(mapping: ["a": "basea", "b": "baseb", "c": "basec"])
+                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 // Int extraction, form 1
                 XCTAssertEqual(row.value(atIndex: 0) as Int, 0)
@@ -80,10 +102,9 @@ class DetachedRowTests: GRDBTestCase {
     func testRowValueNamed() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(mapping: ["a": "basea", "b": "baseb", "c": "basec"])
+                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 // Int extraction, form 1
                 XCTAssertEqual(row.value(named: "a") as Int, 0)
@@ -126,7 +147,8 @@ class DetachedRowTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'")!
+                let adapter = RowAdapter(mapping: ["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
+                let row = Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
                 
                 guard case .Null = row.databaseValue(atIndex: 0).storage else { XCTFail(); return }
                 guard case .Int64(let int64) = row.databaseValue(atIndex: 1).storage where int64 == 1 else { XCTFail(); return }
@@ -141,7 +163,8 @@ class DetachedRowTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"")!
+                let adapter = RowAdapter(mapping: ["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
+                let row = Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
                 
                 guard case .Null = row.databaseValue(named: "null").storage else { XCTFail(); return }
                 guard case .Int64(let int64) = row.databaseValue(named: "int64").storage where int64 == 1 else { XCTFail(); return }
@@ -155,10 +178,9 @@ class DetachedRowTests: GRDBTestCase {
     func testRowCount() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT * FROM ints")!
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(mapping: ["a": "basea", "b": "baseb", "c": "basec"])
+                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 XCTAssertEqual(row.count, 3)
             }
@@ -168,10 +190,9 @@ class DetachedRowTests: GRDBTestCase {
     func testRowColumnNames() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT a, b, c FROM ints")!
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(mapping: ["a": "basea", "b": "baseb", "c": "basec"])
+                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 XCTAssertEqual(Array(row.columnNames), ["a", "b", "c"])
             }
@@ -181,10 +202,9 @@ class DetachedRowTests: GRDBTestCase {
     func testRowDatabaseValues() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-                try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
-                let row = Row.fetchOne(db, "SELECT a, b, c FROM ints")!
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(mapping: ["a": "basea", "b": "baseb", "c": "basec"])
+                let row = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
                 
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue])
             }
@@ -195,7 +215,9 @@ class DetachedRowTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE")!
+                let adapter = RowAdapter(mapping: ["nAmE": "basenAmE"])
+                let row = Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra", adapter: adapter)!
+                
                 XCTAssertEqual(row["name"], "foo".databaseValue)
                 XCTAssertEqual(row["NAME"], "foo".databaseValue)
                 XCTAssertEqual(row["NaMe"], "foo".databaseValue)
@@ -210,7 +232,9 @@ class DetachedRowTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT 1 AS name, 2 AS NAME")!
+                let adapter = RowAdapter(mapping: ["name": "basename", "NAME": "baseNAME"])
+                let row = Row.fetchOne(db, "SELECT 1 AS basename, 'XXX' AS extra, 2 AS baseNAME", adapter: adapter)!
+
                 XCTAssertEqual(row["name"], 1.databaseValue)
                 XCTAssertEqual(row["NAME"], 1.databaseValue)
                 XCTAssertEqual(row["NaMe"], 1.databaseValue)
@@ -225,11 +249,15 @@ class DetachedRowTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT 'foo' AS name")!
+                let adapter = RowAdapter(mapping: ["name": "name"])
+                let row = Row.fetchOne(db, "SELECT 1 AS name, 'foo' AS missing", adapter: adapter)!
                 
                 XCTAssertFalse(row.hasColumn("missing"))
+                XCTAssertFalse(row.hasColumn("missingInBaseRow"))
                 XCTAssertTrue(row["missing"] == nil)
+                XCTAssertTrue(row["missingInBaseRow"] == nil)
                 XCTAssertTrue(row.value(named: "missing") == nil)
+                XCTAssertTrue(row.value(named: "missingInBaseRow") == nil)
             }
         }
     }
@@ -238,7 +266,9 @@ class DetachedRowTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
+                let adapter = RowAdapter(mapping: ["nAmE": "basenAmE", "foo": "basefoo"])
+                let row = Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra, 1 AS basefoo", adapter: adapter)!
+
                 XCTAssertTrue(row.hasColumn("name"))
                 XCTAssertTrue(row.hasColumn("NAME"))
                 XCTAssertTrue(row.hasColumn("Name"))

@@ -97,17 +97,11 @@ public final class Row {
         self.impl = StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: columnNames)
     }
     
-    convenience init(baseRow: Row, adapter: ValidatedRowAdapter) {
-        // orderedMapping preserves column ordering of base row.
-        let orderedMapping = baseRow.impl.orderedMapping(adapter.mapping)
-        let lowercaseColumnIndexes = Dictionary(keyValueSequence: orderedMapping.enumerate().map { ($1.0.lowercaseString, $0) })
-        self.init(baseRow: baseRow, adapter: adapter, orderedMapping: orderedMapping, lowercaseColumnIndexes: lowercaseColumnIndexes)
-    }
-    
-    init(baseRow: Row, adapter: ValidatedRowAdapter, orderedMapping: [(String, String)], lowercaseColumnIndexes: [String: Int]) {
+    /// Builds a row from a base row and column mappings
+    init(baseRow: Row, columnMapping: ColumnMapping, subrowColumnMappings: [String: ColumnMapping]) {
         self.statementRef = nil
         self.sqliteStatement = nil
-        self.impl = AdaptedRowImpl(baseRow: baseRow, adapter: adapter, orderedMapping: orderedMapping, lowercaseColumnIndexes: lowercaseColumnIndexes)
+        self.impl = MappedRowImpl(baseRow: baseRow, columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
     }
 }
 
@@ -396,8 +390,8 @@ extension Row {
     
     // MARK: - Subrows
     
-    public var subrows: [String: Row] {
-        return impl.subrows
+    public func subrow(named name: String) -> Row? {
+        return impl.subrow(named: name)
     }
 }
 
@@ -471,8 +465,8 @@ extension Row {
         // Metal rows can be reused. And reusing them yields better performance.
         let row: Row
         if let adapter = adapter {
-            let validatedAdapter = try! statement.validateRowAdapter(adapter)
-            row = Row(baseRow: Row(statement: statement), adapter: validatedAdapter)
+            let (columnMapping, subrowColumnMappings) = try! adapter.columnMappings(statement)
+            row = Row(baseRow: Row(statement: statement), columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
         } else {
             row = Row(statement: statement)
         }
@@ -496,9 +490,9 @@ extension Row {
         let columnNames = statement.columnNames
         let sequence: DatabaseSequence<Row>
         if let adapter = adapter {
-            let validatedAdapter = try! statement.validateRowAdapter(adapter)
+            let (columnMapping, subrowColumnMappings) = try! adapter.columnMappings(statement)
             sequence = statement.fetchSequence(arguments: arguments) {
-                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), adapter: validatedAdapter)
+                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
             }
         } else {
             sequence = statement.fetchSequence(arguments: arguments) {
@@ -528,8 +522,8 @@ extension Row {
             return nil
         }
         if let adapter = adapter {
-            let validatedAdapter = try! statement.validateRowAdapter(adapter)
-            return Row(baseRow: row, adapter: validatedAdapter)
+            let (columnMapping, subrowColumnMappings) = try! adapter.columnMappings(statement)
+            return Row(baseRow: row, columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
         } else {
             return row
         }
@@ -721,28 +715,56 @@ public struct RowAdapter {
     }
 }
 
-// ValidatedRowAdapter is produced by SelectStatement.validateRowAdapter().
-// All its mappings have matching columns in the statement.
-struct ValidatedRowAdapter {
-    let mapping: [String: String]
-    let subrowMappings: [String: [String: String]]
-    init(mapping: [String: String], subrowMappings: [String: [String: String]] = [:]) {
-        self.mapping = mapping
-        self.subrowMappings = subrowMappings
+struct ColumnMapping {
+    let orderedMapping: [(String, String)]  // [(mappedColumn, baseColumn), ...]
+    let lowercaseColumnIndexes: [String: Int]
+    
+    init(orderedMapping: [(String, String)]) {
+        self.orderedMapping = orderedMapping
+        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: orderedMapping.enumerate().map { ($1.0.lowercaseString, $0) })
+    }
+
+    var count: Int {
+        return orderedMapping.count
+    }
+
+    func baseColumName(atIndex index: Int) -> String {
+        return orderedMapping[index].1
+    }
+    
+    func columnName(atIndex index: Int) -> String {
+        return orderedMapping[index].0
+    }
+    
+    func indexOfColumn(named name: String) -> Int? {
+        if let index = lowercaseColumnIndexes[name] {
+            return index
+        }
+        return lowercaseColumnIndexes[name.lowercaseString]
     }
 }
 
-extension SelectStatement {
-    func validateRowAdapter(rowAdapter: RowAdapter) throws -> ValidatedRowAdapter {
-        var columns: Set<String> = []
-        columns.unionInPlace(rowAdapter.mapping.values)
-        columns.unionInPlace(rowAdapter.subrowMappings.flatMap { $1.values })
-        for column in columns {
-            if indexOfColumn(named: column) == nil {
-                throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(column). Valid column names are: \(columnNames.joinWithSeparator(", ")).")
+extension RowAdapter {
+    func columnMappings(statement: SelectStatement) throws -> (ColumnMapping, [String: ColumnMapping]) {
+        let columnMapping = try! ColumnMapping(orderedMapping: validatedOrderedMapping(statement: statement, mapping: mapping))
+        let subrowColumnMappings = try! Dictionary(keyValueSequence: subrowMappings.map { (identifier, mapping) in
+            (identifier, try ColumnMapping(orderedMapping: validatedOrderedMapping(statement: statement, mapping: mapping)))
+            })
+        return (columnMapping, subrowColumnMappings)
+    }
+
+    // Turns a dictionary [mappedColumn:baseColumn, ...] into an array
+    // [(mappedColumn, baseColumn), ...] ordered like the satement columns.
+    private func validatedOrderedMapping(statement statement: SelectStatement, mapping: [String: String]) throws -> [(String, String)] {
+        return try mapping
+            .map { (mappedColumn, baseColumn) -> (Int, (String, String)) in
+                guard let index = statement.indexOfColumn(named: baseColumn) else {
+                    throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(statement.columnNames.joinWithSeparator(", ")).")
+                }
+                return (index, (mappedColumn, baseColumn))
             }
-        }
-        return ValidatedRowAdapter(mapping: rowAdapter.mapping, subrowMappings: rowAdapter.subrowMappings)
+            .sort { return $0.0 < $1.0 }
+            .map { $0.1 }
     }
 }
 
@@ -760,7 +782,7 @@ protocol RowImpl {
     // leftmost column that matches *name*.
     func indexOfColumn(named name: String) -> Int?
     
-    var subrows: [String: Row] { get }
+    func subrow(named name: String) -> Row?
     
     // row.impl is guaranteed to be self.
     func copy(row: Row) -> Row
@@ -801,7 +823,9 @@ private struct DictionaryRowImpl : RowImpl {
         return dictionary.startIndex.distanceTo(index)
     }
     
-    var subrows: [String: Row] { return [:] }
+    func subrow(named name: String) -> Row? {
+        return nil
+    }
     
     func copy(row: Row) -> Row {
         return row
@@ -844,7 +868,9 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames.indexOf { $0.lowercaseString == lowercaseName }
     }
     
-    var subrows: [String: Row] { return [:] }
+    func subrow(named name: String) -> Row? {
+        return nil
+    }
     
     func copy(row: Row) -> Row {
         return row
@@ -897,7 +923,9 @@ private struct StatementRowImpl : RowImpl {
         return lowercaseColumnIndexes[name.lowercaseString]
     }
     
-    var subrows: [String: Row] { return [:] }
+    func subrow(named name: String) -> Row? {
+        return nil
+    }
     
     func copy(row: Row) -> Row {
         return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
@@ -925,7 +953,9 @@ private struct EmptyRowImpl : RowImpl {
         return nil
     }
     
-    var subrows: [String: Row] { return [:] }
+    func subrow(named name: String) -> Row? {
+        return nil
+    }
     
     func copy(row: Row) -> Row {
         return row
@@ -933,66 +963,46 @@ private struct EmptyRowImpl : RowImpl {
 }
 
 
-// See Row.init(row:adapter:)
-private struct AdaptedRowImpl : RowImpl {
+// See Row.init(baseRow:columnMapping:subrowColumnMappings:)
+private struct MappedRowImpl : RowImpl {
     let baseRow: Row
-    let adapter: ValidatedRowAdapter
-    let orderedMapping: [(String, String)]  // [(mappedColumn, baseColumn), ...]
-    let lowercaseColumnIndexes: [String: Int]
+    let columnMapping: ColumnMapping
+    let subrowColumnMappings: [String: ColumnMapping]
     
-    init(baseRow: Row, adapter: ValidatedRowAdapter, orderedMapping: [(String, String)], lowercaseColumnIndexes: [String: Int]) {
+    init(baseRow: Row, columnMapping: ColumnMapping, subrowColumnMappings: [String: ColumnMapping]) {
         self.baseRow = baseRow
-        self.adapter = adapter
-        self.orderedMapping = orderedMapping
-        self.lowercaseColumnIndexes = lowercaseColumnIndexes
-    }
-    
-    func baseColumName(atIndex index: Int) -> String {
-        return orderedMapping[index].1
+        self.columnMapping = columnMapping
+        self.subrowColumnMappings = subrowColumnMappings
     }
     
     var count: Int {
-        return adapter.mapping.count
+        return columnMapping.count
     }
     
     func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return baseRow.databaseValue(named: baseColumName(atIndex: index))
+        return baseRow.databaseValue(named: columnMapping.baseColumName(atIndex: index))
     }
     
     func dataNoCopy(atIndex index:Int) -> NSData? {
-        return baseRow.dataNoCopy(named: baseColumName(atIndex: index))
+        return baseRow.dataNoCopy(named: columnMapping.baseColumName(atIndex: index))
     }
     
     func columnName(atIndex index: Int) -> String {
-        return orderedMapping[index].0
+        return columnMapping.columnName(atIndex: index)
     }
     
     func indexOfColumn(named name: String) -> Int? {
-        if let index = lowercaseColumnIndexes[name] {
-            return index
-        }
-        return lowercaseColumnIndexes[name.lowercaseString]
+        return columnMapping.indexOfColumn(named: name)
     }
     
-    var subrows: [String: Row] {
-        return Dictionary(keyValueSequence: adapter.subrowMappings.map { (identifier, mapping) in
-            (identifier, Row(baseRow: baseRow, adapter: ValidatedRowAdapter(mapping: mapping)))
-            })
+    func subrow(named name: String) -> Row? {
+        guard let columnMapping = subrowColumnMappings[name] else {
+            return nil
+        }
+        return Row(baseRow: baseRow, columnMapping: columnMapping, subrowColumnMappings: [:])
     }
     
     func copy(row: Row) -> Row {
-        return Row(baseRow: row.copy(), adapter: adapter, orderedMapping: orderedMapping, lowercaseColumnIndexes: lowercaseColumnIndexes)
-    }
-}
-
-extension RowImpl {
-    func orderedMapping(mapping: [String: String]) -> [(String, String)] {
-        return mapping.sort { (pair1, pair2) in
-            let (_, baseColumn1) = pair1
-            let (_, baseColumn2) = pair2
-            let index1 = indexOfColumn(named: baseColumn1)
-            let index2 = indexOfColumn(named: baseColumn2)
-            return index1 < index2
-        }
+        return Row(baseRow: baseRow.copy(), columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
     }
 }

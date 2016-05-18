@@ -255,6 +255,22 @@ class MetalRowTests: GRDBTestCase {
         }
     }
     
+    func testMissingColumn() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                var rowFetched = false
+                for row in Row.fetch(db, "SELECT 'foo' AS name") {
+                    rowFetched = true
+                    XCTAssertFalse(row.hasColumn("missing"))
+                    XCTAssertTrue(row["missing"] == nil)
+                    XCTAssertTrue(row.value(named: "missing") == nil)
+                }
+                XCTAssertTrue(rowFetched)
+            }
+        }
+    }
+    
     func testRowHasColumnIsCaseInsensitive() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()

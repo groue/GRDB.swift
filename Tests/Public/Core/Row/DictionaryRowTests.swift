@@ -163,6 +163,13 @@ class DictionaryRowTests: GRDBTestCase {
         XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
     }
     
+    func testMissingColumn() {
+        let row = Row(["name": "foo"])
+        XCTAssertFalse(row.hasColumn("missing"))
+        XCTAssertTrue(row["missing"] == nil)
+        XCTAssertTrue(row.value(named: "missing") == nil)
+    }
+    
     func testRowHasColumnIsCaseInsensitive() {
         let row = Row(["nAmE": "foo", "foo": 1])
         XCTAssertTrue(row.hasColumn("name"))
