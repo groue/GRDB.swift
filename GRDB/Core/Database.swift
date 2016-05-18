@@ -121,7 +121,7 @@ public final class Database {
                     throw DatabaseError(code: readCode, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
                 }
             } catch {
-                close()
+                closeConnection(sqliteConnection)
                 throw error
             }
         #endif
@@ -146,28 +146,10 @@ public final class Database {
         preconditionValidQueue()
         assert(!isClosed)
         
+        configuration.SQLiteConnectionWillClose?(sqliteConnection)
         updateStatementCache = [:]
         selectStatementCache = [:]
-        
-        // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        configuration.SQLiteConnectionWillClose?(sqliteConnection)
-        if #available(iOS 8.2, OSX 10.10, *) {
-            let code = sqlite3_close_v2(sqliteConnection)
-            guard code == SQLITE_OK else {
-                fatalError(DatabaseError(code: code, message: lastErrorMessage).description)
-            }
-        } else {
-            let code = sqlite3_close(sqliteConnection)
-            if code != SQLITE_OK {
-                NSLog("%@", "GRDB could not close database with error \(code): \(lastErrorMessage ?? "")")
-                var stmt: SQLiteStatement = sqlite3_next_stmt(sqliteConnection, nil)
-                while stmt != nil {
-                    NSLog("%@", "GRDB unfinalised statement: \(String.fromCString(sqlite3_sql(stmt))!)")
-                    stmt = sqlite3_next_stmt(sqliteConnection, stmt)
-                }
-            }
-        }
+        closeConnection(sqliteConnection)
         isClosed = true
         configuration.SQLiteConnectionDidClose?()
     }
@@ -263,6 +245,30 @@ public final class Database {
         addCollation(.localizedStandardCompare)
     }
 }
+
+private func closeConnection(sqliteConnection: SQLiteConnection) {
+    // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
+    // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+    if #available(iOS 8.2, OSX 10.10, *) {
+        let code = sqlite3_close_v2(sqliteConnection)
+        if code != SQLITE_OK {
+            let message = String.fromCString(sqlite3_errmsg(sqliteConnection))
+            NSLog("%@", "GRDB could not close database with error \(code): \(message ?? "")")
+        }
+    } else {
+        let code = sqlite3_close(sqliteConnection)
+        if code != SQLITE_OK {
+            let message = String.fromCString(sqlite3_errmsg(sqliteConnection))
+            NSLog("%@", "GRDB could not close database with error \(code): \(message ?? "")")
+            var stmt: SQLiteStatement = sqlite3_next_stmt(sqliteConnection, nil)
+            while stmt != nil {
+                NSLog("%@", "GRDB unfinalised statement: \(String.fromCString(sqlite3_sql(stmt))!)")
+                stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+            }
+        }
+    }
+}
+
 
 /// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
 enum ThreadingMode {
