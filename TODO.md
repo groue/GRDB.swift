@@ -1,4 +1,3 @@
-- [ ] RowAdapter: introduce ColumnMapping
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] Use "unchecked" instead of "unsafe" when appropriate
 - [ ] What is the SQLITE_OPEN_WAL open flag?
