@@ -16,29 +16,43 @@ class RowAdapterTests: GRDBTestCase {
             // # Column names
             
             XCTAssertEqual(row.value(named: "id") as Int, 1)
-            XCTAssertEqual(row.value(named: "ID") as Int, 1)    // case insensitivity of mapped column names
             XCTAssertEqual(row.value(named: "val") as String, "foo")
+            // Case insensitivity of mapped column names
+            XCTAssertEqual(row.value(named: "ID") as Int, 1)
+            
             XCTAssertEqual(row.databaseValue(named: "id"), 1.databaseValue)
-            XCTAssertEqual(row.databaseValue(named: "ID"), 1.databaseValue) // case insensitivity of mapped column names
             XCTAssertEqual(row.databaseValue(named: "val"), "foo".databaseValue)
-            XCTAssertTrue(row.value(named: "barid") == nil)
-            XCTAssertTrue(row.value(named: "missing") == nil)
+            // Case insensitivity of mapped column names
+            XCTAssertEqual(row.databaseValue(named: "ID"), 1.databaseValue)
+            
+            // Column presence
             XCTAssertTrue(row.hasColumn("id"))
-            XCTAssertTrue(row.hasColumn("ID")) // case insensitivity of mapped column names
             XCTAssertTrue(row.hasColumn("val"))
-            XCTAssertFalse(row.hasColumn("barid"))
+            // Case insensitivity of mapped column names
+            XCTAssertTrue(row.hasColumn("ID"))
+            
+            // Missing column in base row is missing in the mapped row
             XCTAssertFalse(row.hasColumn("missing"))
+            XCTAssertTrue(row.value(named: "missing") == nil)
+            
+            // Column that exists in base row but is not mapped is missing from mapped row
+            XCTAssertFalse(row.hasColumn("barid"))
+            XCTAssertTrue(row.value(named: "barid") == nil)
             
             
-            // # Column ordering
+            // # Column as an ordered collection preserves ordering of base row
+            
+            XCTAssertEqual(row.count, 2)
             
             XCTAssertEqual(row.value(atIndex: 0) as Int, 1)
             XCTAssertEqual(row.value(atIndex: 1) as String, "foo")
+            
             XCTAssertEqual(row.databaseValue(atIndex: 0), 1.databaseValue)
             XCTAssertEqual(row.databaseValue(atIndex: 1), "foo".databaseValue)
-            XCTAssertEqual(row.count, 2)
+            
             XCTAssertEqual(Array(row.columnNames), ["id", "val"])
             XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, "foo".databaseValue])
+            
             let pairs = row.map { (columnName: $0, databaseValue: $1) }
             XCTAssertEqual(pairs[0].columnName, "id")
             XCTAssertEqual(pairs[0].databaseValue, 1.databaseValue)
@@ -48,10 +62,8 @@ class RowAdapterTests: GRDBTestCase {
             
             // # Row equality
             
-            let altRow1 = Row.fetchOne(db, "SELECT 1 AS id, 'foo' AS val")!
-            XCTAssertEqual(row, altRow1)
-            let altRow2 = Row.fetchOne(db, "SELECT 'foo' AS val, 1 AS id")!
-            XCTAssertNotEqual(row, altRow2)
+            XCTAssertEqual(row, Row.fetchOne(db, "SELECT 1 AS id, 'foo' AS val")!)
+            XCTAssertNotEqual(row, Row.fetchOne(db, "SELECT 'foo' AS val, 1 AS id")!)
             
             
             // # Subrows
