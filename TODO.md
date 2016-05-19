@@ -1,3 +1,4 @@
+- [ ] Replace fetch(FetchRequest) with fetch(FetchRequestProtocol), and have FetchRequest adopt FetchRequestProtocol 
 - [ ] DatabasePool: move maximumReaderCount to Configuration
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
