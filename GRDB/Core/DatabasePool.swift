@@ -30,8 +30,8 @@ public final class DatabasePool {
     ///     - configuration: A configuration.
     ///     - maximumReaderCount: The maximum number of readers. Default is 5.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public init(path: String, configuration: Configuration = Configuration(), maximumReaderCount: Int = 5) throws {
-        GRDBPrecondition(maximumReaderCount > 1, "maximumReaderCount must be at least 1")
+    public init(path: String, configuration: Configuration = Configuration()) throws {
+        GRDBPrecondition(configuration.maximumReaderCount > 0, "configuration.maximumReaderCount must be at least 1")
         
         // Database Store
         store = try DatabaseStore(path: path, attributes: configuration.fileAttributes)
@@ -64,7 +64,7 @@ public final class DatabasePool {
         readerConfig.readonly = true
         readerConfig.defaultTransactionKind = .Deferred // Make it the default. Other transaction kinds are forbidden by SQLite in read-only connections.
         
-        readerPool = Pool<SerializedDatabase>(maximumCount: maximumReaderCount)
+        readerPool = Pool<SerializedDatabase>(maximumCount: configuration.maximumReaderCount)
         readerPool.makeElement = { [unowned self] in
             let serializedDatabase = try! SerializedDatabase(
                 path: path,

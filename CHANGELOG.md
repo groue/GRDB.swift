@@ -1,6 +1,19 @@
 Release Notes
 =============
 
+## Next Release
+
+**Breaking Changes**
+
+- The maximum number of reader connections in a database pool is now configured in a Configuration object.
+
+    ```diff
+     final class DatabasePool {
+    -    init(path: String, configuration: Configuration = default) throws
+    +    init(path: String, configuration: Configuration = default, maximumReaderCount: Int = default) throws
+    ```
+
+
 ## 0.65.0
 
 Released May 19, 2016

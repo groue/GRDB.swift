@@ -104,7 +104,7 @@ public final class Database {
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
         // See https://www.sqlite.org/c3ref/open.html
         var sqliteConnection: SQLiteConnection = nil
-        let code = sqlite3_open_v2(path, &sqliteConnection, configuration.sqliteOpenFlags, nil)
+        let code = sqlite3_open_v2(path, &sqliteConnection, configuration.SQLiteOpenFlags, nil)
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
@@ -280,7 +280,7 @@ enum ThreadingMode {
     case MultiThread
     case Serialized
     
-    var sqliteOpenFlags: Int32 {
+    var SQLiteOpenFlags: Int32 {
         switch self {
         case .Default:
             return 0
