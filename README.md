@@ -24,7 +24,7 @@ You should give it a try.
 
 ---
 
-**May 18, 2016: GRDB.swift 0.64.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**May 19, 2016: GRDB.swift 0.65.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7.3+
 
@@ -142,7 +142,7 @@ Documentation
 
 **Reference**
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.64.0/index.html) (on cocoadocs.org)
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.65.0/index.html) (on cocoadocs.org)
 
 **Getting started**
 
@@ -193,7 +193,7 @@ To use GRDB with CocoaPods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '~> 0.64.0'
+pod 'GRDB.swift', '~> 0.65.0'
 ```
 
 
@@ -204,7 +204,7 @@ pod 'GRDB.swift', '~> 0.64.0'
 To use GRDB with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" ~> 0.64.0
+github "groue/GRDB.swift" ~> 0.65.0
 ```
 
 
@@ -306,7 +306,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.64.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.65.0/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -386,7 +386,7 @@ let dbPool = try DatabasePool(
     maximumReaderCount: 10)      // The default is 5
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.64.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.65.0/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -513,7 +513,7 @@ Type.fetchOne(...) // Type?
 - `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise).
     
     ```swift
-    for row in Row.fetch(db, "SELECT ...") {            // DatabaseSequence<Row>
+    for row in Row.fetch(db, "SELECT ...") { // DatabaseSequence<Row>
         ...
     }
     ```
@@ -532,7 +532,7 @@ Type.fetchOne(...) // Type?
 - `fetchAll` returns an **array** that can be consumed on any thread. It contains copies of database values, and can take a lot of memory:
     
     ```swift
-    let persons = Person.fetchAll(db, "SELECT ...")     // [Person]
+    let persons = Person.fetchAll(db, "SELECT ...") // [Person]
     ```
 
 - `fetchOne` returns a **single optional value**, and consumes a single database row (if any).
@@ -1023,13 +1023,19 @@ for rows in Row.fetch(db, "SELECT * FROM wines") {
 }
 ```
 
-When a database value does not match any enum case, you get a fatal error:
+**When a database value does not match any enum case**, you get a fatal error. This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 'Syrah'")!
+
 row.value(atIndex: 0) as String  // "Syrah"
 row.value(atIndex: 0) as Grape?  // fatal error: could not convert "Syrah" to Grape.
 row.value(atIndex: 0) as Grape   // fatal error: could not convert "Syrah" to Grape.
+
+let dbv = row.databaseValue(atIndex: 0)
+dbv.value() as String           // "Syrah"
+dbv.value() as Grape?           // fatal error: could not convert "Syrah" to Grape.
+Grape.fromDatabaseValue(dbv)    // nil
 ```
 
 
@@ -2914,7 +2920,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.64.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.64.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.64.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.64.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.65.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.65.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.65.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.65.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 

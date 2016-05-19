@@ -116,7 +116,7 @@ class GRDBTestCase: XCTestCase {
         }
     }
     
-    func sql<T>(databaseReader: DatabaseReader, _ request: FetchRequest<T>) -> String {
+    func sql(databaseReader: DatabaseReader, _ request: FetchRequest) -> String {
         return databaseReader.read { db in
             _ = Row.fetchOne(db, request)
             return self.lastSQLQuery

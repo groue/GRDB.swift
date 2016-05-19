@@ -48,7 +48,7 @@ extension AltReader : RowConvertible {
 }
 
 
-class RowConvertibleFetchRequestTests: GRDBTestCase {
+class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
     
     override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
