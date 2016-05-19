@@ -513,7 +513,7 @@ Type.fetchOne(...) // Type?
 - `fetch` returns a **sequence** that is memory efficient, but must be consumed in a protected dispatch queue (you'll get a fatal error if you do otherwise).
     
     ```swift
-    for row in Row.fetch(db, "SELECT ...") {            // DatabaseSequence<Row>
+    for row in Row.fetch(db, "SELECT ...") { // DatabaseSequence<Row>
         ...
     }
     ```
@@ -532,7 +532,7 @@ Type.fetchOne(...) // Type?
 - `fetchAll` returns an **array** that can be consumed on any thread. It contains copies of database values, and can take a lot of memory:
     
     ```swift
-    let persons = Person.fetchAll(db, "SELECT ...")     // [Person]
+    let persons = Person.fetchAll(db, "SELECT ...") // [Person]
     ```
 
 - `fetchOne` returns a **single optional value**, and consumes a single database row (if any).
