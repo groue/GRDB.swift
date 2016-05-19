@@ -379,11 +379,18 @@ class MappedRowTests: GRDBTestCase {
             let nonMappedRow1 = Row.fetchOne(db, "SELECT 1 AS id, 'foo' AS val")!
             let nonMappedRow2 = Row.fetchOne(db, "SELECT 'foo' AS val, 1 AS id")!
             
-            XCTAssertNotEqual(mappedRow1, mappedRow2)       // different column ordering
-            XCTAssertEqual(mappedRow1, nonMappedRow1)       // same column ordering
-            XCTAssertNotEqual(mappedRow1, nonMappedRow2)    // different column ordering
-            XCTAssertNotEqual(mappedRow2, nonMappedRow1)    // different column ordering
-            XCTAssertEqual(mappedRow2, nonMappedRow2)       // same column ordering
+            // All rows contain the same values. But they differ by column ordering.
+            XCTAssertEqual(Array(mappedRow1.columnNames), ["id", "val"])
+            XCTAssertEqual(Array(mappedRow2.columnNames), ["val", "id"])
+            XCTAssertEqual(Array(nonMappedRow1.columnNames), ["id", "val"])
+            XCTAssertEqual(Array(nonMappedRow2.columnNames), ["val", "id"])
+            
+            // Row equality takes ordering in account:
+            XCTAssertNotEqual(mappedRow1, mappedRow2)
+            XCTAssertEqual(mappedRow1, nonMappedRow1)
+            XCTAssertNotEqual(mappedRow1, nonMappedRow2)
+            XCTAssertNotEqual(mappedRow2, nonMappedRow1)
+            XCTAssertEqual(mappedRow2, nonMappedRow2)
         }
     }
     
