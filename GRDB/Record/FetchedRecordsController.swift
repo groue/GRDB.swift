@@ -64,9 +64,9 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
-    public convenience init<T>(_ databaseWriter: DatabaseWriter, request: FetchRequest<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+    public convenience init<T>(_ databaseWriter: DatabaseWriter, request: QueryInterfaceRequest<T>, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
         // Retype the fetch request
-        let request: FetchRequest<Record> = FetchRequest(query: request.query)
+        let request: QueryInterfaceRequest<Record> = QueryInterfaceRequest(query: request.query)
         let source = DatabaseSource.fetchRequest(request)
         self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecord: isSameRecord)
     }
@@ -134,12 +134,12 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// Updates the fetch request, and notifies the delegate of changes in the
     /// fetched records if delegate is not nil, and performFetch() has been
     /// called.
-    public func setRequest<T>(request: FetchRequest<T>) {
+    public func setRequest<T>(request: QueryInterfaceRequest<T>) {
         // We don't provide a setter for the request property because we need a
         // non-optional request.
         
         // Retype the fetch request
-        let request: FetchRequest<Record> = FetchRequest(query: request.query)
+        let request: QueryInterfaceRequest<Record> = QueryInterfaceRequest(query: request.query)
         self.source = DatabaseSource.fetchRequest(request)
     }
     
@@ -331,9 +331,9 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
-    public convenience init<U>(_ databaseWriter: DatabaseWriter, request: FetchRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+    public convenience init<U>(_ databaseWriter: DatabaseWriter, request: QueryInterfaceRequest<U>, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
         // Retype the fetch request
-        let request: FetchRequest<Record> = FetchRequest(query: request.query)
+        let request: QueryInterfaceRequest<Record> = QueryInterfaceRequest(query: request.query)
         let source = DatabaseSource.fetchRequest(request)
         if compareRecordsByPrimaryKey {
             self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
@@ -799,7 +799,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 
 private enum DatabaseSource<T> {
     case sql(String, StatementArguments?)
-    case fetchRequest(FetchRequest<T>)
+    case fetchRequest(QueryInterfaceRequest<T>)
     
     func selectStatement(db: Database) throws -> SelectStatement {
         switch self {

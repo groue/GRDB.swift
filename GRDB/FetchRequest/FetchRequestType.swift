@@ -1,58 +1,5 @@
 public protocol FetchRequestType {
-    associatedtype FetchedType
     func selectStatement(db: Database) throws -> SelectStatement
-}
-
-
-extension FetchRequestType where FetchedType: RowConvertible {
-    
-    // MARK: Fetching Record and RowConvertible
-    
-    /// Returns a sequence of values.
-    ///
-    ///     let nameColumn = SQLColumn("name")
-    ///     let request = Person.order(nameColumn)
-    ///     let persons = request.fetch(db) // DatabaseSequence<Person>
-    ///
-    /// The returned sequence can be consumed several times, but it may yield
-    /// different results, should database changes have occurred between two
-    /// generations:
-    ///
-    ///     let persons = request.fetch(db)
-    ///     Array(persons).count // 3
-    ///     db.execute("DELETE ...")
-    ///     Array(persons).count // 2
-    ///
-    /// If the database is modified while the sequence is iterating, the
-    /// remaining elements are undefined.
-    @warn_unused_result
-    public func fetch(db: Database) -> DatabaseSequence<FetchedType> {
-        return try! FetchedType.fetch(selectStatement(db))
-    }
-    
-    /// Returns an array of values fetched from a fetch request.
-    ///
-    ///     let nameColumn = SQLColumn("name")
-    ///     let request = Person.order(nameColumn)
-    ///     let persons = request.fetchAll(db) // [Person]
-    ///
-    /// - parameter db: A database connection.
-    @warn_unused_result
-    public func fetchAll(db: Database) -> [FetchedType] {
-        return Array(fetch(db))
-    }
-    
-    /// Returns a single value fetched from a fetch request.
-    ///
-    ///     let nameColumn = SQLColumn("name")
-    ///     let request = Person.order(nameColumn)
-    ///     let person = request.fetchOne(db) // Person?
-    ///
-    /// - parameter db: A database connection.
-    @warn_unused_result
-    public func fetchOne(db: Database) -> FetchedType? {
-        return fetch(db).generate().next()
-    }
 }
 
 
