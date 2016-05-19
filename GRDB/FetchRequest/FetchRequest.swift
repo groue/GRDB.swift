@@ -1,5 +1,7 @@
 /// The protocol for all types that define a way to fetch values from
 /// the database.
+///
+/// See https://github.com/groue/GRDB.swift#the-query-interface
 public protocol FetchRequest {
     func selectStatement(db: Database) throws -> SelectStatement
 }
