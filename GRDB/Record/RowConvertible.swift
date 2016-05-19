@@ -63,10 +63,17 @@ extension RowConvertible {
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of records.
     @warn_unused_result
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
-        let row = Row(statement: statement)
+    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
+        let row: Row
+        if let adapter = adapter {
+            let (columnMapping, subrowColumnMappings) = try! adapter.columnMappings(statement)
+            row = Row(baseRow: Row(statement: statement), columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
+        } else {
+            row = Row(statement: statement)
+        }
         return statement.fetchSequence(arguments: arguments) {
             var value = self.init(row)
             value.awakeFromFetch(row: row)
@@ -82,10 +89,11 @@ extension RowConvertible {
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     @warn_unused_result
-    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
-        return Array(fetch(statement, arguments: arguments))
+    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self] {
+        return Array(fetch(statement, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single record fetched from a prepared statement.
@@ -96,10 +104,11 @@ extension RowConvertible {
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     @warn_unused_result
-    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
-        return fetch(statement, arguments: arguments).generate().next()
+    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
+        return fetch(statement, arguments: arguments, adapter: adapter).generate().next()
     }
     
     
@@ -125,10 +134,11 @@ extension RowConvertible {
     ///     - db: A Database.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of records.
     @warn_unused_result
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
-        return fetch(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
+        return fetch(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
     }
     
     /// Returns an array of records fetched from an SQL query.
@@ -139,10 +149,11 @@ extension RowConvertible {
     ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     @warn_unused_result
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
+    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self] {
+        return fetchAll(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -153,9 +164,10 @@ extension RowConvertible {
     ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     @warn_unused_result
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
+    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
         return fetchOne(try! db.selectStatement(sql), arguments: arguments)
     }
 }
