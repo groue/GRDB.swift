@@ -445,6 +445,7 @@ extension Row {
     ///     - db: A Database.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of rows.
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
@@ -469,6 +470,7 @@ extension Row {
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     @warn_unused_result
     public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
@@ -496,6 +498,7 @@ extension Row {
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     @warn_unused_result
     public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
@@ -551,6 +554,7 @@ extension Row {
     ///     - db: A Database.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of rows.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
@@ -565,6 +569,7 @@ extension Row {
     ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
@@ -579,6 +584,7 @@ extension Row {
     ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
@@ -748,8 +754,8 @@ struct ColumnMapping {
 
 extension RowAdapter {
     func columnMappings(statement: SelectStatement) throws -> (ColumnMapping, [String: ColumnMapping]) {
-        let columnMapping = try! ColumnMapping(orderedMapping: validatedOrderedMapping(statement: statement, mapping: mapping))
-        let subrowColumnMappings = try! Dictionary(keyValueSequence: subrowMappings.map { (identifier, mapping) in
+        let columnMapping = try ColumnMapping(orderedMapping: validatedOrderedMapping(statement: statement, mapping: mapping))
+        let subrowColumnMappings = try Dictionary(keyValueSequence: subrowMappings.map { (identifier, mapping) in
             (identifier, try ColumnMapping(orderedMapping: validatedOrderedMapping(statement: statement, mapping: mapping)))
             })
         return (columnMapping, subrowColumnMappings)
