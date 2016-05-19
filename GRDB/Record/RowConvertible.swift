@@ -168,6 +168,6 @@ extension RowConvertible {
     /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
-        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
+        return fetchOne(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
     }
 }

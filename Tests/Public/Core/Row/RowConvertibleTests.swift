@@ -5,7 +5,7 @@ import XCTest
     import GRDB
 #endif
 
-struct SimpleRowConvertible {
+private struct SimpleRowConvertible {
     var firstName: String
     var lastName: String
     var fetched: Bool = false
@@ -20,6 +20,29 @@ extension SimpleRowConvertible : RowConvertible {
     
     mutating func awakeFromFetch(row row: Row) {
         fetched = true
+    }
+}
+
+private class Person : RowConvertible {
+    var firstName: String
+    var lastName: String
+    var bestFriend: Person?
+    var fetched: Bool = false
+
+    required init(_ row: Row) {
+        firstName = row.value(named: "firstName")
+        lastName = row.value(named: "lastName")
+        if let subrow = row.subrow(named: "bestFriend") {
+            bestFriend = Person(subrow)
+        }
+        fetched = false
+    }
+    
+    func awakeFromFetch(row row: Row) {
+        fetched = true
+        if let bestFriend = bestFriend, let subrow = row.subrow(named: "bestFriend") {
+            bestFriend.awakeFromFetch(row: subrow)
+        }
     }
 }
 
@@ -39,7 +62,7 @@ class RowConvertibleTests: GRDBTestCase {
         XCTAssertFalse(s.fetched)
     }
     
-    func testFetchFromDatabase() {
+    func testFetchFromSQL() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -53,7 +76,7 @@ class RowConvertibleTests: GRDBTestCase {
         }
     }
     
-    func testFetchAllFromDatabase() {
+    func testFetchAllFromSQL() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -67,7 +90,7 @@ class RowConvertibleTests: GRDBTestCase {
         }
     }
     
-    func testFetchOneFromDatabase() {
+    func testFetchOneFromSQL() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -79,6 +102,68 @@ class RowConvertibleTests: GRDBTestCase {
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
                 XCTAssertTrue(s.fetched)
+            }
+        }
+    }
+    
+    func testFetchFromSQLWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(
+                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
+                    subrowMappings: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
+                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
+                let ss = Person.fetch(db, sql, arguments: arguments, adapter: adapter)
+                let s = Array(ss).first!
+                XCTAssertEqual(s.firstName, "Stan")
+                XCTAssertEqual(s.lastName, "Laurel")
+                XCTAssertTrue(s.fetched)
+                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
+                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
+                XCTAssertTrue(s.bestFriend!.fetched)
+            }
+        }
+    }
+    
+    func testFetchAllFromSQLWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(
+                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
+                    subrowMappings: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
+                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
+                let ss = Person.fetchAll(db, sql, arguments: arguments, adapter: adapter)
+                let s = ss.first!
+                XCTAssertEqual(s.firstName, "Stan")
+                XCTAssertEqual(s.lastName, "Laurel")
+                XCTAssertTrue(s.fetched)
+                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
+                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
+                XCTAssertTrue(s.bestFriend!.fetched)
+            }
+        }
+    }
+    
+    func testFetchOneFromSQLWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(
+                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
+                    subrowMappings: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
+                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
+                let s = Person.fetchOne(db, sql, arguments: arguments, adapter: adapter)!
+                XCTAssertEqual(s.firstName, "Stan")
+                XCTAssertEqual(s.lastName, "Laurel")
+                XCTAssertTrue(s.fetched)
+                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
+                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
+                XCTAssertTrue(s.bestFriend!.fetched)
             }
         }
     }
@@ -126,6 +211,71 @@ class RowConvertibleTests: GRDBTestCase {
                 XCTAssertEqual(s.firstName, "Arthur")
                 XCTAssertEqual(s.lastName, "Martin")
                 XCTAssertTrue(s.fetched)
+            }
+        }
+    }
+    
+    func testFetchFromStatementWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = RowAdapter(
+                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
+                    subrowMappings: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
+                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
+                let statement = try db.selectStatement(sql)
+                let ss = Person.fetch(statement, arguments: arguments, adapter: adapter)
+                let s = Array(ss).first!
+                XCTAssertEqual(s.firstName, "Stan")
+                XCTAssertEqual(s.lastName, "Laurel")
+                XCTAssertTrue(s.fetched)
+                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
+                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
+                XCTAssertTrue(s.bestFriend!.fetched)
+            }
+        }
+    }
+    
+    func testFetchAllFromStatementWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = RowAdapter(
+                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
+                    subrowMappings: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
+                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
+                let statement = try db.selectStatement(sql)
+                let ss = Person.fetchAll(statement, arguments: arguments, adapter: adapter)
+                let s = ss.first!
+                XCTAssertEqual(s.firstName, "Stan")
+                XCTAssertEqual(s.lastName, "Laurel")
+                XCTAssertTrue(s.fetched)
+                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
+                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
+                XCTAssertTrue(s.bestFriend!.fetched)
+            }
+        }
+    }
+    
+    func testFetchOneFromStatementWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let adapter = RowAdapter(
+                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
+                    subrowMappings: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
+                let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
+                let statement = try db.selectStatement(sql)
+                let s = Person.fetchOne(statement, arguments: arguments, adapter: adapter)!
+                XCTAssertEqual(s.firstName, "Stan")
+                XCTAssertEqual(s.lastName, "Laurel")
+                XCTAssertTrue(s.fetched)
+                XCTAssertEqual(s.bestFriend!.firstName, "Oliver")
+                XCTAssertEqual(s.bestFriend!.lastName, "Hardy")
+                XCTAssertTrue(s.bestFriend!.fetched)
             }
         }
     }
