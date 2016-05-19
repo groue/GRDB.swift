@@ -231,7 +231,7 @@ extension RowConvertible {
 
 extension RowConvertible where Self: TableMapping {
     
-    // MARK: Fetching All
+    // MARK: Fetching From FetchRequest
     
     /// Returns a sequence of all records fetched from the database.
     ///
