@@ -60,7 +60,19 @@ private class Person : Record {
     }
 }
 
-class FetchedRecordsControllerOSXTests: GRDBTestCase {
+struct Book : RowConvertible {
+    var id: Int64
+    var authorID: Int64
+    var title: String
+    
+    init(_ row: Row) {
+        id = row.value(named: "id")
+        authorID = row.value(named: "authorID")
+        title = row.value(named: "title")
+    }
+}
+
+class FetchedRecordsControllerTests: GRDBTestCase {
 
     override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
@@ -72,7 +84,7 @@ class FetchedRecordsControllerOSXTests: GRDBTestCase {
             try db.execute(
                 "CREATE TABLE books (" +
                     "id INTEGER PRIMARY KEY, " +
-                    "ownerId INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE ON UPDATE CASCADE," +
+                    "authorId INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE ON UPDATE CASCADE," +
                     "title TEXT" +
                 ")")
             try db.execute(
@@ -80,6 +92,64 @@ class FetchedRecordsControllerOSXTests: GRDBTestCase {
                     "id INTEGER PRIMARY KEY, " +
                     "name TEXT" +
                 ")")
+        }
+    }
+    
+    func testControllerFromSQL() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let authorId: Int64 = try dbQueue.inDatabase { db in
+                let plato = Person(name: "Plato")
+                try plato.insert(db)
+                try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [plato.id, "Symposium"])
+                let cervantes = Person(name: "Cervantes")
+                try cervantes.insert(db)
+                try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [cervantes.id, "Don Quixote"])
+                return cervantes.id!
+            }
+            
+            let controller = FetchedRecordsController<Book>(dbQueue, sql: "SELECT * FROM books WHERE authorID = ?", arguments: [authorId])
+            controller.performFetch()
+            XCTAssertEqual(controller.fetchedRecords!.count, 1)
+            XCTAssertEqual(controller.fetchedRecords![0].title, "Don Quixote")
+        }
+    }
+    
+    func testControllerFromSQLWithAdapter() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let authorId: Int64 = try dbQueue.inDatabase { db in
+                let plato = Person(name: "Plato")
+                try plato.insert(db)
+                try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [plato.id, "Symposium"])
+                let cervantes = Person(name: "Cervantes")
+                try cervantes.insert(db)
+                try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [cervantes.id, "Don Quixote"])
+                return cervantes.id!
+            }
+            
+            let adapter = RowAdapter(mapping: ["id": "_id", "authorId": "_authorId", "title": "_title"])
+            let controller = FetchedRecordsController<Book>(dbQueue, sql: "SELECT id AS _id, authorId AS _authorId, title AS _title FROM books WHERE authorID = ?", arguments: [authorId], adapter: adapter)
+            controller.performFetch()
+            XCTAssertEqual(controller.fetchedRecords!.count, 1)
+            XCTAssertEqual(controller.fetchedRecords![0].title, "Don Quixote")
+        }
+    }
+    
+    func testControllerFromFetchRequest() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try Person(name: "Plato").insert(db)
+                try Person(name: "Cervantes").insert(db)
+            }
+            
+            let request = Person.order(SQLColumn("name"))
+            let controller = FetchedRecordsController<Person>(dbQueue, request: request)
+            controller.performFetch()
+            XCTAssertEqual(controller.fetchedRecords!.count, 2)
+            XCTAssertEqual(controller.fetchedRecords![0].name, "Cervantes")
+            XCTAssertEqual(controller.fetchedRecords![1].name, "Plato")
         }
     }
     
@@ -296,7 +366,7 @@ class FetchedRecordsControllerOSXTests: GRDBTestCase {
                 dbQueue,
                 sql: ("SELECT persons.*, COUNT(books.id) AS bookCount " +
                     "FROM persons " +
-                    "LEFT JOIN books ON books.ownerId = persons.id " +
+                    "LEFT JOIN books ON books.authorID = persons.id " +
                     "GROUP BY persons.id " +
                     "ORDER BY persons.name"),
                 compareRecordsByPrimaryKey: true)
@@ -309,8 +379,8 @@ class FetchedRecordsControllerOSXTests: GRDBTestCase {
             // Insert
             recorder.transactionExpectation = expectationWithDescription("expectation")
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
-                try db.execute("INSERT INTO books (ownerId, title) VALUES (?, ?)", arguments: [1, "Moby Dick"])
+                try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Herman Melville"])
+                try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [1, "Moby-Dick"])
                 return .Commit
             }
             waitForExpectationsWithTimeout(1, handler: nil)
@@ -324,10 +394,10 @@ class FetchedRecordsControllerOSXTests: GRDBTestCase {
             waitForExpectationsWithTimeout(1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
-            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Herman Melville"])
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.bookCount! }, [1])
             XCTAssertEqual(recorder.recordsAfterChanges.count, 1)
-            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Herman Melville"])
             XCTAssertEqual(recorder.recordsAfterChanges.map { $0.bookCount! }, [0])
         }
     }

@@ -1,4 +1,3 @@
-- [ ] RowAdapter: test FetchedRecordsController(...:adapter:)
 - [ ] RowAdapter: document awakeFromFetch for properties initialized from subrows (see RowConvertibleTests:Person.awakeFromFetch)
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
