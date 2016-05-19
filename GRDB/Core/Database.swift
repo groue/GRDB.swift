@@ -109,22 +109,26 @@ public final class Database {
             throw DatabaseError(code: code, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
         }
         
-        #if SQLITE_HAS_CODEC
-            do {
+        do {
+            #if SQLITE_HAS_CODEC
                 if let passphrase = configuration.passphrase {
                     try Database.setPassphrase(passphrase, forConnection: sqliteConnection)
                 }
-                
-                // Fail early if key is wrong or missing
-                let readCode = sqlite3_exec(sqliteConnection, "SELECT * FROM sqlite_master LIMIT 1", nil, nil, nil)
-                guard readCode == SQLITE_OK else {
-                    throw DatabaseError(code: readCode, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
-                }
-            } catch {
-                closeConnection(sqliteConnection)
-                throw error
+            #endif
+            
+            // Users are surprised when they open a picture as a database and
+            // see no error (https://github.com/groue/GRDB.swift/issues/54).
+            //
+            // So let's fail early if file is not a database, or encrypted with
+            // another passphrase.
+            let readCode = sqlite3_exec(sqliteConnection, "SELECT * FROM sqlite_master LIMIT 1", nil, nil, nil)
+            guard readCode == SQLITE_OK else {
+                throw DatabaseError(code: readCode, message: String.fromCString(sqlite3_errmsg(sqliteConnection)))
             }
-        #endif
+        } catch {
+            closeConnection(sqliteConnection)
+            throw error
+        }
         
         self.configuration = configuration
         self.schemaCache = schemaCache
