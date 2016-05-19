@@ -1,3 +1,4 @@
+- [ ] DatabasePool: move maximumReaderCount to Configuration
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] What is the SQLITE_OPEN_WAL open flag?
