@@ -1023,13 +1023,19 @@ for rows in Row.fetch(db, "SELECT * FROM wines") {
 }
 ```
 
-When a database value does not match any enum case, you get a fatal error:
+**When a database value does not match any enum case**, you get a fatal error. This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
 let row = Row.fetchOne(db, "SELECT 'Syrah'")!
+
 row.value(atIndex: 0) as String  // "Syrah"
 row.value(atIndex: 0) as Grape?  // fatal error: could not convert "Syrah" to Grape.
 row.value(atIndex: 0) as Grape   // fatal error: could not convert "Syrah" to Grape.
+
+let dbv = row.databaseValue(atIndex: 0)
+dbv.value() as String           // "Syrah"
+dbv.value() as Grape?           // fatal error: could not convert "Syrah" to Grape.
+Grape.fromDatabaseValue(dbv)    // nil
 ```
 
 
