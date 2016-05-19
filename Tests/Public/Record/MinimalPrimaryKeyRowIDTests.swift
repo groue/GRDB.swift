@@ -62,7 +62,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row[key] {
+                    if let dbv = row.databaseValue(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -82,7 +82,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row[key] {
+                    if let dbv = row.databaseValue(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -119,7 +119,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row[key] {
+                    if let dbv = row.databaseValue(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -158,7 +158,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row[key] {
+                    if let dbv = row.databaseValue(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -199,7 +199,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row[key] {
+                    if let dbv = row.databaseValue(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -219,7 +219,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row[key] {
+                    if let dbv = row.databaseValue(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -239,7 +239,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row[key] {
+                    if let dbv = row.databaseValue(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
@@ -260,7 +260,7 @@ class MinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 
                 let row = Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
-                    if let dbv = row[key] {
+                    if let dbv = row.databaseValue(named: key) {
                         XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")

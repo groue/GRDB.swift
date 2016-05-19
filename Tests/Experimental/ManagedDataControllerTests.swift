@@ -231,7 +231,7 @@
 //    }
 //    
 //    override func updateFromRow(row: Row) {
-//        if let dbv = row["id"] {
+//        if let dbv = row.databaseValue(named: "id") {
 //            id = dbv.value()
 //            // Hmm. Sure this rowID must be linked to managedData at some point.
 //            managedData.rowID = dbv.value()

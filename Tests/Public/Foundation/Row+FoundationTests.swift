@@ -20,7 +20,7 @@ class RowFoundationTests: GRDBTestCase {
         XCTAssertEqual(row.count, 4)
         XCTAssertEqual(row.value(named: "a") as String, "foo")
         XCTAssertEqual(row.value(named: "b") as Int, 1)
-        XCTAssertTrue(row["c"]!.isNull)
+        XCTAssertTrue(row.databaseValue(named: "c")!.isNull)
         XCTAssertEqual(row.value(named: "d") as String, "2015-09-30 19:47:19.000")
     }
     

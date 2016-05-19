@@ -1,6 +1,41 @@
 Release Notes
 =============
 
+## 0.64.0
+
+Released May 18, 2016
+
+**Fixed**
+
+- Restored GRDBCipher framework.
+
+**Breaking Changes**
+
+- `DatabaseValue.failableValue()` has been removed. Instead, use DatabaseConvertible.fromDatabaseValue():
+    
+    ```diff
+    -let date = dbv.failableValue() as NSDate?
+    +let date = NSDate.fromDatabaseValue(dbv)
+    ```
+
+- `Row.databaseValue(named:)` now returns an optional DatabaseValue. It is nil when the column does not exist in the row.
+    
+    ```diff
+     class Row {
+    -    func databaseValue(named columnName: String) -> DatabaseValue
+    +    func databaseValue(named columnName: String) -> DatabaseValue?
+     }
+    ```
+
+- Row subscripting by column name has been removed. Instead, use `Row.databaseValue(named:)`
+    
+    ```diff
+     class Row {
+    -    subscript(columnName: String) -> DatabaseValue?
+     }
+    ```
+
+
 ## 0.63.0
 
 Released May 17, 2016
@@ -14,11 +49,11 @@ Released May 17, 2016
 - Support for advanced migrations is not available until iOS 8.2 and OS X 10.10:
     
     ```diff
-     public struct DatabaseMigrator {
-    -    public mutating func registerMigration(identifier: String, withDisabledForeignKeyChecks disabledForeignKeyChecks: Bool = false, migrate: (Database) throws -> Void)
-    +    public mutating func registerMigration(identifier: String, migrate: (Database) throws -> Void)
+     struct DatabaseMigrator {
+    -    mutating func registerMigration(identifier: String, withDisabledForeignKeyChecks disabledForeignKeyChecks: Bool = false, migrate: (Database) throws -> Void)
+    +    mutating func registerMigration(identifier: String, migrate: (Database) throws -> Void)
     +    @available(iOS 8.2, OSX 10.10, *)
-    +    public mutating func registerMigrationWithDisabledForeignKeyChecks(identifier: String, migrate: (Database) throws -> Void)
+    +    mutating func registerMigrationWithDisabledForeignKeyChecks(identifier: String, migrate: (Database) throws -> Void)
     ```
 
 
@@ -57,7 +92,7 @@ Released May 12, 2016
     +            recordsDidChange didChangeCallback: DidChangeCallback? = nil)
     +    #endif
      }
-    -public protocol FetchedRecordsControllerDelegate : class { }
+    -protocol FetchedRecordsControllerDelegate : class { }
     ```
 
 
