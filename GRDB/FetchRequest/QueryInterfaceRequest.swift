@@ -15,7 +15,7 @@ public struct QueryInterfaceRequest<T> {
 }
 
 
-extension QueryInterfaceRequest : FetchRequestType {
+extension QueryInterfaceRequest : FetchRequest {
     
     /// Returns a prepared statement that is ready to be executed.
     ///
