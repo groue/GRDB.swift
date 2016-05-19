@@ -1,6 +1,32 @@
 Release Notes
 =============
 
+## 0.65.0
+
+Released May 19, 2016
+
+**Fixed**
+
+- GRDB throws an early error when a connection to a file can not be established because it has the wrong format, or is encrypted. Fixes [#54](https://github.com/groue/GRDB.swift/issues/54).
+
+**Breaking Change**
+
+- The `FetchRequest` struct has been renamed `QueryInterfaceRequest`. A new `FetchRequest` protocol has been introduced. All APIs that used to consume the `FetchRequest` struct now consume the `FetchRequest` protocol.
+
+    This change should not have any consequence on your source code, and paves the way for easier configuration of any piece of "code that fetches".
+    
+    ```diff
+    -struct FetchRequest<T> {
+    -}
+    +protocol FetchRequest {
+    +    func selectStatement(db: Database) throws -> SelectStatement
+    +}
+    +struct QueryInterfaceRequest<T> : FetchRequest {
+    +    init(tableName: String)
+    +}
+    ```
+
+
 ## 0.64.0
 
 Released May 18, 2016
