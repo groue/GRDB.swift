@@ -402,34 +402,6 @@ extension Row {
 
 extension Row {
     
-    // MARK: - Extracting DatabaseValue
-    
-    /// Returns the `DatabaseValue` at given column, if the row contains the
-    /// requested column.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// - parameter columnName: A column name.
-    /// - returns: A DatabaseValue if the row contains the requested column.
-    public subscript(columnName: String) -> DatabaseValue? {
-        guard let index = impl.indexOfColumn(named: columnName) else {
-            return nil
-        }
-        return impl.databaseValue(atIndex: index)
-    }
-    
-    /// The database values in the row.
-    ///
-    /// Values appear in the same order as they occur as the `.1` member
-    /// of column-value pairs in `self`.
-    public var databaseValues: LazyMapCollection<Row, DatabaseValue> {
-        return lazy.map { $0.1 }
-    }
-}
-
-extension Row {
-    
     // MARK: - Subrows
     
     public func subrow(named name: String) -> Row? {
@@ -1028,7 +1000,7 @@ private struct MappedRowImpl : RowImpl {
     }
     
     func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return baseRow.databaseValue(named: columnMapping.baseColumName(atIndex: index))
+        return baseRow.databaseValue(named: columnMapping.baseColumName(atIndex: index))!
     }
     
     func dataNoCopy(atIndex index:Int) -> NSData? {

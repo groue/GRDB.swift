@@ -228,7 +228,7 @@ class DetachedRowTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT 'foo' AS name")!
                 
                 XCTAssertFalse(row.hasColumn("missing"))
-                XCTAssertTrue(row["missing"] == nil)
+                XCTAssertTrue(row.databaseValue(named: "missing") == nil)
                 XCTAssertTrue(row.value(named: "missing") == nil)
             }
         }

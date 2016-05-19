@@ -138,11 +138,11 @@ class MappedRowTests: GRDBTestCase {
                 let adapter = RowAdapter(mapping: ["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
                 let row = Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
                 
-                guard case .Null = row.databaseValue(named: "null").storage else { XCTFail(); return }
-                guard case .Int64(let int64) = row.databaseValue(named: "int64").storage where int64 == 1 else { XCTFail(); return }
-                guard case .Double(let double) = row.databaseValue(named: "double").storage where double == 1.1 else { XCTFail(); return }
-                guard case .String(let string) = row.databaseValue(named: "string").storage where string == "foo" else { XCTFail(); return }
-                guard case .Blob(let data) = row.databaseValue(named: "blob").storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+                guard case .Null = row.databaseValue(named: "null")!.storage else { XCTFail(); return }
+                guard case .Int64(let int64) = row.databaseValue(named: "int64")!.storage where int64 == 1 else { XCTFail(); return }
+                guard case .Double(let double) = row.databaseValue(named: "double")!.storage where double == 1.1 else { XCTFail(); return }
+                guard case .String(let string) = row.databaseValue(named: "string")!.storage where string == "foo" else { XCTFail(); return }
+                guard case .Blob(let data) = row.databaseValue(named: "blob")!.storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
             }
         }
     }
@@ -190,9 +190,9 @@ class MappedRowTests: GRDBTestCase {
                 let adapter = RowAdapter(mapping: ["nAmE": "basenAmE"])
                 let row = Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra", adapter: adapter)!
                 
-                XCTAssertEqual(row["name"], "foo".databaseValue)
-                XCTAssertEqual(row["NAME"], "foo".databaseValue)
-                XCTAssertEqual(row["NaMe"], "foo".databaseValue)
+                XCTAssertEqual(row.databaseValue(named: "name"), "foo".databaseValue)
+                XCTAssertEqual(row.databaseValue(named: "NAME"), "foo".databaseValue)
+                XCTAssertEqual(row.databaseValue(named: "NaMe"), "foo".databaseValue)
                 XCTAssertEqual(row.value(named: "name") as String, "foo")
                 XCTAssertEqual(row.value(named: "NAME") as String, "foo")
                 XCTAssertEqual(row.value(named: "NaMe") as String, "foo")
@@ -207,9 +207,9 @@ class MappedRowTests: GRDBTestCase {
                 let adapter = RowAdapter(mapping: ["name": "basename", "NAME": "baseNAME"])
                 let row = Row.fetchOne(db, "SELECT 1 AS basename, 'XXX' AS extra, 2 AS baseNAME", adapter: adapter)!
 
-                XCTAssertEqual(row["name"], 1.databaseValue)
-                XCTAssertEqual(row["NAME"], 1.databaseValue)
-                XCTAssertEqual(row["NaMe"], 1.databaseValue)
+                XCTAssertEqual(row.databaseValue(named: "name"), 1.databaseValue)
+                XCTAssertEqual(row.databaseValue(named: "NAME"), 1.databaseValue)
+                XCTAssertEqual(row.databaseValue(named: "NaMe"), 1.databaseValue)
                 XCTAssertEqual(row.value(named: "name") as Int, 1)
                 XCTAssertEqual(row.value(named: "NAME") as Int, 1)
                 XCTAssertEqual(row.value(named: "NaMe") as Int, 1)
@@ -226,8 +226,8 @@ class MappedRowTests: GRDBTestCase {
                 
                 XCTAssertFalse(row.hasColumn("missing"))
                 XCTAssertFalse(row.hasColumn("missingInBaseRow"))
-                XCTAssertTrue(row["missing"] == nil)
-                XCTAssertTrue(row["missingInBaseRow"] == nil)
+                XCTAssertTrue(row.databaseValue(named: "missing") == nil)
+                XCTAssertTrue(row.databaseValue(named: "missingInBaseRow") == nil)
                 XCTAssertTrue(row.value(named: "missing") == nil)
                 XCTAssertTrue(row.value(named: "missingInBaseRow") == nil)
             }

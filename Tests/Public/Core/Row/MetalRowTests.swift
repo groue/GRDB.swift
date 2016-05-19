@@ -263,7 +263,7 @@ class MetalRowTests: GRDBTestCase {
                 for row in Row.fetch(db, "SELECT 'foo' AS name") {
                     rowFetched = true
                     XCTAssertFalse(row.hasColumn("missing"))
-                    XCTAssertTrue(row["missing"] == nil)
+                    XCTAssertTrue(row.databaseValue(named: "missing") == nil)
                     XCTAssertTrue(row.value(named: "missing") == nil)
                 }
                 XCTAssertTrue(rowFetched)
