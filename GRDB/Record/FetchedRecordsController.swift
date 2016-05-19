@@ -23,6 +23,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     ///     - queue: Optional dispatch queue (defaults to the main queue)
     ///
     ///         The fetched records controller delegate will be notified of
@@ -35,8 +36,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
-    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
-        let source: DatabaseSource<Record> = .sql(sql, arguments)
+    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+        let source: DatabaseSource<Record> = .sql(sql, arguments, adapter)
         self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecord: isSameRecord)
     }
     
@@ -100,7 +101,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // callbacks.
         databaseWriter.write { db in
             let statement = try! self.source.selectStatement(db)
-            let items = Item<Record>.fetchAll(statement)
+            let adapter = self.source.adapter
+            let items = Item<Record>.fetchAll(statement, adapter: adapter)
             self.fetchedItems = items
             self.isSameRecord = self.isSameRecordBuilder(db)
             
@@ -146,8 +148,8 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// Updates the fetch request, and notifies the delegate of changes in the
     /// fetched records if delegate is not nil, and performFetch() has been
     /// called.
-    public func setRequest(sql sql: String, arguments: StatementArguments? = nil) {
-        self.source = DatabaseSource.sql(sql, arguments)
+    public func setRequest(sql sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) {
+        self.source = DatabaseSource.sql(sql, arguments, adapter)
     }
     
     public typealias WillChangeCallback = FetchedRecordsController<Record> -> ()
@@ -290,6 +292,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///     - databaseWriter: A DatabaseWriter (DatabaseQueue, or DatabasePool)
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     ///     - queue: Optional dispatch queue (defaults to the main queue)
     ///
     ///         The fetched records controller delegate will be notified of
@@ -300,8 +303,8 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
-    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
-        let source: DatabaseSource<Record> = .sql(sql, arguments)
+    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+        let source: DatabaseSource<Record> = .sql(sql, arguments, adapter)
         if compareRecordsByPrimaryKey {
             self.init(databaseWriter: databaseWriter, source: source, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
         } else {
@@ -429,7 +432,8 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         
         controller.databaseWriter.readFromWrite { db in
             let statement = try! controller.source.selectStatement(db)
-            fetchedItems = Item<Record>.fetchAll(statement)
+            let adapter = controller.source.adapter
+            fetchedItems = Item<Record>.fetchAll(statement, adapter: adapter)
             
             // Fetch is complete:
             dispatch_semaphore_signal(semaphore)
@@ -798,12 +802,12 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 // MARK: - DatabaseSource
 
 private enum DatabaseSource<T> {
-    case sql(String, StatementArguments?)
+    case sql(String, StatementArguments?, RowAdapter?)
     case fetchRequest(FetchRequest<T>)
     
     func selectStatement(db: Database) throws -> SelectStatement {
         switch self {
-        case .sql(let sql, let arguments):
+        case .sql(let sql, let arguments, _):
             let statement = try db.selectStatement(sql)
             if let arguments = arguments {
                 try statement.validateArguments(arguments)
@@ -812,6 +816,15 @@ private enum DatabaseSource<T> {
             return statement
         case .fetchRequest(let request):
             return try request.selectStatement(db)
+        }
+    }
+    
+    var adapter: RowAdapter? {
+        switch self {
+        case .sql(_, _, let adapter):
+            return adapter
+        case .fetchRequest:
+            return nil
         }
     }
 }
