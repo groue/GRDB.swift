@@ -38,7 +38,7 @@ private class Reader : Record {
 }
 
 
-class RecordFetchRequestTests: GRDBTestCase {
+class RecordQueryInterfaceRequestTests: GRDBTestCase {
     
     override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()

@@ -5,6 +5,8 @@ public struct QueryInterfaceRequest<T> {
     let query: _SQLSelectQuery
     
     /// Initializes a QueryInterfaceRequest based on table *tableName*.
+    ///
+    /// It represents the SQL query `SELECT * FROM tableName`.
     public init(tableName: String) {
         self.init(query: _SQLSelectQuery(select: [_SQLResultColumn.Star(nil)], from: .Table(name: tableName, alias: nil)))
     }

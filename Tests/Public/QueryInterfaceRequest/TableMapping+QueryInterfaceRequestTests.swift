@@ -19,7 +19,7 @@ private struct Reader : TableMapping {
 }
 
 
-class TableMappingFetchRequestTests: GRDBTestCase {
+class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
     
     override func setUpDatabase(dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()

@@ -14,7 +14,7 @@ private struct Col {
 
 private let tableRequest = QueryInterfaceRequest<Void>(tableName: "readers")
 
-class FetchRequestTests: GRDBTestCase {
+class QueryInterfaceRequestTests: GRDBTestCase {
 
     var collation: DatabaseCollation!
     
