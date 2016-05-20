@@ -1,3 +1,4 @@
+- [ ] Record should not adopt CustomStringConvertible: https://github.com/groue/GRDB.swift/issues/58
 - [ ] maximumReaderCount in Configuration: update README
 - [ ] FetchedRecordsController: see if we can replace identity comparison function with a function that returns an Equatable value (beware the generics trouble). See if this can help optimize memory use, and use a sortedMerge() algorithm.
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
