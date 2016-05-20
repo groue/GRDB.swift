@@ -11,6 +11,10 @@ Release Notes
      final class DatabasePool {
     -    init(path: String, configuration: Configuration = default) throws
     +    init(path: String, configuration: Configuration = default, maximumReaderCount: Int = default) throws
+     }
+     struct Configuration {
+    +    var maximumReaderCount: Int = default
+     }
     ```
 
 
