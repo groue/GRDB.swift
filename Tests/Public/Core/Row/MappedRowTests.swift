@@ -221,6 +221,18 @@ class MappedRowTests: GRDBTestCase {
         }
     }
     
+    func testRowAdapterIsCaseInsensitiveAndPicksLeftmostBaseColumn() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let adapter = RowAdapter(mapping: ["name": "baseNaMe"])
+                let row = Row.fetchOne(db, "SELECT 1 AS basename, 2 AS baseNaMe, 3 AS BASENAME", adapter: adapter)!
+                
+                XCTAssertEqual(row.databaseValue(named: "name"), 1.databaseValue)
+            }
+        }
+    }
+    
     func testMissingColumn() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
