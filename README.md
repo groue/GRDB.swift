@@ -2942,20 +2942,29 @@ FAQ
     ```swift
     // Generic parameter 'T' could not be inferred
     let x = dbQueue.inDatabase { db in
-        let result = String.fetchOne(...)
+        let result = String.fetchOne(db, ...)
         return result
     }
     ```
     
     This is a Swift compiler bug (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
     
-    The workaround is to explicitly declare the type of the closure result:
+    The general workaround is to explicitly declare the type of the closure result:
     
     ```swift
-    // Workaround
+    // General Workaround
     let x = dbQueue.inDatabase { db -> String? in
-        let result = String.fetchOne(...)
+        let result = String.fetchOne(db, ...)
         return result
+    }
+    ```
+    
+    You can also, when possible, write a single-line closure:
+    
+    ```swift
+    // Single-line closure workaround:
+    let x = dbQueue.inDatabase { db in
+        String.fetchOne(db, ...)
     }
     ```
     
