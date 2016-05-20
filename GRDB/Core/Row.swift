@@ -18,17 +18,13 @@ public final class Row {
     // MARK: - Building rows
     
     /// Builds an empty row.
-    public init() {
-        statementRef = nil
-        sqliteStatement = nil
-        impl = EmptyRowImpl()
+    public convenience init() {
+        self.init(impl: EmptyRowImpl())
     }
     
     /// Builds a row from a dictionary of values.
-    public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        statementRef = nil
-        sqliteStatement = nil
-        impl = DictionaryRowImpl(dictionary: dictionary)
+    public convenience init(_ dictionary: [String: DatabaseValueConvertible?]) {
+        self.init(impl: DictionaryRowImpl(dictionary: dictionary))
     }
     
     /// Returns a copy of the row.
@@ -80,10 +76,8 @@ public final class Row {
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
     /// the values from the SQLite statement so that further iteration of the
     /// statement does not modify the row.
-    init(copiedFromSQLiteStatement sqliteStatement: SQLiteStatement, statementRef: Unmanaged<SelectStatement>) {
-        self.statementRef = nil
-        self.sqliteStatement = nil
-        self.impl = StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: statementRef.takeUnretainedValue().columnNames)
+    convenience init(copiedFromSQLiteStatement sqliteStatement: SQLiteStatement, statementRef: Unmanaged<SelectStatement>) {
+        self.init(impl: StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: statementRef.takeUnretainedValue().columnNames))
     }
     
     /// Builds a row from the *current state* of the SQLite statement.
@@ -91,17 +85,14 @@ public final class Row {
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
     /// the values from the SQLite statement so that further iteration of the
     /// statement does not modify the row.
-    init(copiedFromSQLiteStatement sqliteStatement: SQLiteStatement, columnNames: [String]) {
-        self.statementRef = nil
-        self.sqliteStatement = nil
-        self.impl = StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: columnNames)
+    convenience init(copiedFromSQLiteStatement sqliteStatement: SQLiteStatement, columnNames: [String]) {
+        self.init(impl: StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: columnNames))
     }
     
-    /// Builds a row from a base row and column mappings
-    init(baseRow: Row, columnMapping: ColumnMapping, subrowColumnMappings: [String: ColumnMapping]) {
+    init(impl: RowImpl) {
+        self.impl = impl
         self.statementRef = nil
         self.sqliteStatement = nil
-        self.impl = MappedRowImpl(baseRow: baseRow, columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
     }
 }
 
@@ -452,8 +443,8 @@ extension Row {
         // Metal rows can be reused. And reusing them yields better performance.
         let row: Row
         if let adapter = adapter {
-            let (columnMapping, subrowColumnMappings) = try! adapter.columnMappings(statement)
-            row = Row(baseRow: Row(statement: statement), columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
+            let boundRowAdapter = try! adapter.boundRowAdapter(with: statement)
+            row = Row(baseRow: Row(statement: statement), boundRowAdapter: boundRowAdapter)
         } else {
             row = Row(statement: statement)
         }
@@ -478,9 +469,9 @@ extension Row {
         let columnNames = statement.columnNames
         let sequence: DatabaseSequence<Row>
         if let adapter = adapter {
-            let (columnMapping, subrowColumnMappings) = try! adapter.columnMappings(statement)
+            let boundRowAdapter = try! adapter.boundRowAdapter(with: statement)
             sequence = statement.fetchSequence(arguments: arguments) {
-                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
+                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), boundRowAdapter: boundRowAdapter)
             }
         } else {
             sequence = statement.fetchSequence(arguments: arguments) {
@@ -511,8 +502,8 @@ extension Row {
             return nil
         }
         if let adapter = adapter {
-            let (columnMapping, subrowColumnMappings) = try! adapter.columnMappings(statement)
-            return Row(baseRow: row, columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
+            let boundRowAdapter = try! adapter.boundRowAdapter(with: statement)
+            return Row(baseRow: row, boundRowAdapter: boundRowAdapter)
         } else {
             return row
         }
@@ -709,71 +700,6 @@ public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIn
 /// Equatable implementation for RowIndex
 public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
     return lhs.index == rhs.index
-}
-
-
-// MARK: - RowAdapter
-
-public struct RowAdapter {
-    let mapping: [String: String]
-    let subrowMappings: [String: [String: String]]
-    public init(mapping: [String: String], subrowMappings: [String: [String: String]] = [:]) {
-        self.mapping = mapping
-        self.subrowMappings = subrowMappings
-    }
-}
-
-struct ColumnMapping {
-    let orderedMapping: [(String, String)]  // [(mappedColumn, baseColumn), ...]
-    let lowercaseColumnIndexes: [String: Int]
-    
-    init(orderedMapping: [(String, String)]) {
-        self.orderedMapping = orderedMapping
-        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: orderedMapping.enumerate().map { ($1.0.lowercaseString, $0) })
-    }
-
-    var count: Int {
-        return orderedMapping.count
-    }
-
-    func baseColumName(atIndex index: Int) -> String {
-        return orderedMapping[index].1
-    }
-    
-    func columnName(atIndex index: Int) -> String {
-        return orderedMapping[index].0
-    }
-    
-    func indexOfColumn(named name: String) -> Int? {
-        if let index = lowercaseColumnIndexes[name] {
-            return index
-        }
-        return lowercaseColumnIndexes[name.lowercaseString]
-    }
-}
-
-extension RowAdapter {
-    func columnMappings(statement: SelectStatement) throws -> (ColumnMapping, [String: ColumnMapping]) {
-        let columnMapping = try ColumnMapping(orderedMapping: validatedOrderedMapping(statement: statement, mapping: mapping))
-        let subrowColumnMappings = try Dictionary(keyValueSequence: subrowMappings.map { (identifier, mapping) in
-            (identifier, try ColumnMapping(orderedMapping: validatedOrderedMapping(statement: statement, mapping: mapping)))
-            })
-        return (columnMapping, subrowColumnMappings)
-    }
-
-    // Turns a dictionary [mappedColumn:baseColumn, ...] into an array
-    // [(mappedColumn, baseColumn), ...] ordered like the satement columns.
-    private func validatedOrderedMapping(statement statement: SelectStatement, mapping: [String: String]) throws -> [(String, String)] {
-        return try mapping
-            .map { (mappedColumn, baseColumn) -> (Int, (String, String)) in
-                guard let index = statement.indexOfColumn(named: baseColumn) else {
-                    throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(statement.columnNames.joinWithSeparator(", ")).")
-                }
-                return (index, (mappedColumn, baseColumn))
-            }
-            .sort { return $0.0 < $1.0 }
-            .map { $0.1 }
-    }
 }
 
 
@@ -985,54 +911,5 @@ private struct EmptyRowImpl : RowImpl {
     
     func copy(row: Row) -> Row {
         return row
-    }
-}
-
-
-// See Row.init(baseRow:columnMapping:subrowColumnMappings:)
-private struct MappedRowImpl : RowImpl {
-    let baseRow: Row
-    let columnMapping: ColumnMapping
-    let subrowColumnMappings: [String: ColumnMapping]
-    
-    init(baseRow: Row, columnMapping: ColumnMapping, subrowColumnMappings: [String: ColumnMapping]) {
-        self.baseRow = baseRow
-        self.columnMapping = columnMapping
-        self.subrowColumnMappings = subrowColumnMappings
-    }
-    
-    var count: Int {
-        return columnMapping.count
-    }
-    
-    func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return baseRow.databaseValue(named: columnMapping.baseColumName(atIndex: index))!
-    }
-    
-    func dataNoCopy(atIndex index:Int) -> NSData? {
-        return baseRow.dataNoCopy(named: columnMapping.baseColumName(atIndex: index))
-    }
-    
-    func columnName(atIndex index: Int) -> String {
-        return columnMapping.columnName(atIndex: index)
-    }
-    
-    func indexOfColumn(named name: String) -> Int? {
-        return columnMapping.indexOfColumn(named: name)
-    }
-    
-    func subrow(named name: String) -> Row? {
-        guard let columnMapping = subrowColumnMappings[name] else {
-            return nil
-        }
-        return Row(baseRow: baseRow, columnMapping: columnMapping, subrowColumnMappings: [:])
-    }
-    
-    var subrowNames: Set<String> {
-        return Set(subrowColumnMappings.keys)
-    }
-    
-    func copy(row: Row) -> Row {
-        return Row(baseRow: baseRow.copy(), columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
     }
 }

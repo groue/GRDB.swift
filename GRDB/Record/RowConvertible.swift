@@ -69,8 +69,8 @@ extension RowConvertible {
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
         let row: Row
         if let adapter = adapter {
-            let (columnMapping, subrowColumnMappings) = try! adapter.columnMappings(statement)
-            row = Row(baseRow: Row(statement: statement), columnMapping: columnMapping, subrowColumnMappings: subrowColumnMappings)
+            let boundRowAdapter = try! adapter.boundRowAdapter(with: statement)
+            row = Row(baseRow: Row(statement: statement), boundRowAdapter: boundRowAdapter)
         } else {
             row = Row(statement: statement)
         }
