@@ -10,6 +10,68 @@
     #endif
 #endif
 
+// The types declared in this file are:
+//
+// - public struct RowAdapter
+//
+//     The public RowAdapter type
+//
+// - private protocol RowAdapterImpl
+//
+//     Protocol for inner implementation of RowAdapter
+//
+// - private struct DictionaryRowAdapterImpl
+//
+//     Implementation for RowAdapter that maps column names with a dictionary
+//
+// - private struct NestedRowAdapterImpl
+//
+//     Implementation for RowAdapter that holds a "main" adapter and a
+//     dictionary of subrow adapters.
+//
+// - struct ColumnsAdapter
+//
+//     A RowAdapter itself can not do anything, because it doesn't know the
+//     row layout. ColumnsAdapter is the product of a RowAdapter and the row
+//     layout of a statement: it maps adapted columns to columns of the
+//     "base row".
+//
+// - struct AdapterRowImpl
+//
+//     A RowImpl for adapter rows.
+//
+// - struct AdapterRowImpl.Binding
+//
+//     A struct that holds a "main" column adapter, and a dictionary
+//     of subrows.
+
+/// Row adapters helps two incompatible row interfaces to work together.
+///
+/// For instance, a row consumer expects a column named "foo", but the produced
+/// column has a column named "bar".
+///
+/// A row adapter performs that column mapping:
+///
+///     // An adapter that maps column 'bar' to column 'foo':
+///     let adapter = RowAdapter(["foo": "bar"])
+///
+///     // Fetch a column named 'bar':
+///     let row = Row.fetchOne(db, "SELECT 'Hello' AS bar", adapter: adapter)
+///
+///     // The adapter in action:
+///     row.value(named: "foo") // "Hello"
+///
+/// A row adapter can also define "sub rows", that help several consumers feed
+/// on a single row:
+///
+///     let adapter = RowAdapter(
+///         ["val": "val1"],
+///         subrows: ["other": ["val": "val2"]])
+///     let row = Row.fetchOne(db, "SELECT 'foo' AS val1, 'bar' AS val2", adapter: adapter)
+///     let subrow = row.subrow(named: "other")!
+///     row.value(named: "val")     // "foo"
+///     subrow.value(named: "val")  // "bar"
+///
 public struct RowAdapter {
     private let impl: RowAdapterImpl
     
@@ -104,11 +166,11 @@ struct ColumnsAdapter {
         return columnBaseIndexes.count
     }
 
-    func baseColumIndex(atIndex index: Int) -> Int {
+    func baseColumIndex(adaptedIndex index: Int) -> Int {
         return columnBaseIndexes[index].1
     }
 
-    func columnName(atIndex index: Int) -> String {
+    func columnName(adaptedIndex index: Int) -> String {
         return columnBaseIndexes[index].0
     }
 
@@ -157,15 +219,15 @@ struct AdapterRowImpl : RowImpl {
     }
     
     func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return baseRow.databaseValue(atIndex: columnsAdapter.baseColumIndex(atIndex: index))
+        return baseRow.databaseValue(atIndex: columnsAdapter.baseColumIndex(adaptedIndex: index))
     }
     
     func dataNoCopy(atIndex index:Int) -> NSData? {
-        return baseRow.dataNoCopy(atIndex: columnsAdapter.baseColumIndex(atIndex: index))
+        return baseRow.dataNoCopy(atIndex: columnsAdapter.baseColumIndex(adaptedIndex: index))
     }
     
     func columnName(atIndex index: Int) -> String {
-        return columnsAdapter.columnName(atIndex: index)
+        return columnsAdapter.columnName(adaptedIndex: index)
     }
     
     func indexOfColumn(named name: String) -> Int? {
