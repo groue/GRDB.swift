@@ -112,7 +112,7 @@ class RowConvertibleTests: GRDBTestCase {
             dbQueue.inDatabase { db in
                 let adapter = RowAdapter(
                     ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrowAdapters: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let ss = Person.fetch(db, sql, arguments: arguments, adapter: adapter)
@@ -133,7 +133,7 @@ class RowConvertibleTests: GRDBTestCase {
             dbQueue.inDatabase { db in
                 let adapter = RowAdapter(
                     ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrowAdapters: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let ss = Person.fetchAll(db, sql, arguments: arguments, adapter: adapter)
@@ -154,7 +154,7 @@ class RowConvertibleTests: GRDBTestCase {
             dbQueue.inDatabase { db in
                 let adapter = RowAdapter(
                     ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrowAdapters: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let s = Person.fetchOne(db, sql, arguments: arguments, adapter: adapter)!
@@ -221,7 +221,7 @@ class RowConvertibleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let adapter = RowAdapter(
                     ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrowAdapters: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.selectStatement(sql)
@@ -243,7 +243,7 @@ class RowConvertibleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let adapter = RowAdapter(
                     ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrowAdapters: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.selectStatement(sql)
@@ -265,7 +265,7 @@ class RowConvertibleTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let adapter = RowAdapter(
                     ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrowAdapters: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.selectStatement(sql)

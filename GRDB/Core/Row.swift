@@ -441,13 +441,7 @@ extension Row {
     @warn_unused_result
     public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
-        let row: Row
-        if let adapter = adapter {
-            let boundRowAdapter = try! adapter.boundRowAdapter(with: statement)
-            row = Row(baseRow: Row(statement: statement), boundRowAdapter: boundRowAdapter)
-        } else {
-            row = Row(statement: statement)
-        }
+        let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return statement.fetchSequence(arguments: arguments) {
             return row
         }
@@ -469,9 +463,9 @@ extension Row {
         let columnNames = statement.columnNames
         let sequence: DatabaseSequence<Row>
         if let adapter = adapter {
-            let boundRowAdapter = try! adapter.boundRowAdapter(with: statement)
+            let adapterBinding = try! adapter.binding(with: statement)
             sequence = statement.fetchSequence(arguments: arguments) {
-                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), boundRowAdapter: boundRowAdapter)
+                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), adapterBinding: adapterBinding)
             }
         } else {
             sequence = statement.fetchSequence(arguments: arguments) {
@@ -501,12 +495,7 @@ extension Row {
         guard let row = sequence.generate().next() else {
             return nil
         }
-        if let adapter = adapter {
-            let boundRowAdapter = try! adapter.boundRowAdapter(with: statement)
-            return Row(baseRow: row, boundRowAdapter: boundRowAdapter)
-        } else {
-            return row
-        }
+        return try! row.adaptedRow(adapter: adapter, statement: statement)
     }
 }
 
