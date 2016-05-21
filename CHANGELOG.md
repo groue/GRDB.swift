@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Release
 
+**New**
+
+- **Row adapters** let you map column names for easier row consumption ([documentation](https://github.com/groue/GRDB.swift#row-adapters)).
+
 **Breaking Changes**
 
 - The maximum number of reader connections in a database pool is now configured in a Configuration object.

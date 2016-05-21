@@ -1218,9 +1218,9 @@ Person.select(reverseString.apply(nameColumn))
 
 ## Row Adapters
 
-**Row adapters help two incompatible row interfaces to work together.**
+**Row adapters let you map column names for easier row consumption.**
 
-For example, a row consumer expects a column named "foo", but the produced column has a column named "bar":
+They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "foo", but the produced column has a column named "bar":
 
 ```swift
 // An adapter that maps column 'bar' to column 'foo':
@@ -1537,6 +1537,25 @@ PointOfInterest.fetchOne(db, "SELECT ...", arguments:...) // PointOfInterest?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetch`, `fetchAll` and `fetchOne` methods. See [fetching rows](#fetching-rows) for more information about the query arguments.
+
+
+#### RowConvertible and Row Adapters
+
+RowConvertible consume row columns by name:
+
+```swift
+extension PointOfInterest : RowConvertible {
+    init(_ row: Row) {
+        id = row.value(named: "id")
+        title = row.value(named: "title")
+        coordinate = CLLocationCoordinate2DMake(
+            row.value(named: "latitude"),
+            row.value(named: "longitude"))
+    }
+}
+```
+
+Occasionnally, you'll want to write a complex SQL query that uses different column names. In this case, [row adapters](#row-adapters) are there to help you mapping raw column names to the names expected by your RowConvertible types.
 
 
 ### TableMapping Protocol
