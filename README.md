@@ -1243,7 +1243,7 @@ let sql = "SELECT books.*, persons.name AS authorName " +
 let authorMapping = ["authorID": "id", "authorName": "name"]
 let adapter = RowAdapter(subrows: ["author": authorMapping])
 
-for row in Row.fetchAll(db, sql, adapter: adapter) {
+for row in Row.fetch(db, sql, adapter: adapter) {
     // <Row id:1 title:"Moby-Dick" authorID:10 authorName:"Melville">
     print(row)
     
