@@ -1220,7 +1220,7 @@ Person.select(reverseString.apply(nameColumn))
 
 **Row adapters let you map column names for easier row consumption.**
 
-They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "foo", but the produced column has a column named "bar":
+They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced column has a column named "produced":
 
 ```swift
 // An adapter that maps column 'produced' to column 'consumed':
