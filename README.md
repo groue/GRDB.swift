@@ -1223,14 +1223,14 @@ Person.select(reverseString.apply(nameColumn))
 They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "foo", but the produced column has a column named "bar":
 
 ```swift
-// An adapter that maps column 'bar' to column 'foo':
-let adapter = RowAdapter(mapping: ["foo": "bar"])
+// An adapter that maps column 'produced' to column 'consumed':
+let adapter = RowAdapter(mapping: ["consumed": "produced"])
 
-// Fetch a column named 'bar', using adapter:
-let row = Row.fetchOne(db, "SELECT 'Hello' AS bar", adapter: adapter)!
+// Fetch a column named 'produced', and apply adapter:
+let row = Row.fetchOne(db, "SELECT 'Hello' AS produced", adapter: adapter)!
 
 // The adapter in action:
-row.value(named: "foo") // "Hello"
+row.value(named: "consumed") // "Hello"
 ```
 
 **Row adapters can also define "sub rows".** Sub rows help several consumers feed on a single row:
@@ -1244,6 +1244,7 @@ let authorMapping = ["authorID": "id", "authorName": "name"]
 let adapter = RowAdapter(subrows: ["author": authorMapping])
 
 for row in Row.fetch(db, sql, adapter: adapter) {
+    // No mapping is applied to the fetched row:
     // <Row id:1 title:"Moby-Dick" authorID:10 authorName:"Melville">
     print(row)
     
