@@ -356,7 +356,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     
     /// Part of the TransactionObserverType protocol
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
-        if observedTables.contains(event.tableName) {
+        if !needsComputeChanges && observedTables.contains(event.tableName) {
             needsComputeChanges = true
         }
     }
