@@ -1287,7 +1287,7 @@ class Book : RowConvertible {
         
         // Consume the subrow:
         if let authorRow = row.subrow(named: "author") {
-            author = Person(row: authorRow)
+            author = Person(authorRow)
         }
     }
 }
