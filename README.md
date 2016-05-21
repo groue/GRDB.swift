@@ -1257,7 +1257,7 @@ for row in Row.fetch(db, sql, adapter: adapter) {
 The last SQL and adapter can be very useful with [RowConvertible](#rowconvertible-protocol) types. For example:
 
 ```swift
-for book in Book.fetch(sql, adapter: adapter) {
+for book in Book.fetch(db, sql, adapter: adapter) {
     book.title          // Moby-Dick
     book.author!.name   // Melville
 }
