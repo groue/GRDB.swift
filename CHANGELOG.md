@@ -5,7 +5,7 @@ Release Notes
 
 **Fixed**
 
-- The Record class no longer adopts CustomStringConvertible. This frees the `description` identifier for your record properties. Fixes [#58](https://github.com/groue/GRDB.swift/issues/58).
+- The Record class no longer adopts the CustomStringConvertible protocol. This frees the `description` identifier for your record properties. Fixes [#58](https://github.com/groue/GRDB.swift/issues/58).
 
 - Several database connections can now be used at the same time: you can move values from one database to another. Fixes [#55](https://github.com/groue/GRDB.swift/issues/55).
 
