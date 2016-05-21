@@ -1302,7 +1302,7 @@ let persons = Person.fetchAll(db, "SELECT * FROM persons")
 **You can mix a main mapping with subrows:**
 
 ```swift
-let sql = "SELECT main.id AS mainID, p.name AS mainName, " +
+let sql = "SELECT main.id AS mainID, main.name AS mainName, " +
           "       friend.id AS friendID, friend.name AS friendName, " +
           "FROM persons main " +
           "LEFT JOIN persons friend ON p.bestFriendID = f.id"
@@ -1314,8 +1314,10 @@ let adapter = RowAdapter(
     subrows: ["bestFriend": bestFriendMapping])
 
 for row in Row.fetchAll(db, sql, adapter: adapter) {
-    print(row)                             // <Row id:1 name:"Arthur">
-    print(row.subrow(named: "bestFriend")) // <Row id:2 name:"Barbara">
+    // <Row id:1 name:"Arthur">
+    print(row)
+    // <Row id:2 name:"Barbara">
+    print(row.subrow(named: "bestFriend"))
 }
 ```
 
