@@ -1260,7 +1260,7 @@ The last SQL and adapter can be very useful with [RowConvertible](#rowconvertibl
 ```swift
 for book in Book.fetch(db, sql, adapter: adapter) {
     book.title          // Moby-Dick
-    book.author!.name   // Melville
+    book.author?.name   // Melville
 }
 ```
 
@@ -1315,11 +1315,16 @@ let adapter = RowAdapter(
     mapping: mainMapping,
     subrows: ["bestFriend": bestFriendMapping])
 
-for row in Row.fetchAll(db, sql, adapter: adapter) {
+for row in Row.fetch(db, sql, adapter: adapter) {
     // <Row id:1 name:"Arthur">
     print(row)
     // <Row id:2 name:"Barbara">
     print(row.subrow(named: "bestFriend"))
+}
+
+for person in Person.fetch(db, sql, adapter: adapter) {
+    person.name             // Arthur
+    person.bestFriend?.name // Barbara
 }
 ```
 
