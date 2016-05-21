@@ -3,6 +3,10 @@ Release Notes
 
 ## Next Release
 
+**Fixed**
+
+- The Record class no longer adopts CustomStringConvertible. This frees the `description` identifier for your record properties. Fixes [#58](https://github.com/groue/GRDB.swift/issues/58).
+
 **Breaking Changes**
 
 - The maximum number of reader connections in a database pool is now configured in a Configuration object.

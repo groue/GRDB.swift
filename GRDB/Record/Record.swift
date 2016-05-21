@@ -314,22 +314,3 @@ public class Record : RowConvertible, TableMapping, Persistable {
         return try performDelete(db)
     }
 }
-
-
-// MARK: - CustomStringConvertible
-
-/// Record adopts CustomStringConvertible.
-extension Record : CustomStringConvertible {
-    /// A textual representation of `self`.
-    public var description: String {
-        return "<\(self.dynamicType)"
-            + persistentDictionary.map { (key, value) in
-                if let value = value {
-                    return " \(key):\(String(reflecting: value))"
-                } else {
-                    return " \(key):nil"
-                }
-                }.joinWithSeparator("")
-            + ">"
-    }
-}
