@@ -413,8 +413,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         var fetchedItems: [Item<Record>]! = nil
         
         controller.databaseWriter.readFromWrite { db in
-            let statement = try! controller.request.selectStatement(db)
-            fetchedItems = Item<Record>.fetchAll(statement)
+            fetchedItems = Item<Record>.fetchAll(db, controller.request)
             
             // Fetch is complete:
             dispatch_semaphore_signal(semaphore)
