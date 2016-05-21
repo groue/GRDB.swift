@@ -1279,7 +1279,7 @@ class Person : RowConvertible {
 class Book : RowConvertible {
     var id: Int64?
     var title: String
-    var person: Author?
+    var author: Person?
     
     init(_ row: Row) {
         id = row.value(named: "id")
@@ -1287,7 +1287,7 @@ class Book : RowConvertible {
         
         // Consume the subrow:
         if let authorRow = row.subrow(named: "author") {
-            person = Person(row: authorRow)
+            author = Person(row: authorRow)
         }
     }
 }
