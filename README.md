@@ -1264,7 +1264,7 @@ for book in Book.fetch(db, sql, adapter: adapter) {
 }
 ```
 
-All wee need are two regular RowConvertible types:
+All we need are two regular RowConvertible types:
 
 ```swift
 class Person : RowConvertible {
