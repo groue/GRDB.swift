@@ -1322,6 +1322,7 @@ for row in Row.fetch(db, sql, adapter: adapter) {
     print(row.subrow(named: "bestFriend"))
 }
 
+// Assuming Person.init(row) consumes the "bestFriend" subrow:
 for person in Person.fetch(db, sql, adapter: adapter) {
     person.name             // Arthur
     person.bestFriend?.name // Barbara
