@@ -359,7 +359,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     
     /// Part of the TransactionObserverType protocol
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
-        if observedTables.contains(event.tableName) {
+        if !needsComputeChanges && observedTables.contains(event.tableName) {
             needsComputeChanges = true
         }
     }
@@ -416,9 +416,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         var fetchedItems: [Item<Record>]! = nil
         
         controller.databaseWriter.readFromWrite { db in
-            let statement = try! controller.request.selectStatement(db)
-            let adapter = controller.request.adapter
-            fetchedItems = Item<Record>.fetchAll(statement, adapter: adapter)
+            fetchedItems = Item<Record>.fetchAll(db, controller.request)
             
             // Fetch is complete:
             dispatch_semaphore_signal(semaphore)
