@@ -1546,11 +1546,11 @@ RowConvertible consume row columns by name:
 ```swift
 extension PointOfInterest : RowConvertible {
     init(_ row: Row) {
-        id = row.value(named: "id")
-        title = row.value(named: "title")
+        id = row.value(named: "id")              // "id"
+        title = row.value(named: "title")        // "title"
         coordinate = CLLocationCoordinate2DMake(
-            row.value(named: "latitude"),
-            row.value(named: "longitude"))
+            row.value(named: "latitude"),        // "latitude"
+            row.value(named: "longitude"))       // "longitude"
     }
 }
 ```
