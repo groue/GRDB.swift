@@ -414,6 +414,7 @@ Advanced topics:
 - [Custom Value Types](#custom-value-types)
 - [Prepared Statements](#prepared-statements)
 - [Custom SQL Functions](#custom-sql-functions)
+- [Row Adapters](#row-adapters)
 - [Raw SQLite Pointers](#raw-sqlite-pointers)
 
 
@@ -1213,6 +1214,110 @@ Person.select(reverseString.apply(nameColumn))
 
 
 **GRDB ships with built-in SQL functions that perform unicode-aware string transformations.** See [Unicode](#unicode).
+
+
+## Row Adapters
+
+**Row adapters help two incompatible row interfaces to work together.**
+
+For example, a row consumer expects a column named "foo", but the produced column has a column named "bar":
+
+```swift
+// An adapter that maps column 'bar' to column 'foo':
+let adapter = RowAdapter(mapping: ["foo": "bar"])
+
+// Fetch a column named 'bar', using adapter:
+let row = Row.fetchOne(db, "SELECT 'Hello' AS bar", adapter: adapter)!
+
+// The adapter in action:
+row.value(named: "foo") // "Hello"
+```
+
+**Row adapters can also define "sub rows".** Sub rows help several consumers feed on a single row:
+
+```swift
+let sql = "SELECT books.*, persons.name AS authorName " +
+          "FROM books " +
+          "JOIN persons ON books.authorID = persons.id"
+
+let authorMapping = ["authorID": "id", "authorName": "name"]
+let adapter = RowAdapter(subrows: ["author": authorMapping])
+
+for row in Row.fetchAll(db, sql, adapter: adapter) {
+    // <Row id:1 title:"Moby-Dick" authorID:10 authorName:"Melville">
+    print(row)
+    
+    if let authorRow = row.subrow(named: "author") {
+        // <Row id:10 name:"Melville">
+        print(authorRow)
+    }
+}
+```
+
+The last SQL and adapter can be very useful with [RowConvertible](#rowconvertible-protocol) types. For example:
+
+```swift
+let books = Book.fetchAll(sql, adapter: adapter)
+books[0].title          // Moby-Dick
+books[0].author!.name   // Melville
+```
+
+All wee need are two regular RowConvertible types:
+
+```swift
+class Person : RowConvertible {
+    var id: Int64?
+    var name: String
+    
+    init(_ row: Row) {
+        id = row.value(named: "id")
+        name = row.value(named: "name")
+    }
+}
+
+class Book : RowConvertible {
+    var id: Int64?
+    var title: String
+    var person: Author?
+    
+    init(_ row: Row) {
+        id = row.value(named: "id")
+        title = row.value(named: "title")
+        
+        // Consume the subrow:
+        if let authorRow = row.subrow(named: "author") {
+            person = Person(row: authorRow)
+        }
+    }
+}
+```
+
+Note that the Person and Book types can still be fetched without row adapters:
+
+```swift
+let books = Book.fetchAll(db, "SELECT * FROM books")
+let persons = Person.fetchAll(db, "SELECT * FROM persons")
+```
+
+**You can mix a main mapping with subrows:**
+
+```swift
+let sql = "SELECT main.id AS mainID, p.name AS mainName, " +
+          "       friend.id AS friendID, friend.name AS friendName, " +
+          "FROM persons main " +
+          "LEFT JOIN persons friend ON p.bestFriendID = f.id"
+
+let mainMapping = ["id": "mainID", "name": "mainName"]
+let bestFriendMapping = ["id": "friendID", "name": "friendName"]
+let adapter = RowAdapter(
+    mapping: mainMapping,
+    subrows: ["bestFriend": bestFriendMapping])
+
+for row in Row.fetchAll(db, sql, adapter: adapter) {
+    print(row)                             // <Row id:1 name:"Arthur">
+    print(row.subrow(named: "bestFriend")) // <Row id:2 name:"Barbara">
+}
+```
 
 
 ## Raw SQLite Pointers
