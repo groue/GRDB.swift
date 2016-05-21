@@ -35,12 +35,10 @@ final class SerializedDatabase {
         config.threadingMode = .MultiThread
         
         db = try Database(path: path, configuration: config, schemaCache: schemaCache)
-        queue = dispatch_queue_create("GRDB.SerializedDatabase", nil)
-        
-        // Activate database.preconditionValidQueue()
-        let dispatchQueueID = unsafeBitCast(db, UnsafeMutablePointer<Void>.self)
-        dispatch_queue_set_specific(queue, Database.dispatchQueueIDKey, dispatchQueueID, nil)
-        db.dispatchQueueID = dispatchQueueID
+        queue = DatabaseScheduler.makeSerializedQueueAllowing(database: db)
+        try dispatchSync(queue) {
+            try self.db.setup()
+        }
     }
     
     deinit {
@@ -54,34 +52,7 @@ final class SerializedDatabase {
     ///
     /// This method is *not* reentrant.
     func performSync<T>(block: (db: Database) throws -> T) rethrows -> T {
-        // This method is NOT reentrant.
-        //
-        // Avoiding dispatch_sync and calling block() right away if the specific
-        // is currently self.dispatchQueueID looks like a promising solution:
-        //
-        //     serializedDatabase.inDatabase { db in
-        //         serializedDatabase.inDatabase { db in
-        //             // Look, ma! I'm reentrant!
-        //         }
-        //     }
-        //
-        // However it does not survive this code, which deadlocks:
-        //
-        //     let queue = dispatch_queue_create("...", nil)
-        //     serializedDatabase.inDatabase { db in
-        //         dispatch_sync(queue) {
-        //             serializedDatabase.inDatabase { db in
-        //                 // Never run
-        //             }
-        //         }
-        //     }
-        //
-        // I try not to ship half-baked solutions, so until a complete solution
-        // is found to this problem, I prefer discouraging reentrancy.
-        GRDBPrecondition(db.dispatchQueueID != dispatch_get_specific(Database.dispatchQueueIDKey), "Database methods are not reentrant.")
-        return try dispatchSync(queue) {
-            try block(db: self.db)
-        }
+        return try DatabaseScheduler.dispatchSync(queue, database: db, block: block)
     }
     
     /// Asynchronously executes a block in the serialized dispatch queue.
@@ -101,6 +72,6 @@ final class SerializedDatabase {
     
     /// Fatal error if current dispatch queue is not valid.
     func preconditionValidQueue(@autoclosure message: () -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
-        db.preconditionValidQueue(message, file: file, line: line)
+        DatabaseScheduler.preconditionValidQueue(db, message, file: file, line: line)
     }
 }

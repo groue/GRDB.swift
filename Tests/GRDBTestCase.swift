@@ -108,7 +108,7 @@ class GRDBTestCase: XCTestCase {
         do { try NSFileManager.defaultManager().removeItemAtPath(dbDirectoryPath) } catch { }
     }
     
-    func assertNoError(file: StaticString = #file, line: UInt = #line, @noescape test: (Void) throws -> Void) {
+    func assertNoError(file: StaticString = #file, line: UInt = #line, @noescape _ test: (Void) throws -> Void) {
         do {
             try test()
         } catch {

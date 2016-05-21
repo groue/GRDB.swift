@@ -47,7 +47,7 @@ public final class Database {
     ///
     /// For more detailed information, see https://www.sqlite.org/c3ref/last_insert_rowid.html
     public var lastInsertedRowID: Int64 {
-        preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(self)
         return sqlite3_last_insert_rowid(sqliteConnection)
     }
     
@@ -56,7 +56,7 @@ public final class Database {
     ///
     /// For more detailed information, see https://www.sqlite.org/c3ref/changes.html
     public var changesCount: Int {
-        preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(self)
         return Int(sqlite3_changes(sqliteConnection))
     }
     
@@ -66,7 +66,7 @@ public final class Database {
     ///
     /// For more detailed information, see https://www.sqlite.org/c3ref/total_changes.html
     public var totalChangesCount: Int {
-        preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(self)
         return Int(sqlite3_total_changes(sqliteConnection))
     }
     
@@ -96,10 +96,6 @@ public final class Database {
     
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
-    
-    /// The value for the dispatch queue specific that holds the Database identity.
-    /// See preconditionValidQueue.
-    var dispatchQueueID: UnsafeMutablePointer<Void> = nil
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
         // See https://www.sqlite.org/c3ref/open.html
@@ -135,10 +131,12 @@ public final class Database {
         self.sqliteConnection = sqliteConnection
         
         configuration.SQLiteConnectionDidOpen?()
-        
-        // Setup trace first, so that all queries, including initialization queries, are traced.
+    }
+    
+    /// This method must be called after database initialization
+    func setup() throws {
+        // Setup trace first, so that setup queries are traced.
         setupTrace()
-        
         try setupForeignKeys()
         setupBusyMode()
         setupDefaultFunctions()
@@ -147,7 +145,7 @@ public final class Database {
     
     private var isClosed: Bool = false
     func close() {
-        preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(self)
         assert(!isClosed)
         
         configuration.SQLiteConnectionWillClose?(sqliteConnection)
@@ -337,21 +335,6 @@ public enum BusyMode {
 
 
 // =========================================================================
-// MARK: - SerializedDatabase Support
-
-extension Database {
-    
-    /// The key for the dispatch queue specific that holds the Database identity.
-    /// See preconditionValidQueue.
-    static let dispatchQueueIDKey = unsafeBitCast(Database.self, UnsafePointer<Void>.self)     // some unique pointer
-    
-    func preconditionValidQueue(@autoclosure message: () -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
-        GRDBPrecondition(dispatchQueueID == nil || dispatchQueueID == dispatch_get_specific(Database.dispatchQueueIDKey), message, file: file, line: line)
-    }
-}
-
-
-// =========================================================================
 // MARK: - Statements
 
 extension Database {
@@ -427,7 +410,7 @@ extension Database {
     ///     - arguments: Optional statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments? = nil) throws {
-        preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(self)
         
         // The tricky part is to consume arguments as statements are executed.
         //
@@ -782,7 +765,7 @@ extension Database {
     /// You may need to clear the cache manually if the database schema is
     /// modified by another connection.
     public func clearSchemaCache() {
-        preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(self)
         schemaCache.clear()
         
         // We also clear updateStatementCache and selectStatementCache despite
@@ -795,7 +778,7 @@ extension Database {
     
     /// Returns whether a table exists.
     public func tableExists(tableName: String) -> Bool {
-        preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(self)
         
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         return Row.fetchOne(self,
@@ -1123,7 +1106,7 @@ extension Database {
     /// The transaction observer is weakly referenced: it is not retained, and
     /// stops getting notifications after it is deallocated.
     public func addTransactionObserver(transactionObserver: TransactionObserverType) {
-        preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(self)
         transactionObservers.append(WeakTransactionObserver(transactionObserver))
         if transactionObservers.count == 1 {
             installTransactionObserverHooks()
@@ -1132,7 +1115,7 @@ extension Database {
     
     /// Remove a transaction observer.
     public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
-        preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(self)
         transactionObservers.removeFirst { $0.observer === transactionObserver }
         if transactionObservers.isEmpty {
             uninstallTransactionObserverHooks()

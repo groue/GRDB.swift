@@ -323,7 +323,7 @@ extension MutablePersistable {
     ///
     /// - throws: A DatabaseError if table does not exist.
     static func primaryKeyFunction(db: Database) throws -> (Self) -> [String: DatabaseValue] {
-        db.preconditionValidQueue()
+        DatabaseScheduler.preconditionValidQueue(db)
         let columns = try db.primaryKey(databaseTableName()).columns
         return { record in
             let dictionary = record.persistentDictionary
