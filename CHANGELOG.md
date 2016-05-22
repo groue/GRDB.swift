@@ -7,7 +7,7 @@ Released May 22, 2016
 
 **New**
 
-- **Row adapters** let you map column names for easier row consumption ([documentation](https://github.com/groue/GRDB.swift#row-adapters)).
+- **Row adapters** let you map column names for easier row consumption ([documentation](https://github.com/groue/GRDB.swift#row-adapters)). Fixes [#50](https://github.com/groue/GRDB.swift/issues/50).
 
 
 ## 0.66.0
