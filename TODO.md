@@ -16,9 +16,6 @@
     - [ ] MATCH https://www.sqlite.org/lang_expr.html
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
-- [ ] RowAdapter: documentation
-- [ ] RowAdapter: document awakeFromFetch for properties initialized from subrows (see RowConvertibleTests:Person.awakeFromFetch)
-- [ ] RowAdapter: consider RowAdapter based on column index, and support SELECT table1.*, table2.* FROM table1, table2?
 
 Not sure:
 
