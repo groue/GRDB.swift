@@ -1,7 +1,8 @@
 /// The protocol for all types that define a way to fetch values from
-/// the database.
+/// a database.
 ///
-/// See https://github.com/groue/GRDB.swift#the-query-interface
+/// It is adopted by QueryInterfaceRequest. Your own custom types can adopt it
+/// as well, and define a way to fetch values, rows, and records.
 public protocol FetchRequest {
     /// A prepared statement that is ready to be executed.
     func selectStatement(db: Database) throws -> SelectStatement
