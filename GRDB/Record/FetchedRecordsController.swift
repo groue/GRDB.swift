@@ -93,7 +93,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // callbacks.
         databaseWriter.write { db in
             let statement = try! self.request.selectStatement(db)
-            let adapter = self.request.adapter
+            let adapter = try! self.request.adapter(statement)
             let items = Item<Record>.fetchAll(statement, adapter: adapter)
             self.fetchedItems = items
             self.isSameRecord = self.isSameRecordBuilder(db)

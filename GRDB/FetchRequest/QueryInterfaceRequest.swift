@@ -32,8 +32,8 @@ extension QueryInterfaceRequest : FetchRequest {
         return statement
     }
     
-    /// TODO
-    public var adapter: RowAdapter? {
+    /// This method is part of the FetchRequest adoption; returns nil
+    public func adapter(statement: SelectStatement) throws -> RowAdapter? {
         return nil
     }
 }

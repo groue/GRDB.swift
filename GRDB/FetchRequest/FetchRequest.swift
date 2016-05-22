@@ -7,7 +7,7 @@ public protocol FetchRequest {
     func selectStatement(db: Database) throws -> SelectStatement
 
     /// An eventual RowAdapter
-    var adapter: RowAdapter? { get }
+    func adapter(statement: SelectStatement) throws -> RowAdapter?
 }
 
 
@@ -31,6 +31,10 @@ extension SQLRequest : FetchRequest {
             try statement.setArgumentsWithValidation(arguments)
         }
         return statement
+    }
+    
+    func adapter(statement: SelectStatement) throws -> RowAdapter? {
+        return adapter
     }
 }
 
@@ -208,7 +212,9 @@ extension RowConvertible {
     /// remaining elements are undefined.
     @warn_unused_result
     public static func fetch(db: Database, _ request: FetchRequest) -> DatabaseSequence<Self> {
-        return try! fetch(request.selectStatement(db))
+        let statement = try! request.selectStatement(db)
+        let adapter = try! request.adapter(statement)
+        return fetch(statement, adapter: adapter)
     }
     
     /// Returns an array of records fetched from a fetch request.
@@ -220,7 +226,9 @@ extension RowConvertible {
     /// - parameter db: A database connection.
     @warn_unused_result
     public static func fetchAll(db: Database, _ request: FetchRequest) -> [Self] {
-        return try! fetchAll(request.selectStatement(db))
+        let statement = try! request.selectStatement(db)
+        let adapter = try! request.adapter(statement)
+        return fetchAll(statement, adapter: adapter)
     }
     
     /// Returns a single record fetched from a fetch request.
@@ -232,7 +240,9 @@ extension RowConvertible {
     /// - parameter db: A database connection.
     @warn_unused_result
     public static func fetchOne(db: Database, _ request: FetchRequest) -> Self? {
-        return try! fetchOne(request.selectStatement(db))
+        let statement = try! request.selectStatement(db)
+        let adapter = try! request.adapter(statement)
+        return fetchOne(statement, adapter: adapter)
     }
 }
 
@@ -318,7 +328,9 @@ extension Row {
     /// remaining elements of the sequence are undefined.
     @warn_unused_result
     public static func fetch(db: Database, _ request: FetchRequest) -> DatabaseSequence<Row> {
-        return try! fetch(request.selectStatement(db))
+        let statement = try! request.selectStatement(db)
+        let adapter = try! request.adapter(statement)
+        return fetch(statement, adapter: adapter)
     }
     
     /// Returns an array of rows fetched from a fetch request.
@@ -331,7 +343,9 @@ extension Row {
     /// - parameter db: A database connection.
     @warn_unused_result
     public static func fetchAll(db: Database, _ request: FetchRequest) -> [Row] {
-        return try! fetchAll(request.selectStatement(db))
+        let statement = try! request.selectStatement(db)
+        let adapter = try! request.adapter(statement)
+        return fetchAll(statement, adapter: adapter)
     }
     
     /// Returns a single row fetched from a fetch request.
@@ -344,6 +358,8 @@ extension Row {
     /// - parameter db: A database connection.
     @warn_unused_result
     public static func fetchOne(db: Database, _ request: FetchRequest) -> Row? {
-        return try! fetchOne(request.selectStatement(db))
+        let statement = try! request.selectStatement(db)
+        let adapter = try! request.adapter(statement)
+        return fetchOne(statement, adapter: adapter)
     }
 }
