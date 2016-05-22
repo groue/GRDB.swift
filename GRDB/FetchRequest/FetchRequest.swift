@@ -12,7 +12,7 @@ public protocol FetchRequest {
 }
 
 
-struct SQLRequest {
+struct SQLFetchRequest {
     let sql: String
     let arguments: StatementArguments?
     let adapter: RowAdapter?
@@ -25,7 +25,7 @@ struct SQLRequest {
 }
 
 
-extension SQLRequest : FetchRequest {
+extension SQLFetchRequest : FetchRequest {
     func selectStatement(db: Database) throws -> SelectStatement {
         let statement = try db.selectStatement(sql)
         if let arguments = arguments {

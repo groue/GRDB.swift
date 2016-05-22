@@ -37,7 +37,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
     public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
-        self.init(databaseWriter, request: SQLRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, isSameRecord: isSameRecord)
+        self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, isSameRecord: isSameRecord)
     }
     
     /// Returns a fetched records controller initialized from a fetch request
@@ -138,7 +138,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// fetched records if delegate is not nil, and performFetch() has been
     /// called.
     public func setRequest(sql sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) {
-        request = SQLRequest(sql: sql, arguments: arguments, adapter: adapter)
+        setRequest(SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     public typealias WillChangeCallback = FetchedRecordsController<Record> -> ()
@@ -293,7 +293,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
     public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
-        let request = SQLRequest(sql: sql, arguments: arguments, adapter: adapter)
+        let request = SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter)
         if compareRecordsByPrimaryKey {
             self.init(databaseWriter, request: request, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
         } else {
