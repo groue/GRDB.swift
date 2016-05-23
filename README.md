@@ -1236,11 +1236,12 @@ row.value(named: "consumed") // "Hello"
 **Row adapters can also define "sub rows".** Sub rows help several consumers feed on a single row:
 
 ```swift
-let sql = "SELECT books.*, persons.name AS authorName " +
+let sql = "SELECT books.id, books.title, books.authorID, " +
+          "       persons.name AS authorName " +
           "FROM books " +
           "JOIN persons ON books.authorID = persons.id"
 
-let authorMapping = ["authorID": "id", "authorName": "name"]
+let authorMapping = ["id": "authorID", "name": "authorName"]
 let adapter = RowAdapter(subrows: ["author": authorMapping])
 
 for row in Row.fetch(db, sql, adapter: adapter) {
