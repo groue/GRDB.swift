@@ -221,7 +221,9 @@ public extension MutablePersistable {
     private func canUpdateInDatabase(db: Database) -> Bool {
         // Fail early if database table does not exist.
         let databaseTableName = self.dynamicType.databaseTableName()
-        let primaryKey = try! db.primaryKey(databaseTableName)
+        guard let primaryKey = try! db.primaryKey(databaseTableName) else {
+            return false
+        }
         
         let persistentDictionary = self.persistentDictionary
         for column in primaryKey.columns where !databaseValue(forColumn: column, inDictionary: persistentDictionary).isNull {
@@ -240,7 +242,7 @@ public extension MutablePersistable {
     mutating func performInsert(db: Database) throws {
         let dataMapper = DataMapper(db, self)
         try dataMapper.insertStatement().execute()
-        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey.rowIDColumn)
+        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey?.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -324,7 +326,7 @@ extension MutablePersistable {
     /// - throws: A DatabaseError if table does not exist.
     static func primaryKeyFunction(db: Database) throws -> (Self) -> [String: DatabaseValue] {
         DatabaseScheduler.preconditionValidQueue(db)
-        let columns = try db.primaryKey(databaseTableName()).columns
+        let columns = try db.primaryKey(databaseTableName())?.columns ?? []
         return { record in
             let dictionary = record.persistentDictionary
             return Dictionary<String, DatabaseValue>(keys: columns) { databaseValue(forColumn: $0, inDictionary: dictionary) }
@@ -463,7 +465,7 @@ public extension Persistable {
     func performInsert(db: Database) throws {
         let dataMapper = DataMapper(db, self)
         try dataMapper.insertStatement().execute()
-        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey.rowIDColumn)
+        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey?.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -517,7 +519,7 @@ final class DataMapper {
     let databaseTableName: String
     
     /// The table primary key
-    let primaryKey: PrimaryKey
+    let primaryKey: PrimaryKey?
     
     init(_ db: Database, _ persistable: MutablePersistable) {
         // Fail early if database table does not exist.
@@ -546,7 +548,7 @@ final class DataMapper {
     
     func updateStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
-        let primaryKeyColumns = primaryKey.columns
+        let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
         GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
@@ -576,7 +578,7 @@ final class DataMapper {
     
     func deleteStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
-        let primaryKeyColumns = primaryKey.columns
+        let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
         GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
@@ -590,7 +592,7 @@ final class DataMapper {
     
     func existsStatement() -> SelectStatement {
         // Fail early if primary key does not resolve to a database row.
-        let primaryKeyColumns = primaryKey.columns
+        let primaryKeyColumns = primaryKey?.columns ?? []
         let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
         GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         

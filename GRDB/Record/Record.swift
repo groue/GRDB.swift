@@ -220,7 +220,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
         var persistentDictionary = dataMapper.persistentDictionary
         try dataMapper.insertStatement().execute()
         let rowID = db.lastInsertedRowID
-        let rowIDColumn = dataMapper.primaryKey.rowIDColumn
+        let rowIDColumn = dataMapper.primaryKey?.rowIDColumn
         didInsertWithRowID(rowID, forColumn: rowIDColumn)
         
         // Update persistentDictionary with inserted id, so that we can

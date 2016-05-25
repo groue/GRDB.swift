@@ -79,7 +79,7 @@ extension RowConvertible where Self: TableMapping {
         let primaryKey = try! db.primaryKey(databaseTableName)
         
         // Fail early if database table has not one column in its primary key
-        let columns = primaryKey.columns
+        let columns = primaryKey?.columns ?? []
         GRDBPrecondition(columns.count == 1, "requires single column primary key in table: \(databaseTableName)")
         let column = columns.first!
         

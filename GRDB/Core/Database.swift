@@ -755,7 +755,7 @@ protocol DatabaseSchemaCacheType {
     mutating func clear()
     
     func primaryKey(tableName tableName: String) -> PrimaryKey?
-    mutating func setPrimaryKey(primaryKey: PrimaryKey, forTableName tableName: String)
+    mutating func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String)
 }
 
 extension Database {
@@ -786,13 +786,13 @@ extension Database {
             arguments: [tableName.lowercaseString]) != nil
     }
     
-    /// Return the primary key for table named `tableName`.
-    /// Throws if table does not exist.
-    ///
-    /// This method is not thread-safe.
+    /// The primary key for table named `tableName`; nil if table has no
+    /// primary key.
     ///
     /// - throws: A DatabaseError if table does not exist.
-    func primaryKey(tableName: String) throws -> PrimaryKey {
+    public func primaryKey(tableName: String) throws -> PrimaryKey? {
+        DatabaseScheduler.preconditionValidQueue(self)
+        
         if let primaryKey = schemaCache.primaryKey(tableName: tableName) {
             return primaryKey
         }
@@ -833,7 +833,7 @@ extension Database {
             throw DatabaseError(message: "no such table: \(tableName)")
         }
         
-        let primaryKey: PrimaryKey
+        let primaryKey: PrimaryKey?
         let pkColumnInfos = columnInfos
             .filter { $0.primaryKeyIndex > 0 }
             .sort { $0.primaryKeyIndex < $1.primaryKeyIndex }
@@ -841,7 +841,7 @@ extension Database {
         switch pkColumnInfos.count {
         case 0:
             // No primary key column
-            primaryKey = PrimaryKey.None
+            primaryKey = nil
         case 1:
             // Single column
             let pkColumnInfo = pkColumnInfos.first!
@@ -867,13 +867,13 @@ extension Database {
             // FIXME: We ignore the exception, and consider all INTEGER primary
             // keys as aliases for the rowid:
             if pkColumnInfo.type.uppercaseString == "INTEGER" {
-                primaryKey = .RowID(pkColumnInfo.name)
+                primaryKey = .rowID(pkColumnInfo.name)
             } else {
-                primaryKey = .Regular([pkColumnInfo.name])
+                primaryKey = .regular([pkColumnInfo.name])
             }
         default:
             // Multi-columns primary key
-            primaryKey = .Regular(pkColumnInfos.map { $0.name })
+            primaryKey = .regular(pkColumnInfos.map { $0.name })
         }
         
         schemaCache.setPrimaryKey(primaryKey, forTableName: tableName)
@@ -909,24 +909,31 @@ extension Database {
 }
 
 /// A primary key
-enum PrimaryKey {
+public struct PrimaryKey {
+    private enum Impl {
+        /// An INTEGER PRIMARY KEY column that aliases the Row ID.
+        /// Associated string is the column name.
+        case RowID(String)
+        
+        /// Any primary key, but INTEGER PRIMARY KEY.
+        /// Associated strings are column names.
+        case Regular([String])
+    }
     
-    /// No primary key
-    case None
+    private let impl: Impl
     
-    /// An INTEGER PRIMARY KEY column that aliases the Row ID.
-    /// Associated string is the column name.
-    case RowID(String)
+    static func rowID(column: String) -> PrimaryKey {
+        return PrimaryKey(impl: .RowID(column))
+    }
     
-    /// Any primary key, but INTEGER PRIMARY KEY.
-    /// Associated strings are column names.
-    case Regular([String])
+    static func regular(columns: [String]) -> PrimaryKey {
+        assert(!columns.isEmpty)
+        return PrimaryKey(impl: .Regular(columns))
+    }
     
-    /// The columns in the primary key. May be empty.
-    var columns: [String] {
-        switch self {
-        case .None:
-            return []
+    /// The columns in the primary key. Can not be empty.
+    public var columns: [String] {
+        switch impl {
         case .RowID(let column):
             return [column]
         case .Regular(let columns):
@@ -935,10 +942,8 @@ enum PrimaryKey {
     }
     
     /// The name of the INTEGER PRIMARY KEY
-    var rowIDColumn: String? {
-        switch self {
-        case .None:
-            return nil
+    public var rowIDColumn: String? {
+        switch impl {
         case .RowID(let column):
             return column
         case .Regular:

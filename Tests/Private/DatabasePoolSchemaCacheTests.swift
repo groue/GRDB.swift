@@ -27,13 +27,8 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             
             try dbPool.read { db in
                 // Warm cache in a reader
-                let primaryKey = try db.primaryKey("items")
-                switch primaryKey {
-                case .RowID(let columnName):
-                    XCTAssertEqual(columnName, "id")
-                default:
-                    XCTFail()
-                }
+                let primaryKey = try db.primaryKey("items")!
+                XCTAssertEqual(primaryKey.rowIDColumn, "id")
                 
                 // Assert that reader cache is warmed
                 XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") != nil)
