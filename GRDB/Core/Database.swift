@@ -339,7 +339,7 @@ public enum BusyMode {
 
 extension Database {
     
-    /// Returns a prepared statement that can be reused.
+    /// Returns a new prepared statement that can be reused.
     ///
     ///     let statement = try db.selectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
     ///     let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
@@ -353,8 +353,20 @@ extension Database {
         return try SelectStatement(database: self, sql: sql)
     }
     
+    /// Returns a prepared statement that can be reused.
+    ///
+    ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM persons WHERE age > ?")
+    ///     let moreThanTwentyCount = Int.fetchOne(statement, arguments: [20])!
+    ///     let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
+    ///
+    /// The returned statement may have already been used: it may or may not
+    /// contain values for its eventual arguments.
+    ///
+    /// - parameter sql: An SQL query.
+    /// - returns: An UpdateStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     @warn_unused_result
-    func cachedSelectStatement(sql: String) throws -> SelectStatement {
+    public func cachedSelectStatement(sql: String) throws -> SelectStatement {
         if let statement = selectStatementCache[sql] {
             return statement
         }
@@ -364,7 +376,7 @@ extension Database {
         return statement
     }
     
-    /// Returns a prepared statement that can be reused.
+    /// Returns a new prepared statement that can be reused.
     ///
     ///     let statement = try db.updateStatement("INSERT INTO persons (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
@@ -380,8 +392,20 @@ extension Database {
         return try UpdateStatement(database: self, sql: sql)
     }
     
+    /// Returns a prepared statement that can be reused.
+    ///
+    ///     let statement = try db.cachedUpdateStatement("INSERT INTO persons (name) VALUES (?)")
+    ///     try statement.execute(arguments: ["Arthur"])
+    ///     try statement.execute(arguments: ["Barbara"])
+    ///
+    /// The returned statement may have already been used: it may or may not
+    /// contain values for its eventual arguments.
+    ///
+    /// - parameter sql: An SQL query.
+    /// - returns: An UpdateStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     @warn_unused_result
-    func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
+    public func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
         if let statement = updateStatementCache[sql] {
             return statement
         }
