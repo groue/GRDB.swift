@@ -1259,10 +1259,10 @@ extension Database {
         sqlite3_update_hook(sqliteConnection, { (dbPointer, updateKind, databaseNameCString, tableNameCString, rowID) in
             let db = unsafeBitCast(dbPointer, Database.self)
             db.didChangeWithEvent(DatabaseEvent(
-                databaseNameCString: databaseNameCString,
-                tableNameCString: tableNameCString,
                 kind: DatabaseEvent.Kind(rawValue: updateKind)!,
-                rowID: rowID))
+                rowID: rowID,
+                databaseNameCString: databaseNameCString,
+                tableNameCString: tableNameCString))
             }, dbPointer)
         
         
@@ -1374,28 +1374,81 @@ class WeakTransactionObserver {
 
 
 /// A database event, notified to TransactionObserverType.
-///
-/// See https://www.sqlite.org/c3ref/update_hook.html for more information.
 public struct DatabaseEvent {
-    private let databaseNameCString: UnsafePointer<Int8>
-    private let tableNameCString: UnsafePointer<Int8>
     
     /// An event kind
     public enum Kind: Int32 {
-        case Insert = 18    // SQLITE_INSERT
-        case Delete = 9     // SQLITE_DELETE
-        case Update = 23    // SQLITE_UPDATE
+        /// SQLITE_INSERT
+        case Insert = 18
+        
+        /// SQLITE_DELETE
+        case Delete = 9
+        
+        /// SQLITE_UPDATE
+        case Update = 23
     }
     
     /// The event kind
     public let kind: Kind
     
     /// The database name
-    public var databaseName: String { return String.fromCString(databaseNameCString)! }
+    public var databaseName: String { return impl.databaseName }
 
     /// The table name
-    public var tableName: String { return String.fromCString(tableNameCString)! }
+    public var tableName: String { return impl.tableName }
     
     /// The rowID of the changed row.
     public let rowID: Int64
+    
+    /// Returns an event that can be stored:
+    ///
+    ///     class MyObserver: TransactionObserverType {
+    ///         var events: [DatabaseEvent]
+    ///         func databaseDidChangeWithEvent(event: DatabaseEvent) {
+    ///             events.append(event.copy())
+    ///         }
+    ///     }
+    public func copy() -> DatabaseEvent {
+        return impl.copy(self)
+    }
+    
+    private init(kind: Kind, rowID: Int64, impl: DatabaseEventImpl) {
+        self.kind = kind
+        self.rowID = rowID
+        self.impl = impl
+    }
+    
+    init(kind: Kind, rowID: Int64, databaseNameCString: UnsafePointer<Int8>, tableNameCString: UnsafePointer<Int8>) {
+        self.init(kind: kind, rowID: rowID, impl: MetalDatabaseEventImpl(databaseNameCString: databaseNameCString, tableNameCString: tableNameCString))
+    }
+    
+    private let impl: DatabaseEventImpl
+}
+
+private protocol DatabaseEventImpl {
+    var databaseName: String { get }
+    var tableName: String { get }
+    func copy(event: DatabaseEvent) -> DatabaseEvent
+}
+
+/// Optimization: MetalDatabaseEventImpl does not create Swift strings from raw
+/// SQLite char* until actually asked for databaseName or tableName.
+private struct MetalDatabaseEventImpl : DatabaseEventImpl {
+    let databaseNameCString: UnsafePointer<Int8>
+    let tableNameCString: UnsafePointer<Int8>
+
+    var databaseName: String { return String.fromCString(databaseNameCString)! }
+    var tableName: String { return String.fromCString(tableNameCString)! }
+    func copy(event: DatabaseEvent) -> DatabaseEvent {
+        return DatabaseEvent(kind: event.kind, rowID: event.rowID, impl: CopiedDatabaseEventImpl(databaseName: databaseName, tableName: tableName))
+    }
+}
+
+/// Impl for DatabaseEvent that contains copies of event strings.
+private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
+    private let databaseName: String
+    private let tableName: String
+    func copy(event: DatabaseEvent) -> DatabaseEvent {
+        return event
+    }
 }

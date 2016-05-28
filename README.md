@@ -2470,8 +2470,9 @@ public protocol TransactionObserverType : class {
     /// - event.tableName
     /// - event.rowID
     ///
-    /// The event is only valid for the duration of this method call. If you
-    /// need to keep it longer, store a copy of its properties.
+    /// For performance reasons, the event is only valid for the duration of
+    /// this method call. If you need to keep it longer, store a copy:
+    /// event.copy().
     func databaseDidChangeWithEvent(event: DatabaseEvent)
     
     /// An opportunity to rollback pending changes by throwing an error.

@@ -1,6 +1,12 @@
 Release Notes
 =============
 
+## Next Release
+
+**New**
+
+- `DatabaseEvent.copy()` lets you store a database event notified to a transaction observer ((documentation)[(https://github.com/groue/GRDB.swift#database-changes-observation)]).
+
 ## 0.68.0
 
 Released May 28, 2016
