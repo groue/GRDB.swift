@@ -466,4 +466,55 @@ class SavepointTests: GRDBTestCase {
             observer.reset()
         }
     }
+    
+    func testSubsequentSavepoints() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let observer = TransactionObserver()
+            dbQueue.addTransactionObserver(observer)
+            try dbQueue.inTransaction { db in
+                try db.inSavepoint {
+                    try insertItem(db, name: "item1")
+                    return .Rollback
+                }
+                
+                try db.inSavepoint {
+                    try insertItem(db, name: "item2")
+                    return .Commit
+                }
+                
+                return .Commit
+            }
+            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item2"])
+            XCTAssertEqual(observer.allRecordedEvents.count, 1)
+        }
+    }
+    
+    func testSubsequentSavepointsWithErrors() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let observer = TransactionObserver()
+            dbQueue.addTransactionObserver(observer)
+            try dbQueue.inTransaction { db in
+                do {
+                    try db.inSavepoint {
+                        try insertItem(db, name: "item1")
+                        throw DatabaseError(code: 123)
+                    }
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 123)
+                }
+                
+                try db.inSavepoint {
+                    try insertItem(db, name: "item2")
+                    return .Commit
+                }
+                
+                return .Commit
+            }
+            XCTAssertEqual(fetchAllItemNames(dbQueue), ["item2"])
+            XCTAssertEqual(observer.allRecordedEvents.count, 1)
+        }
+    }
 }
