@@ -16,6 +16,7 @@ class DatabaseErrorTests: GRDBTestCase {
                     try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
                     self.sqlQueries.removeAll()
                     try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
+                    XCTFail()
                     return .Commit
                 }
             } catch let error as DatabaseError {
@@ -27,6 +28,36 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertEqual(sqlQueries.count, 2)
                 XCTAssertEqual(sqlQueries[0], "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
                 XCTAssertEqual(sqlQueries[1], "ROLLBACK TRANSACTION")
+            }
+        }
+    }
+    
+    func testDatabaseErrorInTopLevelSavepoint() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try dbQueue.inDatabase { db in
+                    do {
+                        try db.inSavepoint(named: "foo") {
+                            XCTAssertTrue(db.isInsideTransaction)
+                            try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY)")
+                            try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
+                            self.sqlQueries.removeAll()
+                            try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
+                            XCTFail()
+                            return .Commit
+                        }
+                        XCTFail()
+                    } catch {
+                        XCTAssertFalse(db.isInsideTransaction)
+                        throw error
+                    }
+                }
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
+                XCTAssertEqual(error.message!.lowercaseString, "foreign key constraint failed") // lowercaseString: accept multiple SQLite version
+                XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
+                XCTAssertEqual(error.description.lowercaseString, "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
             }
         }
     }

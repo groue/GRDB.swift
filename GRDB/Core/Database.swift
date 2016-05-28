@@ -782,7 +782,7 @@ extension Database {
 protocol DatabaseSchemaCacheType {
     mutating func clear()
     
-    func primaryKey(tableName tableName: String) -> PrimaryKey?
+    func primaryKey(tableName tableName: String) -> PrimaryKey??
     mutating func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String)
 }
 
@@ -1099,7 +1099,7 @@ extension Database {
         // Begin transaction
         try beginTransaction(kind ?? configuration.defaultTransactionKind)
         
-        // Now that transcation is open, we'll rollback in case of error.
+        // Now that transaction has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
         var firstError: ErrorType? = nil
@@ -1119,42 +1119,77 @@ extension Database {
         }
         
         if needsRollback {
-            if let firstError = firstError {
-                // https://www.sqlite.org/lang_transaction.html#immediate
-                //
-                // > Response To Errors Within A Transaction
-                // >
-                // > If certain kinds of errors occur within a transaction, the
-                // > transaction may or may not be rolled back automatically.
-                // > The errors that can cause an automatic rollback include:
-                // >
-                // > - SQLITE_FULL: database or disk full
-                // > - SQLITE_IOERR: disk I/O error
-                // > - SQLITE_BUSY: database in use by another process
-                // > - SQLITE_NOMEM: out or memory
-                // >
-                // > [...] It is recommended that applications respond to the
-                // > errors listed above by explicitly issuing a ROLLBACK
-                // > command. If the transaction has already been rolled back
-                // > automatically by the error response, then the ROLLBACK
-                // > command will fail with an error, but no harm is caused
-                // > by this.
-                //
-                // Rollback and ignore error because we'll throw firstError.
-                do {
-                    try rollback()
-                } catch {
-                    if let error = firstError as? DatabaseError where [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(Int32(error.code)) {
-                        isInsideExplicitTransaction = false
-                    }
+            do {
+                try rollback(underlyingError: firstError)
+            } catch {
+                if firstError == nil {
+                    firstError = error
                 }
-            } else {
-                try rollback()
             }
         }
 
         if let firstError = firstError {
             throw firstError
+        }
+    }
+    
+    public func inSavepoint(named name: String, @noescape _ block: () throws -> TransactionCompletion) throws {
+        func impl(name: String, @noescape _ block: () throws -> TransactionCompletion) throws {
+            // If the savepoint is top-level, we'll use ROLLBACK TRANSACTION in
+            // order to perform the special error handling of rollbacks.
+            let topLevelSavepoint = !isInsideTransaction
+            
+            // Begin savepoint
+            try execute("SAVEPOINT \(name)")
+            
+            // Now that savepoint has begun, we'll rollback in case of error.
+            // But we'll throw the first caught error, so that user knows
+            // what happened.
+            var firstError: ErrorType? = nil
+            let needsRollback: Bool
+            do {
+                let completion = try block()
+                switch completion {
+                case .Commit:
+                    try execute("RELEASE SAVEPOINT \(name)")
+                    needsRollback = false
+                case .Rollback:
+                    needsRollback = true
+                }
+            } catch {
+                firstError = error
+                needsRollback = true
+            }
+            
+            if needsRollback {
+                do {
+                    if topLevelSavepoint {
+                        try rollback(underlyingError: firstError)
+                    } else {
+                        try execute("ROLLBACK TRANSACTION TO SAVEPOINT \(name)")
+                        try execute("RELEASE SAVEPOINT \(name)")
+                    }
+                } catch {
+                    if firstError == nil {
+                        firstError = error
+                    }
+                }
+            }
+            
+            if let firstError = firstError {
+                throw firstError
+            }
+        }
+        
+        // Top-level SQLite savepoints open a deferred transaction, but database
+        // configuration may have a different default transaction kind:
+        if isInsideTransaction || configuration.defaultTransactionKind == .Deferred {
+            try impl(name, block)
+        } else {
+            try inTransaction {
+                try impl(name, block)
+                return .Commit
+            }
         }
     }
     
@@ -1170,13 +1205,43 @@ extension Database {
         isInsideExplicitTransaction = true
     }
     
-    private func rollback() throws {
-        try execute("ROLLBACK TRANSACTION")
+    private func rollback(underlyingError underlyingError: ErrorType? = nil) throws {
+        do {
+            try execute("ROLLBACK TRANSACTION")
+        } catch {
+            // https://www.sqlite.org/lang_transaction.html#immediate
+            //
+            // > Response To Errors Within A Transaction
+            // >
+            // > If certain kinds of errors occur within a transaction, the
+            // > transaction may or may not be rolled back automatically.
+            // > The errors that can cause an automatic rollback include:
+            // >
+            // > - SQLITE_FULL: database or disk full
+            // > - SQLITE_IOERR: disk I/O error
+            // > - SQLITE_BUSY: database in use by another process
+            // > - SQLITE_NOMEM: out or memory
+            // >
+            // > [...] It is recommended that applications respond to the
+            // > errors listed above by explicitly issuing a ROLLBACK
+            // > command. If the transaction has already been rolled back
+            // > automatically by the error response, then the ROLLBACK
+            // > command will fail with an error, but no harm is caused
+            // > by this.
+            //
+            // Rollback and ignore error because we'll throw firstError.
+            guard let underlyingError = underlyingError as? DatabaseError where [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(Int32(underlyingError.code)) else {
+                throw error
+            }
+        }
+        
+        savepointStack.clear()
         isInsideExplicitTransaction = false
     }
     
     private func commit() throws {
         try execute("COMMIT TRANSACTION")
+        savepointStack.clear()
         isInsideExplicitTransaction = false
     }
     

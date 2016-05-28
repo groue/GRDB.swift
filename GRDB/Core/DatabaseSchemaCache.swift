@@ -6,7 +6,7 @@ class DatabaseSchemaCache: DatabaseSchemaCacheType {
         primaryKeys = [:]
     }
     
-    func primaryKey(tableName tableName: String) -> PrimaryKey? {
+    func primaryKey(tableName tableName: String) -> PrimaryKey?? {
         guard let pk = primaryKeys[tableName] else {
             return nil
         }
@@ -26,7 +26,7 @@ struct SharedDatabaseSchemaCache: DatabaseSchemaCacheType {
         cache.write { $0.clear() }
     }
     
-    func primaryKey(tableName tableName: String) -> PrimaryKey? {
+    func primaryKey(tableName tableName: String) -> PrimaryKey?? {
         return cache.read { $0.primaryKey(tableName: tableName) }
     }
     
