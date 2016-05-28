@@ -1235,13 +1235,13 @@ extension Database {
             }
         }
         
-        savepointStack.clear()
+        savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer.
         isInsideExplicitTransaction = false
     }
     
     private func commit() throws {
         try execute("COMMIT TRANSACTION")
-        savepointStack.clear()
+        savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer.
         isInsideExplicitTransaction = false
     }
     
