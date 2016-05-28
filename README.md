@@ -1072,7 +1072,7 @@ You can ask a database if a transaction is currently opened:
 
 ```swift
 func myCriticalMethod(db: Database) {
-    precondition(db.isInTransaction, "This method requires a transaction")
+    precondition(db.isInsideTransaction, "This method requires a transaction")
     ...
 }
 ```
