@@ -58,6 +58,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
                 try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
                 try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
                 try db.execute("SAVEPOINT sp1")
+                XCTAssertTrue(db.isInsideTransaction)
                 try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
                 XCTAssertEqual(observer.events.count, 0)
                 try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
