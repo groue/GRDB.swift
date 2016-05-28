@@ -1,11 +1,18 @@
 Release Notes
 =============
 
-## Next Release
+## 0.69.0
+
+Released May 28, 2016
+
+**Fixed**
+
+- Database changes that are on hold because of a [savepoint](https://www.sqlite.org/lang_savepoint.html) are only notified to [transaction observers](https://github.com/groue/GRDB.swift#database-changes-observation) after the savepoint has been released. In previous versions of GRDB, savepoints had the opportunity to rollback a subset of database events, and mislead transaction observers about the actual content of a transaction. Related issue: [#61](https://github.com/groue/GRDB.swift/issues/61).
 
 **New**
 
 - `DatabaseEvent.copy()` lets you store a database event notified to a transaction observer ((documentation)[(https://github.com/groue/GRDB.swift#database-changes-observation)]).
+
 
 ## 0.68.0
 
