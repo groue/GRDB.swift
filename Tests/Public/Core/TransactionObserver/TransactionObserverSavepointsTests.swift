@@ -167,11 +167,11 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
             }
             
-            XCTAssertEqual(observer.lastCommittedEvents.count, 2)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 4)
             XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items2", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items3", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items4", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items2", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .Insert, tableName: "items3", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[3], kind: .Insert, tableName: "items4", rowId: 1))
         }
     }
     
@@ -210,8 +210,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             }
             
             XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items", rowId: 2))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items4", rowId: 2))
         }
     }
     
