@@ -284,6 +284,7 @@ public final class SelectStatement : Statement {
         
         let observer = StatementCompilationObserver(database)
         try super.init(database: database, sql: sql, observer: observer)
+        Database.preconditionValidSelectStatement(sql: sql, observer: observer)
         self.sourceTables = observer.sourceTables
     }
     

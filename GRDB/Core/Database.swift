@@ -1205,6 +1205,14 @@ extension Database {
         }
     }
     
+    static func preconditionValidSelectStatement(sql sql: String, observer: StatementCompilationObserver) {
+        // Select statements do not call database.updateStatementDidExecute()
+        // So make sure that the update statements we track are not hidden in a
+        // select statement:
+        GRDBPrecondition(!observer.invalidatesDatabaseSchemaCache, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        GRDBPrecondition(observer.savepointAction == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+    }
+    
     func updateStatementDidFail() throws {
         // Reset transactionState before didRollback eventually executes
         // other statements.
