@@ -64,6 +64,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
                 try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
                 XCTAssertEqual(observer.events.count, 0)
                 try db.execute("RELEASE SAVEPOINT sp1")
+                XCTAssertEqual(observer.events.count, 2)
+                XCTAssertFalse(db.isInsideTransaction)
                 
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
@@ -136,7 +138,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
             }
             
-            XCTAssertEqual(observer.lastCommittedEvents.count, 3)
+            XCTAssertEqual(observer.lastCommittedEvents.count, 4)
             XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
             XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items2", rowId: 1))
             XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .Insert, tableName: "items3", rowId: 1))
@@ -144,7 +146,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
         }
     }
     
-    func testRollbackNestedSavepoint() {
+    func testMultipleRollbackOfSavepoint() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let observer = TransactionObserver()
@@ -165,7 +167,10 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
                 XCTAssertEqual(observer.events.count, 1)
                 try db.execute("ROLLBACK TO SAVEPOINT sp1")
                 try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 2)
+                XCTAssertEqual(observer.events.count, 1)
+                try db.execute("ROLLBACK TO SAVEPOINT sp1")
+                try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
+                XCTAssertEqual(observer.events.count, 1)
                 try db.execute("COMMIT")
                 
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
@@ -180,7 +185,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
         }
     }
     
-    func testReleaseNestedSavepoint() {
+    func testReleaseSavepoint() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let observer = TransactionObserver()
@@ -243,7 +248,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
                 try db.execute("ROLLBACK TO SAVEPOINT sp1")
                 XCTAssertEqual(observer.events.count, 1)
                 try db.execute("INSERT INTO items4 (id) VALUES (NULL)")
-                XCTAssertEqual(observer.events.count, 2)
+                XCTAssertEqual(observer.events.count, 1)
                 try db.execute("COMMIT")
                 
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
@@ -254,7 +259,7 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             
             XCTAssertEqual(observer.lastCommittedEvents.count, 2)
             XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items4", rowId: 2))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items4", rowId: 1))
         }
     }
     
