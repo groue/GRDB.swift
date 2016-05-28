@@ -1605,6 +1605,7 @@ class SavePointStack {
         if let savepoint = savepoints.last {
             events.removeLast(events.count - savepoint.index)
         }
+        assert(!savepoints.isEmpty || events.isEmpty)
     }
     
     // https://www.sqlite.org/lang_savepoint.html
