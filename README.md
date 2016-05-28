@@ -2581,10 +2581,11 @@ try dbQueue.inTransaction { db in
     try db.execute("ROLLBACK TO SAVEPOINT foo")
     
     try db.execute("SAVEPOINT foo")
-    try db.execute("UPDATE ...")
-    try db.execute("RELEASE SAVEPOINT foo") // 2. didChange
+    try db.execute("UPDATE ...")            // delayed
+    try db.execute("UPDATE ...")            // delayed
+    try db.execute("RELEASE SAVEPOINT foo") // 2. didChange, 3. didChange
     
-    return .Commit                          // 3. willCommit, 4. didCommit
+    return .Commit                          // 4. willCommit, 5. didCommit
 }
 ```
 
