@@ -407,7 +407,7 @@ SQLite API
     - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
     - [NSNumber and NSDecimalNumber](#nsnumber-and-nsdecimalnumber)
     - [Swift enums](#swift-enums)
-- [Transactions](#transactions)
+- [Transactions and Savepoints](#transactions-and-savepoints)
 
 Advanced topics:
 
@@ -1041,7 +1041,7 @@ Grape.fromDatabaseValue(dbv)    // nil
 ```
 
 
-## Transactions
+## Transactions and Savepoints
 
 The `DatabaseQueue.inTransaction()` and `DatabasePool.writeInTransaction()` methods open an SQLite transaction and run their closure argument in a protected dispatch queue. They block the current thread until your database statements are executed:
 
@@ -1067,6 +1067,54 @@ try dbQueue.inDatabase { db in  // or dbPool.write { db in
     ...
 }
 ```
+
+You can ask a database if a transaction is currently opened:
+
+```swift
+func myCriticalMethod(db: Database) {
+    precondition(db.isInTransaction, "This method requires a transaction")
+    ...
+}
+```
+
+
+### Savepoints
+
+**Statements grouped in a savepoint can be rollbacked without invalidating a whole transaction:**
+
+```swift
+try dbQueue.inTransaction { db in
+    try db.inSavepoint { 
+        try db.execute("DELETE ...")
+        try db.execute("INSERT ...") // need to rollback the delete above if this fails
+        return .Commit
+    }
+    
+    // Other savepoints, etc...
+    return .Commit
+}
+```
+
+**Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only committed to disk when the outermost savepoint is committed:
+
+```swift
+try dbQueue.inDatabase { db in
+    try db.inSavepoint {
+        ...
+        try db.inSavepoint {
+            ...
+            return .Commit
+        }
+        ...
+        return .Commit  // writes changes to disk
+    }
+}
+```
+
+SQLite savepoints are more than nested transactions, though. For advanced savepoints uses, use [SQL queries](https://www.sqlite.org/lang_savepoint.html).
+
+
+### Transaction Kinds
 
 SQLite supports [three kinds of transactions](https://www.sqlite.org/lang_transaction.html): deferred, immediate, and exclusive. GRDB defaults to immediate.
 
@@ -2653,7 +2701,7 @@ let controller = FetchedRecordsController<Person>(
 
 In general, FetchedRecordsController is designed to respond to changes at *the database layer*, by [notifying](#the-changes-notifications) when *database rows* change location or values.
 
-Changes are not reflected until they are applied in the database by a successful [transaction](#transactions). Transactions can be explicit, or implicit:
+Changes are not reflected until they are applied in the database by a successful [transaction](#transactions-and-savepoints). Transactions can be explicit, or implicit:
 
 ```swift
 try dbQueue.inTransaction { db in
@@ -3165,7 +3213,7 @@ If the built-in queues and pools do not fit your needs, or if you can not guaran
 - WAL journal mode: https://www.sqlite.org/wal.html
 - Busy handlers: https://www.sqlite.org/c3ref/busy_handler.html
 
-See also [Transactions](#transactions) for more precise handling of transactions, and [Configuration](GRDB/Core/Configuration.swift) for more precise handling of eventual SQLITE_BUSY errors.
+See also [Transactions](#transactions-and-savepoints) for more precise handling of transactions, and [Configuration](GRDB/Core/Configuration.swift) for more precise handling of eventual SQLITE_BUSY errors.
 
 
 FAQ
