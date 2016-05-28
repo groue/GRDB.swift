@@ -53,7 +53,7 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
                     return .Commit
@@ -64,9 +64,9 @@ class SavepointTests: GRDBTestCase {
             
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')"
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3"])
@@ -83,7 +83,7 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
                     return .Rollback
@@ -93,7 +93,7 @@ class SavepointTests: GRDBTestCase {
             }
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
                 "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item3')"
@@ -112,10 +112,10 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    try db.inSavepoint(named: "foo") {
+                    try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
                         return .Commit
@@ -129,13 +129,13 @@ class SavepointTests: GRDBTestCase {
             }
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3", "item4", "item5"])
@@ -146,10 +146,10 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    try db.inSavepoint(named: "foo") {
+                    try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
                         return .Commit
@@ -163,11 +163,11 @@ class SavepointTests: GRDBTestCase {
             }
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
                 "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
@@ -180,10 +180,10 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    try db.inSavepoint(named: "foo") {
+                    try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
                         return .Rollback
@@ -197,14 +197,14 @@ class SavepointTests: GRDBTestCase {
             }
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT foo",
-                "RELEASE SAVEPOINT foo",
+                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item4", "item5"])
@@ -215,10 +215,10 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    try db.inSavepoint(named: "foo") {
+                    try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
                         return .Rollback
@@ -232,12 +232,12 @@ class SavepointTests: GRDBTestCase {
             }
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT foo",
-                "RELEASE SAVEPOINT foo",
+                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
                 "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
@@ -258,7 +258,7 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
                     return .Commit
@@ -269,9 +269,9 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item3')"
                 ])
@@ -289,7 +289,7 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
                     return .Rollback
@@ -300,10 +300,10 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT foo",
-                "RELEASE SAVEPOINT foo",
+                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
+                "RELEASE SAVEPOINT grdb",
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item3')"
                 ])
@@ -320,10 +320,10 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    try db.inSavepoint(named: "foo") {
+                    try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
                         return .Commit
@@ -338,13 +338,13 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
@@ -356,10 +356,10 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    try db.inSavepoint(named: "foo") {
+                    try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
                         return .Commit
@@ -374,14 +374,14 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT foo",
-                "RELEASE SAVEPOINT foo",
+                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
+                "RELEASE SAVEPOINT grdb",
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
@@ -393,10 +393,10 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    try db.inSavepoint(named: "foo") {
+                    try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
                         return .Rollback
@@ -411,14 +411,14 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT foo",
-                "RELEASE SAVEPOINT foo",
+                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "RELEASE SAVEPOINT foo",
+                "RELEASE SAVEPOINT grdb",
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
@@ -430,10 +430,10 @@ class SavepointTests: GRDBTestCase {
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
-                try db.inSavepoint(named: "foo") {
+                try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    try db.inSavepoint(named: "foo") {
+                    try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
                         return .Rollback
@@ -448,15 +448,15 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "SAVEPOINT foo",
+                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT foo",
-                "RELEASE SAVEPOINT foo",
+                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
+                "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT foo",
-                "RELEASE SAVEPOINT foo",
+                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
+                "RELEASE SAVEPOINT grdb",
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])

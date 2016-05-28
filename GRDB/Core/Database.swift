@@ -1133,14 +1133,14 @@ extension Database {
         }
     }
     
-    public func inSavepoint(named name: String, @noescape _ block: () throws -> TransactionCompletion) throws {
-        func impl(name: String, @noescape _ block: () throws -> TransactionCompletion) throws {
+    public func inSavepoint(@noescape block: () throws -> TransactionCompletion) throws {
+        func impl(@noescape block: () throws -> TransactionCompletion) throws {
             // If the savepoint is top-level, we'll use ROLLBACK TRANSACTION in
             // order to perform the special error handling of rollbacks.
             let topLevelSavepoint = !isInsideTransaction
             
             // Begin savepoint
-            try execute("SAVEPOINT \(name)")
+            try execute("SAVEPOINT grdb")
             
             // Now that savepoint has begun, we'll rollback in case of error.
             // But we'll throw the first caught error, so that user knows
@@ -1151,7 +1151,7 @@ extension Database {
                 let completion = try block()
                 switch completion {
                 case .Commit:
-                    try execute("RELEASE SAVEPOINT \(name)")
+                    try execute("RELEASE SAVEPOINT grdb")
                     needsRollback = false
                 case .Rollback:
                     needsRollback = true
@@ -1166,8 +1166,8 @@ extension Database {
                     if topLevelSavepoint {
                         try rollback(underlyingError: firstError)
                     } else {
-                        try execute("ROLLBACK TRANSACTION TO SAVEPOINT \(name)")
-                        try execute("RELEASE SAVEPOINT \(name)")
+                        try execute("ROLLBACK TRANSACTION TO SAVEPOINT grdb")
+                        try execute("RELEASE SAVEPOINT grdb")
                     }
                 } catch {
                     if firstError == nil {
@@ -1184,10 +1184,10 @@ extension Database {
         // Top-level SQLite savepoints open a deferred transaction, but database
         // configuration may have a different default transaction kind:
         if isInsideTransaction || configuration.defaultTransactionKind == .Deferred {
-            try impl(name, block)
+            try impl(block)
         } else {
             try inTransaction {
-                try impl(name, block)
+                try impl(block)
                 return .Commit
             }
         }

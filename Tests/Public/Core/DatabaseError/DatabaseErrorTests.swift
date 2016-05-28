@@ -38,7 +38,7 @@ class DatabaseErrorTests: GRDBTestCase {
             do {
                 try dbQueue.inDatabase { db in
                     do {
-                        try db.inSavepoint(named: "foo") {
+                        try db.inSavepoint {
                             XCTAssertTrue(db.isInsideTransaction)
                             try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY)")
                             try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
