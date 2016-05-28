@@ -64,7 +64,6 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
                 try db.execute("INSERT INTO items2 (id) VALUES (NULL)")
                 XCTAssertEqual(observer.events.count, 0)
                 try db.execute("RELEASE SAVEPOINT sp1")
-                XCTAssertEqual(observer.events.count, 2)
                 XCTAssertFalse(db.isInsideTransaction)
                 
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
