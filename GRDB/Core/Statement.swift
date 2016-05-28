@@ -420,9 +420,11 @@ public final class UpdateStatement : Statement {
     /// If true, the database schema cache gets invalidated after this statement
     /// is executed.
     private(set) var invalidatesDatabaseSchemaCache: Bool
+    private(set) var savepointAction: (name: String, action: SavepointActionKind)?
     
-    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool) {
+    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool, savepointAction: (name: String, action: SavepointActionKind)?) {
         self.invalidatesDatabaseSchemaCache = invalidatesDatabaseSchemaCache
+        self.savepointAction = savepointAction
         super.init(database: database, sqliteStatement: sqliteStatement)
     }
     
@@ -432,6 +434,7 @@ public final class UpdateStatement : Statement {
         let observer = StatementCompilationObserver(database)
         try super.init(database: database, sql: sql, observer: observer)
         self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
+        self.savepointAction = observer.savepointAction
     }
     
     /// Executes the SQL query.

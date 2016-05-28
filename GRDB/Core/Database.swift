@@ -71,7 +71,8 @@ public final class Database {
     }
     
     /// True if the database connection is currently in a transaction.
-    public private(set) var isInsideTransaction: Bool = false
+    public var isInsideTransaction: Bool { return isInsideExplicitTransaction || !savepointStack.isEmpty }
+    private var isInsideExplicitTransaction: Bool = false
     
     var lastErrorCode: Int32 {
         return sqlite3_errcode(sqliteConnection)
@@ -88,11 +89,10 @@ public final class Database {
     private var selectStatementCache: [String: SelectStatement] = [:]
     private var updateStatementCache: [String: UpdateStatement] = [:]
     
-    /// See setupTransactionHooks(), updateStatementDidFail(), updateStatementDidExecute()
+    /// Transaction observer support
     private var transactionState: TransactionState = .WaitForTransactionCompletion
-    
-    /// The transaction observers
     private var transactionObservers = [WeakTransactionObserver]()
+    private var savepointStack = SavePointStack()
     
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
@@ -511,7 +511,11 @@ extension Database {
                 }
                 
                 do {
-                    let statement = UpdateStatement(database: self, sqliteStatement: sqliteStatement, invalidatesDatabaseSchemaCache: observer.invalidatesDatabaseSchemaCache)
+                    let statement = UpdateStatement(
+                        database: self,
+                        sqliteStatement: sqliteStatement,
+                        invalidatesDatabaseSchemaCache: observer.invalidatesDatabaseSchemaCache,
+                        savepointAction: observer.savepointAction)
                     try statement.execute(arguments: consumeArguments(statement))
                 } catch let statementError {
                     error = statementError
@@ -1141,7 +1145,7 @@ extension Database {
                     try rollback()
                 } catch {
                     if let error = firstError as? DatabaseError where [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(Int32(error.code)) {
-                        isInsideTransaction = false
+                        isInsideExplicitTransaction = false
                     }
                 }
             } else {
@@ -1163,17 +1167,17 @@ extension Database {
         case .Exclusive:
             try execute("BEGIN EXCLUSIVE TRANSACTION")
         }
-        isInsideTransaction = true
+        isInsideExplicitTransaction = true
     }
     
     private func rollback() throws {
         try execute("ROLLBACK TRANSACTION")
-        isInsideTransaction = false
+        isInsideExplicitTransaction = false
     }
     
     private func commit() throws {
         try execute("COMMIT TRANSACTION")
-        isInsideTransaction = false
+        isInsideExplicitTransaction = false
     }
     
     /// Add a transaction observer, so that it gets notified of all
@@ -1233,6 +1237,26 @@ extension Database {
             clearSchemaCache()
         }
         
+        if let savepointAction = statement.savepointAction {
+            switch savepointAction.action {
+            case .Begin:
+                savepointStack.beginSavepoint(named: savepointAction.name)
+            case .Release:
+                savepointStack.releaseSavepoint(named: savepointAction.name)
+                if savepointStack.isEmpty {
+                    let events = savepointStack.events
+                    savepointStack.clear()
+                    for observer in transactionObservers.flatMap({ $0.observer }) {
+                        for event in events {
+                            observer.databaseDidChangeWithEvent(event)
+                        }
+                    }
+                }
+            case .Rollback:
+                savepointStack.rollbackSavepoint(named: savepointAction.name)
+            }
+        }
+        
         // Reset transactionState before didCommit or didRollback eventually
         // execute other statements.
         let transactionState = self.transactionState
@@ -1249,14 +1273,23 @@ extension Database {
     }
     
     private func willCommit() throws {
+        let events = savepointStack.events
+        savepointStack.clear()
         for observer in transactionObservers.flatMap({ $0.observer }) {
+            for event in events {
+                observer.databaseDidChangeWithEvent(event)
+            }
             try observer.databaseWillCommit()
         }
     }
     
     private func didChangeWithEvent(event: DatabaseEvent) {
-        for observer in transactionObservers.flatMap({ $0.observer }) {
-            observer.databaseDidChangeWithEvent(event)
+        if savepointStack.isEmpty {
+            for observer in transactionObservers.flatMap({ $0.observer }) {
+                observer.databaseDidChangeWithEvent(event)
+            }
+        } else {
+            savepointStack.events.append(event.copy())
         }
     }
     
@@ -1268,6 +1301,7 @@ extension Database {
     }
     
     private func didRollback() {
+        savepointStack.clear()
         for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidRollback(self)
         }
@@ -1471,5 +1505,55 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
     private let tableName: String
     func copy(event: DatabaseEvent) -> DatabaseEvent {
         return event
+    }
+}
+
+class SavePointStack {
+    var events: [DatabaseEvent] = []
+    private var savepoints: [(name: String, index: Int)] = []
+    
+    var isEmpty: Bool { return savepoints.isEmpty }
+    
+    func clear() {
+        events.removeAll()
+        savepoints.removeAll()
+    }
+    
+    func beginSavepoint(named name: String) {
+        savepoints.append((name: name.lowercaseString, index: events.count))
+    }
+    
+    // https://www.sqlite.org/lang_savepoint.html
+    // > The ROLLBACK command with a TO clause rolls back transactions going
+    // > backwards in time back to the most recent SAVEPOINT with a matching
+    // > name. The SAVEPOINT with the matching name remains on the transaction
+    // > stack, but all database changes that occurred after that SAVEPOINT was
+    // > created are rolled back. If the savepoint-name in a ROLLBACK TO
+    // > command does not match any SAVEPOINT on the stack, then the ROLLBACK
+    // > command fails with an error and leaves the state of the
+    // > database unchanged.
+    func rollbackSavepoint(named name: String) {
+        let name = name.lowercaseString
+        while let pair = savepoints.last where pair.name != name {
+            savepoints.removeLast()
+        }
+        if let savepoint = savepoints.last {
+            events.removeLast(events.count - savepoint.index)
+        }
+    }
+    
+    // https://www.sqlite.org/lang_savepoint.html
+    // > The RELEASE command starts with the most recent addition to the
+    // > transaction stack and releases savepoints backwards in time until it
+    // > releases a savepoint with a matching savepoint-name. Prior savepoints,
+    // > even savepoints with matching savepoint-names, are unchanged.
+    func releaseSavepoint(named name: String) {
+        let name = name.lowercaseString
+        while let pair = savepoints.last where pair.name != name {
+            savepoints.removeLast()
+        }
+        if !savepoints.isEmpty {
+            savepoints.removeLast()
+        }
     }
 }
