@@ -1267,7 +1267,7 @@ Primary key is nil when table has no primary key:
 let itemPk = try db.primaryKey("items") // nil
 ```
 
-Primary keys have one or several columns. When the primary key has a single column, it may contain the [row id](https://www.sqlite.org/autoinc.html):
+Primary keys have one or several columns. Single-column primary keys may contain the auto-incremented [row id](https://www.sqlite.org/autoinc.html):
 
 ```swift
 // CREATE TABLE persons (
