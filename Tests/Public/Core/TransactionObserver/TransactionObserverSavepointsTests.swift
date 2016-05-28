@@ -184,6 +184,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
                 try db.execute("CREATE TABLE items2 (id INTEGER PRIMARY KEY)")
+                try db.execute("CREATE TABLE items3 (id INTEGER PRIMARY KEY)")
+                try db.execute("CREATE TABLE items4 (id INTEGER PRIMARY KEY)")
                 try db.execute("BEGIN TRANSACTION")
                 try db.execute("INSERT INTO items1 (id) VALUES (NULL)")
                 XCTAssertEqual(observer.events.count, 1)
