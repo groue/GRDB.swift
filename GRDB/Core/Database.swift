@@ -932,7 +932,41 @@ extension Database {
     }
 }
 
-/// A primary key
+/// You get primary keys from table names, with the Database.primaryKey(_)
+/// method.
+///
+/// Primary key is nil when table has no primary key:
+///
+///     // CREATE TABLE items (name TEXT)
+///     let itemPk = try db.primaryKey("items") // nil
+///
+/// Primary keys have one or several columns. When the primary key has a single
+/// column, it may contain the row id:
+///
+///     // CREATE TABLE persons (
+///     //   id INTEGER PRIMARY KEY,
+///     //   name TEXT
+///     // )
+///     let personPk = try db.primaryKey("persons")!
+///     personPk.columns     // ["id"]
+///     personPk.rowIDColumn // "id"
+///
+///     // CREATE TABLE countries (
+///     //   isoCode TEXT NOT NULL PRIMARY KEY
+///     //   name TEXT
+///     // )
+///     let countryPk = db.primaryKey("countries")!
+///     countryPk.columns     // ["isoCode"]
+///     countryPk.rowIDColumn // nil
+///
+///     // CREATE TABLE citizenships (
+///     //   personID INTEGER NOT NULL REFERENCES persons(id)
+///     //   countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode)
+///     //   PRIMARY KEY (personID, countryIsoCode)
+///     // )
+///     let citizenshipsPk = db.primaryKey("citizenships")!
+///     citizenshipsPk.columns     // ["personID", "countryIsoCode"]
+///     citizenshipsPk.rowIDColumn // nil
 public struct PrimaryKey {
     private enum Impl {
         /// An INTEGER PRIMARY KEY column that aliases the Row ID.
@@ -955,7 +989,7 @@ public struct PrimaryKey {
         return PrimaryKey(impl: .Regular(columns))
     }
     
-    /// The columns in the primary key. Can not be empty.
+    /// The columns in the primary key; this array is never empty.
     public var columns: [String] {
         switch impl {
         case .RowID(let column):
@@ -965,7 +999,7 @@ public struct PrimaryKey {
         }
     }
     
-    /// The name of the INTEGER PRIMARY KEY
+    /// When not nil, the name of the column that contains the INTEGER PRIMARY KEY.
     public var rowIDColumn: String? {
         switch impl {
         case .RowID(let column):

@@ -414,6 +414,7 @@ Advanced topics:
 - [Custom Value Types](#custom-value-types)
 - [Prepared Statements](#prepared-statements)
 - [Custom SQL Functions](#custom-sql-functions)
+- [Database Schema Introspection](#database-schema-introspection)
 - [Row Adapters](#row-adapters)
 - [Raw SQLite Pointers](#raw-sqlite-pointers)
 
@@ -1214,6 +1215,70 @@ Person.select(reverseString.apply(nameColumn))
 
 
 **GRDB ships with built-in SQL functions that perform unicode-aware string transformations.** See [Unicode](#unicode).
+
+
+## Database Schema Introspection
+
+**SQLite provides database schema introspection tools**, such as the [sqlite_master](https://www.sqlite.org/faq.html#q7) table, and the pragma [table_info](https://www.sqlite.org/pragma.html#pragma_table_info):
+
+```swift
+try db.execute("CREATE TABLE persons(id INTEGER PRIMARY KEY, name TEXT)")
+
+// <Row type:"table" name:"persons" tbl_name:"persons" rootpage:2
+//      sql:"CREATE TABLE persons(id INTEGER PRIMARY KEY, name TEXT)">
+for row in Row.fetch(db, "SELECT * FROM sqlite_master") {
+    print(row)
+}
+
+// <Row cid:0 name:"id" type:"INTEGER" notnull:0 dflt_value:NULL pk:1>
+// <Row cid:1 name:"name" type:"TEXT" notnull:0 dflt_value:NULL pk:0>
+for row in Row.fetch(db, "PRAGMA table_info('persons')") {
+    print(row)
+}
+```
+
+GRDB provides two high-level methods as well:
+
+```swift
+db.tableExists("persons")    // Bool, true if the table exists
+try db.primaryKey("persons") // PrimaryKey?, throws if the table does not exist
+```
+
+Primary key is nil when table has no primary key:
+
+```swift
+// CREATE TABLE items (name TEXT)
+let itemPk = try db.primaryKey("items") // nil
+```
+
+Primary keys have one or several columns. When the primary key has a single column, it may contain the [row id](https://www.sqlite.org/autoinc.html):
+
+```swift
+// CREATE TABLE persons (
+//   id INTEGER PRIMARY KEY,
+//   name TEXT
+// )
+let personPk = try db.primaryKey("persons")!
+personPk.columns     // ["id"]
+personPk.rowIDColumn // "id"
+
+// CREATE TABLE countries (
+//   isoCode TEXT NOT NULL PRIMARY KEY
+//   name TEXT
+// )
+let countryPk = db.primaryKey("countries")!
+countryPk.columns     // ["isoCode"]
+countryPk.rowIDColumn // nil
+
+// CREATE TABLE citizenships (
+//   personID INTEGER NOT NULL REFERENCES persons(id)
+//   countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode)
+//   PRIMARY KEY (personID, countryIsoCode)
+// )
+let citizenshipsPk = db.primaryKey("citizenships")!
+citizenshipsPk.columns     // ["personID", "countryIsoCode"]
+citizenshipsPk.rowIDColumn // nil
+```
 
 
 ## Row Adapters
