@@ -1156,6 +1156,22 @@ let person = Person.fetchOne(selectStatement, arguments: ["Arthur"])
 See [row queries](#row-queries), [value queries](#value-queries), and [Records](#records) for more information.
 
 
+### Prepared Statements Cache
+
+When the same query will be used several times in the lifetime of your application, you may feel a natural desire to cache prepared statements.
+
+**Don't cache statements yourself.**
+
+> :point_up: **Note**: This is because you don't have the necessary tools. Statements are tied to specific SQLite connections and dispatch queues which you don't manage yourself, especially when you use [database pools](#database-pools). A change in the database schema [may, or may not](https://www.sqlite.org/compile.html#max_schema_retry) invalidate a statement. On systems earlier than iOS 8.2 and OSX 10.10 that don't have the [sqlite3_close_v2 function](https://www.sqlite.org/c3ref/close.html), SQLite connections won't close properly if statements have been kept alive.
+
+Instead, use the `cachedUpdateStatement` and `cachedSelectStatement` methods. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
+
+```swift
+let updateStatement = try db.cachedUpdateStatement(updateSQL)
+let selectStatement = try db.cachedSelectStatement(selectSQL)
+```
+
+
 ## Custom SQL Functions
 
 **SQLite lets you define SQL functions.**
