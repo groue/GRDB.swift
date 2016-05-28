@@ -2522,6 +2522,25 @@ try dbQueue.inDatabase { db in
 }
 ```
 
+Changes that are on hold because of a [savepoint](https://www.sqlite.org/lang_savepoint.html) are only notified after the savepoint has been released. This makes sure that notified events are only events that have an opportunity to be committed:
+
+```swift
+try dbQueue.inTransaction { db in
+    try db.execute("INSERT ...")            // 1. didChange
+    
+    try db.execute("SAVEPOINT foo")
+    try db.execute("UPDATE ...")            // not notified
+    try db.execute("ROLLBACK TO SAVEPOINT foo")
+    
+    try db.execute("SAVEPOINT foo")
+    try db.execute("UPDATE ...")
+    try db.execute("RELEASE SAVEPOINT foo") // 2. didChange
+    
+    return .Commit                          // 3. willCommit, 4. didCommit
+}
+```
+
+
 **Eventual errors** thrown from `databaseWillCommit` are exposed to the application code:
 
 ```swift
