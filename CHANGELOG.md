@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.70.0
+
+Released May 28, 2016
+
+**New**
+
+- `Database.inSavepoint()` allows fine-grained committing and rollbacking of database statements ([documentation](https://github.com/groue/GRDB.swift#transactions-and-savepoints)). Closes [#61](https://github.com/groue/GRDB.swift/issues/61).
+
+
 ## 0.69.0
 
 Released May 28, 2016
