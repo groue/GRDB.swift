@@ -1019,6 +1019,7 @@ final class StatementCompilationObserver {
     let database: Database
     var sourceTables: Set<String> = []
     var invalidatesDatabaseSchemaCache = false
+    var savepointAction: (name: String, action: SavepointActionKind)?
     
     init(_ database: Database) {
         self.database = database
@@ -1034,6 +1035,11 @@ final class StatementCompilationObserver {
             case SQLITE_READ:
                 let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
                 observer.sourceTables.insert(String.fromCString(CString1)!)
+            case SQLITE_SAVEPOINT:
+                let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
+                let name = String.fromCString(CString2)!
+                let action = SavepointActionKind(rawValue: String.fromCString(CString1)!)!
+                observer.savepointAction = (name: name, action: action)
             default:
                 break
             }
@@ -1048,7 +1054,14 @@ final class StatementCompilationObserver {
     func reset() {
         sourceTables = []
         invalidatesDatabaseSchemaCache = false
+        savepointAction = nil
     }
+}
+
+enum SavepointActionKind : String {
+    case Begin = "BEGIN"
+    case Release = "RELEASE"
+    case Rollback = "ROLLBACK"
 }
 
 
