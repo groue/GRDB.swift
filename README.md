@@ -2742,7 +2742,7 @@ controller.trackChanges { controller in
 }
 ```
 
-Unless specified [otherwise](#fetchedrecordscontroller-concurrency), callbacks are invoked, asynchronously, on the main thread. This means that changes made from the main thread are *not* immediately notified:
+**Callbacks are invoked asynchronously.** This means that changes made from the main thread are *not* immediately notified:
 
 ```swift
 // On the main thread
