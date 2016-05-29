@@ -70,32 +70,37 @@ public final class Database {
         return Int(sqlite3_total_changes(sqliteConnection))
     }
     
+    var lastErrorCode: Int32 { return sqlite3_errcode(sqliteConnection) }
+    var lastErrorMessage: String? { return String.fromCString(sqlite3_errmsg(sqliteConnection)) }
+    
     /// True if the database connection is currently in a transaction.
     public var isInsideTransaction: Bool { return isInsideExplicitTransaction || !savepointStack.isEmpty }
+    
+    // Set by beginTransaction, rollback and commit. Not set by savepoints.
     private var isInsideExplicitTransaction: Bool = false
     
-    var lastErrorCode: Int32 {
-        return sqlite3_errcode(sqliteConnection)
-    }
-    
-    var lastErrorMessage: String? {
-        return String.fromCString(sqlite3_errmsg(sqliteConnection))
-    }
-    
-    private var functions = Set<DatabaseFunction>()
-    private var collations = Set<DatabaseCollation>()
-    
-    var schemaCache: DatabaseSchemaCacheType    // internal so that it can be tested
-    private var selectStatementCache: [String: SelectStatement] = [:]
-    private var updateStatementCache: [String: UpdateStatement] = [:]
-    
-    /// Transaction observer support
-    private var transactionState: TransactionState = .WaitForTransactionCompletion
+    // Transaction observers
     private var transactionObservers = [WeakTransactionObserver]()
+    private var transactionState: TransactionState = .WaitForTransactionCompletion
     private var savepointStack = SavePointStack()
     
     /// See setupBusyMode()
     private var busyCallback: BusyCallback?
+    
+    /// Available functions
+    private var functions = Set<DatabaseFunction>()
+    
+    /// Available collations
+    private var collations = Set<DatabaseCollation>()
+    
+    /// Schema Cache
+    var schemaCache: DatabaseSchemaCacheType    // internal so that it can be tested
+    
+    /// Statement cache. Not part of the schema cache because statements belong
+    /// to this connection, while schema cache can be shared with
+    /// other connections.
+    private var selectStatementCache: [String: SelectStatement] = [:]
+    private var updateStatementCache: [String: UpdateStatement] = [:]
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCacheType) throws {
         // See https://www.sqlite.org/c3ref/open.html
@@ -143,7 +148,7 @@ public final class Database {
         setupDefaultCollations()
     }
     
-    private var isClosed: Bool = false
+    /// This method must be called before database deallocation
     func close() {
         DatabaseScheduler.preconditionValidQueue(self)
         assert(!isClosed)
@@ -156,6 +161,7 @@ public final class Database {
         configuration.SQLiteConnectionDidClose?()
     }
     
+    private var isClosed: Bool = false
     deinit {
         assert(isClosed)
     }
@@ -168,6 +174,7 @@ public final class Database {
     }
     
     private func setupForeignKeys() throws {
+        // Foreign keys are disabled by default with SQLite3
         if configuration.foreignKeysEnabled {
             try execute("PRAGMA foreign_keys = ON")
         }
@@ -209,14 +216,6 @@ public final class Database {
     }
     
     private func setupDefaultFunctions() {
-        // Add support for Swift String functions.
-        //
-        // Those functions are used by query's interface:
-        //
-        ///     let nameColumn = SQLColumn("name")
-        ///     let request = Person.select(nameColumn.capitalizedString)
-        ///     let names = String.fetchAll(dbQueue, request)   // [String]
-        
         addFunction(.capitalizedString)
         addFunction(.lowercaseString)
         addFunction(.uppercaseString)
@@ -229,17 +228,6 @@ public final class Database {
     }
     
     private func setupDefaultCollations() {
-        // Add support for Swift String comparison functions.
-        //
-        // Those collations are readily available when creating tables:
-        //
-        //      let collationName = DatabaseCollation.localizedCaseInsensitiveCompare.name
-        //      dbQueue.execute(
-        //          "CREATE TABLE persons (" +
-        //              "name TEXT COLLATE \(collationName)" +
-        //          ")"
-        //      )
-        
         addCollation(.unicodeCompare)
         addCollation(.caseInsensitiveCompare)
         addCollation(.localizedCaseInsensitiveCompare)
@@ -252,20 +240,39 @@ private func closeConnection(sqliteConnection: SQLiteConnection) {
     // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
     // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
     if #available(iOS 8.2, OSX 10.10, *) {
+        // https://www.sqlite.org/c3ref/close.html
+        // > If sqlite3_close_v2() is called with unfinalized prepared
+        // > statements and/or unfinished sqlite3_backups, then the database
+        // > connection becomes an unusable "zombie" which will automatically
+        // > be deallocated when the last prepared statement is finalized or the
+        // > last sqlite3_backup is finished.
         let code = sqlite3_close_v2(sqliteConnection)
         if code != SQLITE_OK {
+            // A rare situation where GRDB doesn't fatalError on unprocessed
+            // errors.
             let message = String.fromCString(sqlite3_errmsg(sqliteConnection))
             NSLog("%@", "GRDB could not close database with error \(code): \(message ?? "")")
         }
     } else {
+        // https://www.sqlite.org/c3ref/close.html
+        // > If the database connection is associated with unfinalized prepared
+        // > statements or unfinished sqlite3_backup objects then
+        // > sqlite3_close() will leave the database connection open and
+        // > return SQLITE_BUSY.
         let code = sqlite3_close(sqliteConnection)
         if code != SQLITE_OK {
+            // A rare situation where GRDB doesn't fatalError on unprocessed
+            // errors.
             let message = String.fromCString(sqlite3_errmsg(sqliteConnection))
             NSLog("%@", "GRDB could not close database with error \(code): \(message ?? "")")
-            var stmt: SQLiteStatement = sqlite3_next_stmt(sqliteConnection, nil)
-            while stmt != nil {
-                NSLog("%@", "GRDB unfinalised statement: \(String.fromCString(sqlite3_sql(stmt))!)")
-                stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+            if code == SQLITE_BUSY {
+                // Let the user know about unfinalized statements that did
+                // prevent the connection from closing properly.
+                var stmt: SQLiteStatement = sqlite3_next_stmt(sqliteConnection, nil)
+                while stmt != nil {
+                    NSLog("%@", "GRDB unfinalized statement: \(String.fromCString(sqlite3_sql(stmt))!)")
+                    stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+                }
             }
         }
     }
@@ -382,8 +389,6 @@ extension Database {
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
-    /// This method may throw a DatabaseError.
-    ///
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
@@ -434,6 +439,9 @@ extension Database {
     ///     - arguments: Optional statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments? = nil) throws {
+        // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
+        // It adds support for arguments.
+        
         DatabaseScheduler.preconditionValidQueue(self)
         
         // The tricky part is to consume arguments as statements are executed.
@@ -779,6 +787,10 @@ extension Database {
 // =========================================================================
 // MARK: - Database Schema
 
+/// The protocol for schema cache.
+///
+/// This protocol must not contain values that are valid for a single connection
+/// only, because several connections can share the same schema cache.
 protocol DatabaseSchemaCacheType {
     mutating func clear()
     
@@ -1018,17 +1030,26 @@ public struct PrimaryKey {
 // =========================================================================
 // MARK: - StatementCompilationObserver
 
-// A class that uses sqlite3_set_authorizer to fetch information about a statement.
+/// A class that gathers information about a statement during its compilation.
 final class StatementCompilationObserver {
     let database: Database
+    
+    // The list of tables queried by a statement
     var sourceTables: Set<String> = []
+    
+    // True if a statement alter the schema in a way that required schema cache
+    // invalidation. Adding a column to a table does invalidate the schema
+    // cache, but not adding a table.
     var invalidatesDatabaseSchemaCache = false
+    
+    // Not nil if a statement is a BEGIN/RELEASE/ROLLBACK savepoint statement.
     var savepointAction: (name: String, action: SavepointActionKind)?
     
     init(_ database: Database) {
         self.database = database
     }
     
+    // Call this method before calling sqlite3_prepare_v2()
     func start() {
         let observerPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
         sqlite3_set_authorizer(database.sqliteConnection, { (observerPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
@@ -1051,14 +1072,15 @@ final class StatementCompilationObserver {
             }, observerPointer)
     }
     
-    func stop() {
-        sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
-    }
-    
+    // Call this method between two calls to calling sqlite3_prepare_v2()
     func reset() {
         sourceTables = []
         invalidatesDatabaseSchemaCache = false
         savepointAction = nil
+    }
+    
+    func stop() {
+        sqlite3_set_authorizer(database.sqliteConnection, nil, nil)
     }
 }
 
@@ -1070,7 +1092,7 @@ enum SavepointActionKind : String {
 
 
 // =========================================================================
-// MARK: - Transactions
+// MARK: - Transactions & Savepoint
 
 extension Database {
     /// Executes a block inside a database transaction.
@@ -1133,63 +1155,94 @@ extension Database {
         }
     }
     
+    /// Executes a block inside a savepoint.
+    ///
+    ///     try dbQueue.inDatabase do {
+    ///         try db.inSavepoint {
+    ///             try db.execute("INSERT ...")
+    ///             return .Commit
+    ///         }
+    ///     }
+    ///
+    /// If the block throws an error, the savepoint is rollbacked and the
+    /// error is rethrown.
+    ///
+    /// This method is reentrant: you can nest savepoints.
+    ///
+    /// - parameter block: A block that executes SQL statements and return
+    ///   either .Commit or .Rollback.
+    /// - throws: The error thrown by the block.
     public func inSavepoint(@noescape block: () throws -> TransactionCompletion) throws {
-        func impl(@noescape block: () throws -> TransactionCompletion) throws {
-            // If the savepoint is top-level, we'll use ROLLBACK TRANSACTION in
-            // order to perform the special error handling of rollbacks.
-            let topLevelSavepoint = !isInsideTransaction
-            
-            // Begin savepoint
-            try execute("SAVEPOINT grdb")
-            
-            // Now that savepoint has begun, we'll rollback in case of error.
-            // But we'll throw the first caught error, so that user knows
-            // what happened.
-            var firstError: ErrorType? = nil
-            let needsRollback: Bool
-            do {
-                let completion = try block()
-                switch completion {
-                case .Commit:
-                    try execute("RELEASE SAVEPOINT grdb")
-                    needsRollback = false
-                case .Rollback:
-                    needsRollback = true
-                }
-            } catch {
-                firstError = error
+        // By default, SQLite savepoints open a deferred transaction.
+        //
+        // But GRDB database configuration mandates a default transaction kind
+        // that we have to honor.
+        //
+        // So when the default GRDB transaction kind is not deferred, we wrap
+        // top-level savepoints in a transaction:
+        if isInsideTransaction || configuration.defaultTransactionKind == .Deferred {
+            try _inSavepoint(block)
+        } else {
+            try inTransaction {
+                try _inSavepoint(block)
+                return .Commit
+            }
+        }
+    }
+    
+    private func _inSavepoint(@noescape block: () throws -> TransactionCompletion) throws {
+        // If the savepoint is top-level, we'll use ROLLBACK TRANSACTION in
+        // order to perform the special error handling of rollbacks (see
+        // the rollback method).
+        let topLevelSavepoint = !isInsideTransaction
+        
+        // Begin savepoint
+        //
+        // We use a single name for savepoints because there is no need
+        // using unique savepoint names. User could still mess with them
+        // with raw SQL queries, but let's assume that it is unlikely that
+        // the user uses "grdb" as a savepoint name.
+        try execute("SAVEPOINT grdb")
+        
+        // Now that savepoint has begun, we'll rollback in case of error.
+        // But we'll throw the first caught error, so that user knows
+        // what happened.
+        var firstError: ErrorType? = nil
+        let needsRollback: Bool
+        do {
+            let completion = try block()
+            switch completion {
+            case .Commit:
+                try execute("RELEASE SAVEPOINT grdb")
+                needsRollback = false
+            case .Rollback:
                 needsRollback = true
             }
-            
-            if needsRollback {
-                do {
-                    if topLevelSavepoint {
-                        try rollback(underlyingError: firstError)
-                    } else {
-                        try execute("ROLLBACK TRANSACTION TO SAVEPOINT grdb")
-                        try execute("RELEASE SAVEPOINT grdb")
-                    }
-                } catch {
-                    if firstError == nil {
-                        firstError = error
-                    }
+        } catch {
+            firstError = error
+            needsRollback = true
+        }
+        
+        if needsRollback {
+            do {
+                if topLevelSavepoint {
+                    try rollback(underlyingError: firstError)
+                } else {
+                    // Rollback, and release the savepoint.
+                    // Rollback alone is not enough to clear the savepoint from
+                    // the SQLite savepoint stack.
+                    try execute("ROLLBACK TRANSACTION TO SAVEPOINT grdb")
+                    try execute("RELEASE SAVEPOINT grdb")
                 }
-            }
-            
-            if let firstError = firstError {
-                throw firstError
+            } catch {
+                if firstError == nil {
+                    firstError = error
+                }
             }
         }
         
-        // Top-level SQLite savepoints open a deferred transaction, but database
-        // configuration may have a different default transaction kind:
-        if isInsideTransaction || configuration.defaultTransactionKind == .Deferred {
-            try impl(block)
-        } else {
-            try inTransaction {
-                try impl(block)
-                return .Commit
-            }
+        if let firstError = firstError {
+            throw firstError
         }
     }
     
@@ -1235,13 +1288,13 @@ extension Database {
             }
         }
         
-        savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer.
+        savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer because savepointStack.clear() is already called in willCommit() and didRollback()
         isInsideExplicitTransaction = false
     }
     
     private func commit() throws {
         try execute("COMMIT TRANSACTION")
-        savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer.
+        savepointStack.clear()  // TODO: write tests that fail when we remove this line. Hint: those tests must not use any transaction observer because savepointStack.clear() is already called in willCommit() and didRollback()
         isInsideExplicitTransaction = false
     }
     
@@ -1267,6 +1320,8 @@ extension Database {
         }
     }
     
+    /// Clears references to deallocated observers, and uninstall transaction
+    /// hooks if there is no remaining observers.
     private func cleanupTransactionObservers() {
         transactionObservers = transactionObservers.filter { $0.observer != nil }
         if transactionObservers.isEmpty {
@@ -1274,14 +1329,20 @@ extension Database {
         }
     }
     
+    /// Checks that a SQL query is valid for a select statement.
+    ///
+    /// Select statements do not call database.updateStatementDidExecute().
+    /// Here we make sure that the update statements we track are not hidden in
+    /// a select statement.
+    ///
+    /// An INSERT statement will pass, but not DROP TABLE (which invalidates the
+    /// database cache), or RELEASE SAVEPOINT (which alters the savepoint stack)
     static func preconditionValidSelectStatement(sql sql: String, observer: StatementCompilationObserver) {
-        // Select statements do not call database.updateStatementDidExecute()
-        // So make sure that the update statements we track are not hidden in a
-        // select statement:
         GRDBPrecondition(!observer.invalidatesDatabaseSchemaCache, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         GRDBPrecondition(observer.savepointAction == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
     }
     
+    /// Some failed statements interest transaction observers.
     func updateStatementDidFail() throws {
         // Reset transactionState before didRollback eventually executes
         // other statements.
@@ -1297,6 +1358,8 @@ extension Database {
         }
     }
     
+    /// Some succeeded statements invalidate the database cache, others interest
+    /// transaction observers, and others modify the savepoint stack.
     func updateStatementDidExecute(statement: UpdateStatement) {
         if statement.invalidatesDatabaseSchemaCache {
             clearSchemaCache()
@@ -1309,10 +1372,10 @@ extension Database {
             case .Release:
                 savepointStack.releaseSavepoint(named: savepointAction.name)
                 if savepointStack.isEmpty {
-                    let events = savepointStack.events
+                    let eventsBuffer = savepointStack.eventsBuffer
                     savepointStack.clear()
                     for observer in transactionObservers.flatMap({ $0.observer }) {
-                        for event in events {
+                        for event in eventsBuffer {
                             observer.databaseDidChangeWithEvent(event)
                         }
                     }
@@ -1337,27 +1400,30 @@ extension Database {
         }
     }
     
+    /// Transaction hook
     private func willCommit() throws {
-        let events = savepointStack.events
+        let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
         for observer in transactionObservers.flatMap({ $0.observer }) {
-            for event in events {
+            for event in eventsBuffer {
                 observer.databaseDidChangeWithEvent(event)
             }
             try observer.databaseWillCommit()
         }
     }
     
+    /// Transaction hook
     private func didChangeWithEvent(event: DatabaseEvent) {
         if savepointStack.isEmpty {
             for observer in transactionObservers.flatMap({ $0.observer }) {
                 observer.databaseDidChangeWithEvent(event)
             }
         } else {
-            savepointStack.events.append(event.copy())
+            savepointStack.eventsBuffer.append(event.copy())
         }
     }
     
+    /// Transaction hook
     private func didCommit() {
         for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidCommit(self)
@@ -1365,6 +1431,7 @@ extension Database {
         cleanupTransactionObservers()
     }
     
+    /// Transaction hook
     private func didRollback() {
         savepointStack.clear()
         for observer in transactionObservers.flatMap({ $0.observer }) {
@@ -1485,13 +1552,14 @@ public protocol TransactionObserverType : class {
     func databaseDidRollback(db: Database)
 }
 
+/// Database stores WeakTransactionObserver so that it does not retain its
+/// transaction observers.
 class WeakTransactionObserver {
     weak var observer: TransactionObserverType?
     init(_ observer: TransactionObserverType) {
         self.observer = observer
     }
 }
-
 
 /// A database event, notified to TransactionObserverType.
 public struct DatabaseEvent {
@@ -1545,6 +1613,7 @@ public struct DatabaseEvent {
     private let impl: DatabaseEventImpl
 }
 
+/// Protocol for internal implementation of DatabaseEvent
 private protocol DatabaseEventImpl {
     var databaseName: String { get }
     var tableName: String { get }
@@ -1573,19 +1642,32 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
     }
 }
 
+/// The SQLite savepoint stack is described at
+/// https://www.sqlite.org/lang_savepoint.html
+///
+/// This class reimplements the SQLite stack, so that we can:
+///
+/// - know if there are currently active savepoints (isEmpty)
+/// - buffer database events when a savepoint is active, in order to avoid
+///   notifying transaction observers of database events that could be
+///   rollbacked.
 class SavePointStack {
-    var events: [DatabaseEvent] = []
+    /// The buffered events. See Database.didChangeWithEvent()
+    var eventsBuffer: [DatabaseEvent] = []
+    
+    /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
+    /// Indexes let us drop rollbacked events from the event buffer.
     private var savepoints: [(name: String, index: Int)] = []
     
     var isEmpty: Bool { return savepoints.isEmpty }
     
     func clear() {
-        events.removeAll()
+        eventsBuffer.removeAll()
         savepoints.removeAll()
     }
     
     func beginSavepoint(named name: String) {
-        savepoints.append((name: name.lowercaseString, index: events.count))
+        savepoints.append((name: name.lowercaseString, index: eventsBuffer.count))
     }
     
     // https://www.sqlite.org/lang_savepoint.html
@@ -1603,9 +1685,9 @@ class SavePointStack {
             savepoints.removeLast()
         }
         if let savepoint = savepoints.last {
-            events.removeLast(events.count - savepoint.index)
+            eventsBuffer.removeLast(eventsBuffer.count - savepoint.index)
         }
-        assert(!savepoints.isEmpty || events.isEmpty)
+        assert(!savepoints.isEmpty || eventsBuffer.isEmpty)
     }
     
     // https://www.sqlite.org/lang_savepoint.html
