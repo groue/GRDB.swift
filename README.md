@@ -2637,51 +2637,26 @@ See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecor
 
 ### Creating the Fetched Records Controller
 
-When you initialize a fetched records controller, you provide the following information:
+When you initialize a fetched records controller, you provide the following mandatory information:
 
 - A [database connection](#database-connections)
-- The type of the fetched records. It must be a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class.
-- A fetch request. It can be a raw SQL query with its eventual [arguments](#fetching-rows), or a FetchRequest from the [Query Interface](#the-query-interface).
-- Optionally, a way to tell whether two records have the same identity.
-
-After creating an instance, you invoke `performFetch()` to actually execute
-the fetch.
+- The type of the fetched records. It must be a type that adopts the [RowConvertible](#rowconvertible-protocol) protocol, such as a subclass of the [Record](#record-class) class
+- A fetch request
 
 ```swift
 class Person : Record { ... }
 let dbQueue = DatabaseQueue(...)    // Or DatabasePool
 
-let request = Person.order(SQLColumn("name"))
+// Using a FetchRequest from the Query Interface:
 let controller = FetchedRecordsController<Person>(
     dbQueue,
-    request: request,
-    compareRecordsByPrimaryKey: true)
-controller.performFetch()
-```
+    request: Person.order(SQLColumn("name")))
 
-In the example above, two persons are considered identical if they share the same primary key, thanks to the `compareRecordsByPrimaryKey` argument. This initializer argument is only available for types such as [Record](#record-class) subclasses that adopt both the [RowConvertible](#rowconvertible-protocol) protocol, and the [Persistable](#persistable-protocol) protocol.
-
-If your type only adopts RowConvertible, you need to be more explicit, and provide your own identity comparison function:
-
-```swift
-struct Person : RowConvertible {
-    let id: Int64
-    ...
-}
-
+// Using SQL, and eventual arguments:
 let controller = FetchedRecordsController<Person>(
     dbQueue,
-    request: request,
-    isSameRecord: { (person1, person2) in person1.id == person2.id })
-```
-
-Instead of a [FetchRequest](#the-query-interface) object, you can also provide a raw SQL query, with eventual [arguments](#fetching-rows):
-
-```swift
-let controller = FetchedRecordsController<Person>(
-    dbQueue,
-    sql: "SELECT * FROM persons ORDER BY name",
-    compareRecordsByPrimaryKey: true)
+    sql: "SELECT * FROM persons ORDER BY name WHERE countryIsoCode = ?",
+    arguments: ['FR'])
 ```
 
 The fetch request can involve several database tables:
@@ -2691,10 +2666,17 @@ let controller = FetchedRecordsController<Person>(
     dbQueue,
     sql: "SELECT persons.*, COUNT(books.id) AS bookCount " +
          "FROM persons " +
-         "LEFT JOIN books ON books.ownerId = persons.id " +
+         "LEFT JOIN books ON books.authorId = persons.id " +
          "GROUP BY persons.id " +
-         "ORDER BY persons.name",
-    compareRecordsByPrimaryKey: true)
+         "ORDER BY persons.name")
+```
+
+
+After creating an instance, you invoke `performFetch()` to actually execute
+the fetch.
+
+```swift
+controller.performFetch()
 ```
 
 
@@ -2804,10 +2786,31 @@ func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexP
 
 ### Implementing Table View Updates
 
-On iOS, FetchedRecordsController notifies that the controller’s fetched records have been changed due to some add, remove, move, or update operations.
+On iOS, FetchedRecordsController can notify that the controller’s fetched records have been changed due to some add, remove, move, or update operations, and help your applying the changes in a UITableView.
 
 
-**Typical Use**
+#### Record Identity
+
+Updates and moves are nicer to the eye when your perform table view animations. They require the controller to identify individual records in the fetched database rows. You must tell the controller how to do so:
+
+```swift
+let controller = FetchedRecordsController<Person>(
+    dbQueue,
+    request: ...,
+    isSameRecord: { (person1, person2) in person1.id == person2.id })
+```
+
+When the fetched type adopts the [TableMapping](#tablemapping-protocol) protocol, such as [Record](#record-class) subclasses, you're can use the `compareRecordsByPrimaryKey` shortcut:
+
+```swift
+let controller = FetchedRecordsController<Person>(
+    dbQueue,
+    request: ...,
+    compareRecordsByPrimaryKey: true)
+```
+
+
+#### Typical Table View Updates
 
 You can use the `recordsWillChange` and `recordsDidChange` callbacks to bracket updates to a table view whose content is provided by the fetched records controller, as illustrated in the following example:
 
@@ -2815,7 +2818,7 @@ You can use the `recordsWillChange` and `recordsDidChange` callbacks to bracket 
 // Assume self has a tableView property, and a configureCell(_:atIndexPath:)
 // method which updates the contents of a given cell.
 
-controller.trackChanges(
+self.controller.trackChanges(
     // controller's records are about to change:
     recordsWillChange: { [unowned self] _ in
         self.tableView.beginUpdates()
