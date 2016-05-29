@@ -260,7 +260,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
 }
 
 
-extension FetchedRecordsController where Record: MutablePersistable {
+extension FetchedRecordsController where Record: TableMapping {
     
     // MARK: - Initialization
     
