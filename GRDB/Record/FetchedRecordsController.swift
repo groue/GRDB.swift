@@ -66,17 +66,17 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///         same identity. For example, they have the same id.
     public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
         if let isSameRecord = isSameRecord {
-            self.init(databaseWriter, request: request, queue: queue, isSameRecordBuilder: { _ in isSameRecord })
+            self.init(databaseWriter, request: request, queue: queue, isSameItemFactory: { _ in { isSameRecord($0.record, $1.record) } })
         } else {
-            self.init(databaseWriter, request: request, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
+            self.init(databaseWriter, request: request, queue: queue, isSameItemFactory: { _ in { _ in false } })
         }
     }
     
-    private init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: dispatch_queue_t, isSameRecordBuilder: (Database) -> (Record, Record) -> Bool) {
+    private init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: dispatch_queue_t, isSameItemFactory: (Database) -> (Item<Record>, Item<Record>) -> Bool) {
         self.request = request
         self.databaseWriter = databaseWriter
-        self.isSameRecord = { _ in return false }
-        self.isSameRecordBuilder = isSameRecordBuilder
+        self.isSameItem = { _ in return false }
+        self.isSameItemFactory = isSameItemFactory
         self.queue = queue
     }
     
@@ -96,7 +96,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             let adapter = try! self.request.adapter(statement)
             let items = Item<Record>.fetchAll(statement, adapter: adapter)
             self.fetchedItems = items
-            self.isSameRecord = self.isSameRecordBuilder(db)
+            self.isSameItem = self.isSameItemFactory(db)
             
             if self.hasChangesCallbacks {
                 // Setup a new transaction observer.
@@ -104,7 +104,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                     controller: self,
                     initialItems: items,
                     observedTables: statement.sourceTables,
-                    isSameRecord: self.isSameRecord)
+                    isSameItem: self.isSameItem)
                 self.observer = observer
                 db.addTransactionObserver(observer)
             }
@@ -198,7 +198,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                         controller: self,
                         initialItems: items,
                         observedTables: statement.sourceTables,
-                        isSameRecord: self.isSameRecordBuilder(db))
+                        isSameItem: self.isSameItemFactory(db))
                     self.observer = observer
                     db.addTransactionObserver(observer)
                     observer.checkForChangesInDatabase(db)
@@ -232,13 +232,13 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private var fetchedItems: [Item<Record>]?
     
     // The record comparator
-    private var isSameRecord: ((Record, Record) -> Bool)
+    private var isSameItem: ((Item<Record>, Item<Record>) -> Bool)
     
     // The record comparator builder. It helps us supporting types that adopt
     // MutablePersistable: we just have to wait for a database connection, in
     // performFetch(), to get primary key information and generate a primary
     // key comparator.
-    private let isSameRecordBuilder: (Database) -> (Record, Record) -> Bool
+    private let isSameItemFactory: (Database) -> (Item<Record>, Item<Record>) -> Bool
     
     /// The request
     private var request: FetchRequest {
@@ -293,12 +293,7 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
     public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
-        let request = SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter)
-        if compareRecordsByPrimaryKey {
-            self.init(databaseWriter, request: request, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
-        } else {
-            self.init(databaseWriter, request: request, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
-        }
+        self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, compareRecordsByPrimaryKey: compareRecordsByPrimaryKey)
     }
     
     /// Returns a fetched records controller initialized from a fetch request.
@@ -324,9 +319,12 @@ extension FetchedRecordsController where Record: MutablePersistable {
     ///         share the same identity if they share the same primay key.
     public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
         if compareRecordsByPrimaryKey {
-            self.init(databaseWriter, request: request, queue: queue, isSameRecordBuilder: { db in try! Record.primaryKeyComparator(db) })
+            self.init(databaseWriter, request: request, queue: queue, isSameItemFactory: { db in
+                let comparator = try! makePrimaryKeyComparator(db, tableName: Record.databaseTableName())
+                return { comparator($0.row, $1.row) }
+            })
         } else {
-            self.init(databaseWriter, request: request, queue: queue, isSameRecordBuilder: { _ in { _ in false } })
+            self.init(databaseWriter, request: request, queue: queue, isSameItemFactory: { _ in { _ in false } })
         }
     }
 }
@@ -339,16 +337,16 @@ extension FetchedRecordsController where Record: MutablePersistable {
 private final class FetchedRecordsObserver<Record: RowConvertible> : TransactionObserverType {
     weak var controller: FetchedRecordsController<Record>?  // If nil, self is invalidated.
     let observedTables: Set<String>
-    let isSameRecord: (Record, Record) -> Bool
+    let isSameItem: (Item<Record>, Item<Record>) -> Bool
     var needsComputeChanges: Bool
     var items: [Item<Record>]
     let queue: dispatch_queue_t // protects items
     
-    init(controller: FetchedRecordsController<Record>, initialItems: [Item<Record>], observedTables: Set<String>, isSameRecord: (Record, Record) -> Bool) {
+    init(controller: FetchedRecordsController<Record>, initialItems: [Item<Record>], observedTables: Set<String>, isSameItem: (Item<Record>, Item<Record>) -> Bool) {
         self.controller = controller
         self.items = initialItems
         self.observedTables = observedTables
-        self.isSameRecord = isSameRecord
+        self.isSameItem = isSameItem
         self.needsComputeChanges = false
         self.queue = dispatch_queue_create("GRDB.FetchedRecordsObserver", DISPATCH_QUEUE_SERIAL)
     }
@@ -504,17 +502,6 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             return fetchedItems[indexPath.indexAtPosition(1)].record
         }
         
-        /// Returns the indexPath of a given record (iOS only).
-        ///
-        /// - returns: The index path of *record* in the fetched records, or nil
-        ///   if record could not be found.
-        public func indexPathForRecord(record: Record) -> NSIndexPath? {
-            guard let fetchedItems = fetchedItems, let index = fetchedItems.indexOf({ isSameRecord($0.record, record) }) else {
-                return nil
-            }
-            return makeIndexPath(forRow: index, inSection: 0)
-        }
-        
         
         // MARK: - Querying Sections Information
         
@@ -525,6 +512,21 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         public var sections: [FetchedRecordsSectionInfo<Record>] {
             // We only support a single section
             return [FetchedRecordsSectionInfo(controller: self)]
+        }
+    }
+    
+    extension FetchedRecordsController where Record: MutablePersistable {
+        
+        /// Returns the indexPath of a given record (iOS only).
+        ///
+        /// - returns: The index path of *record* in the fetched records, or nil
+        ///   if record could not be found.
+        public func indexPathForRecord(record: Record) -> NSIndexPath? {
+            let item = Item<Record>(Row(record.persistentDictionary))
+            guard let fetchedItems = fetchedItems, let index = fetchedItems.indexOf({ isSameItem($0, item) }) else {
+                return nil
+            }
+            return makeIndexPath(forRow: index, inSection: 0)
         }
     }
     
@@ -615,7 +617,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                         // Look for a matching deletion
                         for (index, otherChange) in changes.enumerate() {
                             guard case .Deletion(let oldItem, let oldIndexPath) = otherChange else { continue }
-                            guard isSameRecord(oldItem.record, newItem.record) else { continue }
+                            guard isSameItem(oldItem, newItem) else { continue }
                             let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                             if oldIndexPath == newIndexPath {
                                 return (TableViewChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
@@ -629,7 +631,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                         // Look for a matching insertion
                         for (index, otherChange) in changes.enumerate() {
                             guard case .Insertion(let newItem, let newIndexPath) = otherChange else { continue }
-                            guard isSameRecord(oldItem.record, newItem.record) else { continue }
+                            guard isSameItem(oldItem, newItem) else { continue }
                             let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                             if oldIndexPath == newIndexPath {
                                 return (TableViewChange.Update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
@@ -811,3 +813,44 @@ private func makeIndexPath(forRow row:Int, inSection section: Int) -> NSIndexPat
     return [section, row].withUnsafeBufferPointer { buffer in NSIndexPath(indexes: buffer.baseAddress, length: buffer.count) }
 }
 
+
+/// Returns a function that returns the primary key of a row
+///
+///     dbQueue.inDatabase { db in
+///         let primaryKey = makePrimaryKeyFunction(db, tableName: "persons")
+///         let row = Row.fetchOne(db, "SELECT * FROM persons")!
+///         primaryKey(row) // ["id": 1]
+///
+/// - throws: A DatabaseError if table does not exist.
+func makePrimaryKeyFunction(db: Database, tableName: String) throws -> (Row) -> [String: DatabaseValue] {
+    let columns = try db.primaryKey(tableName)?.columns ?? []
+    return { row in
+        return Dictionary<String, DatabaseValue>(keys: columns) { row.databaseValue(named: $0)! }
+    }
+}
+
+/// Returns a function that returns true if and only if two rows have the
+/// same primary key and both primary keys contain at least one non-null
+/// value.
+///
+///     dbQueue.inDatabase { db in
+///         let comparator = makePrimaryKeyComparator(db, tableName: "persons")
+///         let row0 = Row(["id": nil, "name": "Unsaved"])
+///         let row1 = Row(["id": 1, "name": "Arthur"])
+///         let row2 = Row(["id": 1, "name": "Arthur"])
+///         let row3 = Row(["id": 2, "name": "Barbara"])
+///         comparator(row0, row0) // false
+///         comparator(row1, row2) // true
+///         comparator(row1, row3) // false
+///     }
+///
+/// - throws: A DatabaseError if table does not exist.
+func makePrimaryKeyComparator(db: Database, tableName: String) throws -> (Row, Row) -> Bool {
+    let primaryKey = try makePrimaryKeyFunction(db, tableName: tableName)
+    return { (lhs, rhs) in
+        let (lhs, rhs) = (primaryKey(lhs), primaryKey(rhs))
+        guard lhs.contains({ !$1.isNull }) else { return false }
+        guard rhs.contains({ !$1.isNull }) else { return false }
+        return lhs == rhs
+    }
+}

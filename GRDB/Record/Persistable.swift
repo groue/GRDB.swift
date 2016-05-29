@@ -313,53 +313,6 @@ public extension MutablePersistable {
     
 }
 
-extension MutablePersistable {
-    /// Returns a function that returns the primary key of a record
-    ///
-    ///     struct Person: MutablePersistable { ... }
-    ///     dbQueue.inDatabase { db in
-    ///         let primaryKey = Person.primaryKeyFunction(db)
-    ///     }
-    ///     let person = Person(id: 1, name: "Arthur")
-    ///     primaryKey(person) // ["id": 1]
-    ///
-    /// - throws: A DatabaseError if table does not exist.
-    static func primaryKeyFunction(db: Database) throws -> (Self) -> [String: DatabaseValue] {
-        DatabaseScheduler.preconditionValidQueue(db)
-        let columns = try db.primaryKey(databaseTableName())?.columns ?? []
-        return { record in
-            let dictionary = record.persistentDictionary
-            return Dictionary<String, DatabaseValue>(keys: columns) { databaseValue(forColumn: $0, inDictionary: dictionary) }
-        }
-    }
-    
-    /// Returns a function that returns true if and only if two records have the
-    /// same primary key and both primary keys contain at least one non-null
-    /// value.
-    ///
-    ///     struct Person: MutablePersistable { ... }
-    ///     dbQueue.inDatabase { db in
-    ///         let comparator = Person.primaryKeyComparator(db)
-    ///     }
-    ///     let unsaved = Person(id: nil, name: "Unsaved")
-    ///     let arthur1 = Person(id: 1, name: "Arthur")
-    ///     let arthur2 = Person(id: 1, name: "Arthur")
-    ///     let barbara = Person(id: 2, name: "Barbara")
-    ///     comparator(unsaved, unsaved) // false
-    ///     comparator(arthur1, arthur2) // true
-    ///     comparator(arthur1, barbara) // false
-    ///
-    /// - throws: A DatabaseError if table does not exist.
-    static func primaryKeyComparator(db: Database) throws -> (Self, Self) -> Bool {
-        let primaryKey = try Self.primaryKeyFunction(db)
-        return { (lhs, rhs) in
-            let (lhs, rhs) = (primaryKey(lhs), primaryKey(rhs))
-            guard lhs.contains({ !$1.isNull }) else { return false }
-            guard rhs.contains({ !$1.isNull }) else { return false }
-            return lhs == rhs
-        }
-    }
-}
 
 // MARK: - Persistable
 
