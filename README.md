@@ -2656,7 +2656,7 @@ let controller = FetchedRecordsController<Person>(
 let controller = FetchedRecordsController<Person>(
     dbQueue,
     sql: "SELECT * FROM persons ORDER BY name WHERE countryIsoCode = ?",
-    arguments: ['FR'])
+    arguments: ["FR"])
 ```
 
 The fetch request can involve several database tables:
