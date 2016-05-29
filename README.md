@@ -2733,15 +2733,12 @@ All callbacks have the fetched record controller itself as an argument: use it i
 ```swift
 // BAD: memory leak
 controller.trackChanges { _ in
-    let persons = controller.fetchedRecords!
+    let newPersons = controller.fetchedRecords!
 }
 
 // GOOD
 controller.trackChanges { controller in
-    let persons = controller.fetchedRecords!
-}
-controller.trackChanges {
-    let persons = $0.fetchedRecords!
+    let newPersons = controller.fetchedRecords!
 }
 ```
 
