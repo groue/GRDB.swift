@@ -2720,7 +2720,7 @@ controller.trackChanges(
 
 See [Implementing Table View Updates](#implementing-table-view-updates) for more detail on table view updates on iOS.
 
-All callbacks are optional. When you only need to grab the latest results, you can omit the `recordsDidChange` argument name:
+**All callbacks are optional.** When you only need to grab the latest results, you can omit the `recordsDidChange` argument name:
 
 ```swift
 controller.trackChanges { controller in
@@ -2728,7 +2728,7 @@ controller.trackChanges { controller in
 }
 ```
 
-All callbacks have the fetched record controller itself as an argument: use it in order to avoid memory leaks:
+Callbacks have the fetched record controller itself as an argument: use it in order to avoid memory leaks:
 
 ```swift
 // BAD: memory leak
@@ -2741,6 +2741,18 @@ controller.trackChanges { controller in
     let newPersons = controller.fetchedRecords!
 }
 ```
+
+Unless specified [otherwise](#fetchedrecordscontroller-concurrency), callbacks are invoked, asynchronously, on the main thread. This means that changes made from the main thread are *not* immediately notified:
+
+```swift
+// On the main thread
+try dbQueue.inDatabase { db in
+    try Person(...).insert(db)
+}
+// Here changes have not yet been notified.
+```
+
+When you need to take immediate action, force the controller to refresh immediately with its `performFetch` method. In this case, changes callbacks are *not* called.
 
 
 ### Modifying the Fetch Request
