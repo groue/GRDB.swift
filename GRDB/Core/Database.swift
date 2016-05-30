@@ -1345,11 +1345,20 @@ extension Database {
     }
     
     /// Some failed statements interest transaction observers.
-    func updateStatementDidFail() throws {
+    func updateStatementDidFail(statement: UpdateStatement) throws {
         // Reset transactionState before didRollback eventually executes
         // other statements.
         let transactionState = self.transactionState
         self.transactionState = .WaitForTransactionCompletion
+        
+        // Failed statements can not be reused, because sqlite3_reset won't
+        // be able to restore the statement to its initial state:
+        // https://www.sqlite.org/c3ref/reset.html
+        //
+        // So make sure we don't clear this statement from the cache.
+        if let index = updateStatementCache.indexOf({ $0.1 === statement }) {
+            updateStatementCache.removeAtIndex(index)
+        }
         
         switch transactionState {
         case .RollbackFromTransactionObserver(let error):

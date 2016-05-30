@@ -478,7 +478,7 @@ public final class UpdateStatement : Statement {
             // Failure
             //
             // Let database rethrow eventual transaction observer error:
-            try database.updateStatementDidFail()
+            try database.updateStatementDidFail(self)
             
             throw DatabaseError(code: errorCode, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
         }
