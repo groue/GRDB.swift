@@ -31,6 +31,8 @@ typealias SQLiteValue = COpaquePointer
 ///         db.execute(...)
 ///     }
 public final class Database {
+    // The Database class is not thread-safe. An instance should always be
+    // used through a SerializedDatabase.
     
     // MARK: - Database Information
     
@@ -40,9 +42,9 @@ public final class Database {
     /// The raw SQLite connection, suitable for the SQLite C API.
     public let sqliteConnection: SQLiteConnection
     
-    /// The rowID of the most recent successful INSERT.
+    /// The rowID of the most recently inserted row.
     ///
-    /// If no successful INSERT has ever occurred on the database connection,
+    /// If no row has ever been inserted using this database connection,
     /// returns zero.
     ///
     /// For more detailed information, see https://www.sqlite.org/c3ref/last_insert_rowid.html
