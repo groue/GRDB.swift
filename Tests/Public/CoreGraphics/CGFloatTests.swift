@@ -1,7 +1,9 @@
 import XCTest
 import CoreGraphics
-#if SQLITE_HAS_CODEC
+#if USING_SQLCIPHER
     import GRDBCipher
+#elseif USING_CUSTOMSQLITE
+    import GRDBCustomSQLite
 #else
     import GRDB
 #endif

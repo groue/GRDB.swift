@@ -1,6 +1,6 @@
 import Foundation
 
-#if !SQLITE_HAS_CODEC
+#if !USING_BUILTIN_SQLITE
     #if os(OSX)
         import SQLiteMacOSX
     #elseif os(iOS)
