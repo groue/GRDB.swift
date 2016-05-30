@@ -24,7 +24,7 @@
 ///
 /// - preconditionValidQueue() crashes whenever a database is used in an invalid
 ///   dispatch queue.
-class DatabaseScheduler {
+final class DatabaseScheduler {
     private static let specificKey = unsafeBitCast(DatabaseScheduler.self, UnsafePointer<Void>.self) // some unique pointer
     private var allowedSerializedDatabases: [Database]
     

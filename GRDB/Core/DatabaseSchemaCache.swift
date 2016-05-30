@@ -1,5 +1,5 @@
 /// A thread-unsafe database schema cache
-class DatabaseSchemaCache: DatabaseSchemaCacheType {
+final class DatabaseSchemaCache: DatabaseSchemaCacheType {
     private var primaryKeys: [String: PrimaryKey?] = [:]
     
     func clear() {
@@ -19,10 +19,10 @@ class DatabaseSchemaCache: DatabaseSchemaCacheType {
 }
 
 /// A thread-safe database schema cache
-struct SharedDatabaseSchemaCache: DatabaseSchemaCacheType {
+final class SharedDatabaseSchemaCache: DatabaseSchemaCacheType {
     private let cache = ReadWriteBox(DatabaseSchemaCache())
     
-    mutating func clear() {
+    func clear() {
         cache.write { $0.clear() }
     }
     
@@ -30,7 +30,7 @@ struct SharedDatabaseSchemaCache: DatabaseSchemaCacheType {
         return cache.read { $0.primaryKey(tableName: tableName) }
     }
     
-    mutating func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String) {
+    func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String) {
         cache.write { $0.setPrimaryKey(primaryKey, forTableName: tableName) }
     }
 }
