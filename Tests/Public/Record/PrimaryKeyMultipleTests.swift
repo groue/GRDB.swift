@@ -6,7 +6,7 @@ import XCTest
 #endif
 
 // Citizenship has a multiple-column primary key.
-class Citizenship : Record {
+private class Citizenship : Record {
     var personName: String!
     var countryName: String!
     var native: Bool!

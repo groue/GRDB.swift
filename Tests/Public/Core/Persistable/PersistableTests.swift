@@ -98,6 +98,19 @@ private struct PersistableCustomizedCountry : Persistable {
     }
 }
 
+private struct Citizenship : Persistable {
+    let personID: Int64
+    let countryIsoCode: String
+    
+    static func databaseTableName() -> String {
+        return "citizenships"
+    }
+    
+    var persistentDictionary: [String: DatabaseValueConvertible?] {
+        return ["countryIsoCode": countryIsoCode, "personID": personID]
+    }
+}
+
 class PersistableTests: GRDBTestCase {
     
     override func setUpDatabase(dbWriter: DatabaseWriter) throws {
@@ -113,6 +126,11 @@ class PersistableTests: GRDBTestCase {
                 "CREATE TABLE countries (" +
                     "isoCode TEXT NOT NULL PRIMARY KEY, " +
                     "name TEXT NOT NULL " +
+                ")")
+            try db.execute(
+                "CREATE TABLE citizenships (" +
+                    "countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode), " +
+                    "personID INTEGER NOT NULL REFERENCES persons(id)" +
                 ")")
         }
         try migrator.migrate(dbWriter)
@@ -609,6 +627,26 @@ class PersistableTests: GRDBTestCase {
                 XCTAssertEqual(saveCount, 0)
                 XCTAssertEqual(deleteCount, 1)
                 XCTAssertEqual(existsCount, 2)
+            }
+        }
+    }
+    
+    
+    // MARK: - Errors
+    
+    func testInsertErrorDoesNotPreventSubsequentInserts() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let person = PersistablePersonClass(id: nil, name: "Arthur", age: 12)
+                try person.insert(db)
+                try PersistableCountry(isoCode: "FR", name: "France").insert(db)
+                do {
+                    try Citizenship(personID: person.id!, countryIsoCode: "US").insert(db)
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
+                }
+                try Citizenship(personID: person.id!, countryIsoCode: "FR").insert(db)
             }
         }
     }
