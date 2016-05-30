@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.70.1
+
+Released May 30, 2016
+
+**Fixed**
+
+- `Database.cachedUpdateStatement(sql)` no longer returns a statement that can not be reused because it has already failed.
+
+
 ## 0.70.0
 
 Released May 28, 2016
