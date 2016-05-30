@@ -1355,7 +1355,7 @@ extension Database {
         // be able to restore the statement to its initial state:
         // https://www.sqlite.org/c3ref/reset.html
         //
-        // So make sure we don't clear this statement from the cache.
+        // So make sure we clear this statement from the cache.
         if let index = updateStatementCache.indexOf({ $0.1 === statement }) {
             updateStatementCache.removeAtIndex(index)
         }
