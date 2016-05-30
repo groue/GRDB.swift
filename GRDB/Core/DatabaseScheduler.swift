@@ -1,13 +1,21 @@
-/// DatabaseScheduler makes sure that databases are used on correct dispatch
-/// queues.
+/// DatabaseScheduler makes sure that databases connections are used on correct
+/// dispatch queues, and warns the user with a fatal error whenever she misuses
+/// a database connection.
 ///
-/// It has three entry points:
+/// Generally speaking, each connection has its own dispatch queue. But it's not
+/// enough: users need to use two database connections at the same time:
+/// https://github.com/groue/GRDB.swift/issues/55. To support this use case, a
+/// single dispatch queue can be temporarily shared by two or more connections.
+///
+/// Managing this queue sharing is the job of the DatabaseScheduler class.
+///
+/// Three entry points:
 ///
 /// - DatabaseScheduler.makeSerializedQueueAllowing(database:) creates a
 ///   dispatch queue that allows one database.
 ///
 ///   It does so by registering one instance of DatabaseScheduler as a specific
-///   of the dispatch queue, a DatabaseScheduler that allows that database.
+///   of the dispatch queue, a DatabaseScheduler that allows that database only.
 ///
 /// - The dispatchSync() function helps using several databases in the same
 ///   dispatch queue. It does so by temporarily extending the allowed databases
@@ -117,7 +125,11 @@ class DatabaseScheduler {
     }
     
     static func preconditionValidQueue(db: Database, @autoclosure _ message: () -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
-        GRDBPrecondition(currentScheduler()?.allows(db) ?? false, message, file: file, line: line)
+        GRDBPrecondition(allows(db), message, file: file, line: line)
+    }
+    
+    static func allows(db: Database) -> Bool {
+        return currentScheduler()?.allows(db) ?? false
     }
     
     private func allows(db: Database) -> Bool {

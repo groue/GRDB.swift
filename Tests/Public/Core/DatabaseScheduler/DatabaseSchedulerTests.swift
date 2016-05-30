@@ -1,11 +1,54 @@
 import XCTest
 #if SQLITE_HAS_CODEC
-    import GRDBCipher
+    @testable import GRDBCipher // @testable so that we can test DatabaseScheduler
 #else
-    import GRDB
+    @testable import GRDB // @testable so that we can test DatabaseScheduler
 #endif
 
 class DatabaseSchedulerTests: GRDBTestCase {
+    
+    func testDatabaseScheduler() {
+        assertNoError {
+            let dbQueue1 = try makeDatabaseQueue("db1")
+            let dbQueue2 = try makeDatabaseQueue("db2")
+            let dbQueue3 = try makeDatabaseQueue("db3")
+            
+            var db1: Database! = nil
+            var db2: Database! = nil
+            var db3: Database! = nil
+            dbQueue1.inDatabase { db1 = $0 }
+            dbQueue2.inDatabase { db2 = $0 }
+            dbQueue3.inDatabase { db3 = $0 }
+
+            XCTAssertFalse(DatabaseScheduler.allows(db1))
+            XCTAssertFalse(DatabaseScheduler.allows(db2))
+            XCTAssertFalse(DatabaseScheduler.allows(db3))
+            dbQueue1.inDatabase { _ in
+                XCTAssertTrue(DatabaseScheduler.allows(db1))
+                XCTAssertFalse(DatabaseScheduler.allows(db2))
+                XCTAssertFalse(DatabaseScheduler.allows(db3))
+                dbQueue2.inDatabase { _ in
+                    XCTAssertTrue(DatabaseScheduler.allows(db1))
+                    XCTAssertTrue(DatabaseScheduler.allows(db2))
+                    XCTAssertFalse(DatabaseScheduler.allows(db3))
+                    dbQueue3.inDatabase { _ in
+                        XCTAssertTrue(DatabaseScheduler.allows(db1))
+                        XCTAssertTrue(DatabaseScheduler.allows(db2))
+                        XCTAssertTrue(DatabaseScheduler.allows(db3))
+                    }
+                    XCTAssertTrue(DatabaseScheduler.allows(db1))
+                    XCTAssertTrue(DatabaseScheduler.allows(db2))
+                    XCTAssertFalse(DatabaseScheduler.allows(db3))
+                }
+                XCTAssertTrue(DatabaseScheduler.allows(db1))
+                XCTAssertFalse(DatabaseScheduler.allows(db3))
+                XCTAssertFalse(DatabaseScheduler.allows(db2))
+            }
+            XCTAssertFalse(DatabaseScheduler.allows(db1))
+            XCTAssertFalse(DatabaseScheduler.allows(db2))
+            XCTAssertFalse(DatabaseScheduler.allows(db3))
+        }
+    }
     
     func testDatabaseQueueFromDatabaseQueue() {
         assertNoError {
