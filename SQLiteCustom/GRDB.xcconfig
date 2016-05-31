@@ -2,7 +2,7 @@ CUSTOM_OTHER_SWIFT_FLAGS=   // do not modify
 
 // Build once to generate this file:
 #include "GRDBCustomSQLite-USER.xcconfig"
-#include "../SQLiteCustom/src/SQLiteLib-Custom.xcconfig"
+#include "src/SQLiteLib-USER.xcconfig"
 
 INFOPLIST_FILE = Support/Info.plist
 PRODUCT_NAME = GRDBCustomSQLite
