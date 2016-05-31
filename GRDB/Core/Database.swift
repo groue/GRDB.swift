@@ -496,7 +496,8 @@ extension Database {
         var error: ErrorType?
         
         // During the execution of sqlite3_prepare_v2, the observer listens to
-        // authorization callbacks in order to observe schema changes.
+        // authorization callbacks in order to recognize "interesting"
+        // statements. See updateStatementDidExecute().
         let observer = StatementCompilationObserver(self)
         observer.start()
         
