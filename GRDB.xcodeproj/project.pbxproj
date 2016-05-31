@@ -2793,7 +2793,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "for ((i=0; i < SCRIPT_INPUT_FILE_COUNT ; i++))\ndo\n    INFILE=SCRIPT_INPUT_FILE_$i\n    FILE=${!INFILE};\n    OUTPUTFILE=${FILE%.example}\n    echo \"${INFILE}=${FILE}\"\n    if [ -f \"$FILE\" ]\n    then\n        if [ ! -f \"$OUTPUTFILE\" ];\n        then\n            echo \"Expected USER configuration file doesn't exist\"\n            echo \"Copying .example file\"\n            cp $FILE $OUTPUTFILE\n        else\n            echo \"USER Configuration file already exists: ${OUTPUTFILE}\"\n            echo \"Skipping .example copy.\"\n        fi\n    else\n        echo \"Missing input .example file: ${FILE}\"\n        exit 1\n    fi\ndone\n";
+			shellScript = "copiedfiles=false\nfor ((i=0; i < SCRIPT_INPUT_FILE_COUNT ; i++))\ndo\n    INFILE=SCRIPT_INPUT_FILE_$i\n    FILE=${!INFILE};\n    OUTPUTFILE=${FILE%.example}\n    echo \"${INFILE}=${FILE}\"\n    if [ -f \"$FILE\" ]\n    then\n        if [ ! -f \"$OUTPUTFILE\" ];\n        then\n            echo \"Expected USER configuration file doesn't exist\"\n            echo \"Copying .example file\"\n            cp $FILE $OUTPUTFILE\n            copiedfiles=true\n        else\n            echo \"USER Configuration file already exists: ${OUTPUTFILE}\"\n            echo \"Skipping .example copy.\"\n        fi\n    else\n        echo \"Missing input .example file: ${FILE}\"\n        exit 1\n    fi\ndone\n\nif [ \"$copiedfiles\" = true ] ; then\ntouch \"${SRCROOT}/SQLiteCustom/GRDB.xcconfig\"\ntouch \"${SRCROOT}/SQLiteCustom/GRDBCustomSQLite-Testing.xcconfig\"\nsleep 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		EED476F51CFD1A610026A4EC /* Copy .example configuration files (if no USER customizations exist) */ = {
@@ -2810,7 +2810,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "for ((i=0; i < SCRIPT_INPUT_FILE_COUNT ; i++))\ndo\n    INFILE=SCRIPT_INPUT_FILE_$i\n    FILE=${!INFILE};\n    OUTPUTFILE=${FILE%.example}\n    echo \"${INFILE}=${FILE}\"\n    if [ -f \"$FILE\" ]\n    then\n        if [ ! -f \"$OUTPUTFILE\" ];\n        then\n            echo \"Expected USER configuration file doesn't exist\"\n            echo \"Copying .example file\"\n            cp $FILE $OUTPUTFILE\n        else\n            echo \"USER Configuration file already exists: ${OUTPUTFILE}\"\n            echo \"Skipping .example copy.\"\n        fi\n    else\n        echo \"Missing input .example file: ${FILE}\"\n        exit 1\n    fi\ndone\n";
+			shellScript = "copiedfiles=false\nfor ((i=0; i < SCRIPT_INPUT_FILE_COUNT ; i++))\ndo\n    INFILE=SCRIPT_INPUT_FILE_$i\n    FILE=${!INFILE};\n    OUTPUTFILE=${FILE%.example}\n    echo \"${INFILE}=${FILE}\"\n    if [ -f \"$FILE\" ]\n    then\n        if [ ! -f \"$OUTPUTFILE\" ];\n        then\n            echo \"Expected USER configuration file doesn't exist\"\n            echo \"Copying .example file\"\n            cp $FILE $OUTPUTFILE\n            copiedfiles=true\n        else\n            echo \"USER Configuration file already exists: ${OUTPUTFILE}\"\n            echo \"Skipping .example copy.\"\n        fi\n    else\n        echo \"Missing input .example file: ${FILE}\"\n        exit 1\n    fi\ndone\n\nif [ \"$copiedfiles\" = true ] ; then\ntouch \"${SRCROOT}/SQLiteCustom/GRDB.xcconfig\"\ntouch \"${SRCROOT}/SQLiteCustom/GRDBCustomSQLite-Testing.xcconfig\"\nsleep 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
