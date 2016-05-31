@@ -13,7 +13,7 @@ It ships with a **low-level SQLite API**, and high-level tools that help dealing
 - **Fetched Records Controller**: automated tracking of changes in a query results, and UITableView animations
 - **Encryption** with SQLCipher
 
-More than a set of features, GRDB is also:
+More than a set of tools that leverage SQLite abilities, GRDB is also:
 
 - **Safer**: read the blog post [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
 - **Faster**: see [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance)
@@ -2811,7 +2811,7 @@ let controller = FetchedRecordsController<Person>(
     isSameRecord: { (person1, person2) in person1.id == person2.id })
 ```
 
-When the fetched type adopts the [TableMapping](#tablemapping-protocol) protocol, such as [Record](#record-class) subclasses, you're can use the `compareRecordsByPrimaryKey` shortcut:
+When the fetched type adopts the [TableMapping](#tablemapping-protocol) protocol, such as [Record](#record-class) subclasses, you can use the `compareRecordsByPrimaryKey` shortcut:
 
 ```swift
 let controller = FetchedRecordsController<Person>(

@@ -271,9 +271,7 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "RELEASE SAVEPOINT grdb",
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item3')"
                 ])
@@ -302,15 +300,12 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
-                "RELEASE SAVEPOINT grdb",
-                "COMMIT TRANSACTION",
+                "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item3')"
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item3"])
-            XCTAssertEqual(observer.allRecordedEvents.count, 2)
+            XCTAssertEqual(observer.allRecordedEvents.count, 3)
         }
     }
     
@@ -340,13 +335,11 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
                 "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
                 "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "RELEASE SAVEPOINT grdb",
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
@@ -376,19 +369,16 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
                 "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
                 "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
-                "RELEASE SAVEPOINT grdb",
-                "COMMIT TRANSACTION",
+                "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
-            XCTAssertEqual(observer.allRecordedEvents.count, 2)
+            XCTAssertEqual(observer.allRecordedEvents.count, 5)
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
             
@@ -413,14 +403,12 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
                 "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
                 "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
                 "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "RELEASE SAVEPOINT grdb",
                 "COMMIT TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
@@ -450,20 +438,17 @@ class SavepointTests: GRDBTestCase {
             XCTAssertEqual(sqlQueries, [
                 "INSERT INTO items (name) VALUES ('item1')",
                 "BEGIN IMMEDIATE TRANSACTION",
-                "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item2')",
                 "SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item3')",
                 "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
                 "RELEASE SAVEPOINT grdb",
                 "INSERT INTO items (name) VALUES ('item4')",
-                "ROLLBACK TRANSACTION TO SAVEPOINT grdb",
-                "RELEASE SAVEPOINT grdb",
-                "COMMIT TRANSACTION",
+                "ROLLBACK TRANSACTION",
                 "INSERT INTO items (name) VALUES ('item5')"
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
-            XCTAssertEqual(observer.allRecordedEvents.count, 2)
+            XCTAssertEqual(observer.allRecordedEvents.count, 4)
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
         }
