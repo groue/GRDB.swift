@@ -514,9 +514,9 @@ extension Database {
                     break
                 }
                 
-                let sqlData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd - statementStart, freeWhenDone: false)
-                let sql = String(data: sqlData, encoding: NSUTF8StringEncoding)!.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet())
-                guard !sql.isEmpty else {
+                guard sqliteStatement != nil else {
+                    // The remaining string contains only whitespace
+                    assert(String(data: NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd - statementStart, freeWhenDone: false), encoding: NSUTF8StringEncoding)!.stringByTrimmingCharactersInSet(.whitespaceAndNewlineCharacterSet()).isEmpty)
                     break
                 }
                 
