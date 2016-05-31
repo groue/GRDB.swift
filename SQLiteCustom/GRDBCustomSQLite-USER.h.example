@@ -2,8 +2,11 @@
 // INSTEAD, INCLUDE "GRDBCustomSQLite.h"
 
 //
-// INSERT ANY ADDITIONAL SQLITE DEFINES HERE
+// INSERT ANY ADDITIONAL SQLITE DEFINES HERE:
 //
-#define SQLITE_ENABLE_PREUPDATE_HOOK
 // -----------------------------------------
+
+
+// -----------------------------------------
+//
 
