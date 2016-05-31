@@ -1176,24 +1176,17 @@ extension Database {
     ///   either .Commit or .Rollback.
     /// - throws: The error thrown by the block.
     public func inSavepoint(@noescape block: () throws -> TransactionCompletion) throws {
-        // By default, SQLite savepoints open a deferred transaction.
+        // By default, top level SQLite savepoints open a deferred transaction.
         //
         // But GRDB database configuration mandates a default transaction kind
         // that we have to honor.
         //
         // So when the default GRDB transaction kind is not deferred, we wrap
-        // top-level savepoints in a transaction:
-        if isInsideTransaction || configuration.defaultTransactionKind == .Deferred {
-            try _inSavepoint(block)
-        } else {
-            try inTransaction {
-                try _inSavepoint(block)
-                return .Commit
-            }
+        // open a transaction instead
+        guard isInsideTransaction || configuration.defaultTransactionKind == .Deferred else {
+            return try inTransaction(nil, block)
         }
-    }
-    
-    private func _inSavepoint(@noescape block: () throws -> TransactionCompletion) throws {
+
         // If the savepoint is top-level, we'll use ROLLBACK TRANSACTION in
         // order to perform the special error handling of rollbacks (see
         // the rollback method).
