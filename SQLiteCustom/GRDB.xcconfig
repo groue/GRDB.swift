@@ -1,4 +1,5 @@
-#include "GRDBCustomSQLite-Custom.xcconfig"
+// Build once to generate this file:
+#include "GRDBCustomSQLite-USER.xcconfig"
 #include "../SQLiteCustom/src/SQLiteLib-Custom.xcconfig"
 
 INFOPLIST_FILE = Support/Info.plist
