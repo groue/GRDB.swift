@@ -1112,6 +1112,20 @@
 			remoteGlobalIDString = EE247B451C3F3ED000AE3E12;
 			remoteInfo = "SQLiteTests Mac";
 		};
+		EED9F6451CFE39D1004BA2B8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3BA7FF31CFB23E4003DC1BA /* SQLiteLib.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = sqlitecustom;
+		};
+		EED9F6471CFE39D7004BA2B8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F3BA7FF31CFB23E4003DC1BA /* SQLiteLib.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = sqlitecustom;
+		};
 		F3BA7FF71CFB23E4003DC1BA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F3BA7FF31CFB23E4003DC1BA /* SQLiteLib.xcodeproj */;
@@ -2442,6 +2456,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				EED9F6461CFE39D1004BA2B8 /* PBXTargetDependency */,
 			);
 			name = GRDBCustomSQLiteiOS;
 			productName = GRDBCustomSQLite;
@@ -2479,6 +2494,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				EED9F6481CFE39D7004BA2B8 /* PBXTargetDependency */,
 			);
 			name = GRDBCustomSQLiteOSX;
 			productName = GRDBCustomSQLite;
@@ -3899,6 +3915,16 @@
 			isa = PBXTargetDependency;
 			target = DC3773F219C8CBB3004FCF85 /* GRDBOSX */;
 			targetProxy = 56E5D7FF1B4D422E00430942 /* PBXContainerItemProxy */;
+		};
+		EED9F6461CFE39D1004BA2B8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = sqlitecustom;
+			targetProxy = EED9F6451CFE39D1004BA2B8 /* PBXContainerItemProxy */;
+		};
+		EED9F6481CFE39D7004BA2B8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = sqlitecustom;
+			targetProxy = EED9F6471CFE39D7004BA2B8 /* PBXContainerItemProxy */;
 		};
 		F3BA80481CFB2AD7003DC1BA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
