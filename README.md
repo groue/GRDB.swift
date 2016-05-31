@@ -2811,7 +2811,7 @@ let controller = FetchedRecordsController<Person>(
     isSameRecord: { (person1, person2) in person1.id == person2.id })
 ```
 
-When the fetched type adopts the [TableMapping](#tablemapping-protocol) protocol, such as [Record](#record-class) subclasses, you're can use the `compareRecordsByPrimaryKey` shortcut:
+When the fetched type adopts the [TableMapping](#tablemapping-protocol) protocol, such as [Record](#record-class) subclasses, you can use the `compareRecordsByPrimaryKey` shortcut:
 
 ```swift
 let controller = FetchedRecordsController<Person>(
