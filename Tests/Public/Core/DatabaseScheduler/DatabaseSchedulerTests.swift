@@ -1,6 +1,8 @@
 import XCTest
-#if SQLITE_HAS_CODEC
+#if USING_SQLCIPHER
     @testable import GRDBCipher // @testable so that we can test DatabaseScheduler
+#elseif USING_CUSTOMSQLITE
+    @testable import GRDBCustomSQLite // @testable so that we can test DatabaseScheduler
 #else
     @testable import GRDB // @testable so that we can test DatabaseScheduler
 #endif

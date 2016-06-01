@@ -1,0 +1,18 @@
+
+// To compile SQLite with additional compilation options:
+// 1.) Add them to the "SQLiteLib-USER.xcconfig" in the SQLiteLib.xcodeproj
+// 2.) Add them to the CUSTOM_OTHER_SWIFT_FLAGS line below.
+// 3.) Optionally add them to "GRDBCustomSQLite-USER.h" to expose the appropriate SQLite APIs to framework consumers.
+//
+// See the README.md file for more details.
+//
+// How to Convert OTHER_CFLAGS to OTHER_SWIFT_FLAGS:
+//  Add a space after the "-D"
+//
+//  Example:
+//  OTHER_CFLAGS = -DSQLITE_ENABLE_PREUPDATE_HOOK
+//  becomes:
+//  CUSTOM_OTHER_SWIFT_FLAGS = -D SQLITE_ENABLE_PREUPDATE_HOOK
+
+CUSTOM_OTHER_SWIFT_FLAGS =
+

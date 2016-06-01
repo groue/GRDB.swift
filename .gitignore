@@ -95,3 +95,7 @@ xcuserdata
 
 # Performance test baselines
 *.xcbaseline
+
+# GRDBCustomSQLite USER configuration files
+SQLiteCustom/GRDBCustomSQLite-USER.h
+SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
