@@ -1071,9 +1071,20 @@ try dbQueue.inDatabase { db in  // or dbPool.write { db in
 You can ask a database if a transaction is currently opened:
 
 ```swift
-func myCriticalMethod(db: Database) {
+func myCriticalMethod(db: Database) throws {
     precondition(db.isInsideTransaction, "This method requires a transaction")
-    ...
+    try ...
+}
+```
+
+Yet, you have a better option than checking for transactions: critical sections of your application should use savepoints, described below:
+
+```swift
+func myCriticalMethod(db: Database) throws {
+    try db.inSavepoint {
+        // Here the database is guaranteed to be inside a transaction.
+        try ...
+    }
 }
 ```
 
