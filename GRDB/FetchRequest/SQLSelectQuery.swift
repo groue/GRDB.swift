@@ -301,11 +301,28 @@ extension DatabaseValueConvertible {
 /// Do not use it directly.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
-public protocol _SpecificSQLExpressible : _SQLExpressible, _SQLOrdering, _SQLSelectable {
+public protocol _SpecificSQLExpressible : _SQLExpressible {
+    // _SQLExpressible can be adopted by Swift standard types, and user
+    // types, through the DatabaseValueConvertible protocol, which inherits
+    // from _SQLExpressible.
+    //
+    // For example, Int adopts _SQLExpressible through
+    // DatabaseValueConvertible.
+    //
+    // _SpecificSQLExpressible, on the other side, is not adopted by any
+    // Swift standard type or any user type. It is only adopted by GRDB types,
+    // such as SQLColumn, _SQLExpression and _SQLLiteral.
+    //
+    // This separation lets us define functions and operators that do not
+    // spill out. The three declarations below have no chance overloading a
+    // Swift-defined operator, or a user-defined operator:
+    //
+    // - ==(_SQLExpressible, _SpecificSQLExpressible)
+    // - ==(_SpecificSQLExpressible, _SQLExpressible)
+    // - ==(_SpecificSQLExpressible, _SpecificSQLExpressible)
 }
 
-// Conformance to _SQLOrdering
-extension _SpecificSQLExpressible {
+extension _SpecificSQLExpressible where Self: _SQLOrdering {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -324,8 +341,7 @@ extension _SpecificSQLExpressible {
     }
 }
 
-// Conformance to _SQLSelectable
-extension _SpecificSQLExpressible {
+extension _SpecificSQLExpressible where Self: _SQLSelectable {
     
     /// This method is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -386,7 +402,7 @@ public indirect enum _SQLExpression {
     case SQLLiteral(String)
     
     /// For example: `1` or `'foo'`
-    case value(DatabaseValueConvertible?)
+    case value(DatabaseValueConvertible?)   // TODO: switch to DatabaseValue?
     
     /// For example: `name`, `table.name`
     case identifier(identifier: String, sourceName: String?)
@@ -592,6 +608,9 @@ extension _SQLExpression : _SpecificSQLExpressible {
     }
 }
 
+extension _SQLExpression : _SQLSelectable {}
+extension _SQLExpression : _SQLOrdering {}
+
 
 // MARK: - _SQLSelectable
 
@@ -669,6 +688,9 @@ extension _SQLLiteral : _SpecificSQLExpressible {
     }
 }
 
+extension _SQLLiteral : _SQLSelectable {}
+extension _SQLLiteral : _SQLOrdering {}
+
 
 // MARK: - SQLColumn
 
@@ -704,3 +726,5 @@ extension SQLColumn : _SpecificSQLExpressible {
     }
 }
 
+extension SQLColumn : _SQLSelectable {}
+extension SQLColumn : _SQLOrdering {}

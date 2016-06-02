@@ -1,0 +1,13 @@
+//  DO NOT MODIFY.
+//  This config file is used to expose other settings to the test bundle.
+
+CUSTOM_OTHER_SWIFT_FLAGS=   // do not modify
+
+// Build once to generate this file:
+#include "GRDBCustomSQLite-USER.xcconfig"
+#include "src/SQLiteLib-USER.xcconfig"
+
+OTHER_CFLAGS = -DUSING_BUILTIN_SQLITE -DUSING_CUSTOMSQLITE $(CUSTOM_SQLLIBRARY_CFLAGS)        // Do not modify.
+OTHER_SWIFT_FLAGS = -D USING_BUILTIN_SQLITE -D USING_CUSTOMSQLITE $(CUSTOM_OTHER_SWIFT_FLAGS)  // Do not modify.
+
+

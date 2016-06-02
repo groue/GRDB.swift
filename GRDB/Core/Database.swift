@@ -1,6 +1,6 @@
 import Foundation
 
-#if !SQLITE_HAS_CODEC
+#if !USING_BUILTIN_SQLITE
     #if os(OSX)
         import SQLiteMacOSX
     #elseif os(iOS)
@@ -493,7 +493,8 @@ extension Database {
         var error: ErrorProtocol?
         
         // During the execution of sqlite3_prepare_v2, the observer listens to
-        // authorization callbacks in order to observe schema changes.
+        // authorization callbacks in order to recognize "interesting"
+        // statements. See updateStatementDidExecute().
         let observer = StatementCompilationObserver(self)
         observer.start()
         
@@ -511,9 +512,9 @@ extension Database {
                     break
                 }
                 
-                let sqlData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd! - statementStart, freeWhenDone: false)
-                let sql = String(data: sqlData, encoding: NSUTF8StringEncoding)!.trimmingCharacters(in: .whitespacesAndNewlines())
-                guard !sql.isEmpty else {
+                guard sqliteStatement != nil else {
+                    // The remaining string contains only whitespace
+                    assert(String(data: NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd! - statementStart, freeWhenDone: false), encoding: NSUTF8StringEncoding)!.trimmingCharacters(in: .whitespacesAndNewlines()).isEmpty)
                     break
                 }
                 
@@ -1170,24 +1171,17 @@ extension Database {
     ///   either .commit or .rollback.
     /// - throws: The error thrown by the block.
     public func inSavepoint(_ block: @noescape() throws -> TransactionCompletion) throws {
-        // By default, SQLite savepoints open a deferred transaction.
+        // By default, top level SQLite savepoints open a deferred transaction.
         //
         // But GRDB database configuration mandates a default transaction kind
         // that we have to honor.
         //
-        // So when the default GRDB transaction kind is not deferred, we wrap
-        // top-level savepoints in a transaction:
-        if isInsideTransaction || configuration.defaultTransactionKind == .deferred {
-            try _inSavepoint(block)
-        } else {
-            try inTransaction {
-                try _inSavepoint(block)
-                return .commit
-            }
+        // So when the default GRDB transaction kind is not deferred, we open a
+        // transaction instead
+        guard isInsideTransaction || configuration.defaultTransactionKind == .deferred else {
+            return try inTransaction(nil, block)
         }
-    }
-    
-    private func _inSavepoint(_ block: @noescape() throws -> TransactionCompletion) throws {
+
         // If the savepoint is top-level, we'll use ROLLBACK TRANSACTION in
         // order to perform the special error handling of rollbacks (see
         // the rollback method).

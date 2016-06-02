@@ -1,6 +1,8 @@
 import XCTest
-#if SQLITE_HAS_CODEC
+#if USING_SQLCIPHER
     @testable import GRDBCipher
+#elseif USING_CUSTOMSQLITE
+    @testable import GRDBCustomSQLite
 #else
     @testable import GRDB
 #endif

@@ -1,6 +1,6 @@
 import XCTest
 
-#if !SQLITE_HAS_CODEC
+#if !USING_BUILTIN_SQLITE
     #if os(OSX)
         import SQLiteMacOSX
     #elseif os(iOS)
@@ -12,8 +12,10 @@ import XCTest
     #endif
 #endif
 
-#if SQLITE_HAS_CODEC
+#if USING_SQLCIPHER
     @testable import GRDBCipher
+#elseif USING_CUSTOMSQLITE
+    @testable import GRDBCustomSQLite
 #else
     @testable import GRDB
 #endif

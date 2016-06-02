@@ -1,0 +1,13 @@
+CUSTOM_OTHER_SWIFT_FLAGS=   // do not modify
+
+// Build once to generate this file:
+#include "GRDBCustomSQLite-USER.xcconfig"
+#include "src/SQLiteLib-USER.xcconfig"
+
+INFOPLIST_FILE = Support/Info.plist
+PRODUCT_NAME = GRDBCustomSQLite
+PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.$(PRODUCT_NAME:rfc1034identifier)
+MODULEMAP_FILE = $(SRCROOT)/SQLiteCustom/module.modulemap
+OTHER_CFLAGS = -DUSING_BUILTIN_SQLITE -DUSING_CUSTOMSQLITE $(CUSTOM_SQLLIBRARY_CFLAGS)
+OTHER_SWIFT_FLAGS = -D USING_BUILTIN_SQLITE -D USING_CUSTOMSQLITE $(CUSTOM_OTHER_SWIFT_FLAGS)
+HEADER_SEARCH_PATHS = $(SRCROOT)/SQLiteCustom/src
