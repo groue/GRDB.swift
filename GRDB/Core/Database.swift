@@ -562,9 +562,7 @@ extension Database {
     ///     db.add(function: fn)
     ///     Int.fetchOne(db, "SELECT succ(1)")! // 2
     public func add(function: DatabaseFunction) {
-        // TODO: Use Set.update when available: https://github.com/apple/swift-evolution/blob/master/proposals/0059-updated-set-apis.md#other-changes)
-        functions.remove(function)
-        functions.insert(function)
+        functions.update(with: function)
         let functionPointer = unsafeBitCast(function, to: UnsafeMutablePointer<Void>.self)
         let code = sqlite3_create_function_v2(
             sqliteConnection,
@@ -689,9 +687,7 @@ extension Database {
     ///     db.add(collation: collation)
     ///     try db.execute("CREATE TABLE files (name TEXT COLLATE localized_standard")
     public func add(collation: DatabaseCollation) {
-        // TODO: Use Set.update when available: https://github.com/apple/swift-evolution/blob/master/proposals/0059-updated-set-apis.md#other-changes)
-        collations.remove(collation)
-        collations.insert(collation)
+        collations.update(with: collation)
         let collationPointer = unsafeBitCast(collation, to: UnsafeMutablePointer<Void>.self)
         let code = sqlite3_create_collation_v2(
             sqliteConnection,

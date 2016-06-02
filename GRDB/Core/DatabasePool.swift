@@ -324,9 +324,7 @@ extension DatabasePool : DatabaseReader {
     ///         Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
-        // TODO: Use Set.update when available: https://github.com/apple/swift-evolution/blob/master/proposals/0059-updated-set-apis.md#other-changes)
-        functions.remove(function)
-        functions.insert(function)
+        functions.update(with: function)
         writer.performSync { db in db.add(function: function) }
         readerPool.forEach { $0.performSync { db in db.add(function: function) } }
     }
@@ -351,9 +349,7 @@ extension DatabasePool : DatabaseReader {
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
-        // TODO: Use Set.update when available: https://github.com/apple/swift-evolution/blob/master/proposals/0059-updated-set-apis.md#other-changes)
-        collations.remove(collation)
-        collations.insert(collation)
+        collations.update(with: collation)
         writer.performSync { db in db.add(collation: collation) }
         readerPool.forEach { $0.performSync { db in db.add(collation: collation) } }
     }
