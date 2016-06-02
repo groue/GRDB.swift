@@ -438,9 +438,11 @@ public indirect enum _SQLExpression {
     
     ///
     func sql(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String {
-        // TODO: this method is slow to compile
+        // NOTE: this method *was* slow to compile
         // https://medium.com/swift-programming/speeding-up-slow-swift-build-times-922feeba5780#.s77wmh4h0
         // 10746.4ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/FetchRequest/SQLSelectQuery.swift:439:10	func sql(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
+        // Fixes are marked with "## Slow Compile Fix (Swift 2.2.x):"
+        //
         switch self {
         case .Literal(let sql):
             return sql
@@ -477,7 +479,10 @@ public indirect enum _SQLExpression {
                 if expressions.isEmpty {
                     return "1"
                 } else {
-                    return try "(" + expression.sql(db, &bindings) + " NOT IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ") + "))"
+                    // ## Slow Compile Fix (Swift 2.2.x):
+                    // TODO: Check if Swift 3 compiler fixes this line's slow compilation time:
+                    //return try "(" + expression.sql(db, &bindings) + " NOT IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ") + "))"   // Original, Slow To Compile
+                    return try "(" + expression.sql(db, &bindings) + " NOT IN (" + (expressions.map { try $0.sql(db, &bindings) } as [String]).joinWithSeparator(", ") + "))"
                 }
                 
             case .InSubQuery(let subQuery, let expression):
@@ -558,7 +563,10 @@ public indirect enum _SQLExpression {
             guard !expressions.isEmpty else {
                 return "0"
             }
-            return try "(" + expression.sql(db, &bindings) + " IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ")  + "))"
+            // ## Slow Compile Fix (Swift 2.2.x):
+            // TODO: Check if Swift 3 compiler fixes this line's slow compilation time:
+            //return try "(" + expression.sql(db, &bindings) + " IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ")  + "))"  // Original, Slow To Compile
+            return try "(" + expression.sql(db, &bindings) + " IN (" + (expressions.map { try $0.sql(db, &bindings) } as [String]).joinWithSeparator(", ")  + "))"
         
         case .InSubQuery(let subQuery, let expression):
             return try "(" + expression.sql(db, &bindings) + " IN (" + subQuery.sql(db, &bindings)  + "))"
@@ -570,7 +578,10 @@ public indirect enum _SQLExpression {
             return try "(" + value.sql(db, &bindings) + " BETWEEN " + min.sql(db, &bindings) + " AND " + max.sql(db, &bindings) + ")"
             
         case .Function(let functionName, let functionArguments):
-            return try functionName + "(" + functionArguments.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ")  + ")"
+            // ## Slow Compile Fix (Swift 2.2.x):
+            // TODO: Check if Swift 3 compiler fixes this line's slow compilation time:
+            //return try functionName + "(" + functionArguments.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ")  + ")"    // Original, Slow To Compile
+            return try functionName + "(" + (functionArguments.map { try $0.sql(db, &bindings) } as [String]).joinWithSeparator(", ")  + ")"
             
         case .Count(let counted):
             return try "COUNT(" + counted.countedSQL(db, &bindings) + ")"
