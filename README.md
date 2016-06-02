@@ -1248,7 +1248,7 @@ let reverseString = DatabaseFunction(
     pure: true,       // True means that the result only depends on input
     function: { (databaseValues: [DatabaseValue]) in
         // Extract string value, if any...
-        guard let string: String = String.fromDatabaseValue(databaseValues[0]) else {
+        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
         }
         // ... and return reversed string:
