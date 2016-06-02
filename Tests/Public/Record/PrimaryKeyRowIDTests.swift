@@ -20,7 +20,7 @@ private class Person : Record {
         super.init()
     }
     
-    static func setupInDatabase(db: Database) throws {
+    static func setup(inDatabase db: Database) throws {
         try db.execute(
             "CREATE TABLE persons (" +
                 "id INTEGER PRIMARY KEY, " +
@@ -36,12 +36,12 @@ private class Person : Record {
         return "persons"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         age = row.value(named: "age")
         name = row.value(named: "name")
         creationDate = row.value(named: "creationDate")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
@@ -53,7 +53,7 @@ private class Person : Record {
         ]
     }
     
-    override func insert(db: Database) throws {
+    override func insert(_ db: Database) throws {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = NSDate()
@@ -62,16 +62,16 @@ private class Person : Record {
         try super.insert(db)
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
 
 class PrimaryKeyRowIDTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
+        migrator.registerMigration("createPerson", migrate: Person.setup)
         try migrator.migrate(dbWriter)
     }
     
@@ -90,7 +90,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -111,12 +111,12 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
                 }
-                return .Rollback
+                return .rollback
             }
             // This is debatable, actually.
             XCTAssertTrue(record.id != nil)
@@ -133,7 +133,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -149,7 +149,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
             try dbQueue.inTransaction { db in
                 try record.insert(db)
                 XCTAssertEqual(record.id!, 123456)
-                return .Rollback
+                return .rollback
             }
             XCTAssertEqual(record.id!, 123456)
         }
@@ -183,7 +183,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -202,9 +202,9 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let record = Person(id: 123456, name: "Arthur")
                 do {
                     try record.update(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
+                    XCTFail("Expected PersistenceError.recordNotFound")
+                } catch PersistenceError.recordNotFound {
+                    // Expected PersistenceError.recordNotFound
                 }
             }
         }
@@ -222,7 +222,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -240,9 +240,9 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.update(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
+                    XCTFail("Expected PersistenceError.recordNotFound")
+                } catch PersistenceError.recordNotFound {
+                    // Expected PersistenceError.recordNotFound
                 }
             }
         }
@@ -263,7 +263,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -282,7 +282,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -305,7 +305,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -326,7 +326,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM persons WHERE id = ?", arguments: [record.id])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -450,7 +450,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                 XCTAssertTrue(fetchedRecord.id == record.id)
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
-                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
             }
         }
     }
@@ -526,7 +526,7 @@ class PrimaryKeyRowIDTests: GRDBTestCase {
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                     XCTAssertTrue(fetchedRecord.age == record.age)
-                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
                 }
             }
         }

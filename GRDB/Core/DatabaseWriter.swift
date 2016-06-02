@@ -22,7 +22,7 @@ public protocol DatabaseWriter : DatabaseReader {
     ///
     /// The *block* argument is completely isolated. Eventual concurrent
     /// database updates are postponed until the block has executed.
-    func write<T>(block: (db: Database) throws -> T) rethrows -> T
+    func write<T>(_ block: (db: Database) throws -> T) rethrows -> T
     
     
     // MARK: - Reading from Database
@@ -54,10 +54,10 @@ public protocol DatabaseWriter : DatabaseReader {
     /// DatabaseQueue.readFromWrite simply runs *block* synchronously, and
     /// returns when the block has completed. In the example above, the
     /// insertion is run after the select.
-    func readFromWrite(block: (db: Database) -> Void)
+    func readFromWrite(_ block: (db: Database) -> Void)
 }
 
-extension DatabaseWriter {    
+extension DatabaseWriter {
     
     // MARK: - Transaction Observers
     
@@ -66,16 +66,16 @@ extension DatabaseWriter {
     ///
     /// The transaction observer is weakly referenced: it is not retained, and
     /// stops getting notifications after it is deallocated.
-    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+    public func add(transactionObserver: TransactionObserver) {
         write { db in
-            db.addTransactionObserver(transactionObserver)
+            db.add(transactionObserver: transactionObserver)
         }
     }
     
     /// Remove a transaction observer.
-    public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
+    public func remove(transactionObserver: TransactionObserver) {
         write { db in
-            db.removeTransactionObserver(transactionObserver)
+            db.remove(transactionObserver: transactionObserver)
         }
     }
 }

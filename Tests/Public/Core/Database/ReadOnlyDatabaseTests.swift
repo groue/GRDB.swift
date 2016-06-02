@@ -18,7 +18,7 @@ class ReadOnlyDatabaseTests : GRDBTestCase {
             dbConfiguration.readonly = true
             let dbQueue = try makeDatabaseQueue()
             let statement = try dbQueue.inDatabase { db in
-                try db.updateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try db.makeUpdateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
             do {
                 try dbQueue.inDatabase { db in

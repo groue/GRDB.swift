@@ -8,7 +8,7 @@ private let expectedRowCount = 100_000
 class FetchNamedValuesTests: XCTestCase {
     
     func testFMDB() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let dbQueue = FMDatabaseQueue(path: databasePath)
         
         self.measureBlock {
@@ -38,7 +38,7 @@ class FetchNamedValuesTests: XCTestCase {
     }
     
     func testGRDB() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         measureBlock {
@@ -66,7 +66,7 @@ class FetchNamedValuesTests: XCTestCase {
     }
     
     func testSQLiteSwift() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let db = try! Connection(databasePath)
         
         self.measureBlock {

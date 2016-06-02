@@ -5,30 +5,20 @@ extension NSNumber: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        switch String.fromCString(objCType)! {
-        case "c":
-            return Int64(charValue).databaseValue
-        case "C":
-            return Int64(unsignedCharValue).databaseValue
-        case "s":
-            return Int64(shortValue).databaseValue
-        case "S":
-            return Int64(unsignedShortValue).databaseValue
-        case "i":
-            return Int64(intValue).databaseValue
-        case "I":
-            return Int64(unsignedIntValue).databaseValue
-        case "l":
-            return Int64(longValue).databaseValue
-        case "L":
-            return Int64(unsignedLongValue).databaseValue
-        case "q":
-            return Int64(longLongValue).databaseValue
-        case "Q":
-            return Int64(unsignedLongLongValue).databaseValue
-        case "f":
-            return Double(floatValue).databaseValue
-        case "d":
+        switch String(cString: objCType) {
+        case "c",
+             "C",
+             "s",
+             "S",
+             "i",
+             "I",
+             "l",
+             "L",
+             "q",
+             "Q":
+            return int64Value.databaseValue
+        case "f",
+             "d":
             return doubleValue.databaseValue
         case "B":
             return boolValue.databaseValue
@@ -38,12 +28,12 @@ extension NSNumber: DatabaseValueConvertible {
     }
     
     /// Returns an NSNumber initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         switch databaseValue.storage {
-        case .Int64(let int64):
-            return self.init(longLong: int64)
-        case .Double(let double):
-            return self.init(double: double)
+        case .int64(let int64):
+            return self.init(value: int64)
+        case .double(let double):
+            return self.init(value: double)
         default:
             return nil
         }

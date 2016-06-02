@@ -17,12 +17,12 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             
             dbPool.write { db in
                 // Assert that the writer cache is empty
-                XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") == nil)
+                XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             }
             
             dbPool.read { db in
                 // Assert that a reader cache is empty
-                XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") == nil)
+                XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             }
             
             try dbPool.read { db in
@@ -31,12 +31,12 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 XCTAssertEqual(primaryKey.rowIDColumn, "id")
                 
                 // Assert that reader cache is warmed
-                XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") != nil)
+                XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
             }
             
             dbPool.write { db in
                 // Assert that writer cache is warmed
-                XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") != nil)
+                XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
             }
             
             try dbPool.write { db in
@@ -44,12 +44,12 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 try db.execute("DROP TABLE items")
                 
                 // Assert that the writer cache is empty
-                XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") == nil)
+                XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             }
             
             dbPool.read { db in
                 // Assert that a reader cache is empty
-                XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") == nil)
+                XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             }
             
             try dbPool.read { db in
@@ -83,7 +83,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             // Block 1                              Block 2
             // SELECT 1 FROM items WHERE id = 1
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                                      SELECT 1 FROM items WHERE id = 1
             
             let block1 = { () in

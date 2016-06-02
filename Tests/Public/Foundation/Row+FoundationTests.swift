@@ -28,9 +28,9 @@ class RowFoundationTests: GRDBTestCase {
         let row = Row(["a": "foo", "b": 1, "c": nil, "d": NSDate(timeIntervalSince1970: 1443642439)])
         let dictionary = row.toNSDictionary()
         XCTAssertEqual(dictionary.count, 4)
-        XCTAssertTrue((dictionary["a"] as! NSString).isEqualToString("foo"))
-        XCTAssertTrue((dictionary["b"] as! NSNumber).isEqualToNumber(NSNumber(integer: 1)))
+        XCTAssertTrue((dictionary["a"] as! NSString).isEqual(to: "foo"))
+        XCTAssertTrue((dictionary["b"] as! NSNumber).isEqual(to: NSNumber(value: 1)))
         XCTAssertTrue(dictionary["c"] is NSNull)
-        XCTAssertTrue((dictionary["d"] as! NSString).isEqualToString("2015-09-30 19:47:19.000"))
+        XCTAssertTrue((dictionary["d"] as! NSString).isEqual(to: "2015-09-30 19:47:19.000"))
     }
 }

@@ -15,7 +15,7 @@ class MinimalSingle: Record {
         super.init()
     }
     
-    static func setupInDatabase(db: Database) throws {
+    static func setup(inDatabase db: Database) throws {
         try db.execute(
             "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
     }
@@ -26,9 +26,9 @@ class MinimalSingle: Record {
         return "minimalSingles"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         UUID = row.value(named: "UUID")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
@@ -38,9 +38,9 @@ class MinimalSingle: Record {
 
 class MinimalPrimaryKeySingleTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createMinimalSingle", migrate: MinimalSingle.setupInDatabase)
+        migrator.registerMigration("createMinimalSingle", migrate: MinimalSingle.setup)
         try migrator.migrate(dbWriter)
     }
     
@@ -74,7 +74,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -113,7 +113,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -133,9 +133,9 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 record.UUID = "theUUID"
                 do {
                     try record.update(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
+                    XCTFail("Expected PersistenceError.recordNotFound")
+                } catch PersistenceError.recordNotFound {
+                    // Expected PersistenceError.recordNotFound
                 }
             }
         }
@@ -153,7 +153,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -172,9 +172,9 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 try record.delete(db)
                 do {
                     try record.update(db)
-                    XCTFail("Expected PersistenceError.NotFound")
-                } catch PersistenceError.NotFound {
-                    // Expected PersistenceError.NotFound
+                    XCTFail("Expected PersistenceError.recordNotFound")
+                } catch PersistenceError.recordNotFound {
+                    // Expected PersistenceError.recordNotFound
                 }
             }
         }
@@ -210,7 +210,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -231,7 +231,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }
@@ -253,7 +253,7 @@ class MinimalPrimaryKeySingleTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
                 for (key, value) in record.persistentDictionary {
                     if let dbv = row.databaseValue(named: key) {
-                        XCTAssertEqual(dbv, value?.databaseValue ?? .Null)
+                        XCTAssertEqual(dbv, value?.databaseValue ?? .null)
                     } else {
                         XCTFail("Missing column \(key) in fetched row")
                     }

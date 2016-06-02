@@ -105,12 +105,12 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             timeString = nil
         }
         
-        return [dateString, timeString].flatMap { $0 }.joinWithSeparator(" ").databaseValue
+        return [dateString, timeString].flatMap { $0 }.joined(separator: " ").databaseValue
     }
     
     /// Returns a DatabaseDateComponents if *databaseValue* contains a
     /// valid date.
-    public static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseDateComponents? {
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseDateComponents? {
         // https://www.sqlite.org/lang_datefunc.html
         //
         // Supported formats are:
@@ -139,7 +139,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         
         // YYYY or HH
         var initialNumber: Int = 0
-        if !scanner.scanInteger(&initialNumber) {
+        if !scanner.scanInt(&initialNumber) {
             return nil
         }
         switch scanner.scanLocation {
@@ -166,44 +166,44 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             }
             
             // -
-            if !scanner.scanString("-", intoString: nil) {
+            if !scanner.scanString("-", into: nil) {
                 return nil
             }
             
             // MM
             var month: Int = 0
-            if scanner.scanInteger(&month) && month >= 1 && month <= 12 {
+            if scanner.scanInt(&month) && month >= 1 && month <= 12 {
                 dateComponents.month = month
             } else {
                 return nil
             }
             
             // -
-            if !scanner.scanString("-", intoString: nil) {
+            if !scanner.scanString("-", into: nil) {
                 return nil
             }
             
             // DD
             var day: Int = 0
-            if scanner.scanInteger(&day) && day >= 1 && day <= 31 {
+            if scanner.scanInt(&day) && day >= 1 && day <= 31 {
                 dateComponents.day = day
             } else {
                 return nil
             }
             
             // YYYY-MM-DD
-            if scanner.atEnd {
+            if scanner.isAtEnd {
                 return DatabaseDateComponents(dateComponents, format: .YMD)
             }
             
             // T/space
-            if !scanner.scanString("T", intoString: nil) && !scanner.scanString(" ", intoString: nil) {
+            if !scanner.scanString("T", into: nil) && !scanner.scanString(" ", into: nil) {
                 return nil
             }
             
             // HH
             var hour: Int = 0
-            if scanner.scanInteger(&hour) && hour >= 0 && hour <= 23 {
+            if scanner.scanInt(&hour) && hour >= 0 && hour <= 23 {
                 dateComponents.hour = hour
             } else {
                 return nil
@@ -214,20 +214,20 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         }
         
         // :
-        if !scanner.scanString(":", intoString: nil) {
+        if !scanner.scanString(":", into: nil) {
             return nil
         }
         
         // MM
         var minute: Int = 0
-        if scanner.scanInteger(&minute) && minute >= 0 && minute <= 59 {
+        if scanner.scanInt(&minute) && minute >= 0 && minute <= 59 {
             dateComponents.minute = minute
         } else {
             return nil
         }
         
         // [YYYY-MM-DD] HH:MM
-        if scanner.atEnd {
+        if scanner.isAtEnd {
             if hasDate {
                 return DatabaseDateComponents(dateComponents, format: .YMD_HM)
             } else {
@@ -236,20 +236,20 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         }
         
         // :
-        if !scanner.scanString(":", intoString: nil) {
+        if !scanner.scanString(":", into: nil) {
             return nil
         }
         
         // SS
         var second: Int = 0
-        if scanner.scanInteger(&second) && second >= 0 && second <= 59 {
+        if scanner.scanInt(&second) && second >= 0 && second <= 59 {
             dateComponents.second = second
         } else {
             return nil
         }
         
         // [YYYY-MM-DD] HH:MM:SS
-        if scanner.atEnd {
+        if scanner.isAtEnd {
             if hasDate {
                 return DatabaseDateComponents(dateComponents, format: .YMD_HMS)
             } else {
@@ -258,15 +258,15 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         }
         
         // .
-        if !scanner.scanString(".", intoString: nil) {
+        if !scanner.scanString(".", into: nil) {
             return nil
         }
         
         // SSS
         var millisecondDigits: NSString? = nil
-        if scanner.scanCharactersFromSet(NSCharacterSet.decimalDigitCharacterSet(), intoString: &millisecondDigits), var millisecondDigits = millisecondDigits {
+        if scanner.scanCharacters(from: .decimalDigits(), into: &millisecondDigits), var millisecondDigits = millisecondDigits {
             if millisecondDigits.length > 3 {
-                millisecondDigits = millisecondDigits.substringToIndex(3)
+                millisecondDigits = NSString(string: millisecondDigits.substring(to: 3))
             }
             dateComponents.nanosecond = millisecondDigits.integerValue * 1_000_000
         } else {
@@ -274,7 +274,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         }
         
         // [YYYY-MM-DD] HH:MM:SS.SSS
-        if scanner.atEnd {
+        if scanner.isAtEnd {
             if hasDate {
                 return DatabaseDateComponents(dateComponents, format: .YMD_HMSS)
             } else {

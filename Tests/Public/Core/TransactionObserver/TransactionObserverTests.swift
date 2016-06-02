@@ -5,10 +5,10 @@ import XCTest
     import GRDB
 #endif
 
-private class TransactionObserver : TransactionObserverType {
+private class Observer : TransactionObserver {
     var lastCommittedEvents: [DatabaseEvent] = []
     var events: [DatabaseEvent] = []
-    var commitError: ErrorType?
+    var commitError: ErrorProtocol?
     var deinitBlock: (() -> ())?
     
     init(deinitBlock: (() -> ())? = nil) {
@@ -33,7 +33,7 @@ private class TransactionObserver : TransactionObserverType {
         didRollbackCount = 0
     }
     
-    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+    func databaseDidChange(with event: DatabaseEvent) {
         didChangeCount += 1
         events.append(event.copy())
     }
@@ -45,13 +45,13 @@ private class TransactionObserver : TransactionObserverType {
         }
     }
     
-    func databaseDidCommit(db: Database) {
+    func databaseDidCommit(_ db: Database) {
         didCommitCount += 1
         lastCommittedEvents = events
         events = []
     }
     
-    func databaseDidRollback(db: Database) {
+    func databaseDidRollback(_ db: Database) {
         didRollbackCount += 1
         lastCommittedEvents = []
         events = []
@@ -68,7 +68,7 @@ private class Artist : Record {
         super.init()
     }
     
-    static func setupInDatabase(db: Database) throws {
+    static func setup(inDatabase db: Database) throws {
         try db.execute(
             "CREATE TABLE artists (" +
                 "id INTEGER PRIMARY KEY, " +
@@ -82,17 +82,17 @@ private class Artist : Record {
         return "artists"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
@@ -109,7 +109,7 @@ private class Artwork : Record {
         super.init()
     }
     
-    static func setupInDatabase(db: Database) throws {
+    static func setup(inDatabase db: Database) throws {
         try db.execute(
             "CREATE TABLE artworks (" +
                 "id INTEGER PRIMARY KEY, " +
@@ -124,31 +124,31 @@ private class Artwork : Record {
         return "artworks"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         title = row.value(named: "title")
         artistId = row.value(named: "artistId")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "artistId": artistId, "title": title]
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
 
 class TransactionObserverTests: GRDBTestCase {
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
-            try Artist.setupInDatabase(db)
-            try Artwork.setupInDatabase(db)
+            try Artist.setup(inDatabase: db)
+            try Artwork.setup(inDatabase: db)
         }
     }
     
-    private func match(event event: DatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
+    private func match(event: DatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
         return (event.tableName == tableName) && (event.rowID == rowId) && (event.kind == kind)
     }
     
@@ -158,8 +158,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testInsertEvent() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 let artist = Artist(name: "Gerhard Richter")
@@ -168,7 +168,7 @@ class TransactionObserverTests: GRDBTestCase {
                 try artist.save(db)
                 XCTAssertEqual(observer.lastCommittedEvents.count, 1)
                 let event = observer.lastCommittedEvents.filter { event in
-                    self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                    self.match(event: event, kind: .insert, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
             }
@@ -178,8 +178,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testUpdateEvent() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 let artist = Artist(name: "Gerhard Richter")
@@ -190,7 +190,7 @@ class TransactionObserverTests: GRDBTestCase {
                 try artist.save(db)
                 XCTAssertEqual(observer.lastCommittedEvents.count, 1)
                 let event = observer.lastCommittedEvents.filter {
-                    self.match(event: $0, kind: .Update, tableName: "artists", rowId: artist.id!)
+                    self.match(event: $0, kind: .update, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
             }
@@ -200,8 +200,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testDeleteEvent() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 let artist = Artist(name: "Gerhard Richter")
@@ -211,7 +211,7 @@ class TransactionObserverTests: GRDBTestCase {
                 try artist.delete(db)
                 XCTAssertEqual(observer.lastCommittedEvents.count, 1)
                 let event = observer.lastCommittedEvents.filter {
-                    self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
+                    self.match(event: $0, kind: .delete, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
             }
@@ -221,8 +221,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testCascadingDeleteEvents() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 let artist = Artist(name: "Gerhard Richter")
@@ -236,15 +236,15 @@ class TransactionObserverTests: GRDBTestCase {
                 try artist.delete(db)
                 XCTAssertEqual(observer.lastCommittedEvents.count, 3)
                 let artistEvent = observer.lastCommittedEvents.filter {
-                    self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
+                    self.match(event: $0, kind: .delete, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(artistEvent != nil)
                 let artwork1Event = observer.lastCommittedEvents.filter {
-                    self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork1.id!)
+                    self.match(event: $0, kind: .delete, tableName: "artworks", rowId: artwork1.id!)
                     }.first
                 XCTAssertTrue(artwork1Event != nil)
                 let artwork2Event = observer.lastCommittedEvents.filter {
-                    self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork2.id!)
+                    self.match(event: $0, kind: .delete, tableName: "artworks", rowId: artwork2.id!)
                     }.first
                 XCTAssertTrue(artwork2Event != nil)
             }
@@ -257,8 +257,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testImplicitTransactionCommit() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             let artist = Artist(name: "Gerhard Richter")
             
@@ -276,8 +276,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testCascadeWithImplicitTransactionCommit() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             let artist = Artist(name: "Gerhard Richter")
             let artwork1 = Artwork(title: "Cloud")
@@ -299,17 +299,17 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.didRollbackCount, 0)
                 
                 let artistDeleteEvent = observer.lastCommittedEvents.filter {
-                    self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
+                    self.match(event: $0, kind: .delete, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(artistDeleteEvent != nil)
                 
                 let artwork1DeleteEvent = observer.lastCommittedEvents.filter {
-                    self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork1.id!)
+                    self.match(event: $0, kind: .delete, tableName: "artworks", rowId: artwork1.id!)
                     }.first
                 XCTAssertTrue(artwork1DeleteEvent != nil)
                 
                 let artwork2DeleteEvent = observer.lastCommittedEvents.filter {
-                    self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork2.id!)
+                    self.match(event: $0, kind: .delete, tableName: "artworks", rowId: artwork2.id!)
                     }.first
                 XCTAssertTrue(artwork2DeleteEvent != nil)
             }
@@ -319,8 +319,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testExplicitTransactionCommit() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             let artist = Artist(name: "Gerhard Richter")
             let artwork1 = Artwork(title: "Cloud")
@@ -352,7 +352,7 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.didRollbackCount, 0)
                 
                 observer.resetCounts()
-                return .Commit
+                return .commit
             }
             XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.willCommitCount, 1)
@@ -361,17 +361,17 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.lastCommittedEvents.count, 3)
             
             let artistEvent = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                self.match(event: $0, kind: .insert, tableName: "artists", rowId: artist.id!)
                 }.first
             XCTAssertTrue(artistEvent != nil)
             
             let artwork1Event = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork1.id!)
+                self.match(event: $0, kind: .insert, tableName: "artworks", rowId: artwork1.id!)
                 }.first
             XCTAssertTrue(artwork1Event != nil)
             
             let artwork2Event = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork2.id!)
+                self.match(event: $0, kind: .insert, tableName: "artworks", rowId: artwork2.id!)
                 }.first
             XCTAssertTrue(artwork2Event != nil)
         }
@@ -380,8 +380,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testCascadeWithExplicitTransactionCommit() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             let artist = Artist(name: "Gerhard Richter")
             let artwork1 = Artwork(title: "Cloud")
@@ -403,7 +403,7 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.didRollbackCount, 0)
                 
                 observer.resetCounts()
-                return .Commit
+                return .commit
             }
             XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.willCommitCount, 1)
@@ -412,32 +412,32 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.lastCommittedEvents.count, 6)  // 3 inserts, and 3 deletes
             
             let artistInsertEvent = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                self.match(event: $0, kind: .insert, tableName: "artists", rowId: artist.id!)
                 }.first
             XCTAssertTrue(artistInsertEvent != nil)
             
             let artwork1InsertEvent = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork1.id!)
+                self.match(event: $0, kind: .insert, tableName: "artworks", rowId: artwork1.id!)
                 }.first
             XCTAssertTrue(artwork1InsertEvent != nil)
             
             let artwork2InsertEvent = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork2.id!)
+                self.match(event: $0, kind: .insert, tableName: "artworks", rowId: artwork2.id!)
                 }.first
             XCTAssertTrue(artwork2InsertEvent != nil)
             
             let artistDeleteEvent = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
+                self.match(event: $0, kind: .delete, tableName: "artists", rowId: artist.id!)
                 }.first
             XCTAssertTrue(artistDeleteEvent != nil)
             
             let artwork1DeleteEvent = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork1.id!)
+                self.match(event: $0, kind: .delete, tableName: "artworks", rowId: artwork1.id!)
                 }.first
             XCTAssertTrue(artwork1DeleteEvent != nil)
             
             let artwork2DeleteEvent = observer.lastCommittedEvents.filter {
-                self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork2.id!)
+                self.match(event: $0, kind: .delete, tableName: "artworks", rowId: artwork2.id!)
                 }.first
             XCTAssertTrue(artwork2DeleteEvent != nil)
         }
@@ -446,8 +446,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testExplicitTransactionRollback() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             let artist = Artist(name: "Gerhard Richter")
             let artwork1 = Artwork(title: "Cloud")
@@ -461,7 +461,7 @@ class TransactionObserverTests: GRDBTestCase {
                 try artwork2.save(db)
                 
                 observer.resetCounts()
-                return .Rollback
+                return .rollback
             }
             XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
@@ -473,8 +473,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testImplicitTransactionRollbackCausedByDatabaseError() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             do {
                 try dbQueue.inDatabase { db in
@@ -504,8 +504,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testExplicitTransactionRollbackCausedByDatabaseError() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             do {
                 try dbQueue.inTransaction { db in
@@ -521,7 +521,7 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTAssertEqual(observer.didRollbackCount, 0)
                         throw error
                     }
-                    return .Commit
+                    return .commit
                 }
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
@@ -537,8 +537,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testImplicitTransactionRollbackCausedByTransactionObserver() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
             dbQueue.inDatabase { db in
@@ -560,9 +560,9 @@ class TransactionObserverTests: GRDBTestCase {
     func testExplicitTransactionRollbackCausedByTransactionObserver() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
+            let observer = Observer()
             observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
-            dbQueue.addTransactionObserver(observer)
+            dbQueue.add(transactionObserver: observer)
             
             do {
                 try dbQueue.inTransaction { db in
@@ -571,7 +571,7 @@ class TransactionObserverTests: GRDBTestCase {
                     } catch {
                         XCTFail("Unexpected Error")
                     }
-                    return .Commit
+                    return .commit
                 }
                 XCTFail("Expected Error")
             } catch let error as NSError {
@@ -588,9 +588,9 @@ class TransactionObserverTests: GRDBTestCase {
     func testImplicitTransactionRollbackCausedByDatabaseErrorSuperseedTransactionObserver() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
+            let observer = Observer()
             observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
-            dbQueue.addTransactionObserver(observer)
+            dbQueue.add(transactionObserver: observer)
             
             do {
                 try dbQueue.inDatabase { db in
@@ -620,9 +620,9 @@ class TransactionObserverTests: GRDBTestCase {
     func testExplicitTransactionRollbackCausedByDatabaseErrorSuperseedTransactionObserver() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
+            let observer = Observer()
             observer.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
-            dbQueue.addTransactionObserver(observer)
+            dbQueue.add(transactionObserver: observer)
             
             do {
                 try dbQueue.inTransaction { db in
@@ -638,7 +638,7 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTAssertEqual(observer.didRollbackCount, 0)
                         throw error
                     }
-                    return .Commit
+                    return .commit
                 }
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
@@ -656,7 +656,7 @@ class TransactionObserverTests: GRDBTestCase {
         // column performs an actual UPDATE statement, even though it is
         // totally useless (UPDATE id = 1 FROM records WHERE id = 1).
         //
-        // It is important to update something, so that TransactionObserverType
+        // It is important to update something, so that TransactionObserver
         // can observe a change.
         //
         // The goal is to be able to write tests with minimal tables,
@@ -664,11 +664,11 @@ class TransactionObserverTests: GRDBTestCase {
         // have exceptions, the better it is.
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
-                try MinimalRowID.setupInDatabase(db)
+                try MinimalRowID.setup(inDatabase: db)
                 
                 let record = MinimalRowID()
                 try record.save(db)
@@ -689,10 +689,10 @@ class TransactionObserverTests: GRDBTestCase {
     func testInsertEventIsNotifiedToAllObservers() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer1 = TransactionObserver()
-            let observer2 = TransactionObserver()
-            dbQueue.addTransactionObserver(observer1)
-            dbQueue.addTransactionObserver(observer2)
+            let observer1 = Observer()
+            let observer2 = Observer()
+            dbQueue.add(transactionObserver: observer1)
+            dbQueue.add(transactionObserver: observer2)
             
             try dbQueue.inDatabase { db in
                 let artist = Artist(name: "Gerhard Richter")
@@ -703,14 +703,14 @@ class TransactionObserverTests: GRDBTestCase {
                 do {
                     XCTAssertEqual(observer1.lastCommittedEvents.count, 1)
                     let event = observer1.lastCommittedEvents.filter { event in
-                        self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                        self.match(event: event, kind: .insert, tableName: "artists", rowId: artist.id!)
                         }.first
                     XCTAssertTrue(event != nil)
                 }
                 do {
                     XCTAssertEqual(observer2.lastCommittedEvents.count, 1)
                     let event = observer2.lastCommittedEvents.filter { event in
-                        self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                        self.match(event: event, kind: .insert, tableName: "artists", rowId: artist.id!)
                         }.first
                     XCTAssertTrue(event != nil)
                 }
@@ -721,14 +721,14 @@ class TransactionObserverTests: GRDBTestCase {
     func testExplicitTransactionRollbackCausedBySecondTransactionObserverOutOfThree() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer1 = TransactionObserver()
-            let observer2 = TransactionObserver()
-            let observer3 = TransactionObserver()
+            let observer1 = Observer()
+            let observer2 = Observer()
+            let observer3 = Observer()
             observer2.commitError = NSError(domain: "foo", code: 0, userInfo: nil)
             
-            dbQueue.addTransactionObserver(observer1)
-            dbQueue.addTransactionObserver(observer2)
-            dbQueue.addTransactionObserver(observer3)
+            dbQueue.add(transactionObserver: observer1)
+            dbQueue.add(transactionObserver: observer2)
+            dbQueue.add(transactionObserver: observer3)
             
             do {
                 try dbQueue.inTransaction { db in
@@ -737,7 +737,7 @@ class TransactionObserverTests: GRDBTestCase {
                     } catch {
                         XCTFail("Unexpected Error")
                     }
-                    return .Commit
+                    return .commit
                 }
                 XCTFail("Expected Error")
             } catch let error as NSError {
@@ -767,9 +767,9 @@ class TransactionObserverTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             var observerReleased = false
             do {
-                let observer = TransactionObserver(deinitBlock: { observerReleased = true })
+                let observer = Observer(deinitBlock: { observerReleased = true })
                 withExtendedLifetime(observer) {
-                    dbQueue.addTransactionObserver(observer)
+                    dbQueue.add(transactionObserver: observer)
                     XCTAssertFalse(observerReleased)
                 }
             }

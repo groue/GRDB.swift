@@ -12,7 +12,7 @@ private struct Reader {
 }
 
 extension Reader : RowConvertible {
-    init(_ row: Row) {
+    init(row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
         age = row.value(named: "age")
@@ -28,7 +28,7 @@ extension Reader : MutablePersistable {
         return ["id": id, "name": name, "age": age]
     }
     
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
@@ -40,7 +40,7 @@ private struct AltReader {
 }
 
 extension AltReader : RowConvertible {
-    init(_ row: Row) {
+    init(row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
         age = row.value(named: "age")
@@ -50,7 +50,7 @@ extension AltReader : RowConvertible {
 
 class RowConvertibleQueryInterfaceRequestTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
             try db.execute(

@@ -44,7 +44,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
                 // The tested function:
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
+                let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
                 try statement.execute()
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons")!
@@ -60,7 +60,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
                 try statement.execute(arguments: ["Arthur", 41])
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons")!
@@ -76,7 +76,7 @@ class DatabaseTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE persons (name TEXT, age INT)")
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
                 try statement.execute(arguments: ["name": "Arthur", "age": 41])
                 
                 let row = Row.fetchOne(db, "SELECT * FROM persons")!
@@ -170,7 +170,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
                 
-                let statement = try db.selectStatement("SELECT * FROM persons")
+                let statement = try db.makeSelectStatement("SELECT * FROM persons")
                 let rows = Row.fetchAll(statement)
                 XCTAssertEqual(rows.count, 2)
             }
@@ -185,7 +185,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
                 
-                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = ?")
+                let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE name = ?")
                 let rows = Row.fetchAll(statement, arguments: ["Arthur"])
                 XCTAssertEqual(rows.count, 1)
             }
@@ -200,7 +200,7 @@ class DatabaseTests : GRDBTestCase {
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
                 try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
                 
-                let statement = try db.selectStatement("SELECT * FROM persons WHERE name = :name")
+                let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE name = :name")
                 let rows = Row.fetchAll(statement, arguments: ["name": "Arthur"])
                 XCTAssertEqual(rows.count, 1)
             }
@@ -278,7 +278,7 @@ class DatabaseTests : GRDBTestCase {
                 XCTAssertEqual(names2[0]!, "Arthur")
                 XCTAssertEqual(names2[1]!, "Barbara")
                 
-                return .Commit
+                return .commit
             }
         }
     }
@@ -300,7 +300,7 @@ class DatabaseTests : GRDBTestCase {
                 XCTAssertEqual(names2[0], "Arthur")
                 XCTAssertEqual(names2[1], "Barbara")
                 
-                return .Commit
+                return .commit
             }
         }
     }
@@ -339,7 +339,7 @@ class DatabaseTests : GRDBTestCase {
                     } catch {
                         XCTFail()
                     }
-                    return .Commit
+                    return .commit
                 }
                 XCTFail()
             } catch let error as DatabaseError {
@@ -350,7 +350,7 @@ class DatabaseTests : GRDBTestCase {
             }
             
             // Make sure we can open another transaction
-            try dbQueue.inTransaction { db in .Commit }
+            try dbQueue.inTransaction { db in .commit }
         }
     }
 }

@@ -24,7 +24,7 @@ func setupDatabase() {
     // See https://github.com/groue/GRDB.swift/#database-queues
     
     let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first! as NSString
-    let databasePath = documentsPath.stringByAppendingPathComponent("db.sqlite")
+    let databasePath = documentsPath.appendingPathComponent("db.sqlite")
     dbQueue = try! DatabaseQueue(path: databasePath)
     
     
@@ -38,7 +38,7 @@ func setupDatabase() {
     }
     
     dbQueue.inDatabase { db in
-        db.addCollation(collation)
+        db.add(collation: collation)
     }
     
     

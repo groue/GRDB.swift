@@ -8,12 +8,12 @@ class SimplePersonsViewController: UITableViewController {
         super.viewDidLoad()
         
         navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: #selector(SimplePersonsViewController.addPerson(_:))),
+            UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(SimplePersonsViewController.addPerson(_:))),
             editButtonItem()
         ]
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadPersons()
         tableView.reloadData()
@@ -31,7 +31,7 @@ class SimplePersonsViewController: UITableViewController {
 
 extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "EditPerson" {
             let person = persons[tableView.indexPathForSelectedRow!.row]
             let controller = segue.destinationViewController as! PersonEditionViewController
@@ -50,8 +50,8 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
         }
     }
     
-    @IBAction func addPerson(sender: AnyObject?) {
-        performSegueWithIdentifier("NewPerson", sender: sender)
+    @IBAction func addPerson(_ sender: AnyObject?) {
+        performSegue(withIdentifier: "NewPerson", sender: sender)
     }
     
     @IBAction func cancelPersonEdition(segue: UIStoryboardSegue) {
@@ -70,7 +70,7 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
         }
     }
     
-    func personEditionControllerDidComplete(controller: PersonEditionViewController) {
+    func personEditionControllerDidComplete(_ controller: PersonEditionViewController) {
         // Person edition: back button was tapped
         controller.applyChanges()
         let person = controller.person
@@ -86,29 +86,29 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
 // MARK: - UITableViewDataSource
 
 extension SimplePersonsViewController {
-    func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
+    func configure(_ cell: UITableViewCell, at indexPath: NSIndexPath) {
         let person = persons[indexPath.row]
         cell.textLabel?.text = person.name
         cell.detailTextLabel?.text = abs(person.score) > 1 ? "\(person.score) points" : "0 point"
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return persons.count
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("Person", forIndexPath: indexPath)
-        configureCell(cell, atIndexPath: indexPath)
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: NSIndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Person", for: indexPath)
+        configure(cell, at: indexPath)
         return cell
     }
     
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: NSIndexPath) {
         // Delete the person
         let person = persons[indexPath.row]
         try! dbQueue.inDatabase { db in
             try person.delete(db)
         }
-        persons.removeAtIndex(indexPath.row)
-        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+        persons.remove(at: indexPath.row)
+        tableView.deleteRows(at: [indexPath], with: .fade)
     }
 }

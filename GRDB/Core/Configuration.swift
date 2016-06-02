@@ -65,15 +65,15 @@ public struct Configuration {
     /// The default kind of transaction.
     ///
     /// Default: Immediate
-    public var defaultTransactionKind: TransactionKind = .Immediate
+    public var defaultTransactionKind: TransactionKind = .immediate
     
     
     // MARK: - Concurrency
     
     /// The behavior in case of SQLITE_BUSY error. See https://www.sqlite.org/rescode.html#busy
     ///
-    /// Default: ImmediateError
-    public var busyMode: BusyMode = .ImmediateError
+    /// Default: immediateError
+    public var busyMode: BusyMode = .immediateError
     
     /// The maximum number of concurrent readers (applies to database
     /// pools only).
@@ -90,7 +90,7 @@ public struct Configuration {
     
     // MARK: - Not Public
     
-    var threadingMode: ThreadingMode = .Default
+    var threadingMode: ThreadingMode = .SQLiteDefault
     var SQLiteConnectionDidOpen: (() -> ())?
     var SQLiteConnectionWillClose: ((SQLiteConnection) -> ())?
     var SQLiteConnectionDidClose: (() -> ())?
@@ -101,9 +101,3 @@ public struct Configuration {
 
 /// A tracing function that takes an SQL string.
 public typealias TraceFunction = (String) -> Void
-
-/// A tracing function that logs SQL statements with NSLog
-public func LogSQL(sql: String) {
-    NSLog("SQLite: %@", sql)
-}
-

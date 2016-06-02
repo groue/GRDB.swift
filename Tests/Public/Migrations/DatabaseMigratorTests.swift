@@ -117,9 +117,9 @@ class DatabaseMigratorTests : GRDBTestCase {
                 // The second migration should be rollbacked.
                 
                 XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
-                XCTAssertEqual(error.message!.lowercaseString, "foreign key constraint failed") // lowercaseString: accept multiple SQLite version
+                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                XCTAssertEqual(error.description.lowercaseString, "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
 
                 let names = dbQueue.inDatabase { db in
                     String.fetchAll(db, "SELECT name FROM persons")

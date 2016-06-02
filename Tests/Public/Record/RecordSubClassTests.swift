@@ -19,7 +19,7 @@ private class Person : Record {
         super.init()
     }
     
-    static func setupInDatabase(db: Database) throws {
+    static func setup(inDatabase db: Database) throws {
         try db.execute(
             "CREATE TABLE persons (" +
                 "id INTEGER PRIMARY KEY, " +
@@ -35,12 +35,12 @@ private class Person : Record {
         return "persons"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         age = row.value(named: "age")
         name = row.value(named: "name")
         creationDate = row.value(named: "creationDate")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
@@ -52,7 +52,7 @@ private class Person : Record {
         ]
     }
     
-    override func insert(db: Database) throws {
+    override func insert(_ db: Database) throws {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = NSDate()
@@ -61,7 +61,7 @@ private class Person : Record {
         try super.insert(db)
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
@@ -71,16 +71,16 @@ private class MinimalPersonWithOverrides : Person {
     
     // Record
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         extra = row.value(named: "extra")
-        super.init(row)
+        super.init(row: row)
     }
 }
 
 private class PersonWithOverrides : Person {
     enum SavingMethod {
-        case Insert
-        case Update
+        case insert
+        case update
     }
     
     var extra: Int!
@@ -92,27 +92,27 @@ private class PersonWithOverrides : Person {
     
     // Record
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         extra = row.value(named: "extra")
-        super.init(row)
+        super.init(row: row)
     }
     
-    override func insert(db: Database) throws {
-        lastSavingMethod = .Insert
+    override func insert(_ db: Database) throws {
+        lastSavingMethod = .insert
         try super.insert(db)
     }
     
-    override func update(db: Database) throws {
-        lastSavingMethod = .Update
+    override func update(_ db: Database) throws {
+        lastSavingMethod = .update
         try super.update(db)
     }
 }
 
 class RecordSubClassTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPerson", migrate: Person.setupInDatabase)
+        migrator.registerMigration("createPerson", migrate: Person.setup)
         try migrator.migrate(dbWriter)
     }
     
@@ -125,7 +125,7 @@ class RecordSubClassTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = PersonWithOverrides(name: "Arthur")
                 try record.save(db)
-                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.Insert)
+                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.insert)
             }
         }
     }
@@ -136,7 +136,7 @@ class RecordSubClassTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let record = PersonWithOverrides(id: 123456, name: "Arthur")
                 try record.save(db)
-                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.Insert)
+                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.insert)
             }
         }
     }
@@ -150,7 +150,7 @@ class RecordSubClassTests: GRDBTestCase {
                 try record.insert(db)
                 record.age = record.age! + 1
                 try record.save(db)
-                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.Update)
+                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.update)
             }
         }
     }
@@ -163,7 +163,7 @@ class RecordSubClassTests: GRDBTestCase {
                 try record.insert(db)
                 try record.delete(db)
                 try record.save(db)
-                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.Insert)
+                XCTAssertEqual(record.lastSavingMethod!, PersonWithOverrides.SavingMethod.insert)
             }
         }
     }
@@ -183,7 +183,7 @@ class RecordSubClassTests: GRDBTestCase {
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                     XCTAssertTrue(fetchedRecord.age == record.age)
-                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
                     XCTAssertTrue(fetchedRecord.extra == 123)
                 }
                 
@@ -192,7 +192,7 @@ class RecordSubClassTests: GRDBTestCase {
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                     XCTAssertTrue(fetchedRecord.age == record.age)
-                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSinceDate(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                    XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
                     XCTAssertTrue(fetchedRecord.extra == 123)
                 }
             }

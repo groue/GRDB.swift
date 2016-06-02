@@ -9,7 +9,7 @@ class InsertPositionalValuesTests: XCTestCase {
     
     func testSQLite() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
+        let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -17,19 +17,19 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            try! NSFileManager.default().removeItem(atPath: databasePath)
         }
         
         measureBlock {
-            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
             
-            var connection: COpaquePointer = nil
+            var connection: OpaquePointer = nil
             sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
             sqlite3_exec(connection, "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)", nil, nil, nil)
             
             sqlite3_exec(connection, "BEGIN TRANSACTION", nil, nil, nil)
             
-            var statement: COpaquePointer = nil
+            var statement: OpaquePointer = nil
             sqlite3_prepare_v2(connection, "INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)", -1, &statement, nil)
             
             for i in Int64(0)..<Int64(insertedRowCount) {
@@ -55,7 +55,7 @@ class InsertPositionalValuesTests: XCTestCase {
     
     func testFMDB() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
+        let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -63,10 +63,10 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            try! NSFileManager.default().removeItem(atPath: databasePath)
         }
         measureBlock {
-            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
             
             let dbQueue = FMDatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -84,7 +84,7 @@ class InsertPositionalValuesTests: XCTestCase {
     
     func testGRDB() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
+        let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -92,10 +92,10 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            try! NSFileManager.default().removeItem(atPath: databasePath)
         }
         measureBlock {
-            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
@@ -103,18 +103,18 @@ class InsertPositionalValuesTests: XCTestCase {
             }
             
             try! dbQueue.inTransaction { db in
-                let statement = try! db.updateStatement("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                let statement = try! db.makeUpdateStatement("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
                 for i in 0..<insertedRowCount {
                     try statement.execute(arguments: [i, i, i, i, i, i, i, i, i, i])
                 }
-                return .Commit
+                return .commit
             }
         }
     }
     
     func testSQLiteSwift() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
+        let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -122,10 +122,10 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            try! NSFileManager.default().removeItem(atPath: databasePath)
         }
         measureBlock {
-            _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
             
             let db = try! Connection(databasePath)
             try! db.run(itemsTable.create { t in

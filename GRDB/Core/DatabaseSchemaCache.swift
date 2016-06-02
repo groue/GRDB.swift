@@ -1,36 +1,36 @@
 /// A thread-unsafe database schema cache
-final class DatabaseSchemaCache: DatabaseSchemaCacheType {
+final class SimpleDatabaseSchemaCache: DatabaseSchemaCache {
     private var primaryKeys: [String: PrimaryKey?] = [:]
     
     func clear() {
         primaryKeys = [:]
     }
     
-    func primaryKey(tableName tableName: String) -> PrimaryKey?? {
+    func primaryKey(_ tableName: String) -> PrimaryKey?? {
         guard let pk = primaryKeys[tableName] else {
             return nil
         }
         return pk
     }
     
-    func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String) {
+    func set(primaryKey: PrimaryKey?, for tableName: String) {
         primaryKeys[tableName] = primaryKey
     }
 }
 
 /// A thread-safe database schema cache
-final class SharedDatabaseSchemaCache: DatabaseSchemaCacheType {
-    private let cache = ReadWriteBox(DatabaseSchemaCache())
+final class SharedDatabaseSchemaCache: DatabaseSchemaCache {
+    private let cache = ReadWriteBox(SimpleDatabaseSchemaCache())
     
     func clear() {
         cache.write { $0.clear() }
     }
     
-    func primaryKey(tableName tableName: String) -> PrimaryKey?? {
-        return cache.read { $0.primaryKey(tableName: tableName) }
+    func primaryKey(_ tableName: String) -> PrimaryKey?? {
+        return cache.read { $0.primaryKey(tableName) }
     }
     
-    func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String) {
-        cache.write { $0.setPrimaryKey(primaryKey, forTableName: tableName) }
+    func set(primaryKey: PrimaryKey?, for tableName: String) {
+        cache.write { $0.set(primaryKey: primaryKey, for: tableName) }
     }
 }

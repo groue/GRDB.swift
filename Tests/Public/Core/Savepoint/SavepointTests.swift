@@ -5,40 +5,40 @@ import XCTest
     import GRDB
 #endif
 
-func insertItem(db: Database, name: String) throws {
+func insertItem(_ db: Database, name: String) throws {
     try db.execute("INSERT INTO items (name) VALUES (?)", arguments: [name])
 }
 
-func fetchAllItemNames(dbReader: DatabaseReader) -> [String] {
+func fetchAllItemNames(_ dbReader: DatabaseReader) -> [String] {
     return dbReader.read { db in
         String.fetchAll(db, "SELECT * FROM items ORDER BY name")
     }
 }
 
-private class TransactionObserver : TransactionObserverType {
+private class Observer : TransactionObserver {
     var allRecordedEvents: [DatabaseEvent] = []
     
     func reset() {
         allRecordedEvents.removeAll()
     }
     
-    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+    func databaseDidChange(with event: DatabaseEvent) {
         allRecordedEvents.append(event.copy())
     }
     
     func databaseWillCommit() throws {
     }
     
-    func databaseDidCommit(db: Database) {
+    func databaseDidCommit(_ db: Database) {
     }
     
-    func databaseDidRollback(db: Database) {
+    func databaseDidRollback(_ db: Database) {
     }
 }
 
 class SavepointTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.execute("CREATE TABLE items (name TEXT)")
         }
@@ -46,17 +46,17 @@ class SavepointTests: GRDBTestCase {
 
     func testReleaseTopLevelSavepointFromDatabaseWithDefaultDeferredTransactions() {
         assertNoError {
-            dbConfiguration.defaultTransactionKind = .Deferred
+            dbConfiguration.defaultTransactionKind = .deferred
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
                 try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    return .Commit
+                    return .commit
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item3")
@@ -76,17 +76,17 @@ class SavepointTests: GRDBTestCase {
     
     func testRollbackTopLevelSavepointFromDatabaseWithDefaultDeferredTransactions() {
         assertNoError {
-            dbConfiguration.defaultTransactionKind = .Deferred
+            dbConfiguration.defaultTransactionKind = .deferred
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
                 try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    return .Rollback
+                    return .rollback
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item3")
@@ -105,10 +105,10 @@ class SavepointTests: GRDBTestCase {
     
     func testNestedSavepointFromDatabaseWithDefaultDeferredTransactions() {
         assertNoError {
-            dbConfiguration.defaultTransactionKind = .Deferred
+            dbConfiguration.defaultTransactionKind = .deferred
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
@@ -118,11 +118,11 @@ class SavepointTests: GRDBTestCase {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
-                        return .Commit
+                        return .commit
                     }
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item4")
-                    return .Commit
+                    return .commit
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item5")
@@ -152,11 +152,11 @@ class SavepointTests: GRDBTestCase {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
-                        return .Commit
+                        return .commit
                     }
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item4")
-                    return .Rollback
+                    return .rollback
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item5")
@@ -186,11 +186,11 @@ class SavepointTests: GRDBTestCase {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
-                        return .Rollback
+                        return .rollback
                     }
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item4")
-                    return .Commit
+                    return .commit
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item5")
@@ -221,11 +221,11 @@ class SavepointTests: GRDBTestCase {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
-                        return .Rollback
+                        return .rollback
                     }
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item4")
-                    return .Rollback
+                    return .rollback
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item5")
@@ -251,17 +251,17 @@ class SavepointTests: GRDBTestCase {
     
     func testReleaseTopLevelSavepointFromDatabaseWithDefaultImmediateTransactions() {
         assertNoError {
-            dbConfiguration.defaultTransactionKind = .Immediate
+            dbConfiguration.defaultTransactionKind = .immediate
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
                 try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    return .Commit
+                    return .commit
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item3")
@@ -282,17 +282,17 @@ class SavepointTests: GRDBTestCase {
     
     func testRollbackTopLevelSavepointFromDatabaseWithDefaultImmediateTransactions() {
         assertNoError {
-            dbConfiguration.defaultTransactionKind = .Immediate
+            dbConfiguration.defaultTransactionKind = .immediate
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
                 try db.inSavepoint {
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item2")
-                    return .Rollback
+                    return .rollback
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item3")
@@ -315,8 +315,8 @@ class SavepointTests: GRDBTestCase {
     func testNestedSavepointFromDatabaseWithDefaultImmediateTransactions() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             sqlQueries.removeAll()
             try dbQueue.inDatabase { db in
                 try insertItem(db, name: "item1")
@@ -326,11 +326,11 @@ class SavepointTests: GRDBTestCase {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
-                        return .Commit
+                        return .commit
                     }
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item4")
-                    return .Commit
+                    return .commit
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item5")
@@ -362,11 +362,11 @@ class SavepointTests: GRDBTestCase {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
-                        return .Commit
+                        return .commit
                     }
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item4")
-                    return .Rollback
+                    return .rollback
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item5")
@@ -399,11 +399,11 @@ class SavepointTests: GRDBTestCase {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
-                        return .Rollback
+                        return .rollback
                     }
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item4")
-                    return .Commit
+                    return .commit
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item5")
@@ -436,11 +436,11 @@ class SavepointTests: GRDBTestCase {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
                         try insertItem(db, name: "item3")
-                        return .Rollback
+                        return .rollback
                     }
                     XCTAssertTrue(db.isInsideTransaction)
                     try insertItem(db, name: "item4")
-                    return .Rollback
+                    return .rollback
                 }
                 XCTAssertFalse(db.isInsideTransaction)
                 try insertItem(db, name: "item5")
@@ -470,20 +470,20 @@ class SavepointTests: GRDBTestCase {
     func testSubsequentSavepoints() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             try dbQueue.inTransaction { db in
                 try db.inSavepoint {
                     try insertItem(db, name: "item1")
-                    return .Rollback
+                    return .rollback
                 }
                 
                 try db.inSavepoint {
                     try insertItem(db, name: "item2")
-                    return .Commit
+                    return .commit
                 }
                 
-                return .Commit
+                return .commit
             }
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item2"])
             XCTAssertEqual(observer.allRecordedEvents.count, 1)
@@ -493,8 +493,8 @@ class SavepointTests: GRDBTestCase {
     func testSubsequentSavepointsWithErrors() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             try dbQueue.inTransaction { db in
                 do {
                     try db.inSavepoint {
@@ -508,10 +508,10 @@ class SavepointTests: GRDBTestCase {
                 
                 try db.inSavepoint {
                     try insertItem(db, name: "item2")
-                    return .Commit
+                    return .commit
                 }
                 
-                return .Commit
+                return .commit
             }
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item2"])
             XCTAssertEqual(observer.allRecordedEvents.count, 1)

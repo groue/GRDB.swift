@@ -2,9 +2,9 @@ import UIKit
 
 class DemoViewController: UITableViewController {
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
-        navigationController?.toolbarHidden = true
-        navigationItem.backBarButtonItem = UIBarButtonItem(title: "Demo", style: .Plain, target: nil, action: nil)
+        navigationController?.isToolbarHidden = true
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "Demo", style: .plain, target: nil, action: nil)
     }
 }

@@ -49,7 +49,7 @@ public protocol DatabaseReader : class {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    func read<T>(block: (db: Database) throws -> T) rethrows -> T
+    func read<T>(_ block: (db: Database) throws -> T) rethrows -> T
     
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
@@ -71,7 +71,7 @@ public protocol DatabaseReader : class {
     ///         let int1 = Int.fetchOne(db, sql)
     ///         let int2 = Int.fetchOne(db, sql)
     ///     }
-    func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T
+    func nonIsolatedRead<T>(_ block: (db: Database) throws -> T) rethrows -> T
     
     
     // MARK: - Functions
@@ -85,12 +85,12 @@ public protocol DatabaseReader : class {
     ///         }
     ///         return int + 1
     ///     }
-    ///     reader.addFunction(fn)
+    ///     reader.add(function: fn)
     ///     Int.fetchOne(reader, "SELECT succ(1)")! // 2
-    func addFunction(function: DatabaseFunction)
+    func add(function: DatabaseFunction)
     
     /// Remove an SQL function.
-    func removeFunction(function: DatabaseFunction)
+    func remove(function: DatabaseFunction)
     
     
     // MARK: - Collations
@@ -100,12 +100,12 @@ public protocol DatabaseReader : class {
     ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
-    ///     reader.addCollation(collation)
+    ///     reader.add(collation: collation)
     ///     try reader.execute("SELECT * FROM files ORDER BY name COLLATE localized_standard")
-    func addCollation(collation: DatabaseCollation)
+    func add(collation: DatabaseCollation)
     
     /// Remove a collation.
-    func removeCollation(collation: DatabaseCollation)
+    func remove(collation: DatabaseCollation)
 }
 
 extension DatabaseReader {
@@ -127,11 +127,10 @@ extension DatabaseReader {
     func backup(to writer: DatabaseWriter, afterBackupInit: (() -> ())?, afterBackupStep: (() -> ())?) throws {
         try read { dbFrom in
             try writer.write { dbDest in
-                let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main")
-                guard backup != nil else {
+                guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main") else {
                     throw DatabaseError(code: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
                 }
-                guard backup != unsafeBitCast(Int(SQLITE_ERROR), COpaquePointer.self) else {
+                guard Int(bitPattern: backup) != Int(SQLITE_ERROR) else {
                     throw DatabaseError(code: SQLITE_ERROR)
                 }
                 

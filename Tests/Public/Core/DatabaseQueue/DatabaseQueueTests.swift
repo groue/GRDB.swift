@@ -10,7 +10,7 @@ class DatabaseQueueTests: GRDBTestCase {
     func testInvalidFileFormat() {
         assertNoError {
             do {
-                let testBundle = NSBundle(forClass: self.dynamicType)
+                let testBundle = NSBundle(for: self.dynamicType)
                 let path = testBundle.pathForResource("Betty", ofType: "jpeg")!
                 guard NSData(contentsOfFile: path) != nil else {
                     XCTFail("Missing file")
@@ -20,9 +20,9 @@ class DatabaseQueueTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 26) // SQLITE_NOTADB
-                XCTAssertEqual(error.message!.lowercaseString, "file is encrypted or is not a database") // lowercaseString: accept multiple SQLite version
+                XCTAssertEqual(error.message!.lowercased(), "file is encrypted or is not a database") // lowercased: accept multiple SQLite version
                 XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description.lowercaseString, "sqlite error 26: file is encrypted or is not a database")
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 26: file is encrypted or is not a database")
             }
         }
     }

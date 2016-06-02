@@ -11,7 +11,7 @@ extension DatabaseValue {
         guard let convertible = object as? DatabaseValueConvertible else {
             return nil
         }
-        self.init(storage: convertible.databaseValue.storage)
+        self = convertible.databaseValue
     }
     
     /// Converts a DatabaseValue to AnyObject.
@@ -19,15 +19,15 @@ extension DatabaseValue {
     /// - returns: NSNull, NSNumber, NSString, or NSData.
     public func toAnyObject() -> AnyObject {
         switch storage {
-        case .Null:
+        case .null:
             return NSNull()
-        case .Int64(let int64):
-            return NSNumber(longLong: int64)
-        case .Double(let double):
-            return NSNumber(double: double)
-        case .String(let string):
+        case .int64(let int64):
+            return NSNumber(value: int64)
+        case .double(let double):
+            return NSNumber(value: double)
+        case .string(let string):
             return string as NSString
-        case .Blob(let data):
+        case .blob(let data):
             return data
         }
     }

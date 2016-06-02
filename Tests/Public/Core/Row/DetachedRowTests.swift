@@ -128,11 +128,11 @@ class DetachedRowTests: GRDBTestCase {
             dbQueue.inDatabase { db in
                 let row = Row.fetchOne(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'")!
                 
-                guard case .Null = row.databaseValue(atIndex: 0).storage else { XCTFail(); return }
-                guard case .Int64(let int64) = row.databaseValue(atIndex: 1).storage where int64 == 1 else { XCTFail(); return }
-                guard case .Double(let double) = row.databaseValue(atIndex: 2).storage where double == 1.1 else { XCTFail(); return }
-                guard case .String(let string) = row.databaseValue(atIndex: 3).storage where string == "foo" else { XCTFail(); return }
-                guard case .Blob(let data) = row.databaseValue(atIndex: 4).storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+                guard case .null = row.databaseValue(atIndex: 0).storage else { XCTFail(); return }
+                guard case .int64(let int64) = row.databaseValue(atIndex: 1).storage where int64 == 1 else { XCTFail(); return }
+                guard case .double(let double) = row.databaseValue(atIndex: 2).storage where double == 1.1 else { XCTFail(); return }
+                guard case .string(let string) = row.databaseValue(atIndex: 3).storage where string == "foo" else { XCTFail(); return }
+                guard case .blob(let data) = row.databaseValue(atIndex: 4).storage where data == "SQLite".data(using: NSUTF8StringEncoding) else { XCTFail(); return }
             }
         }
     }
@@ -143,11 +143,11 @@ class DetachedRowTests: GRDBTestCase {
             dbQueue.inDatabase { db in
                 let row = Row.fetchOne(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"")!
                 
-                guard case .Null = row.databaseValue(named: "null")!.storage else { XCTFail(); return }
-                guard case .Int64(let int64) = row.databaseValue(named: "int64")!.storage where int64 == 1 else { XCTFail(); return }
-                guard case .Double(let double) = row.databaseValue(named: "double")!.storage where double == 1.1 else { XCTFail(); return }
-                guard case .String(let string) = row.databaseValue(named: "string")!.storage where string == "foo" else { XCTFail(); return }
-                guard case .Blob(let data) = row.databaseValue(named: "blob")!.storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+                guard case .null = row.databaseValue(named: "null")!.storage else { XCTFail(); return }
+                guard case .int64(let int64) = row.databaseValue(named: "int64")!.storage where int64 == 1 else { XCTFail(); return }
+                guard case .double(let double) = row.databaseValue(named: "double")!.storage where double == 1.1 else { XCTFail(); return }
+                guard case .string(let string) = row.databaseValue(named: "string")!.storage where string == "foo" else { XCTFail(); return }
+                guard case .blob(let data) = row.databaseValue(named: "blob")!.storage where data == "SQLite".data(using: NSUTF8StringEncoding) else { XCTFail(); return }
             }
         }
     }

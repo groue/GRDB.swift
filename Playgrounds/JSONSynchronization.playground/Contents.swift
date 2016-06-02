@@ -48,17 +48,17 @@ class Person : Record {
         return "persons"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id, "name": name]
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
@@ -66,7 +66,7 @@ class Person : Record {
 
 // Synchronizes the persons table with a JSON payload
 func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) throws {
-    let jsonData = jsonString.dataUsingEncoding(NSUTF8StringEncoding)!
+    let jsonData = jsonString.data(using: NSUTF8StringEncoding)!
     let json = try NSJSONSerialization.JSONObjectWithData(jsonData, options: []) as! NSDictionary
     
     // A support function that extracts an ID from a JSON person.
@@ -75,7 +75,7 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
     }
     
     // Sort JSON persons by id:
-    let jsonPersons = (json["persons"] as! [NSDictionary]).sort {
+    let jsonPersons = (json["persons"] as! [NSDictionary]).sorted {
         return jsonPersonId($0) < jsonPersonId($1)
     }
     
@@ -94,15 +94,15 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
         rightKey: jsonPersonId) // The id of a JSON person
     {
         switch mergeStep {
-        case .Left(let person):
+        case .left(let person):
             // Delete database person without matching JSON person:
             try person.delete(db)
-        case .Right(let jsonPerson):
+        case .right(let jsonPerson):
             // Insert JSON person without matching database person:
             let row = Row(jsonPerson)! // Granted JSON keys are database columns
             let person = Person(row)
             try person.insert(db)
-        case .Common(let person, let jsonPerson):
+        case .common(let person, let jsonPerson):
             // Update database person with its JSON counterpart:
             person.updateFromJSON(jsonPerson)
             if person.hasPersistentChangedValues {
@@ -127,7 +127,7 @@ do {
         // INSERT INTO "persons" ("id","name") VALUES (2,'Barbara')
         // INSERT INTO "persons" ("id","name") VALUES (3,'Craig')
         try synchronizePersonsWithJSON(jsonString, inDatabase: db)
-        return .Commit
+        return .commit
     }
 }
 
@@ -146,6 +146,6 @@ do {
         // UPDATE "persons" SET "name"='Barbie' WHERE "id"=2
         // INSERT INTO "persons" ("id","name") VALUES (4,'Daniel')
         try synchronizePersonsWithJSON(jsonString, inDatabase: db)
-        return .Commit
+        return .commit
     }
 }

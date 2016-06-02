@@ -10,7 +10,7 @@ class DatabasePoolCrashTests: GRDBCrashTestCase {
     func testReaderCanNotStartTransaction() {
         assertCrash("DatabasePool readers can not start transactions or savepoints.") {
             try dbPool.read { db in
-                let statement = try db.updateStatement("BEGIN TRANSACTION")
+                let statement = try db.makeUpdateStatement("BEGIN TRANSACTION")
             }
         }
     }
@@ -18,7 +18,7 @@ class DatabasePoolCrashTests: GRDBCrashTestCase {
     func testReaderCanNotStartSavepoint() {
         assertCrash("DatabasePool readers can not start transactions or savepoints.") {
             try dbPool.read { db in
-                let statement = try db.updateStatement("SAVEPOINT foo")
+                let statement = try db.makeUpdateStatement("SAVEPOINT foo")
             }
         }
     }

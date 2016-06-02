@@ -34,7 +34,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     }
     
     /// Returns a value initialized from *databaseValue*, if possible.
-    static func fromDatabaseValue(databaseValue: DatabaseValue) -> DatabaseTimestamp? {
+    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> DatabaseTimestamp? {
         // Double itself adopts DatabaseValueConvertible. So let's avoid
         // handling the raw DatabaseValue, and use built-in Double conversion:
         guard let timeInterval = Double.fromDatabaseValue(databaseValue) else {
@@ -56,7 +56,7 @@ class DatabaseTimestampTests: GRDBTestCase {
                 let storedDate = NSDate()
                 try db.execute("INSERT INTO dates (date) VALUES (?)", arguments: [DatabaseTimestamp(storedDate)])
                 let fetchedDate = DatabaseTimestamp.fetchOne(db, "SELECT date FROM dates")!.date
-                let delta = storedDate.timeIntervalSinceDate(fetchedDate)
+                let delta = storedDate.timeIntervalSince(fetchedDate)
                 XCTAssertTrue(abs(delta) < 0.1)
             }
         }

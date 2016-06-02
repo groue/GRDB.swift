@@ -6,16 +6,16 @@ extension NSData : DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         // SQLite cant' store zero-length blobs.
         guard length > 0 else {
-            return .Null
+            return .null
         }
-        return DatabaseValue(storage: .Blob(self))
+        return DatabaseValue(storage: .blob(self))
     }
     
     /// Returns an NSData initialized from *databaseValue*, if it contains
     /// a Blob.
-    public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         switch databaseValue.storage {
-        case .Blob(let data):
+        case .blob(let data):
             return self.init(data: data)
         default:
             return nil

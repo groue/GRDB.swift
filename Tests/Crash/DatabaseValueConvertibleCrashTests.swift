@@ -14,7 +14,7 @@ private struct IntConvertible: DatabaseValueConvertible {
     var databaseValue: DatabaseValue {
         return int.databaseValue
     }
-    static func fromDatabaseValue(databaseValue: DatabaseValue) -> IntConvertible? {
+    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> IntConvertible? {
         guard let int = Int.fromDatabaseValue(databaseValue) else {
             return nil
         }
@@ -31,7 +31,7 @@ class DatabaseValueConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
                 let sequence = IntConvertible.fetch(statement)
                 for _ in sequence { }
             }
@@ -45,7 +45,7 @@ class DatabaseValueConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
                 _ = IntConvertible.fetchAll(statement)
             }
         }

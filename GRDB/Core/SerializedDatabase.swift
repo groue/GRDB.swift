@@ -13,7 +13,7 @@ final class SerializedDatabase {
     /// The dispatch queue
     private let queue: dispatch_queue_t
     
-    init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCacheType) throws {
+    init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCache) throws {
         // According to https://www.sqlite.org/threadsafe.html
         //
         // > SQLite support three different threading modes:
@@ -32,7 +32,7 @@ final class SerializedDatabase {
         // Since our database connection is only used via our serial dispatch
         // queue, there is no purpose using the default serialized mode.
         var config = configuration
-        config.threadingMode = .MultiThread
+        config.threadingMode = .multiThread
         
         db = try Database(path: path, configuration: config, schemaCache: schemaCache)
         queue = DatabaseScheduler.makeSerializedQueueAllowing(database: db)
@@ -51,12 +51,12 @@ final class SerializedDatabase {
     /// its result.
     ///
     /// This method is *not* reentrant.
-    func performSync<T>(block: (db: Database) throws -> T) rethrows -> T {
+    func performSync<T>(_ block: (db: Database) throws -> T) rethrows -> T {
         return try DatabaseScheduler.dispatchSync(queue, database: db, block: block)
     }
     
     /// Asynchronously executes a block in the serialized dispatch queue.
-    func performAsync(block: (db: Database) -> Void) {
+    func performAsync(_ block: (db: Database) -> Void) {
         dispatch_async(queue) {
             block(db: self.db)
         }
@@ -65,13 +65,13 @@ final class SerializedDatabase {
     /// Executes the block in the current queue.
     ///
     /// - precondition: the current dispatch queue is valid.
-    func perform<T>(block: (db: Database) throws -> T) rethrows -> T {
+    func perform<T>(_ block: (db: Database) throws -> T) rethrows -> T {
         preconditionValidQueue()
         return try block(db: db)
     }
     
     /// Fatal error if current dispatch queue is not valid.
-    func preconditionValidQueue(@autoclosure message: () -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
+    func preconditionValidQueue(_ message: @autoclosure() -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
         DatabaseScheduler.preconditionValidQueue(db, message, file: file, line: line)
     }
 }

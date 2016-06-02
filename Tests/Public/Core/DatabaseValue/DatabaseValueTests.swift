@@ -47,16 +47,16 @@ class DatabaseValueTests: GRDBTestCase {
     }
     
     func testDatabaseValueEquatable() {
-        let fooData = "foo".dataUsingEncoding(NSUTF8StringEncoding)!
-        let barData = "bar".dataUsingEncoding(NSUTF8StringEncoding)!
+        let fooData = "foo".data(using: NSUTF8StringEncoding)!
+        let barData = "bar".data(using: NSUTF8StringEncoding)!
         
-        XCTAssertEqual(DatabaseValue.Null, DatabaseValue.Null)
-        XCTAssertNotEqual(DatabaseValue.Null, 1.databaseValue)
-        XCTAssertNotEqual(DatabaseValue.Null, 1.0.databaseValue)
-        XCTAssertNotEqual(DatabaseValue.Null, "foo".databaseValue)
-        XCTAssertNotEqual(DatabaseValue.Null, fooData.databaseValue)
+        XCTAssertEqual(DatabaseValue.null, DatabaseValue.null)
+        XCTAssertNotEqual(DatabaseValue.null, 1.databaseValue)
+        XCTAssertNotEqual(DatabaseValue.null, 1.0.databaseValue)
+        XCTAssertNotEqual(DatabaseValue.null, "foo".databaseValue)
+        XCTAssertNotEqual(DatabaseValue.null, fooData.databaseValue)
         
-        XCTAssertNotEqual(1.databaseValue, DatabaseValue.Null)
+        XCTAssertNotEqual(1.databaseValue, DatabaseValue.null)
         XCTAssertEqual(1.databaseValue, 1.databaseValue)
         XCTAssertNotEqual(1.databaseValue, 2.databaseValue)
         XCTAssertEqual(1.databaseValue, 1.0.databaseValue)
@@ -71,7 +71,7 @@ class DatabaseValueTests: GRDBTestCase {
         XCTAssertNotEqual(1.databaseValue, "1.0".databaseValue)
         XCTAssertNotEqual(1.databaseValue, fooData.databaseValue)
         
-        XCTAssertNotEqual(1.0.databaseValue, DatabaseValue.Null)
+        XCTAssertNotEqual(1.0.databaseValue, DatabaseValue.null)
         XCTAssertEqual(1.0.databaseValue, 1.databaseValue)
         XCTAssertNotEqual(1.1.databaseValue, 1.databaseValue)
         XCTAssertNotEqual(1.0.databaseValue, 2.databaseValue)
@@ -86,14 +86,14 @@ class DatabaseValueTests: GRDBTestCase {
         XCTAssertNotEqual(1.0.databaseValue, "1.0".databaseValue)
         XCTAssertNotEqual(1.0.databaseValue, fooData.databaseValue)
         
-        XCTAssertNotEqual("foo".databaseValue, DatabaseValue.Null)
+        XCTAssertNotEqual("foo".databaseValue, DatabaseValue.null)
         XCTAssertNotEqual("foo".databaseValue, 1.databaseValue)
         XCTAssertNotEqual("foo".databaseValue, 1.0.databaseValue)
         XCTAssertEqual("foo".databaseValue, "foo".databaseValue)
         XCTAssertNotEqual("foo".databaseValue, "bar".databaseValue)
         XCTAssertNotEqual("foo".databaseValue, fooData.databaseValue)
         
-        XCTAssertNotEqual(fooData.databaseValue, DatabaseValue.Null)
+        XCTAssertNotEqual(fooData.databaseValue, DatabaseValue.null)
         XCTAssertNotEqual(fooData.databaseValue, 1.databaseValue)
         XCTAssertNotEqual(fooData.databaseValue, 1.0.databaseValue)
         XCTAssertNotEqual(fooData.databaseValue, "foo".databaseValue)

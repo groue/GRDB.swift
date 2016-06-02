@@ -18,11 +18,11 @@ class QueryInterfaceRequestTests: GRDBTestCase {
 
     var collation: DatabaseCollation!
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
             return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
         }
-        dbWriter.addCollation(collation)
+        dbWriter.add(collation: collation)
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
@@ -87,7 +87,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(tableRequest.fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
-            XCTAssertEqual(tableRequest.reverse().fetchCount(db), 0)
+            XCTAssertEqual(tableRequest.reversed().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
             XCTAssertEqual(tableRequest.order(Col.name).fetchCount(db), 0)
@@ -99,25 +99,25 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(tableRequest.filter(Col.age == 42).fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
             
-            XCTAssertEqual(tableRequest.distinct.fetchCount(db), 0)
+            XCTAssertEqual(tableRequest.distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
             
             XCTAssertEqual(tableRequest.select(Col.name).fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
-            XCTAssertEqual(tableRequest.select(Col.name).distinct.fetchCount(db), 0)
+            XCTAssertEqual(tableRequest.select(Col.name).distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
             
-            XCTAssertEqual(tableRequest.select(Col.age * 2).distinct.fetchCount(db), 0)
+            XCTAssertEqual(tableRequest.select(Col.age * 2).distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
             
-            XCTAssertEqual(tableRequest.select((Col.age * 2).aliased("ignored")).distinct.fetchCount(db), 0)
+            XCTAssertEqual(tableRequest.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
             
             XCTAssertEqual(tableRequest.select(Col.name, Col.age).fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
-            XCTAssertEqual(tableRequest.select(Col.name, Col.age).distinct.fetchCount(db), 0)
+            XCTAssertEqual(tableRequest.select(Col.name, Col.age).distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
             
             XCTAssertEqual(tableRequest.select(max(Col.age)).group(Col.name).fetchCount(db), 0)
@@ -194,7 +194,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     func testDistinct() {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(Col.name).distinct),
+            sql(dbQueue, tableRequest.select(Col.name).distinct()),
             "SELECT DISTINCT \"name\" FROM \"readers\"")
     }
     
@@ -328,45 +328,45 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     func testReverse() {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.reverse()),
+            sql(dbQueue, tableRequest.reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"_rowid_\" DESC")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(Col.age).reverse()),
+            sql(dbQueue, tableRequest.order(Col.age).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(Col.age.asc).reverse()),
+            sql(dbQueue, tableRequest.order(Col.age.asc).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(Col.age.desc).reverse()),
+            sql(dbQueue, tableRequest.order(Col.age.desc).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" ASC")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(Col.age, Col.name.desc).reverse()),
+            sql(dbQueue, tableRequest.order(Col.age, Col.name.desc).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC, \"name\" ASC")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(abs(Col.age)).reverse()),
+            sql(dbQueue, tableRequest.order(abs(Col.age)).reversed()),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\") DESC")
     }
     
     func testReverseWithCollation() {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(Col.name.collating("NOCASE")).reverse()),
+            sql(dbQueue, tableRequest.order(Col.name.collating("NOCASE")).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(Col.name.collating("NOCASE").asc).reverse()),
+            sql(dbQueue, tableRequest.order(Col.name.collating("NOCASE").asc).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(Col.name.collating(collation)).reverse()),
+            sql(dbQueue, tableRequest.order(Col.name.collating(collation)).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive DESC")
     }
     
     func testMultipleReverse() {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.reverse().reverse()),
+            sql(dbQueue, tableRequest.reversed().reversed()),
             "SELECT * FROM \"readers\"")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(Col.age).order(Col.name).reverse().reverse()),
+            sql(dbQueue, tableRequest.order(Col.age).order(Col.name).reversed().reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\"")
     }
     

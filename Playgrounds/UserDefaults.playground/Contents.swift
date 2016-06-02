@@ -18,7 +18,7 @@ public class UserDefaults {
     private static var registeredDefaults: [UserDefaults] = []
     
     /// Returns the defaults for the database
-    public static func inDatabase(db: Database) -> UserDefaults {
+    public static func inDatabase(_ db: Database) -> UserDefaults {
         registeredDefaults = registeredDefaults.filter { $0.db != nil }
         for defaults in registeredDefaults where defaults.db === db { return defaults }
         let defaults = UserDefaults(db: db)
@@ -26,7 +26,7 @@ public class UserDefaults {
         return defaults
     }
     
-    private init(db: Database) {
+    private init(_ db: Database) {
         self.db = db
     }
     
@@ -143,7 +143,7 @@ private struct UserDefaultsItem {
 }
 
 extension UserDefaultsItem: RowConvertible {
-    init(_ row: Row) {
+    init(row: Row) {
         let data = row.dataNoCopy(named: "value")!
         let value = try! NSPropertyListSerialization.propertyListWithData(data, options: .Immutable, format: nil)
         self.key = row.value(named: "key")

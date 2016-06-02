@@ -62,7 +62,7 @@ public final class DatabasePool {
         // Readers
         readerConfig = configuration
         readerConfig.readonly = true
-        readerConfig.defaultTransactionKind = .Deferred // Make it the default. Other transaction kinds are forbidden by SQLite in read-only connections.
+        readerConfig.defaultTransactionKind = .deferred // Make it the default. Other transaction kinds are forbidden by SQLite in read-only connections.
         
         readerPool = Pool<SerializedDatabase>(maximumCount: configuration.maximumReaderCount)
         readerPool.makeElement = { [unowned self] in
@@ -73,10 +73,10 @@ public final class DatabasePool {
             
             serializedDatabase.performSync { db in
                 for function in self.functions {
-                    db.addFunction(function)
+                    db.add(function: function)
                 }
                 for collation in self.collations {
-                    db.addCollation(collation)
+                    db.add(collation: collation)
                 }
             }
             
@@ -90,7 +90,7 @@ public final class DatabasePool {
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NSNotificationCenter.default().removeObserver(self)
     }
     #endif
     
@@ -111,7 +111,7 @@ public final class DatabasePool {
     /// more information.
     ///
     /// - parameter kind: The checkpoint mode (default passive)
-    public func checkpoint(kind: CheckpointMode = .Passive) throws {
+    public func checkpoint(_ kind: CheckpointMode = .passive) throws {
         try writer.performSync { db in
             // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
             // check whether we need a busy handler on writer and/or readers
@@ -155,22 +155,22 @@ public final class DatabasePool {
     /// - param application: The UIApplication that will start a background
     ///   task to let the database pool release its memory when the application
     ///   enters background.
-    public func setupMemoryManagement(application application: UIApplication) {
+    public func setupMemoryManagement(in application: UIApplication) {
         self.application = application
-        let center = NSNotificationCenter.defaultCenter()
+        let center = NSNotificationCenter.default()
         center.addObserver(self, selector: #selector(DatabasePool.applicationDidReceiveMemoryWarning(_:)), name: UIApplicationDidReceiveMemoryWarningNotification, object: nil)
         center.addObserver(self, selector: #selector(DatabasePool.applicationDidEnterBackground(_:)), name: UIApplicationDidEnterBackgroundNotification, object: nil)
     }
     
     private var application: UIApplication!
     
-    @objc private func applicationDidEnterBackground(notification: NSNotification) {
+    @objc private func applicationDidEnterBackground(_ notification: NSNotification) {
         guard let application = application else {
             return
         }
         
         var task: UIBackgroundTaskIdentifier! = nil
-        task = application.beginBackgroundTaskWithExpirationHandler(nil)
+        task = application.beginBackgroundTask(expirationHandler: nil)
         
         if task == UIBackgroundTaskInvalid {
             // Perform releaseMemory() synchronously.
@@ -184,7 +184,7 @@ public final class DatabasePool {
         }
     }
     
-    @objc private func applicationDidReceiveMemoryWarning(notification: NSNotification) {
+    @objc private func applicationDidReceiveMemoryWarning(_ notification: NSNotification) {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             self.releaseMemory()
         }
@@ -205,10 +205,10 @@ public final class DatabasePool {
 
 /// The available [checkpoint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
 public enum CheckpointMode: Int32 {
-    case Passive = 0    // SQLITE_CHECKPOINT_PASSIVE
-    case Full = 1       // SQLITE_CHECKPOINT_FULL
-    case Restart = 2    // SQLITE_CHECKPOINT_RESTART
-    case Truncate = 3   // SQLITE_CHECKPOINT_TRUNCATE
+    case passive = 0    // SQLITE_CHECKPOINT_PASSIVE
+    case full = 1       // SQLITE_CHECKPOINT_FULL
+    case restart = 2    // SQLITE_CHECKPOINT_RESTART
+    case truncate = 3   // SQLITE_CHECKPOINT_TRUNCATE
 }
 
 
@@ -264,15 +264,15 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func read<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func read<T>(_ block: (db: Database) throws -> T) rethrows -> T {
         // The block isolation comes from the DEFERRED transaction.
         // See DatabasePoolTests.testReadMethodIsolationOfBlock().
         return try readerPool.get { reader in
             try reader.performSync { db in
                 var result: T? = nil
-                try db.inTransaction(.Deferred) {
+                try db.inTransaction(.deferred) {
                     result = try block(db: db)
-                    return .Commit
+                    return .commit
                 }
                 return result!
             }
@@ -299,7 +299,7 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func nonIsolatedRead<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func nonIsolatedRead<T>(_ block: (db: Database) throws -> T) rethrows -> T {
         return try readerPool.get { reader in
             try reader.performSync { db in
                 try block(db: db)
@@ -319,22 +319,23 @@ extension DatabasePool : DatabaseReader {
     ///         }
     ///         return int + 1
     ///     }
-    ///     dbPool.addFunction(fn)
+    ///     dbPool.add(function: fn)
     ///     dbPool.read { db in
     ///         Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
-    public func addFunction(function: DatabaseFunction) {
+    public func add(function: DatabaseFunction) {
+        // TODO: Use Set.update when available: https://github.com/apple/swift-evolution/blob/master/proposals/0059-updated-set-apis.md#other-changes)
         functions.remove(function)
         functions.insert(function)
-        writer.performSync { db in db.addFunction(function) }
-        readerPool.forEach { $0.performSync { db in db.addFunction(function) } }
+        writer.performSync { db in db.add(function: function) }
+        readerPool.forEach { $0.performSync { db in db.add(function: function) } }
     }
     
     /// Remove an SQL function.
-    public func removeFunction(function: DatabaseFunction) {
+    public func remove(function: DatabaseFunction) {
         functions.remove(function)
-        writer.performSync { db in db.removeFunction(function) }
-        readerPool.forEach { $0.performSync { db in db.removeFunction(function) } }
+        writer.performSync { db in db.remove(function: function) }
+        readerPool.forEach { $0.performSync { db in db.remove(function: function) } }
     }
     
     
@@ -345,22 +346,23 @@ extension DatabasePool : DatabaseReader {
     ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
-    ///     dbPool.addCollation(collation)
+    ///     dbPool.add(collation: collation)
     ///     dbPool.write { db in
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
-    public func addCollation(collation: DatabaseCollation) {
+    public func add(collation: DatabaseCollation) {
+        // TODO: Use Set.update when available: https://github.com/apple/swift-evolution/blob/master/proposals/0059-updated-set-apis.md#other-changes)
         collations.remove(collation)
         collations.insert(collation)
-        writer.performSync { db in db.addCollation(collation) }
-        readerPool.forEach { $0.performSync { db in db.addCollation(collation) } }
+        writer.performSync { db in db.add(collation: collation) }
+        readerPool.forEach { $0.performSync { db in db.add(collation: collation) } }
     }
     
     /// Remove a collation.
-    public func removeCollation(collation: DatabaseCollation) {
+    public func remove(collation: DatabaseCollation) {
         collations.remove(collation)
-        writer.performSync { db in db.removeCollation(collation) }
-        readerPool.forEach { $0.performSync { db in db.removeCollation(collation) } }
+        writer.performSync { db in db.remove(collation: collation) }
+        readerPool.forEach { $0.performSync { db in db.remove(collation: collation) } }
     }
 }
 
@@ -383,7 +385,7 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func write<T>(block: (db: Database) throws -> T) rethrows -> T {
+    public func write<T>(_ block: (db: Database) throws -> T) rethrows -> T {
         return try writer.performSync(block)
     }
     
@@ -395,7 +397,7 @@ extension DatabasePool : DatabaseWriter {
     ///
     ///     try dbPool.writeInTransaction { db in
     ///         db.execute(...)
-    ///         return .Commit
+    ///         return .commit
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -403,12 +405,12 @@ extension DatabasePool : DatabaseWriter {
     /// - parameters:
     ///     - kind: The transaction type (default nil). If nil, the transaction
     ///       type is configuration.defaultTransactionKind, which itself
-    ///       defaults to .Immediate. See https://www.sqlite.org/lang_transaction.html
+    ///       defaults to .immediate. See https://www.sqlite.org/lang_transaction.html
     ///       for more information.
     ///     - block: A block that executes SQL statements and return either
-    ///       .Commit or .Rollback.
+    ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
-    public func writeInTransaction(kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) throws {
+    public func writeInTransaction(_ kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) throws {
         try writer.performSync { db in
             try db.inTransaction(kind) {
                 try block(db: db)
@@ -442,18 +444,18 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// The database pool releases the writing dispatch queue early, before the
     /// block has finished.
-    public func readFromWrite(block: (db: Database) -> Void) {
+    public func readFromWrite(_ block: (db: Database) -> Void) {
         writer.preconditionValidQueue()
         
-        let semaphore = dispatch_semaphore_create(0)
+        let semaphore = dispatch_semaphore_create(0)!
         self.readerPool.get { reader in
             reader.performAsync { db in
                 // Assume COMMIT DEFERRED TRANSACTION does not throw error.
-                try! db.inTransaction(.Deferred) {
+                try! db.inTransaction(.deferred) {
                     // Now we're isolated: release the writing queue
                     dispatch_semaphore_signal(semaphore)
                     block(db: db)
-                    return .Commit
+                    return .commit
                 }
             }
         }

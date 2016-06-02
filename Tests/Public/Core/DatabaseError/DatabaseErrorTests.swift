@@ -17,13 +17,13 @@ class DatabaseErrorTests: GRDBTestCase {
                     self.sqlQueries.removeAll()
                     try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
                     XCTFail()
-                    return .Commit
+                    return .commit
                 }
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
-                XCTAssertEqual(error.message!.lowercaseString, "foreign key constraint failed") // lowercaseString: accept multiple SQLite version
+                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                XCTAssertEqual(error.description.lowercaseString, "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
                 
                 XCTAssertEqual(sqlQueries.count, 2)
                 XCTAssertEqual(sqlQueries[0], "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
@@ -45,7 +45,7 @@ class DatabaseErrorTests: GRDBTestCase {
                             self.sqlQueries.removeAll()
                             try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
                             XCTFail()
-                            return .Commit
+                            return .commit
                         }
                         XCTFail()
                     } catch {
@@ -55,9 +55,9 @@ class DatabaseErrorTests: GRDBTestCase {
                 }
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
-                XCTAssertEqual(error.message!.lowercaseString, "foreign key constraint failed") // lowercaseString: accept multiple SQLite version
+                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                XCTAssertEqual(error.description.lowercaseString, "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
             }
         }
     }
@@ -77,38 +77,38 @@ class DatabaseErrorTests: GRDBTestCase {
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
-                    XCTAssertEqual(error.message!.lowercaseString, "foreign key constraint failed") // lowercaseString: accept multiple SQLite version
+                    XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                     XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                    XCTAssertEqual(error.description.lowercaseString, "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
+                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
                 }
             }
             
             // statement.execute(arguments)
             try dbQueue.inDatabase { db in
                 do {
-                    let statement = try db.updateStatement("INSERT INTO pets (masterId, name) VALUES (?, ?)")
+                    let statement = try db.makeUpdateStatement("INSERT INTO pets (masterId, name) VALUES (?, ?)")
                     try statement.execute(arguments: [1, "Bobby"])
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
-                    XCTAssertEqual(error.message!.lowercaseString, "foreign key constraint failed") // lowercaseString: accept multiple SQLite version
+                    XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                     XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                    XCTAssertEqual(error.description.lowercaseString, "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
+                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
                 }
             }
             
             // statement.execute()
             try dbQueue.inDatabase { db in
                 do {
-                    let statement = try db.updateStatement("INSERT INTO pets (masterId, name) VALUES (?, ?)")
+                    let statement = try db.makeUpdateStatement("INSERT INTO pets (masterId, name) VALUES (?, ?)")
                     statement.arguments = [1, "Bobby"]
                     try statement.execute()
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
-                    XCTAssertEqual(error.message!.lowercaseString, "foreign key constraint failed") // lowercaseString: accept multiple SQLite version
+                    XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                     XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                    XCTAssertEqual(error.description.lowercaseString, "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
+                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [1, \"bobby\"]: foreign key constraint failed")
                 }
             }
         }
@@ -126,9 +126,9 @@ class DatabaseErrorTests: GRDBTestCase {
                     XCTFail()
                 } catch let error as DatabaseError {
                     XCTAssertEqual(error.code, 19) // SQLITE_CONSTRAINT
-                    XCTAssertEqual(error.message!.lowercaseString, "foreign key constraint failed") // lowercaseString: accept multiple SQLite version
+                    XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                     XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
-                    XCTAssertEqual(error.description.lowercaseString, "sqlite error 19 with statement `insert into pets (masterid, name) values (1, 'bobby')`: foreign key constraint failed")
+                    XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (1, 'bobby')`: foreign key constraint failed")
                 }
             }
         }

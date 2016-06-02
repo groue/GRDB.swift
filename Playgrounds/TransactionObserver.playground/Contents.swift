@@ -29,22 +29,22 @@ try! migrator.migrate(dbQueue)
 
 
 /// TableChangeObserver prints on the main thread the changes database tables.
-class TableChangeObserver : NSObject, TransactionObserverType {
+class TableChangeObserver : NSObject, TransactionObserver {
     private var changedTableNames: Set<String> = []
     
-    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+    func databaseDidChange(with event: DatabaseEvent) {
         changedTableNames.insert(event.tableName)
     }
     
     func databaseWillCommit() throws {
     }
     
-    func databaseDidCommit(db: Database) {
-        print("Changed table(s): \(changedTableNames.joinWithSeparator(", "))")
+    func databaseDidCommit(_ db: Database) {
+        print("Changed table(s): \(changedTableNames.joined(separator: ", "))")
         changedTableNames = []
     }
     
-    func databaseDidRollback(db: Database) {
+    func databaseDidRollback(_ db: Database) {
         changedTableNames = []
     }
 }
@@ -54,7 +54,7 @@ class TableChangeObserver : NSObject, TransactionObserverType {
 // Register observer
 
 let observer = TableChangeObserver()
-dbQueue.addTransactionObserver(observer)
+dbQueue.add(transactionObserver: observer)
 
 
 //
@@ -71,7 +71,7 @@ print("-- Changes 2")
 try dbQueue.inTransaction { db in
     try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
     try db.execute("INSERT INTO persons (name) VALUES ('Barbara')")
-    return .Rollback
+    return .rollback
 }
 
 

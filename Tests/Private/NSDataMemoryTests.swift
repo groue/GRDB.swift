@@ -26,7 +26,7 @@ class NSDataMemoryTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE datas (data BLOB)")
                 
-                let data = "foo".dataUsingEncoding(NSUTF8StringEncoding)
+                let data = "foo".data(using: NSUTF8StringEncoding)
                 try db.execute("INSERT INTO datas (data) VALUES (?)", arguments: [data])
                 
                 for row in Row.fetch(db, "SELECT * FROM datas") {
@@ -51,7 +51,7 @@ class NSDataMemoryTests: GRDBTestCase {
                 let row = Row.fetchOne(db, "SELECT * FROM datas")!
                 let databaseValue = row.first!.1
                 switch databaseValue.storage {
-                case .Blob(let data):
+                case .blob(let data):
                     do {
                         // This data should not be copied:
                         let nonCopiedData: NSData = row.value(atIndex: 0)

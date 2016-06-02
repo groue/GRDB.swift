@@ -25,23 +25,23 @@
 /// - preconditionValidQueue() crashes whenever a database is used in an invalid
 ///   dispatch queue.
 final class DatabaseScheduler {
-    private static let specificKey = unsafeBitCast(DatabaseScheduler.self, UnsafePointer<Void>.self) // some unique pointer
+    private static let specificKey = unsafeBitCast(DatabaseScheduler.self, to: UnsafePointer<Void>.self) // some unique pointer
     private var allowedSerializedDatabases: [Database]
     
     private init(allowedSerializedDatabase database: Database) {
         allowedSerializedDatabases = [database]
     }
     
-    static func makeSerializedQueueAllowing(database database: Database) -> dispatch_queue_t {
-        let queue = dispatch_queue_create("GRDB.SerializedDatabase", nil)
+    static func makeSerializedQueueAllowing(database: Database) -> dispatch_queue_t {
+        let queue = dispatch_queue_create("GRDB.SerializedDatabase", nil)!
         let scheduler = DatabaseScheduler(allowedSerializedDatabase: database)
         let unmanagedScheduler = Unmanaged.passRetained(scheduler)
-        let schedulerPointer = unsafeBitCast(unmanagedScheduler, UnsafeMutablePointer<Void>.self)
+        let schedulerPointer = unsafeBitCast(unmanagedScheduler, to: UnsafeMutablePointer<Void>.self)
         dispatch_queue_set_specific(queue, DatabaseScheduler.specificKey, schedulerPointer, destroyDatabaseScheduler)
         return queue
     }
     
-    static func dispatchSync<T>(queue: dispatch_queue_t, database: Database, block: (db: Database) throws -> T) rethrows -> T {
+    static func dispatchSync<T>(_ queue: dispatch_queue_t, database: Database, block: (db: Database) throws -> T) rethrows -> T {
         if let sourceScheduler = currentScheduler() {
             // We're in a queue where some databases are allowed.
             //
@@ -76,16 +76,16 @@ final class DatabaseScheduler {
             // currently allowed databases inside.
             //
             // The impl function helps us turn dispatch_sync into a rethrowing function
-            func impl(queue: dispatch_queue_t, database: Database, block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+            func impl(_ queue: dispatch_queue_t, database: Database, block: (db: Database) throws -> T, onError: (ErrorProtocol) throws -> ()) rethrows -> T {
                 var result: T? = nil
-                var blockError: ErrorType? = nil
+                var blockError: ErrorProtocol? = nil
                 dispatch_sync(queue) {
                     let targetScheduler = currentScheduler()!
                     assert(targetScheduler.allowedSerializedDatabases[0] === database) // sanity check
                     
                     do {
                         let backup = targetScheduler.allowedSerializedDatabases
-                        targetScheduler.allowedSerializedDatabases.appendContentsOf(sourceScheduler.allowedSerializedDatabases)
+                        targetScheduler.allowedSerializedDatabases.append(contentsOf: sourceScheduler.allowedSerializedDatabases)
                         defer {
                             targetScheduler.allowedSerializedDatabases = backup
                         }
@@ -105,9 +105,9 @@ final class DatabaseScheduler {
             // block to queue.
             //
             // The impl function helps us turn dispatch_sync into a rethrowing function
-            func impl(queue: dispatch_queue_t, database: Database, block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+            func impl(_ queue: dispatch_queue_t, database: Database, block: (db: Database) throws -> T, onError: (ErrorProtocol) throws -> ()) rethrows -> T {
                 var result: T? = nil
-                var blockError: ErrorType? = nil
+                var blockError: ErrorProtocol? = nil
                 dispatch_sync(queue) {
                     do {
                         result = try block(db: database)
@@ -124,33 +124,33 @@ final class DatabaseScheduler {
         }
     }
     
-    static func preconditionValidQueue(db: Database, @autoclosure _ message: () -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
+    static func preconditionValidQueue(_ db: Database, _ message: @autoclosure() -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
         GRDBPrecondition(allows(db), message, file: file, line: line)
     }
     
-    static func allows(db: Database) -> Bool {
+    static func allows(_ db: Database) -> Bool {
         return currentScheduler()?.allows(db) ?? false
     }
     
-    private func allows(db: Database) -> Bool {
+    private func allows(_ db: Database) -> Bool {
         return allowedSerializedDatabases.contains { $0 === db }
     }
     
     private static func currentScheduler() -> DatabaseScheduler? {
-        return scheduler(from: dispatch_get_specific(specificKey))
+        guard let schedulerPointer = dispatch_get_specific(specificKey) else {
+            return nil
+        }
+        return scheduler(from: schedulerPointer)
     }
     
     private static func scheduler(from schedulerPointer: UnsafeMutablePointer<Void>) -> DatabaseScheduler? {
-        guard schedulerPointer != nil else {
-            return nil
-        }
-        let unmanagedScheduler = unsafeBitCast(schedulerPointer, Unmanaged<DatabaseScheduler>.self)
+        let unmanagedScheduler = unsafeBitCast(schedulerPointer, to: Unmanaged<DatabaseScheduler>.self)
         return unmanagedScheduler.takeUnretainedValue()
     }
 }
 
 /// Destructor for dispatch_queue_set_specific
-private func destroyDatabaseScheduler(schedulerPointer: UnsafeMutablePointer<Void>) {
-    let unmanagedScheduler = unsafeBitCast(schedulerPointer, Unmanaged<DatabaseScheduler>.self)
+private func destroyDatabaseScheduler(schedulerPointer: UnsafeMutablePointer<Void>?) {
+    let unmanagedScheduler = unsafeBitCast(schedulerPointer, to: Unmanaged<DatabaseScheduler>.self)
     unmanagedScheduler.release()
 }

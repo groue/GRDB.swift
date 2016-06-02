@@ -6,18 +6,18 @@ import XCTest
 #endif
 
 private struct CustomFetchRequest : FetchRequest {
-    func selectStatement(db: Database) throws -> SelectStatement {
-        return try db.selectStatement("SELECT 1 AS 'produced'")
+    func selectStatement(_ db: Database) throws -> SelectStatement {
+        return try db.makeSelectStatement("SELECT 1 AS 'produced'")
     }
     
-    func adapter(statement: SelectStatement) throws -> RowAdapter? {
+    func adapter(_ statement: SelectStatement) throws -> RowAdapter? {
         return RowAdapter(mapping: ["consumed": "produced"])
     }
 }
 
 private struct CustomRecord: RowConvertible {
     let consumed: Int
-    init(_ row: Row) {
+    init(row: Row) {
         consumed = row.value(named: "consumed")
     }
 }

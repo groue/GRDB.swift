@@ -36,10 +36,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT * FROM items          SELECT * FROM items
             // step                         step
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                              step
             //                              <
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // step                         step
             // step                         end
             // end                          COMMIT
@@ -47,24 +47,24 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             
             let block1 = { () in
                 dbPool.read { db in
-                    let generator = Row.fetch(db, "SELECT * FROM items").generate()
-                    XCTAssertTrue(generator.next() != nil)
+                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                    XCTAssertTrue(generator.next() != nil)
-                    XCTAssertTrue(generator.next() != nil)
-                    XCTAssertTrue(generator.next() == nil)
+                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(iterator.next() == nil)
                 }
             }
             let block2 = { () in
                 dbPool.read { db in
-                    let generator = Row.fetch(db, "SELECT * FROM items").generate()
-                    XCTAssertTrue(generator.next() != nil)
+                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    XCTAssertTrue(generator.next() != nil)
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_signal(s2)
-                    XCTAssertTrue(generator.next() != nil)
-                    XCTAssertTrue(generator.next() == nil)
+                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(iterator.next() == nil)
                 }
             }
             let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
@@ -89,22 +89,22 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT * FROM items
             // step
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                              DELETE * FROM items
             //                              <
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // step
             // end
             // COMMIT
             
             let block1 = { () in
                 dbPool.read { db in
-                    let generator = Row.fetch(db, "SELECT * FROM items").generate()
-                    XCTAssertTrue(generator.next() != nil)
+                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                    XCTAssertTrue(generator.next() != nil)
-                    XCTAssertTrue(generator.next() == nil)
+                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(iterator.next() == nil)
                 }
             }
             let block2 = { () in
@@ -140,23 +140,23 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT * FROM items
             // step
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                              DELETE * FROM items
             //                              Checkpoint
             //                              <
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // step
             // end
             // COMMIT
             
             let block1 = { () in
                 dbPool.read { db in
-                    let generator = Row.fetch(db, "SELECT * FROM items").generate()
-                    XCTAssertTrue(generator.next() != nil)
+                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                    XCTAssertTrue(generator.next() != nil)
-                    XCTAssertTrue(generator.next() == nil)
+                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(iterator.next() == nil)
                 }
             }
             let block2 = { () in
@@ -189,11 +189,11 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // BEGIN DEFERRED TRANSACTION
             // SELECT COUNT(*) FROM items -> 0
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                              INSERT INTO items (id) VALUES (NULL)
             //                              Checkpoint
             //                              <
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // SELECT COUNT(*) FROM items -> 0
             // COMMIT
             
@@ -235,33 +235,33 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // BEGIN IMMEDIATE TRANSACTION
             // INSERT INTO items (id) VALUES (NULL)
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                              BEGIN DEFERRED TRANSACTION
             //                              SELECT COUNT(*) FROM items -> 0
             //                              <
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // INSERT INTO items (id) VALUES (NULL)
             // >
-            let s3 = dispatch_semaphore_create(0)
+            let s3 = dispatch_semaphore_create(0)!
             //                              SELECT COUNT(*) FROM items -> 0
             //                              <
-            let s4 = dispatch_semaphore_create(0)
+            let s4 = dispatch_semaphore_create(0)!
             // COMMIT
             // >
-            let s5 = dispatch_semaphore_create(0)
+            let s5 = dispatch_semaphore_create(0)!
             //                              SELECT COUNT(*) FROM items -> 0
             //                              COMMIT
             
             let block1 = { () in
                 do {
-                    try dbPool.writeInTransaction(.Immediate) { db in
+                    try dbPool.writeInTransaction(.immediate) { db in
                         try db.execute("INSERT INTO items (id) VALUES (NULL)")
                         dispatch_semaphore_signal(s1)
                         dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                         try db.execute("INSERT INTO items (id) VALUES (NULL)")
                         dispatch_semaphore_signal(s3)
                         dispatch_semaphore_wait(s4, DISPATCH_TIME_FOREVER)
-                        return .Commit
+                        return .commit
                     }
                     dispatch_semaphore_signal(s5)
                 } catch {
@@ -301,22 +301,22 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT * FROM items
             // step
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                              DELETE * FROM items
             //                              <
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // step
             // end
             // SELECT COUNT(*) FROM items -> 0
             
             let block1 = { () in
                 dbPool.nonIsolatedRead { db in
-                    let generator = Row.fetch(db, "SELECT * FROM items").generate()
-                    XCTAssertTrue(generator.next() != nil)
+                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                    XCTAssertTrue(generator.next() != nil)
-                    XCTAssertTrue(generator.next() == nil)
+                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(iterator.next() == nil)
                     XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
                 }
             }
@@ -352,22 +352,22 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // SELECT * FROM items
             // step
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                              DELETE * FROM items
             //                              Checkpoint
             //                              <
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // step
             // end
             
             let block1 = { () in
                 dbPool.nonIsolatedRead { db in
-                    let generator = Row.fetch(db, "SELECT * FROM items").generate()
-                    XCTAssertTrue(generator.next() != nil)
+                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                    XCTAssertTrue(generator.next() != nil)
-                    XCTAssertTrue(generator.next() == nil)
+                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(iterator.next() == nil)
                 }
             }
             let block2 = { () in
@@ -399,11 +399,11 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // Block 1                      Block 2
             // SELECT COUNT(*) FROM items -> 0
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                              INSERT INTO items (id) VALUES (NULL)
             //                              Checkpoint
             //                              <
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // SELECT COUNT(*) FROM items -> 1
             
             let block1 = { () in

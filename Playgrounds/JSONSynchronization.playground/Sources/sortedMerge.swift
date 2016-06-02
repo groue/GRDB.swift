@@ -24,11 +24,11 @@
 ///         rightKey: { Int($0)! })
 ///     {
 ///         switch mergeStep {
-///         case .Left(let left):
+///         case .left(let left):
 ///             print("- Left: \(left)")
-///         case .Right(let right):
+///         case .right(let right):
 ///             print("- Right: \(right)")
-///         case .Common(let left, let right):
+///         case .common(let left, let right):
 ///             print("- Common: \(left), \(right)")
 ///         }
 ///     }
@@ -39,35 +39,35 @@
 ///     - leftKey: A function that returns the key of a left element.
 ///     - rightKey: A function that returns the key of a right element.
 /// - returns: A sequence of MergeStep
-public func sortedMerge<LeftSequence: SequenceType, RightSequence: SequenceType, Key: Comparable>(
+public func sortedMerge<LeftSequence: Sequence, RightSequence: Sequence, Key: Comparable>(
     left lSeq: LeftSequence,
     right rSeq: RightSequence,
-    leftKey: LeftSequence.Generator.Element -> Key,
-    rightKey: RightSequence.Generator.Element -> Key) -> AnySequence<MergeStep<LeftSequence.Generator.Element, RightSequence.Generator.Element>>
+    leftKey: (LeftSequence.Iterator.Element) -> Key,
+    rightKey: (RightSequence.Iterator.Element) -> Key) -> AnySequence<MergeStep<LeftSequence.Iterator.Element, RightSequence.Iterator.Element>>
 {
-    return AnySequence { () -> AnyGenerator<MergeStep<LeftSequence.Generator.Element, RightSequence.Generator.Element>> in
-        var (lGen, rGen) = (lSeq.generate(), rSeq.generate())
+    return AnySequence { () -> AnyIterator<MergeStep<LeftSequence.Iterator.Element, RightSequence.Iterator.Element>> in
+        var (lGen, rGen) = (lSeq.makeIterator(), rSeq.makeIterator())
         var (lOpt, rOpt) = (lGen.next(), rGen.next())
-        return AnyGenerator {
+        return AnyIterator {
             switch (lOpt, rOpt) {
             case (let lElem?, let rElem?):
                 let (lKey, rKey) = (leftKey(lElem), rightKey(rElem))
                 if lKey > rKey {
                     rOpt = rGen.next()
-                    return .Right(rElem)
+                    return .right(rElem)
                 } else if lKey == rKey {
                     (lOpt, rOpt) = (lGen.next(), rGen.next())
-                    return .Common(lElem, rElem)
+                    return .common(lElem, rElem)
                 } else {
                     lOpt = lGen.next()
-                    return .Left(lElem)
+                    return .left(lElem)
                 }
             case (nil, let rElem?):
                 rOpt = rGen.next()
-                return .Right(rElem)
+                return .right(rElem)
             case (let lElem?, nil):
                 lOpt = lGen.next()
-                return .Left(lElem)
+                return .left(lElem)
             case (nil, nil):
                 return nil
             }
@@ -80,9 +80,9 @@ public func sortedMerge<LeftSequence: SequenceType, RightSequence: SequenceType,
  */
 public enum MergeStep<LeftElement, RightElement> {
     /// An element only found in the left sequence:
-    case Left(LeftElement)
+    case left(LeftElement)
     /// An element only found in the right sequence:
-    case Right(RightElement)
+    case right(RightElement)
     /// Left and right elements share a common key:
-    case Common(LeftElement, RightElement)
+    case common(LeftElement, RightElement)
 }

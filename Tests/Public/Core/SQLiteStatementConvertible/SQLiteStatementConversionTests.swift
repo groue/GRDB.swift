@@ -9,7 +9,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute(
@@ -65,7 +65,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Int64 is turned to Text
@@ -98,7 +98,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Int32 is turned to Text
@@ -131,7 +131,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Double is turned to Text
@@ -164,7 +164,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // "3.0e+5" is turned to Text
@@ -197,7 +197,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // "foo" is turned to Text
@@ -230,13 +230,13 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
+                try db.execute("INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["foo".data(using: NSUTF8StringEncoding)])
                 // Check SQLite conversions from Blob storage:
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -257,9 +257,9 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as String?), "foo")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT textAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                    XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".data(using: NSUTF8StringEncoding))
                 }
-                return .Rollback
+                return .rollback
             }
         }
     }
@@ -356,7 +356,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Int64 is turned to Real
@@ -401,7 +401,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Int32 is turned to Real
@@ -446,7 +446,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // 3.0e5 Double is turned to Real
@@ -491,7 +491,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // 1.0e20 Double is turned to Real
@@ -518,7 +518,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // "3.0e+5" is turned to Real
@@ -563,7 +563,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // "1.0e+20" is turned to Real
@@ -590,7 +590,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // "foo" is turned to Text
@@ -623,13 +623,13 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
+                try db.execute("INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["foo".data(using: NSUTF8StringEncoding)])
                 // Check SQLite conversions from Blob storage:
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -650,9 +650,9 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as String?), "foo")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT realAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                    XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".data(using: NSUTF8StringEncoding))
                 }
-                return .Rollback
+                return .rollback
             }
         }
     }
@@ -709,7 +709,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Int64 is turned to Integer
@@ -754,7 +754,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Int32 is turned to Integer
@@ -799,7 +799,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Double is turned to Real
@@ -844,7 +844,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // "3.0e+5" is turned to Text
@@ -877,13 +877,13 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
+                try db.execute("INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["foo".data(using: NSUTF8StringEncoding)])
                 // Check SQLite conversions from Blob storage
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -904,14 +904,14 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as String?), "foo")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT noneAffinity FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                    XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".data(using: NSUTF8StringEncoding))
                 }
-                return .Rollback
+                return .rollback
             }
         }
     }
     
-    func testNumericAffinity(columnName: String) {
+    func testNumericAffinity(_ columnName: String) {
         // https://www.sqlite.org/datatype3.html
         //
         // > A column with NUMERIC affinity may contain values using all five
@@ -977,7 +977,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Int64 is turned to Integer
@@ -1022,7 +1022,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Int32 is turned to Integer
@@ -1067,7 +1067,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // 3.0e5 Double is turned to Integer
@@ -1112,7 +1112,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // 1.0e20 Double is turned to Real
@@ -1139,7 +1139,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // "3.0e+5" is turned to Integer
@@ -1184,7 +1184,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // "1.0e+20" is turned to Real
@@ -1211,7 +1211,7 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // "foo" is turned to Text
@@ -1244,13 +1244,13 @@ class SQLiteStatementConversionTests : GRDBTestCase {
 //                for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
 //                    XCTAssertTrue((row.value(atIndex: 0) as NSData?) == nil)
 //                }
-                return .Rollback
+                return .rollback
             }
             
             // Blob is turned to Blob
             
             try dbQueue.inTransaction { db in
-                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["foo".dataUsingEncoding(NSUTF8StringEncoding)])
+                try db.execute("INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["foo".data(using: NSUTF8StringEncoding)])
                 // Check SQLite conversions from Blob storage:
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
                     XCTAssertEqual((row.value(atIndex: 0) as Bool?), false)     // incompatible with DatabaseValue conversion
@@ -1271,9 +1271,9 @@ class SQLiteStatementConversionTests : GRDBTestCase {
                     XCTAssertEqual((row.value(atIndex: 0) as String?), "foo")   // incompatible with DatabaseValue conversion
                 }
                 for row in Row.fetch(db, "SELECT \(columnName) FROM `values`") {
-                    XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".dataUsingEncoding(NSUTF8StringEncoding))
+                    XCTAssertEqual((row.value(atIndex: 0) as NSData?), "foo".data(using: NSUTF8StringEncoding))
                 }
-                return .Rollback
+                return .rollback
             }
         }
     }

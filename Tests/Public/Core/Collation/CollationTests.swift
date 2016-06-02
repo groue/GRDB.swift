@@ -49,12 +49,12 @@ class CollationTests: GRDBTestCase {
                 if length1 == length2 {
                     return (string1 as NSString).compare(string2)
                 } else if length1 < length2 {
-                    return .OrderedAscending
+                    return .orderedAscending
                 } else {
-                    return .OrderedDescending
+                    return .orderedDescending
                 }
             }
-            dbQueue.addCollation(collation)
+            dbQueue.add(collation: collation)
             
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT COLLATE LOCALIZED_STANDARD)")

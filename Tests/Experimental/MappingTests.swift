@@ -13,7 +13,7 @@
 //    init() {
 //        direction = .Save
 //    }
-//    init(_ row: Row) {
+//    init(row: Row) {
 //        direction = .Fetch(row)
 //    }
 //    subscript(name: String) -> Binding {
@@ -95,7 +95,7 @@
 //    var firstName: String?
 //    var lastName: String?
 //    var fullName: String {
-//        return [firstName, lastName].flatMap { $0 }.joinWithSeparator(" ")
+//        return [firstName, lastName].flatMap { $0 }.joined(separator: " ")
 //    }
 //    
 //    init(firstName: String? = nil, lastName: String? = nil) {
@@ -129,8 +129,8 @@
 //        return mapping.dictionary
 //    }
 //    
-//    required init(_ row: Row) {
-//        super.init(row)
+//    required init(row: Row) {
+//        super.init(row: row)
 //    }
 //}
 //

@@ -17,11 +17,11 @@ private class Reader : Record {
         super.init()
     }
     
-    required init(_ row: Row){
+    required init(row: Row){
         self.id = row.value(named: "id")
         self.name = row.value(named: "name")
         self.age = row.value(named: "age")
-        super.init(row)
+        super.init(row: row)
     }
     
     override static func databaseTableName() -> String {
@@ -32,7 +32,7 @@ private class Reader : Record {
         return ["id": id, "name": name, "age": age]
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
@@ -40,7 +40,7 @@ private class Reader : Record {
 
 class RecordQueryInterfaceRequestTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
             try db.execute(

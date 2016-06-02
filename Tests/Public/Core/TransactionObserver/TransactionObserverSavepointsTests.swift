@@ -5,23 +5,23 @@ import XCTest
     import GRDB
 #endif
 
-private class TransactionObserver : TransactionObserverType {
+private class Observer : TransactionObserver {
     var lastCommittedEvents: [DatabaseEvent] = []
     var events: [DatabaseEvent] = []
     
-    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+    func databaseDidChange(with event: DatabaseEvent) {
         events.append(event.copy())
     }
     
     func databaseWillCommit() throws {
     }
     
-    func databaseDidCommit(db: Database) {
+    func databaseDidCommit(_ db: Database) {
         lastCommittedEvents = events
         events = []
     }
     
-    func databaseDidRollback(db: Database) {
+    func databaseDidRollback(_ db: Database) {
         lastCommittedEvents = []
         events = []
     }
@@ -29,7 +29,7 @@ private class TransactionObserver : TransactionObserverType {
 
 class TransactionObserverSavepointsTests: GRDBTestCase {
     
-    private func match(event event: DatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
+    private func match(event: DatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
         return (event.tableName == tableName) && (event.rowID == rowId) && (event.kind == kind)
     }
     
@@ -39,8 +39,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
     func testSavepointAsTransaction() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
@@ -59,16 +59,16 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             }
             
             XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items2", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
         }
     }
     
     func testSavepointInsideTransaction() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
@@ -86,16 +86,16 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             }
             
             XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items2", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
         }
     }
     
     func testSavepointWithIdenticalName() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
@@ -126,18 +126,18 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             }
             
             XCTAssertEqual(observer.lastCommittedEvents.count, 4)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items2", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .Insert, tableName: "items3", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[3], kind: .Insert, tableName: "items4", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .insert, tableName: "items3", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[3], kind: .insert, tableName: "items4", rowId: 1))
         }
     }
     
     func testMultipleRollbackOfSavepoint() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
@@ -167,16 +167,16 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             }
             
             XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items4", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items4", rowId: 1))
         }
     }
     
     func testReleaseSavepoint() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
@@ -203,18 +203,18 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             }
             
             XCTAssertEqual(observer.lastCommittedEvents.count, 4)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items2", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .Insert, tableName: "items3", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[3], kind: .Insert, tableName: "items4", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items2", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[2], kind: .insert, tableName: "items3", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[3], kind: .insert, tableName: "items4", rowId: 1))
         }
     }
     
     func testRollbackNonNestedSavepointInsideTransaction() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE items1 (id INTEGER PRIMARY KEY)")
@@ -245,8 +245,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             }
             
             XCTAssertEqual(observer.lastCommittedEvents.count, 2)
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .Insert, tableName: "items1", rowId: 1))
-            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .Insert, tableName: "items4", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[0], kind: .insert, tableName: "items1", rowId: 1))
+            XCTAssertTrue(match(event: observer.lastCommittedEvents[1], kind: .insert, tableName: "items4", rowId: 1))
         }
     }
     

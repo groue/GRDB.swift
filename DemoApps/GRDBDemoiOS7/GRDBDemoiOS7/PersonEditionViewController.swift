@@ -33,7 +33,7 @@ class PersonEditionViewController: UITableViewController, UITextFieldDelegate {
         }
     }
     
-    func textFieldShouldReturn(textField: UITextField) -> Bool {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         // Tapping Return key focuses next text field.
         if textField == firstNameTextField {
             lastNameTextField.becomeFirstResponder()

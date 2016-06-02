@@ -17,7 +17,7 @@ private struct MutablePersistablePerson : MutablePersistable {
         return ["id": id, "name": name]
     }
     
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    mutating func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
@@ -35,7 +35,7 @@ private struct MutablePersistableCountry : MutablePersistable {
         return ["isoCode": isoCode, "name": name]
     }
     
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    mutating func didInsert(with rowID: Int64, for column: String?) {
         self.rowID = rowID
     }
 }
@@ -44,11 +44,11 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
     var rowID: Int64?
     var isoCode: String
     var name: String
-    let willInsert: Void -> Void
-    let willUpdate: Void -> Void
-    let willSave: Void -> Void
-    let willDelete: Void -> Void
-    let willExists: Void -> Void
+    let willInsert: (Void) -> Void
+    let willUpdate: (Void) -> Void
+    let willSave: (Void) -> Void
+    let willDelete: (Void) -> Void
+    let willExists: (Void) -> Void
     
     static func databaseTableName() -> String {
         return "countries"
@@ -58,31 +58,31 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
         return ["isoCode": isoCode, "name": name]
     }
     
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    mutating func didInsert(with rowID: Int64, for column: String?) {
         self.rowID = rowID
     }
     
-    mutating func insert(db: Database) throws {
+    mutating func insert(_ db: Database) throws {
         willInsert()
         try performInsert(db)
     }
     
-    func update(db: Database) throws {
+    func update(_ db: Database) throws {
         willUpdate()
         try performUpdate(db)
     }
     
-    mutating func save(db: Database) throws {
+    mutating func save(_ db: Database) throws {
         willSave()
         try performSave(db)
     }
     
-    func delete(db: Database) throws {
+    func delete(_ db: Database) throws {
         willDelete()
         try performDelete(db)
     }
     
-    func exists(db: Database) -> Bool {
+    func exists(_ db: Database) -> Bool {
         willExists()
         return performExists(db)
     }
@@ -90,7 +90,7 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
 
 class MutablePersistableTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("setUp") { db in
             try db.execute(

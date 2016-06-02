@@ -15,7 +15,7 @@ class InMemoryDatabaseTests : GRDBTestCase
                 try db.execute("INSERT INTO foo (bar) VALUES ('baz')")
                 let baz = String.fetchOne(db, "SELECT bar FROM foo")!
                 XCTAssertEqual(baz, "baz")
-                return .Rollback
+                return .rollback
             }
         }
     }

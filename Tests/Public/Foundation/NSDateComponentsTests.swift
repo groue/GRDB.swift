@@ -7,7 +7,7 @@ import XCTest
 
 class NSDateComponentsTests : GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createDates") { db in
             try db.execute(
@@ -351,8 +351,8 @@ class NSDateComponentsTests : GRDBTestCase {
                 let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
                 calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
                 do {
-                    let date = NSDate().dateByAddingTimeInterval(-1)
-                    let dateComponents = calendar.components([.Year, .Month, .Day, .Hour, .Minute, .Second], fromDate: date)
+                    let date = NSDate().addingTimeInterval(-1)
+                    let dateComponents = calendar.components([.year, .month, .day, .hour, .minute, .second], from: date)
                     try db.execute(
                         "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                         arguments: [1, DatabaseDateComponents(dateComponents, format: .YMD_HMS)])
@@ -363,8 +363,8 @@ class NSDateComponentsTests : GRDBTestCase {
                         arguments: [2])
                 }
                 do {
-                    let date = NSDate().dateByAddingTimeInterval(1)
-                    let dateComponents = calendar.components([.Year, .Month, .Day, .Hour, .Minute, .Second], fromDate: date)
+                    let date = NSDate().addingTimeInterval(1)
+                    let dateComponents = calendar.components([.year, .month, .day, .hour, .minute, .second], from: date)
                     try db.execute(
                         "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                         arguments: [3, DatabaseDateComponents(dateComponents, format: .YMD_HMS)])

@@ -17,7 +17,7 @@ class BadlyMangledStuff : Record {
         super.init()
     }
     
-    static func setupInDatabase(db: Database) throws {
+    static func setup(inDatabase db: Database) throws {
         try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
     }
     
@@ -27,12 +27,12 @@ class BadlyMangledStuff : Record {
         return "stuffs"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         // Here user may peek fancy column names that match his SQL queries.
         // However this is not the way to do it (see testBadlyMangledStuff()).
         id = row.value(named: "mangled_id")
         name = row.value(named: "mangled_name")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
@@ -41,16 +41,16 @@ class BadlyMangledStuff : Record {
         return ["id": id, "name": name]
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
 
 class RecordWithColumnNameManglingTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createBadlyMangledStuff", migrate: BadlyMangledStuff.setupInDatabase)
+        migrator.registerMigration("createBadlyMangledStuff", migrate: BadlyMangledStuff.setup)
         try migrator.migrate(dbWriter)
     }
     

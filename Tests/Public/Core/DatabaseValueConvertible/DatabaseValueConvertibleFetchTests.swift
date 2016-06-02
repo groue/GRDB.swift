@@ -14,7 +14,7 @@ private struct WrappedInt: DatabaseValueConvertible {
     var databaseValue: DatabaseValue {
         return int.databaseValue
     }
-    static func fromDatabaseValue(databaseValue: DatabaseValue) -> WrappedInt? {
+    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> WrappedInt? {
         guard let int = Int.fromDatabaseValue(databaseValue) else {
             return nil
         }
@@ -32,7 +32,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
-                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
                 let sequence = WrappedInt.fetch(statement)
                 
                 XCTAssertEqual(sequence.map { $0.int }, [1,2])
@@ -48,7 +48,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (2)")
                 
-                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
                 let array = WrappedInt.fetchAll(statement)
                 
                 XCTAssertEqual(array.map { $0.int }, [1,2])
@@ -61,7 +61,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE ints (int Int)")
-                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
                 
                 let nilBecauseMissingRow = WrappedInt.fetchOne(statement)
                 XCTAssertTrue(nilBecauseMissingRow == nil)
@@ -137,7 +137,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
                 let sequence = Optional<WrappedInt>.fetch(statement)
                 
                 let ints = sequence.map { $0?.int }
@@ -156,7 +156,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
                 let array = Optional<WrappedInt>.fetchAll(statement)
                 
                 let ints = array.map { $0?.int }

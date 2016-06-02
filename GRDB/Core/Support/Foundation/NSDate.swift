@@ -6,21 +6,21 @@ extension NSDate : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return storageDateFormatter.stringFromDate(self).databaseValue
+        return storageDateFormatter.string(from: self).databaseValue
     }
     
     /// Returns an NSDate initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
             return fromDatabaseDateComponents(databaseDateComponents)
         }
         if let julianDayNumber = Double.fromDatabaseValue(databaseValue) {
-            return fromJulienDayNumber(julianDayNumber)
+            return fromJulianDayNumber(julianDayNumber)
         }
         return nil
     }
     
-    private static func fromJulienDayNumber(julianDayNumber: Double) -> Self? {
+    private static func fromJulianDayNumber(_ julianDayNumber: Double) -> Self? {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
         let JD = Int64(julianDayNumber * 86400000)
         let Z = Int(((JD + 43200000)/86400000))
@@ -52,17 +52,17 @@ extension NSDate : DatabaseValueConvertible {
         dateComponents.second = Int(second)
         dateComponents.nanosecond = Int((second - Double(Int(second))) * 1.0e9)
         
-        let date = UTCCalendar.dateFromComponents(dateComponents)!
-        return self.init(timeInterval: 0, sinceDate: date)
+        let date = UTCCalendar.date(from: dateComponents)!
+        return self.init(timeInterval: 0, since: date)
     }
     
-    private static func fromDatabaseDateComponents(databaseDateComponents: DatabaseDateComponents) -> Self? {
+    private static func fromDatabaseDateComponents(_ databaseDateComponents: DatabaseDateComponents) -> Self? {
         guard databaseDateComponents.format.hasYMDComponents else {
             // Refuse to turn hours without any date information into NSDate:
             return nil
         }
-        let date = UTCCalendar.dateFromComponents(databaseDateComponents.dateComponents)!
-        return self.init(timeInterval: 0, sinceDate: date)
+        let date = UTCCalendar.date(from: databaseDateComponents.dateComponents)!
+        return self.init(timeInterval: 0, since: date)
     }
 }
 

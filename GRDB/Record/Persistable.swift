@@ -1,36 +1,36 @@
 // MARK: - PersistenceError
 
 /// An error thrown by a type that adopts Persistable.
-public enum PersistenceError: ErrorType {
+public enum PersistenceError: ErrorProtocol {
     
     /// Thrown by MutablePersistable.update() when no matching row could be
     /// found in the database.
-    case NotFound(MutablePersistable)
+    case recordNotFound(MutablePersistable)
 }
 
 extension PersistenceError : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
         switch self {
-        case .NotFound(let persistable):
+        case .recordNotFound(let persistable):
             return "Not found: \(persistable)"
         }
     }
 }
 
-private func databaseValue(forColumn column: String, inDictionary dictionary: [String: DatabaseValueConvertible?]) -> DatabaseValue {
+private func databaseValue(for column: String, inDictionary dictionary: [String: DatabaseValueConvertible?]) -> DatabaseValue {
     if let value = dictionary[column] {
-        return value?.databaseValue ?? .Null
+        return value?.databaseValue ?? .null
     }
-    let column = column.lowercaseString
-    for (key, value) in dictionary where key.lowercaseString == column {
-        return value?.databaseValue ?? .Null
+    let column = column.lowercased()
+    for (key, value) in dictionary where key.lowercased() == column {
+        return value?.databaseValue ?? .null
     }
-    return .Null
+    return .null
 }
 
-private func databaseValues(forColumns columns: [String], inDictionary dictionary: [String: DatabaseValueConvertible?]) -> [DatabaseValue] {
-    return columns.map { databaseValue(forColumn: $0, inDictionary: dictionary) }
+private func databaseValues(for columns: [String], inDictionary dictionary: [String: DatabaseValueConvertible?]) -> [DatabaseValue] {
+    return columns.map { databaseValue(for: $0, inDictionary: dictionary) }
 }
 
 
@@ -40,7 +40,7 @@ private func databaseValues(forColumns columns: [String], inDictionary dictionar
 ///
 /// This protocol is intented for types that have an INTEGER PRIMARY KEY, and
 /// are interested in the inserted RowID: they can mutate themselves upon
-/// successful insertion with the didInsertWithRowID(_:forColumn:) method.
+/// successful insertion with the didInsert(with:for:) method.
 ///
 /// The insert() and save() methods are mutating methods.
 public protocol MutablePersistable : TableMapping {
@@ -74,7 +74,7 @@ public protocol MutablePersistable : TableMapping {
     ///         var id: Int64?
     ///         var name: String?
     ///
-    ///         mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    ///         mutating func didInsert(with rowID: Int64, for column: String?) {
     ///             self.id = rowID
     ///         }
     ///     }
@@ -82,7 +82,7 @@ public protocol MutablePersistable : TableMapping {
     /// - parameters:
     ///     - rowID: The inserted rowID.
     ///     - column: The name of the eventual INTEGER PRIMARY KEY column.
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    mutating func didInsert(with rowID: Int64, for column: String?)
     
     
     // MARK: - CRUD
@@ -92,7 +92,7 @@ public protocol MutablePersistable : TableMapping {
     /// This method is guaranteed to have inserted a row in the database if it
     /// returns without error.
     ///
-    /// Upon successful insertion, the didInsertWithRowID(:forColumn:) method
+    /// Upon successful insertion, the didInsert(with:for:) method
     /// is called with the inserted RowID and the eventual INTEGER PRIMARY KEY
     /// column name.
     ///
@@ -103,7 +103,7 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    mutating func insert(db: Database) throws
+    mutating func insert(_ db: Database) throws
     
     /// Executes an UPDATE statement.
     ///
@@ -117,9 +117,9 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    ///   PersistenceError.NotFound is thrown if the primary key does not
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    func update(db: Database) throws
+    func update(_ db: Database) throws
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
@@ -140,7 +140,7 @@ public protocol MutablePersistable : TableMapping {
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    mutating func save(db: Database) throws
+    mutating func save(_ db: Database) throws
     
     /// Executes a DELETE statement.
     ///
@@ -152,7 +152,7 @@ public protocol MutablePersistable : TableMapping {
     /// - parameter db: A database connection.
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    func delete(db: Database) throws -> Bool
+    func delete(_ db: Database) throws -> Bool
     
     /// Returns true if and only if the primary key matches a row in
     /// the database.
@@ -164,7 +164,7 @@ public protocol MutablePersistable : TableMapping {
     ///
     /// - parameter db: A database connection.
     /// - returns: Whether the primary key matches a row in the database.
-    func exists(db: Database) -> Bool
+    func exists(_ db: Database) -> Bool
 }
 
 public extension MutablePersistable {
@@ -172,7 +172,7 @@ public extension MutablePersistable {
     /// Notifies the record that it was succesfully inserted.
     ///
     /// The default implementation does nothing.
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    mutating func didInsert(with rowID: Int64, for column: String?) {
     }
     
     
@@ -181,14 +181,14 @@ public extension MutablePersistable {
     /// Executes an INSERT statement.
     ///
     /// The default implementation for insert() invokes performInsert().
-    mutating func insert(db: Database) throws {
+    mutating func insert(_ db: Database) throws {
         try performInsert(db)
     }
     
     /// Executes an UPDATE statement.
     ///
     /// The default implementation for update() invokes performUpdate().
-    func update(db: Database) throws {
+    func update(_ db: Database) throws {
         try performUpdate(db)
     }
     
@@ -196,14 +196,14 @@ public extension MutablePersistable {
     /// the database.
     ///
     /// The default implementation for save() invokes performSave().
-    mutating func save(db: Database) throws {
+    mutating func save(_ db: Database) throws {
         try performSave(db)
     }
     
     /// Executes a DELETE statement.
     ///
     /// The default implementation for delete() invokes performDelete().
-    func delete(db: Database) throws -> Bool {
+    func delete(_ db: Database) throws -> Bool {
         return try performDelete(db)
     }
     
@@ -211,14 +211,14 @@ public extension MutablePersistable {
     /// the database.
     ///
     /// The default implementation for exists() invokes performExists().
-    func exists(db: Database) -> Bool {
+    func exists(_ db: Database) -> Bool {
         return performExists(db)
     }
     
     
     // MARK: - CRUD Internals
     
-    private func canUpdateInDatabase(db: Database) -> Bool {
+    private func canUpdate(_ db: Database) -> Bool {
         // Fail early if database table does not exist.
         let databaseTableName = self.dynamicType.databaseTableName()
         guard let primaryKey = try! db.primaryKey(databaseTableName) else {
@@ -226,7 +226,7 @@ public extension MutablePersistable {
         }
         
         let persistentDictionary = self.persistentDictionary
-        for column in primaryKey.columns where !databaseValue(forColumn: column, inDictionary: persistentDictionary).isNull {
+        for column in primaryKey.columns where !databaseValue(for: column, inDictionary: persistentDictionary).isNull {
             return true
         }
         return false
@@ -239,10 +239,10 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    mutating func performInsert(db: Database) throws {
+    mutating func performInsert(_ db: Database) throws {
         let dataMapper = DataMapper(db, self)
         try dataMapper.insertStatement().execute()
-        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey?.rowIDColumn)
+        didInsert(with: db.lastInsertedRowID, for: dataMapper.primaryKey?.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -252,10 +252,10 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performUpdate() in their
     /// implementation of update(). They should not provide their own
     /// implementation of performUpdate().
-    func performUpdate(db: Database) throws {
+    func performUpdate(_ db: Database) throws {
         try DataMapper(db, self).updateStatement().execute()
         if db.changesCount == 0 {
-            throw PersistenceError.NotFound(self)
+            throw PersistenceError.recordNotFound(self)
         }
     }
     
@@ -268,15 +268,15 @@ public extension MutablePersistable {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    mutating func performSave(db: Database) throws {
+    mutating func performSave(_ db: Database) throws {
         // Make sure we call self.insert and self.update so that classes
         // that override insert or save have opportunity to perform their
         // custom job.
         
-        if self.canUpdateInDatabase(db) {
+        if self.canUpdate(db) {
             do {
                 try update(db)
-            } catch PersistenceError.NotFound {
+            } catch PersistenceError.recordNotFound {
                 // TODO: check that the not persisted objet is self
                 //
                 // Why? Adopting types could override update() and update
@@ -295,7 +295,7 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performDelete() in
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
-    func performDelete(db: Database) throws -> Bool {
+    func performDelete(_ db: Database) throws -> Bool {
         try DataMapper(db, self).deleteStatement().execute()
         return db.changesCount > 0
     }
@@ -307,7 +307,7 @@ public extension MutablePersistable {
     /// that adopt MutablePersistable can invoke performExists() in
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
-    func performExists(db: Database) -> Bool {
+    func performExists(_ db: Database) -> Bool {
         return (Row.fetchOne(DataMapper(db, self).existsStatement()) != nil)
     }
     
@@ -338,14 +338,14 @@ public protocol Persistable : MutablePersistable {
     /// - parameters:
     ///     - rowID: The inserted rowID.
     ///     - column: The name of the eventual INTEGER PRIMARY KEY column.
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    func didInsert(with rowID: Int64, for column: String?)
     
     /// Executes an INSERT statement.
     ///
     /// This method is guaranteed to have inserted a row in the database if it
     /// returns without error.
     ///
-    /// Upon successful insertion, the didInsertWithRowID(:forColumn:) method
+    /// Upon successful insertion, the didInsert(with:for:) method
     /// is called with the inserted RowID and the eventual INTEGER PRIMARY KEY
     /// column name.
     ///
@@ -356,7 +356,7 @@ public protocol Persistable : MutablePersistable {
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    func insert(db: Database) throws
+    func insert(_ db: Database) throws
     
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
@@ -377,7 +377,7 @@ public protocol Persistable : MutablePersistable {
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    func save(db: Database) throws
+    func save(_ db: Database) throws
 }
 
 public extension Persistable {
@@ -385,7 +385,7 @@ public extension Persistable {
     /// Notifies the record that it was succesfully inserted.
     ///
     /// The default implementation does nothing.
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    func didInsert(with rowID: Int64, for column: String?) {
     }
     
     // MARK: - Immutable CRUD
@@ -393,7 +393,7 @@ public extension Persistable {
     /// Executes an INSERT statement.
     ///
     /// The default implementation for insert() invokes performInsert().
-    func insert(db: Database) throws {
+    func insert(_ db: Database) throws {
         try performInsert(db)
     }
     
@@ -401,7 +401,7 @@ public extension Persistable {
     /// the database.
     ///
     /// The default implementation for save() invokes performSave().
-    func save(db: Database) throws {
+    func save(_ db: Database) throws {
         try performSave(db)
     }
     
@@ -415,10 +415,10 @@ public extension Persistable {
     /// that adopt Persistable can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    func performInsert(db: Database) throws {
+    func performInsert(_ db: Database) throws {
         let dataMapper = DataMapper(db, self)
         try dataMapper.insertStatement().execute()
-        didInsertWithRowID(db.lastInsertedRowID, forColumn: dataMapper.primaryKey?.rowIDColumn)
+        didInsert(with: db.lastInsertedRowID, for: dataMapper.primaryKey?.rowIDColumn)
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -430,14 +430,14 @@ public extension Persistable {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    func performSave(db: Database) throws {
+    func performSave(_ db: Database) throws {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
         
-        if canUpdateInDatabase(db) {
+        if canUpdate(db) {
             do {
                 try update(db)
-            } catch PersistenceError.NotFound {
+            } catch PersistenceError.recordNotFound {
                 // TODO: check that the not persisted objet is self
                 //
                 // Why? Adopting types could override update() and update another
@@ -502,23 +502,23 @@ final class DataMapper {
     func updateStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
-        let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
+        let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
         GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
         // Update everything but primary key
-        var updatedColumns = persistentDictionary.keys.removingElementsOf(primaryKeyColumns)
+        var updatedColumns = persistentDictionary.keys.removing(contentsOf: primaryKeyColumns)
         if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
             //
             // It is important to update something, so that
-            // TransactionObserverType can observe a change even though this
+            // TransactionObserver can observe a change even though this
             // change is useless.
             //
             // The goal is to be able to write tests with minimal tables,
             // including tables made of a single primary key column.
             updatedColumns = primaryKeyColumns
         }
-        let updatedValues = databaseValues(forColumns: updatedColumns, inDictionary: persistentDictionary)
+        let updatedValues = databaseValues(for: updatedColumns, inDictionary: persistentDictionary)
         
         let query = UpdateQuery(
             tableName: databaseTableName,
@@ -532,7 +532,7 @@ final class DataMapper {
     func deleteStatement() -> UpdateStatement {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
-        let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
+        let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
         GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
         let query = DeleteQuery(
@@ -546,7 +546,7 @@ final class DataMapper {
     func existsStatement() -> SelectStatement {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey?.columns ?? []
-        let primaryKeyValues = databaseValues(forColumns: primaryKeyColumns, inDictionary: persistentDictionary)
+        let primaryKeyValues = databaseValues(for: primaryKeyColumns, inDictionary: persistentDictionary)
         GRDBPrecondition(primaryKeyValues.contains { !$0.isNull }, "invalid primary key in \(persistable)")
         
         let query = ExistsQuery(
@@ -581,7 +581,7 @@ extension InsertQuery {
         if let sql = InsertQuery.sqlCache.read({ $0[self] }) {
             return sql
         }
-        let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joinWithSeparator(",")
+        let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ",")
         let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
         let sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) VALUES (\(valuesSQL))"
         InsertQuery.sqlCache.write { $0[self] = sql }
@@ -614,8 +614,8 @@ extension UpdateQuery {
         if let sql = UpdateQuery.sqlCache.read({ $0[self] }) {
             return sql
         }
-        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(",")
-        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
+        let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ",")
+        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
         let sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
         UpdateQuery.sqlCache.write { $0[self] = sql }
         return sql
@@ -632,7 +632,7 @@ private struct DeleteQuery {
 
 extension DeleteQuery {
     var sql: String {
-        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
+        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
         return "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
     }
 }
@@ -647,7 +647,7 @@ private struct ExistsQuery {
 
 extension ExistsQuery {
     var sql: String {
-        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joinWithSeparator(" AND ")
+        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
         return "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
     }
 }

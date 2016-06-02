@@ -21,12 +21,12 @@ private class Person : Record {
     
     // Record
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         age = row.value(named: "age")
         name = row.value(named: "name")
         creationDate = row.value(named: "creationDate")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
@@ -47,6 +47,6 @@ class RecordCopyTests: GRDBTestCase {
         XCTAssertTrue(person2.id == person1.id)
         XCTAssertTrue(person2.name == person1.name)
         XCTAssertTrue(person2.age == person1.age)
-        XCTAssertTrue(abs(person2.creationDate.timeIntervalSinceDate(person1.creationDate)) < 1e-3)
+        XCTAssertTrue(abs(person2.creationDate.timeIntervalSince(person1.creationDate)) < 1e-3)
     }
 }

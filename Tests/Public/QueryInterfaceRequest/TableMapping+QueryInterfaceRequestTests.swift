@@ -21,7 +21,7 @@ private struct Reader : TableMapping {
 
 class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
             try db.execute(
@@ -43,7 +43,7 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(Reader.fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
-            XCTAssertEqual(Reader.all().reverse().fetchCount(db), 0)
+            XCTAssertEqual(Reader.all().reversed().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
             XCTAssertEqual(Reader.order(Col.name).fetchCount(db), 0)
@@ -55,25 +55,25 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(Reader.filter(Col.age == 42).fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
             
-            XCTAssertEqual(Reader.all().distinct.fetchCount(db), 0)
+            XCTAssertEqual(Reader.all().distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
             
             XCTAssertEqual(Reader.select(Col.name).fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
-            XCTAssertEqual(Reader.select(Col.name).distinct.fetchCount(db), 0)
+            XCTAssertEqual(Reader.select(Col.name).distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
             
-            XCTAssertEqual(Reader.select(Col.age * 2).distinct.fetchCount(db), 0)
+            XCTAssertEqual(Reader.select(Col.age * 2).distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
             
-            XCTAssertEqual(Reader.select((Col.age * 2).aliased("ignored")).distinct.fetchCount(db), 0)
+            XCTAssertEqual(Reader.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
             
             XCTAssertEqual(Reader.select(Col.name, Col.age).fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
             
-            XCTAssertEqual(Reader.select(Col.name, Col.age).distinct.fetchCount(db), 0)
+            XCTAssertEqual(Reader.select(Col.name, Col.age).distinct().fetchCount(db), 0)
             XCTAssertEqual(self.lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT \"name\", \"age\" FROM \"readers\")")
             
             XCTAssertEqual(Reader.select(max(Col.age)).group(Col.name).fetchCount(db), 0)

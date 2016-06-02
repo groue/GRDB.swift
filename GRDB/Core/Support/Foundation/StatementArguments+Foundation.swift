@@ -19,7 +19,7 @@ extension StatementArguments {
         //
         // This initializer is required for the following code to compile:
         //
-        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+        //    let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
         //    let persons = [   // NSArray of NSArray, actually
         //        ["Arthur", 41],
         //        ["Barbara", 38],
@@ -56,7 +56,7 @@ extension StatementArguments {
         //
         // This initializer is required for the following code to compile:
         //
-        //    let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+        //    let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
         //    let persons = [   // NSArray of NSDictionary, actually
         //        ["name": "Arthur", "age": 41],
         //        ["name": "Barbara", "age": 38],

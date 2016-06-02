@@ -9,7 +9,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     
     func testDatabasePoolDeinitClosesAllConnections() {
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)
+            let countQueue = dispatch_queue_create(nil, nil)!
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
@@ -49,7 +49,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     
     func testDatabasePoolReleaseMemoryClosesReaderConnections() {
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)
+            let countQueue = dispatch_queue_create(nil, nil)!
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
@@ -78,35 +78,35 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             // SELECT * FROM items
             // step
             // >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                          SELECT * FROM items
             //                          step
             //                          >
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // step                     step
             // >
-            let s3 = dispatch_semaphore_create(0)
+            let s3 = dispatch_semaphore_create(0)!
             // end                      end                     releaseMemory
             
             let block1 = { () in
                 dbPool.read { db in
-                    let generator = Row.fetch(db, "SELECT * FROM items").generate()
-                    XCTAssertTrue(generator.next() != nil)
+                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_signal(s1)
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                    XCTAssertTrue(generator.next() != nil)
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_signal(s3)
-                    XCTAssertTrue(generator.next() == nil)
+                    XCTAssertTrue(iterator.next() == nil)
                 }
             }
             let block2 = { () in
                 dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
                 dbPool.read { db in
-                    let generator = Row.fetch(db, "SELECT * FROM items").generate()
-                    XCTAssertTrue(generator.next() != nil)
+                    let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
+                    XCTAssertTrue(iterator.next() != nil)
                     dispatch_semaphore_signal(s2)
-                    XCTAssertTrue(generator.next() != nil)
-                    XCTAssertTrue(generator.next() == nil)
+                    XCTAssertTrue(iterator.next() != nil)
+                    XCTAssertTrue(iterator.next() == nil)
                 }
             }
             let block3 = { () in
@@ -128,7 +128,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
 
     func testBlocksRetainConnection() {
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)
+            let countQueue = dispatch_queue_create(nil, nil)!
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
@@ -148,10 +148,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             // Block 1                  Block 2
             //                          read {
             //                              >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             // dbPool = nil
             // >
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             //                              use database
             //                          }
             
@@ -193,14 +193,14 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
     }
     
-    func testDatabaseGeneratorRetainConnection() {
+    func testDatabaseIteratorRetainConnection() {
         // Until iOS 8.2, OSX 10.10, GRDB does not support deallocating a
         // database when some statements are not finalized.
         guard #available(iOS 8.2, OSX 10.10, *) else {
             return
         }
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)
+            let countQueue = dispatch_queue_create(nil, nil)!
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
@@ -222,10 +222,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             //                              SELECT
             //                              step
             //                              >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             // dbPool = nil
             // >
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             //                              step
             //                              end
             //                          }
@@ -245,13 +245,13 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 let block2 = { [weak dbPool] () in
                     weak var connection: Database? = nil
-                    var generator: DatabaseGenerator<Int>? = nil
+                    var iterator: DatabaseIterator<Int>? = nil
                     do {
                         if let dbPool = dbPool {
                             dbPool.write { db in
                                 connection = db
-                                generator = Int.fetch(db, "SELECT id FROM items").generate()
-                                XCTAssertTrue(generator!.next() != nil)
+                                iterator = Int.fetch(db, "SELECT id FROM items").makeIterator()
+                                XCTAssertTrue(iterator!.next() != nil)
                                 dispatch_semaphore_signal(s1)
                             }
                         } else {
@@ -261,9 +261,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                     dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                     do {
                         XCTAssertTrue(dbPool == nil)
-                        XCTAssertTrue(generator!.next() != nil)
-                        XCTAssertTrue(generator!.next() == nil)
-                        generator = nil
+                        XCTAssertTrue(iterator!.next() != nil)
+                        XCTAssertTrue(iterator!.next() == nil)
+                        iterator = nil
                         XCTAssertTrue(connection == nil)
                     }
                 }
@@ -293,10 +293,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             // Block 1                  Block 2
             //                          create statement INSERT
             //                          >
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             // dbPool = nil
             // >
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             //                          dbPool is nil
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
@@ -312,7 +312,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                         if let dbPool = dbPool {
                             do {
                                 try dbPool.write { db in
-                                    statement = try db.updateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                                    statement = try db.makeUpdateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
                                     dispatch_semaphore_signal(s1)
                                 }
                             } catch {

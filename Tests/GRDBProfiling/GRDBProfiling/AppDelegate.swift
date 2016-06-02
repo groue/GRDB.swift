@@ -24,7 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func fetchPositionalValues() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         var count = 0
@@ -50,7 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func fetchNamedValues() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         var count = 0
@@ -76,7 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func fetchRecords() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         let items = dbQueue.inDatabase { db in
             Item.fetchAll(db)
@@ -89,7 +89,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func insertPositionalValues() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
+        let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -97,10 +97,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 assert(Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
                 assert(Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
-            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            try! NSFileManager.default().removeItem(atPath: databasePath)
         }
         
-        _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        _ = try? NSFileManager.default().removeItem(atPath: databasePath)
         
         let dbQueue = try! DatabaseQueue(path: databasePath)
         try! dbQueue.inDatabase { db in
@@ -108,17 +108,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         try! dbQueue.inTransaction { db in
-            let statement = try! db.updateStatement("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
+            let statement = try! db.makeUpdateStatement("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
             for i in 0..<insertedRowCount {
                 try statement.execute(arguments: [i, i, i, i, i, i, i, i, i, i])
             }
-            return .Commit
+            return .commit
         }
     }
     
     func insertNamedValues() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
+        let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -126,10 +126,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 assert(Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
                 assert(Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
-            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            try! NSFileManager.default().removeItem(atPath: databasePath)
         }
         
-        _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        _ = try? NSFileManager.default().removeItem(atPath: databasePath)
         
         let dbQueue = try! DatabaseQueue(path: databasePath)
         try! dbQueue.inDatabase { db in
@@ -137,18 +137,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         try! dbQueue.inTransaction { db in
-            let statement = try! db.updateStatement("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (:i0, :i1, :i2, :i3, :i4, :i5, :i6, :i7, :i8, :i9)")
+            let statement = try! db.makeUpdateStatement("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (:i0, :i1, :i2, :i3, :i4, :i5, :i6, :i7, :i8, :i9)")
             for i in 0..<insertedRowCount {
                 try statement.execute(arguments: ["i0": i, "i1": i, "i2": i, "i3": i, "i4": i, "i5": i, "i6": i, "i7": i, "i8": i, "i9": i])
             }
-            return .Commit
+            return .commit
         }
     }
     
     func insertRecords() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
-        let databasePath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(databaseFileName)
-        _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
+        _ = try? NSFileManager.default().removeItem(atPath: databasePath)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -156,10 +156,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 assert(Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
                 assert(Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
-            try! NSFileManager.defaultManager().removeItemAtPath(databasePath)
+            try! NSFileManager.default().removeItem(atPath: databasePath)
         }
         
-        _ = try? NSFileManager.defaultManager().removeItemAtPath(databasePath)
+        _ = try? NSFileManager.default().removeItem(atPath: databasePath)
         
         let dbQueue = try! DatabaseQueue(path: databasePath)
         try! dbQueue.inDatabase { db in
@@ -170,7 +170,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             for i in 0..<insertedRowCount {
                 try Item(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
             }
-            return .Commit
+            return .commit
         }
     }
 }
@@ -206,7 +206,7 @@ class Item : Record {
         return "items"
     }
     
-    required init(_ row: GRDB.Row) {
+    required init(row: GRDB.Row) {
         i0 = row.value(named: "i0")
         i1 = row.value(named: "i1")
         i2 = row.value(named: "i2")
@@ -217,7 +217,7 @@ class Item : Record {
         i7 = row.value(named: "i7")
         i8 = row.value(named: "i8")
         i9 = row.value(named: "i9")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {

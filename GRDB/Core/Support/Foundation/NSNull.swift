@@ -3,13 +3,13 @@ import Foundation
 /// NSNull adopts DatabaseValueConvertible
 extension NSNull: DatabaseValueConvertible {
     
-    /// Returns DatabaseValue.Null.
+    /// Returns DatabaseValue.null.
     public var databaseValue: DatabaseValue {
-        return .Null
+        return .null
     }
     
     /// Returns nil.
-    public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self? {
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         return nil
     }
 }

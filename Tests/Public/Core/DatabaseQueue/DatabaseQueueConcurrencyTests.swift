@@ -21,7 +21,7 @@ class ConcurrencyTests: GRDBTestCase {
             }
         }
         
-        dbConfiguration.busyMode = .Callback(busyCallback)
+        dbConfiguration.busyMode = .callback(busyCallback)
     }
     
     func testWrappedReadWrite() {
@@ -53,33 +53,33 @@ class ConcurrencyTests: GRDBTestCase {
             
             // Queue 1                              Queue 2
             // BEGIN DEFERRED TRANSACTION
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                                      BEGIN DEFERRED TRANSACTION
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // INSERT INTO stuffs (id) VALUES (NULL)
-            let s3 = dispatch_semaphore_create(0)
+            let s3 = dispatch_semaphore_create(0)!
             //                                      INSERT INTO stuffs (id) VALUES (NULL) <--- Error
             //                                      ROLLBACK
-            let s4 = dispatch_semaphore_create(0)
+            let s4 = dispatch_semaphore_create(0)!
             // COMMIT
             
             try! dbQueue1.inDatabase { db in
                 try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
             }
             
-            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
-            let group = dispatch_group_create()
+            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)!
+            let group = dispatch_group_create()!
             
             // Queue 1
             dispatch_group_async(group, queue) {
                 do {
-                    try dbQueue1.inTransaction(.Deferred) { db in
+                    try dbQueue1.inTransaction(.deferred) { db in
                         dispatch_semaphore_signal(s1)
                         dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
                         try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
                         dispatch_semaphore_signal(s3)
                         dispatch_semaphore_wait(s4, DISPATCH_TIME_FOREVER)
-                        return .Commit
+                        return .commit
                     }
                 }
                 catch {
@@ -92,11 +92,11 @@ class ConcurrencyTests: GRDBTestCase {
             dispatch_group_async(group, queue) {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    try dbQueue2.inTransaction(.Deferred) { db in
+                    try dbQueue2.inTransaction(.deferred) { db in
                         dispatch_semaphore_signal(s2)
                         dispatch_semaphore_wait(s3, DISPATCH_TIME_FOREVER)
                         try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
-                        return .Commit
+                        return .commit
                     }
                 }
                 catch let error as DatabaseError {
@@ -126,21 +126,21 @@ class ConcurrencyTests: GRDBTestCase {
             
             // Queue 1                              Queue 2
             // BEGIN EXCLUSIVE TRANSACTION
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                                      BEGIN EXCLUSIVE TRANSACTION <--- Error
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // COMMIT
             
-            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
-            let group = dispatch_group_create()
+            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)!
+            let group = dispatch_group_create()!
             
             // Queue 1
             dispatch_group_async(group, queue) {
                 do {
-                    try dbQueue1.inTransaction(.Exclusive) { db in
+                    try dbQueue1.inTransaction(.exclusive) { db in
                         dispatch_semaphore_signal(s1)
                         dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                        return .Commit
+                        return .commit
                     }
                 }
                 catch {
@@ -153,8 +153,8 @@ class ConcurrencyTests: GRDBTestCase {
             dispatch_group_async(group, queue) {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    try dbQueue2.inTransaction(.Exclusive) { db in
-                        return .Commit
+                    try dbQueue2.inTransaction(.exclusive) { db in
+                        return .commit
                     }
                 }
                 catch let error as DatabaseError {
@@ -184,21 +184,21 @@ class ConcurrencyTests: GRDBTestCase {
             
             // Queue 1                              Queue 2
             // BEGIN IMMEDIATE TRANSACTION
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                                      BEGIN IMMEDIATE TRANSACTION <--- Error
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // COMMIT
             
-            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
-            let group = dispatch_group_create()
+            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)!
+            let group = dispatch_group_create()!
             
             // Queue 1
             dispatch_group_async(group, queue) {
                 do {
-                    try dbQueue1.inTransaction(.Immediate) { db in
+                    try dbQueue1.inTransaction(.immediate) { db in
                         dispatch_semaphore_signal(s1)
                         dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                        return .Commit
+                        return .commit
                     }
                 }
                 catch {
@@ -211,8 +211,8 @@ class ConcurrencyTests: GRDBTestCase {
             dispatch_group_async(group, queue) {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    try dbQueue2.inTransaction(.Immediate) { db in
-                        return .Commit
+                    try dbQueue2.inTransaction(.immediate) { db in
+                        return .commit
                     }
                 }
                 catch let error as DatabaseError {
@@ -250,7 +250,7 @@ class ConcurrencyTests: GRDBTestCase {
             
             // Queue 1                              Queue 2
             // BEGIN EXCLUSIVE TRANSACTION
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             // (Waiting)                            BEGIN EXCLUSIVE TRANSACTION <--- Busy
             // (Waiting)                            BEGIN EXCLUSIVE TRANSACTION <--- Busy
             // (Waiting)                            BEGIN EXCLUSIVE TRANSACTION <--- Busy
@@ -265,16 +265,16 @@ class ConcurrencyTests: GRDBTestCase {
                 return true
             }
             
-            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
-            let group = dispatch_group_create()
+            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)!
+            let group = dispatch_group_create()!
             
             // Queue 1
             dispatch_group_async(group, queue) {
                 do {
-                    try dbQueue1.inTransaction(.Exclusive) { db in
+                    try dbQueue1.inTransaction(.exclusive) { db in
                         dispatch_semaphore_signal(s1)
                         usleep(100_000) // 0.1s
-                        return .Commit
+                        return .commit
                     }
                 }
                 catch {
@@ -286,8 +286,8 @@ class ConcurrencyTests: GRDBTestCase {
             dispatch_group_async(group, queue) {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    try dbQueue2.inTransaction(.Exclusive) { db in
-                        return .Commit
+                    try dbQueue2.inTransaction(.exclusive) { db in
+                        return .commit
                     }
                 }
                 catch {
@@ -319,19 +319,19 @@ class ConcurrencyTests: GRDBTestCase {
             // Queue 1                              Queue 2
             // BEGIN IMMEDIATE TRANSACTION
             // INSERT INTO stuffs (id) VALUES (NULL)
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                                      SELECT * FROM stuffs <--- 0 result
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // COMMIT
-            let s3 = dispatch_semaphore_create(0)
+            let s3 = dispatch_semaphore_create(0)!
             //                                      SELECT * FROM stuffs <--- 1 result
             
             try! dbQueue1.inDatabase { db in
                 try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
             }
             
-            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
-            let group = dispatch_group_create()
+            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)!
+            let group = dispatch_group_create()!
             
             // Queue 1
             dispatch_group_async(group, queue) {
@@ -340,7 +340,7 @@ class ConcurrencyTests: GRDBTestCase {
                         try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
                         dispatch_semaphore_signal(s1)
                         dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                        return .Commit
+                        return .commit
                     }
                 }
                 catch {
@@ -393,10 +393,10 @@ class ConcurrencyTests: GRDBTestCase {
             // Queue 1                              Queue 2
             // BEGIN IMMEDIATE TRANSACTION
             // INSERT INTO stuffs (id) VALUES (NULL)
-            let s1 = dispatch_semaphore_create(0)
+            let s1 = dispatch_semaphore_create(0)!
             //                                      BEGIN DEFERRED TRANSACTION
             //                                      SELECT * FROM stuffs
-            let s2 = dispatch_semaphore_create(0)
+            let s2 = dispatch_semaphore_create(0)!
             // COMMIT <--- Busy                     (Waiting)
             // COMMIT <--- Busy                     (Waiting)
             //                                      COMMIT
@@ -413,8 +413,8 @@ class ConcurrencyTests: GRDBTestCase {
                 try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
             }
             
-            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)
-            let group = dispatch_group_create()
+            let queue = dispatch_queue_create("GRDB", DISPATCH_QUEUE_CONCURRENT)!
+            let group = dispatch_group_create()!
             
             // Queue 1
             dispatch_group_async(group, queue) {
@@ -423,7 +423,7 @@ class ConcurrencyTests: GRDBTestCase {
                         try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
                         dispatch_semaphore_signal(s1)
                         dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
-                        return .Commit
+                        return .commit
                     }
                 }
                 catch {
@@ -435,11 +435,11 @@ class ConcurrencyTests: GRDBTestCase {
             dispatch_group_async(group, queue) {
                 do {
                     dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
-                    try dbQueue2.inTransaction(.Deferred) { db in
+                    try dbQueue2.inTransaction(.deferred) { db in
                         _ = Row.fetchAll(db, "SELECT * FROM stuffs")
                         dispatch_semaphore_signal(s2)
                         usleep(100_000) // 0.1s
-                        return .Commit
+                        return .commit
                     }
                 }
                 catch {

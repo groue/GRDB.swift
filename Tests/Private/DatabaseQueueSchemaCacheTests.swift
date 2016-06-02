@@ -17,7 +17,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
             
             dbQueue.inDatabase { db in
                 // Assert that cache is empty
-                XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") == nil)
+                XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             }
             
             try dbQueue.inDatabase { db in
@@ -26,7 +26,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
                 XCTAssertEqual(primaryKey.rowIDColumn, "id")
                 
                 // Assert that cache is warmed
-                XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") != nil)
+                XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
             }
             
             try dbQueue.inDatabase { db in
@@ -34,7 +34,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
                 try db.execute("DROP TABLE items")
                 
                 // Assert that cache is empty
-                XCTAssertTrue(db.schemaCache.primaryKey(tableName: "items") == nil)
+                XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             }
             
             try dbQueue.inDatabase { db in

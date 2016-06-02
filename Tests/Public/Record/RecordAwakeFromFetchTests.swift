@@ -14,7 +14,7 @@ class EventRecorder : Record {
         super.init()
     }
     
-    static func setupInDatabase(db: Database) throws {
+    static func setup(inDatabase db: Database) throws {
         try db.execute("CREATE TABLE eventRecorders (id INTEGER PRIMARY KEY)")
     }
     
@@ -24,20 +24,20 @@ class EventRecorder : Record {
         return "eventRecorders"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
         return ["id": id]
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
     
-    override func awakeFromFetch(row row: Row) {
+    override func awakeFromFetch(row: Row) {
         super.awakeFromFetch(row: row)
         awakeFromFetchCount += 1
     }
@@ -45,9 +45,9 @@ class EventRecorder : Record {
 
 class RecordEventsTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
-        migrator.registerMigration("createEventRecorder", migrate: EventRecorder.setupInDatabase)
+        migrator.registerMigration("createEventRecorder", migrate: EventRecorder.setup)
         try migrator.migrate(dbWriter)
     }
     
@@ -57,7 +57,7 @@ class RecordEventsTests: GRDBTestCase {
     }
     
     func testAwakeFromFetchIsNotTriggeredByInitFromRow() {
-        let record = EventRecorder(Row())
+        let record = EventRecorder(row: Row())
         XCTAssertEqual(record.awakeFromFetchCount, 0)
     }
     

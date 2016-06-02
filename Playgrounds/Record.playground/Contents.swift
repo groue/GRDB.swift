@@ -38,7 +38,7 @@ class Person : Record {
     var lastName: String?
     
     var fullName: String {
-        return [firstName, lastName].flatMap { $0 }.joinWithSeparator(" ")
+        return [firstName, lastName].flatMap { $0 }.joined(separator: " ")
     }
     
     init(firstName: String?, lastName: String?) {
@@ -59,11 +59,11 @@ class Person : Record {
     
 //: 2. How to build a Person from a database row:
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
-        super.init(row)
+        super.init(row: row)
     }
     
 //: 3. The dictionary of values that are stored in the database:
@@ -74,7 +74,7 @@ class Person : Record {
     
 //: 4. When relevant, update the person's id after a database row has been inserted:
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }

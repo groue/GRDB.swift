@@ -19,17 +19,17 @@ class SQLSupportTests: GRDBTestCase {
     var collation: DatabaseCollation!
     var customFunction: DatabaseFunction!
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
             return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
         }
-        dbWriter.addCollation(collation)
+        dbWriter.add(collation: collation)
         
         customFunction = DatabaseFunction("avgOf", pure: true) { databaseValues in
             let sum = databaseValues.flatMap { $0.value() as Int? }.reduce(0, combine: +)
             return Double(sum) / Double(databaseValues.count)
         }
-        dbWriter.addFunction(self.customFunction)
+        dbWriter.add(function: self.customFunction)
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
@@ -85,28 +85,36 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"id\" IN (1, 2, 3))")
         
         // Range.contains(): BETWEEN operator
-        var range: Range<Int64> = 1..<10
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(range.contains(Col.id))),
-            "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1 AND 9)")
+        do {
+            let range = 1..<10
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(range.contains(Col.id))),
+                "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1 AND 9)")
+        }
         
         // Range.contains(): BETWEEN operator
-        range = 1...10
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(range.contains(Col.id))),
-            "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1 AND 10)")
+        do {
+            let range = 1...10
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(range.contains(Col.id))),
+                "SELECT * FROM \"readers\" WHERE (\"id\" BETWEEN 1 AND 10)")
+        }
         
         // ClosedInterval: BETWEEN operator
-        let closedInterval: ClosedInterval<String> = "A"..."z"
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(closedInterval.contains(Col.name))),
-            "SELECT * FROM \"readers\" WHERE (\"name\" BETWEEN 'A' AND 'z')")
+        do {
+            let closedInterval = "A"..."z"
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(closedInterval.contains(Col.name))),
+                "SELECT * FROM \"readers\" WHERE (\"name\" BETWEEN 'A' AND 'z')")
+        }
         
         // HalfOpenInterval:  min <= x < max
-        let halfOpenInterval: HalfOpenInterval<String> = "A"..<"z"
-        XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name))),
-            "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A') AND (\"name\" < 'z'))")
+        do {
+            let halfOpenInterval = "A"..<"z"
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name))),
+                "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A') AND (\"name\" < 'z'))")
+        }
         
         // Subquery
         XCTAssertEqual(
@@ -138,13 +146,13 @@ class SQLSupportTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" IN (\"name\") COLLATE NOCASE)")
         
         // ClosedInterval: BETWEEN operator
-        let closedInterval: ClosedInterval<String> = "A"..."z"
+        let closedInterval = "A"..."z"
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(closedInterval.contains(Col.name.collating("NOCASE")))),
             "SELECT * FROM \"readers\" WHERE (\"name\" BETWEEN 'A' AND 'z' COLLATE NOCASE)")
         
         // HalfOpenInterval:  min <= x < max
-        let halfOpenInterval: HalfOpenInterval<String> = "A"..<"z"
+        let halfOpenInterval = "A"..<"z"
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name.collating("NOCASE")))),
             "SELECT * FROM \"readers\" WHERE ((\"name\" >= 'A' COLLATE NOCASE) AND (\"name\" < 'z' COLLATE NOCASE))")
@@ -660,10 +668,10 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(tableRequest.exists)),
+            sql(dbQueue, tableRequest.filter(tableRequest.exists())),
             "SELECT * FROM \"readers\" WHERE (EXISTS (SELECT * FROM \"readers\"))")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.filter(!tableRequest.exists)),
+            sql(dbQueue, tableRequest.filter(!tableRequest.exists())),
             "SELECT * FROM \"readers\" WHERE (NOT EXISTS (SELECT * FROM \"readers\"))")
     }
     
@@ -703,24 +711,24 @@ class SQLSupportTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(Col.name.capitalizedString)),
+            sql(dbQueue, tableRequest.select(Col.name.capitalized)),
             "SELECT swiftCapitalizedString(\"name\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(Col.name.lowercaseString)),
+            sql(dbQueue, tableRequest.select(Col.name.lowercased)),
             "SELECT swiftLowercaseString(\"name\") FROM \"readers\"")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(Col.name.uppercaseString)),
+            sql(dbQueue, tableRequest.select(Col.name.uppercased)),
             "SELECT swiftUppercaseString(\"name\") FROM \"readers\"")
         
         if #available(iOS 9.0, OSX 10.11, *) {
             XCTAssertEqual(
-                sql(dbQueue, tableRequest.select(Col.name.localizedCapitalizedString)),
+                sql(dbQueue, tableRequest.select(Col.name.localizedCapitalized)),
                 "SELECT swiftLocalizedCapitalizedString(\"name\") FROM \"readers\"")
             XCTAssertEqual(
-                sql(dbQueue, tableRequest.select(Col.name.localizedLowercaseString)),
+                sql(dbQueue, tableRequest.select(Col.name.localizedLowercased)),
                 "SELECT swiftLocalizedLowercaseString(\"name\") FROM \"readers\"")
             XCTAssertEqual(
-                sql(dbQueue, tableRequest.select(Col.name.localizedUppercaseString)),
+                sql(dbQueue, tableRequest.select(Col.name.localizedUppercased)),
                 "SELECT swiftLocalizedUppercaseString(\"name\") FROM \"readers\"")
         }
     }

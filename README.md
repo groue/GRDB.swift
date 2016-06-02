@@ -66,7 +66,7 @@ try dbQueue.inDatabase { db in
 dbQueue.inDatabase { db in
     for row in Row.fetch(db, "SELECT * FROM pointOfInterests") {
         let title: String = row.value(named: "title")
-        let favorite: Bool = row.value(named: "favorite")
+        let isFavorite: Bool = row.value(named: "favorite")
         let coordinate = CLLocationCoordinate2DMake(
             row.value(named: "latitude"),
             row.value(named: "longitude"))
@@ -88,7 +88,7 @@ Insert and fetch [records](#records):
 struct PointOfInterest {
     var id: Int64?
     var title: String?
-    var favorite: Bool
+    var isFavorite: Bool
     var coordinate: CLLocationCoordinate2D
 }
 
@@ -99,13 +99,13 @@ try dbQueue.inDatabase { db in
     var berlin = PointOfInterest(
         id: nil,
         title: "Berlin",
-        favorite: false,
+        isFavorite: false,
         coordinate: CLLocationCoordinate2DMake(52.52437, 13.41053))
 
     try berlin.insert(dbQueue)
     berlin.id // some value
 
-    berlin.favorite = true
+    berlin.isFavorite = true
     try berlin.update(dbQueue)
     
     // Fetch [PointOfInterest] from SQL
@@ -271,7 +271,7 @@ try dbQueue.inTransaction { db in
     if let poi = PointOfInterest.fetchOne(db, key: 1) {
         try poi.delete(db)
     }
-    return .Commit
+    return .commit
 }
 
 // Read values:
@@ -339,7 +339,7 @@ try dbPool.writeInTransaction { db in
     if let poi = PointOfInterest.fetchOne(db, key: 1) {
         try poi.delete(db)
     }
-    return .Commit
+    return .commit
 }
 
 // Read values:
@@ -695,11 +695,11 @@ dbv.isNull    // Bool
 
 // All the five storage classes supported by SQLite:
 switch dbv.storage {
-case .Null:                 print("NULL")
-case .Int64(let int64):     print("Int64: \(int64)")
-case .Double(let double):   print("Double: \(double)")
-case .String(let string):   print("String: \(string)")
-case .Blob(let data):       print("NSData: \(data)")
+case .null:                 print("NULL")
+case .int64(let int64):     print("Int64: \(int64)")
+case .double(let double):   print("Double: \(double)")
+case .string(let string):   print("String: \(string)")
+case .blob(let data):       print("NSData: \(data)")
 }
 ```
 
@@ -824,10 +824,10 @@ class Link : Record {
     var url: NSURL
     var verified: Bool
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         url = row.value("url")
         verified = row.value("verified")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
@@ -982,17 +982,13 @@ A classic technique is to store *integers* instead, since SQLite performs exact 
 
 ```swift
 // Store
-let amount = NSDecimalNumber(string: "0.1")                            // 0.1
-let integer = amount                                                   // 100
-    .decimalNumberByMultiplyingByPowerOf10(2)
-    .longLongValue
-// INSERT INTO transfers (amount) VALUES (100)
-try db.execute("INSERT INTO transfers (amount) VALUES (?)", arguments: [integer])
+let amount = NSDecimalNumber(string: "0.1")                       // 0.1
+let integerAmount = amount.multiplying(byPowerOf10: 2).int64Value // 100
+try db.execute("INSERT INTO transfers (amount) VALUES (?)", arguments: [integerAmount])
 
 // Read
-let integer = Int64.fetchOne(db, "SELECT SUM(amount) FROM transfers")! // 100
-let amount = NSDecimalNumber(longLong: integer)                        // 0.1
-    .decimalNumberByMultiplyingByPowerOf10(-2)
+let integerAmount = Int64.fetchOne(db, "SELECT SUM(amount) FROM transfers")!    // 100
+let amount = NSDecimalNumber(value: integerAmount).multiplying(byPowerOf10: -2) // 0.1
 ```
 
 
@@ -1002,11 +998,11 @@ let amount = NSDecimalNumber(longLong: integer)                        // 0.1
 
 ```swift
 enum Color : Int {
-    case Red, White, Rose
+    case red, white, rose
 }
 
 enum Grape : String {
-    case Chardonnay, Merlot, Riesling
+    case chardonnay, merlot, riesling
 }
 
 // Declare DatabaseValueConvertible adoption
@@ -1016,7 +1012,7 @@ extension Grape : DatabaseValueConvertible { }
 // Store
 try db.execute(
     "INSERT INTO wines (grape, color) VALUES (?, ?)",
-    arguments: [Grape.Merlot, Color.Red])
+    arguments: [Grape.merlot, Color.red])
 
 // Read
 for rows in Row.fetch(db, "SELECT * FROM wines") {
@@ -1028,15 +1024,15 @@ for rows in Row.fetch(db, "SELECT * FROM wines") {
 **When a database value does not match any enum case**, you get a fatal error. This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
-let row = Row.fetchOne(db, "SELECT 'Syrah'")!
+let row = Row.fetchOne(db, "SELECT 'syrah'")!
 
-row.value(atIndex: 0) as String  // "Syrah"
-row.value(atIndex: 0) as Grape?  // fatal error: could not convert "Syrah" to Grape.
-row.value(atIndex: 0) as Grape   // fatal error: could not convert "Syrah" to Grape.
+row.value(atIndex: 0) as String  // "syrah"
+row.value(atIndex: 0) as Grape?  // fatal error: could not convert "syrah" to Grape.
+row.value(atIndex: 0) as Grape   // fatal error: could not convert "syrah" to Grape.
 
 let dbv = row.databaseValue(atIndex: 0)
-dbv.value() as String           // "Syrah"
-dbv.value() as Grape?           // fatal error: could not convert "Syrah" to Grape.
+dbv.value() as String           // "syrah"
+dbv.value() as Grape?           // fatal error: could not convert "syrah" to Grape.
 Grape.fromDatabaseValue(dbv)    // nil
 ```
 
@@ -1047,9 +1043,9 @@ The `DatabaseQueue.inTransaction()` and `DatabasePool.writeInTransaction()` meth
 
 ```swift
 try dbQueue.inTransaction { db in
-    let wine = Wine(color: .Red, name: "Pomerol")
+    let wine = Wine(color: .red, name: "Pomerol")
     try wine.insert(db)
-    return .Commit
+    return .commit
 }
 ```
 
@@ -1062,7 +1058,7 @@ try dbQueue.inDatabase { db in  // or dbPool.write { db in
     ...
     try db.inTransaction {
         ...
-        return .Commit
+        return .commit
     }
     ...
 }
@@ -1071,7 +1067,7 @@ try dbQueue.inDatabase { db in  // or dbPool.write { db in
 You can ask a database if a transaction is currently opened:
 
 ```swift
-func myCriticalMethod(db: Database) {
+func myCriticalMethod(_ db: Database) {
     precondition(db.isInsideTransaction, "This method requires a transaction")
     ...
 }
@@ -1087,11 +1083,11 @@ try dbQueue.inTransaction { db in
     try db.inSavepoint { 
         try db.execute("DELETE ...")
         try db.execute("INSERT ...") // need to rollback the delete above if this fails
-        return .Commit
+        return .commit
     }
     
     // Other savepoints, etc...
-    return .Commit
+    return .commit
 }
 ```
 
@@ -1103,10 +1099,10 @@ try dbQueue.inDatabase { db in
         ...
         try db.inSavepoint {
             ...
-            return .Commit
+            return .commit
         }
         ...
-        return .Commit  // writes changes to disk
+        return .commit  // writes changes to disk
     }
 }
 ```
@@ -1123,14 +1119,14 @@ The transaction kind can be changed in the database configuration, or for each t
 ```swift
 // A connection with default DEFERRED transactions:
 var config = Configuration()
-config.defaultTransactionKind = .Deferred
+config.defaultTransactionKind = .deferred
 let dbQueue = try DatabaseQueue(path: "...", configuration: config)
 
 // Opens a DEFERRED transaction:
 dbQueue.inTransaction { db in ... }
 
 // Opens an EXCLUSIVE transaction:
-dbQueue.inTransaction(.Exclusive) { db in ... }
+dbQueue.inTransaction(.exclusive) { db in ... }
 ```
 
 
@@ -1144,13 +1140,13 @@ public protocol DatabaseValueConvertible {
     var databaseValue: DatabaseValue { get }
     
     /// Returns a value initialized from databaseValue, if possible.
-    static func fromDatabaseValue(databaseValue: DatabaseValue) -> Self?
+    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self?
 }
 ```
 
 All types that adopt this protocol can be used like all other [value types](#values) (Bool, Int, String, NSDate, Swift enums, etc.)
 
-The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.Null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
+The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for NSDate, the method returns nil.
 
@@ -1166,10 +1162,10 @@ There are two kinds of prepared statements: **select statements**, and **update 
 ```swift
 try dbQueue.inDatabase { db in
     let updateSQL = "INSERT INTO persons (name, age) VALUES (:name, :age)"
-    let updateStatement = try db.updateStatement(updateSQL)
+    let updateStatement = try db.makeUpdateStatement(updateSQL)
     
     let selectSQL = "SELECT * FROM persons WHERE name = ?"
-    let selectStatement = try db.selectStatement(selectSQL)
+    let selectStatement = try db.makeSelectStatement(selectSQL)
 }
 ```
 
@@ -1239,9 +1235,9 @@ let reverseString = DatabaseFunction(
             return nil
         }
         // ... and return reversed string:
-        return String(string.characters.reverse())
+        return String(string.characters.reversed())
     })
-dbQueue.addFunction(reverseString)   // Or dbPool.addFunction(...)
+dbQueue.add(function: reverseString)   // Or dbPool.add(function: ...)
 
 dbQueue.inDatabase { db in
     // "oof"
@@ -1263,7 +1259,7 @@ let averageOf = DatabaseFunction("averageOf", pure: true) { (databaseValues: [Da
     let doubles = databaseValues.flatMap { Double.fromDatabaseValue($0) }
     return doubles.reduce(0, combine: +) / Double(doubles.count)
 }
-dbQueue.addFunction(averageOf)
+dbQueue.add(function: averageOf)
 
 dbQueue.inDatabase { db in
     // 2.0
@@ -1403,7 +1399,7 @@ class Person : RowConvertible {
     var id: Int64?
     var name: String
     
-    init(_ row: Row) {
+    init(row: Row) {
         id = row.value(named: "id")
         name = row.value(named: "name")
     }
@@ -1414,7 +1410,7 @@ class Book : RowConvertible {
     var title: String
     var author: Person?
     
-    init(_ row: Row) {
+    init(row: Row) {
         id = row.value(named: "id")
         title = row.value(named: "title")
         
@@ -1454,7 +1450,7 @@ for row in Row.fetch(db, sql, adapter: adapter) {
     print(row.subrow(named: "bestFriend"))
 }
 
-// Assuming Person.init(row) consumes the "bestFriend" subrow:
+// Assuming Person.init(row: row) consumes the "bestFriend" subrow:
 for person in Person.fetch(db, sql, adapter: adapter) {
     person.name             // Arthur
     person.bestFriend?.name // Barbara
@@ -1474,7 +1470,7 @@ try dbQueue.inDatabase { db in
     let sqliteConnection = db.sqliteConnection
 
     // The raw pointer to a statement:
-    let statement = try db.selectStatement("SELECT ...")
+    let statement = try db.makeSelectStatement("SELECT ...")
     let sqliteStatement = statement.sqliteStatement
 }
 ```
@@ -1636,11 +1632,11 @@ You can now jump to:
 ```swift
 public protocol RowConvertible {
     /// Row initializer
-    init(_ row: Row)
+    init(row: Row)
     
     /// Optional method which gives adopting types an opportunity to complete
     /// their initialization after being fetched. Do not call it directly.
-    mutating func awakeFromFetch(row row: Row)
+    mutating func awakeFromFetch(row: Row)
 }
 ```
 
@@ -1654,7 +1650,7 @@ struct PointOfInterest {
 }
 
 extension PointOfInterest : RowConvertible {
-    init(_ row: Row) {
+    init(row: Row) {
         id = row.value(named: "id")
         title = row.value(named: "title")
         coordinate = CLLocationCoordinate2DMake(
@@ -1666,7 +1662,7 @@ extension PointOfInterest : RowConvertible {
 
 See [column values](#column-values) for more information about the `row.value()` method.
 
-> :point_up: **Note**: for performance reasons, the same row argument to `init(_:Row)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+> :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 RowConvertible allows adopting types to be fetched from SQL queries:
 
@@ -1685,7 +1681,7 @@ RowConvertible consume row columns by name:
 
 ```swift
 extension PointOfInterest : RowConvertible {
-    init(_ row: Row) {
+    init(row: Row) {
         id = row.value(named: "id")              // "id"
         title = row.value(named: "title")        // "title"
         coordinate = CLLocationCoordinate2DMake(
@@ -1758,14 +1754,14 @@ public protocol MutablePersistable : TableMapping {
     
     /// Optional method that lets your adopting type store its rowID upon
     /// successful insertion. Don't call it directly: it is called for you.
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    mutating func didInsert(with rowID: Int64, for column: String?)
 }
 ```
 
 ```swift
 public protocol Persistable : MutablePersistable {
-    /// Non-mutating version of the optional didInsertWithRowID(:forColumn:)
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    /// Non-mutating version of the optional didInsert(with:for:)
+    func didInsert(with rowID: Int64, for column: String?)
 }
 ```
 
@@ -1779,7 +1775,7 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 
 The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
 
-The optional `didInsertWithRowID` method lets the adopting type store its rowID after successful insertion. It is called from a protected dispatch queue, and serialized with all database updates.
+The optional `didInsert` method lets the adopting type store its rowID after successful insertion. It is called from a protected dispatch queue, and serialized with all database updates.
 
 **To use those protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitely. For example:
 
@@ -1796,7 +1792,7 @@ extension PointOfInterest : MutablePersistable {
     }
     
     // Update id upon successful insertion:
-    mutating func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
@@ -1825,7 +1821,7 @@ pointOfInterest.exists(db)     // Bool
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling) whenever an SQLite integrity check fails.
 
-- `update` can also throw a PersistenceError of type NotFound, should the update fail because there is no matching row in the database.
+- `update` can also throw a PersistenceError of type recordNotFound, should the update fail because there is no matching row in the database.
     
     When saving an object that may or may not already exist in the database, prefer the `save` method:
 
@@ -1852,7 +1848,7 @@ When you subclass [Record](#record-class), you simply have to override the custo
 class Person : Record {
     var uuid: String?
     
-    override func insert(db: Database) throws {
+    override func insert(_ db: Database) throws {
         if uuid == nil {
             uuid = NSUUID().UUIDString
         }
@@ -1867,12 +1863,12 @@ If you use the raw [Persistable](#persistable-protocol) protocol, use one of the
 struct Link : Persistable {
     var url: NSURL
     
-    func insert(db: Database) throws {
+    func insert(_ db: Database) throws {
         try validate()
         try performInsert(db)
     }
     
-    func update(db: Database) throws {
+    func update(_ db: Database) throws {
         try validate()
         try performUpdate(db)
     }
@@ -1907,13 +1903,13 @@ class Record {
     class func databaseTableName() -> String
     
     /// Initialize from a database row
-    required init(_ row: Row)
+    required init(row: Row)
     
     /// The values persisted in the database
     var persistentDictionary: [String: DatabaseValueConvertible?]
     
     /// Optionally update record ID after a successful insertion
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?)
+    func didInsert(with rowID: Int64, for column: String?)
 }
 ```
 
@@ -1931,13 +1927,13 @@ class PointOfInterest : Record {
     }
     
     /// Initialize from a database row
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         title = row.value(named: "title")
         coordinate = CLLocationCoordinate2DMake(
             row.value(named: "latitude"),
             row.value(named: "longitude"))
-        super.init(row)
+        super.init(row: row)
     }
     
     /// The values persisted in the database
@@ -1950,7 +1946,7 @@ class PointOfInterest : Record {
     }
     
     /// Update record ID after a successful insertion
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
@@ -2036,14 +2032,14 @@ For an efficient algorithm which synchronizes the content of a database table wi
 **The query interface lets you write pure Swift instead of SQL:**
 
 ```swift
-let count = Wine.filter(color == Color.Red).fetchCount(db)
+let count = Wine.filter(color == Color.red).fetchCount(db)
 let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
 ```
 
 Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK:
 
 ```swift
-let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines WHERE color = ?", arguments [Color.Red])!
+let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines WHERE color = ?", arguments [Color.red])!
 let wines = Wine.fetchAll(db, "SELECT * FROM wines WHERE origin = ? ORDER BY price", arguments: ["Burgundy"])
 ```
 
@@ -2104,11 +2100,11 @@ All the methods above return another request, which you can further refine by ap
     Person.select(max(ageColumn).aliased("maxAge"))
     ```
 
-- `distinct` performs uniquing:
+- `distinct()` performs uniquing:
     
     ```swift
     // SELECT DISTINCT "name" FROM "persons"
-    Person.select(nameColumn).distinct
+    Person.select(nameColumn).distinct()
     ```
 
 - `filter(expression)` applies conditions.
@@ -2140,7 +2136,7 @@ All the methods above return another request, which you can further refine by ap
         .having(min(ageColumn) >= 18)
     ```
 
-- `order(sortDescriptor, ...)` sorts.
+- `order(ordering, ...)` sorts.
     
     ```swift
     // SELECT * FROM "persons" ORDER BY "name"
@@ -2150,18 +2146,18 @@ All the methods above return another request, which you can further refine by ap
     Person.order(scoreColumn.desc, nameColumn)
     ```
 
-- `reverse()` reverses the eventual sort descriptors.
+- `reversed()` reverses the eventual ordering.
     
     ```swift
     // SELECT * FROM "persons" ORDER BY "score" ASC, "name" DESC
-    Person.order(scoreColumn.desc, nameColumn).reverse()
+    Person.order(scoreColumn.desc, nameColumn).reversed()
     ```
     
     If no ordering was specified, the result is ordered by rowID in reverse order.
     
     ```swift
     // SELECT * FROM "persons" ORDER BY "_rowid_" DESC
-    Person.all().reverse()
+    Person.all().reversed()
     ```
 
 - `limit(limit, offset: offset)` limits and pages results.
@@ -2334,10 +2330,10 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     The query interface does not give access to those SQLite functions. Nothing against them, but they are not unicode aware.
     
-    Instead, GRDB extends SQLite with SQL functions that call the Swift built-in string functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString` and `localizedUppercaseString`:
+    Instead, GRDB extends SQLite with SQL functions that call the Swift built-in string functions `capitalized`, `lowercased`, `uppercased`, `localizedCapitalized`, `localizedLowercased` and `localizedUppercased`:
     
     ```swift
-    Person.select(nameColumn.uppercaseString)
+    Person.select(nameColumn.uppercased())
     ```
     
     > :point_up: **Note**: When *comparing* strings, you'd rather use a [custom comparison function](#string-comparison).
@@ -2431,10 +2427,10 @@ let count = Person.fetchCount(db) // Int
 let count = Person.filter(emailColumn != nil).fetchCount(db)
 
 // SELECT COUNT(DISTINCT "name") FROM "persons"
-let count = Person.select(nameColumn).distinct.fetchCount(db)
+let count = Person.select(nameColumn).distinct().fetchCount(db)
 
 // SELECT COUNT(*) FROM (SELECT DISTINCT "name", "age" FROM "persons")
-let count = Person.select(nameColumn, ageColumn).distinct.fetchCount(db)
+let count = Person.select(nameColumn, ageColumn).distinct().fetchCount(db)
 ```
 
 
@@ -2511,10 +2507,10 @@ While your migration code runs with disabled foreign key checks, those are re-en
 
 ## Database Changes Observation
 
-The `TransactionObserverType` protocol lets you **observe database changes**:
+The `TransactionObserver` protocol lets you **observe database changes**:
 
 ```swift
-public protocol TransactionObserverType : class {
+public protocol TransactionObserver : class {
     /// Notifies a database change:
     /// - event.kind (insert, update, or delete)
     /// - event.tableName
@@ -2523,16 +2519,16 @@ public protocol TransactionObserverType : class {
     /// For performance reasons, the event is only valid for the duration of
     /// this method call. If you need to keep it longer, store a copy:
     /// event.copy().
-    func databaseDidChangeWithEvent(event: DatabaseEvent)
+    func databaseDidChange(with event: DatabaseEvent)
     
     /// An opportunity to rollback pending changes by throwing an error.
     func databaseWillCommit() throws
     
     /// Database changes have been committed.
-    func databaseDidCommit(db: Database)
+    func databaseDidCommit(_ db: Database)
     
     /// Database changes have been rollbacked.
-    func databaseDidRollback(db: Database)
+    func databaseDidRollback(_ db: Database)
 }
 ```
 
@@ -2540,7 +2536,7 @@ To activate a transaction observer, add it to the database queue or pool:
 
 ```swift
 let observer = MyObserver()
-dbQueue.addTransactionObserver(observer)
+dbQueue.add(transactionObserver: observer)
 ```
 
 Database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated.
@@ -2553,13 +2549,13 @@ Changes are not actually applied until `databaseDidCommit` is called. On the oth
 try dbQueue.inTransaction { db in
     try db.execute("INSERT ...") // 1. didChange
     try db.execute("UPDATE ...") // 2. didChange
-    return .Commit               // 3. willCommit, 4. didCommit
+    return .commit               // 3. willCommit, 4. didCommit
 }
 
 try dbQueue.inTransaction { db in
     try db.execute("INSERT ...") // 1. didChange
     try db.execute("UPDATE ...") // 2. didChange
-    return .Rollback             // 3. didRollback
+    return .rollback             // 3. didRollback
 }
 ```
 
@@ -2587,7 +2583,7 @@ try dbQueue.inTransaction { db in
     try db.execute("UPDATE ...")            // not notified
     try db.execute("ROLLBACK TO SAVEPOINT foo")
     
-    return .Commit                          // 4. willCommit, 5. didCommit
+    return .commit                          // 4. willCommit, 5. didCommit
 }
 ```
 
@@ -2598,7 +2594,7 @@ try dbQueue.inTransaction { db in
 do {
     try dbQueue.inTransaction { db in
         ...
-        return .Commit           // 1. willCommit (throws), 2. didRollback
+        return .commit           // 1. willCommit (throws), 2. didRollback
     }
 } catch {
     // 3. The error thrown by the transaction observer.
@@ -2607,9 +2603,9 @@ do {
 
 > :point_up: **Note**: all callbacks are called in a protected dispatch queue, and serialized with all database updates.
 >
-> :point_up: **Note**: the databaseDidChangeWithEvent and databaseWillCommit callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
+> :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
-[FetchedRecordsController](#fetchedrecordscontroller) is based on the TransactionObserverType protocol.
+[FetchedRecordsController](#fetchedrecordscontroller) is based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
@@ -2692,7 +2688,7 @@ Changes are not reflected until they are applied in the database by a successful
 try dbQueue.inTransaction { db in
     try person1.insert(db)
     try person2.insert(db)
-    return .Commit         // Explicit transaction
+    return .commit         // Explicit transaction
 }
 
 try dbQueue.inDatabase { db in
@@ -2786,7 +2782,7 @@ func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> In
 
 func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
     let cell = ...
-    let record = fetchedRecordsController.recordAtIndexPath(indexPath)
+    let record = fetchedRecordsController.record(at: indexPath)
     // Configure the cell
     return cell
 }
@@ -2838,26 +2834,26 @@ self.controller.trackChanges(
     // notification of individual record changes:
     tableViewEvent: { [unowned self] (controller, record, event) in
         switch event {
-        case .Insertion(let indexPath):
-            self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+        case .insertion(let indexPath):
+            self.tableView.insertRows(at: [indexPath], with: .fade)
             
-        case .Deletion(let indexPath):
-            self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+        case .deletion(let indexPath):
+            self.tableView.deleteRows(at: [indexPath], with: .fade)
             
-        case .Update(let indexPath, _):
-            if let cell = self.tableView.cellForRowAtIndexPath(indexPath) {
-                self.configureCell(cell, atIndexPath: indexPath)
+        case .update(let indexPath, _):
+            if let cell = self.tableView.cellForRow(at: indexPath) {
+                self.configure(cell, at: indexPath)
             }
             
-        case .Move(let indexPath, let newIndexPath, _):
-            self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-            self.tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
+        case .move(let indexPath, let newIndexPath, _):
+            self.tableView.deleteRows(at: [indexPath], with: .fade)
+            self.tableView.insertRows(at: [newIndexPath], with: .fade)
 
             // // Alternate technique which actually moves cells around:
-            // let cell = self.tableView.cellForRowAtIndexPath(indexPath)
-            // self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+            // let cell = self.tableView.cellForRow(at: indexPath)
+            // self.tableView.moveRow(at: indexPath, to: newIndexPath)
             // if let cell = cell {
-            //     self.configureCell(cell, atIndexPath: newIndexPath)
+            //     self.configure(cell, at: newIndexPath)
             // }
         }
     },
@@ -3049,10 +3045,10 @@ To avoid fatal errors, you have to expose and handle each failure point by going
 if let arguments = StatementArguments(arguments) {
     
     // SQL may be invalid
-    let statement = try db.selectStatement(sql)
+    let statement = try db.makeSelectStatement(sql)
     
     // Arguments may not fit the statement
-    try statement.validateArguments(arguments)
+    try statement.validate(arguments: arguments)
     
     // OK now
     let rows = Row.fetchAll(statement, arguments: arguments)
@@ -3078,18 +3074,18 @@ The `UPPER` and `LOWER` built-in SQLite functions are not unicode-aware:
 String.fetchOne(db, "SELECT UPPER('Jérôme')")
 ```
 
-GRDB extends SQLite with [SQL functions](#custom-sql-functions) that call the Swift built-in string functions `capitalizedString`, `lowercaseString`, `uppercaseString`, `localizedCapitalizedString`, `localizedLowercaseString` and `localizedUppercaseString`:
+GRDB extends SQLite with [SQL functions](#custom-sql-functions) that call the Swift built-in string functions `capitalized`, `lowercased`, `uppercased`, `localizedCapitalized`, `localizedLowercased` and `localizedUppercased`:
 
 ```swift
 // "JÉRÔME"
-let uppercaseString = DatabaseFunction.uppercaseString
-String.fetchOne(db, "SELECT \(uppercaseString.name)('Jérôme')")
+let uppercase = DatabaseFunction.uppercase
+String.fetchOne(db, "SELECT \(uppercased.name)('Jérôme')")
 ```
 
 Those unicode-aware string functions are also readily available in the [query interface](#sql-functions):
 
 ```
-Person.select(nameColumn.uppercaseString)
+Person.select(nameColumn.uppercased)
 ```
 
 
@@ -3137,7 +3133,7 @@ let persons = Person.filter(uuidColumn.collating("NOCASE") == uuid).fetchAll(db)
 let collation = DatabaseCollation("customCollation") { (lhs, rhs) -> NSComparisonResult in
     // return the comparison of lhs and rhs strings.
 }
-dbQueue.addCollation(collation) // Or dbPool.addCollation(...)
+dbQueue.add(collation: collation) // Or dbPool.add(collation: ...)
 ```
 
 
@@ -3172,7 +3168,7 @@ This method blocks the current thread until all current database accesses are co
 
 ```
 let dbQueue = try DatabaseQueue(...)
-dbQueue.setupMemoryManagement(application: UIApplication.sharedApplication())
+dbQueue.setupMemoryManagement(in: UIApplication.sharedApplication())
 ```
 
 
@@ -3292,21 +3288,21 @@ FAQ
     ```swift
     var configuration = Configuration()
     configuration.readonly = true
-    let dbPath = NSBundle.mainBundle().pathForResource("db", ofType: "sqlite")!
-    let dbQueue = try! DatabaseQueue(path: dbPath, configuration: configuration)
+    let dbPath = NSBundle.main().pathForResource("db", ofType: "sqlite")!
+    let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
     ```
     
     If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the Documents folder. Only then, open a [connection](#database-connections):
     
     ```swift
-    let fm = NSFileManager.defaultManager()
-    let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0]
-    let dbPath = (documentsPath as NSString).stringByAppendingPathComponent("db.sqlite")
-    if !fm.fileExistsAtPath(dbPath) {
-        let dbResourcePath = NSBundle.mainBundle().pathForResource("db", ofType: "sqlite")!
-        try! fm.copyItemAtPath(dbResourcePath, toPath: dbPath)
+    let fm = NSFileManager.default()
+    let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+    let dbPath = (documentsPath as NSString).appendingPathComponent("db.sqlite")
+    if !fm.fileExists(atPath: dbPath) {
+        let dbResourcePath = NSBundle.main().pathForResource("db", ofType: "sqlite")!
+        try fm.copyItem(atPath: dbResourcePath, toPath: dbPath)
     }
-    let dbQueue = DatabaseQueue(path: dbPath)
+    let dbQueue = try DatabaseQueue(path: dbPath)
     ```
 
 

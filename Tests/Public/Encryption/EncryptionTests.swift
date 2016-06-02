@@ -367,14 +367,14 @@ class EncryptionTests: GRDBTestCase {
         assertNoError {
             do {
                 dbConfiguration.passphrase = nil
-                let plainTextDBQueue = try makeDatabaseQueue("plaintext.sqlite")
+                let plainTextDBQueue = try makeDatabaseQueue(filename: "plaintext.sqlite")
                 try plainTextDBQueue.inDatabase { db in
                     try db.execute("CREATE TABLE data (value INTEGER)")
                     try db.execute("INSERT INTO data (value) VALUES (1)")
                 }
                 
                 dbConfiguration.passphrase = "secret"
-                let encryptedDBQueue = try makeDatabaseQueue("encrypted.sqlite")
+                let encryptedDBQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
                 
                 try plainTextDBQueue.inDatabase { db in
                     try db.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
@@ -385,7 +385,7 @@ class EncryptionTests: GRDBTestCase {
             
             do {
                 dbConfiguration.passphrase = "secret"
-                let dbQueue = try makeDatabaseQueue("encrypted.sqlite")
+                let dbQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
                 dbQueue.inDatabase { db in
                     XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
                 }

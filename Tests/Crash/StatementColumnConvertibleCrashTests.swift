@@ -14,7 +14,7 @@ class StatementColumnConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
                 let sequence = Int.fetch(statement)
                 for _ in sequence { }
             }
@@ -28,7 +28,7 @@ class StatementColumnConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute("INSERT INTO ints (int) VALUES (1)")
                 try db.execute("INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = try db.selectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
                 _ = Int.fetchAll(statement)
             }
         }

@@ -46,7 +46,7 @@ class PersonsViewController: UITableViewController {
         // Reload persons, and insert a cell.
         reloadPersons()
         let index = persons.indexOf { $0.id == person.id }!
-        tableView.insertRowsAtIndexPaths([NSIndexPath(forRow: index, inSection: 0)], withRowAnimation: .Automatic)
+        tableView.insertRows(at: [NSIndexPath(forRow: index, inSection: 0)], with: .automatic)
     }
     
     
@@ -70,10 +70,10 @@ class PersonsViewController: UITableViewController {
         let person = persons[indexPath.row]
         try! dbQueue.inTransaction { db in
             try person.delete(db)
-            return .Commit
+            return .commit
         }
-        persons.removeAtIndex(indexPath.row)
-        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
+        persons.remove(at: indexPath.row)
+        tableView.deleteRows(at: [indexPath], with: .automatic)
     }
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {

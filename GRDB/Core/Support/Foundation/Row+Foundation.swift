@@ -31,8 +31,8 @@ extension Row {
     public func toNSDictionary() -> NSDictionary {
         let dictionary = NSMutableDictionary(capacity: count)
         // Reverse so that the result dictionary contains values for the leftmost columns.
-        for (columnName, databaseValue) in reverse() {
-            dictionary[columnName] = databaseValue.toAnyObject()
+        for (columnName, databaseValue) in reversed() {
+            dictionary[NSString(string: columnName)] = databaseValue.toAnyObject()
         }
         return dictionary
     }

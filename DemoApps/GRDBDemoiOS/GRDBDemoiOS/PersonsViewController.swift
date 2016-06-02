@@ -8,7 +8,7 @@ class PersonsViewController: UITableViewController {
         super.viewDidLoad()
         
         navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: .addPerson),
+            UIBarButtonItem(barButtonSystemItem: .add, target: self, action: .addPerson),
             editButtonItem()
         ]
         
@@ -20,28 +20,28 @@ class PersonsViewController: UITableViewController {
             },
             tableViewEvent: { [unowned self] (controller, record, event) in
                 switch event {
-                case .Insertion(let indexPath):
-                    self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+                case .insertion(let indexPath):
+                    self.tableView.insertRows(at: [indexPath], with: .fade)
                     
-                case .Deletion(let indexPath):
-                    self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+                case .deletion(let indexPath):
+                    self.tableView.deleteRows(at: [indexPath], with: .fade)
                     
-                case .Update(let indexPath, _):
-                    if let cell = self.tableView.cellForRowAtIndexPath(indexPath) {
-                        self.configureCell(cell, atIndexPath: indexPath)
+                case .update(let indexPath, _):
+                    if let cell = self.tableView.cellForRow(at: indexPath) {
+                        self.configure(cell, at: indexPath)
                     }
                     
-                case .Move(let indexPath, let newIndexPath, _):
+                case .move(let indexPath, let newIndexPath, _):
                     // Actually move cells around for more demo effect :-)
-                    let cell = self.tableView.cellForRowAtIndexPath(indexPath)
-                    self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+                    let cell = self.tableView.cellForRow(at: indexPath)
+                    self.tableView.moveRow(at: indexPath, to: newIndexPath)
                     if let cell = cell {
-                        self.configureCell(cell, atIndexPath: newIndexPath)
+                        self.configure(cell, at: newIndexPath)
                     }
                     
                     // A quieter animation:
-                    // self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-                    // self.tableView.insertRowsAtIndexPaths([newIndexPath], withRowAnimation: .Fade)
+                    // self.tableView.deleteRows(at: [indexPath], with: .fade)
+                    // self.tableView.insertRows(at: [newIndexPath], with: .fade)
                 }
             },
             recordsDidChange: { [unowned self] _ in
@@ -52,9 +52,9 @@ class PersonsViewController: UITableViewController {
         configureToolbar()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.toolbarHidden = false
+        navigationController?.isToolbarHidden = false
     }
 }
 
@@ -63,9 +63,9 @@ class PersonsViewController: UITableViewController {
 
 extension PersonsViewController : PersonEditionViewControllerDelegate {
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "EditPerson" {
-            let person = personsController.recordAtIndexPath(tableView.indexPathForSelectedRow!)
+            let person = personsController.record(at: tableView.indexPathForSelectedRow!)
             let controller = segue.destinationViewController as! PersonEditionViewController
             controller.title = person.name
             controller.person = person
@@ -82,8 +82,8 @@ extension PersonsViewController : PersonEditionViewControllerDelegate {
         }
     }
     
-    @IBAction func addPerson(sender: AnyObject?) {
-        performSegueWithIdentifier("NewPerson", sender: sender)
+    @IBAction func addPerson(_ sender: AnyObject?) {
+        performSegue(withIdentifier: "NewPerson", sender: sender)
     }
     
     @IBAction func cancelPersonEdition(segue: UIStoryboardSegue) {
@@ -102,7 +102,7 @@ extension PersonsViewController : PersonEditionViewControllerDelegate {
         }
     }
     
-    func personEditionControllerDidComplete(controller: PersonEditionViewController) {
+    func personEditionControllerDidComplete(_ controller: PersonEditionViewController) {
         // Person edition: back button was tapped
         controller.applyChanges()
         let person = controller.person
@@ -118,29 +118,29 @@ extension PersonsViewController : PersonEditionViewControllerDelegate {
 // MARK: - UITableViewDataSource
 
 extension PersonsViewController {
-    func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
-        let person = personsController.recordAtIndexPath(indexPath)
+    func configure(_ cell: UITableViewCell, at indexPath: NSIndexPath) {
+        let person = personsController.record(at: indexPath)
         cell.textLabel?.text = person.name
         cell.detailTextLabel?.text = abs(person.score) > 1 ? "\(person.score) points" : "0 point"
     }
     
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return personsController.sections.count
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return personsController.sections[section].numberOfRecords
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("Person", forIndexPath: indexPath)
-        configureCell(cell, atIndexPath: indexPath)
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: NSIndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Person", for: indexPath)
+        configure(cell, at: indexPath)
         return cell
     }
     
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: NSIndexPath) {
         // Delete the person
-        let person = personsController.recordAtIndexPath(indexPath)
+        let person = personsController.record(at: indexPath)
         try! dbQueue.inDatabase { db in
             try person.delete(db)
         }
@@ -154,11 +154,11 @@ extension PersonsViewController {
     
     private func configureToolbar() {
         toolbarItems = [
-            UIBarButtonItem(title: "Name ⬆︎", style: .Plain, target: self, action: .sortByName),
-            UIBarButtonItem(title: "Score ⬇︎", style: .Plain, target: self, action: .sortByScore),
-            UIBarButtonItem(title: "Randomize", style: .Plain, target: self, action: .randomizeScores),
-            UIBarButtonItem(barButtonSystemItem: .FlexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(title: "💣", style: .Plain, target: self, action: .stressTest)
+            UIBarButtonItem(title: "Name ⬆︎", style: .plain, target: self, action: .sortByName),
+            UIBarButtonItem(title: "Score ⬇︎", style: .plain, target: self, action: .sortByScore),
+            UIBarButtonItem(title: "Randomize", style: .plain, target: self, action: .randomizeScores),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(title: "💣", style: .plain, target: self, action: .stressTest)
         ]
     }
     
@@ -180,7 +180,7 @@ extension PersonsViewController {
                 person.score = Person.randomScore()
                 try person.update(db)
             }
-            return .Commit
+            return .commit
         }
     }
     
@@ -216,7 +216,7 @@ extension PersonsViewController {
                             }
                         }
                     }
-                    return .Commit
+                    return .commit
                 }
             }
         }

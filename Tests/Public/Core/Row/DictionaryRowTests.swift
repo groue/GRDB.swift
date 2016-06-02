@@ -28,9 +28,9 @@ class DictionaryRowTests: GRDBTestCase {
         let dictionary: [String: DatabaseValueConvertible?] = ["a": 0, "b": 1, "c": 2]
         let row = Row(dictionary)
         
-        let aIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("a")!)
-        let bIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("b")!)
-        let cIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("c")!)
+        let aIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "a")!)
+        let bIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "b")!)
+        let cIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "c")!)
         
         // Int extraction, form 1
         XCTAssertEqual(row.value(atIndex: aIndex) as Int, 0)
@@ -108,33 +108,33 @@ class DictionaryRowTests: GRDBTestCase {
     
     func testRowDatabaseValueAtIndex() {
         assertNoError {
-            let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".dataUsingEncoding(NSUTF8StringEncoding)]
+            let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: NSUTF8StringEncoding)]
             let row = Row(dictionary)
             
-            let nullIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("null")!)
-            let int64Index = dictionary.startIndex.distanceTo(dictionary.indexForKey("int64")!)
-            let doubleIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("double")!)
-            let stringIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("string")!)
-            let blobIndex = dictionary.startIndex.distanceTo(dictionary.indexForKey("blob")!)
+            let nullIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "null")!)
+            let int64Index = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "int64")!)
+            let doubleIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "double")!)
+            let stringIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "string")!)
+            let blobIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "blob")!)
             
-            guard case .Null = row.databaseValue(atIndex: nullIndex).storage else { XCTFail(); return }
-            guard case .Int64(let int64) = row.databaseValue(atIndex: int64Index).storage where int64 == 1 else { XCTFail(); return }
-            guard case .Double(let double) = row.databaseValue(atIndex: doubleIndex).storage where double == 1.1 else { XCTFail(); return }
-            guard case .String(let string) = row.databaseValue(atIndex: stringIndex).storage where string == "foo" else { XCTFail(); return }
-            guard case .Blob(let data) = row.databaseValue(atIndex: blobIndex).storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+            guard case .null = row.databaseValue(atIndex: nullIndex).storage else { XCTFail(); return }
+            guard case .int64(let int64) = row.databaseValue(atIndex: int64Index).storage where int64 == 1 else { XCTFail(); return }
+            guard case .double(let double) = row.databaseValue(atIndex: doubleIndex).storage where double == 1.1 else { XCTFail(); return }
+            guard case .string(let string) = row.databaseValue(atIndex: stringIndex).storage where string == "foo" else { XCTFail(); return }
+            guard case .blob(let data) = row.databaseValue(atIndex: blobIndex).storage where data == "SQLite".data(using: NSUTF8StringEncoding) else { XCTFail(); return }
         }
     }
     
     func testRowDatabaseValueNamed() {
         assertNoError {
-            let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".dataUsingEncoding(NSUTF8StringEncoding)]
+            let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: NSUTF8StringEncoding)]
             let row = Row(dictionary)
 
-            guard case .Null = row.databaseValue(named: "null")!.storage else { XCTFail(); return }
-            guard case .Int64(let int64) = row.databaseValue(named: "int64")!.storage where int64 == 1 else { XCTFail(); return }
-            guard case .Double(let double) = row.databaseValue(named: "double")!.storage where double == 1.1 else { XCTFail(); return }
-            guard case .String(let string) = row.databaseValue(named: "string")!.storage where string == "foo" else { XCTFail(); return }
-            guard case .Blob(let data) = row.databaseValue(named: "blob")!.storage where data == "SQLite".dataUsingEncoding(NSUTF8StringEncoding) else { XCTFail(); return }
+            guard case .null = row.databaseValue(named: "null")!.storage else { XCTFail(); return }
+            guard case .int64(let int64) = row.databaseValue(named: "int64")!.storage where int64 == 1 else { XCTFail(); return }
+            guard case .double(let double) = row.databaseValue(named: "double")!.storage where double == 1.1 else { XCTFail(); return }
+            guard case .string(let string) = row.databaseValue(named: "string")!.storage where string == "foo" else { XCTFail(); return }
+            guard case .blob(let data) = row.databaseValue(named: "blob")!.storage where data == "SQLite".data(using: NSUTF8StringEncoding) else { XCTFail(); return }
         }
     }
     
@@ -145,12 +145,12 @@ class DictionaryRowTests: GRDBTestCase {
     
     func testRowColumnNames() {
         let row = Row(["a": 0, "b": 1, "c": 2])
-        XCTAssertEqual(Array(row.columnNames).sort(), ["a", "b", "c"])
+        XCTAssertEqual(Array(row.columnNames).sorted(), ["a", "b", "c"])
     }
     
     func testRowDatabaseValues() {
         let row = Row(["a": 0, "b": 1, "c": 2])
-        XCTAssertEqual(row.databaseValues.sort { ($0.value() as Int!) < ($1.value() as Int!) }, [0.databaseValue, 1.databaseValue, 2.databaseValue])
+        XCTAssertEqual(row.databaseValues.sorted { ($0.value() as Int!) < ($1.value() as Int!) }, [0.databaseValue, 1.databaseValue, 2.databaseValue])
     }
     
     func testRowIsCaseInsensitive() {

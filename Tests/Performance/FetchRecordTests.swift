@@ -10,15 +10,15 @@ private let expectedRowCount = 100_000
 class FetchRecordTests: XCTestCase {
 
     func testSQLite() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
-        var connection: COpaquePointer = nil
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        var connection: OpaquePointer = nil
         sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
         
         self.measureBlock {
-            var statement: COpaquePointer = nil
+            var statement: OpaquePointer = nil
             sqlite3_prepare_v2(connection, "SELECT * FROM items", -1, &statement, nil)
             
-            let columnNames = (Int32(0)..<10).map { String.fromCString(sqlite3_column_name(statement, $0))! }
+            let columnNames = (Int32(0)..<10).map { String(cString: sqlite3_column_name(statement, $0))! }
             let index0 = Int32(columnNames.indexOf("i0")!)
             let index1 = Int32(columnNames.indexOf("i1")!)
             let index2 = Int32(columnNames.indexOf("i2")!)
@@ -68,7 +68,7 @@ class FetchRecordTests: XCTestCase {
     func testFMDB() {
         // Here we test the loading of an array of Records.
         
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let dbQueue = FMDatabaseQueue(path: databasePath)
         
         self.measureBlock {
@@ -89,7 +89,7 @@ class FetchRecordTests: XCTestCase {
     }
 
     func testGRDB() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         measureBlock {
@@ -104,7 +104,7 @@ class FetchRecordTests: XCTestCase {
     }
 
     func testSQLiteSwift() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let db = try! Connection(databasePath)
         
         self.measureBlock {
@@ -131,8 +131,8 @@ class FetchRecordTests: XCTestCase {
     }
     
     func testCoreData() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceCoreDataTests", ofType: "sqlite")!
-        let modelURL = NSBundle(forClass: self.dynamicType).URLForResource("PerformanceModel", withExtension: "momd")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceCoreDataTests", ofType: "sqlite")!
+        let modelURL = NSBundle(for: self.dynamicType).URLForResource("PerformanceModel", withExtension: "momd")!
         let mom = NSManagedObjectModel(contentsOfURL: modelURL)!
         let psc = NSPersistentStoreCoordinator(managedObjectModel: mom)
         try! psc.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: NSURL(fileURLWithPath: databasePath), options: nil)
@@ -159,7 +159,7 @@ class FetchRecordTests: XCTestCase {
     }
     
     func testRealm() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceRealmTests", ofType: "realm")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceRealmTests", ofType: "realm")!
         let realm = try! Realm(path: databasePath)
         
         measureBlock {

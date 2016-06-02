@@ -57,7 +57,7 @@ public struct DatabaseMigrator {
     ///     - identifier: The migration identifier.
     ///     - block: The migration block that performs SQL statements.
     /// - precondition: No migration with the same same as already been registered.
-    public mutating func registerMigration(identifier: String, migrate: (Database) throws -> Void) {
+    public mutating func registerMigration(_ identifier: String, migrate: (Database) throws -> Void) {
         registerMigration(Migration(identifier: identifier, migrate: migrate))
     }
     
@@ -81,7 +81,7 @@ public struct DatabaseMigrator {
     ///     - identifier: The migration identifier.
     ///     - block: The migration block that performs SQL statements.
     /// - precondition: No migration with the same same as already been registered.
-    public mutating func registerMigrationWithDisabledForeignKeyChecks(identifier: String, migrate: (Database) throws -> Void) {
+    public mutating func registerMigrationWithDisabledForeignKeyChecks(_ identifier: String, migrate: (Database) throws -> Void) {
         registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
     }
     
@@ -92,7 +92,7 @@ public struct DatabaseMigrator {
     /// - parameter db: A DatabaseWriter (DatabaseQueue or DatabasePool) where
     ///   migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    public func migrate(db: DatabaseWriter) throws {
+    public func migrate(_ db: DatabaseWriter) throws {
         try db.write { db in
             try self.setupMigrations(db)
             try self.runMigrations(db)
@@ -104,16 +104,16 @@ public struct DatabaseMigrator {
     
     private var migrations: [Migration] = []
     
-    private mutating func registerMigration(migration: Migration) {
+    private mutating func registerMigration(_ migration: Migration) {
         GRDBPrecondition(!migrations.map({ $0.identifier }).contains(migration.identifier), "already registered migration: \"\(migration.identifier)\"")
         migrations.append(migration)
     }
     
-    private func setupMigrations(db: Database) throws {
+    private func setupMigrations(_ db: Database) throws {
         try db.execute("CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
     }
     
-    private func runMigrations(db: Database) throws {
+    private func runMigrations(_ db: Database) throws {
         let appliedIdentifiers = String.fetchAll(db, "SELECT identifier FROM grdb_migrations")
         for migration in migrations where !appliedIdentifiers.contains(migration.identifier) {
             try migration.run(db)

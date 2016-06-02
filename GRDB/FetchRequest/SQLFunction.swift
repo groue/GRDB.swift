@@ -4,8 +4,8 @@ extension DatabaseFunction {
     /// Returns an SQL expression that applies the function.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public func apply(arguments: _SQLExpressionType...) -> _SQLExpression {
-        return .Function(name, arguments.map { $0.sqlExpression })
+    public func apply(_ arguments: _SQLExpressible...) -> _SQLExpression {
+        return .function(name, arguments.map { $0.sqlExpression })
     }
 }
 
@@ -15,8 +15,8 @@ extension DatabaseFunction {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func abs(value: _SQLDerivedExpressionType) -> _SQLExpression {
-    return .Function("ABS", [value.sqlExpression])
+public func abs(_ value: _SpecificSQLExpressible) -> _SQLExpression {
+    return .function("ABS", [value.sqlExpression])
 }
 
 
@@ -25,8 +25,8 @@ public func abs(value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func average(value: _SQLDerivedExpressionType) -> _SQLExpression {
-    return .Function("AVG", [value.sqlExpression])
+public func average(_ value: _SpecificSQLExpressible) -> _SQLExpression {
+    return .function("AVG", [value.sqlExpression])
 }
 
 
@@ -35,8 +35,8 @@ public func average(value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func count(counted: _SQLDerivedExpressionType) -> _SQLExpression {
-    return .Count(counted)
+public func count(_ counted: _SpecificSQLExpressible) -> _SQLExpression {
+    return .count(counted)
 }
 
 
@@ -45,8 +45,8 @@ public func count(counted: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func count(distinct value: _SQLDerivedExpressionType) -> _SQLExpression {
-    return .CountDistinct(value.sqlExpression)
+public func count(distinct value: _SpecificSQLExpressible) -> _SQLExpression {
+    return .countDistinct(value.sqlExpression)
 }
 
 
@@ -55,16 +55,16 @@ public func count(distinct value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func ?? (lhs: _SQLDerivedExpressionType, rhs: _SQLExpressionType) -> _SQLExpression {
-    return .Function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
+public func ?? (lhs: _SpecificSQLExpressible, rhs: _SQLExpressible) -> _SQLExpression {
+    return .function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func ?? (lhs: _SQLExpressionType?, rhs: _SQLDerivedExpressionType) -> _SQLExpression {
+public func ?? (lhs: _SQLExpressible?, rhs: _SpecificSQLExpressible) -> _SQLExpression {
     if let lhs = lhs {
-        return .Function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
+        return .function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
     } else {
         return rhs.sqlExpression
     }
@@ -76,8 +76,8 @@ public func ?? (lhs: _SQLExpressionType?, rhs: _SQLDerivedExpressionType) -> _SQ
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func max(value: _SQLDerivedExpressionType) -> _SQLExpression {
-    return .Function("MAX", [value.sqlExpression])
+public func max(_ value: _SpecificSQLExpressible) -> _SQLExpression {
+    return .function("MAX", [value.sqlExpression])
 }
 
 
@@ -86,8 +86,8 @@ public func max(value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func min(value: _SQLDerivedExpressionType) -> _SQLExpression {
-    return .Function("MIN", [value.sqlExpression])
+public func min(_ value: _SpecificSQLExpressible) -> _SQLExpression {
+    return .function("MIN", [value.sqlExpression])
 }
 
 
@@ -96,74 +96,74 @@ public func min(value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func sum(value: _SQLDerivedExpressionType) -> _SQLExpression {
-    return .Function("SUM", [value.sqlExpression])
+public func sum(_ value: _SpecificSQLExpressible) -> _SQLExpression {
+    return .function("SUM", [value.sqlExpression])
 }
 
 
 // MARK: - Swift String functions
 
-extension _SQLDerivedExpressionType {
+extension _SpecificSQLExpressible {
     /// Returns an SQL expression that applies the Swift's built-in
-    /// capitalizedString String property. It is NULL for non-String arguments.
+    /// capitalized String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = SQLColumn("name")
-    ///     let request = Person.select(nameColumn.capitalizedString)
+    ///     let request = Person.select(nameColumn.capitalized)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    public var capitalizedString: _SQLExpression {
-        return DatabaseFunction.capitalizedString.apply(sqlExpression)
+    public var capitalized: _SQLExpression {
+        return DatabaseFunction.capitalize.apply(sqlExpression)
     }
 
     /// Returns an SQL expression that applies the Swift's built-in
-    /// lowercaseString String property. It is NULL for non-String arguments.
+    /// lowercased String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = SQLColumn("name")
-    ///     let request = Person.select(nameColumn.lowercaseString)
+    ///     let request = Person.select(nameColumn.lowercased())
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    public var lowercaseString: _SQLExpression {
-        return DatabaseFunction.lowercaseString.apply(sqlExpression)
+    public var lowercased: _SQLExpression {
+        return DatabaseFunction.lowercase.apply(sqlExpression)
     }
 
     /// Returns an SQL expression that applies the Swift's built-in
-    /// uppercaseString String property. It is NULL for non-String arguments.
+    /// uppercased String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = SQLColumn("name")
-    ///     let request = Person.select(nameColumn.uppercaseString)
+    ///     let request = Person.select(nameColumn.uppercased())
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    public var uppercaseString: _SQLExpression {
-        return DatabaseFunction.uppercaseString.apply(sqlExpression)
+    public var uppercased: _SQLExpression {
+        return DatabaseFunction.uppercase.apply(sqlExpression)
     }
 }
 
 @available(iOS 9.0, OSX 10.11, *)
-extension _SQLDerivedExpressionType {
+extension _SpecificSQLExpressible {
     /// Returns an SQL expression that applies the Swift's built-in
-    /// localizedCapitalizedString String property. It is NULL for non-String arguments.
+    /// localizedCapitalized String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = SQLColumn("name")
-    ///     let request = Person.select(nameColumn.localizedCapitalizedString)
+    ///     let request = Person.select(nameColumn.localizedCapitalized)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    public var localizedCapitalizedString: _SQLExpression {
-        return DatabaseFunction.localizedCapitalizedString.apply(sqlExpression)
+    public var localizedCapitalized: _SQLExpression {
+        return DatabaseFunction.localizedCapitalize.apply(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
-    /// localizedLowercaseString String property. It is NULL for non-String arguments.
+    /// localizedLowercased String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = SQLColumn("name")
-    ///     let request = Person.select(nameColumn.localizedLowercaseString)
+    ///     let request = Person.select(nameColumn.localizedLowercased)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    public var localizedLowercaseString: _SQLExpression {
-        return DatabaseFunction.localizedLowercaseString.apply(sqlExpression)
+    public var localizedLowercased: _SQLExpression {
+        return DatabaseFunction.localizedLowercase.apply(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
-    /// localizedUppercaseString String property. It is NULL for non-String arguments.
+    /// localizedUppercased String property. It is NULL for non-String arguments.
     ///
     ///     let nameColumn = SQLColumn("name")
-    ///     let request = Person.select(nameColumn.localizedUppercaseString)
+    ///     let request = Person.select(nameColumn.localizedUppercased)
     ///     let names = String.fetchAll(dbQueue, request)   // [String]
-    public var localizedUppercaseString: _SQLExpression {
-        return DatabaseFunction.localizedUppercaseString.apply(sqlExpression)
+    public var localizedUppercased: _SQLExpression {
+        return DatabaseFunction.localizedUppercase.apply(sqlExpression)
     }
 }

@@ -8,13 +8,13 @@ private let expectedRowCount = 100_000
 class FetchPositionalValuesTests: XCTestCase {
     
     func testSQLite() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
-        var connection: COpaquePointer = nil
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        var connection: OpaquePointer = nil
         sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
         
         self.measureBlock {
             var count = 0
-            var statement: COpaquePointer = nil
+            var statement: OpaquePointer = nil
             sqlite3_prepare_v2(connection, "SELECT * FROM items", -1, &statement, nil)
             
             loop: while true {
@@ -49,7 +49,7 @@ class FetchPositionalValuesTests: XCTestCase {
     }
     
     func testFMDB() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let dbQueue = FMDatabaseQueue(path: databasePath)
         
         self.measureBlock {
@@ -79,7 +79,7 @@ class FetchPositionalValuesTests: XCTestCase {
     }
     
     func testGRDB() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         
         measureBlock {
@@ -107,7 +107,7 @@ class FetchPositionalValuesTests: XCTestCase {
     }
     
     func testSQLiteSwift() {
-        let databasePath = NSBundle(forClass: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
+        let databasePath = NSBundle(for: self.dynamicType).pathForResource("PerformanceTests", ofType: "sqlite")!
         let db = try! Connection(databasePath)
         
         self.measureBlock {

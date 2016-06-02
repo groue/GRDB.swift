@@ -53,7 +53,7 @@ public final class Row {
     ///
     /// The statementRef is released in deinit.
     let statementRef: Unmanaged<SelectStatement>?
-    let sqliteStatement: SQLiteStatement
+    let sqliteStatement: SQLiteStatement?
     
     deinit {
         statementRef?.release()
@@ -111,8 +111,8 @@ extension Row {
     /// Returns true if and only if the row has that column.
     ///
     /// This method is case-insensitive.
-    public func hasColumn(columnName: String) -> Bool {
-        return impl.indexOfColumn(named: columnName) != nil
+    public func hasColumn(_ columnName: String) -> Bool {
+        return impl.index(ofColumn: columnName) != nil
     }
 }
 
@@ -128,7 +128,7 @@ extension Row {
     @warn_unused_result
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return impl.databaseValue(atIndex: index).value()
+        return impl.databaseValue(atUncheckedIndex: index).value()
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -142,7 +142,7 @@ extension Row {
     @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return impl.databaseValue(atIndex: index).value()
+        return impl.databaseValue(atUncheckedIndex: index).value()
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -160,7 +160,10 @@ extension Row {
     @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return fastValue(atUncheckedIndex: index)
+        guard let sqliteStatement = sqliteStatement else {
+            return impl.databaseValue(atUncheckedIndex: index).value()
+        }
+        return Row.statementColumnConvertible(atUncheckedIndex: index, in: sqliteStatement)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -173,7 +176,7 @@ extension Row {
     @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return impl.databaseValue(atIndex: index).value()
+        return impl.databaseValue(atUncheckedIndex: index).value()
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -190,7 +193,10 @@ extension Row {
     @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return fastValue(atUncheckedIndex: index)
+        guard let sqliteStatement = sqliteStatement else {
+            return impl.databaseValue(atUncheckedIndex: index).value()
+        }
+        return Row.statementColumnConvertible(atUncheckedIndex: index, in: sqliteStatement)
     }
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
@@ -209,10 +215,10 @@ extension Row {
         //     if row.value(named: "foo") != nil { ... }
         //
         // Without this method, the code above would not compile.
-        guard let index = impl.indexOfColumn(named: columnName) else {
+        guard let index = impl.index(ofColumn: columnName) else {
             return nil
         }
-        return impl.databaseValue(atIndex: index).value()
+        return impl.databaseValue(atUncheckedIndex: index).value()
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -225,10 +231,10 @@ extension Row {
     /// `Value`. Should this conversion fail, a fatal error is raised.
     @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
-        guard let index = impl.indexOfColumn(named: columnName) else {
+        guard let index = impl.index(ofColumn: columnName) else {
             return nil
         }
-        return impl.databaseValue(atIndex: index).value()
+        return impl.databaseValue(atUncheckedIndex: index).value()
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -245,10 +251,13 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value? {
-        guard let index = impl.indexOfColumn(named: columnName) else {
+        guard let index = impl.index(ofColumn: columnName) else {
             return nil
         }
-        return fastValue(atUncheckedIndex: index)
+        guard let sqliteStatement = sqliteStatement else {
+            return impl.databaseValue(atUncheckedIndex: index).value()
+        }
+        return Row.statementColumnConvertible(atUncheckedIndex: index, in: sqliteStatement)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -262,10 +271,10 @@ extension Row {
     /// SQLite value can not be converted to `Value`.
     @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
-        guard let index = impl.indexOfColumn(named: columnName) else {
+        guard let index = impl.index(ofColumn: columnName) else {
             fatalError("no such column: \(columnName)")
         }
-        return impl.databaseValue(atIndex: index).value()
+        return impl.databaseValue(atUncheckedIndex: index).value()
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -283,10 +292,13 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value {
-        guard let index = impl.indexOfColumn(named: columnName) else {
+        guard let index = impl.index(ofColumn: columnName) else {
             fatalError("no such column: \(columnName)")
         }
-        return fastValue(atUncheckedIndex: index)
+        guard let sqliteStatement = sqliteStatement else {
+            return impl.databaseValue(atUncheckedIndex: index).value()
+        }
+        return Row.statementColumnConvertible(atUncheckedIndex: index, in: sqliteStatement)
     }
     
     /// Returns the optional `NSData` at given index.
@@ -302,7 +314,7 @@ extension Row {
     @warn_unused_result
     public func dataNoCopy(atIndex index: Int) -> NSData? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return impl.dataNoCopy(atIndex: index)
+        return impl.dataNoCopy(atUncheckedIndex: index)
     }
     
     /// Returns the optional `NSData` at given column.
@@ -318,10 +330,10 @@ extension Row {
     /// than the row's lifetime.
     @warn_unused_result
     public func dataNoCopy(named columnName: String) -> NSData? {
-        guard let index = impl.indexOfColumn(named: columnName) else {
+        guard let index = impl.index(ofColumn: columnName) else {
             return nil
         }
-        return impl.dataNoCopy(atIndex: index)
+        return impl.dataNoCopy(atUncheckedIndex: index)
     }
 }
 
@@ -344,7 +356,7 @@ extension Row {
     @warn_unused_result
     public func databaseValue(atIndex index: Int) -> DatabaseValue {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
-        return impl.databaseValue(atIndex: index)
+        return impl.databaseValue(atUncheckedIndex: index)
     }
     
     /// Returns the `DatabaseValue` at given column.
@@ -355,10 +367,10 @@ extension Row {
     /// The result is nil if the row does not contain the column.
     @warn_unused_result
     public func databaseValue(named columnName: String) -> DatabaseValue? {
-        guard let index = impl.indexOfColumn(named: columnName) else {
+        guard let index = impl.index(ofColumn: columnName) else {
             return nil
         }
-        return impl.databaseValue(atIndex: index)
+        return impl.databaseValue(atUncheckedIndex: index)
     }
 }
 
@@ -367,11 +379,7 @@ extension Row {
     // MARK: - Helpers
     
     @warn_unused_result
-    private func fastValue<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atUncheckedIndex index: Int) -> Value? {
-        let sqliteStatement = self.sqliteStatement
-        guard sqliteStatement != nil else {
-            return impl.databaseValue(atIndex: index).value()
-        }
+    private static func statementColumnConvertible<Value: StatementColumnConvertible>(atUncheckedIndex index: Int, in sqliteStatement: SQLiteStatement) -> Value? {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             return nil
         }
@@ -379,11 +387,7 @@ extension Row {
     }
     
     @warn_unused_result
-    private func fastValue<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atUncheckedIndex index: Int) -> Value {
-        let sqliteStatement = self.sqliteStatement
-        guard sqliteStatement != nil else {
-            return impl.databaseValue(atIndex: index).value()
-        }
+    private static func statementColumnConvertible<Value: StatementColumnConvertible>(atUncheckedIndex index: Int, in sqliteStatement: SQLiteStatement) -> Value {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             fatalError("could not convert NULL to \(Value.self).")
         }
@@ -406,7 +410,7 @@ extension Row {
     
     /// Returns a sequence of rows fetched from a prepared statement.
     ///
-    ///     let statement = db.selectStatement("SELECT ...")
+    ///     let statement = db.makeSelectStatement("SELECT ...")
     ///     for row in Row.fetch(statement) {
     ///         let id: Int64 = row.value(atIndex: 0)
     ///         let name: String = row.value(atIndex: 1)
@@ -439,7 +443,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of rows.
     @warn_unused_result
-    public static func fetch(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
+    public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return statement.fetchSequence(arguments: arguments) {
@@ -449,7 +453,7 @@ extension Row {
     
     /// Returns an array of rows fetched from a prepared statement.
     ///
-    ///     let statement = db.selectStatement("SELECT ...")
+    ///     let statement = db.makeSelectStatement("SELECT ...")
     ///     let rows = Row.fetchAll(statement)
     ///
     /// - parameters:
@@ -458,7 +462,7 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     @warn_unused_result
-    public static func fetchAll(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
+    public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
         let sqliteStatement = statement.sqliteStatement
         let columnNames = statement.columnNames
         let sequence: DatabaseSequence<Row>
@@ -477,7 +481,7 @@ extension Row {
     
     /// Returns a single row fetched from a prepared statement.
     ///
-    ///     let statement = db.selectStatement("SELECT ...")
+    ///     let statement = db.makeSelectStatement("SELECT ...")
     ///     let row = Row.fetchOne(statement)
     ///
     /// - parameters:
@@ -486,13 +490,13 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     @warn_unused_result
-    public static func fetchOne(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
+    public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
         let sqliteStatement = statement.sqliteStatement
         let columnNames = statement.columnNames
         let sequence = statement.fetchSequence(arguments: arguments) {
             Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames)
         }
-        guard let row = sequence.generate().next() else {
+        guard let row = sequence.makeIterator().next() else {
             return nil
         }
         return try! row.adaptedRow(adapter: adapter, statement: statement)
@@ -537,8 +541,8 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of rows.
     @warn_unused_result
-    public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
-        return fetch(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
+    public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
+        return fetch(try! db.makeSelectStatement(sql), arguments: arguments, adapter: adapter)
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -552,8 +556,8 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     @warn_unused_result
-    public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
-        return fetchAll(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
+    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
+        return fetchAll(try! db.makeSelectStatement(sql), arguments: arguments, adapter: adapter)
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -567,29 +571,23 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     @warn_unused_result
-    public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
-        return fetchOne(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
+    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
+        return fetchOne(try! db.makeSelectStatement(sql), arguments: arguments, adapter: adapter)
     }
 }
 
-extension Row : CollectionType {
+extension Row : Collection {
     
     // MARK: - Row as a Collection of (ColumnName, DatabaseValue) Pairs
     
-    /// The number of columns in the row.
-    public var count: Int {
-        let sqliteStatement = self.sqliteStatement
-        guard sqliteStatement != nil else {
-            return impl.count
-        }
-        return Int(sqlite3_column_count(sqliteStatement))
-    }
-    
-    /// Returns a *generator* over (ColumnName, DatabaseValue) pairs, from left
-    /// to right.
-    public func generate() -> IndexingGenerator<Row> {
-        return IndexingGenerator(self)
-    }
+    // TODO
+//    /// The number of columns in the row.
+//    public var count: Int {
+//        guard let sqliteStatement = sqliteStatement else {
+//            return impl.count
+//        }
+//        return Int(sqlite3_column_count(sqliteStatement))
+//    }
     
     /// The index of the first (ColumnName, DatabaseValue) pair.
     public var startIndex: RowIndex {
@@ -602,13 +600,43 @@ extension Row : CollectionType {
         return Index(impl.count)
     }
     
-    /// Returns the (ColumnName, DatabaseValue) pair at given index.
-    public subscript(index: RowIndex) -> (String, DatabaseValue) {
+    /// Accesses the (ColumnName, DatabaseValue) pair at given index.
+    public subscript(position: RowIndex) -> (String, DatabaseValue) {
+        let index = position.index
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return (
-            impl.columnName(atIndex: index.index),
-            impl.databaseValue(atIndex: index.index))
+            impl.columnName(atUncheckedIndex: index),
+            impl.databaseValue(atUncheckedIndex: index))
+    }
+    
+    /// Returns the position immediately after `i`.
+    ///
+    /// - Precondition: `(startIndex..<endIndex).contains(i)`
+    public func index(after i: RowIndex) -> RowIndex {
+        return RowIndex(i.index + 1)
+    }
+    
+    /// Replaces `i` with its successor.
+    public func formIndex(after i: inout RowIndex) {
+        i = RowIndex(i.index + 1)
     }
 }
+
+// TODO
+//extension Row : BidirectionalCollection {
+//
+//    /// Returns the position immediately preceding `i`.
+//    ///
+//    /// - Precondition: `i > startIndex && i <= endIndex`
+//    public func index(before i: RowIndex) -> RowIndex {
+//        return RowIndex(i.index - 1)
+//    }
+//}
+//
+// TODO
+//extension Row : RandomAccessCollection {
+//    
+//}
 
 extension Row : Equatable { }
 
@@ -623,10 +651,10 @@ public func ==(lhs: Row, rhs: Row) -> Bool {
         return false
     }
     
-    var lgen = lhs.generate()
-    var rgen = rhs.generate()
+    var liter = lhs.makeIterator()
+    var riter = rhs.makeIterator()
     
-    while let (lcol, lval) = lgen.next(), let (rcol, rval) = rgen.next() {
+    while let (lcol, lval) = liter.next(), let (rcol, rval) = riter.next() {
         guard lcol == rcol else {
             return false
         }
@@ -659,7 +687,7 @@ extension Row: CustomStringConvertible {
         return "<Row"
             + map { (column, dbv) in
                 " \(column):\(dbv)"
-                }.joinWithSeparator("")
+                }.joined(separator: "")
             + ">"
     }
 }
@@ -668,27 +696,18 @@ extension Row: CustomStringConvertible {
 // MARK: - RowIndex
 
 /// Indexes to (columnName, databaseValue) pairs in a database row.
-public struct RowIndex: ForwardIndexType, BidirectionalIndexType, RandomAccessIndexType {
+public struct RowIndex : Comparable {
     let index: Int
     init(_ index: Int) { self.index = index }
-    
-    /// The index of the next (ColumnName, DatabaseValue) pair in a row.
-    public func successor() -> RowIndex { return RowIndex(index + 1) }
-
-    /// The index of the previous (ColumnName, DatabaseValue) pair in a row.
-    public func predecessor() -> RowIndex { return RowIndex(index - 1) }
-
-    /// The number of columns between two (ColumnName, DatabaseValue) pairs in
-    /// a row.
-    public func distanceTo(other: RowIndex) -> Int { return other.index - index }
-    
-    /// Return `self` offset by `n` steps.
-    public func advancedBy(n: Int) -> RowIndex { return RowIndex(index + n) }
 }
 
 /// Equatable implementation for RowIndex
 public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
     return lhs.index == rhs.index
+}
+
+public func <(lhs: RowIndex, rhs: RowIndex) -> Bool {
+    return lhs.index < rhs.index
 }
 
 
@@ -697,20 +716,20 @@ public func ==(lhs: RowIndex, rhs: RowIndex) -> Bool {
 // The protocol for Row underlying implementation
 protocol RowImpl {
     var count: Int { get }
-    func databaseValue(atIndex index: Int) -> DatabaseValue
-    func dataNoCopy(atIndex index:Int) -> NSData?
-    func columnName(atIndex index: Int) -> String
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
+    func dataNoCopy(atUncheckedIndex index:Int) -> NSData?
+    func columnName(atUncheckedIndex index: Int) -> String
     
     // This method MUST be case-insensitive, and returns the index of the
     // leftmost column that matches *name*.
-    func indexOfColumn(named name: String) -> Int?
+    func index(ofColumn name: String) -> Int?
     
     func subrow(named name: String) -> Row?
     
     var subrowNames: Set<String> { get }
     
     // row.impl is guaranteed to be self.
-    func copy(row: Row) -> Row
+    func copy(_ row: Row) -> Row
 }
 
 
@@ -726,26 +745,28 @@ private struct DictionaryRowImpl : RowImpl {
         return dictionary.count
     }
     
-    func dataNoCopy(atIndex index:Int) -> NSData? {
-        return databaseValue(atIndex: index).value()
+    func dataNoCopy(atUncheckedIndex index:Int) -> NSData? {
+        return databaseValue(atUncheckedIndex: index).value()
     }
     
-    func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return dictionary[dictionary.startIndex.advancedBy(index)].1?.databaseValue ?? .Null
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
+        let i = dictionary.index(dictionary.startIndex, offsetBy: index)
+        return dictionary[i].1?.databaseValue ?? .null
     }
     
-    func columnName(atIndex index: Int) -> String {
-        return dictionary[dictionary.startIndex.advancedBy(index)].0
+    func columnName(atUncheckedIndex index: Int) -> String {
+        let i = dictionary.index(dictionary.startIndex, offsetBy: index)
+        return dictionary[i].0
     }
     
     // This method MUST be case-insensitive, and returns the index of the
     // leftmost column that matches *name*.
-    func indexOfColumn(named name: String) -> Int? {
-        let lowercaseName = name.lowercaseString
-        guard let index = dictionary.indexOf({ (column, value) in column.lowercaseString == lowercaseName }) else {
+    func index(ofColumn name: String) -> Int? {
+        let lowercaseName = name.lowercased()
+        guard let index = dictionary.index(where: { (column, value) in column.lowercased() == lowercaseName }) else {
             return nil
         }
-        return dictionary.startIndex.distanceTo(index)
+        return dictionary.distance(from: dictionary.startIndex, to: index)
     }
     
     func subrow(named name: String) -> Row? {
@@ -756,7 +777,7 @@ private struct DictionaryRowImpl : RowImpl {
         return []
     }
     
-    func copy(row: Row) -> Row {
+    func copy(_ row: Row) -> Row {
         return row
     }
 }
@@ -768,7 +789,6 @@ private struct StatementCopyRowImpl : RowImpl {
     let columnNames: [String]
     
     init(sqliteStatement: SQLiteStatement, columnNames: [String]) {
-        assert(sqliteStatement != nil)
         let sqliteStatement = sqliteStatement
         self.databaseValues = ContiguousArray((0..<sqlite3_column_count(sqliteStatement)).lazy.map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) })
         self.columnNames = columnNames
@@ -778,23 +798,23 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames.count
     }
     
-    func dataNoCopy(atIndex index:Int) -> NSData? {
-        return databaseValue(atIndex: index).value()
+    func dataNoCopy(atUncheckedIndex index:Int) -> NSData? {
+        return databaseValue(atUncheckedIndex: index).value()
     }
     
-    func databaseValue(atIndex index: Int) -> DatabaseValue {
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
         return databaseValues[index]
     }
     
-    func columnName(atIndex index: Int) -> String {
+    func columnName(atUncheckedIndex index: Int) -> String {
         return columnNames[index]
     }
     
     // This method MUST be case-insensitive, and returns the index of the
     // leftmost column that matches *name*.
-    func indexOfColumn(named name: String) -> Int? {
-        let lowercaseName = name.lowercaseString
-        return columnNames.indexOf { $0.lowercaseString == lowercaseName }
+    func index(ofColumn name: String) -> Int? {
+        let lowercaseName = name.lowercased()
+        return columnNames.index { $0.lowercased() == lowercaseName }
     }
     
     func subrow(named name: String) -> Row? {
@@ -805,7 +825,7 @@ private struct StatementCopyRowImpl : RowImpl {
         return []
     }
     
-    func copy(row: Row) -> Row {
+    func copy(_ row: Row) -> Row {
         return row
     }
 }
@@ -818,42 +838,43 @@ private struct StatementRowImpl : RowImpl {
     let lowercaseColumnIndexes: [String: Int]
     
     init(sqliteStatement: SQLiteStatement, statementRef: Unmanaged<SelectStatement>) {
-        assert(sqliteStatement != nil)
         self.statementRef = statementRef
         self.sqliteStatement = sqliteStatement
         // Optimize row.value(named: "...")
-        let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement)).map { String.fromCString(sqlite3_column_name(sqliteStatement, Int32($0)))!.lowercaseString }
-        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: lowercaseColumnNames.enumerate().map { ($1, $0) }.reverse())
+        let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement)).map { String(cString: sqlite3_column_name(sqliteStatement, Int32($0))).lowercased() }
+        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: lowercaseColumnNames.enumerated().map { ($1, $0) }.reversed())
     }
     
     var count: Int {
         return Int(sqlite3_column_count(sqliteStatement))
     }
     
-    func dataNoCopy(atIndex index:Int) -> NSData? {
+    func dataNoCopy(atUncheckedIndex index:Int) -> NSData? {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             return nil
         }
-        let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
+        guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
+            return nil
+        }
         let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
         return NSData(bytesNoCopy: UnsafeMutablePointer(bytes), length: Int(length), freeWhenDone: false)
     }
     
-    func databaseValue(atIndex index: Int) -> DatabaseValue {
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
         return DatabaseValue(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
-    func columnName(atIndex index: Int) -> String {
+    func columnName(atUncheckedIndex index: Int) -> String {
         return statementRef.takeUnretainedValue().columnNames[index]
     }
     
     // This method MUST be case-insensitive, and returns the index of the
     // leftmost column that matches *name*.
-    func indexOfColumn(named name: String) -> Int? {
+    func index(ofColumn name: String) -> Int? {
         if let index = lowercaseColumnIndexes[name] {
             return index
         }
-        return lowercaseColumnIndexes[name.lowercaseString]
+        return lowercaseColumnIndexes[name.lowercased()]
     }
     
     func subrow(named name: String) -> Row? {
@@ -864,7 +885,7 @@ private struct StatementRowImpl : RowImpl {
         return []
     }
     
-    func copy(row: Row) -> Row {
+    func copy(_ row: Row) -> Row {
         return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
     }
 }
@@ -874,19 +895,19 @@ private struct StatementRowImpl : RowImpl {
 private struct EmptyRowImpl : RowImpl {
     var count: Int { return 0 }
     
-    func databaseValue(atIndex index: Int) -> DatabaseValue {
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
         fatalError("row index out of range")
     }
     
-    func dataNoCopy(atIndex index:Int) -> NSData? {
+    func dataNoCopy(atUncheckedIndex index:Int) -> NSData? {
         fatalError("row index out of range")
     }
     
-    func columnName(atIndex index: Int) -> String {
+    func columnName(atUncheckedIndex index: Int) -> String {
         fatalError("row index out of range")
     }
     
-    func indexOfColumn(named name: String) -> Int? {
+    func index(ofColumn name: String) -> Int? {
         return nil
     }
     
@@ -898,7 +919,7 @@ private struct EmptyRowImpl : RowImpl {
         return []
     }
     
-    func copy(row: Row) -> Row {
+    func copy(_ row: Row) -> Row {
         return row
     }
 }

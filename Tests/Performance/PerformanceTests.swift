@@ -50,7 +50,7 @@ class Item : Record {
         return "items"
     }
     
-    required init(_ row: GRDB.Row) {
+    required init(row: GRDB.Row) {
         i0 = row.value(named: "i0")
         i1 = row.value(named: "i1")
         i2 = row.value(named: "i2")
@@ -61,7 +61,7 @@ class Item : Record {
         i7 = row.value(named: "i7")
         i8 = row.value(named: "i8")
         i9 = row.value(named: "i9")
-        super.init(row)
+        super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {

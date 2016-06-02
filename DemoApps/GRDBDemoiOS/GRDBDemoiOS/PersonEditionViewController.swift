@@ -1,7 +1,7 @@
 import UIKit
 
 protocol PersonEditionViewControllerDelegate: class {
-    func personEditionControllerDidComplete(controller: PersonEditionViewController)
+    func personEditionControllerDidComplete(_ controller: PersonEditionViewController)
 }
 
 class PersonEditionViewController: UITableViewController {
@@ -58,14 +58,14 @@ class PersonEditionViewController: UITableViewController {
 
 extension PersonEditionViewController {
     
-    override func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
+    override func shouldPerformSegue(withIdentifier identifier: String, sender: AnyObject?) -> Bool {
         // Force keyboard to dismiss early
         view.endEditing(true)
         return true
     }
     
-    override func willMoveToParentViewController(parent: UIViewController?) {
-        super.willMoveToParentViewController(parent)
+    override func willMove(toParentViewController parent: UIViewController?) {
+        super.willMove(toParentViewController: parent)
         
         if parent == nil {
             // Self is popping from its navigation controller
@@ -80,14 +80,14 @@ extension PersonEditionViewController {
 
 extension PersonEditionViewController: UITextFieldDelegate {
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         nameTextField.becomeFirstResponder()
     }
     
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        tableView.deselectRowAtIndexPath(indexPath, animated: false)
-        let cell = tableView.cellForRowAtIndexPath(indexPath)
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: NSIndexPath) {
+        tableView.deselectRow(at: indexPath, animated: false)
+        let cell = tableView.cellForRow(at: indexPath)
         if cell === nameCell {
             nameTextField.becomeFirstResponder()
         } else if cell === scoreCell {
@@ -95,7 +95,7 @@ extension PersonEditionViewController: UITextFieldDelegate {
         }
     }
     
-    func textFieldShouldReturn(textField: UITextField) -> Bool {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if textField == nameTextField {
             scoreTextField.becomeFirstResponder()
         }

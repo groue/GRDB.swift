@@ -37,7 +37,7 @@ private class PersistablePersonClass : Persistable {
         return ["id": id, "name": name, "age": age]
     }
     
-    func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
     }
 }
@@ -58,11 +58,11 @@ private struct PersistableCountry : Persistable {
 private struct PersistableCustomizedCountry : Persistable {
     var isoCode: String
     var name: String
-    let willInsert: Void -> Void
-    let willUpdate: Void -> Void
-    let willSave: Void -> Void
-    let willDelete: Void -> Void
-    let willExists: Void -> Void
+    let willInsert: (Void) -> Void
+    let willUpdate: (Void) -> Void
+    let willSave: (Void) -> Void
+    let willDelete: (Void) -> Void
+    let willExists: (Void) -> Void
     
     static func databaseTableName() -> String {
         return "countries"
@@ -72,27 +72,27 @@ private struct PersistableCustomizedCountry : Persistable {
         return ["isoCode": isoCode, "name": name]
     }
     
-    func insert(db: Database) throws {
+    func insert(_ db: Database) throws {
         willInsert()
         try performInsert(db)
     }
     
-    func update(db: Database) throws {
+    func update(_ db: Database) throws {
         willUpdate()
         try performUpdate(db)
     }
     
-    func save(db: Database) throws {
+    func save(_ db: Database) throws {
         willSave()
         try performSave(db)
     }
     
-    func delete(db: Database) throws {
+    func delete(_ db: Database) throws {
         willDelete()
         try performDelete(db)
     }
     
-    func exists(db: Database) -> Bool {
+    func exists(_ db: Database) -> Bool {
         willExists()
         return performExists(db)
     }
@@ -113,7 +113,7 @@ private struct Citizenship : Persistable {
 
 class PersistableTests: GRDBTestCase {
     
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("setUp") { db in
             try db.execute(

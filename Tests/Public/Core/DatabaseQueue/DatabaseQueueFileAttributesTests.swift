@@ -9,28 +9,28 @@ class DatabaseQueueFileAttributesTests: GRDBTestCase {
     
     func testDefaultFileAttributes() {
         assertNoError {
-            let fm = NSFileManager.defaultManager()
+            let fm = NSFileManager.default()
             
             let dbQueue = try makeDatabaseQueue()
-            var attributes = try fm.attributesOfItemAtPath(dbQueue.path)
+            var attributes = try fm.attributesOfItem(atPath: dbQueue.path)
             XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
         }
     }
     
     func testExplicitFileAttributesOnExistingFile() {
         assertNoError {
-            let fm = NSFileManager.defaultManager()
+            let fm = NSFileManager.default()
             
             do {
                 let dbQueue = try makeDatabaseQueue()
-                let attributes = try fm.attributesOfItemAtPath(dbQueue.path)
+                let attributes = try fm.attributesOfItem(atPath: dbQueue.path)
                 XCTAssertFalse((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
             }
             
             do {
                 dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
                 let dbQueue = try makeDatabaseQueue()
-                let attributes = try fm.attributesOfItemAtPath(dbQueue.path)
+                let attributes = try fm.attributesOfItem(atPath: dbQueue.path)
                 XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
             }
         }
@@ -38,14 +38,14 @@ class DatabaseQueueFileAttributesTests: GRDBTestCase {
     
     func testExplicitFileAttributesOnNewFile() {
         assertNoError {
-            let fm = NSFileManager.defaultManager()
+            let fm = NSFileManager.default()
             
             dbConfiguration.fileAttributes = [NSFileExtensionHidden: true]
             let dbQueue = try makeDatabaseQueue()
             // TODO: this test is fragile: we have to wait until the database
             // store has been notified of file creation.
-            NSThread.sleepForTimeInterval(0.1)
-            var attributes = try fm.attributesOfItemAtPath(dbQueue.path)
+            NSThread.sleep(forTimeInterval: 0.1)
+            var attributes = try fm.attributesOfItem(atPath: dbQueue.path)
             XCTAssertTrue((attributes[NSFileExtensionHidden] as! NSNumber).boolValue)
         }
     }

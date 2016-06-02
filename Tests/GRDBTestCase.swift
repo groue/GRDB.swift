@@ -20,25 +20,25 @@ class GRDBTestCase: XCTestCase {
     
     // Builds a database queue based on dbConfiguration
     func makeDatabaseQueue(filename: String = "db.sqlite") throws -> DatabaseQueue {
-        try NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
+        try NSFileManager.default().createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
         let dbQueue = try DatabaseQueue(path: dbPath, configuration: dbConfiguration)
-        try setUpDatabase(dbQueue)
+        try setup(dbQueue)
         return dbQueue
     }
     
     // Builds a database pool based on dbConfiguration
     func makeDatabasePool(filename: String = "db.sqlite") throws -> DatabasePool {
-        try NSFileManager.defaultManager().createDirectoryAtPath(dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
-        let dbPath = (dbDirectoryPath as NSString).stringByAppendingPathComponent(filename)
+        try NSFileManager.default().createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+        let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
         let dbPool = try DatabasePool(path: dbPath, configuration: dbConfiguration)
-        try setUpDatabase(dbPool)
+        try setup(dbPool)
         return dbPool
     }
     
     // Subclasses can override
     // Default implementation is empty.
-    func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    func setup(_ dbWriter: DatabaseWriter) throws {
     }
     
     // The default path for database pool directory
@@ -54,8 +54,8 @@ class GRDBTestCase: XCTestCase {
         super.setUp()
         
         let dbPoolDirectoryName = "GRDBTestCase-\(NSProcessInfo.processInfo().globallyUniqueString)"
-        dbDirectoryPath = (NSTemporaryDirectory() as NSString).stringByAppendingPathComponent(dbPoolDirectoryName)
-        do { try NSFileManager.defaultManager().removeItemAtPath(dbDirectoryPath) } catch { }
+        dbDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(dbPoolDirectoryName)
+        do { try NSFileManager.default().removeItem(atPath: dbDirectoryPath) } catch { }
         
         dbConfiguration = Configuration()
         
@@ -83,7 +83,7 @@ class GRDBTestCase: XCTestCase {
             // - sqlite3_next_stmt https://www.sqlite.org/capi3ref.html#sqlite3_next_stmt
             // - sqlite3_stmt_busy https://www.sqlite.org/capi3ref.html#sqlite3_stmt_busy
             // - sqlite3_stmt_readonly https://www.sqlite.org/capi3ref.html#sqlite3_stmt_readonly
-            var stmt: SQLiteStatement = sqlite3_next_stmt(sqliteConnection, nil)
+            var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
             while stmt != nil {
                 XCTAssertTrue(sqlite3_stmt_readonly(stmt) != 0 || sqlite3_stmt_busy(stmt) == 0)
                 stmt = sqlite3_next_stmt(sqliteConnection, stmt)
@@ -105,10 +105,10 @@ class GRDBTestCase: XCTestCase {
     
     override func tearDown() {
         super.tearDown()
-        do { try NSFileManager.defaultManager().removeItemAtPath(dbDirectoryPath) } catch { }
+        do { try NSFileManager.default().removeItem(atPath: dbDirectoryPath) } catch { }
     }
     
-    func assertNoError(file: StaticString = #file, line: UInt = #line, @noescape _ test: (Void) throws -> Void) {
+    func assertNoError(file: StaticString = #file, line: UInt = #line, _ test: @noescape(Void) throws -> Void) {
         do {
             try test()
         } catch {
@@ -116,7 +116,7 @@ class GRDBTestCase: XCTestCase {
         }
     }
     
-    func sql(databaseReader: DatabaseReader, _ request: FetchRequest) -> String {
+    func sql(_ databaseReader: DatabaseReader, _ request: FetchRequest) -> String {
         return databaseReader.read { db in
             _ = Row.fetchOne(db, request)
             return self.lastSQLQuery

@@ -9,8 +9,8 @@ class DatabaseQueueBackupTests: GRDBTestCase {
 
     func testBackup() {
         assertNoError {
-            let source = try makeDatabaseQueue("source.sqlite")
-            let destination = try makeDatabaseQueue("destination.sqlite")
+            let source = try makeDatabaseQueue(filename: "source.sqlite")
+            let destination = try makeDatabaseQueue(filename: "destination.sqlite")
             
             try source.inDatabase { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")

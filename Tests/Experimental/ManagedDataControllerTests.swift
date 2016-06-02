@@ -1,14 +1,14 @@
 //import XCTest
 //import GRDB
 //
-//// See if TransactionObserverType can provide robust NSData external storage.
+//// See if TransactionObserver can provide robust NSData external storage.
 ////
 //// The answer is yes, we can.
 ////
 //// However this requires records to be *managed*. All instances of our
 //// RecordWithManagedData must be given their manager after instanciation.
 //
-//class ManagedDataController : TransactionObserverType {
+//class ManagedDataController : TransactionObserver {
 //    // Base directory
 //    let path: String
 //    
@@ -30,11 +30,11 @@
 //    }
 //    
 //    func willSaveManagedData(managedData: ManagedData?) {
-//        // Next step: databaseDidChangeWithEvent() or databaseDidRollback()
+//        // Next step: databaseDidChange(with:) or databaseDidRollback()
 //        self.managedData = managedData
 //    }
 //    
-//    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+//    func databaseDidChange(with event: DatabaseEvent) {
 //        guard let managedData = managedData else {
 //            return
 //        }
@@ -42,7 +42,7 @@
 //        self.managedData = nil
 //
 //        switch event.kind {
-//        case .Insert, .Update:
+//        case .insert, .update:
 //            managedData.rowID = event.rowID
 //            // Replace any existing managedData for this rowID.
 //            pendingManagedDatas[event.rowID] = managedData
@@ -53,23 +53,23 @@
 //    
 //    func databaseWillCommit() throws {
 //        do {
-//            let fm = NSFileManager.defaultManager()
+//            let fm = NSFileManager.default()
 //            for (_, managedData) in pendingManagedDatas.sort({ $0.0 < $1.0 }) {
 //                if let forbiddenData = forbiddenData, let data = managedData.data where forbiddenData == data {
 //                    throw NSError(domain: "ManagedDataController", code: 0, userInfo: nil)
 //                }
 //                
 //                let storagePath = storageDataPath(managedData)
-//                let storageDir = (storagePath as NSString).stringByDeletingLastPathComponent
+//                let storageDir = (storagePath as NSString).deletingLastPathComponent
 //                let tempPath = temporaryDataPath(managedData)
-//                let tempDir = (tempPath as NSString).stringByDeletingLastPathComponent
+//                let tempDir = (tempPath as NSString).deletingLastPathComponent
 //                
 //                
 //                // Move
 //                
 //                if fm.fileExistsAtPath(storagePath) {
 //                    if fm.fileExistsAtPath(tempPath) {
-//                        try! fm.removeItemAtPath(tempPath)
+//                        try! fm.removeItem(atPath: tempPath)
 //                    }
 //                    if !fm.fileExistsAtPath(tempDir) {
 //                        try fm.createDirectoryAtPath(tempDir, withIntermediateDirectories: true, attributes: nil)
@@ -99,24 +99,24 @@
 //        }
 //    }
 //    
-//    func databaseDidCommit(db: Database) {
+//    func databaseDidCommit(_ db: Database) {
 //        // TODO: clean up tmp directory
 //        cleanup()
 //    }
 //    
-//    func databaseDidRollback(db: Database) {
+//    func databaseDidRollback(_ db: Database) {
 //        if restoreFileSystemAfterRollback {
-//            let fm = NSFileManager.defaultManager()
+//            let fm = NSFileManager.default()
 //            
 //            for managedData in storedManagedDatas {
 //                if fm.fileExistsAtPath(storageDataPath(managedData)) {
-//                    try! fm.removeItemAtPath(storageDataPath(managedData))
+//                    try! fm.removeItem(atPath: storageDataPath(managedData))
 //                }
 //            }
 //            
 //            for managedData in movedManagedDatas {
 //                let storagePath = storageDataPath(managedData)
-//                let storageDir = (storagePath as NSString).stringByDeletingLastPathComponent
+//                let storageDir = (storagePath as NSString).deletingLastPathComponent
 //                let tempPath = temporaryDataPath(managedData)
 //                if fm.fileExistsAtPath(tempPath) {
 //                    if !fm.fileExistsAtPath(storageDir) {
@@ -141,7 +141,7 @@
 //        guard managedData.rowID != nil else {
 //            return nil
 //        }
-//        let fm = NSFileManager.defaultManager()
+//        let fm = NSFileManager.default()
 //        if fm.fileExistsAtPath(storageDataPath(managedData)) {
 //            return NSData(contentsOfFile: storageDataPath(managedData))!
 //        } else {
@@ -150,25 +150,25 @@
 //    }
 //    
 //    private var temporaryDirectoryPath: String {
-//        return (path as NSString).stringByAppendingPathComponent("tmp")
+//        return (path as NSString).appendingPathComponent("tmp")
 //    }
 //    
 //    private func storageDataPath(managedData: ManagedData) -> String {
 //        var path = self.path as NSString
-//        path = path.stringByAppendingPathComponent(String(managedData.rowID!))
-//        path = path.stringByAppendingPathComponent(managedData.name)
+//        path = path.appendingPathComponent(String(managedData.rowID!))
+//        path = path.appendingPathComponent(managedData.name)
 //        return path as String
 //    }
 //    
 //    private func temporaryDataPath(managedData: ManagedData) -> String {
 //        var path = self.temporaryDirectoryPath as NSString
-//        path = path.stringByAppendingPathComponent(String(managedData.rowID!))
-//        path = path.stringByAppendingPathComponent(managedData.name)
+//        path = path.appendingPathComponent(String(managedData.rowID!))
+//        path = path.appendingPathComponent(managedData.name)
 //        return path as String
 //    }
 //    
 //    private func setupDirectories() {
-//        let fm = NSFileManager.defaultManager()
+//        let fm = NSFileManager.default()
 //        try! fm.createDirectoryAtPath(path, withIntermediateDirectories: true, attributes: nil)
 //        try! fm.createDirectoryAtPath(temporaryDirectoryPath, withIntermediateDirectories: true, attributes: nil)
 //    }
@@ -239,20 +239,20 @@
 //        super.updateFromRow(row)
 //    }
 //    
-//    override func insert(db: Database) throws {
+//    override func insert(_ db: Database) throws {
 //        // Hmm.
 //        managedData.willSave()
 //        try super.insert(db)
 //    }
 //    
-//    override func update(db: Database) throws {
+//    override func update(_ db: Database) throws {
 //        // Hmm.
 //        managedData.willSave()
 //        try super.update(db)
 //    }
 //    
 //    // OK
-//    static func setupInDatabase(db: Database) throws {
+//    static func setup(inDatabase db: Database) throws {
 //        // TODO: make tests run with a single "id INTEGER PRIMARY KEY" column.
 //        // The "update" method is doing nothing in this case, so we can expect troubles with managed data.
 //        try db.execute(
@@ -264,7 +264,7 @@
 //    var managedDataController: ManagedDataController!
 //    
 //    override var dbConfiguration: Configuration {
-//        managedDataController = ManagedDataController(path: "/tmp/ManagedDataController", forbiddenData: "Bunny".dataUsingEncoding(NSUTF8StringEncoding))
+//        managedDataController = ManagedDataController(path: "/tmp/ManagedDataController", forbiddenData: "Bunny".data(using: NSUTF8StringEncoding))
 //        var c = super.dbConfiguration
 //        c.transactionObserver = managedDataController
 //        return c
@@ -275,7 +275,7 @@
 //        
 //        assertNoError {
 //            try dbQueue.inDatabase { db in
-//                try RecordWithManagedData.setupInDatabase(db)
+//                try RecordWithManagedData.setup(inDatabase: db)
 //            }
 //        }
 //    }
@@ -287,7 +287,7 @@
 //            try dbQueue.inDatabase { db in
 //                // TODO: this explicit line is a problem
 //                record.managedData.controller = self.managedDataController
-//                record.data = "foo".dataUsingEncoding(NSUTF8StringEncoding)
+//                record.data = "foo".data(using: NSUTF8StringEncoding)
 //                try record.save(db)
 //            }
 //            
@@ -295,7 +295,7 @@
 //            dbQueue.inDatabase { db in
 //                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                reloadedRecord.managedData.controller = self.managedDataController
-//                XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
+//                XCTAssertEqual(reloadedRecord.data, "foo".data(using: NSUTF8StringEncoding))
 //            }
 //        }
 //    }
@@ -306,33 +306,33 @@
 //            let record = RecordWithManagedData()
 //            record.managedData.controller = self.managedDataController
 //            try dbQueue.inDatabase { db in
-//                record.data = "foo".dataUsingEncoding(NSUTF8StringEncoding)
+//                record.data = "foo".data(using: NSUTF8StringEncoding)
 //                try record.save(db)
 //            }
 //            
 //            try dbQueue.inTransaction { db in
 //                // ... and that changes...
-//                record.data = "bar".dataUsingEncoding(NSUTF8StringEncoding)
+//                record.data = "bar".data(using: NSUTF8StringEncoding)
 //                try record.save(db)
 //                
 //                // ... after changes...
-//                record.data = "baz".dataUsingEncoding(NSUTF8StringEncoding)
+//                record.data = "baz".data(using: NSUTF8StringEncoding)
 //                try record.save(db)
 //                
 //                // ... are not applied in the file system...
 //                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                reloadedRecord.managedData.controller = self.managedDataController
-//                XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
+//                XCTAssertEqual(reloadedRecord.data, "foo".data(using: NSUTF8StringEncoding))
 //                
 //                // ... until database commit:
-//                return .Commit
+//                return .commit
 //            }
 //            
 //            // We find our modified data after commit:
 //            dbQueue.inDatabase { db in
 //                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                reloadedRecord.managedData.controller = self.managedDataController
-//                XCTAssertEqual(reloadedRecord.data, "baz".dataUsingEncoding(NSUTF8StringEncoding))
+//                XCTAssertEqual(reloadedRecord.data, "baz".data(using: NSUTF8StringEncoding))
 //            }
 //        }
 //    }
@@ -343,31 +343,31 @@
 //            let record = RecordWithManagedData()
 //            record.managedData.controller = self.managedDataController
 //            try dbQueue.inDatabase { db in
-//                record.data = "foo".dataUsingEncoding(NSUTF8StringEncoding)
+//                record.data = "foo".data(using: NSUTF8StringEncoding)
 //                try record.save(db)
 //            }
 //            
 //            do {
 //                try dbQueue.inTransaction { db in
 //                    // ... and that changes...
-//                    record.data = "bar".dataUsingEncoding(NSUTF8StringEncoding)
+//                    record.data = "bar".data(using: NSUTF8StringEncoding)
 //                    try record.save(db)
 //                    
 //                    // ... after changes...
-//                    record.data = "baz".dataUsingEncoding(NSUTF8StringEncoding)
+//                    record.data = "baz".data(using: NSUTF8StringEncoding)
 //                    try record.save(db)
 //                    
 //                    // ... are not applied in the file system...
 //                    let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                    reloadedRecord.managedData.controller = self.managedDataController
-//                    XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
+//                    XCTAssertEqual(reloadedRecord.data, "foo".data(using: NSUTF8StringEncoding))
 //
 //                    // ... until database commit, which may fail:
 //                    let forbiddenRecord = RecordWithManagedData()
 //                    forbiddenRecord.managedData.controller = self.managedDataController
-//                    forbiddenRecord.data = "Bunny".dataUsingEncoding(NSUTF8StringEncoding)
+//                    forbiddenRecord.data = "Bunny".data(using: NSUTF8StringEncoding)
 //                    try forbiddenRecord.save(db)
-//                    return .Commit
+//                    return .commit
 //                }
 //                XCTFail("Expected error")
 //            } catch let error as NSError {
@@ -378,7 +378,7 @@
 //            dbQueue.inDatabase { db in
 //                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                reloadedRecord.managedData.controller = self.managedDataController
-//                XCTAssertEqual(reloadedRecord.data, "foo".dataUsingEncoding(NSUTF8StringEncoding))
+//                XCTAssertEqual(reloadedRecord.data, "foo".data(using: NSUTF8StringEncoding))
 //            }
 //        }
 //    }

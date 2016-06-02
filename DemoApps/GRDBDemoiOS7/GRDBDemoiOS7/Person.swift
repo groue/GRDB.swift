@@ -3,7 +3,7 @@ class Person : Record {
     var firstName: String?
     var lastName: String?
     var fullName: String {
-        return [firstName, lastName].flatMap { $0 }.filter { !$0.isEmpty }.joinWithSeparator(" ")
+        return [firstName, lastName].flatMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
     }
     
     init(firstName: String? = nil, lastName: String? = nil) {
@@ -19,11 +19,11 @@ class Person : Record {
         return "persons"
     }
     
-    required init(_ row: Row) {
+    required init(row: Row) {
         id = row.value(named: "id")
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
-        super.init(row)
+        super.init(row: row)
         
     }
     
@@ -34,7 +34,7 @@ class Person : Record {
             "lastName": lastName]
     }
     
-    override func didInsertWithRowID(rowID: Int64, forColumn column: String?) {
+    override func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }

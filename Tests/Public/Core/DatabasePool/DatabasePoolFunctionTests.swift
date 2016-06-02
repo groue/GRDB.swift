@@ -15,7 +15,7 @@ class DatabasePoolFunctionTests: GRDBTestCase {
                 return databaseValues[0]
             }
             
-            dbPool.addFunction(function1)
+            dbPool.add(function: function1)
             
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (text TEXT)")
@@ -28,7 +28,7 @@ class DatabasePoolFunctionTests: GRDBTestCase {
             let function2 = DatabaseFunction("function2", argumentCount: 1, pure: true) { (databaseValues: [DatabaseValue]) in
                 return "foo"
             }
-            dbPool.addFunction(function2)
+            dbPool.add(function: function2)
             
             dbPool.read { db in
                 XCTAssertTrue(String.fetchOne(db, "SELECT function2(text) FROM items") == "foo")

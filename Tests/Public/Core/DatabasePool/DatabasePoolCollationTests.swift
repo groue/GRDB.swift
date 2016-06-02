@@ -12,9 +12,9 @@ class DatabasePoolCollationTests: GRDBTestCase {
             let dbPool = try makeDatabasePool()
             
             let collation1 = DatabaseCollation("collation1") { (string1, string2) in
-                return (string1 == string2) ? .OrderedSame : ((string1 < string2) ? .OrderedAscending : .OrderedDescending)
+                return (string1 == string2) ? .orderedSame : ((string1 < string2) ? .orderedAscending : .orderedDescending)
             }
-            dbPool.addCollation(collation1)
+            dbPool.add(collation: collation1)
             
             try dbPool.write { db in
                 try db.execute("CREATE TABLE items (text TEXT COLLATE collation1)")
@@ -28,9 +28,9 @@ class DatabasePoolCollationTests: GRDBTestCase {
             }
             
             let collation2 = DatabaseCollation("collation2") { (string1, string2) in
-                return (string1 == string2) ? .OrderedSame : ((string1 < string2) ? .OrderedDescending : .OrderedAscending)
+                return (string1 == string2) ? .orderedSame : ((string1 < string2) ? .orderedDescending : .orderedAscending)
             }
-            dbPool.addCollation(collation2)
+            dbPool.add(collation: collation2)
             
             dbPool.read { db in
                 XCTAssertEqual(String.fetchAll(db, "SELECT text FROM items ORDER BY text COLLATE collation2"), ["c", "b", "a"])

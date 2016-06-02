@@ -28,9 +28,9 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: A sequence of primary keys.
     /// - returns: A sequence of records.
     @warn_unused_result
-    public static func fetch<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> DatabaseSequence<Self> {
+    public static func fetch<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, keys: Sequence) -> DatabaseSequence<Self> {
         guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
-            return DatabaseSequence.emptySequence(db)
+            return DatabaseSequence.makeEmptySequence(inDatabase: db)
         }
         return fetch(statement)
     }
@@ -46,7 +46,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
     @warn_unused_result
-    public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> [Self] {
+    public static func fetchAll<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, keys: Sequence) -> [Self] {
         guard let statement = fetchByPrimaryKeyStatement(db, values: keys) else {
             return []
         }
@@ -62,7 +62,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - key: A primary key value.
     /// - returns: An optional record.
     @warn_unused_result
-    public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(db: Database, key: PrimaryKeyType?) -> Self? {
+    public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) -> Self? {
         guard let key = key else {
             return nil
         }
@@ -73,7 +73,7 @@ extension RowConvertible where Self: TableMapping {
     //
     // Returns nil if values is empty.
     @warn_unused_result
-    private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, values: Sequence) -> SelectStatement? {
+    private static func fetchByPrimaryKeyStatement<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ db: Database, values: Sequence) -> SelectStatement? {
         // Fail early if database table does not exist.
         let databaseTableName = self.databaseTableName()
         let primaryKey = try! db.primaryKey(databaseTableName)
@@ -91,14 +91,14 @@ extension RowConvertible where Self: TableMapping {
         case 1:
             // SELECT * FROM table WHERE id = ?
             let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
-            let statement = try! db.selectStatement(sql)
+            let statement = try! db.makeSelectStatement(sql)
             statement.arguments = StatementArguments(values)
             return statement
         case let count:
             // SELECT * FROM table WHERE id IN (?,?,?)
             let valuesSQL = databaseQuestionMarks(count: count)
             let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) IN (\(valuesSQL))"
-            let statement = try! db.selectStatement(sql)
+            let statement = try! db.makeSelectStatement(sql)
             statement.arguments = StatementArguments(values)
             return statement
         }
@@ -118,9 +118,9 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: An array of key dictionaries.
     /// - returns: A sequence of records.
     @warn_unused_result
-    public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
+    public static func fetch(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
         guard let statement = fetchByKeyStatement(db, keys: keys) else {
-            return DatabaseSequence.emptySequence(db)
+            return DatabaseSequence.makeEmptySequence(inDatabase: db)
         }
         return fetch(statement)
     }
@@ -136,7 +136,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - keys: An array of key dictionaries.
     /// - returns: An array of records.
     @warn_unused_result
-    public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
+    public static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
         guard let statement = fetchByKeyStatement(db, keys: keys) else {
             return []
         }
@@ -152,7 +152,7 @@ extension RowConvertible where Self: TableMapping {
     ///     - key: A dictionary of values.
     /// - returns: An optional record.
     @warn_unused_result
-    public static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
+    public static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
         return fetchOne(fetchByKeyStatement(db, keys: [key])!)
     }
     
@@ -160,10 +160,10 @@ extension RowConvertible where Self: TableMapping {
     //
     // Returns nil if keys is empty.
     @warn_unused_result
-    private static func fetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> SelectStatement? {
+    private static func fetchByKeyStatement(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> SelectStatement? {
         // TODO: this method is slow to compile
         // https://medium.com/swift-programming/speeding-up-slow-swift-build-times-922feeba5780#.s77wmh4h0
-        // 586.8ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Record/TableMapping.swift:163:25	@warn_unused_result private static func fetchByKeyStatement(db: Database, keys: [[String : DatabaseValueConvertible?]]) -> SelectStatement?
+        // 586.8ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Record/TableMapping.swift:163:25	@warn_unused_result private static func fetchByKeyStatement(_ db: Database, keys: [[String : DatabaseValueConvertible?]]) -> SelectStatement?
         
         // Avoid performing useless SELECT
         guard keys.count > 0 else {
@@ -174,14 +174,14 @@ extension RowConvertible where Self: TableMapping {
         var whereClauses: [String] = []
         for dictionary in keys {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
-            arguments.appendContentsOf(dictionary.values)
-            whereClauses.append("(" + dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" }.joinWithSeparator(" AND ") + ")")
+            arguments.append(contentsOf: dictionary.values)
+            whereClauses.append("(" + dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" }.joined(separator: " AND ") + ")")
         }
         
         let databaseTableName = self.databaseTableName()
-        let whereClause = whereClauses.joinWithSeparator(" OR ")
+        let whereClause = whereClauses.joined(separator: " OR ")
         let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereClause)"
-        let statement = try! db.selectStatement(sql)
+        let statement = try! db.makeSelectStatement(sql)
         statement.arguments = StatementArguments(arguments)
         return statement
     }

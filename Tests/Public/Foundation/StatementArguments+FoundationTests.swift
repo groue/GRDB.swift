@@ -7,7 +7,7 @@ import XCTest
 
 class StatementArgumentsFoundationTests: GRDBTestCase {
 
-    override func setUpDatabase(dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute(
@@ -27,8 +27,8 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
-                let persons = [ // NSArray, because of the heterogeneous values
+                let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+                let persons: [NSArray] = [
                     ["Arthur", 41],
                     ["Barbara", 38],
                 ]
@@ -36,7 +36,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
                     try statement.execute(arguments: StatementArguments(person)!)
                 }
                 
-                return .Commit
+                return .commit
             }
             
             dbQueue.inDatabase { db in
@@ -56,8 +56,8 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
             
             try dbQueue.inTransaction { db in
                 
-                let statement = try db.updateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
-                let persons = [// NSDictionary, because of the heterogeneous values
+                let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+                let persons: [NSDictionary] = [
                     ["name": "Arthur", "age": 41],
                     ["name": "Barbara", "age": 38],
                 ]
@@ -65,7 +65,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
                     try statement.execute(arguments: StatementArguments(person)!)
                 }
                 
-                return .Commit
+                return .commit
             }
             
             dbQueue.inDatabase { db in
