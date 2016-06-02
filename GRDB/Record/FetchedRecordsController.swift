@@ -355,6 +355,11 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         controller = nil
     }
     
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Part of the TransactionObserverType protocol
+    func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent) { }
+    #endif
+    
     /// Part of the TransactionObserverType protocol
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
         if !needsComputeChanges && observedTables.contains(event.tableName) {

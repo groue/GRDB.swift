@@ -33,7 +33,20 @@ private class TransactionObserver : TransactionObserverType {
         willCommitCount = 0
         didCommitCount = 0
         didRollbackCount = 0
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            willChangeCount = 0
+        #endif
     }
+    
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    var willChangeCount: Int = 0
+    var lastCommittedPreUpdateEvents: [DatabasePreUpdateEvent] = []
+    var preUpdateEvents: [DatabasePreUpdateEvent] = []
+    func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent) {
+        willChangeCount += 1
+        preUpdateEvents.append(event.copy())
+    }
+    #endif
     
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
         didChangeCount += 1
@@ -51,12 +64,20 @@ private class TransactionObserver : TransactionObserverType {
         didCommitCount += 1
         lastCommittedEvents = events
         events = []
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            lastCommittedPreUpdateEvents = preUpdateEvents
+            preUpdateEvents = []
+        #endif
     }
     
     func databaseDidRollback(db: Database) {
         didRollbackCount += 1
         lastCommittedEvents = []
         events = []
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            lastCommittedPreUpdateEvents = []
+            preUpdateEvents = []
+        #endif
     }
 }
 
@@ -154,6 +175,35 @@ class TransactionObserverTests: GRDBTestCase {
         return (event.tableName == tableName) && (event.rowID == rowId) && (event.kind == kind)
     }
     
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    
+    private func match(preUpdateEvent event: DatabasePreUpdateEvent, kind: DatabasePreUpdateEvent.Kind, tableName: String, initialRowID: Int64?, finalRowID: Int64?, initialValues: [DatabaseValue]?, finalValues: [DatabaseValue]?, depth: CInt = 0) -> Bool {
+    
+        func checkDatabaseValues(values: [DatabaseValue]?, expected: [DatabaseValue]?) -> Bool {
+            if let values = values {
+                guard let expected = expected else { return false }
+                return values == expected
+            }
+            else { return expected == nil }
+        }
+        
+        var count : Int = 0
+        if let initialValues = initialValues { count = initialValues.count }
+        if let finalValues = finalValues { count = max(count, finalValues.count) }
+        
+        guard (event.kind == kind) else { return false }
+        guard (event.tableName == tableName) else { return false }
+        guard (event.count == count) else { return false }
+        guard (event.depth == depth) else { return false }
+        guard (event.initialRowID == initialRowID) else { return false }
+        guard (event.finalRowID == finalRowID) else { return false }
+        guard checkDatabaseValues(event.initialDatabaseValues, expected: initialValues) else { return false }
+        guard checkDatabaseValues(event.finalDatabaseValues, expected: finalValues) else { return false }
+        
+        return true
+    }
+    
+    #endif
     
     // MARK: - Events
     
@@ -173,6 +223,18 @@ class TransactionObserverTests: GRDBTestCase {
                     self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 1)
+                    let preUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
+                            finalValues: [
+                                artist.id!.databaseValue,
+                                artist.name!.databaseValue
+                            ])
+                        }.first
+                    XCTAssertTrue(preUpdateEvent != nil)
+                #endif
             }
         }
     }
@@ -195,6 +257,21 @@ class TransactionObserverTests: GRDBTestCase {
                     self.match(event: $0, kind: .Update, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 1)
+                    let preUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Update, tableName: "artists", initialRowID: artist.id!, finalRowID: artist.id!,
+                            initialValues: [
+                                artist.id!.databaseValue,
+                                "Gerhard Richter".databaseValue
+                            ], finalValues: [
+                                artist.id!.databaseValue,
+                                "Vincent Fournier".databaseValue
+                            ])
+                        }.first
+                    XCTAssertTrue(preUpdateEvent != nil)
+                #endif
             }
         }
     }
@@ -216,6 +293,18 @@ class TransactionObserverTests: GRDBTestCase {
                     self.match(event: $0, kind: .Delete, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 1)
+                    let preUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
+                            initialValues: [
+                                artist.id!.databaseValue,
+                                artist.name!.databaseValue
+                            ], finalValues: nil)
+                        }.first
+                    XCTAssertTrue(preUpdateEvent != nil)
+                #endif
             }
         }
     }
@@ -249,6 +338,36 @@ class TransactionObserverTests: GRDBTestCase {
                     self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork2.id!)
                     }.first
                 XCTAssertTrue(artwork2Event != nil)
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 3)
+                    let artistPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
+                            initialValues: [
+                                artist.id!.databaseValue,
+                                artist.name!.databaseValue
+                            ], finalValues: nil)
+                        }.first
+                    XCTAssertTrue(artistPreUpdateEvent != nil)
+                    let artwork1PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork1.id!, finalRowID: nil,
+                            initialValues: [
+                                artwork1.id!.databaseValue,
+                                artwork1.artistId!.databaseValue,
+                                artwork1.title!.databaseValue
+                            ], finalValues: nil, depth: 1)
+                        }.first
+                    XCTAssertTrue(artwork1PreUpdateEvent != nil)
+                    let artwork2PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork2.id!, finalRowID: nil,
+                            initialValues: [
+                                artwork2.id!.databaseValue,
+                                artwork2.artistId!.databaseValue,
+                                artwork2.title!.databaseValue
+                            ], finalValues: nil, depth: 1)
+                        }.first
+                    XCTAssertTrue(artwork2PreUpdateEvent != nil)
+                #endif
             }
         }
     }
@@ -267,6 +386,9 @@ class TransactionObserverTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 observer.resetCounts()
                 try artist.save(db)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 1)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
@@ -295,6 +417,9 @@ class TransactionObserverTests: GRDBTestCase {
                 //
                 observer.resetCounts()
                 try artist.delete(db)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 3) // 3 deletes
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 3) // 3 deletes
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
@@ -314,6 +439,36 @@ class TransactionObserverTests: GRDBTestCase {
                     self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork2.id!)
                     }.first
                 XCTAssertTrue(artwork2DeleteEvent != nil)
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 3)
+                    let artistPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
+                            initialValues: [
+                                artist.id!.databaseValue,
+                                artist.name!.databaseValue
+                            ], finalValues: nil)
+                        }.first
+                    XCTAssertTrue(artistPreUpdateEvent != nil)
+                    let artwork1PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork1.id!, finalRowID: nil,
+                            initialValues: [
+                                artwork1.id!.databaseValue,
+                                artwork1.artistId!.databaseValue,
+                                artwork1.title!.databaseValue
+                            ], finalValues: nil, depth: 1)
+                        }.first
+                    XCTAssertTrue(artwork1PreUpdateEvent != nil)
+                    let artwork2PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork2.id!, finalRowID: nil,
+                            initialValues: [
+                                artwork2.id!.databaseValue,
+                                artwork2.artistId!.databaseValue,
+                                artwork2.title!.databaseValue
+                            ], finalValues: nil, depth: 1)
+                        }.first
+                    XCTAssertTrue(artwork2PreUpdateEvent != nil)
+                #endif
             }
         }
     }
@@ -331,6 +486,9 @@ class TransactionObserverTests: GRDBTestCase {
             try dbQueue.inTransaction { db in
                 observer.resetCounts()
                 try artist.save(db)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 1)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -341,6 +499,9 @@ class TransactionObserverTests: GRDBTestCase {
                 
                 observer.resetCounts()
                 try artwork1.save(db)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 1)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -348,6 +509,9 @@ class TransactionObserverTests: GRDBTestCase {
                 
                 observer.resetCounts()
                 try artwork2.save(db)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 1)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -356,6 +520,9 @@ class TransactionObserverTests: GRDBTestCase {
                 observer.resetCounts()
                 return .Commit
             }
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.willChangeCount, 0)
+            #endif
             XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -376,6 +543,36 @@ class TransactionObserverTests: GRDBTestCase {
                 self.match(event: $0, kind: .Insert, tableName: "artworks", rowId: artwork2.id!)
                 }.first
             XCTAssertTrue(artwork2Event != nil)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 3)
+                let artistPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!,
+                        initialValues: nil, finalValues: [
+                            artist.id!.databaseValue,
+                            artist.name!.databaseValue
+                        ])
+                    }.first
+                XCTAssertTrue(artistPreUpdateEvent != nil)
+                let artwork1PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork1.id!,
+                        initialValues: nil, finalValues: [
+                            artwork1.id!.databaseValue,
+                            artwork1.artistId!.databaseValue,
+                            artwork1.title!.databaseValue
+                        ])
+                    }.first
+                XCTAssertTrue(artwork1PreUpdateEvent != nil)
+                let artwork2PreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork2.id!,
+                        initialValues: nil, finalValues: [
+                            artwork2.id!.databaseValue,
+                            artwork2.artistId!.databaseValue,
+                            artwork2.title!.databaseValue
+                        ])
+                    }.first
+                XCTAssertTrue(artwork2PreUpdateEvent != nil)
+            #endif
         }
     }
     
@@ -399,6 +596,9 @@ class TransactionObserverTests: GRDBTestCase {
                 //
                 observer.resetCounts()
                 try artist.delete(db)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 3) // 3 deletes
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 3) // 3 deletes
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -407,6 +607,9 @@ class TransactionObserverTests: GRDBTestCase {
                 observer.resetCounts()
                 return .Commit
             }
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.willChangeCount, 0)
+            #endif
             XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.willCommitCount, 1)
             XCTAssertEqual(observer.didCommitCount, 1)
@@ -442,6 +645,64 @@ class TransactionObserverTests: GRDBTestCase {
                 self.match(event: $0, kind: .Delete, tableName: "artworks", rowId: artwork2.id!)
                 }.first
             XCTAssertTrue(artwork2DeleteEvent != nil)
+            
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 6)  // 3 inserts, and 3 deletes
+                let artistInsertPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!,
+                        initialValues: nil, finalValues: [
+                            artist.id!.databaseValue,
+                            artist.name!.databaseValue
+                        ])
+                    }.first
+                XCTAssertTrue(artistInsertPreUpdateEvent != nil)
+                let artwork1InsertPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork1.id!,
+                        initialValues: nil, finalValues: [
+                            artwork1.id!.databaseValue,
+                            artwork1.artistId!.databaseValue,
+                            artwork1.title!.databaseValue
+                        ])
+                    }.first
+                XCTAssertTrue(artwork1InsertPreUpdateEvent != nil)
+                let artwork2InsertPreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                    self.match(preUpdateEvent: event, kind: .Insert, tableName: "artworks", initialRowID: nil, finalRowID: artwork2.id!,
+                        initialValues: nil, finalValues: [
+                            artwork2.id!.databaseValue,
+                            artwork2.artistId!.databaseValue,
+                            artwork2.title!.databaseValue
+                        ])
+                    }.first
+                XCTAssertTrue(artwork2InsertPreUpdateEvent != nil)
+
+                let artistDeletePreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                    self.match(preUpdateEvent: event, kind: .Delete, tableName: "artists", initialRowID: artist.id!, finalRowID: nil,
+                        initialValues: [
+                            artist.id!.databaseValue,
+                            artist.name!.databaseValue
+                        ], finalValues: nil)
+                    }.first
+                XCTAssertTrue(artistDeletePreUpdateEvent != nil)
+                let artwork1DeletePreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                    self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork1.id!, finalRowID: nil,
+                        initialValues: [
+                            artwork1.id!.databaseValue,
+                            artwork1.artistId!.databaseValue,
+                            artwork1.title!.databaseValue
+                        ], finalValues: nil, depth: 1)
+                    }.first
+                XCTAssertTrue(artwork1DeletePreUpdateEvent != nil)
+                let artwork2DeletePreUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                    self.match(preUpdateEvent: event, kind: .Delete, tableName: "artworks", initialRowID: artwork2.id!, finalRowID: nil,
+                        initialValues: [
+                            artwork2.id!.databaseValue,
+                            artwork2.artistId!.databaseValue,
+                            artwork2.title!.databaseValue
+                        ], finalValues: nil, depth: 1)
+                    }.first
+                XCTAssertTrue(artwork2DeletePreUpdateEvent != nil)
+            #endif
         }
     }
     
@@ -465,6 +726,9 @@ class TransactionObserverTests: GRDBTestCase {
                 observer.resetCounts()
                 return .Rollback
             }
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.willChangeCount, 0)
+            #endif
             XCTAssertEqual(observer.didChangeCount, 0)
             XCTAssertEqual(observer.willCommitCount, 0)
             XCTAssertEqual(observer.didCommitCount, 0)
@@ -485,6 +749,9 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTFail("Expected Error")
                     } catch let error as DatabaseError {
                         XCTAssertEqual(error.code, 19)
+                        #if SQLITE_ENABLE_PREUPDATE_HOOK
+                            XCTAssertEqual(observer.willChangeCount, 0)
+                        #endif
                         XCTAssertEqual(observer.didChangeCount, 0)
                         XCTAssertEqual(observer.willCommitCount, 0)
                         XCTAssertEqual(observer.didCommitCount, 0)
@@ -495,6 +762,9 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 19)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 0)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -517,6 +787,9 @@ class TransactionObserverTests: GRDBTestCase {
                     } catch let error as DatabaseError {
                         // Immediate constraint check has failed.
                         XCTAssertEqual(error.code, 19)
+                        #if SQLITE_ENABLE_PREUPDATE_HOOK
+                            XCTAssertEqual(observer.willChangeCount, 0)
+                        #endif
                         XCTAssertEqual(observer.didChangeCount, 0)
                         XCTAssertEqual(observer.willCommitCount, 0)
                         XCTAssertEqual(observer.didCommitCount, 0)
@@ -528,6 +801,9 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 19)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 0)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -550,6 +826,9 @@ class TransactionObserverTests: GRDBTestCase {
                 } catch let error as NSError {
                     XCTAssertEqual(error.domain, "foo")
                     XCTAssertEqual(error.code, 0)
+                    #if SQLITE_ENABLE_PREUPDATE_HOOK
+                        XCTAssertEqual(observer.willChangeCount, 1)
+                    #endif
                     XCTAssertEqual(observer.didChangeCount, 1)
                     XCTAssertEqual(observer.willCommitCount, 1)
                     XCTAssertEqual(observer.didCommitCount, 0)
@@ -579,6 +858,9 @@ class TransactionObserverTests: GRDBTestCase {
             } catch let error as NSError {
                 XCTAssertEqual(error.domain, "foo")
                 XCTAssertEqual(error.code, 0)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 1)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -601,6 +883,9 @@ class TransactionObserverTests: GRDBTestCase {
                         XCTFail("Expected Error")
                     } catch let error as DatabaseError {
                         XCTAssertEqual(error.code, 19)
+                        #if SQLITE_ENABLE_PREUPDATE_HOOK
+                            XCTAssertEqual(observer.willChangeCount, 0)
+                        #endif
                         XCTAssertEqual(observer.didChangeCount, 0)
                         XCTAssertEqual(observer.willCommitCount, 0)
                         XCTAssertEqual(observer.didCommitCount, 0)
@@ -611,6 +896,9 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 19)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 0)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -634,6 +922,9 @@ class TransactionObserverTests: GRDBTestCase {
                     } catch let error as DatabaseError {
                         // Immediate constraint check has failed.
                         XCTAssertEqual(error.code, 19)
+                        #if SQLITE_ENABLE_PREUPDATE_HOOK
+                            XCTAssertEqual(observer.willChangeCount, 0)
+                        #endif
                         XCTAssertEqual(observer.didChangeCount, 0)
                         XCTAssertEqual(observer.willCommitCount, 0)
                         XCTAssertEqual(observer.didCommitCount, 0)
@@ -645,6 +936,9 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 19)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 0)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 0)
                 XCTAssertEqual(observer.willCommitCount, 0)
                 XCTAssertEqual(observer.didCommitCount, 0)
@@ -677,6 +971,9 @@ class TransactionObserverTests: GRDBTestCase {
                 
                 observer.resetCounts()
                 try record.update(db)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 1)
+                #endif
                 XCTAssertEqual(observer.didChangeCount, 1)
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
@@ -708,6 +1005,18 @@ class TransactionObserverTests: GRDBTestCase {
                         self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
                         }.first
                     XCTAssertTrue(event != nil)
+                    
+                    #if SQLITE_ENABLE_PREUPDATE_HOOK
+                        XCTAssertEqual(observer1.lastCommittedPreUpdateEvents.count, 1)
+                        let preUpdateEvent = observer1.lastCommittedPreUpdateEvents.filter { event in
+                            self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
+                                finalValues: [
+                                    artist.id!.databaseValue,
+                                    artist.name!.databaseValue
+                                ])
+                            }.first
+                        XCTAssertTrue(preUpdateEvent != nil)
+                    #endif
                 }
                 do {
                     XCTAssertEqual(observer2.lastCommittedEvents.count, 1)
@@ -715,6 +1024,18 @@ class TransactionObserverTests: GRDBTestCase {
                         self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
                         }.first
                     XCTAssertTrue(event != nil)
+                    
+                    #if SQLITE_ENABLE_PREUPDATE_HOOK
+                        XCTAssertEqual(observer2.lastCommittedPreUpdateEvents.count, 1)
+                        let preUpdateEvent = observer2.lastCommittedPreUpdateEvents.filter { event in
+                            self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
+                                finalValues: [
+                                    artist.id!.databaseValue,
+                                    artist.name!.databaseValue
+                                ])
+                            }.first
+                        XCTAssertTrue(preUpdateEvent != nil)
+                    #endif
                 }
             }
         }
@@ -746,16 +1067,25 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(error.domain, "foo")
                 XCTAssertEqual(error.code, 0)
                 
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer1.willChangeCount, 1)
+                #endif
                 XCTAssertEqual(observer1.didChangeCount, 1)
                 XCTAssertEqual(observer1.willCommitCount, 1)
                 XCTAssertEqual(observer1.didCommitCount, 0)
                 XCTAssertEqual(observer1.didRollbackCount, 1)
 
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer2.willChangeCount, 1)
+                #endif
                 XCTAssertEqual(observer2.didChangeCount, 1)
                 XCTAssertEqual(observer2.willCommitCount, 1)
                 XCTAssertEqual(observer2.didCommitCount, 0)
                 XCTAssertEqual(observer2.didRollbackCount, 1)
                 
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer3.willChangeCount, 1)
+                #endif
                 XCTAssertEqual(observer3.didChangeCount, 1)
                 XCTAssertEqual(observer3.willCommitCount, 0)
                 XCTAssertEqual(observer3.didCommitCount, 0)
