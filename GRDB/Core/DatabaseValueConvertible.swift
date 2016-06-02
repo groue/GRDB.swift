@@ -14,7 +14,7 @@
 ///     String.fetchOne(statement, arguments:...)        // String?
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
-public protocol DatabaseValueConvertible : _SQLExpressionType {
+public protocol DatabaseValueConvertible : _SQLExpressible {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     

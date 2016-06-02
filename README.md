@@ -2153,7 +2153,7 @@ All the methods above return another request, which you can further refine by ap
         .having(min(ageColumn) >= 18)
     ```
 
-- `order(sortDescriptor, ...)` sorts.
+- `order(ordering, ...)` sorts.
     
     ```swift
     // SELECT * FROM "persons" ORDER BY "name"
@@ -2163,7 +2163,7 @@ All the methods above return another request, which you can further refine by ap
     Person.order(scoreColumn.desc, nameColumn)
     ```
 
-- `reverse()` reverses the eventual sort descriptors.
+- `reverse()` reverses the eventual orderings.
     
     ```swift
     // SELECT * FROM "persons" ORDER BY "score" ASC, "name" DESC

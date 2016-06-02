@@ -4,7 +4,7 @@ extension DatabaseFunction {
     /// Returns an SQL expression that applies the function.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public func apply(arguments: _SQLExpressionType...) -> _SQLExpression {
+    public func apply(arguments: _SQLExpressible...) -> _SQLExpression {
         return .Function(name, arguments.map { $0.sqlExpression })
     }
 }
@@ -15,7 +15,7 @@ extension DatabaseFunction {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func abs(value: _SQLDerivedExpressionType) -> _SQLExpression {
+public func abs(value: _SpecificSQLExpressible) -> _SQLExpression {
     return .Function("ABS", [value.sqlExpression])
 }
 
@@ -25,7 +25,7 @@ public func abs(value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func average(value: _SQLDerivedExpressionType) -> _SQLExpression {
+public func average(value: _SpecificSQLExpressible) -> _SQLExpression {
     return .Function("AVG", [value.sqlExpression])
 }
 
@@ -35,7 +35,7 @@ public func average(value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func count(counted: _SQLDerivedExpressionType) -> _SQLExpression {
+public func count(counted: _SQLSelectable) -> _SQLExpression {
     return .Count(counted)
 }
 
@@ -45,7 +45,7 @@ public func count(counted: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func count(distinct value: _SQLDerivedExpressionType) -> _SQLExpression {
+public func count(distinct value: _SpecificSQLExpressible) -> _SQLExpression {
     return .CountDistinct(value.sqlExpression)
 }
 
@@ -55,14 +55,14 @@ public func count(distinct value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func ?? (lhs: _SQLDerivedExpressionType, rhs: _SQLExpressionType) -> _SQLExpression {
+public func ?? (lhs: _SpecificSQLExpressible, rhs: _SQLExpressible) -> _SQLExpression {
     return .Function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func ?? (lhs: _SQLExpressionType?, rhs: _SQLDerivedExpressionType) -> _SQLExpression {
+public func ?? (lhs: _SQLExpressible?, rhs: _SpecificSQLExpressible) -> _SQLExpression {
     if let lhs = lhs {
         return .Function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
     } else {
@@ -76,7 +76,7 @@ public func ?? (lhs: _SQLExpressionType?, rhs: _SQLDerivedExpressionType) -> _SQ
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func max(value: _SQLDerivedExpressionType) -> _SQLExpression {
+public func max(value: _SpecificSQLExpressible) -> _SQLExpression {
     return .Function("MAX", [value.sqlExpression])
 }
 
@@ -86,7 +86,7 @@ public func max(value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func min(value: _SQLDerivedExpressionType) -> _SQLExpression {
+public func min(value: _SpecificSQLExpressible) -> _SQLExpression {
     return .Function("MIN", [value.sqlExpression])
 }
 
@@ -96,14 +96,14 @@ public func min(value: _SQLDerivedExpressionType) -> _SQLExpression {
 /// Returns an SQL expression.
 ///
 /// See https://github.com/groue/GRDB.swift/#sql-functions
-public func sum(value: _SQLDerivedExpressionType) -> _SQLExpression {
+public func sum(value: _SpecificSQLExpressible) -> _SQLExpression {
     return .Function("SUM", [value.sqlExpression])
 }
 
 
 // MARK: - Swift String functions
 
-extension _SQLDerivedExpressionType {
+extension _SpecificSQLExpressible {
     /// Returns an SQL expression that applies the Swift's built-in
     /// capitalizedString String property. It is NULL for non-String arguments.
     ///
@@ -136,7 +136,7 @@ extension _SQLDerivedExpressionType {
 }
 
 @available(iOS 9.0, OSX 10.11, *)
-extension _SQLDerivedExpressionType {
+extension _SpecificSQLExpressible {
     /// Returns an SQL expression that applies the Swift's built-in
     /// localizedCapitalizedString String property. It is NULL for non-String arguments.
     ///

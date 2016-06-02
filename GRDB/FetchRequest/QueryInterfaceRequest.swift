@@ -125,7 +125,7 @@ extension QueryInterfaceRequest {
     /// Returns a new QueryInterfaceRequest with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     @warn_unused_result
-    public func filter(predicate: _SQLExpressionType) -> QueryInterfaceRequest<T> {
+    public func filter(predicate: _SQLExpressible) -> QueryInterfaceRequest<T> {
         var query = self.query
         if let whereExpression = query.whereExpression {
             query.whereExpression = .InfixOperator("AND", whereExpression, predicate.sqlExpression)
@@ -144,13 +144,13 @@ extension QueryInterfaceRequest {
     
     /// Returns a new QueryInterfaceRequest grouped according to *expressions*.
     @warn_unused_result
-    public func group(expressions: _SQLExpressionType...) -> QueryInterfaceRequest<T> {
+    public func group(expressions: _SQLExpressible...) -> QueryInterfaceRequest<T> {
         return group(expressions)
     }
     
     /// Returns a new QueryInterfaceRequest grouped according to *expressions*.
     @warn_unused_result
-    public func group(expressions: [_SQLExpressionType]) -> QueryInterfaceRequest<T> {
+    public func group(expressions: [_SQLExpressible]) -> QueryInterfaceRequest<T> {
         var query = self.query
         query.groupByExpressions = expressions.map { $0.sqlExpression }
         return QueryInterfaceRequest(query: query)
@@ -165,7 +165,7 @@ extension QueryInterfaceRequest {
     /// Returns a new QueryInterfaceRequest with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     @warn_unused_result
-    public func having(predicate: _SQLExpressionType) -> QueryInterfaceRequest<T> {
+    public func having(predicate: _SQLExpressible) -> QueryInterfaceRequest<T> {
         var query = self.query
         if let havingExpression = query.havingExpression {
             query.havingExpression = (havingExpression && predicate).sqlExpression
@@ -182,24 +182,24 @@ extension QueryInterfaceRequest {
         return having(_SQLLiteral(sql))
     }
     
-    /// Returns a new QueryInterfaceRequest with the provided *sortDescriptors* added to
-    /// the eventual set of already applied sort descriptors.
+    /// Returns a new QueryInterfaceRequest with the provided *orderings* added to
+    /// the eventual set of already applied orderings.
     @warn_unused_result
-    public func order(sortDescriptors: _SQLSortDescriptorType...) -> QueryInterfaceRequest<T> {
-        return order(sortDescriptors)
+    public func order(orderings: _SQLOrdering...) -> QueryInterfaceRequest<T> {
+        return order(orderings)
     }
     
-    /// Returns a new QueryInterfaceRequest with the provided *sortDescriptors* added to
-    /// the eventual set of already applied sort descriptors.
+    /// Returns a new QueryInterfaceRequest with the provided *orderings* added to
+    /// the eventual set of already applied orderings.
     @warn_unused_result
-    public func order(sortDescriptors: [_SQLSortDescriptorType]) -> QueryInterfaceRequest<T> {
+    public func order(orderings: [_SQLOrdering]) -> QueryInterfaceRequest<T> {
         var query = self.query
-        query.sortDescriptors.appendContentsOf(sortDescriptors)
+        query.orderings.appendContentsOf(orderings)
         return QueryInterfaceRequest(query: query)
     }
     
     /// Returns a new QueryInterfaceRequest with the provided *sql* added to the
-    /// eventual set of already applied sort descriptors.
+    /// eventual set of already applied orderings.
     @warn_unused_result
     public func order(sql sql: String) -> QueryInterfaceRequest<T> {
         return order([_SQLLiteral(sql)])
@@ -244,7 +244,7 @@ extension QueryInterfaceRequest {
     
     /// Returns an SQL expression that checks the inclusion of a value in
     /// the results of another request.
-    public func contains(element: _SQLExpressionType) -> _SQLExpression {
+    public func contains(element: _SQLExpressible) -> _SQLExpression {
         return .InSubQuery(query, element.sqlExpression)
     }
     
@@ -286,7 +286,7 @@ extension TableMapping {
     
     /// Returns a QueryInterfaceRequest with the provided *predicate*.
     @warn_unused_result
-    public static func filter(predicate: _SQLExpressionType) -> QueryInterfaceRequest<Self> {
+    public static func filter(predicate: _SQLExpressible) -> QueryInterfaceRequest<Self> {
         return all().filter(predicate)
     }
     
@@ -297,17 +297,17 @@ extension TableMapping {
     }
     
     /// Returns a QueryInterfaceRequest sorted according to the
-    /// provided *sortDescriptors*.
+    /// provided *orderings*.
     @warn_unused_result
-    public static func order(sortDescriptors: _SQLSortDescriptorType...) -> QueryInterfaceRequest<Self> {
-        return all().order(sortDescriptors)
+    public static func order(orderings: _SQLOrdering...) -> QueryInterfaceRequest<Self> {
+        return all().order(orderings)
     }
     
     /// Returns a QueryInterfaceRequest sorted according to the
-    /// provided *sortDescriptors*.
+    /// provided *orderings*.
     @warn_unused_result
-    public static func order(sortDescriptors: [_SQLSortDescriptorType]) -> QueryInterfaceRequest<Self> {
-        return all().order(sortDescriptors)
+    public static func order(orderings: [_SQLOrdering]) -> QueryInterfaceRequest<Self> {
+        return all().order(orderings)
     }
     
     /// Returns a QueryInterfaceRequest sorted according to *sql*.

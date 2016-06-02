@@ -12,7 +12,7 @@ public struct _SQLSelectQuery {
     var source: _SQLSource?
     var whereExpression: _SQLExpression?
     var groupByExpressions: [_SQLExpression]
-    var sortDescriptors: [_SQLSortDescriptorType]
+    var orderings: [_SQLOrdering]
     var reversed: Bool
     var havingExpression: _SQLExpression?
     var limit: _SQLLimit?
@@ -23,7 +23,7 @@ public struct _SQLSelectQuery {
         from source: _SQLSource? = nil,
         filter whereExpression: _SQLExpression? = nil,
         groupBy groupByExpressions: [_SQLExpression] = [],
-        orderBy sortDescriptors: [_SQLSortDescriptorType] = [],
+        orderBy orderings: [_SQLOrdering] = [],
         reversed: Bool = false,
         having havingExpression: _SQLExpression? = nil,
         limit: _SQLLimit? = nil)
@@ -33,7 +33,7 @@ public struct _SQLSelectQuery {
         self.source = source
         self.whereExpression = whereExpression
         self.groupByExpressions = groupByExpressions
-        self.sortDescriptors = sortDescriptors
+        self.orderings = orderings
         self.reversed = reversed
         self.havingExpression = havingExpression
         self.limit = limit
@@ -65,9 +65,9 @@ public struct _SQLSelectQuery {
             sql += try " HAVING " + havingExpression.sql(db, &bindings)
         }
         
-        var sortDescriptors = self.sortDescriptors
+        var orderings = self.orderings
         if reversed {
-            if sortDescriptors.isEmpty {
+            if orderings.isEmpty {
                 // https://www.sqlite.org/lang_createtable.html#rowid
                 //
                 // > The rowid value can be accessed using one of the special
@@ -80,13 +80,13 @@ public struct _SQLSelectQuery {
                 // Here we assume that _rowid_ is not a custom column.
                 // TODO: support for user-defined _rowid_ column.
                 // TODO: support for WITHOUT ROWID tables.
-                sortDescriptors = [SQLColumn("_rowid_").desc]
+                orderings = [SQLColumn("_rowid_").desc]
             } else {
-                sortDescriptors = sortDescriptors.map { $0.reversedSortDescriptor }
+                orderings = orderings.map { $0.reversedSortDescriptor }
             }
         }
-        if !sortDescriptors.isEmpty {
-            sql += try " ORDER BY " + sortDescriptors.map { try $0.orderingSQL(db, &bindings) }.joinWithSeparator(", ")
+        if !orderings.isEmpty {
+            sql += try " ORDER BY " + orderings.map { try $0.orderingSQL(db, &bindings) }.joinWithSeparator(", ")
         }
         
         if let limit = limit {
@@ -177,7 +177,7 @@ public struct _SQLSelectQuery {
     private var unorderedQuery: _SQLSelectQuery {
         var query = self
         query.reversed = false
-        query.sortDescriptors = []
+        query.orderings = []
         return query
     }
 }
@@ -208,13 +208,13 @@ indirect enum _SQLSource {
 }
 
 
-// MARK: - _SQLSortDescriptorType
+// MARK: - _SQLOrdering
 
 /// This protocol is an implementation detail of the query interface.
 /// Do not use it directly.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
-public protocol _SQLSortDescriptorType {
+public protocol _SQLOrdering {
     var reversedSortDescriptor: _SQLSortDescriptor { get }
     func orderingSQL(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
 }
@@ -228,7 +228,7 @@ public enum _SQLSortDescriptor {
     case Desc(_SQLExpression)
 }
 
-extension _SQLSortDescriptor : _SQLSortDescriptorType {
+extension _SQLSortDescriptor : _SQLOrdering {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -274,9 +274,9 @@ struct _SQLLimit {
 }
 
 
-// MARK: - _SQLExpressionType
+// MARK: - _SQLExpressible
 
-public protocol _SQLExpressionType {
+public protocol _SQLExpressible {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -285,7 +285,7 @@ public protocol _SQLExpressionType {
     var sqlExpression: _SQLExpression { get }
 }
 
-// Conformance to _SQLExpressionType
+// Conformance to _SQLExpressible
 extension DatabaseValueConvertible {
     
     /// This property is an implementation detail of the query interface.
@@ -301,11 +301,28 @@ extension DatabaseValueConvertible {
 /// Do not use it directly.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
-public protocol _SQLDerivedExpressionType : _SQLExpressionType, _SQLSortDescriptorType, _SQLSelectable {
+public protocol _SpecificSQLExpressible : _SQLExpressible {
+    // _SQLExpressible can be adopted by Swift standard types, and user
+    // types, through the DatabaseValueConvertible protocol, which inherits
+    // from _SQLExpressible.
+    //
+    // For example, Int adopts _SQLExpressible through
+    // DatabaseValueConvertible.
+    //
+    // _SpecificSQLExpressible, on the other side, is not adopted by any
+    // Swift standard type or any user type. It is only adopted by GRDB types,
+    // such as SQLColumn, _SQLExpression and _SQLLiteral.
+    //
+    // This separation lets us define functions and operators that do not
+    // spill out. The three declarations below have no chance overloading a
+    // Swift-defined operator, or a user-defined operator:
+    //
+    // - ==(_SQLExpressible, _SpecificSQLExpressible)
+    // - ==(_SpecificSQLExpressible, _SQLExpressible)
+    // - ==(_SpecificSQLExpressible, _SpecificSQLExpressible)
 }
 
-// Conformance to _SQLSortDescriptorType
-extension _SQLDerivedExpressionType {
+extension _SpecificSQLExpressible where Self: _SQLOrdering {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -324,8 +341,7 @@ extension _SQLDerivedExpressionType {
     }
 }
 
-// Conformance to _SQLSelectable
-extension _SQLDerivedExpressionType {
+extension _SpecificSQLExpressible where Self: _SQLSelectable {
     
     /// This method is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -352,7 +368,7 @@ extension _SQLDerivedExpressionType {
     }
 }
 
-extension _SQLDerivedExpressionType {
+extension _SpecificSQLExpressible {
     
     /// Returns a value that can be used as an argument to FetchRequest.order()
     ///
@@ -386,7 +402,7 @@ public indirect enum _SQLExpression {
     case Literal(String)
     
     /// For example: `1` or `'foo'`
-    case Value(DatabaseValueConvertible?)
+    case Value(DatabaseValueConvertible?)   // TODO: switch to DatabaseValue?
     
     /// For example: `name`, `table.name`
     case Identifier(identifier: String, sourceName: String?)
@@ -581,7 +597,7 @@ public indirect enum _SQLExpression {
     }
 }
 
-extension _SQLExpression : _SQLDerivedExpressionType {
+extension _SQLExpression : _SpecificSQLExpressible {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -591,6 +607,9 @@ extension _SQLExpression : _SQLDerivedExpressionType {
         return self
     }
 }
+
+extension _SQLExpression : _SQLSelectable {}
+extension _SQLExpression : _SQLOrdering {}
 
 
 // MARK: - _SQLSelectable
@@ -663,11 +682,14 @@ struct _SQLLiteral {
     }
 }
 
-extension _SQLLiteral : _SQLDerivedExpressionType {
+extension _SQLLiteral : _SpecificSQLExpressible {
     var sqlExpression: _SQLExpression {
         return .Literal(sql)
     }
 }
+
+extension _SQLLiteral : _SQLSelectable {}
+extension _SQLLiteral : _SQLOrdering {}
 
 
 // MARK: - SQLColumn
@@ -693,7 +715,7 @@ public struct SQLColumn {
     }
 }
 
-extension SQLColumn : _SQLDerivedExpressionType {
+extension SQLColumn : _SpecificSQLExpressible {
     
     /// This property is an implementation detail of the query interface.
     /// Do not use it directly.
@@ -704,3 +726,5 @@ extension SQLColumn : _SQLDerivedExpressionType {
     }
 }
 
+extension SQLColumn : _SQLSelectable {}
+extension SQLColumn : _SQLOrdering {}
