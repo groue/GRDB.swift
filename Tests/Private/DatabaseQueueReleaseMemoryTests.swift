@@ -28,7 +28,7 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             
             do {
                 // Open & release connection
-                try makeDatabaseQueue()
+                _ = try makeDatabaseQueue()
             }
             
             // One reader, one writer

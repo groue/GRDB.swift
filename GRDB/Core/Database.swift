@@ -358,7 +358,6 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    @warn_unused_result
     public func makeSelectStatement(_ sql: String) throws -> SelectStatement {
         return try SelectStatement(database: self, sql: sql)
     }
@@ -375,7 +374,6 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    @warn_unused_result
     public func cachedSelectStatement(_ sql: String) throws -> SelectStatement {
         if let statement = selectStatementCache[sql] {
             return statement
@@ -395,7 +393,6 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    @warn_unused_result
     public func makeUpdateStatement(_ sql: String) throws -> UpdateStatement {
         return try UpdateStatement(database: self, sql: sql)
     }
@@ -412,7 +409,6 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    @warn_unused_result
     public func cachedUpdateStatement(_ sql: String) throws -> UpdateStatement {
         if let statement = updateStatementCache[sql] {
             return statement

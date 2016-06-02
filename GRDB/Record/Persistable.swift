@@ -152,7 +152,7 @@ public protocol MutablePersistable : TableMapping {
     /// - parameter db: A database connection.
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    func delete(_ db: Database) throws -> Bool
+    @discardableResult func delete(_ db: Database) throws -> Bool
     
     /// Returns true if and only if the primary key matches a row in
     /// the database.
@@ -203,7 +203,7 @@ public extension MutablePersistable {
     /// Executes a DELETE statement.
     ///
     /// The default implementation for delete() invokes performDelete().
-    func delete(_ db: Database) throws -> Bool {
+    @discardableResult func delete(_ db: Database) throws -> Bool {
         return try performDelete(db)
     }
     

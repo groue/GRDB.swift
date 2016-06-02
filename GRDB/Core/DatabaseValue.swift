@@ -82,7 +82,6 @@ public struct DatabaseValue {
     /// DatabaseValueConvertible.fromDatabaseValue() method.
     ///
     /// - returns: An optional *Value*.
-    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>() -> Value? {
         if let value = Value.fromDatabaseValue(self) {
             return value
@@ -99,7 +98,6 @@ public struct DatabaseValue {
     /// can not be converted to `Value`.
     ///
     /// - returns: A *Value*.
-    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>() -> Value {
         guard let value = Value.fromDatabaseValue(self) as Value? else {
             fatalError("could not convert \(self) to \(Value.self).")

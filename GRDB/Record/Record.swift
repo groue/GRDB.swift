@@ -114,7 +114,6 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// hasPersistentChangedValues flag.
     ///
     /// - returns: A copy of self.
-    @warn_unused_result
     public func copy() -> Self {
         let copy = self.dynamicType.init(row: Row(persistentDictionary))
         copy.referenceRow = referenceRow
@@ -304,7 +303,7 @@ public class Record : RowConvertible, TableMapping, Persistable {
     /// - parameter db: A database connection.
     /// - returns: Whether a database row was deleted.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func delete(_ db: Database) throws -> Bool {
+    @discardableResult public func delete(_ db: Database) throws -> Bool {
         defer {
             // Future calls to update() will throw NotFound. Make the user
             // a favor and make sure this error is thrown even if she checks the

@@ -77,9 +77,9 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
         try performSave(db)
     }
     
-    func delete(_ db: Database) throws {
+    func delete(_ db: Database) throws -> Bool {
         willDelete()
-        try performDelete(db)
+        return try performDelete(db)
     }
     
     func exists(_ db: Database) -> Bool {
@@ -475,7 +475,8 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(rows[1].value(named: "rowID") as Int64, country2.rowID!)
                 XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
                 
-                try country1.delete(db)
+                // TODO: test delete return value
+                _ = try country1.delete(db)
                 try country1.save(db)
                 
                 XCTAssertEqual(insertCount, 2)
@@ -524,7 +525,8 @@ class MutablePersistableTests: GRDBTestCase {
                     willExists: { })
                 try country2.insert(db)
                 
-                try country1.delete(db)
+                // TODO: test delete return value
+                _ = try country1.delete(db)
                 
                 XCTAssertEqual(insertCount, 1)
                 XCTAssertEqual(updateCount, 0)
@@ -567,7 +569,8 @@ class MutablePersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 0)
                 XCTAssertEqual(existsCount, 1)
                 
-                try country.delete(db)
+                // TODO: test delete return value
+                _ = try country.delete(db)
                 
                 XCTAssertFalse(country.exists(db))
                 XCTAssertEqual(insertCount, 1)

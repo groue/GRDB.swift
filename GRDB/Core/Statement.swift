@@ -172,7 +172,6 @@ public class Statement {
     
     // Returns a validated array of as many DatabaseValue as there are
     // parameters in the statement.
-    @warn_unused_result
     private func validatedBindings(_ arguments: StatementArguments) throws -> [DatabaseValue] {
         // An array of (key, value) pairs.
         //
@@ -313,7 +312,6 @@ public final class SelectStatement : Statement {
     }
     
     /// Creates a DatabaseSequence
-    @warn_unused_result
     func fetchSequence<Element>(arguments: StatementArguments?, element: () -> Element) -> DatabaseSequence<Element> {
         // Force arguments validity. See UpdateStatement.execute(), and Database.execute()
         try! prepare(withArguments: arguments)
@@ -366,7 +364,6 @@ public struct DatabaseSequence<Element>: Sequence {
     }
     
     /// Return a *iterator* over the elements of this *sequence*.
-    @warn_unused_result
     public func makeIterator() -> DatabaseIterator<Element> {
         return try! makeIteratorImpl()
     }
@@ -395,7 +392,6 @@ public final class DatabaseIterator<Element>: IteratorProtocol {
         statementRef?.release()
     }
     
-    @warn_unused_result
     public func next() -> Element? {
         guard let element = element else {
             return nil

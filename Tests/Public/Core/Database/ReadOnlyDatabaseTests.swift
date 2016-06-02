@@ -11,7 +11,7 @@ class ReadOnlyDatabaseTests : GRDBTestCase {
         assertNoError {
             // Create database
             do {
-                try makeDatabaseQueue()
+                _ = try makeDatabaseQueue()
             }
             
             // Open it again, readonly

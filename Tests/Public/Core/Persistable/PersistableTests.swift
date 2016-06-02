@@ -87,9 +87,9 @@ private struct PersistableCustomizedCountry : Persistable {
         try performSave(db)
     }
     
-    func delete(_ db: Database) throws {
+    func delete(_ db: Database) throws -> Bool {
         willDelete()
-        try performDelete(db)
+        return try performDelete(db)
     }
     
     func exists(_ db: Database) -> Bool {
@@ -530,7 +530,8 @@ class PersistableTests: GRDBTestCase {
                 XCTAssertEqual(rows[1].value(named: "isoCode") as String, "US")
                 XCTAssertEqual(rows[1].value(named: "name") as String, "United States")
                 
-                try country1.delete(db)
+                // TODO: test delete return value
+                _ = try country1.delete(db)
                 try country1.save(db)
                 
                 XCTAssertEqual(insertCount, 2)
@@ -577,7 +578,8 @@ class PersistableTests: GRDBTestCase {
                     willExists: { })
                 try country2.insert(db)
                 
-                try country1.delete(db)
+                // TODO: test delete return value
+                _ = try country1.delete(db)
                 
                 XCTAssertEqual(insertCount, 1)
                 XCTAssertEqual(updateCount, 0)
@@ -619,7 +621,8 @@ class PersistableTests: GRDBTestCase {
                 XCTAssertEqual(deleteCount, 0)
                 XCTAssertEqual(existsCount, 1)
                 
-                try country.delete(db)
+                // TODO: test delete return value
+                _ = try country.delete(db)
                 
                 XCTAssertFalse(country.exists(db))
                 XCTAssertEqual(insertCount, 1)

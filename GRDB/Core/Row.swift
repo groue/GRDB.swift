@@ -32,7 +32,6 @@ public final class Row {
     /// Fetched rows are reused during the iteration of a query, for performance
     /// reasons: make sure to make a copy of it whenever you want to keep a
     /// specific one: `row.copy()`.
-    @warn_unused_result
     public func copy() -> Row {
         return impl.copy(self)
     }
@@ -125,7 +124,6 @@ extension Row {
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
-    @warn_unused_result
     public func value(atIndex index: Int) -> DatabaseValueConvertible? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atUncheckedIndex: index).value()
@@ -139,7 +137,6 @@ extension Row {
     /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
     /// value is converted to the requested type `Value`. Should this conversion
     /// fail, a fatal error is raised.
-    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atUncheckedIndex: index).value()
@@ -157,7 +154,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         guard let sqliteStatement = sqliteStatement else {
@@ -173,7 +169,6 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
-    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(atIndex index: Int) -> Value {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atUncheckedIndex: index).value()
@@ -190,7 +185,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(atIndex index: Int) -> Value {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         guard let sqliteStatement = sqliteStatement else {
@@ -206,7 +200,6 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
-    @warn_unused_result
     public func value(named columnName: String) -> DatabaseValueConvertible? {
         // IMPLEMENTATION NOTE
         // This method has a single know use case: checking if the value is nil,
@@ -229,7 +222,6 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
-    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value? {
         guard let index = impl.index(ofColumn: columnName) else {
             return nil
@@ -249,7 +241,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value? {
         guard let index = impl.index(ofColumn: columnName) else {
             return nil
@@ -269,7 +260,6 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
-    @warn_unused_result
     public func value<Value: DatabaseValueConvertible>(named columnName: String) -> Value {
         guard let index = impl.index(ofColumn: columnName) else {
             fatalError("no such column: \(columnName)")
@@ -290,7 +280,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    @warn_unused_result
     public func value<Value: protocol<DatabaseValueConvertible, StatementColumnConvertible>>(named columnName: String) -> Value {
         guard let index = impl.index(ofColumn: columnName) else {
             fatalError("no such column: \(columnName)")
@@ -311,7 +300,6 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
-    @warn_unused_result
     public func dataNoCopy(atIndex index: Int) -> NSData? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.dataNoCopy(atUncheckedIndex: index)
@@ -328,7 +316,6 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
-    @warn_unused_result
     public func dataNoCopy(named columnName: String) -> NSData? {
         guard let index = impl.index(ofColumn: columnName) else {
             return nil
@@ -353,7 +340,6 @@ extension Row {
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
-    @warn_unused_result
     public func databaseValue(atIndex index: Int) -> DatabaseValue {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.databaseValue(atUncheckedIndex: index)
@@ -365,7 +351,6 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
-    @warn_unused_result
     public func databaseValue(named columnName: String) -> DatabaseValue? {
         guard let index = impl.index(ofColumn: columnName) else {
             return nil
@@ -378,7 +363,6 @@ extension Row {
     
     // MARK: - Helpers
     
-    @warn_unused_result
     private static func statementColumnConvertible<Value: StatementColumnConvertible>(atUncheckedIndex index: Int, in sqliteStatement: SQLiteStatement) -> Value? {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             return nil
@@ -386,7 +370,6 @@ extension Row {
         return Value.init(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
-    @warn_unused_result
     private static func statementColumnConvertible<Value: StatementColumnConvertible>(atUncheckedIndex index: Int, in sqliteStatement: SQLiteStatement) -> Value {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             fatalError("could not convert NULL to \(Value.self).")
@@ -442,7 +425,6 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of rows.
-    @warn_unused_result
     public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
@@ -461,7 +443,6 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
-    @warn_unused_result
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
         let sqliteStatement = statement.sqliteStatement
         let columnNames = statement.columnNames
@@ -489,7 +470,6 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
-    @warn_unused_result
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
         let sqliteStatement = statement.sqliteStatement
         let columnNames = statement.columnNames
@@ -540,7 +520,6 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of rows.
-    @warn_unused_result
     public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
         return fetch(try! db.makeSelectStatement(sql), arguments: arguments, adapter: adapter)
     }
@@ -555,7 +534,6 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
-    @warn_unused_result
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
         return fetchAll(try! db.makeSelectStatement(sql), arguments: arguments, adapter: adapter)
     }
@@ -570,7 +548,6 @@ extension Row {
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
-    @warn_unused_result
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
         return fetchOne(try! db.makeSelectStatement(sql), arguments: arguments, adapter: adapter)
     }
