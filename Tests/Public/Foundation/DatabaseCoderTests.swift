@@ -24,4 +24,19 @@ class DatabaseCoderTests: GRDBTestCase {
             }
         }
     }
+    
+    func testDatabaseCoderInitNilFailure() {
+        XCTAssertNil(DatabaseCoder(nil))
+    }
+    
+    func testDatabaseCoderFromDatabaseValueFailure() {
+        let databaseValue_Null = DatabaseValue.Null
+        let databaseValue_Int64 = Int64(1).databaseValue
+        let databaseValue_String = "foo".databaseValue
+        let databaseValue_Double = Double(100000.1).databaseValue
+        XCTAssertNil(DatabaseCoder.fromDatabaseValue(databaseValue_Null))
+        XCTAssertNil(DatabaseCoder.fromDatabaseValue(databaseValue_Int64))
+        XCTAssertNil(DatabaseCoder.fromDatabaseValue(databaseValue_Double))
+        XCTAssertNil(DatabaseCoder.fromDatabaseValue(databaseValue_String))
+    }
 }
