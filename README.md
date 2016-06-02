@@ -1,4 +1,4 @@
-GRDB.swift
+GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
 GRDB.swift is an SQLite toolkit for Swift 2.2.
