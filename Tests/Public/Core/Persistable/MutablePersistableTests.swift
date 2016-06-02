@@ -79,9 +79,9 @@ private struct MutablePersistableCustomizedCountry : MutablePersistable {
         try performSave(db)
     }
     
-    func delete(db: Database) throws {
+    func delete(db: Database) throws -> Bool {
         willDelete()
-        try performDelete(db)
+        return try performDelete(db)
     }
     
     func exists(db: Database) -> Bool {
@@ -196,6 +196,7 @@ class MutablePersistableTests: GRDBTestCase {
                 var person2 = MutablePersistablePerson(id: nil, name: "Barbara")
                 try person2.insert(db)
                 
+                // TODO: test delete return value
                 try person1.delete(db)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
@@ -308,6 +309,7 @@ class MutablePersistableTests: GRDBTestCase {
                 var country2 = MutablePersistableCountry(rowID: nil, isoCode: "US", name: "United States")
                 try country2.insert(db)
                 
+                // TODO: test delete return value
                 try country1.delete(db)
                 
                 let rows = Row.fetchAll(db, "SELECT rowID, * FROM countries ORDER BY rowID")
@@ -526,6 +528,7 @@ class MutablePersistableTests: GRDBTestCase {
                     willExists: { })
                 try country2.insert(db)
                 
+                // TODO: test delete return value
                 try country1.delete(db)
                 
                 XCTAssertEqual(insertCount, 1)
