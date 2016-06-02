@@ -245,8 +245,8 @@ final class Pool<T> {
         var item: PoolItem<T>! = nil
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
         dispatch_sync(queue) {
-            if let index = self.items.index(where: { $0.available }) {
-                item = self.items[index]
+            if let availableItem = self.items.first(where: { $0.available }) {
+                item = availableItem
                 item.available = false
             } else {
                 item = PoolItem(element: self.makeElement!(), available: false)
