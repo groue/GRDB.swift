@@ -1516,6 +1516,9 @@ extension Database {
         sqlite3_update_hook(sqliteConnection, nil, nil)
         sqlite3_commit_hook(sqliteConnection, nil, nil)
         sqlite3_rollback_hook(sqliteConnection, nil, nil)
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            sqlite3_preupdate_hook(sqliteConnection, nil, nil)
+        #endif
     }
 }
 
