@@ -382,4 +382,8 @@ class NSDateComponentsTests : GRDBTestCase {
         let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue("foo".databaseValue)
         XCTAssertTrue(databaseDateComponents == nil)
     }
+    
+    func testDatabaseDateComponentsFailureFromNilNSDateComponents() {
+        XCTAssertNil(DatabaseDateComponents(nil, format: .YMD))
+    }
 }

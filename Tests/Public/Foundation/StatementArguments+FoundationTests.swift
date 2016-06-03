@@ -7,6 +7,9 @@ import XCTest
     import GRDB
 #endif
 
+private class NonDatabaseConvertibleObject: NSObject
+{ }
+
 class StatementArgumentsFoundationTests: GRDBTestCase {
 
     override func setUpDatabase(dbWriter: DatabaseWriter) throws {
@@ -52,6 +55,17 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         }
     }
     
+    func testStatementArgumentsNSArrayInitializerFromInvalidNSArray() {
+        let persons = [ // NSArray, because of the heterogeneous values
+            ["Arthur", NonDatabaseConvertibleObject()],
+            ["Barbara", NonDatabaseConvertibleObject()],
+            ]
+        
+        for person in persons {
+            XCTAssertNil(StatementArguments(person))
+        }
+    }
+    
     func testStatementArgumentsNSDictionaryInitializer() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -79,5 +93,15 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
                 XCTAssertEqual(rows[1].value(named: "age") as Int, 38)
             }
         }
+    }
+    
+    func testStatementArgumentsNSDictionaryInitializerFromInvalidNSDictionary() {
+        let dictionary: NSDictionary = ["a": NSObject()]
+        let arguments = StatementArguments(dictionary)
+        XCTAssertTrue(arguments == nil)
+        
+        let dictionaryInvalidKeyType: NSDictionary = [NSNumber(integer: 1): "bar"]
+        let arguments2 = StatementArguments(dictionaryInvalidKeyType)
+        XCTAssertTrue(arguments2 == nil)
     }
 }
