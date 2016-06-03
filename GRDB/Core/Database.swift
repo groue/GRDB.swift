@@ -1656,11 +1656,11 @@ class WeakTransactionObserver {
     }
 }
 
-public protocol DatabaseEventType {
+protocol DatabaseEventType {
 }
 
 /// A database event, notified to TransactionObserverType.
-public struct DatabaseEvent : DatabaseEventType {
+public struct DatabaseEvent {
     
     /// An event kind
     public enum Kind: Int32 {
@@ -1711,6 +1711,9 @@ public struct DatabaseEvent : DatabaseEventType {
     private let impl: DatabaseEventImpl
 }
 
+extension DatabaseEvent : DatabaseEventType {
+}
+
 /// Protocol for internal implementation of DatabaseEvent
 private protocol DatabaseEventImpl {
     var databaseName: String { get }
@@ -1742,7 +1745,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 
 #if SQLITE_ENABLE_PREUPDATE_HOOK
 
-    public struct DatabasePreUpdateEvent : DatabaseEventType {
+    public struct DatabasePreUpdateEvent {
         
         /// An event kind
         public enum Kind: Int32 {
@@ -1862,6 +1865,9 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         }
         
         private let impl: DatabasePreUpdateEventImpl
+    }
+    
+    extension DatabasePreUpdateEvent : DatabaseEventType {
     }
     
     /// Protocol for internal implementation of DatabaseEvent
