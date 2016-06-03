@@ -1381,21 +1381,7 @@ extension Database {
                     savepointStack.clear()
                     for observer in transactionObservers.flatMap({ $0.observer }) {
                         for event in eventsBuffer {
-                            if let event = event as? DatabaseEvent {
-                                observer.databaseDidChangeWithEvent(event)
-                            }
-                            else {
-                            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                                if let event = event as? DatabasePreUpdateEvent {
-                                    observer.databaseWillChangeWithEvent(event)
-                                }
-                                else {
-                                    fatalError("Unexpected event type")
-                                }
-                            #else
-                                fatalError("Unexpected event type")
-                            #endif
-                            }
+                            event.send(to: observer)
                         }
                     }
                 }
@@ -1425,21 +1411,7 @@ extension Database {
         savepointStack.clear()
         for observer in transactionObservers.flatMap({ $0.observer }) {
             for event in eventsBuffer {
-                if let event = event as? DatabaseEvent {
-                    observer.databaseDidChangeWithEvent(event)
-                }
-                else {
-                #if SQLITE_ENABLE_PREUPDATE_HOOK
-                    if let event = event as? DatabasePreUpdateEvent {
-                        observer.databaseWillChangeWithEvent(event)
-                    }
-                    else {
-                        fatalError("Unexpected event type")
-                    }
-                #else
-                    fatalError("Unexpected event type")
-                #endif
-                }
+                event.send(to: observer)
             }
             try observer.databaseWillCommit()
         }
@@ -1657,6 +1629,7 @@ class WeakTransactionObserver {
 }
 
 protocol DatabaseEventType {
+    func send(to observer: TransactionObserverType)
 }
 
 /// A database event, notified to TransactionObserverType.
@@ -1712,6 +1685,9 @@ public struct DatabaseEvent {
 }
 
 extension DatabaseEvent : DatabaseEventType {
+    func send(to observer: TransactionObserverType) {
+        observer.databaseDidChangeWithEvent(self)
+    }
 }
 
 /// Protocol for internal implementation of DatabaseEvent
@@ -1868,6 +1844,9 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
     }
     
     extension DatabasePreUpdateEvent : DatabaseEventType {
+        func send(to observer: TransactionObserverType) {
+            observer.databaseWillChangeWithEvent(self)
+        }
     }
     
     /// Protocol for internal implementation of DatabaseEvent
