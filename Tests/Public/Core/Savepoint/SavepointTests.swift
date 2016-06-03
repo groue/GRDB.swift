@@ -22,7 +22,17 @@ private class Observer : TransactionObserver {
     
     func reset() {
         allRecordedEvents.removeAll()
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+            allRecordedPreUpdateEvents.removeAll()
+        #endif
     }
+    
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    var allRecordedPreUpdateEvents: [DatabasePreUpdateEvent] = []
+    func databaseWillChange(with event: DatabasePreUpdateEvent) {
+        allRecordedPreUpdateEvents.append(event.copy())
+    }
+    #endif
     
     func databaseDidChange(with event: DatabaseEvent) {
         allRecordedEvents.append(event.copy())
@@ -73,6 +83,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3"])
             XCTAssertEqual(observer.allRecordedEvents.count, 3)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 3)
+            #endif
         }
     }
     
@@ -102,6 +115,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item3"])
             XCTAssertEqual(observer.allRecordedEvents.count, 2)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 2)
+            #endif
         }
     }
     
@@ -142,6 +158,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3", "item4", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 5)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
+            #endif
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
 
@@ -176,6 +195,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 2)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 2)
+            #endif
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
             
@@ -211,6 +233,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item4", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 4)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
+            #endif
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
             
@@ -246,6 +271,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 2)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 2)
+            #endif
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
         }
@@ -277,6 +305,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3"])
             XCTAssertEqual(observer.allRecordedEvents.count, 3)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 3)
+            #endif
         }
     }
     
@@ -306,6 +337,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item3"])
             XCTAssertEqual(observer.allRecordedEvents.count, 3)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 3)
+            #endif
         }
     }
     
@@ -345,6 +379,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item3", "item4", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 5)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
+            #endif
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
             
@@ -379,6 +416,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 5)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
+            #endif
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
             
@@ -414,6 +454,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item2", "item4", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 4)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
+            #endif
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
             
@@ -449,6 +492,9 @@ class SavepointTests: GRDBTestCase {
                 ])
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item1", "item5"])
             XCTAssertEqual(observer.allRecordedEvents.count, 4)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
+            #endif
             try! dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
             observer.reset()
         }
@@ -474,6 +520,9 @@ class SavepointTests: GRDBTestCase {
             }
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item2"])
             XCTAssertEqual(observer.allRecordedEvents.count, 1)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 1)
+            #endif
         }
     }
     
@@ -502,6 +551,9 @@ class SavepointTests: GRDBTestCase {
             }
             XCTAssertEqual(fetchAllItemNames(dbQueue), ["item2"])
             XCTAssertEqual(observer.allRecordedEvents.count, 1)
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 1)
+            #endif
         }
     }
 }

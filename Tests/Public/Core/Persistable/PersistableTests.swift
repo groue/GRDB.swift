@@ -256,6 +256,7 @@ class PersistableTests: GRDBTestCase {
                 let person2 = PersistablePersonClass(id: nil, name: "Barbara", age: 39)
                 try person2.insert(db)
                 
+                // TODO: test delete return value
                 try person1.delete(db)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
@@ -368,6 +369,7 @@ class PersistableTests: GRDBTestCase {
                 let country2 = PersistableCountry(isoCode: "US", name: "United States")
                 try country2.insert(db)
                 
+                // TODO: test delete return value
                 try country1.delete(db)
                 
                 let rows = Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")

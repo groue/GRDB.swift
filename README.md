@@ -1,4 +1,4 @@
-GRDB.swift
+GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
 GRDB.swift is an SQLite toolkit for Swift 2.2.
@@ -1244,7 +1244,7 @@ let reverseString = DatabaseFunction(
     pure: true,       // True means that the result only depends on input
     function: { (databaseValues: [DatabaseValue]) in
         // Extract string value, if any...
-        guard let string: String = String.fromDatabaseValue(databaseValues[0]) else {
+        guard let string = String.fromDatabaseValue(databaseValues[0]) else {
             return nil
         }
         // ... and return reversed string:

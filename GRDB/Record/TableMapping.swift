@@ -153,9 +153,10 @@ extension RowConvertible where Self: TableMapping {
     //
     // Returns nil if keys is empty.
     private static func fetchByKeyStatement(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) -> SelectStatement? {
-        // TODO: this method is slow to compile
+        // NOTE: this method *was* slow to compile
         // https://medium.com/swift-programming/speeding-up-slow-swift-build-times-922feeba5780#.s77wmh4h0
-        // 586.8ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Record/TableMapping.swift:163:25	private static func fetchByKeyStatement(_ db: Database, keys: [[String : DatabaseValueConvertible?]]) -> SelectStatement?
+        // 586.8ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Record/TableMapping.swift:163:25	@warn_unused_result private static func fetchByKeyStatement(db: Database, keys: [[String : DatabaseValueConvertible?]]) -> SelectStatement?
+        // Fixes are marked with "## Slow Compile Fix (Swift 2.2.x):"
         
         // Avoid performing useless SELECT
         guard keys.count > 0 else {
@@ -167,7 +168,10 @@ extension RowConvertible where Self: TableMapping {
         for dictionary in keys {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             arguments.append(contentsOf: dictionary.values)
-            whereClauses.append("(" + dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" }.joined(separator: " AND ") + ")")
+            // ## Slow Compile Fix (Swift 2.2.x):
+            // TODO: Check if Swift 3 compiler fixes this line's slow compilation time:
+            //whereClauses.append("(" + dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" }.joinWithSeparator(" AND ") + ")")  // Original, Slow To Compile
+            whereClauses.append("(" + (dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joined(separator: " AND ") + ")")
         }
         
         let databaseTableName = self.databaseTableName()

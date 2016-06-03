@@ -1377,7 +1377,21 @@ extension Database {
                     for weakObserver in transactionObservers {
                         guard let observer = weakObserver.observer else { continue }
                         for event in eventsBuffer {
-                            observer.databaseDidChange(with: event)
+                            if let event = event as? DatabaseEvent {
+                                observer.databaseDidChange(with: event)
+                            }
+                            else {
+                            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                                if let event = event as? DatabasePreUpdateEvent {
+                                    observer.databaseWillChange(with: event)
+                                }
+                                else {
+                                    fatalError("Unexpected event type")
+                                }
+                            #else
+                                fatalError("Unexpected event type")
+                            #endif
+                            }
                         }
                     }
                 }
@@ -1408,11 +1422,39 @@ extension Database {
         for weakObserver in transactionObservers {
             guard let observer = weakObserver.observer else { continue }
             for event in eventsBuffer {
-                observer.databaseDidChange(with: event)
+                if let event = event as? DatabaseEvent {
+                    observer.databaseDidChange(with: event)
+                }
+                else {
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    if let event = event as? DatabasePreUpdateEvent {
+                        observer.databaseWillChange(with: event)
+                    }
+                    else {
+                        fatalError("Unexpected event type")
+                    }
+                #else
+                    fatalError("Unexpected event type")
+                #endif
+                }
             }
             try observer.databaseWillCommit()
         }
     }
+    
+#if SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Transaction hook
+    private func willChange(with event: DatabasePreUpdateEvent)
+    {
+        if savepointStack.isEmpty {
+            for observer in transactionObservers.flatMap({ $0.observer }) {
+                observer.databaseWillChange(with: event)
+            }
+        } else {
+            savepointStack.eventsBuffer.append(event.copy())
+        }
+    }
+#endif
     
     /// Transaction hook
     private func didChange(with event: DatabaseEvent) {
@@ -1484,6 +1526,18 @@ extension Database {
                 // Next step: updateStatementDidExecute()
             }
             }, dbPointer)
+        
+        #if SQLITE_ENABLE_PREUPDATE_HOOK
+        sqlite3_preupdate_hook(sqliteConnection, { (dbPointer, databaseConnection, updateKind, databaseNameCString, tableNameCString, initialRowID, finalRowID) in
+            let db = unsafeBitCast(dbPointer, to: Database.self)
+            db.willChange(with: DatabasePreUpdateEvent(connection: databaseConnection!,
+                kind: DatabasePreUpdateEvent.Kind(rawValue: updateKind)!,
+                initialRowID: initialRowID,
+                finalRowID: finalRowID,
+                databaseNameCString: databaseNameCString,
+                tableNameCString: tableNameCString))
+            }, dbPointer)
+        #endif
     }
     
     private func uninstallTransactionObserverHooks() {
@@ -1555,6 +1609,42 @@ public protocol TransactionObserver : class {
     ///
     /// This method is called on the database queue. It can change the database.
     func databaseDidRollback(_ db: Database)
+    
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Notifies before a database change (insert, update, or delete)
+    /// with change information (initial / final values for the row's
+    /// columns). (Called *before* databaseDidChangeWithEvent.)
+    ///
+    /// The change is pending until the end of the current transaction,
+    /// and you always get a second chance to get basic event information in
+    /// the databaseDidChangeWithEvent callback.
+    ///
+    /// This callback is mostly useful for calculating detailed change
+    /// information for a row, and provides the initial / final values.
+    ///
+    /// This method is called on the database queue.
+    ///
+    /// The event is only valid for the duration of this method call. If you
+    /// need to keep it longer, store a copy of its properties.
+    ///
+    /// - warning: this method must not change the database.
+    ///
+    /// Availability Info:
+    ///
+    ///     Requires SQLite 3.13.0 +
+    ///     Compiled with option SQLITE_ENABLE_PREUPDATE_HOOK
+    ///
+    ///     As of OSX 10.11.5, and iOS 9.3.2, the built-in SQLite library
+    ///     does not have this enabled, so you'll need to compile your own
+    ///     copy using GRDBCustomSQLite. See the README.md in /SQLiteCustom/
+    ///
+    ///     The databaseDidChangeWithEvent callback is always available,
+    ///     and may provide most/all of what you need.
+    ///     (For example, FetchedRecordsController is built without using
+    ///     this functionality.)
+    ///
+    func databaseWillChange(with event: DatabasePreUpdateEvent)
+    #endif
 }
 
 /// Database stores WeakTransactionObserver so that it does not retain its
@@ -1566,8 +1656,11 @@ class WeakTransactionObserver {
     }
 }
 
-/// A database event, notified to TransactionObserver.
-public struct DatabaseEvent {
+public protocol DatabaseEventType {
+}
+
+/// A database event, notified to TransactionObserverType.
+public struct DatabaseEvent : DatabaseEventType {
     
     /// An event kind
     public enum Kind: Int32 {
@@ -1647,6 +1740,259 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
     }
 }
 
+#if SQLITE_ENABLE_PREUPDATE_HOOK
+
+    public struct DatabasePreUpdateEvent : DatabaseEventType {
+        
+        /// An event kind
+        public enum Kind: Int32 {
+            /// SQLITE_INSERT
+            case Insert = 18
+            
+            /// SQLITE_DELETE
+            case Delete = 9
+            
+            /// SQLITE_UPDATE
+            case Update = 23
+        }
+        
+        /// The event kind
+        public let kind: Kind
+        
+        /// The database name
+        public var databaseName: String { return impl.databaseName }
+        
+        /// The table name
+        public var tableName: String { return impl.tableName }
+        
+        /// The number of columns in the row that is being inserted, updated, or deleted.
+        public var count: Int { return Int(impl.columnsCount) }
+        
+        /// The triggering depth of the row update
+        /// Returns: 
+        ///     0  if the preupdate callback was invoked as a result of a direct insert,
+        //         update, or delete operation;
+        ///     1  for inserts, updates, or deletes invoked by top-level triggers;
+        ///     2  for changes resulting from triggers called by top-level triggers;
+        ///     ... and so forth
+        public var depth: CInt { return impl.depth }
+        
+        /// The initial rowID of the row being changed for .Update and .Delete changes,
+        /// and nil for .Insert changes.
+        public let initialRowID: Int64?
+        
+        /// The final rowID of the row being changed for .Update and .Insert changes,
+        /// and nil for .Delete changes.
+        public let finalRowID: Int64?
+        
+        /// The initial database values in the row.
+        ///
+        /// Values appear in the same order as the columns in the table.
+        ///
+        /// The result is nil if the event is an .Insert event.
+        public var initialDatabaseValues: [DatabaseValue]?
+        {
+            guard (kind == .Update || kind == .Delete) else { return nil }
+            return impl.initialDatabaseValues
+        }
+        
+        /// Returns the initial `DatabaseValue` at given index.
+        ///
+        /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+        /// righmost column.
+        ///
+        /// The result is nil if the event is an .Insert event.
+        @warn_unused_result
+        public func initialDatabaseValue(atIndex index: Int) -> DatabaseValue?
+        {
+            GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+            guard (kind == .Update || kind == .Delete) else { return nil }
+            return impl.initialDatabaseValue(atIndex: index)
+        }
+        
+        /// The final database values in the row.
+        ///
+        /// Values appear in the same order as the columns in the table.
+        ///
+        /// The result is nil if the event is a .Delete event.
+        public var finalDatabaseValues: [DatabaseValue]?
+        {
+            guard (kind == .Update || kind == .Insert) else { return nil }
+            return impl.finalDatabaseValues
+        }
+        
+        /// Returns the final `DatabaseValue` at given index.
+        ///
+        /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+        /// righmost column.
+        ///
+        /// The result is nil if the event is a .Delete event.
+        @warn_unused_result
+        public func finalDatabaseValue(atIndex index: Int) -> DatabaseValue?
+        {
+            GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+            guard (kind == .Update || kind == .Insert) else { return nil }
+            return impl.finalDatabaseValue(atIndex: index)
+        }
+        
+        /// Returns an event that can be stored:
+        ///
+        ///     class MyObserver: TransactionObserverType {
+        ///         var pre_events: [DatabasePreUpdateEvent]
+        ///         func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent) {
+        ///             pre_events.append(event.copy())
+        ///         }
+        ///     }
+        public func copy() -> DatabasePreUpdateEvent {
+            return impl.copy(self)
+        }
+        
+        private init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: DatabasePreUpdateEventImpl) {
+            self.kind = kind
+            self.initialRowID = (kind == .Update || kind == .Delete ) ? initialRowID : nil
+            self.finalRowID = (kind == .Update || kind == .Insert ) ? finalRowID : nil
+            self.impl = impl
+        }
+        
+        init(connection: SQLiteConnection, kind: Kind, initialRowID: Int64, finalRowID: Int64, databaseNameCString: UnsafePointer<Int8>?, tableNameCString: UnsafePointer<Int8>?) {
+            self.init(kind: kind,
+                      initialRowID: (kind == .Update || kind == .Delete ) ? finalRowID : nil,
+                      finalRowID: (kind == .Update || kind == .Insert ) ? finalRowID : nil,
+                      impl: MetalDatabasePreUpdateEventImpl(connection: connection, kind: kind, databaseNameCString: databaseNameCString, tableNameCString: tableNameCString))
+        }
+        
+        private let impl: DatabasePreUpdateEventImpl
+    }
+    
+    /// Protocol for internal implementation of DatabaseEvent
+    private protocol DatabasePreUpdateEventImpl {
+        var databaseName: String { get }
+        var tableName: String { get }
+        
+        var columnsCount: CInt { get }
+        var depth: CInt { get }
+        var initialDatabaseValues: [DatabaseValue]? { get }
+        var finalDatabaseValues: [DatabaseValue]? { get }
+        
+        func initialDatabaseValue(atIndex index: Int) -> DatabaseValue?
+        func finalDatabaseValue(atIndex index: Int) -> DatabaseValue?
+        
+        func copy(_ event: DatabasePreUpdateEvent) -> DatabasePreUpdateEvent
+    }
+    
+    /// Optimization: MetalDatabasePreUpdateEventImpl does not create Swift strings from raw
+    /// SQLite char* until actually asked for databaseName or tableName,
+    /// nor does it request other data via the sqlite3_preupdate_* APIs
+    /// until asked.
+    private struct MetalDatabasePreUpdateEventImpl : DatabasePreUpdateEventImpl {
+        private let connection: SQLiteConnection
+        private let kind: DatabasePreUpdateEvent.Kind
+        
+        private let databaseNameCString: UnsafePointer<Int8>?
+        private let tableNameCString: UnsafePointer<Int8>?
+        
+        var databaseName: String { return String(cString: databaseNameCString!) }
+        var tableName: String { return String(cString: tableNameCString!) }
+        
+        var columnsCount: CInt { return sqlite3_preupdate_count(connection) }
+        var depth: CInt { return sqlite3_preupdate_depth(connection) }
+        var initialDatabaseValues: [DatabaseValue]? {
+            guard (kind == .Update || kind == .Delete) else { return nil }
+            return preupdate_getValues_old(connection)
+        }
+        
+        var finalDatabaseValues: [DatabaseValue]? {
+            guard (kind == .Update || kind == .Insert) else { return nil }
+            return preupdate_getValues_new(connection)
+        }
+        
+        func initialDatabaseValue(atIndex index: Int) -> DatabaseValue?
+        {
+            let columnCount = columnsCount
+            precondition(index >= 0 && index < Int(columnCount), "row index out of range")
+            return getValue(connection, column: CInt(index), sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+                return sqlite3_preupdate_old(connection, column, &value)
+            })
+        }
+        
+        func finalDatabaseValue(atIndex index: Int) -> DatabaseValue?
+        {
+            let columnCount = columnsCount
+            precondition(index >= 0 && index < Int(columnCount), "row index out of range")
+            return getValue(connection, column: CInt(index), sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+                return sqlite3_preupdate_new(connection, column, &value)
+            })
+        }
+        
+        func copy(_ event: DatabasePreUpdateEvent) -> DatabasePreUpdateEvent {
+            return DatabasePreUpdateEvent(kind: event.kind, initialRowID: event.initialRowID, finalRowID: event.finalRowID, impl: CopiedDatabasePreUpdateEventImpl(
+                    databaseName: databaseName,
+                    tableName: tableName,
+                    columnsCount: columnsCount,
+                    depth: depth,
+                    initialDatabaseValues: initialDatabaseValues,
+                    finalDatabaseValues: finalDatabaseValues))
+        }
+    
+        private func preupdate_getValues(_ connection: SQLiteConnection, sqlite_func: (connection: SQLiteConnection, column: CInt, inout value: SQLiteValue? ) -> CInt ) -> [DatabaseValue]?
+        {
+            let columnCount = sqlite3_preupdate_count(connection)
+            guard columnCount > 0 else { return nil }
+            
+            var columnValues = [DatabaseValue]()
+            
+            for i in 0..<columnCount {
+                let value = getValue(connection, column: i, sqlite_func: sqlite_func)!
+                columnValues.append(value)
+            }
+            
+            return columnValues
+        }
+        
+        private func getValue(_ connection: SQLiteConnection, column: CInt, sqlite_func: (connection: SQLiteConnection, column: CInt, inout value: SQLiteValue? ) -> CInt ) -> DatabaseValue?
+        {
+            var value : SQLiteValue? = nil
+            guard sqlite_func(connection: connection, column: column, value: &value) == SQLITE_OK else { return nil }
+            if let value = value {
+                return DatabaseValue(sqliteValue: value)
+            }
+            return nil
+        }
+        
+        private func preupdate_getValues_old(_ connection: SQLiteConnection) -> [DatabaseValue]?
+        {
+            return preupdate_getValues(connection, sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+                return sqlite3_preupdate_old(connection, column, &value)
+            })
+        }
+        
+        private func preupdate_getValues_new(_ connection: SQLiteConnection) -> [DatabaseValue]?
+        {
+            return preupdate_getValues(connection, sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+                return sqlite3_preupdate_new(connection, column, &value)
+            })
+        }
+    }
+    
+    /// Impl for DatabasePreUpdateEvent that contains copies of all event data.
+    private struct CopiedDatabasePreUpdateEventImpl : DatabasePreUpdateEventImpl {
+        private let databaseName: String
+        private let tableName: String
+        private let columnsCount: CInt
+        private let depth: CInt
+        private let initialDatabaseValues: [DatabaseValue]?
+        private let finalDatabaseValues: [DatabaseValue]?
+        
+        private func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? { return initialDatabaseValues?[index] }
+        private func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? { return finalDatabaseValues?[index] }
+        
+        private func copy(_ event: DatabasePreUpdateEvent) -> DatabasePreUpdateEvent {
+            return event
+        }
+    }
+
+#endif
+
 /// The SQLite savepoint stack is described at
 /// https://www.sqlite.org/lang_savepoint.html
 ///
@@ -1658,7 +2004,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 ///   rollbacked.
 class SavePointStack {
     /// The buffered events. See Database.didChange(with:)
-    var eventsBuffer: [DatabaseEvent] = []
+    var eventsBuffer: [DatabaseEventType] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.
