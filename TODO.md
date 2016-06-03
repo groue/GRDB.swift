@@ -1,3 +1,4 @@
+- [ ] FetchedRecordsController: let the user provide an "fetch along" block that allows fetching from a known state of the database: right after changes have been found. The problem today is that when one fetches from the didChange callback, the database may have changed since changes have been computed.
 - [ ] FetchedRecordsController: see if we can replace identity comparison function with a function that returns an Equatable value (beware the generics trouble). See if this can help optimize memory use, and use a sortedMerge() algorithm.
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
