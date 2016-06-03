@@ -1374,24 +1374,9 @@ extension Database {
                 if savepointStack.isEmpty {
                     let eventsBuffer = savepointStack.eventsBuffer
                     savepointStack.clear()
-                    for weakObserver in transactionObservers {
-                        guard let observer = weakObserver.observer else { continue }
+                    for observer in transactionObservers.flatMap({ $0.observer }) {
                         for event in eventsBuffer {
-                            if let event = event as? DatabaseEvent {
-                                observer.databaseDidChange(with: event)
-                            }
-                            else {
-                            #if SQLITE_ENABLE_PREUPDATE_HOOK
-                                if let event = event as? DatabasePreUpdateEvent {
-                                    observer.databaseWillChange(with: event)
-                                }
-                                else {
-                                    fatalError("Unexpected event type")
-                                }
-                            #else
-                                fatalError("Unexpected event type")
-                            #endif
-                            }
+                            event.send(to: observer)
                         }
                     }
                 }
@@ -1419,24 +1404,9 @@ extension Database {
     private func willCommit() throws {
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
-        for weakObserver in transactionObservers {
-            guard let observer = weakObserver.observer else { continue }
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             for event in eventsBuffer {
-                if let event = event as? DatabaseEvent {
-                    observer.databaseDidChange(with: event)
-                }
-                else {
-                #if SQLITE_ENABLE_PREUPDATE_HOOK
-                    if let event = event as? DatabasePreUpdateEvent {
-                        observer.databaseWillChange(with: event)
-                    }
-                    else {
-                        fatalError("Unexpected event type")
-                    }
-                #else
-                    fatalError("Unexpected event type")
-                #endif
-                }
+                event.send(to: observer)
             }
             try observer.databaseWillCommit()
         }
@@ -1459,8 +1429,7 @@ extension Database {
     /// Transaction hook
     private func didChange(with event: DatabaseEvent) {
         if savepointStack.isEmpty {
-            for weakObserver in transactionObservers {
-                guard let observer = weakObserver.observer else { continue }
+            for observer in transactionObservers.flatMap({ $0.observer }) {
                 observer.databaseDidChange(with: event)
             }
         } else {
@@ -1470,8 +1439,7 @@ extension Database {
     
     /// Transaction hook
     private func didCommit() {
-        for weakObserver in transactionObservers {
-            guard let observer = weakObserver.observer else { continue }
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidCommit(self)
         }
         cleanupTransactionObservers()
@@ -1480,8 +1448,7 @@ extension Database {
     /// Transaction hook
     private func didRollback() {
         savepointStack.clear()
-        for weakObserver in transactionObservers {
-            guard let observer = weakObserver.observer else { continue }
+        for observer in transactionObservers.flatMap({ $0.observer }) {
             observer.databaseDidRollback(self)
         }
         cleanupTransactionObservers()
@@ -1656,11 +1623,12 @@ class WeakTransactionObserver {
     }
 }
 
-public protocol DatabaseEventType {
+protocol DatabaseEventProtocol {
+    func send(to observer: TransactionObserver)
 }
 
-/// A database event, notified to TransactionObserverType.
-public struct DatabaseEvent : DatabaseEventType {
+/// A database event, notified to TransactionObserver.
+public struct DatabaseEvent {
     
     /// An event kind
     public enum Kind: Int32 {
@@ -1711,6 +1679,12 @@ public struct DatabaseEvent : DatabaseEventType {
     private let impl: DatabaseEventImpl
 }
 
+extension DatabaseEvent : DatabaseEventProtocol {
+    func send(to observer: TransactionObserver) {
+        observer.databaseDidChange(with: self)
+    }
+}
+
 /// Protocol for internal implementation of DatabaseEvent
 private protocol DatabaseEventImpl {
     var databaseName: String { get }
@@ -1742,7 +1716,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 
 #if SQLITE_ENABLE_PREUPDATE_HOOK
 
-    public struct DatabasePreUpdateEvent : DatabaseEventType {
+    public struct DatabasePreUpdateEvent {
         
         /// An event kind
         public enum Kind: Int32 {
@@ -1837,7 +1811,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         
         /// Returns an event that can be stored:
         ///
-        ///     class MyObserver: TransactionObserverType {
+        ///     class MyObserver: TransactionObserver {
         ///         var pre_events: [DatabasePreUpdateEvent]
         ///         func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent) {
         ///             pre_events.append(event.copy())
@@ -1862,6 +1836,12 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         }
         
         private let impl: DatabasePreUpdateEventImpl
+    }
+    
+    extension DatabasePreUpdateEvent : DatabaseEventProtocol {
+        func send(to observer: TransactionObserver) {
+            observer.databaseWillChange(with: self)
+        }
     }
     
     /// Protocol for internal implementation of DatabaseEvent
@@ -2004,7 +1984,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 ///   rollbacked.
 class SavePointStack {
     /// The buffered events. See Database.didChange(with:)
-    var eventsBuffer: [DatabaseEventType] = []
+    var eventsBuffer: [DatabaseEventProtocol] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.
