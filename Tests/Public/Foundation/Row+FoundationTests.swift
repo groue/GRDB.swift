@@ -13,6 +13,10 @@ class RowFoundationTests: GRDBTestCase {
         let dictionary: NSDictionary = ["a": NSObject()]
         let row = Row(dictionary)
         XCTAssertTrue(row == nil)
+        
+        let dictionaryInvalidKeyType: NSDictionary = [NSNumber(integer: 1): "bar"]
+        let row2 = Row(dictionaryInvalidKeyType)
+        XCTAssertTrue(row2 == nil)
     }
     
     func testRowFromNSDictionary() {

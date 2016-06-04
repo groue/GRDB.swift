@@ -1111,5 +1111,57 @@ class TransactionObserverTests: GRDBTestCase {
             }
         }
     }
+    
+    func testTransactionObserverAddAndRemove() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let observer = TransactionObserver()
+            dbQueue.addTransactionObserver(observer)
+            
+            try dbQueue.inDatabase { db in
+                let artist = Artist(name: "Gerhard Richter")
+                
+                //
+                try artist.save(db)
+                XCTAssertEqual(observer.lastCommittedEvents.count, 1)
+                let event = observer.lastCommittedEvents.filter { event in
+                    self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                    }.first
+                XCTAssertTrue(event != nil)
+                
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 1)
+                    let preUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                        self.match(preUpdateEvent: event, kind: .Insert, tableName: "artists", initialRowID: nil, finalRowID: artist.id!, initialValues: nil,
+                            finalValues: [
+                                artist.id!.databaseValue,
+                                artist.name!.databaseValue
+                            ])
+                        }.first
+                    XCTAssertTrue(preUpdateEvent != nil)
+                #endif
+            }
+            
+            observer.resetCounts()
+            dbQueue.removeTransactionObserver(observer)
+            
+            try dbQueue.inTransaction { db in
+                do {
+                    try Artist(name: "Vincent Fournier").save(db)
+                } catch {
+                    XCTFail("Unexpected Error")
+                }
+                return .Commit
+            }
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.willChangeCount, 0)
+            #endif
+            XCTAssertEqual(observer.didChangeCount, 0)
+            XCTAssertEqual(observer.willCommitCount, 0)
+            XCTAssertEqual(observer.didCommitCount, 0)
+            XCTAssertEqual(observer.didRollbackCount, 0)
+        }
+    }
 
 }

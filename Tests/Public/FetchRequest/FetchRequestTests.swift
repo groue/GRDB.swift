@@ -24,9 +24,89 @@ private struct CustomRecord: RowConvertible {
     }
 }
 
+private struct CustomStruct: DatabaseValueConvertible {
+    // CustomStruct that *only* conforms to DatabaseValueConvertible, *NOT* StatementColumnConvertible
+    private let number: Int64
+    
+    /// Returns a value that can be stored in the database.
+    var databaseValue: DatabaseValue {
+        return number.databaseValue
+    }
+    
+    /// Returns a String initialized from *databaseValue*, if possible.
+    static func fromDatabaseValue(databaseValue: DatabaseValue) -> CustomStruct? {
+        guard let number = Int64.fromDatabaseValue(databaseValue) else {
+            return nil
+        }
+        return CustomStruct(number: number)
+    }
+}
+extension CustomStruct: Equatable { }
+private func ==(lhs: CustomStruct, rhs: CustomStruct) -> Bool {
+    return lhs.number == rhs.number
+}
+
 class FetchRequestTests: GRDBTestCase {
     
     func testDatabaseValueConvertibleFetch() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                var fetchedValue: CustomStruct? = nil
+                for i in CustomStruct.fetch(db, CustomFetchRequest()) {
+                    fetchedValue = i
+                }
+                XCTAssertEqual(fetchedValue!, CustomStruct(number: 1))
+            }
+        }
+    }
+    
+    func testDatabaseValueConvertibleFetchAll() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let fetchedValues = CustomStruct.fetchAll(db, CustomFetchRequest())
+                XCTAssertEqual(fetchedValues, [CustomStruct(number: 1)])
+            }
+        }
+    }
+    
+    func testDatabaseValueConvertibleFetchOne() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let fetchedValue = CustomStruct.fetchOne(db, CustomFetchRequest())!
+                XCTAssertEqual(fetchedValue, CustomStruct(number: 1))
+            }
+        }
+    }
+    
+    func testDatabaseValueConvertibleOptionalFetch() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                var fetchedValue: CustomStruct? = nil
+                for i in Optional<CustomStruct>.fetch(db, CustomFetchRequest()) {
+                    fetchedValue = i
+                }
+                XCTAssertEqual(fetchedValue!, CustomStruct(number: 1))
+            }
+        }
+    }
+    
+    func testDatabaseValueConvertibleOptionalFetchAll() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            dbQueue.inDatabase { db in
+                let fetchedValues = Optional<CustomStruct>.fetchAll(db, CustomFetchRequest())
+                let expectedValue: CustomStruct? = CustomStruct(number: 1)
+                XCTAssertEqual(fetchedValues.count, 1)
+                XCTAssertEqual(fetchedValues[0], expectedValue)
+            }
+        }
+    }
+    
+    func testDatabaseValueConvertibleFetchWhereStatementColumnConvertible() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
@@ -39,7 +119,7 @@ class FetchRequestTests: GRDBTestCase {
         }
     }
     
-    func testDatabaseValueConvertibleFetchAll() {
+    func testDatabaseValueConvertibleFetchAllWhereStatementColumnConvertible() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
@@ -49,7 +129,7 @@ class FetchRequestTests: GRDBTestCase {
         }
     }
     
-    func testDatabaseValueConvertibleFetchOne() {
+    func testDatabaseValueConvertibleFetchOneWhereStatementColumnConvertible() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
