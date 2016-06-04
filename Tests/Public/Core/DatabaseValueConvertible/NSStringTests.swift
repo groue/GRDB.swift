@@ -11,7 +11,7 @@ class NSStringTests: GRDBTestCase {
     
     func testNSStringDatabaseValueRoundTrip() {
         
-        func roundTrip(value: NSString) -> Bool
+        func roundTrip(_ value: NSString) -> Bool
         {
             let databaseValue = value.databaseValue
             guard let back = NSString.fromDatabaseValue(databaseValue) else
@@ -31,10 +31,10 @@ class NSStringTests: GRDBTestCase {
     }
     
     func testNSNumberFromDatabaseValueFailure() {
-        let databaseValue_Null = DatabaseValue.Null
+        let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue
-        let databaseValue_Blob = "bar".dataUsingEncoding(NSUTF8StringEncoding)!.databaseValue
+        let databaseValue_Blob = "bar".data(using: NSUTF8StringEncoding)!.databaseValue
         XCTAssertNil(NSString.fromDatabaseValue(databaseValue_Null))
         XCTAssertNil(NSString.fromDatabaseValue(databaseValue_Int64))
         XCTAssertNil(NSString.fromDatabaseValue(databaseValue_Double))

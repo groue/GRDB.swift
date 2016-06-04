@@ -17,7 +17,7 @@ class NSDataTests: GRDBTestCase {
     
     func testNSDataDatabaseValueRoundTrip() {
         
-        func roundTrip(value: NSData) -> Bool
+        func roundTrip(_ value: NSData) -> Bool
         {
             let databaseValue = value.databaseValue
             guard let back = NSData.fromDatabaseValue(databaseValue) else
@@ -28,11 +28,11 @@ class NSDataTests: GRDBTestCase {
             return back.isEqual(value)
         }
         
-        XCTAssertTrue(roundTrip("bar".dataUsingEncoding(NSUTF8StringEncoding)!))
+        XCTAssertTrue(roundTrip("bar".data(using: NSUTF8StringEncoding)!))
     }
     
     func testNSDataFromDatabaseValueFailure() {
-        let databaseValue_Null = DatabaseValue.Null
+        let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue
         let databaseValue_String = "foo".databaseValue

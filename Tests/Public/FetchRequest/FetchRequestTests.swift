@@ -34,7 +34,7 @@ private struct CustomStruct: DatabaseValueConvertible {
     }
     
     /// Returns a String initialized from *databaseValue*, if possible.
-    static func fromDatabaseValue(databaseValue: DatabaseValue) -> CustomStruct? {
+    static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> CustomStruct? {
         guard let number = Int64.fromDatabaseValue(databaseValue) else {
             return nil
         }

@@ -115,19 +115,19 @@ class DatabaseValueTests: GRDBTestCase {
         XCTAssertEqual(string1, string2)
         XCTAssertEqual(string1.hashValue, string2.hashValue)
         
-        let fooData1 = "foo".dataUsingEncoding(NSUTF8StringEncoding)!.databaseValue
-        let fooData2 = "foo".dataUsingEncoding(NSUTF8StringEncoding)!.databaseValue
+        let fooData1 = "foo".data(using: NSUTF8StringEncoding)!.databaseValue
+        let fooData2 = "foo".data(using: NSUTF8StringEncoding)!.databaseValue
         XCTAssertEqual(fooData1, fooData2)
         XCTAssertEqual(fooData1.hashValue, fooData2.hashValue)
     }
     
     func testNullDatabaseValueGetValue() {
-        let databaseValue_Null = DatabaseValue.Null
+        let databaseValue_Null = DatabaseValue.null
         XCTAssertNil(databaseValue_Null.value())
     }
     
     func testDatabaseValueDescription() {
-        let databaseValue_Null = DatabaseValue.Null
+        let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue
         // TODO: String & Blob

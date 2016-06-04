@@ -100,7 +100,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         let arguments = StatementArguments(dictionary)
         XCTAssertTrue(arguments == nil)
         
-        let dictionaryInvalidKeyType: NSDictionary = [NSNumber(integer: 1): "bar"]
+        let dictionaryInvalidKeyType: NSDictionary = [NSNumber(value: 1): "bar"]
         let arguments2 = StatementArguments(dictionaryInvalidKeyType)
         XCTAssertTrue(arguments2 == nil)
     }

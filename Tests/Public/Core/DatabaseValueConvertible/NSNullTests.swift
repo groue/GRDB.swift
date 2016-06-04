@@ -11,7 +11,7 @@ class NSNullTests: GRDBTestCase {
     
     func testNSNullFromDatabaseValue() {
         // NSNull.fromDatabaseValue always returns nil?
-        let databaseValue = DatabaseValue.Null
+        let databaseValue = DatabaseValue.null
         XCTAssertNil(NSNull.fromDatabaseValue(databaseValue))
     }
     
@@ -19,7 +19,7 @@ class NSNullTests: GRDBTestCase {
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue
         let databaseValue_String = "foo".databaseValue
-        let databaseValue_Blob = "bar".dataUsingEncoding(NSUTF8StringEncoding)!.databaseValue
+        let databaseValue_Blob = "bar".data(using: NSUTF8StringEncoding)!.databaseValue
         XCTAssertNil(NSNull.fromDatabaseValue(databaseValue_Int64))
         XCTAssertNil(NSNull.fromDatabaseValue(databaseValue_Double))
         XCTAssertNil(NSNull.fromDatabaseValue(databaseValue_String))

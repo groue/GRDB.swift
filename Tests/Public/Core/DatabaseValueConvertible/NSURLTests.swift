@@ -11,7 +11,7 @@ class NSURLTests: GRDBTestCase {
     
     func testNSURLDatabaseValueRoundTrip() {
         
-        func roundTrip(value: NSURL) -> Bool
+        func roundTrip(_ value: NSURL) -> Bool
         {
             let databaseValue = value.databaseValue
             guard let back = NSURL.fromDatabaseValue(databaseValue) else
@@ -27,10 +27,10 @@ class NSURLTests: GRDBTestCase {
     }
     
     func testNSURLFromDatabaseValueFailure() {
-        let databaseValue_Null = DatabaseValue.Null
+        let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue
-        let databaseValue_Blob = "bar".dataUsingEncoding(NSUTF8StringEncoding)!.databaseValue
+        let databaseValue_Blob = "bar".data(using: NSUTF8StringEncoding)!.databaseValue
         XCTAssertNil(NSURL.fromDatabaseValue(databaseValue_Null))
         XCTAssertNil(NSURL.fromDatabaseValue(databaseValue_Int64))
         XCTAssertNil(NSURL.fromDatabaseValue(databaseValue_Double))

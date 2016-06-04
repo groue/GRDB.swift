@@ -1115,8 +1115,8 @@ class TransactionObserverTests: GRDBTestCase {
     func testTransactionObserverAddAndRemove() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
-            let observer = TransactionObserver()
-            dbQueue.addTransactionObserver(observer)
+            let observer = Observer()
+            dbQueue.add(transactionObserver: observer)
             
             try dbQueue.inDatabase { db in
                 let artist = Artist(name: "Gerhard Richter")
@@ -1125,7 +1125,7 @@ class TransactionObserverTests: GRDBTestCase {
                 try artist.save(db)
                 XCTAssertEqual(observer.lastCommittedEvents.count, 1)
                 let event = observer.lastCommittedEvents.filter { event in
-                    self.match(event: event, kind: .Insert, tableName: "artists", rowId: artist.id!)
+                    self.match(event: event, kind: .insert, tableName: "artists", rowId: artist.id!)
                     }.first
                 XCTAssertTrue(event != nil)
                 
@@ -1143,7 +1143,7 @@ class TransactionObserverTests: GRDBTestCase {
             }
             
             observer.resetCounts()
-            dbQueue.removeTransactionObserver(observer)
+            dbQueue.remove(transactionObserver: observer)
             
             try dbQueue.inTransaction { db in
                 do {
@@ -1151,7 +1151,7 @@ class TransactionObserverTests: GRDBTestCase {
                 } catch {
                     XCTFail("Unexpected Error")
                 }
-                return .Commit
+                return .commit
             }
             
             #if SQLITE_ENABLE_PREUPDATE_HOOK

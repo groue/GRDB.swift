@@ -13,9 +13,9 @@ class DatabaseValueFoundationTests: GRDBTestCase {
         let testValue_Int64: Int64 = Int64(1)
         let testValue_Double: Double = Double(100000.1)
         let testValue_String: String = "foo"
-        let testValue_Data: NSData = "bar".dataUsingEncoding(NSUTF8StringEncoding)!
+        let testValue_Data: NSData = "bar".data(using: NSUTF8StringEncoding)!
         
-        let databaseValue_Null = DatabaseValue.Null
+        let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = testValue_Int64.databaseValue
         let databaseValue_Double = testValue_Double.databaseValue
         let databaseValue_String = testValue_String.databaseValue
@@ -30,9 +30,9 @@ class DatabaseValueFoundationTests: GRDBTestCase {
         XCTAssertTrue(anyObject_Null is NSNull)
         XCTAssertEqual(anyObject_Null as? NSNull, NSNull())
         XCTAssertTrue(anyObject_Int64 is NSNumber)
-        XCTAssertEqual(anyObject_Int64 as? NSNumber, NSNumber(longLong: testValue_Int64))
+        XCTAssertEqual(anyObject_Int64 as? NSNumber, NSNumber(value: testValue_Int64))
         XCTAssertTrue(anyObject_Double is NSNumber)
-        XCTAssertEqual(anyObject_Double as? NSNumber, NSNumber(double: Double(100000.1)))
+        XCTAssertEqual(anyObject_Double as? NSNumber, NSNumber(value: Double(100000.1)))
         XCTAssertTrue(anyObject_String is NSString)
         XCTAssertEqual(anyObject_String as? NSString, testValue_String)
         XCTAssertTrue(anyObject_Blob is NSData)
