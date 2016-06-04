@@ -955,7 +955,9 @@ dbComponents.dateComponents // NSDateComponents
 
 ### NSNumber and NSDecimalNumber
 
-While NSNumber deserves no special discussion, NSDecimalNumber does.
+**NSNumber** can be stored and fetched from the database just like other [values](#values). Floating point NSNumbers are stored as Double. Integer and boolean, as Int64. Integers that don't fit Int64 won't be stored: you'll get a fatal error instead. Be cautious when an NSNumber contains an UInt64, for example.
+
+NSDecimalNumber deserves a longer discussion:
 
 **SQLite has no support for decimal numbers.** Given the table below, SQLite will actually store integers or doubles:
 
