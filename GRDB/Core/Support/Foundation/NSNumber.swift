@@ -21,11 +21,15 @@ extension NSNumber: DatabaseValueConvertible {
         case "l":
             return Int64(longValue).databaseValue
         case "L":
-            return Int64(unsignedLongValue).databaseValue
+            let uint = unsignedLongValue
+            GRDBPrecondition(UInt64(uint) <= UInt64(Int64.max), "value can not be converted to Int64 because it is greater than Int64.max")
+            return Int64(uint).databaseValue
         case "q":
             return Int64(longLongValue).databaseValue
         case "Q":
-            return Int64(unsignedLongLongValue).databaseValue
+            let uint64 = unsignedLongLongValue
+            GRDBPrecondition(uint64 <= UInt64(Int64.max), "value can not be converted to Int64 because it is greater than Int64.max")
+            return Int64(uint64).databaseValue
         case "f":
             return Double(floatValue).databaseValue
         case "d":
