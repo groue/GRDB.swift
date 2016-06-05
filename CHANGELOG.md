@@ -6,6 +6,7 @@ Release Notes
 **Fixed**
 
 - Fix a crash that would sometimes happen when a FetchedRecordsController's callbacks avoid retain cycles by capturing unowned references.
+- Robust handling of numeric overflows. Fixes [#68](https://github.com/groue/GRDB.swift/issues/68).
 
 **New**
 
