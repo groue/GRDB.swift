@@ -10,20 +10,26 @@ import XCTest
 private class ChangesRecorder<Record: RowConvertible> {
     var recordsBeforeChanges: [Record]!
     var recordsAfterChanges: [Record]!
+    var countBeforeChanges: Int?
+    var countAfterChanges: Int?
     var transactionExpectation: XCTestExpectation? {
         didSet {
             recordsBeforeChanges = nil
             recordsAfterChanges = nil
+            countBeforeChanges = nil
+            countAfterChanges = nil
         }
     }
     
-    func controllerWillChange(controller: FetchedRecordsController<Record>) {
+    func controllerWillChange(controller: FetchedRecordsController<Record>, count: Int? = nil) {
         recordsBeforeChanges = controller.fetchedRecords
+        countBeforeChanges = count
     }
     
     /// The default implementation does nothing.
-    func controllerDidChange(controller: FetchedRecordsController<Record>) {
+    func controllerDidChange(controller: FetchedRecordsController<Record>, count: Int? = nil) {
         recordsAfterChanges = controller.fetchedRecords
+        countAfterChanges = count
         if let transactionExpectation = transactionExpectation {
             transactionExpectation.fulfill()
         }
@@ -503,6 +509,51 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             }
             waitForExpectationsWithTimeout(1, handler: nil)
             XCTAssertEqual(persons.map { $0.name }, ["Arthur"])
+        }
+    }
+    
+    func testFetchAlongside() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            let controller = FetchedRecordsController<Person>(dbQueue, request: Person.order(SQLColumn("id")), compareRecordsByPrimaryKey: true)
+            let recorder = ChangesRecorder<Person>()
+            controller.trackChanges(
+                fetchAlongside: { db in Person.fetchCount(db) },
+                recordsWillChange: { (controller, count) in recorder.controllerWillChange(controller, count: count) },
+                recordsDidChange: { (controller, count) in recorder.controllerDidChange(controller, count: count) })
+            controller.performFetch()
+            
+            // First insert
+            recorder.transactionExpectation = expectationWithDescription("expectation")
+            try dbQueue.inTransaction { db in
+                try synchronizePersons(db, [
+                    Person(id: 1, name: "Arthur")])
+                return .Commit
+            }
+            waitForExpectationsWithTimeout(1, handler: nil)
+            
+            XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
+            XCTAssertEqual(recorder.recordsAfterChanges.count, 1)
+            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.countBeforeChanges!, 1)
+            XCTAssertEqual(recorder.countAfterChanges!, 1)
+            
+            // Second insert
+            recorder.transactionExpectation = expectationWithDescription("expectation")
+            try dbQueue.inTransaction { db in
+                try synchronizePersons(db, [
+                    Person(id: 1, name: "Arthur"),
+                    Person(id: 2, name: "Barbara")])
+                return .Commit
+            }
+            waitForExpectationsWithTimeout(1, handler: nil)
+            
+            XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
+            XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur"])
+            XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
+            XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+            XCTAssertEqual(recorder.countBeforeChanges!, 2)
+            XCTAssertEqual(recorder.countAfterChanges!, 2)
         }
     }
 }
