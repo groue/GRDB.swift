@@ -385,7 +385,7 @@ extension Row {
             return impl.databaseValue(atIndex: index).value()
         }
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
-            fatalError("could not convert NULL to \(Value.self).")
+            fatalError("could not convert database NULL value to \(Value.self)")
         }
         return Value.init(sqliteStatement: sqliteStatement, index: Int32(index))
     }

@@ -22,13 +22,13 @@ extension NSNumber: DatabaseValueConvertible {
             return Int64(longValue).databaseValue
         case "L":
             let uint = unsignedLongValue
-            GRDBPrecondition(UInt64(uint) <= UInt64(Int64.max), "could not convert \(uint) to Int64")
+            GRDBPrecondition(UInt64(uint) <= UInt64(Int64.max), "could not convert \(uint) to an Int64 that can be stored in the database")
             return Int64(uint).databaseValue
         case "q":
             return Int64(longLongValue).databaseValue
         case "Q":
             let uint64 = unsignedLongLongValue
-            GRDBPrecondition(uint64 <= UInt64(Int64.max), "could not convert \(uint64) to Int64")
+            GRDBPrecondition(uint64 <= UInt64(Int64.max), "could not convert \(uint64) to an Int64 that can be stored in the database")
             return Int64(uint64).databaseValue
         case "f":
             return Double(floatValue).databaseValue

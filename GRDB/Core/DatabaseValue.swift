@@ -88,7 +88,7 @@ public struct DatabaseValue {
             return value
         }
         guard isNull else {
-            fatalError("could not convert \(self) to \(Value.self).")
+            fatalError("could not convert database value \(self) to \(Value.self)")
         }
         return nil
     }
@@ -102,7 +102,7 @@ public struct DatabaseValue {
     @warn_unused_result
     public func value<Value: DatabaseValueConvertible>() -> Value {
         guard let value = Value.fromDatabaseValue(self) as Value? else {
-            fatalError("could not convert \(self) to \(Value.self).")
+            fatalError("could not convert database value \(self) to \(Value.self)")
         }
         return value
     }

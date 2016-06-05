@@ -109,7 +109,7 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        GRDBPrecondition(int64 >= Int64(Int.min) && int64 <= Int64(Int.max), "could not convert \(int64) to Int")
+        GRDBPrecondition(int64 >= Int64(Int.min) && int64 <= Int64(Int.max), "could not convert database value \(int64) to Int")
         self = Int(int64)
     }
     
@@ -152,7 +152,7 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        GRDBPrecondition(int64 >= Int64(Int32.min) && int64 <= Int64(Int32.max), "could not convert \(int64) to Int32")
+        GRDBPrecondition(int64 >= Int64(Int32.min) && int64 <= Int64(Int32.max), "could not convert database value \(int64) to Int32")
         self = Int32(int64)
     }
     
