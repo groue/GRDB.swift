@@ -12,6 +12,7 @@ It ships with a **low-level SQLite API**, and high-level tools that help dealing
 - **Database Changes Observation**: perform post-commit and post-rollback actions
 - **Fetched Records Controller**: automated tracking of changes in a query results, and UITableView animations
 - **Encryption** with SQLCipher
+- **Support for custom SQLite builds**
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
@@ -178,11 +179,6 @@ Documentation
 
 ### Installation
 
-#### iOS7
-
-You can use GRDB in a project targetting iOS7. See [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7) for more information.
-
-
 #### CocoaPods
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
@@ -196,6 +192,8 @@ use_frameworks!
 pod 'GRDB.swift', '~> 0.70.1'
 ```
 
+> :point_up: **Note**: [SQLCipher](#encryption) and [custom SQLite builds](#custom-sqlite-builds) are not available via CocoaPods.
+
 
 #### Carthage
 
@@ -207,6 +205,8 @@ To use GRDB with Carthage, specify in your Cartfile:
 github "groue/GRDB.swift" ~> 0.70.1
 ```
 
+> :point_up: **Note**: [custom SQLite builds](#custom-sqlite-builds) are not available via Carthage.
+
 
 #### Manually
 
@@ -216,6 +216,11 @@ github "groue/GRDB.swift" ~> 0.70.1
 4. Add `GRDB.framework` to the **Embedded Binaries** section of the **General**  tab of your target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
+
+
+#### Custom SQLite builds
+
+**By default, GRDB uses the SQLite library that ships with the operating system.** You can build GRDB with custom SQLite sources and options, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib). See [installation instructions](SQLiteCustom/README.md).
 
 
 Database Connections
@@ -2629,6 +2634,25 @@ do {
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
 
+### Support for SQLite Pre-Update Hooks
+
+A [custom SQLite build](#custom-sqlite-builds) can activate [SQLite "preupdate hooks"](http://www.sqlite.org/sessions/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
+
+```swift
+public protocol TransactionObserverType : class {
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Notifies before a database change (insert, update, or delete)
+    /// with change information (initial / final values for the row's
+    /// columns).
+    ///
+    /// The event is only valid for the duration of this method call. If you
+    /// need to keep it longer, store a copy of its properties.
+    func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent)
+    #endif
+}
+```
+
+
 ## FetchedRecordsController
 
 **You use FetchedRecordsController to track changes in the results of an SQLite request.**
@@ -2741,7 +2765,7 @@ See [Implementing Table View Updates](#implementing-table-view-updates) for more
 
 ```swift
 controller.trackChanges { controller in
-    let persons = controller.fetchedRecords! // [Person]
+    let newPersons = controller.fetchedRecords! // [Person]
 }
 ```
 
@@ -2770,6 +2794,27 @@ try dbQueue.inDatabase { db in
 ```
 
 When you need to take immediate action, force the controller to refresh immediately with its `performFetch` method. In this case, changes callbacks are *not* called.
+
+
+**Changes notified in callbacks may not reflect the current database state.** This is because after a transaction has committed, and before the fetched records controller had the opportunity to notify changes in the main thread, other database transactions can modify the database.
+
+*This means that values fetched from inside the controller's callbacks may be inconsistent with the controller's records.*
+
+To avoid inconsistencies, provide a `fetchAlongside` argument to the `trackChanges` method, as below:
+
+```swift
+controller.trackChanges(
+    fetchAlongside: { db in
+        // Fetch any extra value, for example the number of fetched records:
+        return Person.fetchCount(db)
+    },
+    recordsDidChange: { (controller, count) in
+        // The extra value is the second argument.
+        let recordsCount = controller.fetchedRecords!.count
+        assert(count == recordsCount) // guaranteed
+    })
+```
+
 
 
 ### Modifying the Fetch Request
@@ -3330,7 +3375,6 @@ Sample Code
 
 - The [Documentation](#documentation) is full of GRDB snippets.
 - [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
-- [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7): A sample iOS7 application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to read and write NSDate as timestamp: [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift)
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
