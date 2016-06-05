@@ -108,7 +108,10 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
-        self = Int(sqlite3_column_int64(sqliteStatement, index))
+        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        GRDBPrecondition(int64 >= Int64(Int.min), "value cannot be converted to Int because it is less than Int.min")
+        GRDBPrecondition(int64 <= Int64(Int.max), "value can not be converted to Int because it is greater than Int.max")
+        self = Int(int64)
     }
     
     /// Returns a value that can be stored in the database.
@@ -120,9 +123,20 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int? {
         switch databaseValue.storage {
         case .Int64(let int64):
+            guard int64 >= Int64(Int.min) else { return nil }
+            guard int64 <= Int64(Int.max) else { return nil }
             return Int(int64)
         case .Double(let double):
-            return Int(double)
+            // Cast from Double to Int64 to Int
+            // Why? Because on 32-bits platforms we'll convert more values this way (Swift bug?)
+            // - Int(Int64(-2147483648.999999))  // -2147483648
+            // - Int(-2147483648.999999)         // fatal error
+            guard double >= Double(Int64.min) else { return nil }
+            guard double < Double(Int64.max) else { return nil }
+            let int64 = Int64(double)
+            guard int64 >= Int64(Int.min) else { return nil }
+            guard int64 <= Int64(Int.max) else { return nil }
+            return Int(int64)
         default:
             return nil
         }
@@ -138,7 +152,10 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
-        self = Int32(sqlite3_column_int64(sqliteStatement, index))
+        let int64 = sqlite3_column_int64(sqliteStatement, index)
+        GRDBPrecondition(int64 >= Int64(Int32.min), "value cannot be converted to Int32 because it is less than Int32.min")
+        GRDBPrecondition(int64 <= Int64(Int32.max), "value can not be converted to Int32 because it is greater than Int32.max")
+        self = Int32(int64)
     }
     
     /// Returns a value that can be stored in the database.
@@ -150,9 +167,20 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     public static func fromDatabaseValue(databaseValue: DatabaseValue) -> Int32? {
         switch databaseValue.storage {
         case .Int64(let int64):
+            guard int64 >= Int64(Int32.min) else { return nil }
+            guard int64 <= Int64(Int32.max) else { return nil }
             return Int32(int64)
         case .Double(let double):
-            return Int32(double)
+            // Cast from Double to Int64 to Int32
+            // Why? Because we'll convert more values this way (Swift bug?)
+            // - Int32(Int64(-2147483648.999999))  // -2147483648
+            // - Int32(-2147483648.999999)         // fatal error
+            guard double >= Double(Int64.min) else { return nil }
+            guard double < Double(Int64.max) else { return nil }
+            let int64 = Int64(double)
+            guard int64 >= Int64(Int32.min) else { return nil }
+            guard int64 <= Int64(Int32.max) else { return nil }
+            return Int32(int64)
         default:
             return nil
         }
@@ -182,6 +210,8 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
         case .Int64(let int64):
             return int64
         case .Double(let double):
+            guard double >= Double(Int64.min) else { return nil }
+            guard double < Double(Int64.max) else { return nil }
             return Int64(double)
         default:
             return nil
