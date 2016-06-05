@@ -6,13 +6,17 @@ Release Notes
 **Fixed**
 
 - Fix a crash that would sometimes happen when a FetchedRecordsController's callbacks avoid retain cycles by capturing unowned references.
-- Robust handling of numeric overflows. Fixes [#68](https://github.com/groue/GRDB.swift/issues/68).
+- Improved handling of numeric overflows. Fixes [#68](https://github.com/groue/GRDB.swift/issues/68).
 
 **New**
 
 - GRDB can now use a custom SQLite build ([documentation](https://github.com/groue/GRDB.swift/tree/master/SQLiteCustom)). Merged [#62](https://github.com/groue/GRDB.swift/pull/62) by [@swiftlyfalling](https://github.com/swiftlyfalling).
 - With a custom SQLite build, transaction observers can observe individual column values in the rows modified by a transaction. Merged [#63](https://github.com/groue/GRDB.swift/pull/63) by [@swiftlyfalling](https://github.com/swiftlyfalling).
 - FetchedRecordsController can now fetch other values alongside the fetched records. This grants you the ability to fetch values that are consistent with the notified changes.
+
+**Breaking Changes**
+
+- iOS7 is no longer supported.
 
 
 ## 0.70.1
