@@ -2930,6 +2930,8 @@ self.controller.trackChanges(
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
+> :point_up: **Note**: our sample code above uses `unowned` references to the table view controller. This is a safe pattern as long as the table view controller owns the fetched records controller, and is deallocated from the main thread (this is usually the case). In other situations, prefer weak references.
+
 
 ### FetchedRecordsController Concurrency
 
