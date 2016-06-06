@@ -2796,9 +2796,7 @@ try dbQueue.inDatabase { db in
 When you need to take immediate action, force the controller to refresh immediately with its `performFetch` method. In this case, changes callbacks are *not* called.
 
 
-**Changes notified in callbacks may not reflect the current database state.** This is because after a transaction has committed, and before the fetched records controller had the opportunity to notify changes in the main thread, other database transactions can modify the database.
-
-*This means that values fetched from inside the controller's callbacks may be inconsistent with the controller's records.*
+**Values fetched from inside callbacks may be inconsistent with the controller's records.** This is because after database has changed, and before the controller had the opportunity to invoke callbacks in the main thread, other database changes can happen.
 
 To avoid inconsistencies, provide a `fetchAlongside` argument to the `trackChanges` method, as below:
 
