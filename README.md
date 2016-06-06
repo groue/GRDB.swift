@@ -1060,7 +1060,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-The transaction is rollbacked if an error is thrown within the transaction body, and that error is rethrown by the inTransaction method.
+The transaction is rollbacked if an error is thrown within the transaction body, and that error is rethrown by the inTransaction method. If you return `TransactionCompletion.Rollback` from your closure, the transaction is also rolled back, but no error is thrown.
 
 If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function:
 
