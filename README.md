@@ -1701,7 +1701,7 @@ See [fetching methods](#fetching-methods) for information about the `fetch`, `fe
 
 #### RowConvertible and Row Adapters
 
-RowConvertible consume row columns by name:
+RowConvertible types usually consume rows by column name:
 
 ```swift
 extension PointOfInterest : RowConvertible {
