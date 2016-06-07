@@ -16,7 +16,7 @@ public struct ColumnsAdapter {
 
     public init(columnBaseIndexes: [(Int, String)]) {
         self.columnBaseIndexes = columnBaseIndexes
-        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columnBaseIndexes.enumerate().map { ($1.1.lowercaseString, $0) })
+        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columnBaseIndexes.enumerate().map { ($1.1.lowercaseString, $0) }.reverse())
     }
 
     var count: Int {
@@ -79,6 +79,18 @@ public struct ColumnMapping : RowAdapter {
             }
             .sort { return $0.0 < $1.0 }
         return ColumnsAdapter(columnBaseIndexes: columnBaseIndexes)
+    }
+}
+
+public struct SuffixRowAdapter : RowAdapter {
+    public let index: Int
+    
+    public init(index: Int) {
+        self.index = index
+    }
+
+    public func binding(with statement: SelectStatement) throws -> RowAdapterBinding {
+        return ColumnsAdapter(columnBaseIndexes: statement.columnNames.suffixFrom(index).enumerate().map { ($0 + index, $1) })
     }
 }
 

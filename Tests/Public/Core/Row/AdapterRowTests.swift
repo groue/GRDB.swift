@@ -340,6 +340,77 @@ class AdapterRowTests: GRDBTestCase {
         }
     }
     
+    func testThreeLevelVariants() {
+        let dbQueue = DatabaseQueue()
+        dbQueue.inDatabase { db in
+            let adapter = VariantAdapter(
+                ColumnMapping(["id": "id0", "val": "val0"]),
+                variants: [
+                    "sub1": VariantAdapter(
+                        ColumnMapping(["id": "id1", "val": "val1"]),
+                        variants: ["sub2": ColumnMapping(["id": "id2", "val": "val2"])])])
+            let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+            
+            XCTAssertEqual(row.count, 2)
+            XCTAssertEqual(row.value(named: "id") as Int, 0)
+            XCTAssertEqual(row.value(named: "val") as String, "foo0")
+            
+            if let variant = row.variant(named: "sub1") {
+                XCTAssertEqual(variant.count, 2)
+                XCTAssertEqual(variant.value(named: "id") as Int, 1)
+                XCTAssertEqual(variant.value(named: "val") as String, "foo1")
+                
+                if let variant = variant.variant(named: "sub2") {
+                    XCTAssertEqual(variant.count, 2)
+                    XCTAssertEqual(variant.value(named: "id") as Int, 2)
+                    XCTAssertEqual(variant.value(named: "val") as String, "foo2")
+                } else {
+                    XCTFail()
+                }
+            } else {
+                XCTFail()
+            }
+            
+            // sub2 is only defined in sub1
+            XCTAssertTrue(row.variant(named: "sub2") == nil)
+        }
+    }
+    
+    func testSuffixAdapter() {
+        let dbQueue = DatabaseQueue()
+        dbQueue.inDatabase { db in
+            let adapter = VariantAdapter(
+                variants: [
+                    "sub1": VariantAdapter(
+                        SuffixRowAdapter(index: 2),
+                        variants: ["sub2": SuffixRowAdapter(index: 4)])])
+            let row = Row.fetchOne(db, "SELECT 0 AS id, 'foo0' AS val, 1 AS id, 'foo1' AS val, 2 as id, 'foo2' AS val", adapter: adapter)!
+            
+            XCTAssertEqual(row.count, 6)
+            XCTAssertEqual(row.value(named: "id") as Int, 0)
+            XCTAssertEqual(row.value(named: "val") as String, "foo0")
+            
+            if let variant = row.variant(named: "sub1") {
+                XCTAssertEqual(variant.count, 4)
+                XCTAssertEqual(variant.value(named: "id") as Int, 1)
+                XCTAssertEqual(variant.value(named: "val") as String, "foo1")
+                
+                if let variant = variant.variant(named: "sub2") {
+                    XCTAssertEqual(variant.count, 2)
+                    XCTAssertEqual(variant.value(named: "id") as Int, 2)
+                    XCTAssertEqual(variant.value(named: "val") as String, "foo2")
+                } else {
+                    XCTFail()
+                }
+            } else {
+                XCTFail()
+            }
+            
+            // sub2 is only defined in sub1
+            XCTAssertTrue(row.variant(named: "sub2") == nil)
+        }
+    }
+    
     func testCopy() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
