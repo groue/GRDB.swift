@@ -252,11 +252,11 @@ class DetachedRowTests: GRDBTestCase {
         }
     }
     
-    func testSubRows() {
+    func testVariants() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
             let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
-            XCTAssertTrue(row.subrow(named: "missing") == nil)
+            XCTAssertTrue(row.variant(named: "missing") == nil)
         }
     }
     

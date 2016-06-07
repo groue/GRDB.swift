@@ -13,7 +13,7 @@ private struct CustomFetchRequest : FetchRequest {
     }
     
     func adapter(statement: SelectStatement) throws -> RowAdapter? {
-        return RowAdapter(mapping: ["consumed": "produced"])
+        return ColumnMapping(["consumed": "produced"])
     }
 }
 

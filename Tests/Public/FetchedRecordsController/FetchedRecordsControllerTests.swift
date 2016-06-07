@@ -136,7 +136,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
                 return cervantes.id!
             }
             
-            let adapter = RowAdapter(mapping: ["id": "_id", "authorId": "_authorId", "title": "_title"])
+            let adapter = ColumnMapping(["id": "_id", "authorId": "_authorId", "title": "_title"])
             let controller = FetchedRecordsController<Book>(dbQueue, sql: "SELECT id AS _id, authorId AS _authorId, title AS _title FROM books WHERE authorID = ?", arguments: [authorId], adapter: adapter)
             controller.performFetch()
             XCTAssertEqual(controller.fetchedRecords!.count, 1)

@@ -10,224 +10,11 @@
     #endif
 #endif
 
-// The types declared in this file are:
-//
-// - public struct RowAdapter
-//
-//     The public RowAdapter type
-//
-// - private protocol RowAdapterImpl
-//
-//      Protocol for inner implementations of RowAdapter:
-//
-//      - private struct IdentityRowAdapterImpl
-//          Implementation for RowAdapter that performs no adapting
-//
-//      - private struct DictionaryRowAdapterImpl
-//          Implementation for RowAdapter that maps column names with a dictionary
-//
-//      - private struct NestedRowAdapterImpl
-//          Implementation for RowAdapter that holds a "main" adapter and a
-//          dictionary of subrow adapters.
-//
-// - struct ColumnsAdapter
-//
-//     A RowAdapter itself can not do anything, because it doesn't know the
-//     row layout. ColumnsAdapter is the product of a RowAdapter and the row
-//     layout of a statement: it maps adapted columns to columns of the
-//     "base row".
-//
-// - struct AdapterRowImpl
-//
-//     A RowImpl for adapter rows.
-//
-// - struct AdapterRowImpl.Binding
-//
-//     A struct that holds a "main" column adapter, and a dictionary
-//     of subrows.
-
-/// Row adapters help two incompatible row interfaces to work together.
-///
-/// For example, a row consumer expects a column named "foo", but the produced
-/// column has a column named "bar".
-///
-/// A row adapter performs that column mapping:
-///
-///     // An adapter that maps column 'bar' to column 'foo':
-///     let adapter = RowAdapter(mapping: ["foo": "bar"])
-///
-///     // Fetch a column named 'bar', using adapter:
-///     let row = Row.fetchOne(db, "SELECT 'Hello' AS bar", adapter: adapter)
-///
-///     // The adapter in action:
-///     row.value(named: "foo") // "Hello"
-///
-/// A row adapter can also define "sub rows", that help several consumers feed
-/// on a single row:
-///
-///     let sql = "SELECT books.*, persons.name AS authorName " +
-///         "FROM books " +
-///     "LEFT JOIN persons ON books.authorID = persons.id"
-///
-///     let adapter = RowAdapter(
-///         mapping: ["id": "id", "title": "title"],
-///         subrows: ["author": ["authorID": "id", "authorName": "name"]])
-///
-///     for row in Row.fetchAll(db, sql, adapter: adapter) {
-///         // <Row id:1 title:"Moby-Dick">
-///         print(row)
-///
-///         if let authorRow = row.subrow(named: "author") {
-///             // <Row id:10 name:"Melville">
-///             print(authorRow)
-///         }
-public struct RowAdapter {
-    private let impl: RowAdapterImpl
-    
-    /// Creates an adapter with subrows.
-    ///
-    /// For example:
-    ///
-    ///     let sql = "SELECT books.*, persons.name AS authorName " +
-    ///               "FROM books " +
-    ///               "JOIN persons ON books.authorID = persons.id"
-    ///
-    ///     let authorMapping = ["authorID": "id", "authorName": "name"]
-    ///     let adapter = RowAdapter(subrows: ["author": authorMapping])
-    ///
-    ///     for row in Row.fetchAll(db, sql, adapter: adapter) {
-    ///         // <Row id:1 title:"Moby-Dick" authorID:10 authorName:"Melville">
-    ///         print(row)
-    ///
-    ///         if let authorRow = row.subrow(named: "author") {
-    ///             // <Row id:10 name:"Melville">
-    ///             print(authorRow)
-    ///         }
-    ///     }
-    public init(subrows: [String: [String: String]]) {
-        let subRowAdapters = Dictionary(keyValueSequence: subrows.map { (identifier, mapping) in
-            (identifier, RowAdapter(impl: DictionaryRowAdapterImpl(dictionary: mapping)))
-            })
-        impl = NestedRowAdapterImpl(
-            mainRowAdapter: RowAdapter(impl: IdentityRowAdapterImpl()),
-            subRowAdapters: subRowAdapters)
-    }
-    
-    /// Creates an adapter with a column name mapping, and eventual subrows.
-    ///
-    /// For example:
-    ///
-    ///     let sql = "SELECT main.id AS mainID, p.name AS mainName, " +
-    ///               "       friend.id AS friendID, friend.name AS friendName, " +
-    ///               "FROM persons main " +
-    ///               "LEFT JOIN persons friend ON p.bestFriendID = f.id"
-    ///
-    ///     let mainMapping = ["id": "mainID", "name": "mainName"]
-    ///     let bestFriendMapping = ["id": "friendID", "name": "friendName"]
-    ///     let adapter = RowAdapter(
-    ///         mapping: mainMapping,
-    ///         subrows: ["bestFriend": bestFriendMapping])
-    ///
-    ///     for row in Row.fetchAll(db, sql, adapter: adapter) {
-    ///         print(row)                             // <Row id:1 name:"Arthur">
-    ///         print(row.subrow(named: "bestFriend")) // <Row id:2 name:"Barbara">
-    ///     }
-    public init(mapping: [String: String], subrows: [String: [String: String]] = [:]) {
-        let subRowAdapters = Dictionary(keyValueSequence: subrows.map { (identifier, mapping) in
-            (identifier, RowAdapter(impl: DictionaryRowAdapterImpl(dictionary: mapping)))
-            })
-        impl = NestedRowAdapterImpl(
-            mainRowAdapter: RowAdapter(impl: DictionaryRowAdapterImpl(dictionary: mapping)),
-            subRowAdapters: subRowAdapters)
-    }
-    
-    private init(impl: RowAdapterImpl) {
-        self.impl = impl
-    }
-    
-    func binding(with statement: SelectStatement) throws -> AdapterRowImpl.Binding {
-        return try impl.binding(with: statement)
-    }
-    
-    // Return an array [(baseRowIndex, mappedColumn), ...] ordered like the statement columns.
-    private func columnBaseIndexes(statement statement: SelectStatement) throws -> [(Int, String)] {
-        return try impl.columnBaseIndexes(statement: statement)
-    }
-}
-
-extension RowAdapter : DictionaryLiteralConvertible {
-    public init(dictionaryLiteral elements: (String, String)...) {
-        self.init(impl: DictionaryRowAdapterImpl(dictionary: Dictionary(keyValueSequence: elements)))
-    }
-}
-
-private protocol RowAdapterImpl {
-    // Return an array [(baseRowIndex, mappedColumn), ...] ordered like the statement columns.
-    func columnBaseIndexes(statement statement: SelectStatement) throws -> [(Int, String)]
-    
-    // Bindings for subrows
-    func subBindings(statement statement: SelectStatement) throws -> [String: AdapterRowImpl.Binding]
-}
-
-extension RowAdapterImpl {
-    // extension method
-    func binding(with statement: SelectStatement) throws -> AdapterRowImpl.Binding {
-        return try AdapterRowImpl.Binding(
-            columnsAdapter: ColumnsAdapter(columnBaseIndexes: columnBaseIndexes(statement: statement)),
-            subBindings: subBindings(statement: statement))
-    }
-
-    // default implementation
-    func subBindings(statement statement: SelectStatement) throws -> [String: AdapterRowImpl.Binding] {
-        return [:]
-    }
-}
-
-private struct IdentityRowAdapterImpl: RowAdapterImpl {
-    func columnBaseIndexes(statement statement: SelectStatement) throws -> [(Int, String)] {
-        return Array(statement.columnNames.enumerate())
-    }
-}
-
-private struct DictionaryRowAdapterImpl: RowAdapterImpl {
-    let dictionary: [String: String]
-
-    func columnBaseIndexes(statement statement: SelectStatement) throws -> [(Int, String)] {
-        return try dictionary
-            .map { (mappedColumn, baseColumn) -> (Int, String) in
-                guard let index = statement.indexOfColumn(named: baseColumn) else {
-                    throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(statement.columnNames.joinWithSeparator(", ")).")
-                }
-                return (index, mappedColumn)
-            }
-            .sort { return $0.0 < $1.0 }
-    }
-}
-
-private struct NestedRowAdapterImpl: RowAdapterImpl {
-    let mainRowAdapter: RowAdapter
-    let subRowAdapters: [String: RowAdapter]
-    
-    func columnBaseIndexes(statement statement: SelectStatement) throws -> [(Int, String)] {
-        return try mainRowAdapter.columnBaseIndexes(statement: statement)
-    }
-    
-    func subBindings(statement statement: SelectStatement) throws -> [String: AdapterRowImpl.Binding] {
-        let subBindings = try subRowAdapters.map { (identifier: String, adapter: RowAdapter) -> (String, AdapterRowImpl.Binding) in
-            let subrowAdapter = try AdapterRowImpl.Binding(
-                columnsAdapter: ColumnsAdapter(columnBaseIndexes: adapter.columnBaseIndexes(statement: statement)),
-                subBindings: [:])
-            return (identifier, subrowAdapter)
-        }
-        return Dictionary(keyValueSequence: subBindings)
-    }
-}
-
-struct ColumnsAdapter {
+public struct ColumnsAdapter {
     let columnBaseIndexes: [(Int, String)]      // [(baseRowIndex, mappedColumn), ...]
     let lowercaseColumnIndexes: [String: Int]   // [mappedColumn: adaptedRowIndex]
 
-    init(columnBaseIndexes: [(Int, String)]) {
+    public init(columnBaseIndexes: [(Int, String)]) {
         self.columnBaseIndexes = columnBaseIndexes
         self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columnBaseIndexes.enumerate().map { ($1.1.lowercaseString, $0) })
     }
@@ -252,12 +39,82 @@ struct ColumnsAdapter {
     }
 }
 
-extension Row {
-    /// Builds a row from a base row and an adapter binding
-    convenience init(baseRow: Row, adapterBinding binding: AdapterRowImpl.Binding) {
-        self.init(impl: AdapterRowImpl(baseRow: baseRow, binding: binding))
+extension ColumnsAdapter : RowAdapterBinding {
+    public var columnsAdapter: ColumnsAdapter {
+        return self
+    }
+    public var variants: [String: RowAdapterBinding] {
+        return [:]
+    }
+}
+
+struct VariantAdapterBinding : RowAdapterBinding {
+    let columnsAdapter: ColumnsAdapter
+    let variants: [String: RowAdapterBinding]
+}
+
+public protocol RowAdapterBinding {
+    var columnsAdapter: ColumnsAdapter { get }
+    var variants: [String: RowAdapterBinding] { get }
+}
+
+public protocol RowAdapter {
+    func binding(with statement: SelectStatement) throws -> RowAdapterBinding
+}
+
+public struct ColumnMapping : RowAdapter {
+    public let mapping: [String: String]
+    
+    public init(_ mapping: [String: String]) {
+        self.mapping = mapping
     }
     
+    public func binding(with statement: SelectStatement) throws -> RowAdapterBinding {
+        let columnBaseIndexes = try mapping
+            .map { (mappedColumn, baseColumn) -> (Int, String) in
+                guard let index = statement.indexOfColumn(named: baseColumn) else {
+                    throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(statement.columnNames.joinWithSeparator(", ")).")
+                }
+                return (index, mappedColumn)
+            }
+            .sort { return $0.0 < $1.0 }
+        return ColumnsAdapter(columnBaseIndexes: columnBaseIndexes)
+    }
+}
+
+public struct VariantAdapter : RowAdapter {
+    public let mainAdapter: RowAdapter
+    public let variants: [String: RowAdapter]
+    
+    public init(_ mainAdapter: RowAdapter? = nil, variants: [String: RowAdapter]) {
+        self.mainAdapter = mainAdapter ?? IdentityRowAdapter()
+        self.variants = variants
+    }
+
+    public func binding(with statement: SelectStatement) throws -> RowAdapterBinding {
+        let mainBinding = try mainAdapter.binding(with: statement)
+        var variantBindings = mainBinding.variants
+        for (name, adapter) in variants {
+            try variantBindings[name] = adapter.binding(with: statement)
+        }
+        return VariantAdapterBinding(
+            columnsAdapter: mainBinding.columnsAdapter,
+            variants: variantBindings)
+    }
+}
+
+struct IdentityRowAdapter : RowAdapter {
+    func binding(with statement: SelectStatement) throws -> RowAdapterBinding {
+        return ColumnsAdapter(columnBaseIndexes: Array(statement.columnNames.enumerate()))
+    }
+}
+
+extension Row {
+    /// Builds a row from a base row and an adapter binding
+    convenience init(baseRow: Row, adapterBinding binding: RowAdapterBinding) {
+        self.init(impl: AdapterRowImpl(baseRow: baseRow, binding: binding))
+    }
+
     /// Returns self if adapter is nil
     func adaptedRow(adapter adapter: RowAdapter?, statement: SelectStatement) throws -> Row {
         guard let adapter = adapter else {
@@ -267,52 +124,46 @@ extension Row {
     }
 }
 
-// See Row.init(baseRow:binding:)
 struct AdapterRowImpl : RowImpl {
-    
-    struct Binding {
-        let columnsAdapter: ColumnsAdapter
-        let subBindings: [String: Binding]
-    }
-    
+
     let baseRow: Row
-    let binding: Binding
+    let binding: RowAdapterBinding
     var columnsAdapter: ColumnsAdapter { return binding.columnsAdapter }
-    
-    init(baseRow: Row, binding: Binding) {
+
+    init(baseRow: Row, binding: RowAdapterBinding) {
         self.baseRow = baseRow
         self.binding = binding
     }
-    
+
     var count: Int {
         return columnsAdapter.count
     }
-    
+
     func databaseValue(atIndex index: Int) -> DatabaseValue {
         return baseRow.databaseValue(atIndex: columnsAdapter.baseColumIndex(adaptedIndex: index))
     }
-    
+
     func dataNoCopy(atIndex index:Int) -> NSData? {
         return baseRow.dataNoCopy(atIndex: columnsAdapter.baseColumIndex(adaptedIndex: index))
     }
-    
+
     func columnName(atIndex index: Int) -> String {
         return columnsAdapter.columnName(adaptedIndex: index)
     }
-    
+
     func indexOfColumn(named name: String) -> Int? {
         return columnsAdapter.adaptedIndexOfColumn(named: name)
     }
-    
-    func subrow(named name: String) -> Row? {
-        guard let binding = binding.subBindings[name] else {
+
+    func variant(named name: String) -> Row? {
+        guard let binding = binding.variants[name] else {
             return nil
         }
         return Row(baseRow: baseRow, adapterBinding: binding)
     }
     
-    var subrowNames: Set<String> {
-        return Set(binding.subBindings.keys)
+    var variantNames: Set<String> {
+        return Set(binding.variants.keys)
     }
     
     func copy(row: Row) -> Row {

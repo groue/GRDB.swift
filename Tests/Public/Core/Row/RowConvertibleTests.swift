@@ -34,16 +34,16 @@ private class Person : RowConvertible {
     required init(_ row: Row) {
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
-        if let subrow = row.subrow(named: "bestFriend") {
-            bestFriend = Person(subrow)
+        if let variant = row.variant(named: "bestFriend") {
+            bestFriend = Person(variant)
         }
         fetched = false
     }
     
     func awakeFromFetch(row row: Row) {
         fetched = true
-        if let bestFriend = bestFriend, let subrow = row.subrow(named: "bestFriend") {
-            bestFriend.awakeFromFetch(row: subrow)
+        if let bestFriend = bestFriend, let variant = row.variant(named: "bestFriend") {
+            bestFriend.awakeFromFetch(row: variant)
         }
     }
 }
@@ -112,9 +112,9 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let adapter = RowAdapter(
-                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let adapter = VariantAdapter(
+                    ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
+                    variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let ss = Person.fetch(db, sql, arguments: arguments, adapter: adapter)
@@ -133,9 +133,9 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let adapter = RowAdapter(
-                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let adapter = VariantAdapter(
+                    ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
+                    variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let ss = Person.fetchAll(db, sql, arguments: arguments, adapter: adapter)
@@ -154,9 +154,9 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let adapter = RowAdapter(
-                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let adapter = VariantAdapter(
+                    ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
+                    variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let s = Person.fetchOne(db, sql, arguments: arguments, adapter: adapter)!
@@ -221,9 +221,9 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let adapter = RowAdapter(
-                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let adapter = VariantAdapter(
+                    ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
+                    variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.selectStatement(sql)
@@ -243,9 +243,9 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let adapter = RowAdapter(
-                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let adapter = VariantAdapter(
+                    ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
+                    variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.selectStatement(sql)
@@ -265,9 +265,9 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let adapter = RowAdapter(
-                    mapping: ["firstName": "firstName1", "lastName": "lastName1"],
-                    subrows: ["bestFriend": ["firstName": "firstName2", "lastName": "lastName2"]])
+                let adapter = VariantAdapter(
+                    ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
+                    variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.selectStatement(sql)
