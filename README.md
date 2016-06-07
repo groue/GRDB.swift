@@ -2646,7 +2646,7 @@ public protocol TransactionObserverType : class {
     /// columns).
     ///
     /// The event is only valid for the duration of this method call. If you
-    /// need to keep it longer, store a copy of its properties.
+    /// need to keep it longer, store a copy: event.copy().
     func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent)
     #endif
 }
