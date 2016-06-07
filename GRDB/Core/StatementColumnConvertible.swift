@@ -71,7 +71,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
         let sqliteStatement = statement.sqliteStatement
         return statement.fetchSequence(arguments: arguments) {
             guard sqlite3_column_type(sqliteStatement, 0) != SQLITE_NULL else {
-                fatalError("could not convert NULL to \(Self.self).")
+                fatalError("could not convert database NULL value to \(Self.self)")
             }
             return Self.init(sqliteStatement: sqliteStatement, index: 0)
         }

@@ -27,7 +27,7 @@ func setupDatabase(_ application: UIApplication) {
     
     migrator.registerMigration("createPersons") { db in
         // Have person names compared in a localized case insensitive fashion
-        // See https://github.com/groue/GRDB.swift/#unicide
+        // See https://github.com/groue/GRDB.swift/#unicode
         let collation = DatabaseCollation.localizedCaseInsensitiveCompare
         try db.execute(
             "CREATE TABLE persons (" +

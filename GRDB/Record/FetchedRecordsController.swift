@@ -85,8 +85,12 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// After executing this method, you can access the the fetched objects with
     /// the property fetchedRecords.
     public func performFetch() {
-        // If some changes are currently processed, make sure they are discarded.
+        // If some changes are currently processed, make sure they are
+        // discarded. But preserve eventual changes processing for future
+        // changes.
+        let checkForChanges = observer?.checkForChanges
         observer?.invalidate()
+        observer = nil
         
         // Fetch items on the writing dispatch queue, so that the transaction
         // observer is added on the same serialized queue as transaction
@@ -94,18 +98,16 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         databaseWriter.write { db in
             let statement = try! self.request.selectStatement(db)
             let adapter = try! self.request.adapter(statement)
-            let items = Item<Record>.fetchAll(statement, adapter: adapter)
-            self.fetchedItems = items
+            let initialItems = Item<Record>.fetchAll(statement, adapter: adapter)
+            self.fetchedItems = initialItems
             self.isSameItem = self.isSameItemFactory(db)
             
-            if self.hasChangesCallbacks {
-                // Setup a new transaction observer.
+            if let checkForChanges = checkForChanges {
                 let observer = FetchedRecordsObserver(
-                    controller: self,
-                    initialItems: items,
                     observedTables: statement.sourceTables,
-                    isSameItem: self.isSameItem)
+                    checkForChanges: checkForChanges)
                 self.observer = observer
+                observer.items = initialItems
                 db.add(transactionObserver: observer)
             }
         }
@@ -141,71 +143,180 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         setRequest(SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
-    public typealias WillChangeCallback = (FetchedRecordsController<Record>) -> ()
-    public typealias DidChangeCallback = (FetchedRecordsController<Record>) -> ()
-    
-    private var willChangeCallback: WillChangeCallback?
-    private var didChangeCallback: DidChangeCallback?
-    
     #if os(iOS)
-    public typealias TableViewEventCallback = (controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ()
-    private var tableViewEventCallback: TableViewEventCallback?
-    
     /// Registers changes notification callbacks (iOS only).
     ///
     /// - parameters:
-    ///     - willChangeCallback: Invoked before records are updated.
-    ///     - tableViewEventCallback: Invoked for each record that has been
-    ///       added, removed, moved, or updated.
-    ///     - didChangeCallback: Invoked after records have been updated.
-    public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, tableViewEvent tableViewEventCallback: TableViewEventCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
-        self.willChangeCallback = willChangeCallback
-        self.tableViewEventCallback = tableViewEventCallback
-        self.didChangeCallback = didChangeCallback
-        self.hasChangesCallbacks = (willChangeCallback != nil) || (tableViewEventCallback != nil) || (didChangeCallback != nil)
+    ///     - recordsWillChange: Invoked before records are updated.
+    ///     - tableViewEvent: Invoked for each record that has been added,
+    ///       removed, moved, or updated.
+    ///     - recordsDidChange: Invoked after records have been updated.
+    public func trackChanges(
+        recordsWillChange: ((controller: FetchedRecordsController<Record>) -> ())? = nil,
+        tableViewEvent: ((controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ())? = nil,
+        recordsDidChange: ((controller: FetchedRecordsController<Record>) -> ())? = nil)
+    {
+        let recordsWillChangeWithVoidAlongside: ((controller: FetchedRecordsController<Record>, fetchedAlongside: Void) -> ())?
+        if let recordsWillChange = recordsWillChange {
+            recordsWillChangeWithVoidAlongside = { (controller, _) in recordsWillChange(controller: controller) }
+        } else {
+            recordsWillChangeWithVoidAlongside = nil
+        }
+        
+        let recordsDidChangeWithVoidAlongside: ((controller: FetchedRecordsController<Record>, fetchedAlongside: Void) -> ())?
+        if let recordsDidChange = recordsDidChange {
+            recordsDidChangeWithVoidAlongside = { (controller, _) in recordsDidChange(controller: controller) }
+        } else {
+            recordsDidChangeWithVoidAlongside = nil
+        }
+        
+        trackChanges(
+            fetchAlongside: { _ in },
+            recordsWillChange: recordsWillChangeWithVoidAlongside,
+            tableViewEvent: tableViewEvent,
+            recordsDidChange: recordsDidChangeWithVoidAlongside)
     }
     #else
     /// Registers changes notification callbacks.
     ///
     /// - parameters:
-    ///     - willChangeCallback: Invoked before records are updated.
-    ///     - didChangeCallback: Invoked after records have been updated.
-    public func trackChanges(recordsWillChange willChangeCallback: WillChangeCallback? = nil, recordsDidChange didChangeCallback: DidChangeCallback? = nil) {
-        self.willChangeCallback = willChangeCallback
-        self.didChangeCallback = didChangeCallback
-        self.hasChangesCallbacks = (willChangeCallback != nil) || (didChangeCallback != nil)
+    ///     - recordsWillChange: Invoked before records are updated.
+    ///     - recordsDidChange: Invoked after records have been updated.
+    public func trackChanges(
+        recordsWillChange: ((controller: FetchedRecordsController<Record>) -> ())? = nil,
+        recordsDidChange: ((controller: FetchedRecordsController<Record>) -> ())? = nil)
+    {
+        let recordsWillChangeWithVoidAlongside: ((controller: FetchedRecordsController<Record>, fetchedAlongside: Void) -> ())?
+        if let recordsWillChange = recordsWillChange {
+            recordsWillChangeWithVoidAlongside = { (controller, _) in recordsWillChange(controller: controller) }
+        } else {
+            recordsWillChangeWithVoidAlongside = nil
+        }
+        
+        let recordsDidChangeWithVoidAlongside: ((controller: FetchedRecordsController<Record>, fetchedAlongside: Void) -> ())?
+        if let recordsDidChange = recordsDidChange {
+            recordsDidChangeWithVoidAlongside = { (controller, _) in recordsDidChange(controller: controller) }
+        } else {
+            recordsDidChangeWithVoidAlongside = nil
+        }
+        
+        trackChanges(
+            fetchAlongside: { _ in },
+            recordsWillChange: recordsWillChangeWithVoidAlongside,
+            recordsDidChange: recordsDidChangeWithVoidAlongside)
     }
     #endif
     
-    private var hasChangesCallbacks: Bool = false {
-        didSet {
-            // Setting hasChangesCallbacks to false *will* stop database changes
-            // observation only after last changes are processed, in
-            // FetchedRecordsObserver.databaseDidCommit. This allows user code
-            // to change callbacks multiple times: tracking will stop if and
-            // only if the last set callbacks are nil.
-            //
-            // Conversely, setting hasChangesCallbacks to true must make
-            // sure that database changes are observed. But only if
-            // performFetch() has been called.
-            if let items = fetchedItems where hasChangesCallbacks && observer == nil {
-                // Setup a new transaction observer. Use
-                // database.write, so that the transaction observer is added on the
-                // same serialized queue as transaction callbacks.
-                databaseWriter.write { db in
-                    let statement = try! self.request.selectStatement(db)
-                    let observer = FetchedRecordsObserver(
-                        controller: self,
-                        initialItems: items,
-                        observedTables: statement.sourceTables,
-                        isSameItem: self.isSameItemFactory(db))
-                    self.observer = observer
-                    db.add(transactionObserver: observer)
-                    observer.checkForChanges(in: db)
-                }
+    #if os(iOS)
+    /// Registers changes notification callbacks (iOS only).
+    ///
+    /// - parameters:
+    ///     - fetchAlongside: The value returned from this closure is given to
+    ///       recordsWillChange and recordsDidChange callbacks, as their
+    ///       `fetchedAlongside` argument. The closure is guaranteed to see the
+    ///       database in the state it has just after eventual changes to the
+    ///       fetched records have been performed. Use it in order to fetch
+    ///       values that must be consistent with the fetched records.
+    ///     - recordsWillChange: Invoked before records are updated.
+    ///     - tableViewEvent: Invoked for each record that has been added,
+    ///       removed, moved, or updated.
+    ///     - recordsDidChange: Invoked after records have been updated.
+    public func trackChanges<T>(
+        fetchAlongside: (Database) -> T,
+        recordsWillChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())? = nil,
+        tableViewEvent: ((controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ())? = nil,
+        recordsDidChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())? = nil)
+    {
+        // If some changes are currently processed, make sure they are
+        // discarded because they would trigger previously set callbacks.
+        observer?.invalidate()
+        observer = nil
+        
+        guard (recordsWillChange != nil) || (tableViewEvent != nil) || (recordsDidChange != nil) else {
+            // Stop tracking
+            return
+        }
+        
+        let initialItems = fetchedItems
+        databaseWriter.write { db in
+            let fetchedChangesController = FetchedChangesController(
+                controller: self,
+                isSameItem: self.isSameItemFactory(db),
+                fetchAlongside: fetchAlongside,
+                recordsWillChange: recordsWillChange,
+                tableViewEvent: tableViewEvent,
+                recordsDidChange: recordsDidChange)
+            
+            // This closure erases the generic type T of data fetched alongside.
+            let checkForChanges = { (observer: FetchedRecordsObserver<Record>) -> () in
+                fetchedChangesController.checkForChanges(observer)
+            }
+
+            let statement = try! self.request.selectStatement(db)
+            let observer = FetchedRecordsObserver(
+                observedTables: statement.sourceTables,
+                checkForChanges: checkForChanges)
+            self.observer = observer
+            if let initialItems = initialItems {
+                observer.items = initialItems
+                db.add(transactionObserver: observer)
+                observer.performChangesChecking()
             }
         }
     }
+    #else
+    /// Registers changes notification callbacks.
+    ///
+    /// - parameters:
+    ///     - fetchAlongside: The value returned from this closure is given to
+    ///       recordsWillChange and recordsDidChange callbacks, as their
+    ///       `fetchedAlongside` argument. The closure is guaranteed to see the
+    ///       database in the state it has just after eventual changes to the
+    ///       fetched records have been performed. Use it in order to fetch
+    ///       values that must be consistent with the fetched records.
+    ///     - recordsWillChange: Invoked before records are updated.
+    ///     - recordsDidChange: Invoked after records have been updated.
+    public func trackChanges<T>(
+        fetchAlongside: (Database) -> T,
+        recordsWillChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())? = nil,
+        recordsDidChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())? = nil)
+    {
+        // If some changes are currently processed, make sure they are
+        // discarded because they would trigger previously set callbacks.
+        observer?.invalidate()
+        observer = nil
+        
+        guard (recordsWillChange != nil) || (recordsDidChange != nil) else {
+            // Stop tracking
+            return
+        }
+        
+        let initialItems = fetchedItems
+        databaseWriter.write { db in
+            let fetchedChangesController = FetchedChangesController(
+                controller: self,
+                fetchAlongside: fetchAlongside,
+                recordsWillChange: recordsWillChange,
+                recordsDidChange: recordsDidChange)
+            
+            // This closure erases the generic type T of data fetched alongside.
+            let checkForChanges = { (observer: FetchedRecordsObserver<Record>) -> () in
+                fetchedChangesController.checkForChanges(observer)
+            }
+
+            let statement = try! self.request.selectStatement(db)
+            let observer = FetchedRecordsObserver(
+                observedTables: statement.sourceTables,
+                checkForChanges: checkForChanges)
+            self.observer = observer
+            if let initialItems = initialItems {
+                observer.items = initialItems
+                db.add(transactionObserver: observer)
+                observer.performChangesChecking()
+            }
+        }
+    }
+    #endif
     
     
     // MARK: - Accessing Records
@@ -232,7 +343,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private var fetchedItems: [Item<Record>]?
     
     // The record comparator
-    private var isSameItem: ((Item<Record>, Item<Record>) -> Bool)
+    private var isSameItem: (Item<Record>, Item<Record>) -> Bool
     
     // The record comparator builder. It helps us supporting types that adopt
     // MutablePersistable: we just have to wait for a database connection, in
@@ -244,19 +355,14 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     private var request: FetchRequest {
         didSet {
             guard let observer = observer else { return }
-            databaseWriter.write { db in
-                observer.checkForChanges(in: db)
+            databaseWriter.write { _ in
+                observer.performChangesChecking()
             }
         }
     }
     
     // The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
-    
-    private func stopTrackingChanges() {
-        observer?.invalidate()
-        observer = nil
-    }
 }
 
 
@@ -330,69 +436,63 @@ extension FetchedRecordsController where Record: TableMapping {
 }
 
 
-// MARK: - FetchedRecordsObserver
+// MARK: - FetchedChangesController
 
-/// FetchedRecordsController adopts TransactionObserver so that it can
-/// monitor changes to its fetched records.
-private final class FetchedRecordsObserver<Record: RowConvertible> : TransactionObserver {
-    weak var controller: FetchedRecordsController<Record>?  // If nil, self is invalidated.
-    let observedTables: Set<String>
+/// FetchedChangesController computes and notifies changes
+private class FetchedChangesController<Record: RowConvertible, T> {
+    // THIS WEAK REFERENCE MUST NEVER BECOME STRONG if we want to allow user
+    // callbacks to avoid retain cycle with unowned references:
+    //
+    //      controller.trackChanges { [unowned self] ... }
+    //
+    // Should controller become strong at any point before callbacks are
+    // called, such unowned reference would have an opportunity to crash.
+    weak var controller: FetchedRecordsController<Record>?
+    let fetchAlongside: (Database) -> T
+    let recordsWillChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())?
+    let recordsDidChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())?
+
+    #if os(iOS)
     let isSameItem: (Item<Record>, Item<Record>) -> Bool
-    var needsComputeChanges: Bool
-    var items: [Item<Record>]
-    let queue: dispatch_queue_t // protects items
+    var tableViewEvent: ((controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ())?
     
-    init(controller: FetchedRecordsController<Record>, initialItems: [Item<Record>], observedTables: Set<String>, isSameItem: (Item<Record>, Item<Record>) -> Bool) {
+    init(
+        controller: FetchedRecordsController<Record>,
+        isSameItem: (Item<Record>, Item<Record>) -> Bool,
+        fetchAlongside: (Database) -> T,
+        recordsWillChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())?,
+        tableViewEvent: ((controller: FetchedRecordsController<Record>, record: Record, event: TableViewEvent) -> ())?,
+        recordsDidChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())?)
+    {
         self.controller = controller
-        self.items = initialItems
-        self.observedTables = observedTables
         self.isSameItem = isSameItem
-        self.needsComputeChanges = false
-        self.queue = dispatch_queue_create("GRDB.FetchedRecordsObserver", DISPATCH_QUEUE_SERIAL)
+        self.fetchAlongside = fetchAlongside
+        self.recordsWillChange = recordsWillChange
+        self.tableViewEvent = tableViewEvent
+        self.recordsDidChange = recordsDidChange
     }
-    
-    func invalidate() {
-        controller = nil
+    #else
+    init(
+        controller: FetchedRecordsController<Record>,
+        fetchAlongside: (Database) -> T,
+        recordsWillChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())?,
+        recordsDidChange: ((controller: FetchedRecordsController<Record>, fetchedAlongside: T) -> ())?)
+    {
+        self.controller = controller
+        self.fetchAlongside = fetchAlongside
+        self.recordsWillChange = recordsWillChange
+        self.recordsDidChange = recordsDidChange
     }
-    
-    #if SQLITE_ENABLE_PREUPDATE_HOOK
-    /// Part of the TransactionObserverType protocol
-    func databaseWillChange(with event: DatabasePreUpdateEvent) { }
     #endif
-    
-    /// Part of the TransactionObserver protocol
-    func databaseDidChange(with event: DatabaseEvent) {
-        if !needsComputeChanges && observedTables.contains(event.tableName) {
-            needsComputeChanges = true
-        }
-    }
-    
-    /// Part of the TransactionObserver protocol
-    func databaseWillCommit() throws { }
-    
-    /// Part of the TransactionObserver protocol
-    func databaseDidRollback(_ db: Database) {
-        needsComputeChanges = false
-    }
-    
-    /// Part of the TransactionObserver protocol
-    func databaseDidCommit(_ db: Database) {
-        // The databaseDidCommit callback is called in the database writer
-        // dispatch queue, which is serialized: it is guaranteed to process the
-        // last database transaction.
-        
-        // Were observed tables modified?
-        guard needsComputeChanges else { return }
-        needsComputeChanges = false
-        
-        checkForChanges(in: db)
-    }
     
     // Precondition: this method must be called from the database writer's
     // serialized dispatch queue.
-    func checkForChanges(in db: Database) {
-        // Invalidated?
-        guard let controller = self.controller else { return }
+    func checkForChanges(_ observer: FetchedRecordsObserver<Record>) {
+        // Observer invalidated?
+        guard observer.isValid else { return }
+        
+        // Controller alive?
+        guard let request = controller?.request, databaseWriter = controller?.databaseWriter else { return }
         
         // Fetch items.
         //
@@ -417,9 +517,11 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         // with a semaphore:
         let semaphore = dispatch_semaphore_create(0)!
         var fetchedItems: [Item<Record>]! = nil
+        var fetchedAlongside: T! = nil
         
-        controller.databaseWriter.readFromWrite { db in
-            fetchedItems = Item<Record>.fetchAll(db, controller.request)
+        databaseWriter.readFromWrite { db in
+            fetchedItems = Item<Record>.fetchAll(db, request)
+            fetchedAlongside = self.fetchAlongside(db)
             
             // Fetch is complete:
             dispatch_semaphore_signal(semaphore)
@@ -428,61 +530,139 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         
         // Process the fetched items
         
-        dispatch_async(queue) {
+        dispatch_async(observer.queue) { [weak observer] in
             // Wait for the fetch to complete:
             dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
             assert(fetchedItems != nil)
+            assert(fetchedAlongside != nil)
             
-            // Invalidated?
-            guard let controller = self.controller else { return }
+            // Observer invalidated?
+            guard let strongObserver = observer else { return }
+            guard strongObserver.isValid else { return }
             
+            // Controller alive?
+            guard let controllerQueue = self.controller?.queue else { return }
+
             // Changes?
             #if os(iOS)
                 let tableViewChanges: [TableViewChange<Record>]?
-                if controller.tableViewEventCallback != nil {
+                if self.tableViewEvent != nil {
                     // Compute table view changes
-                    let changes = self.computeTableViewChanges(from: self.items, to: fetchedItems)
+                    let changes = self.computeTableViewChanges(from: strongObserver.items, to: fetchedItems)
                     guard !changes.isEmpty else {
                         return
                     }
                     tableViewChanges = changes
                 } else {
                     // Look for a row difference
-                    guard fetchedItems.count != self.items.count || zip(fetchedItems, self.items).any({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                    guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).any({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
                         return
                     }
                     tableViewChanges = nil
                 }
             #else
                 // Look for a row difference
-                guard fetchedItems.count != self.items.count || zip(fetchedItems, self.items).any({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).any({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
                     return
                 }
             #endif
             
             // Ready for next check
-            self.items = fetchedItems
+            strongObserver.items = fetchedItems
             
-            dispatch_async(controller.queue) {
-                // Invalidated?
+            dispatch_async(controllerQueue) {
+                // Observer invalidated?
+                guard let strongObserver = observer else { return }
+                guard strongObserver.isValid else { return }
+                
+                // Now we can retain controller.
                 guard let controller = self.controller else { return }
                 
-                if controller.hasChangesCallbacks {
-                    controller.willChangeCallback?(controller)
-                    controller.fetchedItems = fetchedItems
-                    #if os(iOS)
-                        if let tableViewEventCallback = controller.tableViewEventCallback, let tableViewChanges = tableViewChanges {
-                            for change in tableViewChanges {
-                                tableViewEventCallback(controller: controller, record: change.record, event: change.event)
-                            }
+                if let recordsWillChange = self.recordsWillChange {
+                    recordsWillChange(controller: controller, fetchedAlongside: fetchedAlongside)
+                }
+                
+                controller.fetchedItems = fetchedItems
+                
+                #if os(iOS)
+                    if let tableViewEvent = self.tableViewEvent, let tableViewChanges = tableViewChanges {
+                        for change in tableViewChanges {
+                            tableViewEvent(controller: controller, record: change.record, event: change.event)
                         }
-                    #endif
-                    controller.didChangeCallback?(controller)
-                } else {
-                    controller.stopTrackingChanges()
+                    }
+                #endif
+                
+                if let recordsDidChange = self.recordsDidChange {
+                    recordsDidChange(controller: controller, fetchedAlongside: fetchedAlongside)
                 }
             }
         }
+    }
+}
+
+
+// MARK: - FetchedRecordsObserver
+
+/// FetchedRecordsController adopts TransactionObserverType so that it can
+/// monitor changes to its fetched records.
+private final class FetchedRecordsObserver<Record: RowConvertible> : TransactionObserver {
+    var isValid: Bool
+    let observedTables: Set<String>
+    var needsComputeChanges: Bool
+    var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
+    let queue: dispatch_queue_t // protects items
+    var checkForChanges: (FetchedRecordsObserver<Record>) -> ()
+    
+    init(observedTables: Set<String>, checkForChanges: (FetchedRecordsObserver<Record>) -> ()) {
+        self.isValid = true
+        self.items = nil
+        self.observedTables = observedTables
+        self.needsComputeChanges = false
+        self.queue = dispatch_queue_create("GRDB.FetchedRecordsObserver", DISPATCH_QUEUE_SERIAL)
+        self.checkForChanges = checkForChanges
+    }
+    
+    func invalidate() {
+        isValid = false
+    }
+    
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Part of the TransactionObserverType protocol
+    func databaseWillChange(with event: DatabasePreUpdateEvent) { }
+    #endif
+    
+    /// Part of the TransactionObserverType protocol
+    func databaseDidChange(with event: DatabaseEvent) {
+        if !needsComputeChanges && observedTables.contains(event.tableName) {
+            needsComputeChanges = true
+        }
+    }
+    
+    /// Part of the TransactionObserverType protocol
+    func databaseWillCommit() throws { }
+    
+    /// Part of the TransactionObserverType protocol
+    func databaseDidRollback(_ db: Database) {
+        needsComputeChanges = false
+    }
+    
+    /// Part of the TransactionObserverType protocol
+    func databaseDidCommit(_ db: Database) {
+        // The databaseDidCommit callback is called in the database writer
+        // dispatch queue, which is serialized: it is guaranteed to process the
+        // last database transaction.
+        
+        // Were observed tables modified?
+        guard needsComputeChanges else { return }
+        needsComputeChanges = false
+        
+        performChangesChecking()
+    }
+    
+    // Precondition: this method must be called from the database writer's
+    // serialized dispatch queue.
+    func performChangesChecking() {
+        checkForChanges(self)
     }
 }
 
@@ -531,11 +711,11 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             guard let fetchedItems = fetchedItems, let index = fetchedItems.index(where: { isSameItem($0, item) }) else {
                 return nil
             }
-            return makeIndexPath(forRow: index, inSection: 0)
+            return NSIndexPath(forRow: index, inSection: 0)
         }
     }
     
-    extension FetchedRecordsObserver {
+    extension FetchedChangesController {
         
         private func computeTableViewChanges(from s: [Item<Record>], to t: [Item<Record>]) -> [TableViewChange<Record>] {
             let m = s.count
@@ -547,14 +727,14 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             
             var changes = [TableViewChange<Record>]()
             for (row, item) in s.enumerated() {
-                let deletion = TableViewChange.deletion(item: item, indexPath: makeIndexPath(forRow: row, inSection: 0))
+                let deletion = TableViewChange.deletion(item: item, indexPath: NSIndexPath(forRow: row, inSection: 0))
                 changes.append(deletion)
                 d[row + 1][0] = changes
             }
             
             changes.removeAll()
             for (col, item) in t.enumerated() {
-                let insertion = TableViewChange.insertion(item: item, indexPath: makeIndexPath(forRow: col, inSection: 0))
+                let insertion = TableViewChange.insertion(item: item, indexPath: NSIndexPath(forRow: col, inSection: 0))
                 changes.append(insertion)
                 d[0][col + 1] = changes
             }
@@ -577,16 +757,16 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                         // Record operation.
                         let minimumCount = min(del.count, ins.count, sub.count)
                         if del.count == minimumCount {
-                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
+                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: NSIndexPath(forRow: sx, inSection: 0))
                             del.append(deletion)
                             d[sx+1][tx+1] = del
                         } else if ins.count == minimumCount {
-                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
+                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: NSIndexPath(forRow: tx, inSection: 0))
                             ins.append(insertion)
                             d[sx+1][tx+1] = ins
                         } else {
-                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: makeIndexPath(forRow: sx, inSection: 0))
-                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: makeIndexPath(forRow: tx, inSection: 0))
+                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: NSIndexPath(forRow: sx, inSection: 0))
+                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: NSIndexPath(forRow: tx, inSection: 0))
                             sub.append(deletion)
                             sub.append(insertion)
                             d[sx+1][tx+1] = sub
@@ -794,7 +974,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
 private final class Item<T: RowConvertible> : RowConvertible, Equatable {
     let row: Row
     
-    // TODO: Is is a good idea to lazily load records?
+    // Records are lazily loaded
     lazy var record: T = {
         var record = T(row: self.row)
         record.awakeFromFetch(row: self.row)
@@ -812,12 +992,6 @@ private func ==<T>(lhs: Item<T>, rhs: Item<T>) -> Bool {
 
 
 // MARK: - Utils
-
-/// Same as NSIndexPath(forRow:inSection:); works when UIKit is not available.
-private func makeIndexPath(forRow row:Int, inSection section: Int) -> NSIndexPath {
-    return [section, row].withUnsafeBufferPointer { buffer in NSIndexPath(indexes: buffer.baseAddress, length: buffer.count) }
-}
-
 
 /// Returns a function that returns the primary key of a row
 ///

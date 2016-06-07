@@ -32,7 +32,4 @@
    <FileRef
       location = "group:DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj">
    </FileRef>
-   <FileRef
-      location = "group:DemoApps/GRDBDemoiOS7/GRDBDemoiOS7.xcodeproj">
-   </FileRef>
 </Workspace>

@@ -12,6 +12,7 @@ It ships with a **low-level SQLite API**, and high-level tools that help dealing
 - **Database Changes Observation**: perform post-commit and post-rollback actions
 - **Fetched Records Controller**: automated tracking of changes in a query results, and UITableView animations
 - **Encryption** with SQLCipher
+- **Support for custom SQLite builds**
 
 More than a set of tools that leverage SQLite abilities, GRDB is also:
 
@@ -24,7 +25,7 @@ You should give it a try.
 
 ---
 
-**May 30, 2016: GRDB.swift 0.70.1 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**June 5, 2016: GRDB.swift 0.71.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7.3+
 
@@ -142,7 +143,7 @@ Documentation
 
 **Reference**
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.70.1/index.html) (on cocoadocs.org)
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/index.html) (on cocoadocs.org)
 
 **Getting started**
 
@@ -178,11 +179,6 @@ Documentation
 
 ### Installation
 
-#### iOS7
-
-You can use GRDB in a project targetting iOS7. See [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7) for more information.
-
-
 #### CocoaPods
 
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
@@ -193,8 +189,10 @@ To use GRDB with CocoaPods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '~> 0.70.1'
+pod 'GRDB.swift', '~> 0.71.0'
 ```
+
+> :point_up: **Note**: [SQLCipher](#encryption) and [custom SQLite builds](#custom-sqlite-builds) are not available via CocoaPods.
 
 
 #### Carthage
@@ -204,8 +202,10 @@ pod 'GRDB.swift', '~> 0.70.1'
 To use GRDB with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" ~> 0.70.1
+github "groue/GRDB.swift" ~> 0.71.0
 ```
+
+> :point_up: **Note**: [custom SQLite builds](#custom-sqlite-builds) are not available via Carthage.
 
 
 #### Manually
@@ -216,6 +216,11 @@ github "groue/GRDB.swift" ~> 0.70.1
 4. Add `GRDB.framework` to the **Embedded Binaries** section of the **General**  tab of your target.
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an example of such integration.
+
+
+#### Custom SQLite builds
+
+**By default, GRDB uses the SQLite library that ships with the operating system.** You can build GRDB with custom SQLite sources and options, through [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfalling/SQLiteLib). See [installation instructions](SQLiteCustom/README.md).
 
 
 Database Connections
@@ -306,7 +311,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.70.1/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -386,7 +391,7 @@ let dbPool = try DatabasePool(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.70.1/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -955,7 +960,9 @@ dbComponents.dateComponents // NSDateComponents
 
 ### NSNumber and NSDecimalNumber
 
-While NSNumber deserves no special discussion, NSDecimalNumber does.
+**NSNumber** can be stored and fetched from the database just like other [values](#values). Floating point NSNumbers are stored as Double. Integer and boolean, as Int64. Integers that don't fit Int64 won't be stored: you'll get a fatal error instead. Be cautious when an NSNumber contains an UInt64, for example.
+
+NSDecimalNumber deserves a longer discussion:
 
 **SQLite has no support for decimal numbers.** Given the table below, SQLite will actually store integers or doubles:
 
@@ -1049,7 +1056,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-The transaction is rollbacked if an error is thrown within the transaction body, and that error is rethrown by the inTransaction method.
+If an error is thrown within the transaction body, the transaction is rollbacked and the error is rethrown by the `inTransaction` method. If you return `.Rollback` from your closure, the transaction is also rollbacked, but no error is thrown.
 
 If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function:
 
@@ -1102,7 +1109,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-The savepoint is rollbacked if an error is thrown within the savepoint body, and that error is rethrown by the inSavepoint method.
+If an error is thrown within the savepoint body, the savepoint is rollbacked and the error is rethrown by the `inSavepoint` method. If you return `.Rollback` from your closure, the body is also rollbacked, but no error is thrown.
 
 **Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only committed to disk when the outermost savepoint is committed:
 
@@ -1690,7 +1697,7 @@ See [fetching methods](#fetching-methods) for information about the `fetch`, `fe
 
 #### RowConvertible and Row Adapters
 
-RowConvertible consume row columns by name:
+RowConvertible types usually consume rows by column name:
 
 ```swift
 extension PointOfInterest : RowConvertible {
@@ -2623,6 +2630,25 @@ do {
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
 
+### Support for SQLite Pre-Update Hooks
+
+A [custom SQLite build](#custom-sqlite-builds) can activate [SQLite "preupdate hooks"](http://www.sqlite.org/sessions/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
+
+```swift
+public protocol TransactionObserverType : class {
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Notifies before a database change (insert, update, or delete)
+    /// with change information (initial / final values for the row's
+    /// columns).
+    ///
+    /// The event is only valid for the duration of this method call. If you
+    /// need to keep it longer, store a copy: event.copy().
+    func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent)
+    #endif
+}
+```
+
+
 ## FetchedRecordsController
 
 **You use FetchedRecordsController to track changes in the results of an SQLite request.**
@@ -2735,7 +2761,7 @@ See [Implementing Table View Updates](#implementing-table-view-updates) for more
 
 ```swift
 controller.trackChanges { controller in
-    let persons = controller.fetchedRecords! // [Person]
+    let newPersons = controller.fetchedRecords! // [Person]
 }
 ```
 
@@ -2764,6 +2790,25 @@ try dbQueue.inDatabase { db in
 ```
 
 When you need to take immediate action, force the controller to refresh immediately with its `performFetch` method. In this case, changes callbacks are *not* called.
+
+
+**Values fetched from inside callbacks may be inconsistent with the controller's records.** This is because after database has changed, and before the controller had the opportunity to invoke callbacks in the main thread, other database changes can happen.
+
+To avoid inconsistencies, provide a `fetchAlongside` argument to the `trackChanges` method, as below:
+
+```swift
+controller.trackChanges(
+    fetchAlongside: { db in
+        // Fetch any extra value, for example the number of fetched records:
+        return Person.fetchCount(db)
+    },
+    recordsDidChange: { (controller, count) in
+        // The extra value is the second argument.
+        let recordsCount = controller.fetchedRecords!.count
+        assert(count == recordsCount) // guaranteed
+    })
+```
+
 
 
 ### Modifying the Fetch Request
@@ -2878,6 +2923,8 @@ self.controller.trackChanges(
 ```
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
+
+> :point_up: **Note**: our sample code above uses `unowned` references to the table view controller. This is a safe pattern as long as the table view controller owns the fetched records controller, and is deallocated from the main thread (this is usually the case). In other situations, prefer weak references.
 
 
 ### FetchedRecordsController Concurrency
@@ -3228,7 +3275,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.70.1/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.70.1/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.70.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.70.1/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
@@ -3324,7 +3371,6 @@ Sample Code
 
 - The [Documentation](#documentation) is full of GRDB snippets.
 - [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
-- [GRDBDemoiOS7](DemoApps/GRDBDemoiOS7): A sample iOS7 application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to read and write NSDate as timestamp: [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift)
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
@@ -3337,6 +3383,6 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [Vladimir Babin](https://github.com/Chiliec), [Pascal Edmond](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [Pierre-Loïc Raynaud](https://github.com/pierlo) and [@swiftlyfalling](https://github.com/swiftlyfalling) for their contributions, help, and feedback on GRDB.
+- [Vladimir Babin](https://github.com/Chiliec), [Pascal Edmond](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Steven Schveighoffer](https://github.com/schveiguy) and [@swiftlyfalling](https://github.com/swiftlyfalling) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [Mathieu "Kali" Poumeyrol](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.

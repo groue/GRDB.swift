@@ -3,7 +3,7 @@ import GRDB
 
 class PersonsViewController: UITableViewController {
     var personsController: FetchedRecordsController<Person>!
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -187,8 +187,7 @@ extension PersonsViewController {
     @IBAction func stressTest() {
         setEditing(false, animated: true)
         
-        // Spawn some concurrent background jobs
-        for _ in 0..<20 {
+        for _ in 0..<1000 {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
                 try! dbQueue.inTransaction { db in
                     if Person.fetchCount(db) == 0 {
