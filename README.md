@@ -1060,7 +1060,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-The transaction is rollbacked if an error is thrown within the transaction body, and that error is rethrown by the inTransaction method. If you return `TransactionCompletion.Rollback` from your closure, the transaction is also rolled back, but no error is thrown.
+If an error is thrown within the transaction body, the transaction is rollbacked and the error is rethrown by the `inTransaction` method. If you return `.Rollback` from your closure, the transaction is also rollbacked, but no error is thrown.
 
 If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function:
 
@@ -1113,7 +1113,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-The savepoint is rollbacked if an error is thrown within the savepoint body, and that error is rethrown by the inSavepoint method.
+If an error is thrown within the savepoint body, the savepoint is rollbacked and the error is rethrown by the `inSavepoint` method. If you return `.Rollback` from your closure, the body is also rollbacked, but no error is thrown.
 
 **Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only committed to disk when the outermost savepoint is committed:
 
@@ -3387,6 +3387,6 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [Vladimir Babin](https://github.com/Chiliec), [Pascal Edmond](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [Pierre-Loïc Raynaud](https://github.com/pierlo) and [@swiftlyfalling](https://github.com/swiftlyfalling) for their contributions, help, and feedback on GRDB.
+- [Vladimir Babin](https://github.com/Chiliec), [Pascal Edmond](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Steven Schveighoffer](https://github.com/schveiguy) and [@swiftlyfalling](https://github.com/swiftlyfalling) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [Mathieu "Kali" Poumeyrol](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
