@@ -340,6 +340,47 @@ class AdapterRowTests: GRDBTestCase {
         }
     }
     
+    func testMergeVariants() {
+        let dbQueue = DatabaseQueue()
+        dbQueue.inDatabase { db in
+            let adapter0 = ColumnMapping(["id": "id0", "val": "val0"])
+            let adapter1 = ColumnMapping(["id": "id1", "val": "val1"])
+            let adapter2 = ColumnMapping(["id": "id2", "val": "val2"])
+            
+            let mainAdapter = VariantAdapter(variants: ["sub0": adapter0, "sub1": adapter2])
+            let adapter = VariantAdapter(mainAdapter, variants: ["sub1": adapter1, "sub2": adapter2])
+            let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+            
+            // sub0 is defined in the the first variant adapter
+            if let variant = row.variant(named: "sub0") {
+                XCTAssertEqual(variant.count, 2)
+                XCTAssertEqual(variant.value(named: "id") as Int, 0)
+                XCTAssertEqual(variant.value(named: "val") as String, "foo0")
+            } else {
+                XCTFail()
+            }
+            
+            // sub1 is defined in the the first variant adapter, and then
+            // redefined in the second
+            if let variant = row.variant(named: "sub1") {
+                XCTAssertEqual(variant.count, 2)
+                XCTAssertEqual(variant.value(named: "id") as Int, 1)
+                XCTAssertEqual(variant.value(named: "val") as String, "foo1")
+            } else {
+                XCTFail()
+            }
+            
+            // sub2 is defined in the the second variant adapter
+            if let variant = row.variant(named: "sub2") {
+                XCTAssertEqual(variant.count, 2)
+                XCTAssertEqual(variant.value(named: "id") as Int, 2)
+                XCTAssertEqual(variant.value(named: "val") as String, "foo2")
+            } else {
+                XCTFail()
+            }
+        }
+    }
+    
     func testThreeLevelVariants() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
