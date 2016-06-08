@@ -463,9 +463,9 @@ extension Row {
         let columnNames = statement.columnNames
         let sequence: DatabaseSequence<Row>
         if let adapter = adapter {
-            let statementAdapter = try! adapter.statementAdapter(with: statement)
+            let concreteRowAdapter = try! adapter.concreteRowAdapter(with: statement)
             sequence = statement.fetchSequence(arguments: arguments) {
-                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), statementAdapter: statementAdapter)
+                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), concreteRowAdapter: concreteRowAdapter)
             }
         } else {
             sequence = statement.fetchSequence(arguments: arguments) {

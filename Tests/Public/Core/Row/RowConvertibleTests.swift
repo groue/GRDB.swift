@@ -112,7 +112,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let adapter = VariantAdapter(
+                let adapter = VariantRowAdapter(
                     ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
                     variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
@@ -133,7 +133,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let adapter = VariantAdapter(
+                let adapter = VariantRowAdapter(
                     ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
                     variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
@@ -154,7 +154,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
-                let adapter = VariantAdapter(
+                let adapter = VariantRowAdapter(
                     ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
                     variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
@@ -221,7 +221,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let adapter = VariantAdapter(
+                let adapter = VariantRowAdapter(
                     ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
                     variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
@@ -243,7 +243,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let adapter = VariantAdapter(
+                let adapter = VariantRowAdapter(
                     ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
                     variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
@@ -265,7 +265,7 @@ class RowConvertibleTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let adapter = VariantAdapter(
+                let adapter = VariantRowAdapter(
                     ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"]),
                     variants: ["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"

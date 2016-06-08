@@ -273,7 +273,7 @@ class AdapterRowTests: GRDBTestCase {
     func testVariants() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
-            let adapter = VariantAdapter(variants: [
+            let adapter = VariantRowAdapter(variants: [
                     "sub1": ColumnMapping(["id": "id1", "val": "val1"]),
                     "sub2": ColumnMapping(["id": "id2", "val": "val2"])])
             let row = Row.fetchOne(db, "SELECT 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
@@ -308,7 +308,7 @@ class AdapterRowTests: GRDBTestCase {
     func testVariantsWithMainMapping() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
-            let adapter = VariantAdapter(
+            let adapter = VariantRowAdapter(
                 ColumnMapping(["id": "id0", "val": "val0"]),
                 variants: [
                     "sub1": ColumnMapping(["id": "id1", "val": "val1"]),
@@ -347,8 +347,8 @@ class AdapterRowTests: GRDBTestCase {
             let adapter1 = ColumnMapping(["id": "id1", "val": "val1"])
             let adapter2 = ColumnMapping(["id": "id2", "val": "val2"])
             
-            let mainAdapter = VariantAdapter(variants: ["sub0": adapter0, "sub1": adapter2])
-            let adapter = VariantAdapter(mainAdapter, variants: ["sub1": adapter1, "sub2": adapter2])
+            let mainAdapter = VariantRowAdapter(variants: ["sub0": adapter0, "sub1": adapter2])
+            let adapter = VariantRowAdapter(mainAdapter, variants: ["sub1": adapter1, "sub2": adapter2])
             let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             // sub0 is defined in the the first variant adapter
@@ -384,10 +384,10 @@ class AdapterRowTests: GRDBTestCase {
     func testThreeLevelVariants() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
-            let adapter = VariantAdapter(
+            let adapter = VariantRowAdapter(
                 ColumnMapping(["id": "id0", "val": "val0"]),
                 variants: [
-                    "sub1": VariantAdapter(
+                    "sub1": VariantRowAdapter(
                         ColumnMapping(["id": "id1", "val": "val1"]),
                         variants: ["sub2": ColumnMapping(["id": "id2", "val": "val2"])])])
             let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
@@ -420,9 +420,9 @@ class AdapterRowTests: GRDBTestCase {
     func testSuffixAdapter() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
-            let adapter = VariantAdapter(
+            let adapter = VariantRowAdapter(
                 variants: [
-                    "sub1": VariantAdapter(
+                    "sub1": VariantRowAdapter(
                         SuffixRowAdapter(fromIndex: 2),
                         variants: ["sub2": SuffixRowAdapter(fromIndex: 4)])])
             let row = Row.fetchOne(db, "SELECT 0 AS id, 'foo0' AS val, 1 AS id, 'foo1' AS val, 2 as id, 'foo2' AS val", adapter: adapter)!
@@ -455,7 +455,7 @@ class AdapterRowTests: GRDBTestCase {
     func testCopy() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
-            let adapter = VariantAdapter(
+            let adapter = VariantRowAdapter(
                 ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"]),
                 variants: ["sub": ColumnMapping(["a": "baseb"])])
             var copiedRow: Row? = nil
@@ -499,17 +499,17 @@ class AdapterRowTests: GRDBTestCase {
     func testEqualityComparesVariants() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
-            let adapter1 = VariantAdapter(
+            let adapter1 = VariantRowAdapter(
                 ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"]),
                 variants: ["sub": ColumnMapping(["b": "baseb"])])
             let adapter2 = ColumnMapping(["a": "basea", "b": "baseb2", "c": "basec"])
-            let adapter3 = VariantAdapter(
+            let adapter3 = VariantRowAdapter(
                 ColumnMapping(["a": "basea", "b": "baseb2", "c": "basec"]),
                 variants: ["sub": ColumnMapping(["b": "baseb2"])])
-            let adapter4 = VariantAdapter(
+            let adapter4 = VariantRowAdapter(
                 ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"]),
                 variants: ["sub": ColumnMapping(["b": "baseb"]), "altSub": ColumnMapping(["a": "baseb2"])])
-            let adapter5 = VariantAdapter(
+            let adapter5 = VariantRowAdapter(
                 ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"]),
                 variants: ["sub": ColumnMapping(["b": "baseb", "c": "basec"])])
             let row1 = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter1)!
