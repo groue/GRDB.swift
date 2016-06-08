@@ -12,10 +12,10 @@
 
 /// AdaptedColumnsDescription is a type that supports the RowAdapter protocol.
 public struct AdaptedColumnsDescription {
-    public let columns: [(Int, String)]         // [(baseRowIndex, adaptedColumn), ...]
+    let columns: [(Int, String)]         // [(baseRowIndex, adaptedColumn), ...]
     let lowercaseColumnIndexes: [String: Int]   // [adaptedColumn: adaptedRowIndex]
 
-    /// Creates a AdaptedColumnsDescription from an array of (index, name)
+    /// Creates an AdaptedColumnsDescription from an array of (index, name)
     /// pairs. In each pair:
     ///
     /// - index is the index of a column in an original row
@@ -23,9 +23,9 @@ public struct AdaptedColumnsDescription {
     ///
     /// For example, the following AdaptedColumnsDescription defines two
     /// columns, "foo" and "bar", that load from the original columns at
-    /// indexes 0 and 1:
+    /// indexes 1 and 2:
     ///
-    ///     AdaptedColumnsDescription([(0, "foo"), (1, "bar")])
+    ///     AdaptedColumnsDescription([(1, "foo"), (2, "bar")])
     ///
     /// Use it in your custom RowAdapter type:
     ///
@@ -34,11 +34,11 @@ public struct AdaptedColumnsDescription {
     ///     // original row.
     ///     struct FooBarAdapter : RowAdapter {
     ///         func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-    ///             return AdaptedColumnsDescription([(0, "foo"), (1, "bar")])
+    ///             return AdaptedColumnsDescription([(1, "foo"), (2, "bar")])
     ///         }
     ///     }
     ///
-    ///     // <Row foo:1 bar: 2>
+    ///     // <Row foo:2 bar: 3>
     ///     Row.fetchOne(db, "SELECT 1, 2, 3", adapter: FooBarAdapter())
     public init(columns: [(Int, String)]) {
         self.columns = columns
@@ -65,6 +65,7 @@ public struct AdaptedColumnsDescription {
     }
 }
 
+/// AdaptedColumnsDescription adopts ConcreteRowAdapter
 extension AdaptedColumnsDescription : ConcreteRowAdapter {
     /// Part of the ConcreteRowAdapter protocol; returns self.
     public var adaptedColumnsDescription: AdaptedColumnsDescription {
@@ -78,12 +79,8 @@ extension AdaptedColumnsDescription : ConcreteRowAdapter {
 }
 
 struct ConcreteVariantRowAdapter : ConcreteRowAdapter {
-    let mainAdapter: ConcreteRowAdapter
+    let adaptedColumnsDescription: AdaptedColumnsDescription
     let variants: [String: ConcreteRowAdapter]
-    
-    var adaptedColumnsDescription: AdaptedColumnsDescription {
-        return mainAdapter.adaptedColumnsDescription
-    }
 }
 
 /// ConcreteRowAdapter is a protocol that supports the RowAdapter protocol.
@@ -94,16 +91,11 @@ struct ConcreteVariantRowAdapter : ConcreteRowAdapter {
 /// It is unlikely that you need to write your custom type that adopts
 /// this protocol.
 public protocol ConcreteRowAdapter {
-    // A AdaptedColumnsDescription that defines the adapted columns.
+    // An AdaptedColumnsDescription
     var adaptedColumnsDescription: AdaptedColumnsDescription { get }
     
-    /// Default implementation return the empty dictionary.
+    /// A dictionary whose keys are variant names.
     var variants: [String: ConcreteRowAdapter] { get }
-}
-
-extension ConcreteRowAdapter {
-    /// Default implementation return the empty dictionary.
-    var variants: [String: ConcreteRowAdapter] { return [:] }
 }
 
 /// RowAdapter is a protocol that helps two incompatible row interfaces working
@@ -150,6 +142,19 @@ public protocol RowAdapter {
     func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter
 }
 
+extension RowAdapter {
+    /// Returns an adapter based on self, with added variants.
+    ///
+    /// If self already defines variants, the added variants replace
+    /// eventual existing variants with the same name.
+    ///
+    /// - parameter variants: A dictionary that maps variant names to
+    ///   row adapters.
+    public func adapterWithVariants(variants: [String: RowAdapter]) -> RowAdapter {
+        return VariantRowAdapter(mainAdapter: self, variants: variants)
+    }
+}
+
 /// ColumnMapping is a row adapter that maps column names.
 ///
 ///     let adapter = ColumnMapping(["foo": "bar"])
@@ -159,7 +164,7 @@ public protocol RowAdapter {
 ///     Row.fetchOne(db, sql, adapter: adapter)
 public struct ColumnMapping : RowAdapter {
     /// The column names mapping, from adapted names to original names.
-    public let mapping: [String: String]
+    let mapping: [String: String]
     
     /// Creates a ColumnMapping with a dictionary that maps adapted column names
     /// to original column names.
@@ -176,7 +181,7 @@ public struct ColumnMapping : RowAdapter {
                 }
                 return (index, mappedColumn)
             }
-            .sort { return $0.0 < $1.0 }
+            .sort { $0.0 < $1.0 }
         return AdaptedColumnsDescription(columns: columns)
     }
 }
@@ -190,7 +195,7 @@ public struct ColumnMapping : RowAdapter {
 ///     Row.fetchOne(db, sql, adapter: adapter)
 public struct SuffixRowAdapter : RowAdapter {
     /// The suffix index
-    public let index: Int
+    let index: Int
     
     /// Creates a SuffixRowAdapter that hides all columns before the
     /// provided index.
@@ -206,15 +211,54 @@ public struct SuffixRowAdapter : RowAdapter {
     }
 }
 
+/// VariantRowAdapter is a row adapter that lets you add adapted variants to
+/// fetched rows.
+///
+///     // Two adapters
+///     let fooAdapter = ColumnMapping(["value": "foo"])
+///     let barAdapter = ColumnMapping(["value": "bar"])
+///
+///     // An adapter with named variants
+///     let variants: [String: RowAdapter] = [
+///         "foo": fooAdapter,
+///         "bar": barAdapter])
+///     let adapter = VariantRowAdapter(variants: variants)
+///
+///     // Fetch a row
+///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
+///     let row = Row.fetchOne(db, sql, adapter: adapter)!
+///
+///     // Two variants of the fetched row:
+///     if let fooRow = row.variant(named: "foo") {
+///         fooRow.value(named: "value")    // "foo"
+///     }
+///     if let barRow = row.variant(named: "bar") {
+///         barRow.value(named: "value")    // "bar"
+///     }
 public struct VariantRowAdapter : RowAdapter {
-    public let mainAdapter: RowAdapter
-    public let variants: [String: RowAdapter]
     
-    public init(_ mainAdapter: RowAdapter? = nil, variants: [String: RowAdapter]) {
-        self.mainAdapter = mainAdapter ?? SuffixRowAdapter(fromIndex: 0)
+    /// The main adapter
+    let mainAdapter: RowAdapter
+    
+    /// The variant adapters
+    let variants: [String: RowAdapter]
+    
+    /// Creates a variant adapter.
+    ///
+    /// - parameters:
+    ///     - mainAdapter: An eventual row adapter to be applied by default
+    ///     - variants: A dictionary that maps variant names to row adapters.
+    public init(variants: [String: RowAdapter]) {
+        self.mainAdapter = SuffixRowAdapter(fromIndex: 0)
         self.variants = variants
     }
-
+    
+    init(mainAdapter: RowAdapter, variants: [String: RowAdapter]) {
+        self.mainAdapter = mainAdapter
+        self.variants = variants
+    }
+    
+    /// Part of the RowAdapter protocol
     public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
         let mainConcreteRowAdapter = try mainAdapter.concreteRowAdapter(with: statement)
         var variantConcreteRowAdapters = mainConcreteRowAdapter.variants
@@ -222,7 +266,7 @@ public struct VariantRowAdapter : RowAdapter {
             try variantConcreteRowAdapters[name] = adapter.concreteRowAdapter(with: statement)
         }
         return ConcreteVariantRowAdapter(
-            mainAdapter: mainConcreteRowAdapter,
+            adaptedColumnsDescription: mainConcreteRowAdapter.adaptedColumnsDescription,
             variants: variantConcreteRowAdapters)
     }
 }
@@ -243,7 +287,6 @@ extension Row {
 }
 
 struct AdapterRowImpl : RowImpl {
-
     let baseRow: Row
     let concreteRowAdapter: ConcreteRowAdapter
     let adaptedColumnsDescription: AdaptedColumnsDescription
