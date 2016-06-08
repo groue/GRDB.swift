@@ -423,8 +423,8 @@ class AdapterRowTests: GRDBTestCase {
             let adapter = VariantAdapter(
                 variants: [
                     "sub1": VariantAdapter(
-                        SuffixRowAdapter(index: 2),
-                        variants: ["sub2": SuffixRowAdapter(index: 4)])])
+                        SuffixRowAdapter(fromIndex: 2),
+                        variants: ["sub2": SuffixRowAdapter(fromIndex: 4)])])
             let row = Row.fetchOne(db, "SELECT 0 AS id, 'foo0' AS val, 1 AS id, 'foo1' AS val, 2 as id, 'foo2' AS val", adapter: adapter)!
             
             XCTAssertEqual(row.count, 6)

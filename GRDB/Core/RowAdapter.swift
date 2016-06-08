@@ -10,10 +10,34 @@
     #endif
 #endif
 
+/// StatementMapping is a type that supports the RowAdapter protocol.
 public struct StatementMapping {
-    let columns: [(Int, String)]      // [(baseRowIndex, mappedColumn), ...]
+    public let columns: [(Int, String)]      // [(baseRowIndex, mappedColumn), ...]
     let lowercaseColumnIndexes: [String: Int]   // [mappedColumn: adaptedRowIndex]
 
+    /// Creates a StatementMapping from an array of (index, name) pairs.
+    ///
+    /// - index is the index of a column in an original row
+    /// - name is the name of the column in an adapted row
+    ///
+    /// For example, the following StatementMapping defines two columns, "foo"
+    /// and "bar", that load from the original columns at indexes 0 and 1:
+    ///
+    ///     StatementMapping([(0, "foo"), (1, "bar")])
+    ///
+    /// Use it in your custom RowAdapter type:
+    ///
+    ///     // An adapter that turns any row to a row that contains a single
+    ///     // column named "foo" whose value is the leftmost value of the
+    ///     // original row.
+    ///     struct FooBarAdapter : RowAdapter {
+    ///         func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter {
+    ///             return StatementMapping([(0, "foo"), (1, "bar")])
+    ///         }
+    ///     }
+    ///
+    ///     // <Row foo:1 bar: 2>
+    ///     let row = Row.fetchOne(db, "SELECT 1, 2, 3", adapter: FooBarAdapter())!
     public init(columns: [(Int, String)]) {
         self.columns = columns
         self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columns.enumerate().map { ($1.1.lowercaseString, $0) }.reverse())
@@ -40,9 +64,12 @@ public struct StatementMapping {
 }
 
 extension StatementMapping : StatementAdapter {
+    /// Part of the StatementMapping protocol; returns self.
     public var statementMapping: StatementMapping {
         return self
     }
+    
+    /// Part of the StatementMapping protocol; returns the empty dictionary.
     public var variants: [String: StatementAdapter] {
         return [:]
     }
@@ -81,6 +108,13 @@ extension StatementAdapter {
 ///
 /// If the built-in adapters don't fit your needs, you can implement your own
 /// type that adopts RowAdapter.
+///
+/// To use a row adapter, provide it to a method that fetches:
+///
+///     let adapter = SuffixRowAdapter(fromIndex: 1)
+///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
+///     let row = Row.fetchOne(db, sql, adapter: adapter)!
+///     row // <Row bar:2 baz: 3>
 public protocol RowAdapter {
     
     /// You never call this method directly. It is called for you whenever an
@@ -100,8 +134,8 @@ public protocol RowAdapter {
     ///         }
     ///     }
     ///
-    ///     let row = Row.fetchOne(db, "SELECT 1 as bar, 2 as baz", adapter: FirstColumnAdapter())!
-    ///     row.value("foo") // 1
+    ///     // <Row foo:1>
+    ///     let row = Row.fetchOne(db, "SELECT 1, 2, 3", adapter: FirstColumnAdapter())!
     func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter
 }
 
@@ -128,7 +162,7 @@ public struct ColumnMapping : RowAdapter {
 public struct SuffixRowAdapter : RowAdapter {
     public let index: Int
     
-    public init(index: Int) {
+    public init(fromIndex index: Int) {
         self.index = index
     }
 
