@@ -10,7 +10,7 @@
     #endif
 #endif
 
-public struct ColumnsAdapter {
+public struct StatementMapping {
     let columnBaseIndexes: [(Int, String)]      // [(baseRowIndex, mappedColumn), ...]
     let lowercaseColumnIndexes: [String: Int]   // [mappedColumn: adaptedRowIndex]
 
@@ -39,27 +39,31 @@ public struct ColumnsAdapter {
     }
 }
 
-extension ColumnsAdapter : RowAdapterBinding {
-    public var columnsAdapter: ColumnsAdapter {
+extension StatementMapping : StatementAdapter {
+    public var statementMapping: StatementMapping {
         return self
     }
-    public var variants: [String: RowAdapterBinding] {
+    public var variants: [String: StatementAdapter] {
         return [:]
     }
 }
 
-struct VariantAdapterBinding : RowAdapterBinding {
-    let columnsAdapter: ColumnsAdapter
-    let variants: [String: RowAdapterBinding]
+struct VariantStatementAdapter : StatementAdapter {
+    let mainAdapter: StatementAdapter
+    let variants: [String: StatementAdapter]
+    
+    var statementMapping: StatementMapping {
+        return mainAdapter.statementMapping
+    }
 }
 
-public protocol RowAdapterBinding {
-    var columnsAdapter: ColumnsAdapter { get }
-    var variants: [String: RowAdapterBinding] { get }
+public protocol StatementAdapter {
+    var statementMapping: StatementMapping { get }
+    var variants: [String: StatementAdapter] { get }
 }
 
 public protocol RowAdapter {
-    func binding(with statement: SelectStatement) throws -> RowAdapterBinding
+    func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter
 }
 
 public struct ColumnMapping : RowAdapter {
@@ -69,7 +73,7 @@ public struct ColumnMapping : RowAdapter {
         self.mapping = mapping
     }
     
-    public func binding(with statement: SelectStatement) throws -> RowAdapterBinding {
+    public func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter {
         let columnBaseIndexes = try mapping
             .map { (mappedColumn, baseColumn) -> (Int, String) in
                 guard let index = statement.indexOfColumn(named: baseColumn) else {
@@ -78,7 +82,7 @@ public struct ColumnMapping : RowAdapter {
                 return (index, mappedColumn)
             }
             .sort { return $0.0 < $1.0 }
-        return ColumnsAdapter(columnBaseIndexes: columnBaseIndexes)
+        return StatementMapping(columnBaseIndexes: columnBaseIndexes)
     }
 }
 
@@ -89,8 +93,8 @@ public struct SuffixRowAdapter : RowAdapter {
         self.index = index
     }
 
-    public func binding(with statement: SelectStatement) throws -> RowAdapterBinding {
-        return ColumnsAdapter(columnBaseIndexes: statement.columnNames.suffixFrom(index).enumerate().map { ($0 + index, $1) })
+    public func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter {
+        return StatementMapping(columnBaseIndexes: statement.columnNames.suffixFrom(index).enumerate().map { ($0 + index, $1) })
     }
 }
 
@@ -103,28 +107,28 @@ public struct VariantAdapter : RowAdapter {
         self.variants = variants
     }
 
-    public func binding(with statement: SelectStatement) throws -> RowAdapterBinding {
-        let mainBinding = try mainAdapter.binding(with: statement)
-        var variantBindings = mainBinding.variants
+    public func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter {
+        let mainStatementAdapter = try mainAdapter.statementAdapter(with: statement)
+        var variantStatementAdapters = mainStatementAdapter.variants
         for (name, adapter) in variants {
-            try variantBindings[name] = adapter.binding(with: statement)
+            try variantStatementAdapters[name] = adapter.statementAdapter(with: statement)
         }
-        return VariantAdapterBinding(
-            columnsAdapter: mainBinding.columnsAdapter,
-            variants: variantBindings)
+        return VariantStatementAdapter(
+            mainAdapter: mainStatementAdapter,
+            variants: variantStatementAdapters)
     }
 }
 
 struct IdentityRowAdapter : RowAdapter {
-    func binding(with statement: SelectStatement) throws -> RowAdapterBinding {
-        return ColumnsAdapter(columnBaseIndexes: Array(statement.columnNames.enumerate()))
+    func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter {
+        return StatementMapping(columnBaseIndexes: Array(statement.columnNames.enumerate()))
     }
 }
 
 extension Row {
-    /// Builds a row from a base row and an adapter binding
-    convenience init(baseRow: Row, adapterBinding binding: RowAdapterBinding) {
-        self.init(impl: AdapterRowImpl(baseRow: baseRow, binding: binding))
+    /// Builds a row from a base row and a statement adapter
+    convenience init(baseRow: Row, statementAdapter: StatementAdapter) {
+        self.init(impl: AdapterRowImpl(baseRow: baseRow, statementAdapter: statementAdapter))
     }
 
     /// Returns self if adapter is nil
@@ -132,53 +136,54 @@ extension Row {
         guard let adapter = adapter else {
             return self
         }
-        return try Row(baseRow: self, adapterBinding: adapter.binding(with: statement))
+        return try Row(baseRow: self, statementAdapter: adapter.statementAdapter(with: statement))
     }
 }
 
 struct AdapterRowImpl : RowImpl {
 
     let baseRow: Row
-    let binding: RowAdapterBinding
-    var columnsAdapter: ColumnsAdapter { return binding.columnsAdapter }
+    let statementAdapter: StatementAdapter
+    let statementMapping: StatementMapping
 
-    init(baseRow: Row, binding: RowAdapterBinding) {
+    init(baseRow: Row, statementAdapter: StatementAdapter) {
         self.baseRow = baseRow
-        self.binding = binding
+        self.statementAdapter = statementAdapter
+        self.statementMapping = statementAdapter.statementMapping
     }
 
     var count: Int {
-        return columnsAdapter.count
+        return statementMapping.count
     }
 
     func databaseValue(atIndex index: Int) -> DatabaseValue {
-        return baseRow.databaseValue(atIndex: columnsAdapter.baseColumIndex(adaptedIndex: index))
+        return baseRow.databaseValue(atIndex: statementMapping.baseColumIndex(adaptedIndex: index))
     }
 
     func dataNoCopy(atIndex index:Int) -> NSData? {
-        return baseRow.dataNoCopy(atIndex: columnsAdapter.baseColumIndex(adaptedIndex: index))
+        return baseRow.dataNoCopy(atIndex: statementMapping.baseColumIndex(adaptedIndex: index))
     }
 
     func columnName(atIndex index: Int) -> String {
-        return columnsAdapter.columnName(adaptedIndex: index)
+        return statementMapping.columnName(adaptedIndex: index)
     }
 
     func indexOfColumn(named name: String) -> Int? {
-        return columnsAdapter.adaptedIndexOfColumn(named: name)
+        return statementMapping.adaptedIndexOfColumn(named: name)
     }
 
     func variant(named name: String) -> Row? {
-        guard let binding = binding.variants[name] else {
+        guard let statementAdapter = statementAdapter.variants[name] else {
             return nil
         }
-        return Row(baseRow: baseRow, adapterBinding: binding)
+        return Row(baseRow: baseRow, statementAdapter: statementAdapter)
     }
     
     var variantNames: Set<String> {
-        return Set(binding.variants.keys)
+        return Set(statementAdapter.variants.keys)
     }
     
     func copy(row: Row) -> Row {
-        return Row(baseRow: baseRow.copy(), adapterBinding: binding)
+        return Row(baseRow: baseRow.copy(), statementAdapter: statementAdapter)
     }
 }
