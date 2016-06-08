@@ -1,10 +1,25 @@
 import Foundation
 
+private let integerRoundingBehavior = NSDecimalNumberHandler(roundingMode: .RoundPlain, scale: 0, raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: false)
+private let int64maxDecimal = NSDecimalNumber(mantissa: UInt64(Int64.max), exponent: 0, isNegative: false)
+private let int64minDecimal = NSDecimalNumber(mantissa: UInt64(Int64.max) + 1, exponent: 0, isNegative: true) // Int64.min = -(Int64.max + 1) because of two's complement
+
 /// NSNumber adopts DatabaseValueConvertible
 extension NSNumber: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
+        if let decimal = self as? NSDecimalNumber {
+            // Don't lose precision: store integers that fits in Int64 as Int64
+            let rounded = decimal.decimalNumberByRoundingAccordingToBehavior(integerRoundingBehavior)
+            if (rounded == decimal)
+                && (decimal.compare(int64maxDecimal) != .OrderedDescending) // decimal <= Int64.max
+                && (decimal.compare(int64minDecimal) != .OrderedAscending)  // decimal >= Int64.min
+            {
+                return longLongValue.databaseValue
+            }
+        }
+        
         switch String.fromCString(objCType)! {
         case "c":
             return Int64(charValue).databaseValue
