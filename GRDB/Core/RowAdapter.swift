@@ -11,24 +11,24 @@
 #endif
 
 public struct StatementMapping {
-    let columnBaseIndexes: [(Int, String)]      // [(baseRowIndex, mappedColumn), ...]
+    let columns: [(Int, String)]      // [(baseRowIndex, mappedColumn), ...]
     let lowercaseColumnIndexes: [String: Int]   // [mappedColumn: adaptedRowIndex]
 
-    public init(columnBaseIndexes: [(Int, String)]) {
-        self.columnBaseIndexes = columnBaseIndexes
-        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columnBaseIndexes.enumerate().map { ($1.1.lowercaseString, $0) }.reverse())
+    public init(columns: [(Int, String)]) {
+        self.columns = columns
+        self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columns.enumerate().map { ($1.1.lowercaseString, $0) }.reverse())
     }
 
     var count: Int {
-        return columnBaseIndexes.count
+        return columns.count
     }
 
     func baseColumIndex(adaptedIndex index: Int) -> Int {
-        return columnBaseIndexes[index].0
+        return columns[index].0
     }
 
     func columnName(adaptedIndex index: Int) -> String {
-        return columnBaseIndexes[index].1
+        return columns[index].1
     }
 
     func adaptedIndexOfColumn(named name: String) -> Int? {
@@ -59,10 +59,49 @@ struct VariantStatementAdapter : StatementAdapter {
 
 public protocol StatementAdapter {
     var statementMapping: StatementMapping { get }
+    
+    /// Default implementation return the empty dictionary.
     var variants: [String: StatementAdapter] { get }
 }
 
+extension StatementAdapter {
+    /// Default implementation return the empty dictionary.
+    var variants: [String: StatementAdapter] { return [:] }
+}
+
+/// RowAdapter is a protocol that helps two incompatible row interfaces to work
+/// together.
+///
+/// GRDB ships with three concrete types that adopt the RowAdapter protocol:
+///
+/// - ColumnMapping: renames row columns
+/// - SuffixRowAdapter: hides the first columns of a row
+/// - VariantAdapter: groups several adapters together, and defines named
+///   row variants.
+///
+/// If the built-in adapters don't fit your needs, you can implement your own
+/// type that adopts RowAdapter.
 public protocol RowAdapter {
+    
+    /// You never call this method directly. It is called for you whenever an
+    /// adapter has to be applied.
+    ///
+    /// The result is a value that adopts StatementAdapter, such as
+    /// StatementMapping.
+    ///
+    /// For example:
+    ///
+    ///     // An adapter that turns any row to a row that contains a single
+    ///     // column named "foo" whose value is the leftmost value of the
+    ///     // original row.
+    ///     struct FirstColumnAdapter : RowAdapter {
+    ///         func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter {
+    ///             return StatementMapping(columns: [(0, "foo")])
+    ///         }
+    ///     }
+    ///
+    ///     let row = Row.fetchOne(db, "SELECT 1 as bar, 2 as baz", adapter: FirstColumnAdapter())!
+    ///     row.value("foo") // 1
     func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter
 }
 
@@ -74,7 +113,7 @@ public struct ColumnMapping : RowAdapter {
     }
     
     public func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter {
-        let columnBaseIndexes = try mapping
+        let columns = try mapping
             .map { (mappedColumn, baseColumn) -> (Int, String) in
                 guard let index = statement.indexOfColumn(named: baseColumn) else {
                     throw DatabaseError(code: SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(statement.columnNames.joinWithSeparator(", ")).")
@@ -82,7 +121,7 @@ public struct ColumnMapping : RowAdapter {
                 return (index, mappedColumn)
             }
             .sort { return $0.0 < $1.0 }
-        return StatementMapping(columnBaseIndexes: columnBaseIndexes)
+        return StatementMapping(columns: columns)
     }
 }
 
@@ -94,7 +133,7 @@ public struct SuffixRowAdapter : RowAdapter {
     }
 
     public func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter {
-        return StatementMapping(columnBaseIndexes: statement.columnNames.suffixFrom(index).enumerate().map { ($0 + index, $1) })
+        return StatementMapping(columns: statement.columnNames.suffixFrom(index).enumerate().map { ($0 + index, $1) })
     }
 }
 
@@ -121,7 +160,7 @@ public struct VariantAdapter : RowAdapter {
 
 struct IdentityRowAdapter : RowAdapter {
     func statementAdapter(with statement: SelectStatement) throws -> StatementAdapter {
-        return StatementMapping(columnBaseIndexes: Array(statement.columnNames.enumerate()))
+        return StatementMapping(columns: Array(statement.columnNames.enumerate()))
     }
 }
 
