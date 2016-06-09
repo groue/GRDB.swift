@@ -1369,7 +1369,7 @@ citizenshipsPk.rowIDColumn // nil
 
 ## Row Adapters
 
-**Row adapters let you transform rows for easier row consumption.**
+**Row adapters let you map column names for easier row consumption.**
 
 They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced column has a column named "produced":
 
@@ -1385,9 +1385,9 @@ row.value(named: "consumed") // "Hello"
 ```
 
 
-**Row adapters can also define variants of a same row.** Variants help several consumers feed on a single row and can reveal useful on joined queries.
+**Row adapters can also define row variants.** Variants help several consumers feed on a single row and can reveal useful with joined queries.
 
-For example, let's build a joined query which loads books along with their author:
+For example, let's build a query which loads books along with their author:
 
 ```swift
 let sql = "SELECT books.id, books.title, " +
@@ -1396,11 +1396,11 @@ let sql = "SELECT books.id, books.title, " +
           "JOIN persons ON books.authorID = persons.id"
 ```
 
-The raw author columns are "authorID" and "authorName". Let's say that we prefer to consume them as "id" and "name". For that we define a row variant named "author":
+The author columns are "authorID" and "authorName". Let's say that we prefer to consume them as "id" and "name". For that we build an adapter which defines a variant named "author":
 
 ```swift
-let authorAdapter = ColumnMapping(["id": "authorID", "name": "authorName"])
-let adapter = VariantRowAdapter(variants: ["author": authorAdapter])
+let authorMapping = ColumnMapping(["id": "authorID", "name": "authorName"])
+let adapter = VariantRowAdapter(variants: ["author": authorMapping])
 ```
 
 Use the `Row.variant(named:)` method to load the "author" variant:
@@ -1421,21 +1421,21 @@ for row in Row.fetch(db, sql, adapter: adapter) {
 }
 ```
 
-And now that we have nice "id" and "name" columns, we can leverage [RowConvertible](#rowconvertible-protocol) types such as [Record](#record-class) subclasses. For example, assuming the Book type consumes the "author" variant in its row initializer and builds a Person from it, the same row can be consumed by both the Book and Person types:
-
-```swift
-for book in Book.fetch(db, sql, adapter: adapter) {
-    book.title        // Moby-Dick
-    book.author?.name // Melville
-}
-```
-
-Note that Person and Book can still be fetched without row adapters:
-
-```swift
-let books = Book.fetchAll(db, "SELECT * FROM books")
-let persons = Person.fetchAll(db, "SELECT * FROM persons")
-```
+> :bowtie: **Tip**: now that we have nice "id" and "name" columns, we can leverage [RowConvertible](#rowconvertible-protocol) types such as [Record](#record-class) subclasses. For example, assuming the Book type consumes the "author" variant in its row initializer and builds a Person from it, the same row can be consumed by both the Book and Person types:
+> 
+> ```swift
+> for book in Book.fetch(db, sql, adapter: adapter) {
+>     book.title        // Moby-Dick
+>     book.author?.name // Melville
+> }
+> ```
+> 
+> And Person and Book can still be fetched without row adapters:
+> 
+> ```swift
+> let books = Book.fetchAll(db, "SELECT * FROM books")
+> let persons = Person.fetchAll(db, "SELECT * FROM persons")
+> ```
 
 
 **You can mix a main adapter with variant adapters:**
@@ -1452,8 +1452,8 @@ let adapter = mainAdapter.adapterWithVariants(["bestFriend": bestFriendAdapter])
 
 for row in Row.fetch(db, sql, adapter: adapter) {
     // The fetched row, adapted with mainAdapter:
-    row.value(named: "id")          // 1
-    row.value(named: "name")       // Arthur
+    row.value(named: "id")   // 1
+    row.value(named: "name") // Arthur
     
     // The "bestFriend" variant, with bestFriendAdapter:
     if let bestFriendRow = row.variant(named: "bestFriend") {
@@ -1472,7 +1472,7 @@ for person in Person.fetch(db, sql, adapter: adapter) {
 
 For more information about row adapters, see the documentation of:
 
-- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Protocols/RowAdapter.html)
+- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Protocols/RowAdapter.html) protocol
 - [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/ColumnMapping.html)
 - [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/SuffixRowAdapter.html)
 - [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/VariantRowAdapter.html)
