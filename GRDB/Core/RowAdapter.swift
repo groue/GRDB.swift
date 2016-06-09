@@ -199,11 +199,13 @@ public struct SuffixRowAdapter : RowAdapter {
     ///
     /// If index is 0, the adapted row is identical to the original row.
     public init(fromIndex index: Int) {
+        GRDBPrecondition(index >= 0, "Negative column index is out of range")
         self.index = index
     }
     
     /// Part of the RowAdapter protocol
     public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
+        GRDBPrecondition(index <= statement.columnCount, "Column index is out of range")
         return AdaptedColumnsDescription(columns: statement.columnNames.suffixFrom(index).enumerate().map { ($0 + index, $1) })
     }
 }
