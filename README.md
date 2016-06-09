@@ -3087,9 +3087,16 @@ dbQueue.inDatabase { db in
 **Fatal errors can be avoided**. For example, let's consider the code below:
 
 ```swift
+// Some untrusted SQL query
 let sql = "SELECT ..."
+
+// Some untrusted arguments for the query
 let arguments: NSDictionary = ...
-let rows = Row.fetchAll(db, sql, arguments: StatementArguments(arguments))
+
+for row in Row.fetchAll(db, sql, arguments: StatementArguments(arguments)) {
+    // Some untrusted database value:
+    let date: NSDate? = row.value(atIndex: 0)
+}
 ```
 
 It has several opportunities to throw fatal errors:
@@ -3097,21 +3104,30 @@ It has several opportunities to throw fatal errors:
 - The sql string may contain invalid sql, or refer to non-existing tables or columns.
 - The dictionary may contain objects that can't be converted to database values.
 - The dictionary may miss values required by the statement.
+- The row may contain a non-null value that can't be turned into a date.
 
-To avoid fatal errors, you have to expose and handle each failure point by going down one level in GRDB API:
+In such a situation where nothing can be trusted, you can still avoid fatal errors, but you have to expose and handle each failure point by going down one level in GRDB API:
 
 ```swift
-// Dictionary arguments may contain invalid values:
+// SQL may be invalid
+let statement = try db.selectStatement(sql)
+
+// NSDictionary arguments may contain invalid values or keys:
 if let arguments = StatementArguments(arguments) {
-    
-    // SQL may be invalid
-    let statement = try db.selectStatement(sql)
     
     // Arguments may not fit the statement
     try statement.validateArguments(arguments)
     
-    // OK now
-    let rows = Row.fetchAll(statement, arguments: arguments)
+    // OK we can fetch now
+    statement.unsafeSetArguments(arguments) // no need to check twice
+    for row in Row.fetchAll(statement) {
+        
+        // Database value may not be convertible to NSDate
+        let dbv = row.databaseValue(atIndex: 0)
+        if let date = NSDate.fromDatabaseValue(dbv) {
+            // use date
+        }
+    }
 }
 ```
 
