@@ -29,9 +29,6 @@ public struct AdaptedColumnsDescription {
     ///
     /// Use it in your custom RowAdapter type:
     ///
-    ///     // An adapter that turns any row to a row that contains a single
-    ///     // column named "foo" whose value is the leftmost value of the
-    ///     // original row.
     ///     struct FooBarAdapter : RowAdapter {
     ///         func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
     ///             return AdaptedColumnsDescription([(1, "foo"), (2, "bar")])
