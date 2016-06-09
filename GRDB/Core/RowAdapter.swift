@@ -245,9 +245,8 @@ public struct VariantRowAdapter : RowAdapter {
     
     /// Creates a variant adapter.
     ///
-    /// - parameters:
-    ///     - mainAdapter: An eventual row adapter to be applied by default
-    ///     - variants: A dictionary that maps variant names to row adapters.
+    /// - parameter variants: A dictionary that maps variant names to
+    ///   row adapters.
     public init(variants: [String: RowAdapter]) {
         self.mainAdapter = SuffixRowAdapter(fromIndex: 0)
         self.variants = variants
