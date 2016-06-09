@@ -1472,10 +1472,10 @@ for person in Person.fetch(db, sql, adapter: adapter) {
 
 For more information about row adapters, see the documentation of:
 
-- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Protocols/RowAdapter.html) protocol
-- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/ColumnMapping.html)
-- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/SuffixRowAdapter.html)
-- [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/VariantRowAdapter.html)
+- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
+- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/ColumnMapping.html): a row adapter that renames row columns
+- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
+- [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/VariantRowAdapter.html): the row adapter that groups several adapters together to define named variants
 
 
 ## Raw SQLite Pointers
