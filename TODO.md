@@ -1,4 +1,3 @@
-- [ ] Make sure NSDecimalNumber does not lose accuracy when stored: https://github.com/ccgus/fmdb/issues/501
 - [ ] FetchedRecordsController: see if we can replace identity comparison function with a function that returns an Equatable value (beware the generics trouble). See if this can help optimize memory use, and use a sortedMerge() algorithm.
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
