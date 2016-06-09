@@ -3131,7 +3131,7 @@ if let arguments = StatementArguments(arguments) {
 }
 ```
 
-See [prepared statements](#prepared-statements) for more information.
+See [prepared statements](#prepared-statements) and [DatabaseValue](#databasevalue) for more information.
 
 
 ## Unicode
