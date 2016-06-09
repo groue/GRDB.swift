@@ -1,11 +1,17 @@
 Release Notes
 =============
 
-## Next Version
+## 0.72.0
+
+Released June 9, 2016
 
 **Fixed**
 
 - NSDecimalNumber used to store as a double in the database, for all values. Now decimal numbers that contain integers fitting Int64 attempt to store integers in the database.
+
+**Breaking Changes**
+
+- Row adapters have been refactored ([documentation](https://github.com/groue/GRDB.swift#row-adapters)).
 
 
 ## 0.71.0
