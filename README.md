@@ -1,7 +1,7 @@
 GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
-GRDB.swift is an SQLite toolkit for Swift 2.2.
+GRDB.swift is an SQLite toolkit for Swift 2.2. For Swift 3, see the [Swift3](https://github.com/groue/GRDB.swift/tree/Swift3) branch.
 
 It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
@@ -27,7 +27,7 @@ You should give it a try.
 
 **June 9, 2016: GRDB.swift 0.72.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
-**Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7.3+
+**Requirements**: iOS 8.0+ / OSX 10.9+, Xcode 7.3+
 
 
 ### Usage
