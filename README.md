@@ -25,7 +25,7 @@ You should give it a try.
 
 ---
 
-**June 5, 2016: GRDB.swift 0.71.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+**June 9, 2016: GRDB.swift 0.72.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7.3+
 
@@ -143,7 +143,7 @@ Documentation
 
 **Reference**
 
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/index.html) (on cocoadocs.org)
+- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/index.html) (on cocoadocs.org)
 
 **Getting started**
 
@@ -189,7 +189,7 @@ To use GRDB with CocoaPods, specify in your Podfile:
 source 'https://github.com/CocoaPods/Specs.git'
 use_frameworks!
 
-pod 'GRDB.swift', '~> 0.71.0'
+pod 'GRDB.swift', '~> 0.72.0'
 ```
 
 > :point_up: **Note**: [SQLCipher](#encryption) and [custom SQLite builds](#custom-sqlite-builds) are not available via CocoaPods.
@@ -202,7 +202,7 @@ pod 'GRDB.swift', '~> 0.71.0'
 To use GRDB with Carthage, specify in your Cartfile:
 
 ```
-github "groue/GRDB.swift" ~> 0.71.0
+github "groue/GRDB.swift" ~> 0.72.0
 ```
 
 > :point_up: **Note**: [custom SQLite builds](#custom-sqlite-builds) are not available via Carthage.
@@ -311,7 +311,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -391,7 +391,7 @@ let dbPool = try DatabasePool(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -1371,7 +1371,7 @@ They basically help two incompatible row interfaces to work together. For exampl
 
 ```swift
 // An adapter that maps column 'produced' to column 'consumed':
-let adapter = RowAdapter(mapping: ["consumed": "produced"])
+let adapter = ColumnMapping(["consumed": "produced"])
 
 // Fetch a column named 'produced', and apply adapter:
 let row = Row.fetchOne(db, "SELECT 'Hello' AS produced", adapter: adapter)!
@@ -1380,102 +1380,98 @@ let row = Row.fetchOne(db, "SELECT 'Hello' AS produced", adapter: adapter)!
 row.value(named: "consumed") // "Hello"
 ```
 
-**Row adapters can also define "sub rows".** Sub rows help several consumers feed on a single row:
+
+**Row adapters can also define row variants.** Variants help several consumers feed on a single row and can reveal useful with joined queries.
+
+For example, let's build a query which loads books along with their author:
 
 ```swift
-let sql = "SELECT books.id, books.title, books.authorID, " +
-          "       persons.name AS authorName " +
+let sql = "SELECT books.id, books.title, " +
+          "       books.authorID, persons.name AS authorName " +
           "FROM books " +
           "JOIN persons ON books.authorID = persons.id"
+```
 
-let authorMapping = ["id": "authorID", "name": "authorName"]
-let adapter = RowAdapter(subrows: ["author": authorMapping])
+The author columns are "authorID" and "authorName". Let's say that we prefer to consume them as "id" and "name". For that we build an adapter which defines a variant named "author":
 
+```swift
+let authorMapping = ColumnMapping(["id": "authorID", "name": "authorName"])
+let adapter = VariantRowAdapter(variants: ["author": authorMapping])
+```
+
+Use the `Row.variant(named:)` method to load the "author" variant:
+
+```swift
 for row in Row.fetch(db, sql, adapter: adapter) {
-    // No mapping is applied to the fetched row:
-    // <Row id:1 title:"Moby-Dick" authorID:10 authorName:"Melville">
-    print(row)
+    // The fetched row, without adaptation:
+    row.value(named: "id")          // 1
+    row.value(named: "title")       // Moby-Dick
+    row.value(named: "authorID")    // 10
+    row.value(named: "authorName")  // Melville
     
-    if let authorRow = row.subrow(named: "author") {
-        // <Row id:10 name:"Melville">
-        print(authorRow)
+    // The "author" variant, with mapped columns:
+    if let authorRow = row.variant(named: "author") {
+        authorRow.value(named: "id")    // 10
+        authorRow.value(named: "name")  // Melville
     }
 }
 ```
 
-The last SQL and adapter can be very useful with [RowConvertible](#rowconvertible-protocol) types. For example:
+> :bowtie: **Tip**: now that we have nice "id" and "name" columns, we can leverage [RowConvertible](#rowconvertible-protocol) types such as [Record](#record-class) subclasses. For example, assuming the Book type consumes the "author" variant in its row initializer and builds a Person from it, the same row can be consumed by both the Book and Person types:
+> 
+> ```swift
+> for book in Book.fetch(db, sql, adapter: adapter) {
+>     book.title        // Moby-Dick
+>     book.author?.name // Melville
+> }
+> ```
+> 
+> And Person and Book can still be fetched without row adapters:
+> 
+> ```swift
+> let books = Book.fetchAll(db, "SELECT * FROM books")
+> let persons = Person.fetchAll(db, "SELECT * FROM persons")
+> ```
 
-```swift
-for book in Book.fetch(db, sql, adapter: adapter) {
-    book.title          // Moby-Dick
-    book.author?.name   // Melville
-}
-```
 
-All we need are two regular RowConvertible types:
-
-```swift
-class Person : RowConvertible {
-    var id: Int64?
-    var name: String
-    
-    init(row: Row) {
-        id = row.value(named: "id")
-        name = row.value(named: "name")
-    }
-}
-
-class Book : RowConvertible {
-    var id: Int64?
-    var title: String
-    var author: Person?
-    
-    init(row: Row) {
-        id = row.value(named: "id")
-        title = row.value(named: "title")
-        
-        // Consume the subrow:
-        if let authorRow = row.subrow(named: "author") {
-            author = Person(authorRow)
-        }
-    }
-}
-```
-
-Note that the Person and Book types can still be fetched without row adapters:
-
-```swift
-let books = Book.fetchAll(db, "SELECT * FROM books")
-let persons = Person.fetchAll(db, "SELECT * FROM persons")
-```
-
-**You can mix a main mapping with subrows:**
+**You can mix a main adapter with variant adapters:**
 
 ```swift
 let sql = "SELECT main.id AS mainID, main.name AS mainName, " +
           "       friend.id AS friendID, friend.name AS friendName, " +
           "FROM persons main " +
-          "LEFT JOIN persons friend ON p.bestFriendID = f.id"
+          "LEFT JOIN persons friend ON friend.id = main.bestFriendID"
 
-let mainMapping = ["id": "mainID", "name": "mainName"]
-let bestFriendMapping = ["id": "friendID", "name": "friendName"]
-let adapter = RowAdapter(
-    mapping: mainMapping,
-    subrows: ["bestFriend": bestFriendMapping])
+let mainAdapter = ColumnMapping(["id": "mainID", "name": "mainName"])
+let bestFriendAdapter = ColumnMapping(["id": "friendID", "name": "friendName"])
+let adapter = mainAdapter.adapter(withVariants: ["bestFriend": bestFriendAdapter])
 
 for row in Row.fetch(db, sql, adapter: adapter) {
-    // <Row id:1 name:"Arthur">
-    print(row)
-    // <Row id:2 name:"Barbara">
-    print(row.subrow(named: "bestFriend"))
+    // The fetched row, adapted with mainAdapter:
+    row.value(named: "id")   // 1
+    row.value(named: "name") // Arthur
+    
+    // The "bestFriend" variant, with bestFriendAdapter:
+    if let bestFriendRow = row.variant(named: "bestFriend") {
+        bestFriendRow.value(named: "id")    // 2
+        bestFriendRow.value(named: "name")  // Barbara
+    }
 }
 
-// Assuming Person.init(row: row) consumes the "bestFriend" subrow:
+// Assuming Person.init(row: row) consumes the "bestFriend" variant:
 for person in Person.fetch(db, sql, adapter: adapter) {
     person.name             // Arthur
     person.bestFriend?.name // Barbara
 }
 ```
+
+
+For more information about row adapters, see the documentation of:
+
+- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
+- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/ColumnMapping.html): a row adapter that renames row columns
+- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
+- [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/VariantRowAdapter.html): the row adapter that groups several adapters together to define named variants
 
 
 ## Raw SQLite Pointers
@@ -3087,9 +3083,16 @@ dbQueue.inDatabase { db in
 **Fatal errors can be avoided**. For example, let's consider the code below:
 
 ```swift
+// Some untrusted SQL query
 let sql = "SELECT ..."
+
+// Some untrusted arguments for the query
 let arguments: NSDictionary = ...
-let rows = Row.fetchAll(db, sql, arguments: StatementArguments(arguments))
+
+for row in Row.fetchAll(db, sql, arguments: StatementArguments(arguments)) {
+    // Some untrusted database value:
+    let date: NSDate? = row.value(atIndex: 0)
+}
 ```
 
 It has several opportunities to throw fatal errors:
@@ -3097,25 +3100,34 @@ It has several opportunities to throw fatal errors:
 - The sql string may contain invalid sql, or refer to non-existing tables or columns.
 - The dictionary may contain objects that can't be converted to database values.
 - The dictionary may miss values required by the statement.
+- The row may contain a non-null value that can't be turned into a date.
 
-To avoid fatal errors, you have to expose and handle each failure point by going down one level in GRDB API:
+In such a situation where nothing can be trusted, you can still avoid fatal errors, but you have to expose and handle each failure point by going down one level in GRDB API:
 
 ```swift
-// Dictionary arguments may contain invalid values:
+// SQL may be invalid
+let statement = try db.selectStatement(sql)
+
+// NSDictionary arguments may contain invalid values or keys:
 if let arguments = StatementArguments(arguments) {
-    
-    // SQL may be invalid
-    let statement = try db.makeSelectStatement(sql)
     
     // Arguments may not fit the statement
     try statement.validate(arguments: arguments)
     
-    // OK now
-    let rows = Row.fetchAll(statement, arguments: arguments)
+    // OK we can fetch now
+    statement.unsafeSetArguments(arguments) // no need to check twice
+    for row in Row.fetchAll(statement) {
+        
+        // Database value may not be convertible to NSDate
+        let dbv = row.databaseValue(atIndex: 0)
+        if let date = NSDate.fromDatabaseValue(dbv) {
+            // use date
+        }
+    }
 }
 ```
 
-See [prepared statements](#prepared-statements) for more information.
+See [prepared statements](#prepared-statements) and [DatabaseValue](#databasevalue) for more information.
 
 
 ## Unicode
@@ -3275,7 +3287,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.71.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 

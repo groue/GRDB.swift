@@ -293,13 +293,13 @@ class MetalRowTests: GRDBTestCase {
         }
     }
     
-    func testSubRows() {
+    func testVariants() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
             var rowFetched = false
             for row in Row.fetch(db, "SELECT 'foo' AS nAmE, 1 AS foo") {
                 rowFetched = true
-                XCTAssertTrue(row.subrow(named: "missing") == nil)
+                XCTAssertTrue(row.variant(named: "missing") == nil)
             }
             XCTAssertTrue(rowFetched)
         }

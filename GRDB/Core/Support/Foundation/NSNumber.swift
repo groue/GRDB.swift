@@ -1,10 +1,21 @@
 import Foundation
 
+private let integerRoundingBehavior = NSDecimalNumberHandler(roundingMode: .roundPlain, scale: 0, raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: false)
+
 /// NSNumber adopts DatabaseValueConvertible
 extension NSNumber: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
+        // Don't lose precision: store integers that fits in Int64 as Int64
+        if let decimal = self as? NSDecimalNumber
+            where decimal == decimal.rounding(accordingToBehavior: integerRoundingBehavior) // integer
+                && decimal.compare(NSDecimalNumber(value: Int64.max)) != .orderedDescending   // decimal <= Int64.max
+                && decimal.compare(NSDecimalNumber(value: Int64.min)) != .orderedAscending    // decimal >= Int64.min
+        {
+            return int64Value.databaseValue
+        }
+        
         switch String(cString: objCType) {
         case "c":
             return Int64(int8Value).databaseValue

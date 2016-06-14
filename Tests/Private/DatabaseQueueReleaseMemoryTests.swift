@@ -16,14 +16,14 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                countQueue.async {
+                countQueue.sync {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                countQueue.async {
+                countQueue.sync {
                     openConnectionCount -= 1
                 }
             }
@@ -48,14 +48,14 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                countQueue.async {
+                countQueue.sync {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                countQueue.async {
+                countQueue.sync {
                     openConnectionCount -= 1
                 }
             }
@@ -119,14 +119,14 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                countQueue.async {
+                countQueue.sync {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                countQueue.async {
+                countQueue.sync {
                     openConnectionCount -= 1
                 }
             }

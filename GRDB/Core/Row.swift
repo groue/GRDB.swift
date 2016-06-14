@@ -380,10 +380,10 @@ extension Row {
 
 extension Row {
     
-    // MARK: - Subrows
+    // MARK: - Variants
     
-    public func subrow(named name: String) -> Row? {
-        return impl.subrow(named: name)
+    public func variant(named name: String) -> Row? {
+        return impl.variant(named: name)
     }
 }
 
@@ -448,9 +448,9 @@ extension Row {
         let columnNames = statement.columnNames
         let sequence: DatabaseSequence<Row>
         if let adapter = adapter {
-            let adapterBinding = try! adapter.binding(with: statement)
+            let concreteRowAdapter = try! adapter.concreteRowAdapter(with: statement)
             sequence = statement.fetchSequence(arguments: arguments) {
-                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), adapterBinding: adapterBinding)
+                Row(baseRow: Row(copiedFromSQLiteStatement: sqliteStatement, columnNames: columnNames), concreteRowAdapter: concreteRowAdapter)
             }
         } else {
             sequence = statement.fetchSequence(arguments: arguments) {
@@ -640,16 +640,16 @@ public func ==(lhs: Row, rhs: Row) -> Bool {
         }
     }
     
-    let lsubrowNames = lhs.impl.subrowNames
-    let rsubrowNames = rhs.impl.subrowNames
-    guard lsubrowNames == rsubrowNames else {
+    let lvariantNames = lhs.impl.variantNames
+    let rvariantNames = rhs.impl.variantNames
+    guard lvariantNames == rvariantNames else {
         return false
     }
     
-    for name in lsubrowNames {
-        let lsubrow = lhs.subrow(named: name)
-        let rsubrow = rhs.subrow(named: name)
-        guard lsubrow == rsubrow else {
+    for name in lvariantNames {
+        let lvariant = lhs.variant(named: name)
+        let rvariant = rhs.variant(named: name)
+        guard lvariant == rvariant else {
             return false
         }
     }
@@ -701,9 +701,9 @@ protocol RowImpl {
     // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int?
     
-    func subrow(named name: String) -> Row?
+    func variant(named name: String) -> Row?
     
-    var subrowNames: Set<String> { get }
+    var variantNames: Set<String> { get }
     
     // row.impl is guaranteed to be self.
     func copy(_ row: Row) -> Row
@@ -746,11 +746,11 @@ private struct DictionaryRowImpl : RowImpl {
         return dictionary.distance(from: dictionary.startIndex, to: index)
     }
     
-    func subrow(named name: String) -> Row? {
+    func variant(named name: String) -> Row? {
         return nil
     }
     
-    var subrowNames: Set<String> {
+    var variantNames: Set<String> {
         return []
     }
     
@@ -794,11 +794,11 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames.index { $0.lowercased() == lowercaseName }
     }
     
-    func subrow(named name: String) -> Row? {
+    func variant(named name: String) -> Row? {
         return nil
     }
     
-    var subrowNames: Set<String> {
+    var variantNames: Set<String> {
         return []
     }
     
@@ -854,11 +854,11 @@ private struct StatementRowImpl : RowImpl {
         return lowercaseColumnIndexes[name.lowercased()]
     }
     
-    func subrow(named name: String) -> Row? {
+    func variant(named name: String) -> Row? {
         return nil
     }
     
-    var subrowNames: Set<String> {
+    var variantNames: Set<String> {
         return []
     }
     
@@ -888,11 +888,11 @@ private struct EmptyRowImpl : RowImpl {
         return nil
     }
     
-    func subrow(named name: String) -> Row? {
+    func variant(named name: String) -> Row? {
         return nil
     }
     
-    var subrowNames: Set<String> {
+    var variantNames: Set<String> {
         return []
     }
     
