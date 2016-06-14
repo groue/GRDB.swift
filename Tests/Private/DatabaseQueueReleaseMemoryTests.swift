@@ -94,9 +94,8 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            queue.apply(applier: blocks.count) { index in
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
                 blocks[index]()
             }
             
@@ -184,9 +183,8 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            queue.apply(applier: blocks.count) { index in
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
                 blocks[index]()
             }
             
@@ -244,9 +242,8 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            queue.apply(applier: blocks.count) { index in
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
                 blocks[index]()
             }
         }

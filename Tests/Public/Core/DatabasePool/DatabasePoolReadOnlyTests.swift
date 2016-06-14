@@ -68,9 +68,9 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
                     XCTAssertTrue(iterator.next() == nil)
                 }
             }
-            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
-            queue.apply(applier: 2) { index in
-                [block1, block2][index]()
+            let blocks = [block1, block2]
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+                blocks[index]()
             }
         }
     }

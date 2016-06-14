@@ -176,8 +176,7 @@ final class ReadWriteBox<T> {
 /// maximum number of elements is reached. In this case, the get() method
 /// blocks the current thread, until an element eventually turns available again.
 ///
-///     let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
-///     queue.apply(applier: 6) { _ in
+///     DispatchQueue.concurrentPerform(iterations: 6) { _ in
 ///         pool.get { n in
 ///             print("got \(n)")
 ///         }

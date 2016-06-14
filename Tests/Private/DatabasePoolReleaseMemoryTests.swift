@@ -115,9 +115,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 _ = s3.wait(timeout: .distantFuture)
                 dbPool.releaseMemory()
             }
-            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
-            queue.apply(applier: 3) { index in
-                [block1, block2, block3][index]()
+            let blocks = [block1, block2, block3]
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+                blocks[index]()
             }
             
             // Two readers, one writer
@@ -181,9 +181,8 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            queue.apply(applier: blocks.count) { index in
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
                 blocks[index]()
             }
             
@@ -271,9 +270,8 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            queue.apply(applier: blocks.count) { index in
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
                 blocks[index]()
             }
             
@@ -330,9 +328,8 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            queue.apply(applier: blocks.count) { index in
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
                 blocks[index]()
             }
         }
