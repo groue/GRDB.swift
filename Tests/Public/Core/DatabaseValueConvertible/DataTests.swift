@@ -25,7 +25,7 @@ class DataTests: GRDBTestCase {
                 XCTFail("Failed to convert from DatabaseValue to Data")
                 return false
             }
-            return back.isEqual(value)
+            return back == value
         }
         
         XCTAssertTrue(roundTrip("bar".data(using: .utf8)!))

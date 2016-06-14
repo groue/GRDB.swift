@@ -38,10 +38,10 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
             // SELECT * FROM items      SELECT * FROM items
             // step                     step
             // >
-            let s1 = dispatch_semaphore_create(0)!
+            let s1 = DispatchSemaphore(value: 0)
             //                          step
             //                          <
-            let s2 = dispatch_semaphore_create(0)!
+            let s2 = DispatchSemaphore(value: 0)
             // step                     step
             // step                     end
             // end
@@ -50,8 +50,8 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
                 dbPool.read { db in
                     let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
                     XCTAssertTrue(iterator.next() != nil)
-                    dispatch_semaphore_signal(s1)
-                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                    s1.signal()
+                    _ = s2.wait(timeout: .distantFuture)
                     XCTAssertTrue(iterator.next() != nil)
                     XCTAssertTrue(iterator.next() != nil)
                     XCTAssertTrue(iterator.next() == nil)
@@ -61,15 +61,15 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
                 dbPool.read { db in
                     let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
                     XCTAssertTrue(iterator.next() != nil)
-                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    _ = s1.wait(timeout: .distantFuture)
                     XCTAssertTrue(iterator.next() != nil)
-                    dispatch_semaphore_signal(s2)
+                    s2.signal()
                     XCTAssertTrue(iterator.next() != nil)
                     XCTAssertTrue(iterator.next() == nil)
                 }
             }
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
-            dispatch_apply(2, queue) { index in
+            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
+            queue.apply(applier: 2) { index in
                 [block1, block2][index]()
             }
         }

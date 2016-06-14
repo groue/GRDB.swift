@@ -11,9 +11,9 @@ private class Person : Record {
     var id: Int64!
     var name: String!
     var age: Int?
-    var creationDate: NSDate
+    var creationDate: Date
     
-    init(id: Int64?, name: String?, age: Int?, creationDate: NSDate) {
+    init(id: Int64?, name: String?, age: Int?, creationDate: Date) {
         self.id = id
         self.name = name
         self.age = age
@@ -44,7 +44,7 @@ private class Person : Record {
 class RecordCopyTests: GRDBTestCase {
     
     func testRecordCopy() {
-        let person1 = Person(id: 123, name: "Arthur", age: 41, creationDate: NSDate())
+        let person1 = Person(id: 123, name: "Arthur", age: 41, creationDate: Date())
         let person2 = person1.copy()
         XCTAssertTrue(person2.id == person1.id)
         XCTAssertTrue(person2.name == person1.name)

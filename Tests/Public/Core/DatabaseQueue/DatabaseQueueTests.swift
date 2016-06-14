@@ -12,13 +12,13 @@ class DatabaseQueueTests: GRDBTestCase {
     func testInvalidFileFormat() {
         assertNoError {
             do {
-                let testBundle = NSBundle(for: self.dynamicType)
-                let path = testBundle.pathForResource("Betty", ofType: "jpeg")!
-                guard Data(contentsOfFile: path) != nil else {
+                let testBundle = Bundle(for: self.dynamicType)
+                let url = testBundle.urlForResource("Betty", withExtension: "jpeg")!
+                guard (try? Data(contentsOf: url)) != nil else {
                     XCTFail("Missing file")
                     return
                 }
-                _ = try DatabaseQueue(path: path)
+                _ = try DatabaseQueue(path: url.path!)
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.code, 26) // SQLITE_NOTADB

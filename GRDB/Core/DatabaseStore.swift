@@ -32,9 +32,9 @@ class DatabaseStore {
         // This require a file descriptor on the directory.
         let directoryDescriptor = open(directoryPath, O_EVTONLY)
         guard directoryDescriptor != -1 else {
-            // Let NSFileManager throw a nice NSError
+            // Let FileManager throw a nice NSError
             try FileManager.default().contentsOfDirectory(atPath: directoryPath)
-            // Come on, NSFileManager... OK just throw something that is somewhat relevant
+            // Come on, FileManager... OK just throw something that is somewhat relevant
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileReadUnknownError, userInfo: nil)
         }
         

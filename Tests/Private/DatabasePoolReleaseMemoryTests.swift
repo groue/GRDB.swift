@@ -11,19 +11,19 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     
     func testDatabasePoolDeinitClosesAllConnections() {
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)!
+            let countQueue = DispatchQueue(label: "GRDB")
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     openConnectionCount -= 1
                 }
             }
@@ -51,19 +51,19 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
     
     func testDatabasePoolReleaseMemoryClosesReaderConnections() {
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)!
+            let countQueue = DispatchQueue(label: "GRDB")
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     openConnectionCount -= 1
                 }
             }
@@ -80,43 +80,43 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             // SELECT * FROM items
             // step
             // >
-            let s1 = dispatch_semaphore_create(0)!
+            let s1 = DispatchSemaphore(value: 0)
             //                          SELECT * FROM items
             //                          step
             //                          >
-            let s2 = dispatch_semaphore_create(0)!
+            let s2 = DispatchSemaphore(value: 0)
             // step                     step
             // >
-            let s3 = dispatch_semaphore_create(0)!
+            let s3 = DispatchSemaphore(value: 0)
             // end                      end                     releaseMemory
             
             let block1 = { () in
                 dbPool.read { db in
                     let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
                     XCTAssertTrue(iterator.next() != nil)
-                    dispatch_semaphore_signal(s1)
-                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                    s1.signal()
+                    _ = s2.wait(timeout: .distantFuture)
                     XCTAssertTrue(iterator.next() != nil)
-                    dispatch_semaphore_signal(s3)
+                    s3.signal()
                     XCTAssertTrue(iterator.next() == nil)
                 }
             }
             let block2 = { () in
-                dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                _ = s1.wait(timeout: .distantFuture)
                 dbPool.read { db in
                     let iterator = Row.fetch(db, "SELECT * FROM items").makeIterator()
                     XCTAssertTrue(iterator.next() != nil)
-                    dispatch_semaphore_signal(s2)
+                    s2.signal()
                     XCTAssertTrue(iterator.next() != nil)
                     XCTAssertTrue(iterator.next() == nil)
                 }
             }
             let block3 = { () in
-                dispatch_semaphore_wait(s3, DISPATCH_TIME_FOREVER)
+                _ = s3.wait(timeout: .distantFuture)
                 dbPool.releaseMemory()
             }
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
-            dispatch_apply(3, queue) { index in
+            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
+            queue.apply(applier: 3) { index in
                 [block1, block2, block3][index]()
             }
             
@@ -130,19 +130,19 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
 
     func testBlocksRetainConnection() {
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)!
+            let countQueue = DispatchQueue(label: "GRDB")
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     openConnectionCount -= 1
                 }
             }
@@ -150,10 +150,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             // Block 1                  Block 2
             //                          read {
             //                              >
-            let s1 = dispatch_semaphore_create(0)!
+            let s1 = DispatchSemaphore(value: 0)
             // dbPool = nil
             // >
-            let s2 = dispatch_semaphore_create(0)!
+            let s2 = DispatchSemaphore(value: 0)
             //                              use database
             //                          }
             
@@ -164,15 +164,15 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 
                 let block1 = { () in
-                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    _ = s1.wait(timeout: .distantFuture)
                     dbPool = nil
-                    dispatch_semaphore_signal(s2)
+                    s2.signal()
                 }
                 let block2 = { [weak dbPool] () in
                     if let dbPool = dbPool {
                         dbPool.read { db in
-                            dispatch_semaphore_signal(s1)
-                            dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                            s1.signal()
+                            _ = s2.wait(timeout: .distantFuture)
                             XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items"), 0)
                         }
                     } else {
@@ -181,9 +181,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            dispatch_apply(blocks.count, queue) { index in
+            queue.apply(applier: blocks.count) { index in
                 blocks[index]()
             }
             
@@ -202,19 +202,19 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             return
         }
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)!
+            let countQueue = DispatchQueue(label: "GRDB")
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     openConnectionCount -= 1
                 }
             }
@@ -224,10 +224,10 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             //                              SELECT
             //                              step
             //                              >
-            let s1 = dispatch_semaphore_create(0)!
+            let s1 = DispatchSemaphore(value: 0)
             // dbPool = nil
             // >
-            let s2 = dispatch_semaphore_create(0)!
+            let s2 = DispatchSemaphore(value: 0)
             //                              step
             //                              end
             //                          }
@@ -241,9 +241,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 
                 let block1 = { () in
-                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    _ = s1.wait(timeout: .distantFuture)
                     dbPool = nil
-                    dispatch_semaphore_signal(s2)
+                    s2.signal()
                 }
                 let block2 = { [weak dbPool] () in
                     weak var connection: Database? = nil
@@ -254,13 +254,13 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                                 connection = db
                                 iterator = Int.fetch(db, "SELECT id FROM items").makeIterator()
                                 XCTAssertTrue(iterator!.next() != nil)
-                                dispatch_semaphore_signal(s1)
+                                s1.signal()
                             }
                         } else {
                             XCTFail("expect non nil dbPool")
                         }
                     }
-                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                    _ = s2.wait(timeout: .distantFuture)
                     do {
                         XCTAssertTrue(dbPool == nil)
                         XCTAssertTrue(iterator!.next() != nil)
@@ -271,9 +271,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            dispatch_apply(blocks.count, queue) { index in
+            queue.apply(applier: blocks.count) { index in
                 blocks[index]()
             }
             
@@ -295,18 +295,18 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             // Block 1                  Block 2
             //                          create statement INSERT
             //                          >
-            let s1 = dispatch_semaphore_create(0)!
+            let s1 = DispatchSemaphore(value: 0)
             // dbPool = nil
             // >
-            let s2 = dispatch_semaphore_create(0)!
+            let s2 = DispatchSemaphore(value: 0)
             //                          dbPool is nil
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
                 var dbPool: DatabasePool? = try! makeDatabasePool()
                 let block1 = { () in
-                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    _ = s1.wait(timeout: .distantFuture)
                     dbPool = nil
-                    dispatch_semaphore_signal(s2)
+                    s2.signal()
                 }
                 let block2 = { [weak dbPool] () in
                     var statement: UpdateStatement? = nil
@@ -315,7 +315,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                             do {
                                 try dbPool.write { db in
                                     statement = try db.makeUpdateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                                    dispatch_semaphore_signal(s1)
+                                    s1.signal()
                                 }
                             } catch {
                                 XCTFail("error: \(error)")
@@ -324,15 +324,15 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                             XCTFail("expect non nil dbPool")
                         }
                     }
-                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                    _ = s2.wait(timeout: .distantFuture)
                     XCTAssertTrue(statement != nil)
                     XCTAssertTrue(dbPool == nil)
                 }
                 return (block1, block2)
             }()
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            dispatch_apply(blocks.count, queue) { index in
+            queue.apply(applier: blocks.count) { index in
                 blocks[index]()
             }
         }

@@ -11,19 +11,19 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
     
     func testDatabaseQueueuDeinitClosesConnection() {
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)!
+            let countQueue = DispatchQueue(label: "GRDB")
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     openConnectionCount -= 1
                 }
             }
@@ -43,19 +43,19 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
     
     func testBlocksRetainConnection() {
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)!
+            let countQueue = DispatchQueue(label: "GRDB")
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     openConnectionCount -= 1
                 }
             }
@@ -63,10 +63,10 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             // Block 1                  Block 2
             //                          inDatabase {
             //                              >
-            let s1 = dispatch_semaphore_create(0)!
+            let s1 = DispatchSemaphore(value: 0)
             // dbQueue = nil
             // >
-            let s2 = dispatch_semaphore_create(0)!
+            let s2 = DispatchSemaphore(value: 0)
             //                              use database
             //                          }
             
@@ -77,15 +77,15 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
                 
                 let block1 = { () in
-                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    _ = s1.wait(timeout: .distantFuture)
                     dbQueue = nil
-                    dispatch_semaphore_signal(s2)
+                    s2.signal()
                 }
                 let block2 = { [weak dbQueue] () in
                     if let dbQueue = dbQueue {
                         dbQueue.write { db in
-                            dispatch_semaphore_signal(s1)
-                            dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                            s1.signal()
+                            _ = s2.wait(timeout: .distantFuture)
                             XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items"), 0)
                         }
                     } else {
@@ -94,9 +94,9 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            dispatch_apply(blocks.count, queue) { index in
+            queue.apply(applier: blocks.count) { index in
                 blocks[index]()
             }
             
@@ -115,19 +115,19 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             return
         }
         assertNoError {
-            let countQueue = dispatch_queue_create(nil, nil)!
+            let countQueue = DispatchQueue(label: "GRDB")
             var openConnectionCount = 0
             var totalOpenConnectionCount = 0
             
             dbConfiguration.SQLiteConnectionDidOpen = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     totalOpenConnectionCount += 1
                     openConnectionCount += 1
                 }
             }
             
             dbConfiguration.SQLiteConnectionDidClose = {
-                dispatch_sync(countQueue) {
+                countQueue.async {
                     openConnectionCount -= 1
                 }
             }
@@ -137,10 +137,10 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             //                              SELECT
             //                              step
             //                              >
-            let s1 = dispatch_semaphore_create(0)!
+            let s1 = DispatchSemaphore(value: 0)
             // dbQueue = nil
             // >
-            let s2 = dispatch_semaphore_create(0)!
+            let s2 = DispatchSemaphore(value: 0)
             //                              step
             //                              end
             //                          }
@@ -154,9 +154,9 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
                 
                 let block1 = { () in
-                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    _ = s1.wait(timeout: .distantFuture)
                     dbQueue = nil
-                    dispatch_semaphore_signal(s2)
+                    s2.signal()
                 }
                 let block2 = { [weak dbQueue] () in
                     weak var connection: Database? = nil
@@ -167,13 +167,13 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                                 connection = db
                                 iterator = Int.fetch(db, "SELECT id FROM items").makeIterator()
                                 XCTAssertTrue(iterator!.next() != nil)
-                                dispatch_semaphore_signal(s1)
+                                s1.signal()
                             }
                         } else {
                             XCTFail("expect non nil dbQueue")
                         }
                     }
-                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                    _ = s2.wait(timeout: .distantFuture)
                     do {
                         XCTAssertTrue(dbQueue == nil)
                         XCTAssertTrue(iterator!.next() != nil)
@@ -184,9 +184,9 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                 }
                 return (block1, block2)
             }()
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            dispatch_apply(blocks.count, queue) { index in
+            queue.apply(applier: blocks.count) { index in
                 blocks[index]()
             }
             
@@ -208,19 +208,19 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
             // Block 1                  Block 2
             //                          create statement INSERT
             //                          >
-            let s1 = dispatch_semaphore_create(0)!
+            let s1 = DispatchSemaphore(value: 0)
             // dbQueue = nil
             // >
-            let s2 = dispatch_semaphore_create(0)!
+            let s2 = DispatchSemaphore(value: 0)
             //                          dbQueue is nil
             
             let (block1, block2) = { () -> (() -> (), () -> ()) in
                 var dbQueue: DatabaseQueue? = try! makeDatabaseQueue()
                 
                 let block1 = { () in
-                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    _ = s1.wait(timeout: .distantFuture)
                     dbQueue = nil
-                    dispatch_semaphore_signal(s2)
+                    s2.signal()
                 }
                 let block2 = { [weak dbQueue] () in
                     var statement: UpdateStatement? = nil
@@ -229,7 +229,7 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                             do {
                                 try dbQueue.write { db in
                                     statement = try db.makeUpdateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                                    dispatch_semaphore_signal(s1)
+                                    s1.signal()
                                 }
                             } catch {
                                 XCTFail("error: \(error)")
@@ -238,15 +238,15 @@ class DatabaseQueueuReleaseMemoryTests: GRDBTestCase {
                             XCTFail("expect non nil dbQueue")
                         }
                     }
-                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                    _ = s2.wait(timeout: .distantFuture)
                     XCTAssertTrue(statement != nil)
                     XCTAssertTrue(dbQueue == nil)
                 }
                 return (block1, block2)
             }()
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
+            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
             let blocks = [block1, block2]
-            dispatch_apply(blocks.count, queue) { index in
+            queue.apply(applier: blocks.count) { index in
                 blocks[index]()
             }
         }

@@ -11,9 +11,9 @@ private class Person : Record {
     var id: Int64!
     var name: String!
     var age: Int?
-    var creationDate: NSDate!
+    var creationDate: Date!
     
-    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: Date? = nil) {
         self.id = id
         self.name = name
         self.age = age
@@ -57,7 +57,7 @@ private class Person : Record {
     override func insert(_ db: Database) throws {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
-            creationDate = NSDate()
+            creationDate = Date()
         }
         
         try super.insert(db)
@@ -92,9 +92,9 @@ private class PersonWithModifiedCaseColumns: Record {
     var id: Int64!
     var name: String!
     var age: Int?
-    var creationDate: NSDate!
+    var creationDate: Date!
     
-    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: Date? = nil) {
         self.id = id
         self.name = name
         self.age = age
@@ -128,7 +128,7 @@ private class PersonWithModifiedCaseColumns: Record {
     override func insert(_ db: Database) throws {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
-            creationDate = NSDate()
+            creationDate = Date()
         }
         
         try super.insert(db)
@@ -620,7 +620,7 @@ class RecordEditedTests: GRDBTestCase {
                     case "age":
                         XCTAssertEqual(old, DatabaseValue.null)
                     case "creationDate":
-                        XCTAssertTrue((old?.value() as NSDate?) != nil)
+                        XCTAssertTrue((old?.value() as Date?) != nil)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }
@@ -642,7 +642,7 @@ class RecordEditedTests: GRDBTestCase {
                     case "AGE":
                         XCTAssertEqual(old, DatabaseValue.null)
                     case "CREATIONDATE":
-                        XCTAssertTrue((old?.value() as NSDate?) != nil)
+                        XCTAssertTrue((old?.value() as Date?) != nil)
                     default:
                         XCTFail("Unexpected column: \(column)")
                     }

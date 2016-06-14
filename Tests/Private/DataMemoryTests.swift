@@ -38,14 +38,18 @@ class DataMemoryTests: GRDBTestCase {
                     do {
                         // This data should be copied:
                         let copiedData: Data = row.value(atIndex: 0)
-                        XCTAssertNotEqual(copiedData.bytes, sqliteBytes)
+                        copiedData.withUnsafeBytes { copiedBytes in
+                            XCTAssertNotEqual(copiedBytes, sqliteBytes)
+                        }
                         XCTAssertEqual(copiedData, data)
                     }
                     
                     do {
                         // This data should not be copied
                         let nonCopiedData = row.dataNoCopy(atIndex: 0)!
-                        XCTAssertEqual(nonCopiedData.bytes, sqliteBytes)
+                        nonCopiedData.withUnsafeBytes { nonCopiedBytes in
+                            XCTAssertEqual(nonCopiedBytes, sqliteBytes)
+                        }
                         XCTAssertEqual(nonCopiedData, data)
                     }
                 }
@@ -54,18 +58,24 @@ class DataMemoryTests: GRDBTestCase {
                 let databaseValue = row.first!.1
                 switch databaseValue.storage {
                 case .blob(let data):
-                    do {
-                        // This data should not be copied:
-                        let nonCopiedData: Data = row.value(atIndex: 0)
-                        XCTAssertEqual(nonCopiedData.bytes, data.bytes)
-                        XCTAssertEqual(nonCopiedData, data)
-                    }
-                    
-                    do {
-                        // This data should not be copied:
-                        let nonCopiedData = row.dataNoCopy(atIndex: 0)!
-                        XCTAssertEqual(nonCopiedData.bytes, data.bytes)
-                        XCTAssertEqual(nonCopiedData, data)
+                    data.withUnsafeBytes { (dataBytes: UnsafePointer<Void>) -> Void in
+                        do {
+                            // This data should not be copied:
+                            let nonCopiedData: Data = row.value(atIndex: 0)
+                            nonCopiedData.withUnsafeBytes { nonCopiedBytes in
+                                XCTAssertEqual(nonCopiedBytes, dataBytes)
+                            }
+                            XCTAssertEqual(nonCopiedData, data)
+                        }
+                        
+                        do {
+                            // This data should not be copied:
+                            let nonCopiedData = row.dataNoCopy(atIndex: 0)!
+                            nonCopiedData.withUnsafeBytes { nonCopiedBytes in
+                                XCTAssertEqual(nonCopiedBytes, dataBytes)
+                            }
+                            XCTAssertEqual(nonCopiedData, data)
+                        }
                     }
                 default:
                     XCTFail("Not a blob")

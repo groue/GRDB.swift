@@ -85,25 +85,25 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             // Block 1                              Block 2
             // SELECT 1 FROM items WHERE id = 1
             // >
-            let s1 = dispatch_semaphore_create(0)!
+            let s1 = DispatchSemaphore(value: 0)
             //                                      SELECT 1 FROM items WHERE id = 1
             
             let block1 = { () in
                 dbPool.read { db in
                     let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
                     XCTAssertEqual(Int.fetchOne(stmt)!, 1)
-                    dispatch_semaphore_signal(s1)
+                    s1.signal()
                 }
             }
             let block2 = { () in
                 dbPool.read { db in
-                    dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+                    _ = s1.wait(timeout: .distantFuture)
                     let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
                     XCTAssertEqual(Int.fetchOne(stmt)!, 1)
                 }
             }
-            let queue = dispatch_queue_create(nil, DISPATCH_QUEUE_CONCURRENT)
-            dispatch_apply(2, queue) { index in
+            let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
+            queue.apply(applier: 2) { index in
                 [block1, block2][index]()
             }
         }

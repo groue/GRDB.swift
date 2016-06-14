@@ -17,11 +17,11 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! NSFileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default().removeItem(atPath: databasePath)
         }
         
         measureBlock {
-            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default().removeItem(atPath: databasePath)
             
             var connection: OpaquePointer = nil
             sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
@@ -63,10 +63,10 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! NSFileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default().removeItem(atPath: databasePath)
         }
         measureBlock {
-            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default().removeItem(atPath: databasePath)
             
             let dbQueue = FMDatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -92,10 +92,10 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! NSFileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default().removeItem(atPath: databasePath)
         }
         measureBlock {
-            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default().removeItem(atPath: databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
@@ -122,10 +122,10 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! NSFileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default().removeItem(atPath: databasePath)
         }
         measureBlock {
-            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default().removeItem(atPath: databasePath)
             
             let db = try! Connection(databasePath)
             try! db.run(itemsTable.create { t in

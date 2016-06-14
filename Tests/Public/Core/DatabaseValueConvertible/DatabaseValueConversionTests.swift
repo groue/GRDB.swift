@@ -210,8 +210,8 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(Data.fromDatabaseValue(dbv), "foo".data(using: .utf8))
                 
-                XCTAssertEqual((dbv.value() as Data?), "foo".data(using: .utf8))
-                XCTAssertTrue((dbv.value() as Data).isEqual(to: "foo".data(using: .utf8)!))
+                XCTAssertEqual((dbv.value() as Data?)!, "foo".data(using: .utf8))
+                XCTAssertEqual(dbv.value() as Data, "foo".data(using: .utf8))
                 
                 return .rollback
             }
@@ -498,8 +498,8 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(Data.fromDatabaseValue(dbv), "foo".data(using: .utf8))
                 
-                XCTAssertEqual((dbv.value() as Data?), "foo".data(using: .utf8))
-                XCTAssertTrue((dbv.value() as Data).isEqual(to: "foo".data(using: .utf8)!))
+                XCTAssertEqual((dbv.value() as Data?)!, "foo".data(using: .utf8))
+                XCTAssertEqual(dbv.value() as Data, "foo".data(using: .utf8))
                 
                 return .rollback
             }
@@ -674,8 +674,8 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(Data.fromDatabaseValue(dbv), "foo".data(using: .utf8))
                 
-                XCTAssertEqual((dbv.value() as Data?), "foo".data(using: .utf8))
-                XCTAssertTrue((dbv.value() as Data).isEqual(to: "foo".data(using: .utf8)!))
+                XCTAssertEqual((dbv.value() as Data?)!, "foo".data(using: .utf8))
+                XCTAssertEqual(dbv.value() as Data, "foo".data(using: .utf8))
                 
                 return .rollback
             }
@@ -936,8 +936,8 @@ class DatabaseValueConversionTests : GRDBTestCase {
                 XCTAssertTrue(String.fromDatabaseValue(dbv) == nil)
                 XCTAssertEqual(Data.fromDatabaseValue(dbv), "foo".data(using: .utf8))
                 
-                XCTAssertEqual((dbv.value() as Data?), "foo".data(using: .utf8))
-                XCTAssertTrue((dbv.value() as Data).isEqual(to: "foo".data(using: .utf8)!))
+                XCTAssertEqual((dbv.value() as Data?)!, "foo".data(using: .utf8))
+                XCTAssertEqual(dbv.value() as Data, "foo".data(using: .utf8))
                 
                 return .rollback
             }

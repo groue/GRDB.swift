@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-class NSDateTests : GRDBTestCase {
+class DateTests : GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -21,13 +21,13 @@ class NSDateTests : GRDBTestCase {
         try migrator.migrate(dbWriter)
     }
 
-    func testNSDate() {
+    func testDate() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                let dateComponents = NSDateComponents()
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -42,7 +42,7 @@ class NSDateTests : GRDBTestCase {
                 }
                 
                 do {
-                    let date = NSDate.fetchOne(db, "SELECT creationDate FROM dates")!
+                    let date = Date.fetchOne(db, "SELECT creationDate FROM dates")!
                     // All components must be preserved, but nanosecond since ISO-8601 stores milliseconds.
                     XCTAssertEqual(calendar.component(.year, from: date), dateComponents.year)
                     XCTAssertEqual(calendar.component(.month, from: date), dateComponents.month)
@@ -50,19 +50,19 @@ class NSDateTests : GRDBTestCase {
                     XCTAssertEqual(calendar.component(.hour, from: date), dateComponents.hour)
                     XCTAssertEqual(calendar.component(.minute, from: date), dateComponents.minute)
                     XCTAssertEqual(calendar.component(.second, from: date), dateComponents.second)
-                    XCTAssertEqual(round(Double(calendar.component(.nanosecond, from: date)) / 1.0e6), round(Double(dateComponents.nanosecond) / 1.0e6))
+                    XCTAssertEqual(round(Double(calendar.component(.nanosecond, from: date)) / 1.0e6), round(Double(dateComponents.nanosecond!) / 1.0e6))
                 }
             }
         }
     }
     
-    func testNSDateIsLexicallyComparableToCURRENT_TIMESTAMP() {
+    func testDateIsLexicallyComparableToCURRENT_TIMESTAMP() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (id, creationDate) VALUES (?,?)",
-                    arguments: [1, NSDate().addingTimeInterval(-1)])
+                    arguments: [1, Date().addingTimeInterval(-1)])
                 
                 try db.execute(
                     "INSERT INTO dates (id) VALUES (?)",
@@ -70,7 +70,7 @@ class NSDateTests : GRDBTestCase {
                 
                 try db.execute(
                     "INSERT INTO dates (id, creationDate) VALUES (?,?)",
-                    arguments: [3, NSDate().addingTimeInterval(1)])
+                    arguments: [3, Date().addingTimeInterval(1)])
                 
                 let ids = Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate")
                 XCTAssertEqual(ids, [1,2,3])
@@ -78,60 +78,60 @@ class NSDateTests : GRDBTestCase {
         }
     }
     
-    func testNSDateFromUnparsableString() {
-        let date = NSDate.fromDatabaseValue("foo".databaseValue)
+    func testDateFromUnparsableString() {
+        let date = Date.fromDatabaseValue("foo".databaseValue)
         XCTAssertTrue(date == nil)
     }
     
-    func testNSDateDoesNotAcceptFormatHM() {
+    func testDateDoesNotAcceptFormatHM() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["01:02"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")
                 XCTAssertTrue(date == nil)
             }
         }
     }
     
-    func testNSDateDoesNotAcceptFormatHMS() {
+    func testDateDoesNotAcceptFormatHMS() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["01:02:03"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")
                 XCTAssertTrue(date == nil)
             }
         }
     }
     
-    func testNSDateDoesNotAcceptFormatHMSS() {
+    func testDateDoesNotAcceptFormatHMSS() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["01:02:03.00456"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")
                 XCTAssertTrue(date == nil)
             }
         }
     }
     
-    func testNSDateAcceptsFormatYMD() {
+    func testDateAcceptsFormatYMD() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")!
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
                 XCTAssertEqual(calendar.component(.month, from: date), 7)
                 XCTAssertEqual(calendar.component(.day, from: date), 22)
@@ -143,16 +143,16 @@ class NSDateTests : GRDBTestCase {
         }
     }
     
-    func testNSDateAcceptsFormatYMD_HM() {
+    func testDateAcceptsFormatYMD_HM() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22 01:02"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")!
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
                 XCTAssertEqual(calendar.component(.month, from: date), 7)
                 XCTAssertEqual(calendar.component(.day, from: date), 22)
@@ -164,16 +164,16 @@ class NSDateTests : GRDBTestCase {
         }
     }
     
-    func testNSDateAcceptsFormatYMD_HMS() {
+    func testDateAcceptsFormatYMD_HMS() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22 01:02:03"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")!
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
                 XCTAssertEqual(calendar.component(.month, from: date), 7)
                 XCTAssertEqual(calendar.component(.day, from: date), 22)
@@ -185,28 +185,28 @@ class NSDateTests : GRDBTestCase {
         }
     }
     
-    func testNSDateAcceptsFormatYMD_HMSS() {
+    func testDateAcceptsFormatYMD_HMSS() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22 01:02:03.00456"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")!
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
                 XCTAssertEqual(calendar.component(.month, from: date), 7)
                 XCTAssertEqual(calendar.component(.day, from: date), 22)
                 XCTAssertEqual(calendar.component(.hour, from: date), 1)
                 XCTAssertEqual(calendar.component(.minute, from: date), 2)
                 XCTAssertEqual(calendar.component(.second, from: date), 3)
-                XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the NSDateComponents -> NSDate conversion. Not a big deal.
+                XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the DateComponents -> Date conversion. Not a big deal.
             }
         }
     }
     
-    func testNSDateAcceptsJulianDayNumber() {
+    func testDateAcceptsJulianDayNumber() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -218,9 +218,9 @@ class NSDateTests : GRDBTestCase {
                 let string = String.fetchOne(db, "SELECT datetime(creationDate) from dates")!
                 XCTAssertEqual(string, "2013-01-01 00:29:59")
                 
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")!
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(.year, from: date), 2013)
                 XCTAssertEqual(calendar.component(.month, from: date), 1)
                 XCTAssertEqual(calendar.component(.day, from: date), 1)
@@ -231,16 +231,16 @@ class NSDateTests : GRDBTestCase {
         }
     }
 
-    func testNSDateAcceptsFormatIso8601YMD_HM() {
+    func testDateAcceptsFormatIso8601YMD_HM() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22T01:02"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")!
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
                 XCTAssertEqual(calendar.component(.month, from: date), 7)
                 XCTAssertEqual(calendar.component(.day, from: date), 22)
@@ -252,16 +252,16 @@ class NSDateTests : GRDBTestCase {
         }
     }
     
-    func testNSDateAcceptsFormatIso8601YMD_HMS() {
+    func testDateAcceptsFormatIso8601YMD_HMS() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22T01:02:03"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")!
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
                 XCTAssertEqual(calendar.component(.month, from: date), 7)
                 XCTAssertEqual(calendar.component(.day, from: date), 22)
@@ -273,23 +273,23 @@ class NSDateTests : GRDBTestCase {
         }
     }
     
-    func testNSDateAcceptsFormatIso8601YMD_HMSS() {
+    func testDateAcceptsFormatIso8601YMD_HMSS() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 try db.execute(
                     "INSERT INTO dates (creationDate) VALUES (?)",
                     arguments: ["2015-07-22T01:02:03.00456"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")!
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                let date = Date.fetchOne(db, "SELECT creationDate from dates")!
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
                 XCTAssertEqual(calendar.component(.year, from: date), 2015)
                 XCTAssertEqual(calendar.component(.month, from: date), 7)
                 XCTAssertEqual(calendar.component(.day, from: date), 22)
                 XCTAssertEqual(calendar.component(.hour, from: date), 1)
                 XCTAssertEqual(calendar.component(.minute, from: date), 2)
                 XCTAssertEqual(calendar.component(.second, from: date), 3)
-                XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the NSDateComponents -> NSDate conversion. Not a big deal.
+                XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the DateComponents -> Date conversion. Not a big deal.
             }
         }
     }

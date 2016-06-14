@@ -49,13 +49,13 @@ class DatabasePoolBackupTests: GRDBTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
             }
             
-            let s1 = dispatch_semaphore_create(0)!
-            let s2 = dispatch_semaphore_create(0)!
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
-                dispatch_semaphore_wait(s1, DISPATCH_TIME_FOREVER)
+            let s1 = DispatchSemaphore(value: 0)
+            let s2 = DispatchSemaphore(value: 0)
+            DispatchQueue.global(attributes: [.qosDefault]).async {
+                _ = s1.wait(timeout: .distantFuture)
                 try! source.writeInTransaction(.immediate) { db in
                     try db.execute("INSERT INTO items (id) VALUES (NULL)")
-                    dispatch_semaphore_signal(s2)
+                    s2.signal()
                     return .commit
                 }
             }
@@ -63,8 +63,8 @@ class DatabasePoolBackupTests: GRDBTestCase {
             try source.backup(
                 to: destination,
                 afterBackupInit: {
-                    dispatch_semaphore_signal(s1)
-                    dispatch_semaphore_wait(s2, DISPATCH_TIME_FOREVER)
+                    s1.signal()
+                    _ = s2.wait(timeout: .distantFuture)
                 },
                 afterBackupStep: {
                     try! source.write { db in

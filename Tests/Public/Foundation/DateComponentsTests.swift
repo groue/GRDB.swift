@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-class NSDateComponentsTests : GRDBTestCase {
+class DateComponentsTests : GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -26,7 +26,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -41,13 +41,13 @@ class NSDateComponentsTests : GRDBTestCase {
                 
                 let databaseDateComponents = DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
                 XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.HM)
-                XCTAssertEqual(databaseDateComponents.dateComponents.year, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.month, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.day, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.year == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.month == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.day == nil)
                 XCTAssertEqual(databaseDateComponents.dateComponents.hour, dateComponents.hour)
                 XCTAssertEqual(databaseDateComponents.dateComponents.minute, dateComponents.minute)
-                XCTAssertEqual(databaseDateComponents.dateComponents.second, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.nanosecond, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.second == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.nanosecond == nil)
             }
         }
     }
@@ -57,7 +57,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -72,13 +72,13 @@ class NSDateComponentsTests : GRDBTestCase {
                 
                 let databaseDateComponents = DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
                 XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.HMS)
-                XCTAssertEqual(databaseDateComponents.dateComponents.year, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.month, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.day, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.year == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.month == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.day == nil)
                 XCTAssertEqual(databaseDateComponents.dateComponents.hour, dateComponents.hour)
                 XCTAssertEqual(databaseDateComponents.dateComponents.minute, dateComponents.minute)
                 XCTAssertEqual(databaseDateComponents.dateComponents.second, dateComponents.second)
-                XCTAssertEqual(databaseDateComponents.dateComponents.nanosecond, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.nanosecond == nil)
             }
         }
     }
@@ -88,7 +88,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -103,13 +103,13 @@ class NSDateComponentsTests : GRDBTestCase {
                 
                 let databaseDateComponents = DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
                 XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.HMSS)
-                XCTAssertEqual(databaseDateComponents.dateComponents.year, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.month, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.day, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.year == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.month == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.day == nil)
                 XCTAssertEqual(databaseDateComponents.dateComponents.hour, dateComponents.hour)
                 XCTAssertEqual(databaseDateComponents.dateComponents.minute, dateComponents.minute)
                 XCTAssertEqual(databaseDateComponents.dateComponents.second, dateComponents.second)
-                XCTAssertEqual(round(Double(databaseDateComponents.dateComponents.nanosecond) / 1.0e6), round(Double(dateComponents.nanosecond) / 1.0e6))
+                XCTAssertEqual(round(Double(databaseDateComponents.dateComponents.nanosecond!) / 1.0e6), round(Double(dateComponents.nanosecond!) / 1.0e6))
             }
         }
     }
@@ -119,7 +119,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -137,10 +137,10 @@ class NSDateComponentsTests : GRDBTestCase {
                 XCTAssertEqual(databaseDateComponents.dateComponents.year, dateComponents.year)
                 XCTAssertEqual(databaseDateComponents.dateComponents.month, dateComponents.month)
                 XCTAssertEqual(databaseDateComponents.dateComponents.day, dateComponents.day)
-                XCTAssertEqual(databaseDateComponents.dateComponents.hour, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.minute, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.second, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.nanosecond, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.hour == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.minute == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.second == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.nanosecond == nil)
             }
         }
     }
@@ -150,7 +150,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -170,8 +170,8 @@ class NSDateComponentsTests : GRDBTestCase {
                 XCTAssertEqual(databaseDateComponents.dateComponents.day, dateComponents.day)
                 XCTAssertEqual(databaseDateComponents.dateComponents.hour, dateComponents.hour)
                 XCTAssertEqual(databaseDateComponents.dateComponents.minute, dateComponents.minute)
-                XCTAssertEqual(databaseDateComponents.dateComponents.second, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.nanosecond, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.second == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.nanosecond == nil)
             }
         }
     }
@@ -181,7 +181,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -202,7 +202,7 @@ class NSDateComponentsTests : GRDBTestCase {
                 XCTAssertEqual(databaseDateComponents.dateComponents.hour, dateComponents.hour)
                 XCTAssertEqual(databaseDateComponents.dateComponents.minute, dateComponents.minute)
                 XCTAssertEqual(databaseDateComponents.dateComponents.second, dateComponents.second)
-                XCTAssertEqual(databaseDateComponents.dateComponents.nanosecond, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.nanosecond == nil)
             }
         }
     }
@@ -212,7 +212,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -233,7 +233,7 @@ class NSDateComponentsTests : GRDBTestCase {
                 XCTAssertEqual(databaseDateComponents.dateComponents.hour, dateComponents.hour)
                 XCTAssertEqual(databaseDateComponents.dateComponents.minute, dateComponents.minute)
                 XCTAssertEqual(databaseDateComponents.dateComponents.second, dateComponents.second)
-                XCTAssertEqual(round(Double(databaseDateComponents.dateComponents.nanosecond) / 1.0e6), round(Double(dateComponents.nanosecond) / 1.0e6))
+                XCTAssertEqual(round(Double(databaseDateComponents.dateComponents.nanosecond!) / 1.0e6), round(Double(dateComponents.nanosecond!) / 1.0e6))
             }
         }
     }
@@ -243,7 +243,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                let dateComponents = DateComponents()
                 try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HMSS)])
                 
                 let string = String.fetchOne(db, "SELECT creationDate from dates")!
@@ -267,7 +267,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -284,8 +284,8 @@ class NSDateComponentsTests : GRDBTestCase {
                 XCTAssertEqual(databaseDateComponents.dateComponents.day, dateComponents.day)
                 XCTAssertEqual(databaseDateComponents.dateComponents.hour, dateComponents.hour)
                 XCTAssertEqual(databaseDateComponents.dateComponents.minute, dateComponents.minute)
-                XCTAssertEqual(databaseDateComponents.dateComponents.second, NSDateComponentUndefined)
-                XCTAssertEqual(databaseDateComponents.dateComponents.nanosecond, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.second == nil)
+                XCTAssertTrue(databaseDateComponents.dateComponents.nanosecond == nil)
             }
         }
     }
@@ -295,7 +295,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -313,7 +313,7 @@ class NSDateComponentsTests : GRDBTestCase {
                 XCTAssertEqual(databaseDateComponents.dateComponents.hour, dateComponents.hour)
                 XCTAssertEqual(databaseDateComponents.dateComponents.minute, dateComponents.minute)
                 XCTAssertEqual(databaseDateComponents.dateComponents.second, dateComponents.second)
-                XCTAssertEqual(databaseDateComponents.dateComponents.nanosecond, NSDateComponentUndefined)
+                XCTAssertTrue(databaseDateComponents.dateComponents.nanosecond == nil)
             }
         }
     }
@@ -323,7 +323,7 @@ class NSDateComponentsTests : GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 
-                let dateComponents = NSDateComponents()
+                var dateComponents = DateComponents()
                 dateComponents.year = 1973
                 dateComponents.month = 9
                 dateComponents.day = 18
@@ -341,7 +341,7 @@ class NSDateComponentsTests : GRDBTestCase {
                 XCTAssertEqual(databaseDateComponents.dateComponents.hour, dateComponents.hour)
                 XCTAssertEqual(databaseDateComponents.dateComponents.minute, dateComponents.minute)
                 XCTAssertEqual(databaseDateComponents.dateComponents.second, dateComponents.second)
-                XCTAssertEqual(round(Double(databaseDateComponents.dateComponents.nanosecond) / 1.0e6), round(Double(dateComponents.nanosecond) / 1.0e6))
+                XCTAssertEqual(round(Double(databaseDateComponents.dateComponents.nanosecond!) / 1.0e6), round(Double(dateComponents.nanosecond!) / 1.0e6))
             }
         }
     }
@@ -350,10 +350,10 @@ class NSDateComponentsTests : GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-                calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+                let calendar = Calendar(calendarIdentifier: .gregorian)!
+                calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
                 do {
-                    let date = NSDate().addingTimeInterval(-1)
+                    let date = Date().addingTimeInterval(-1)
                     let dateComponents = calendar.components([.year, .month, .day, .hour, .minute, .second], from: date)
                     try db.execute(
                         "INSERT INTO dates (id, creationDate) VALUES (?,?)",
@@ -365,7 +365,7 @@ class NSDateComponentsTests : GRDBTestCase {
                         arguments: [2])
                 }
                 do {
-                    let date = NSDate().addingTimeInterval(1)
+                    let date = Date().addingTimeInterval(1)
                     let dateComponents = calendar.components([.year, .month, .day, .hour, .minute, .second], from: date)
                     try db.execute(
                         "INSERT INTO dates (id, creationDate) VALUES (?,?)",
@@ -383,7 +383,7 @@ class NSDateComponentsTests : GRDBTestCase {
         XCTAssertTrue(databaseDateComponents == nil)
     }
     
-    func testDatabaseDateComponentsFailureFromNilNSDateComponents() {
+    func testDatabaseDateComponentsFailureFromNilDateComponents() {
         XCTAssertNil(DatabaseDateComponents(nil, format: .YMD))
     }
 }

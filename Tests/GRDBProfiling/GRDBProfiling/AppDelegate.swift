@@ -97,7 +97,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 assert(Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
                 assert(Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
-            try! NSFileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default().removeItem(atPath: databasePath)
         }
         
         _ = try? NSFileManager.default().removeItem(atPath: databasePath)

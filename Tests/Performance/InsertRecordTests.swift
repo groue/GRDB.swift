@@ -11,7 +11,7 @@ class InsertRecordTests: XCTestCase {
     func testGRDB() {
         let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
-        _ = try? NSFileManager.default().removeItem(atPath: databasePath)
+        _ = try? FileManager.default().removeItem(atPath: databasePath)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -19,11 +19,11 @@ class InsertRecordTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! NSFileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default().removeItem(atPath: databasePath)
         }
         
         measureBlock {
-            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default().removeItem(atPath: databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
@@ -66,7 +66,7 @@ class InsertRecordTests: XCTestCase {
             }
             try! moc.save()
             try! psc.removePersistentStore(store)
-            try! NSFileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default().removeItem(atPath: databasePath)
         }
     }
     
@@ -75,7 +75,7 @@ class InsertRecordTests: XCTestCase {
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         
         measureBlock {
-            _ = try? NSFileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default().removeItem(atPath: databasePath)
             let realm = try! Realm(path: databasePath)
             
             try! realm.write {

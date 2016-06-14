@@ -11,9 +11,9 @@ private class Person : Record {
     var id: Int64!
     var name: String!
     var age: Int?
-    var creationDate: NSDate!
+    var creationDate: Date!
     
-    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+    init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: Date? = nil) {
         self.id = id
         self.name = name
         self.age = age
@@ -57,7 +57,7 @@ private class Person : Record {
     override func insert(_ db: Database) throws {
         // This is implicitely tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
-            creationDate = NSDate()
+            creationDate = Date()
         }
         
         try super.insert(db)
@@ -88,7 +88,7 @@ private class PersonWithOverrides : Person {
     var extra: Int!
     var lastSavingMethod: SavingMethod?
     
-    override init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: NSDate? = nil) {
+    override init(id: Int64? = nil, name: String? = nil, age: Int? = nil, creationDate: Date? = nil) {
         super.init(id: id, name: name, age: age, creationDate: creationDate)
     }
     
