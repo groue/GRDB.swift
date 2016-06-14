@@ -5,7 +5,7 @@ import Foundation
 /// db.sqlite-journal, etc.)
 class DatabaseStore {
     let path: String
-    private let source: DispatchSource?
+    private let source: DispatchSourceFileSystemObject?
     private let queue: DispatchQueue?
     
     init(path: String, attributes: [String: AnyObject]?) throws {
@@ -39,22 +39,22 @@ class DatabaseStore {
         }
         
         let queue = DispatchQueue(label: "GRDB.DatabaseStore")
-        let source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, UInt(directoryDescriptor), DISPATCH_VNODE_WRITE, queue)!
+        let source = DispatchSource.fileSystemObject(fileDescriptor: Int32(directoryDescriptor), eventMask: [.write], queue: queue)
         self.queue = queue
         self.source = source
         
         // Configure dispatch source
-        dispatch_source_set_event_handler(source) {
+        source.setEventHandler {
             // Directory has been modified: apply file attributes on unprocessed files
             DatabaseStore.setFileAttributes(
                 directoryPath: directoryPath,
                 databaseFileName: databaseFileName,
                 attributes: attributes)
         }
-        dispatch_source_set_cancel_handler(source) {
+        source.setCancelHandler {
             close(directoryDescriptor)
         }
-        dispatch_resume(source)
+        source.resume()
     }
     
     deinit {

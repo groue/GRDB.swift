@@ -66,7 +66,7 @@ class Person : Record {
 
 // Synchronizes the persons table with a JSON payload
 func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) throws {
-    let jsonData = jsonString.data(using: NSUTF8StringEncoding)!
+    let jsonData = jsonString.data(using: .utf8)!
     let json = try NSJSONSerialization.JSONObjectWithData(jsonData, options: []) as! NSDictionary
     
     // A support function that extracts an ID from a JSON person.

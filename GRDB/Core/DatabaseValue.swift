@@ -33,7 +33,7 @@ public struct DatabaseValue {
         /// The TEXT storage class, wrapping a String.
         case string(String)
         
-        /// The BLOB storage class, wrapping NSData.
+        /// The BLOB storage class, wrapping Data.
         case blob(Data)
     }
     
@@ -56,7 +56,7 @@ public struct DatabaseValue {
         }
     }
     
-    /// Returns Int64, Double, String, NSData or nil.
+    /// Returns Int64, Double, String, Data or nil.
     public func value() -> DatabaseValueConvertible? {
         switch storage {
         case .null:
@@ -110,7 +110,7 @@ public struct DatabaseValue {
     
     init(storage: Storage) {
         // This initializer is not public because Storage is not a safe type:
-        // one can create a Storage of zero-length NSData, which is invalid
+        // one can create a Storage of zero-length Data, which is invalid
         // because SQLite can't store zero-length blobs.
         self.storage = storage
     }
@@ -128,9 +128,9 @@ public struct DatabaseValue {
             let cString = UnsafePointer<Int8>(sqlite3_value_text(sqliteValue))
             storage = .string(String(cString: cString!))
         case SQLITE_BLOB:
-            let bytes = sqlite3_value_blob(sqliteValue)
-            let length = sqlite3_value_bytes(sqliteValue)
-            storage = .blob(Data(bytes: bytes, length: Int(length))) // copy bytes
+            let bytes = unsafeBitCast(sqlite3_value_blob(sqliteValue), to: UnsafePointer<UInt8>.self)
+            let count = Int(sqlite3_value_bytes(sqliteValue))
+            storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
         case let type:
             fatalError("Unexpected SQLite value type: \(type)")
         }
@@ -231,9 +231,9 @@ extension DatabaseValue : StatementColumnConvertible {
             let cString = UnsafePointer<Int8>(sqlite3_column_text(sqliteStatement, Int32(index)))
             storage = .string(String(cString: cString!))
         case SQLITE_BLOB:
-            let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
-            let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-            storage = .blob(Data(bytes: bytes, length: Int(length))) // copy bytes
+            let bytes = unsafeBitCast(sqlite3_column_blob(sqliteStatement, Int32(index)), to: UnsafePointer<UInt8>.self)
+            let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+            storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
         case let type:
             fatalError("Unexpected SQLite column type: \(type)")
         }

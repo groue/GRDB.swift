@@ -16,7 +16,7 @@ class DatabaseValueTests: GRDBTestCase {
                 XCTAssertTrue((Row.fetchOne(db, "SELECT 1")!.value(atIndex: 0) as DatabaseValue).value() is Int64)
                 XCTAssertTrue((Row.fetchOne(db, "SELECT 1.0")!.value(atIndex: 0) as DatabaseValue).value() is Double)
                 XCTAssertTrue((Row.fetchOne(db, "SELECT 'foo'")!.value(atIndex: 0) as DatabaseValue).value() is String)
-                XCTAssertTrue((Row.fetchOne(db, "SELECT x'53514C697465'")!.value(atIndex: 0) as DatabaseValue).value() is NSData)
+                XCTAssertTrue((Row.fetchOne(db, "SELECT x'53514C697465'")!.value(atIndex: 0) as DatabaseValue).value() is Data)
                 XCTAssertTrue((Row.fetchOne(db, "SELECT NULL")!.value(atIndex: 0) as DatabaseValue?) == nil)
             }
         }
@@ -29,7 +29,7 @@ class DatabaseValueTests: GRDBTestCase {
                 XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 1")!.value() is Int64)
                 XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 1.0")!.value() is Double)
                 XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT 'foo'")!.value() is String)
-                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.value() is NSData)
+                XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.value() is Data)
                 XCTAssertTrue(DatabaseValue.fetchOne(db, "SELECT NULL") == nil)
             }
         }
@@ -49,8 +49,8 @@ class DatabaseValueTests: GRDBTestCase {
     }
     
     func testDatabaseValueEquatable() {
-        let fooData = "foo".data(using: NSUTF8StringEncoding)!
-        let barData = "bar".data(using: NSUTF8StringEncoding)!
+        let fooData = "foo".data(using: .utf8)!
+        let barData = "bar".data(using: .utf8)!
         
         XCTAssertEqual(DatabaseValue.null, DatabaseValue.null)
         XCTAssertNotEqual(DatabaseValue.null, 1.databaseValue)
@@ -115,8 +115,8 @@ class DatabaseValueTests: GRDBTestCase {
         XCTAssertEqual(string1, string2)
         XCTAssertEqual(string1.hashValue, string2.hashValue)
         
-        let fooData1 = "foo".data(using: NSUTF8StringEncoding)!.databaseValue
-        let fooData2 = "foo".data(using: NSUTF8StringEncoding)!.databaseValue
+        let fooData1 = "foo".data(using: .utf8)!.databaseValue
+        let fooData2 = "foo".data(using: .utf8)!.databaseValue
         XCTAssertEqual(fooData1, fooData2)
         XCTAssertEqual(fooData1.hashValue, fooData2.hashValue)
     }

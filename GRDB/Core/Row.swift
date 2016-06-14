@@ -119,7 +119,7 @@ extension Row {
     
     // MARK: - Extracting Values
     
-    /// Returns Int64, Double, String, NSData or nil, depending on the value
+    /// Returns Int64, Double, String, Data or nil, depending on the value
     /// stored at the given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
@@ -193,7 +193,7 @@ extension Row {
         return Row.statementColumnConvertible(atUncheckedIndex: index, in: sqliteStatement)
     }
     
-    /// Returns Int64, Double, String, NSData or nil, depending on the value
+    /// Returns Int64, Double, String, Data or nil, depending on the value
     /// stored at the given column.
     ///
     /// Column name lookup is case-insensitive, and when several columns have
@@ -290,33 +290,33 @@ extension Row {
         return Row.statementColumnConvertible(atUncheckedIndex: index, in: sqliteStatement)
     }
     
-    /// Returns the optional `NSData` at given index.
+    /// Returns the optional Data at given index.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
     ///
     /// If the SQLite value is NULL, the result is nil. If the SQLite value can
-    /// not be converted to NSData, a fatal error is raised.
+    /// not be converted to Data, a fatal error is raised.
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
-    public func dataNoCopy(atIndex index: Int) -> NSData? {
+    public func dataNoCopy(atIndex index: Int) -> Data? {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.dataNoCopy(atUncheckedIndex: index)
     }
     
-    /// Returns the optional `NSData` at given column.
+    /// Returns the optional Data at given column.
     ///
     /// Column name lookup is case-insensitive, and when several columns have
     /// the same name, the leftmost column is considered.
     ///
     /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. If the SQLite value can not be converted to NSData, a fatal error
+    /// nil. If the SQLite value can not be converted to Data, a fatal error
     /// is raised.
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
-    public func dataNoCopy(named columnName: String) -> NSData? {
+    public func dataNoCopy(named columnName: String) -> Data? {
         guard let index = impl.index(ofColumn: columnName) else {
             return nil
         }
@@ -694,7 +694,7 @@ public func <(lhs: RowIndex, rhs: RowIndex) -> Bool {
 protocol RowImpl {
     var count: Int { get }
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
-    func dataNoCopy(atUncheckedIndex index:Int) -> NSData?
+    func dataNoCopy(atUncheckedIndex index:Int) -> Data?
     func columnName(atUncheckedIndex index: Int) -> String
     
     // This method MUST be case-insensitive, and returns the index of the
@@ -722,7 +722,7 @@ private struct DictionaryRowImpl : RowImpl {
         return dictionary.count
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int) -> NSData? {
+    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
         return databaseValue(atUncheckedIndex: index).value()
     }
     
@@ -775,7 +775,7 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames.count
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int) -> NSData? {
+    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
         return databaseValue(atUncheckedIndex: index).value()
     }
     
@@ -826,15 +826,15 @@ private struct StatementRowImpl : RowImpl {
         return Int(sqlite3_column_count(sqliteStatement))
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int) -> NSData? {
+    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             return nil
         }
         guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
             return nil
         }
-        let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-        return NSData(bytesNoCopy: UnsafeMutablePointer(bytes), length: Int(length), freeWhenDone: false)
+        let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+        return Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(bytes), count: count, deallocator: .none)
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
@@ -876,7 +876,7 @@ private struct EmptyRowImpl : RowImpl {
         fatalError("row index out of range")
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int) -> NSData? {
+    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
         fatalError("row index out of range")
     }
     

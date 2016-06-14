@@ -25,7 +25,7 @@
 /// - preconditionValidQueue() crashes whenever a database is used in an invalid
 ///   dispatch queue.
 final class DatabaseScheduler {
-    private static let specificKey = unsafeBitCast(DatabaseScheduler.self, to: UnsafePointer<Void>.self) // some unique pointer
+    private static let specificKey = DispatchSpecificKey<DatabaseScheduler>()
     private var allowedSerializedDatabases: [Database]
     
     private init(allowedSerializedDatabase database: Database) {
@@ -35,9 +35,7 @@ final class DatabaseScheduler {
     static func makeSerializedQueueAllowing(database: Database) -> DispatchQueue {
         let queue = DispatchQueue(label: "GRDB.SerializedDatabase")
         let scheduler = DatabaseScheduler(allowedSerializedDatabase: database)
-        let unmanagedScheduler = Unmanaged.passRetained(scheduler)
-        let schedulerPointer = unsafeBitCast(unmanagedScheduler, to: UnsafeMutablePointer<Void>.self)
-        dispatch_queue_set_specific(queue, DatabaseScheduler.specificKey, schedulerPointer, destroyDatabaseScheduler)
+        queue.setSpecific(key: specificKey, value: scheduler)
         return queue
     }
     
@@ -137,20 +135,9 @@ final class DatabaseScheduler {
     }
     
     private static func currentScheduler() -> DatabaseScheduler? {
-        guard let schedulerPointer = dispatch_get_specific(specificKey) else {
+        guard let scheduler = DispatchQueue.getSpecific(key: specificKey) else {
             return nil
         }
-        return scheduler(from: schedulerPointer)
+        return scheduler
     }
-    
-    private static func scheduler(from schedulerPointer: UnsafeMutablePointer<Void>) -> DatabaseScheduler? {
-        let unmanagedScheduler = unsafeBitCast(schedulerPointer, to: Unmanaged<DatabaseScheduler>.self)
-        return unmanagedScheduler.takeUnretainedValue()
-    }
-}
-
-/// Destructor for dispatch_queue_set_specific
-private func destroyDatabaseScheduler(schedulerPointer: UnsafeMutablePointer<Void>?) {
-    let unmanagedScheduler = unsafeBitCast(schedulerPointer, to: Unmanaged<DatabaseScheduler>.self)
-    unmanagedScheduler.release()
 }

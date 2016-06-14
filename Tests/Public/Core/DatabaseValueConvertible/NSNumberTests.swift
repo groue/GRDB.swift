@@ -119,7 +119,7 @@ class NSNumberTests: GRDBTestCase {
     func testNSNumberFromDatabaseValueFailure() {
         let databaseValue_Null = DatabaseValue.null
         let databaseValue_String = "foo".databaseValue
-        let databaseValue_Blob = "bar".data(using: NSUTF8StringEncoding)!.databaseValue
+        let databaseValue_Blob = "bar".data(using: .utf8)!.databaseValue
         XCTAssertNil(NSNumber.fromDatabaseValue(databaseValue_Null))
         XCTAssertNil(NSNumber.fromDatabaseValue(databaseValue_String))
         XCTAssertNil(NSNumber.fromDatabaseValue(databaseValue_Blob))

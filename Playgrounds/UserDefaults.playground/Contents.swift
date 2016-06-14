@@ -99,8 +99,8 @@ public class UserDefaults {
         return (objectForKey(key) as? NSNumber)?.boolValue ?? false
     }
     
-    public func dataForKey(key: String) -> NSData? {
-        return objectForKey(key) as? NSData
+    public func dataForKey(key: String) -> Data? {
+        return objectForKey(key) as? Data
     }
     
     public func dictionaryForKey(key: String) -> [String: AnyObject]? {

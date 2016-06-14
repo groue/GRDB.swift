@@ -20,7 +20,7 @@ import XCTest
     @testable import GRDB
 #endif
 
-class NSDataMemoryTests: GRDBTestCase {
+class DataMemoryTests: GRDBTestCase {
     
     func testMemoryBehavior() {
         assertNoError {
@@ -28,7 +28,7 @@ class NSDataMemoryTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 try db.execute("CREATE TABLE datas (data BLOB)")
                 
-                let data = "foo".data(using: NSUTF8StringEncoding)
+                let data = "foo".data(using: .utf8)
                 try db.execute("INSERT INTO datas (data) VALUES (?)", arguments: [data])
                 
                 for row in Row.fetch(db, "SELECT * FROM datas") {
@@ -37,7 +37,7 @@ class NSDataMemoryTests: GRDBTestCase {
                     
                     do {
                         // This data should be copied:
-                        let copiedData: NSData = row.value(atIndex: 0)
+                        let copiedData: Data = row.value(atIndex: 0)
                         XCTAssertNotEqual(copiedData.bytes, sqliteBytes)
                         XCTAssertEqual(copiedData, data)
                     }
@@ -56,7 +56,7 @@ class NSDataMemoryTests: GRDBTestCase {
                 case .blob(let data):
                     do {
                         // This data should not be copied:
-                        let nonCopiedData: NSData = row.value(atIndex: 0)
+                        let nonCopiedData: Data = row.value(atIndex: 0)
                         XCTAssertEqual(nonCopiedData.bytes, data.bytes)
                         XCTAssertEqual(nonCopiedData, data)
                     }

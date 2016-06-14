@@ -292,7 +292,7 @@ struct AdapterRowImpl : RowImpl {
         return baseRow.databaseValue(atIndex: columnsAdapter.baseColumIndex(adaptedIndex: index))
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int) -> NSData? {
+    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
         return baseRow.dataNoCopy(atIndex: columnsAdapter.baseColumIndex(adaptedIndex: index))
     }
     

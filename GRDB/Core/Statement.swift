@@ -51,8 +51,8 @@ public class Statement {
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
             var sqlEnd: UnsafePointer<Int8>? = nil
             code = sqlite3_prepare_v2(database.sqliteConnection, sqlStart, -1, &sqliteStatement, &sqlEnd)
-            let remainingData = Data(bytesNoCopy: UnsafeMutablePointer<Void>(sqlEnd!), length: sqlStart + sqlCodeUnits.count - sqlEnd! - 1, freeWhenDone: false)
-            remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines())
+            let remainingData = Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(sqlEnd!), count: sqlStart + sqlCodeUnits.count - sqlEnd! - 1, deallocator: .none)
+            remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
         guard code == SQLITE_OK else {
@@ -162,7 +162,9 @@ public class Statement {
         case .string(let string):
             code = sqlite3_bind_text(sqliteStatement, index, string, -1, SQLITE_TRANSIENT)
         case .blob(let data):
-            code = sqlite3_bind_blob(sqliteStatement, index, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
+            code = data.withUnsafeBytes { bytes in
+                sqlite3_bind_blob(sqliteStatement, index, bytes, Int32(data.count), SQLITE_TRANSIENT)
+            }
         }
         
         guard code == SQLITE_OK else {

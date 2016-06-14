@@ -1,6 +1,6 @@
 import Foundation
 
-/// NSData is convertible to and from DatabaseValue.
+/// Data is convertible to and from DatabaseValue.
 extension Data : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
@@ -11,7 +11,7 @@ extension Data : DatabaseValueConvertible {
         return DatabaseValue(storage: .blob(self))
     }
     
-    /// Returns an NSData initialized from *databaseValue*, if it contains
+    /// Returns a Data initialized from *databaseValue*, if it contains
     /// a Blob.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Data? {
         guard case .blob(let data) = databaseValue.storage else {

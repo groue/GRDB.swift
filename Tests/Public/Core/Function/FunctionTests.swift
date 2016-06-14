@@ -114,11 +114,11 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("f", argumentCount: 0) { databaseValues in
-                return "foo".data(using: NSUTF8StringEncoding)
+                return "foo".data(using: .utf8)
             }
             dbQueue.add(function: fn)
             dbQueue.inDatabase { db in
-                XCTAssertEqual(NSData.fetchOne(db, "SELECT f()")!, "foo".data(using: NSUTF8StringEncoding))
+                XCTAssertEqual(Data.fetchOne(db, "SELECT f()")!, "foo".data(using: .utf8))
             }
         }
     }
@@ -150,7 +150,7 @@ class FunctionTests: GRDBTestCase {
                 XCTAssertFalse(Bool.fetchOne(db, "SELECT isNil(1)")!)
                 XCTAssertFalse(Bool.fetchOne(db, "SELECT isNil(1.1)")!)
                 XCTAssertFalse(Bool.fetchOne(db, "SELECT isNil('foo')")!)
-                XCTAssertFalse(Bool.fetchOne(db, "SELECT isNil(?)", arguments: ["foo".data(using: NSUTF8StringEncoding)])!)
+                XCTAssertFalse(Bool.fetchOne(db, "SELECT isNil(?)", arguments: ["foo".data(using: .utf8)])!)
             }
         }
     }
@@ -203,12 +203,12 @@ class FunctionTests: GRDBTestCase {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             let fn = DatabaseFunction("asData", argumentCount: 1) { (databaseValues: [DatabaseValue]) in
-                return databaseValues[0].value() as NSData?
+                return databaseValues[0].value() as Data?
             }
             dbQueue.add(function: fn)
             dbQueue.inDatabase { db in
-                XCTAssertTrue(NSData.fetchOne(db, "SELECT asData(NULL)") == nil)
-                XCTAssertEqual(NSData.fetchOne(db, "SELECT asData(?)", arguments: ["foo".data(using: NSUTF8StringEncoding)])!, "foo".data(using: NSUTF8StringEncoding))
+                XCTAssertTrue(Data.fetchOne(db, "SELECT asData(NULL)") == nil)
+                XCTAssertEqual(Data.fetchOne(db, "SELECT asData(?)", arguments: ["foo".data(using: .utf8)])!, "foo".data(using: .utf8))
             }
         }
     }

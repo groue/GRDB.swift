@@ -1,7 +1,7 @@
 //import XCTest
 //import GRDB
 //
-//// See if TransactionObserver can provide robust NSData external storage.
+//// See if TransactionObserver can provide robust Data external storage.
 ////
 //// The answer is yes, we can.
 ////
@@ -14,7 +14,7 @@
 //    
 //    // A magic testing data: ManagedDataController.databaseWillCommit() throws
 //    // an error if this data wants to save.
-//    let forbiddenData: NSData?
+//    let forbiddenData: Data?
 //    
 //    // ManagedData management
 //    private var managedData: ManagedData? = nil
@@ -23,7 +23,7 @@
 //    var storedManagedDatas: [ManagedData] = []
 //    var restoreFileSystemAfterRollback: Bool = false
 //    
-//    init(path: String, forbiddenData: NSData?) {
+//    init(path: String, forbiddenData: Data?) {
 //        self.path = path
 //        self.forbiddenData = forbiddenData
 //        setupDirectories()
@@ -137,13 +137,13 @@
 //        pendingManagedDatas = [:]
 //    }
 //    
-//    func loadData(managedData: ManagedData) -> NSData? {
+//    func loadData(managedData: ManagedData) -> Data? {
 //        guard managedData.rowID != nil else {
 //            return nil
 //        }
 //        let fm = NSFileManager.default()
 //        if fm.fileExistsAtPath(storageDataPath(managedData)) {
-//            return NSData(contentsOfFile: storageDataPath(managedData))!
+//            return Data(contentsOfFile: storageDataPath(managedData))!
 //        } else {
 //            return nil
 //        }
@@ -178,7 +178,7 @@
 //    var controller: ManagedDataController?
 //    var name: String
 //    var rowID: Int64?
-//    var data: NSData? {
+//    var data: Data? {
 //        if let _data = _data {
 //            return _data
 //        } else {
@@ -186,13 +186,13 @@
 //            return _data!
 //        }
 //    }
-//    var _data: NSData??
+//    var _data: Data??
 //    
 //    init(name: String) {
 //        self.name = name
 //    }
 //    
-//    func copyWithData(data: NSData?) -> ManagedData {
+//    func copyWithData(data: Data?) -> ManagedData {
 //        let copy = ManagedData(name: name)
 //        copy.controller = controller
 //        copy._data = data
@@ -212,7 +212,7 @@
 //    
 //    // OK. Odd, but OK: data is accessed through managedData.
 //    private var managedData = ManagedData(name: "data")
-//    var data: NSData? {
+//    var data: Data? {
 //        get { return managedData.data }
 //        set { managedData = managedData.copyWithData(newValue) }    // Odd
 //    }
@@ -264,7 +264,7 @@
 //    var managedDataController: ManagedDataController!
 //    
 //    override var dbConfiguration: Configuration {
-//        managedDataController = ManagedDataController(path: "/tmp/ManagedDataController", forbiddenData: "Bunny".data(using: NSUTF8StringEncoding))
+//        managedDataController = ManagedDataController(path: "/tmp/ManagedDataController", forbiddenData: "Bunny".data(using: .utf8))
 //        var c = super.dbConfiguration
 //        c.transactionObserver = managedDataController
 //        return c
@@ -287,7 +287,7 @@
 //            try dbQueue.inDatabase { db in
 //                // TODO: this explicit line is a problem
 //                record.managedData.controller = self.managedDataController
-//                record.data = "foo".data(using: NSUTF8StringEncoding)
+//                record.data = "foo".data(using: .utf8)
 //                try record.save(db)
 //            }
 //            
@@ -295,7 +295,7 @@
 //            dbQueue.inDatabase { db in
 //                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                reloadedRecord.managedData.controller = self.managedDataController
-//                XCTAssertEqual(reloadedRecord.data, "foo".data(using: NSUTF8StringEncoding))
+//                XCTAssertEqual(reloadedRecord.data, "foo".data(using: .utf8))
 //            }
 //        }
 //    }
@@ -306,23 +306,23 @@
 //            let record = RecordWithManagedData()
 //            record.managedData.controller = self.managedDataController
 //            try dbQueue.inDatabase { db in
-//                record.data = "foo".data(using: NSUTF8StringEncoding)
+//                record.data = "foo".data(using: .utf8)
 //                try record.save(db)
 //            }
 //            
 //            try dbQueue.inTransaction { db in
 //                // ... and that changes...
-//                record.data = "bar".data(using: NSUTF8StringEncoding)
+//                record.data = "bar".data(using: .utf8)
 //                try record.save(db)
 //                
 //                // ... after changes...
-//                record.data = "baz".data(using: NSUTF8StringEncoding)
+//                record.data = "baz".data(using: .utf8)
 //                try record.save(db)
 //                
 //                // ... are not applied in the file system...
 //                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                reloadedRecord.managedData.controller = self.managedDataController
-//                XCTAssertEqual(reloadedRecord.data, "foo".data(using: NSUTF8StringEncoding))
+//                XCTAssertEqual(reloadedRecord.data, "foo".data(using: .utf8))
 //                
 //                // ... until database commit:
 //                return .commit
@@ -332,7 +332,7 @@
 //            dbQueue.inDatabase { db in
 //                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                reloadedRecord.managedData.controller = self.managedDataController
-//                XCTAssertEqual(reloadedRecord.data, "baz".data(using: NSUTF8StringEncoding))
+//                XCTAssertEqual(reloadedRecord.data, "baz".data(using: .utf8))
 //            }
 //        }
 //    }
@@ -343,29 +343,29 @@
 //            let record = RecordWithManagedData()
 //            record.managedData.controller = self.managedDataController
 //            try dbQueue.inDatabase { db in
-//                record.data = "foo".data(using: NSUTF8StringEncoding)
+//                record.data = "foo".data(using: .utf8)
 //                try record.save(db)
 //            }
 //            
 //            do {
 //                try dbQueue.inTransaction { db in
 //                    // ... and that changes...
-//                    record.data = "bar".data(using: NSUTF8StringEncoding)
+//                    record.data = "bar".data(using: .utf8)
 //                    try record.save(db)
 //                    
 //                    // ... after changes...
-//                    record.data = "baz".data(using: NSUTF8StringEncoding)
+//                    record.data = "baz".data(using: .utf8)
 //                    try record.save(db)
 //                    
 //                    // ... are not applied in the file system...
 //                    let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                    reloadedRecord.managedData.controller = self.managedDataController
-//                    XCTAssertEqual(reloadedRecord.data, "foo".data(using: NSUTF8StringEncoding))
+//                    XCTAssertEqual(reloadedRecord.data, "foo".data(using: .utf8))
 //
 //                    // ... until database commit, which may fail:
 //                    let forbiddenRecord = RecordWithManagedData()
 //                    forbiddenRecord.managedData.controller = self.managedDataController
-//                    forbiddenRecord.data = "Bunny".data(using: NSUTF8StringEncoding)
+//                    forbiddenRecord.data = "Bunny".data(using: .utf8)
 //                    try forbiddenRecord.save(db)
 //                    return .commit
 //                }
@@ -378,7 +378,7 @@
 //            dbQueue.inDatabase { db in
 //                let reloadedRecord = RecordWithManagedData.fetchOne(db, key: record.id)!
 //                reloadedRecord.managedData.controller = self.managedDataController
-//                XCTAssertEqual(reloadedRecord.data, "foo".data(using: NSUTF8StringEncoding))
+//                XCTAssertEqual(reloadedRecord.data, "foo".data(using: .utf8))
 //            }
 //        }
 //    }

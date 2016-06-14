@@ -7,38 +7,38 @@ import XCTest
     import GRDB
 #endif
 
-class NSDataTests: GRDBTestCase {
+class DataTests: GRDBTestCase {
     
     func testDatabaseValueCanNotStoreEmptyData() {
         // SQLite can't store zero-length blob.
-        let databaseValue = NSData().databaseValue
+        let databaseValue = Data().databaseValue
         XCTAssertEqual(databaseValue, DatabaseValue.null)
     }
     
-    func testNSDataDatabaseValueRoundTrip() {
+    func testDataDatabaseValueRoundTrip() {
         
-        func roundTrip(_ value: NSData) -> Bool
+        func roundTrip(_ value: Data) -> Bool
         {
             let databaseValue = value.databaseValue
-            guard let back = NSData.fromDatabaseValue(databaseValue) else
+            guard let back = Data.fromDatabaseValue(databaseValue) else
             {
-                XCTFail("Failed to convert from DatabaseValue to NSData")
+                XCTFail("Failed to convert from DatabaseValue to Data")
                 return false
             }
             return back.isEqual(value)
         }
         
-        XCTAssertTrue(roundTrip("bar".data(using: NSUTF8StringEncoding)!))
+        XCTAssertTrue(roundTrip("bar".data(using: .utf8)!))
     }
     
-    func testNSDataFromDatabaseValueFailure() {
+    func testDataFromDatabaseValueFailure() {
         let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue
         let databaseValue_String = "foo".databaseValue
-        XCTAssertNil(NSData.fromDatabaseValue(databaseValue_Null))
-        XCTAssertNil(NSData.fromDatabaseValue(databaseValue_Int64))
-        XCTAssertNil(NSData.fromDatabaseValue(databaseValue_Double))
-        XCTAssertNil(NSData.fromDatabaseValue(databaseValue_String))
+        XCTAssertNil(Data.fromDatabaseValue(databaseValue_Null))
+        XCTAssertNil(Data.fromDatabaseValue(databaseValue_Int64))
+        XCTAssertNil(Data.fromDatabaseValue(databaseValue_Double))
+        XCTAssertNil(Data.fromDatabaseValue(databaseValue_String))
     }
 }

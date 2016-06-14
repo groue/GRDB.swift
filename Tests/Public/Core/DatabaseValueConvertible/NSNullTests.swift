@@ -19,7 +19,7 @@ class NSNullTests: GRDBTestCase {
         let databaseValue_Int64 = Int64(1).databaseValue
         let databaseValue_Double = Double(100000.1).databaseValue
         let databaseValue_String = "foo".databaseValue
-        let databaseValue_Blob = "bar".data(using: NSUTF8StringEncoding)!.databaseValue
+        let databaseValue_Blob = "bar".data(using: .utf8)!.databaseValue
         XCTAssertNil(NSNull.fromDatabaseValue(databaseValue_Int64))
         XCTAssertNil(NSNull.fromDatabaseValue(databaseValue_Double))
         XCTAssertNil(NSNull.fromDatabaseValue(databaseValue_String))

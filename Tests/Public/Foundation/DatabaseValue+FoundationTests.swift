@@ -13,7 +13,7 @@ class DatabaseValueFoundationTests: GRDBTestCase {
         let testValue_Int64: Int64 = Int64(1)
         let testValue_Double: Double = Double(100000.1)
         let testValue_String: String = "foo"
-        let testValue_Data: NSData = "bar".data(using: NSUTF8StringEncoding)!
+        let testValue_Data: Data = "bar".data(using: .utf8)!
         
         let databaseValue_Null = DatabaseValue.null
         let databaseValue_Int64 = testValue_Int64.databaseValue

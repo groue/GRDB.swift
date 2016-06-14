@@ -514,7 +514,7 @@ extension Database {
                 
                 guard sqliteStatement != nil else {
                     // The remaining string contains only whitespace
-                    assert(String(data: NSData(bytesNoCopy: UnsafeMutablePointer<Void>(statementStart), length: statementEnd! - statementStart, freeWhenDone: false), encoding: NSUTF8StringEncoding)!.trimmingCharacters(in: .whitespacesAndNewlines()).isEmpty)
+                    assert(String(data: Data(bytesNoCopy: UnsafeMutablePointer<UInt8>(statementStart), count: statementEnd! - statementStart, deallocator: .none), encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     break
                 }
                 
@@ -585,7 +585,9 @@ extension Database {
                     case .string(let string):
                         sqlite3_result_text(context, string, -1, SQLITE_TRANSIENT)
                     case .blob(let data):
-                        sqlite3_result_blob(context, data.bytes, Int32(data.length), SQLITE_TRANSIENT)
+                        data.withUnsafeBytes { bytes in
+                            sqlite3_result_blob(context, bytes, Int32(data.count), SQLITE_TRANSIENT)
+                        }
                     }
                 } catch let error as DatabaseError {
                     if let message = error.message {
@@ -735,8 +737,8 @@ public final class DatabaseCollation {
         self.name = name
         self.function = { (length1, buffer1, length2, buffer2) in
             // Buffers are not C strings: they do not end with \0.
-            let string1 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer1.unsafelyUnwrapped), length: Int(length1), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
-            let string2 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer2.unsafelyUnwrapped), length: Int(length2), encoding: NSUTF8StringEncoding, freeWhenDone: false)!
+            let string1 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer1.unsafelyUnwrapped), length: Int(length1), encoding: .utf8, freeWhenDone: false)!
+            let string2 = String(bytesNoCopy: UnsafeMutablePointer<Void>(buffer2.unsafelyUnwrapped), length: Int(length2), encoding: .utf8, freeWhenDone: false)!
             return function(string1, string2)
         }
     }
@@ -764,7 +766,7 @@ public func ==(lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
 #if SQLITE_HAS_CODEC
 extension Database {
     private class func setPassphrase(passphrase: String, forConnection sqliteConnection: SQLiteConnection) throws {
-        let data = passphrase.data(using: NSUTF8StringEncoding)!
+        let data = passphrase.data(using: .utf8)!
         let code = sqlite3_key(sqliteConnection, data.bytes, Int32(data.length))
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
@@ -772,7 +774,7 @@ extension Database {
     }
 
     func changePassphrase(passphrase: String) throws {
-        let data = passphrase.data(using: NSUTF8StringEncoding)!
+        let data = passphrase.data(using: .utf8)!
         let code = sqlite3_rekey(sqliteConnection, data.bytes, Int32(data.length))
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))

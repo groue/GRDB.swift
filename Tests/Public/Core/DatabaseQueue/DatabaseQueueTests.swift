@@ -14,7 +14,7 @@ class DatabaseQueueTests: GRDBTestCase {
             do {
                 let testBundle = NSBundle(for: self.dynamicType)
                 let path = testBundle.pathForResource("Betty", ofType: "jpeg")!
-                guard NSData(contentsOfFile: path) != nil else {
+                guard Data(contentsOfFile: path) != nil else {
                     XCTFail("Missing file")
                     return
                 }
