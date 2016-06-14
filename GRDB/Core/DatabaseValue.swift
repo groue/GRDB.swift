@@ -34,7 +34,7 @@ public struct DatabaseValue {
         case string(String)
         
         /// The BLOB storage class, wrapping NSData.
-        case blob(NSData)
+        case blob(Data)
     }
     
     /// The SQLite storage
@@ -130,7 +130,7 @@ public struct DatabaseValue {
         case SQLITE_BLOB:
             let bytes = sqlite3_value_blob(sqliteValue)
             let length = sqlite3_value_bytes(sqliteValue)
-            storage = .blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
+            storage = .blob(Data(bytes: bytes, length: Int(length))) // copy bytes
         case let type:
             fatalError("Unexpected SQLite value type: \(type)")
         }
@@ -233,7 +233,7 @@ extension DatabaseValue : StatementColumnConvertible {
         case SQLITE_BLOB:
             let bytes = sqlite3_column_blob(sqliteStatement, Int32(index))
             let length = sqlite3_column_bytes(sqliteStatement, Int32(index))
-            storage = .blob(NSData(bytes: bytes, length: Int(length))) // copy bytes
+            storage = .blob(Data(bytes: bytes, length: Int(length))) // copy bytes
         case let type:
             fatalError("Unexpected SQLite column type: \(type)")
         }

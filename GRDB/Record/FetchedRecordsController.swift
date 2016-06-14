@@ -36,7 +36,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
-    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) {
         self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, isSameRecord: isSameRecord)
     }
     
@@ -64,7 +64,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     ///
     ///         This function should return true if the two records have the
     ///         same identity. For example, they have the same id.
-    public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: dispatch_queue_t = dispatch_get_main_queue(), isSameRecord: ((Record, Record) -> Bool)? = nil) {
+    public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, isSameRecord: ((Record, Record) -> Bool)? = nil) {
         if let isSameRecord = isSameRecord {
             self.init(databaseWriter, request: request, queue: queue, isSameItemFactory: { _ in { isSameRecord($0.record, $1.record) } })
         } else {
@@ -72,7 +72,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         }
     }
     
-    private init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: dispatch_queue_t, isSameItemFactory: (Database) -> (Item<Record>, Item<Record>) -> Bool) {
+    private init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue, isSameItemFactory: (Database) -> (Item<Record>, Item<Record>) -> Bool) {
         self.request = request
         self.databaseWriter = databaseWriter
         self.isSameItem = { _ in return false }
@@ -125,7 +125,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
     /// The dispatch queue on which the controller must be used.
     ///
     /// Unless specified otherwise at initialization time, it is the main queue.
-    public let queue: dispatch_queue_t
+    public let queue: DispatchQueue
     
     /// Updates the fetch request, and notifies the delegate of changes in the
     /// fetched records if delegate is not nil, and performFetch() has been
@@ -398,7 +398,7 @@ extension FetchedRecordsController where Record: TableMapping {
     ///
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
-    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+    public convenience init(_ databaseWriter: DatabaseWriter, sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) {
         self.init(databaseWriter, request: SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter), queue: queue, compareRecordsByPrimaryKey: compareRecordsByPrimaryKey)
     }
     
@@ -423,7 +423,7 @@ extension FetchedRecordsController where Record: TableMapping {
     ///
     ///     - compareRecordsByPrimaryKey: A boolean that tells if two records
     ///         share the same identity if they share the same primay key.
-    public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: dispatch_queue_t = dispatch_get_main_queue(), compareRecordsByPrimaryKey: Bool) {
+    public convenience init(_ databaseWriter: DatabaseWriter, request: FetchRequest, queue: DispatchQueue = .main, compareRecordsByPrimaryKey: Bool) {
         if compareRecordsByPrimaryKey {
             self.init(databaseWriter, request: request, queue: queue, isSameItemFactory: { db in
                 let comparator = try! makePrimaryKeyComparator(db, tableName: Record.databaseTableName())
@@ -515,7 +515,7 @@ private class FetchedChangesController<Record: RowConvertible, T> {
         // fetch: let's immediately dispatch the processing task in our
         // serialized FIFO queue, but have it wait for our fetch to complete,
         // with a semaphore:
-        let semaphore = dispatch_semaphore_create(0)!
+        let semaphore = DispatchSemaphore(value: 0)
         var fetchedItems: [Item<Record>]! = nil
         var fetchedAlongside: T! = nil
         
@@ -524,15 +524,15 @@ private class FetchedChangesController<Record: RowConvertible, T> {
             fetchedAlongside = self.fetchAlongside(db)
             
             // Fetch is complete:
-            dispatch_semaphore_signal(semaphore)
+            semaphore.signal()
         }
         
         
         // Process the fetched items
         
-        dispatch_async(observer.queue) { [weak observer] in
+        observer.queue.async { [weak observer] in
             // Wait for the fetch to complete:
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+            _ = semaphore.wait(timeout: .distantFuture)
             assert(fetchedItems != nil)
             assert(fetchedAlongside != nil)
             
@@ -570,7 +570,7 @@ private class FetchedChangesController<Record: RowConvertible, T> {
             // Ready for next check
             strongObserver.items = fetchedItems
             
-            dispatch_async(controllerQueue) {
+            controllerQueue.async {
                 // Observer invalidated?
                 guard let strongObserver = observer else { return }
                 guard strongObserver.isValid else { return }
@@ -610,7 +610,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     let observedTables: Set<String>
     var needsComputeChanges: Bool
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
-    let queue: dispatch_queue_t // protects items
+    let queue: DispatchQueue // protects items
     var checkForChanges: (FetchedRecordsObserver<Record>) -> ()
     
     init(observedTables: Set<String>, checkForChanges: (FetchedRecordsObserver<Record>) -> ()) {
@@ -618,7 +618,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         self.items = nil
         self.observedTables = observedTables
         self.needsComputeChanges = false
-        self.queue = dispatch_queue_create("GRDB.FetchedRecordsObserver", DISPATCH_QUEUE_SERIAL)
+        self.queue = DispatchQueue(label: "GRDB.FetchedRecordsObserver")
         self.checkForChanges = checkForChanges
     }
     

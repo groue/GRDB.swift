@@ -5,8 +5,8 @@ import Foundation
 /// db.sqlite-journal, etc.)
 class DatabaseStore {
     let path: String
-    private let source: dispatch_source_t?
-    private let queue: dispatch_queue_t?
+    private let source: DispatchSource?
+    private let queue: DispatchQueue?
     
     init(path: String, attributes: [String: AnyObject]?) throws {
         self.path = path
@@ -33,12 +33,12 @@ class DatabaseStore {
         let directoryDescriptor = open(directoryPath, O_EVTONLY)
         guard directoryDescriptor != -1 else {
             // Let NSFileManager throw a nice NSError
-            try NSFileManager.default().contentsOfDirectory(atPath: directoryPath)
+            try FileManager.default().contentsOfDirectory(atPath: directoryPath)
             // Come on, NSFileManager... OK just throw something that is somewhat relevant
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileReadUnknownError, userInfo: nil)
         }
         
-        let queue = dispatch_queue_create("GRDB.DatabaseStore", nil)!
+        let queue = DispatchQueue(label: "GRDB.DatabaseStore")
         let source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, UInt(directoryDescriptor), DISPATCH_VNODE_WRITE, queue)!
         self.queue = queue
         self.source = source
@@ -59,12 +59,12 @@ class DatabaseStore {
     
     deinit {
         if let source = source {
-            dispatch_source_cancel(source)
+            source.cancel()
         }
     }
     
     private static func setFileAttributes(directoryPath: String, databaseFileName: String, attributes: [String: AnyObject]) {
-        let fm = NSFileManager.default()
+        let fm = FileManager.default()
         // TODO: handle symbolic links:
         //
         // According to https://www.sqlite.org/changes.html

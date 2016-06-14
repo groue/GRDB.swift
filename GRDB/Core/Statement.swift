@@ -51,8 +51,8 @@ public class Statement {
             let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
             var sqlEnd: UnsafePointer<Int8>? = nil
             code = sqlite3_prepare_v2(database.sqliteConnection, sqlStart, -1, &sqliteStatement, &sqlEnd)
-            let remainingData = NSData(bytesNoCopy: UnsafeMutablePointer<Void>(sqlEnd!), length: sqlStart + sqlCodeUnits.count - sqlEnd! - 1, freeWhenDone: false)
-            remainingSQL = String(data: remainingData, encoding: NSUTF8StringEncoding)!.trimmingCharacters(in: .whitespacesAndNewlines())
+            let remainingData = Data(bytesNoCopy: UnsafeMutablePointer<Void>(sqlEnd!), length: sqlStart + sqlCodeUnits.count - sqlEnd! - 1, freeWhenDone: false)
+            remainingSQL = String(data: remainingData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines())
         }
         
         guard code == SQLITE_OK else {

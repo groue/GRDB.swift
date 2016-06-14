@@ -336,7 +336,7 @@ public enum BusyMode {
     
     /// The SQLITE_BUSY error will be returned only if the database remains
     /// locked for more than the specified duration.
-    case timeout(NSTimeInterval)
+    case timeout(TimeInterval)
     
     /// A custom callback that is called when a database is locked.
     /// See https://www.sqlite.org/c3ref/busy_handler.html
@@ -718,7 +718,7 @@ extension Database {
 /// A Collation is a string comparison function used by SQLite.
 public final class DatabaseCollation {
     public let name: String
-    let function: (Int32, UnsafePointer<Void>?, Int32, UnsafePointer<Void>?) -> NSComparisonResult
+    let function: (Int32, UnsafePointer<Void>?, Int32, UnsafePointer<Void>?) -> ComparisonResult
     
     /// Returns a collation.
     ///
@@ -731,7 +731,7 @@ public final class DatabaseCollation {
     /// - parameters:
     ///     - name: The function name.
     ///     - function: A function that compares two strings.
-    public init(_ name: String, function: (String, String) -> NSComparisonResult) {
+    public init(_ name: String, function: (String, String) -> ComparisonResult) {
         self.name = name
         self.function = { (length1, buffer1, length2, buffer2) in
             // Buffers are not C strings: they do not end with \0.

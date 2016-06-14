@@ -443,18 +443,18 @@ extension DatabasePool : DatabaseWriter {
     public func readFromWrite(_ block: (db: Database) -> Void) {
         writer.preconditionValidQueue()
         
-        let semaphore = dispatch_semaphore_create(0)!
+        let semaphore = DispatchSemaphore(value: 0)
         self.readerPool.get { reader in
             reader.performAsync { db in
                 // Assume COMMIT DEFERRED TRANSACTION does not throw error.
                 try! db.inTransaction(.deferred) {
                     // Now we're isolated: release the writing queue
-                    dispatch_semaphore_signal(semaphore)
+                    semaphore.signal()
                     block(db: db)
                     return .commit
                 }
             }
         }
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+        _ = semaphore.wait(timeout: .distantFuture)
     }
 }

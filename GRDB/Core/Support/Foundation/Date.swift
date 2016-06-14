@@ -1,16 +1,16 @@
 import Foundation
 
-/// NSDate are stored in the database using the format
+/// Date is stored in the database using the format
 /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
-extension NSDate : DatabaseValueConvertible {
+extension Date : DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         return storageDateFormatter.string(from: self).databaseValue
     }
     
-    /// Returns an NSDate initialized from *databaseValue*, if possible.
-    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
+    /// Returns a Date initialized from *databaseValue*, if possible.
+    public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Date? {
         if let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue(databaseValue) {
             return fromDatabaseDateComponents(databaseDateComponents)
         }
@@ -20,7 +20,7 @@ extension NSDate : DatabaseValueConvertible {
         return nil
     }
     
-    private static func fromJulianDayNumber(_ julianDayNumber: Double) -> Self? {
+    private static func fromJulianDayNumber(_ julianDayNumber: Double) -> Date? {
         // Conversion uses the same algorithm as SQLite: https://www.sqlite.org/src/artifact/8ec787fed4929d8c
         let JD = Int64(julianDayNumber * 86400000)
         let Z = Int(((JD + 43200000)/86400000))
@@ -43,7 +43,7 @@ extension NSDate : DatabaseValueConvertible {
         let minute = s/60
         second += Double(s - minute*60)
         
-        let dateComponents = NSDateComponents()
+        var dateComponents = DateComponents()
         dateComponents.year = year
         dateComponents.month = month
         dateComponents.day = day
@@ -52,33 +52,31 @@ extension NSDate : DatabaseValueConvertible {
         dateComponents.second = Int(second)
         dateComponents.nanosecond = Int((second - Double(Int(second))) * 1.0e9)
         
-        let date = UTCCalendar.date(from: dateComponents)!
-        return self.init(timeInterval: 0, since: date)
+        return UTCCalendar.date(from: dateComponents)!
     }
     
-    private static func fromDatabaseDateComponents(_ databaseDateComponents: DatabaseDateComponents) -> Self? {
+    private static func fromDatabaseDateComponents(_ databaseDateComponents: DatabaseDateComponents) -> Date? {
         guard databaseDateComponents.format.hasYMDComponents else {
-            // Refuse to turn hours without any date information into NSDate:
+            // Refuse to turn hours without any date information into Date:
             return nil
         }
-        let date = UTCCalendar.date(from: databaseDateComponents.dateComponents)!
-        return self.init(timeInterval: 0, since: date)
+        return UTCCalendar.date(from: databaseDateComponents.dateComponents)!
     }
 }
 
 /// The DatabaseDate date formatter for stored dates.
-private let storageDateFormatter: NSDateFormatter = {
-    let formatter = NSDateFormatter()
+private let storageDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
-    formatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
-    formatter.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+    formatter.locale = Locale(localeIdentifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(forSecondsFromGMT: 0)
     return formatter
     }()
 
 // The NSCalendar for stored dates.
-private let UTCCalendar: NSCalendar = {
-    let calendar = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-    calendar.locale = NSLocale(localeIdentifier: "en_US_POSIX")
-    calendar.timeZone = NSTimeZone(forSecondsFromGMT: 0)
+private let UTCCalendar: Calendar = {
+    let calendar = Calendar(calendarIdentifier: .gregorian)!
+    calendar.locale = Locale(localeIdentifier: "en_US_POSIX")
+    calendar.timeZone = TimeZone(forSecondsFromGMT: 0)
     return calendar
     }()

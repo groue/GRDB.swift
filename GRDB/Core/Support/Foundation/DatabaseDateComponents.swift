@@ -1,6 +1,6 @@
 import Foundation
 
-/// DatabaseDateComponents reads and stores NSDateComponents in the database.
+/// DatabaseDateComponents reads and stores DateComponents in the database.
 public struct DatabaseDateComponents : DatabaseValueConvertible {
     
     /// The available formats for reading and storing date components.
@@ -46,21 +46,21 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     // MARK: - NSDateComponents conversion
     
     /// The date components
-    public let dateComponents: NSDateComponents
+    public let dateComponents: DateComponents
     
     /// The database format
     public let format: Format
     
-    /// Creates a DatabaseDateComponents from an NSDateComponents and a format.
+    /// Creates a DatabaseDateComponents from a DateComponents and a format.
     ///
     /// The result is nil if and only if *dateComponents* is nil.
     ///
     /// - parameters:
-    ///     - dateComponents: An optional NSDateComponents.
+    ///     - dateComponents: An optional DateComponents.
     ///     - format: The format used for storing the date components in
     ///       the database.
     /// - returns: An optional DatabaseDateComponents.
-    public init?(_ dateComponents: NSDateComponents?, format: Format) {
+    public init?(_ dateComponents: DateComponents?, format: Format) {
         guard let dateComponents = dateComponents else {
             return nil
         }
@@ -76,9 +76,9 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         let dateString: String?
         switch format {
         case .YMD_HM, .YMD_HMS, .YMD_HMSS, .YMD:
-            let year = (dateComponents.year == NSDateComponentUndefined) ? 0 : dateComponents.year
-            let month = (dateComponents.month == NSDateComponentUndefined) ? 1 : dateComponents.month
-            let day = (dateComponents.day == NSDateComponentUndefined) ? 1 : dateComponents.day
+            let year = dateComponents.year ?? 0
+            let month = dateComponents.month ?? 1
+            let day = dateComponents.day ?? 1
             dateString = NSString(format: "%04d-%02d-%02d", year, month, day) as String
         default:
             dateString = nil
@@ -87,19 +87,19 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         let timeString: String?
         switch format {
         case .YMD_HM, .HM:
-            let hour = (dateComponents.hour == NSDateComponentUndefined) ? 0 : dateComponents.hour
-            let minute = (dateComponents.minute == NSDateComponentUndefined) ? 0 : dateComponents.minute
+            let hour = dateComponents.hour ?? 0
+            let minute = dateComponents.minute ?? 0
             timeString = NSString(format: "%02d:%02d", hour, minute) as String
         case .YMD_HMS, .HMS:
-            let hour = (dateComponents.hour == NSDateComponentUndefined) ? 0 : dateComponents.hour
-            let minute = (dateComponents.minute == NSDateComponentUndefined) ? 0 : dateComponents.minute
-            let second = (dateComponents.second == NSDateComponentUndefined) ? 0 : dateComponents.second
+            let hour = dateComponents.hour ?? 0
+            let minute = dateComponents.minute ?? 0
+            let second = dateComponents.second ?? 0
             timeString = NSString(format: "%02d:%02d:%02d", hour, minute, second) as String
         case .YMD_HMSS, .HMSS:
-            let hour = (dateComponents.hour == NSDateComponentUndefined) ? 0 : dateComponents.hour
-            let minute = (dateComponents.minute == NSDateComponentUndefined) ? 0 : dateComponents.minute
-            let second = (dateComponents.second == NSDateComponentUndefined) ? 0 : dateComponents.second
-            let nanosecond = (dateComponents.nanosecond == NSDateComponentUndefined) ? 0 : dateComponents.nanosecond
+            let hour = dateComponents.hour ?? 0
+            let minute = dateComponents.minute ?? 0
+            let second = dateComponents.second ?? 0
+            let nanosecond = dateComponents.nanosecond ?? 0
             timeString = NSString(format: "%02d:%02d:%02d.%03d", hour, minute, second, Int(round(Double(nanosecond) / 1_000_000.0))) as String
         default:
             timeString = nil
@@ -131,9 +131,9 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             return nil
         }
         
-        let dateComponents = NSDateComponents()
-        let scanner = NSScanner(string: string)
-        scanner.charactersToBeSkipped = NSCharacterSet()
+        var dateComponents = DateComponents()
+        let scanner = Scanner(string: string)
+        scanner.charactersToBeSkipped = CharacterSet()
         
         let hasDate: Bool
         
@@ -264,7 +264,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         
         // SSS
         var millisecondDigits: NSString? = nil
-        if scanner.scanCharacters(from: .decimalDigits(), into: &millisecondDigits), var millisecondDigits = millisecondDigits {
+        if scanner.scanCharacters(from: .decimalDigits, into: &millisecondDigits), var millisecondDigits = millisecondDigits {
             if millisecondDigits.length > 3 {
                 millisecondDigits = NSString(string: millisecondDigits.substring(to: 3))
             }

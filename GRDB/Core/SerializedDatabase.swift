@@ -11,7 +11,7 @@ final class SerializedDatabase {
     }
     
     /// The dispatch queue
-    private let queue: dispatch_queue_t
+    private let queue: DispatchQueue
     
     init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCache) throws {
         // According to https://www.sqlite.org/threadsafe.html
@@ -57,7 +57,7 @@ final class SerializedDatabase {
     
     /// Asynchronously executes a block in the serialized dispatch queue.
     func performAsync(_ block: (db: Database) -> Void) {
-        dispatch_async(queue) {
+        queue.async {
             block(db: self.db)
         }
     }

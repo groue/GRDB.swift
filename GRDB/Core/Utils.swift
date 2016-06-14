@@ -51,11 +51,11 @@ func GRDBPrecondition(_ condition: @autoclosure() -> Bool, _ message: @autoclosu
 
 /// A function declared as rethrows that synchronously executes a throwing
 /// block in a dispatch_queue.
-func dispatchSync<T>(_ queue: dispatch_queue_t, _ block: () throws -> T) rethrows -> T {
-    func impl(_ queue: dispatch_queue_t, block: () throws -> T, onError: (ErrorProtocol) throws -> ()) rethrows -> T {
+func dispatchSync<T>(_ queue: DispatchQueue, _ block: () throws -> T) rethrows -> T {
+    func impl(_ queue: DispatchQueue, block: () throws -> T, onError: (ErrorProtocol) throws -> ()) rethrows -> T {
         var result: T? = nil
         var blockError: ErrorProtocol? = nil
-        dispatch_sync(queue) {
+        queue.sync {
             do {
                 result = try block()
             } catch {
@@ -132,25 +132,25 @@ final class ReadWriteBox<T> {
     
     init(_ value: T) {
         self._value = value
-        self.queue = dispatch_queue_create("GRDB.ReadWriteBox", DISPATCH_QUEUE_CONCURRENT)
+        self.queue = DispatchQueue(label: "GRDB.ReadWriteBox", attributes: [.concurrent])
     }
     
     func read<U>(_ block: (T) -> U) -> U {
         var result: U? = nil
-        dispatch_sync(queue) {
+        queue.sync {
             result = block(self._value)
         }
         return result!
     }
     
     func write(_ block: (inout T) -> Void) {
-        dispatch_barrier_sync(queue) {
+        queue.sync(flags: [.barrier]) {
             block(&self._value)
         }
     }
 
     private var _value: T
-    private var queue: dispatch_queue_t
+    private var queue: DispatchQueue
 }
 
 /// A Pool maintains a set of elements that are built them on demand. A pool has
@@ -192,14 +192,14 @@ final class ReadWriteBox<T> {
 final class Pool<T> {
     var makeElement: (() -> T)?
     private var items: [PoolItem<T>] = []
-    private let queue: dispatch_queue_t         // protects items
-    private let semaphore: dispatch_semaphore_t // limits the number of elements
+    private let queue: DispatchQueue         // protects items
+    private let semaphore: DispatchSemaphore // limits the number of elements
     
     init(maximumCount: Int, makeElement: (() -> T)? = nil) {
         GRDBPrecondition(maximumCount > 0, "Pool size must be at least 1")
         self.makeElement = makeElement
-        self.queue = dispatch_queue_create("GRDB.Pool", nil)
-        self.semaphore = dispatch_semaphore_create(maximumCount)!
+        self.queue = DispatchQueue(label: "GRDB.Pool")
+        self.semaphore = DispatchSemaphore(value: maximumCount)
     }
     
     /// Returns a tuple (element, releaseElement())
@@ -243,8 +243,8 @@ final class Pool<T> {
     
     private func lockItem() -> PoolItem<T> {
         var item: PoolItem<T>! = nil
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
-        dispatch_sync(queue) {
+        _ = semaphore.wait(timeout: .distantFuture)
+        queue.sync {
             if let availableItem = self.items.first(where: { $0.available }) {
                 item = availableItem
                 item.available = false
@@ -257,10 +257,10 @@ final class Pool<T> {
     }
     
     private func unlockItem(_ item: PoolItem<T>) {
-        dispatch_sync(queue) {
+        queue.sync {
             item.available = true
         }
-        dispatch_semaphore_signal(semaphore)
+        semaphore.signal()
     }
 }
 

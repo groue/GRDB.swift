@@ -32,8 +32,8 @@ final class DatabaseScheduler {
         allowedSerializedDatabases = [database]
     }
     
-    static func makeSerializedQueueAllowing(database: Database) -> dispatch_queue_t {
-        let queue = dispatch_queue_create("GRDB.SerializedDatabase", nil)!
+    static func makeSerializedQueueAllowing(database: Database) -> DispatchQueue {
+        let queue = DispatchQueue(label: "GRDB.SerializedDatabase")
         let scheduler = DatabaseScheduler(allowedSerializedDatabase: database)
         let unmanagedScheduler = Unmanaged.passRetained(scheduler)
         let schedulerPointer = unsafeBitCast(unmanagedScheduler, to: UnsafeMutablePointer<Void>.self)
@@ -41,7 +41,7 @@ final class DatabaseScheduler {
         return queue
     }
     
-    static func dispatchSync<T>(_ queue: dispatch_queue_t, database: Database, block: (db: Database) throws -> T) rethrows -> T {
+    static func dispatchSync<T>(_ queue: DispatchQueue, database: Database, block: (db: Database) throws -> T) rethrows -> T {
         if let sourceScheduler = currentScheduler() {
             // We're in a queue where some databases are allowed.
             //
@@ -59,7 +59,7 @@ final class DatabaseScheduler {
             //
             //     let queue = dispatch_queue_create("...", nil)
             //     dbQueue.inDatabase { db in
-            //         dispatch_sync(queue) {
+            //         queue.sync {
             //             dbQueue.inDatabase { db in
             //                 // Never run
             //             }
@@ -76,10 +76,10 @@ final class DatabaseScheduler {
             // currently allowed databases inside.
             //
             // The impl function helps us turn dispatch_sync into a rethrowing function
-            func impl(_ queue: dispatch_queue_t, database: Database, block: (db: Database) throws -> T, onError: (ErrorProtocol) throws -> ()) rethrows -> T {
+            func impl(_ queue: DispatchQueue, database: Database, block: (db: Database) throws -> T, onError: (ErrorProtocol) throws -> ()) rethrows -> T {
                 var result: T? = nil
                 var blockError: ErrorProtocol? = nil
-                dispatch_sync(queue) {
+                queue.sync {
                     let targetScheduler = currentScheduler()!
                     assert(targetScheduler.allowedSerializedDatabases[0] === database) // sanity check
                     
@@ -105,10 +105,10 @@ final class DatabaseScheduler {
             // block to queue.
             //
             // The impl function helps us turn dispatch_sync into a rethrowing function
-            func impl(_ queue: dispatch_queue_t, database: Database, block: (db: Database) throws -> T, onError: (ErrorProtocol) throws -> ()) rethrows -> T {
+            func impl(_ queue: DispatchQueue, database: Database, block: (db: Database) throws -> T, onError: (ErrorProtocol) throws -> ()) rethrows -> T {
                 var result: T? = nil
                 var blockError: ErrorProtocol? = nil
-                dispatch_sync(queue) {
+                queue.sync {
                     do {
                         result = try block(db: database)
                     } catch {
