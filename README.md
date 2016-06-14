@@ -25,7 +25,9 @@ You should give it a try.
 
 ---
 
-**June 9, 2016: GRDB.swift 0.72.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
+The Swift3 branch has no version. It is currently synced with v0.72.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
+
+Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
 **Requirements**: iOS 8.0+ / OSX 10.9+, Xcode 8.0 beta (8S128d)
 
