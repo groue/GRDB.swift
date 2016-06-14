@@ -458,7 +458,7 @@ if let row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]
 **Values** are the Bool, Int, String, Date, Swift enums, etc. stored in row columns:
 
 ```swift
-for url in NSURL.fetch(db, "SELECT url FROM wines") {
+for url in URL.fetch(db, "SELECT url FROM wines") {
     print(url)
 }
 ```
@@ -750,7 +750,7 @@ There are many supported value types (Bool, Int, String, Date, Swift enums, etc.
 
 ```swift
 let count = Int.fetchOne(db, "SELECT COUNT(*) FROM persons")! // Int
-let urls = NSURL.fetchAll(db, "SELECT url FROM links")        // [NSURL]
+let urls = URL.fetchAll(db, "SELECT url FROM links")          // [URL]
 ```
 
 
@@ -760,7 +760,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Swift Standard Library**: Bool, Double, Float, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
-- **Foundation**: [Data](#data-and-memory-savings), [Date](#date-and-datecomponents), [DateComponents](#date-and-datecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, NSURL.
+- **Foundation**: [Data](#data-and-memory-savings), [Date](#date-and-datecomponents), [DateComponents](#date-and-datecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, URL.
     
 - **CoreGraphics**: CGFloat.
 
@@ -769,7 +769,7 @@ GRDB ships with built-in support for the following value types:
 Values can be used as [statement arguments](#executing-updates):
 
 ```swift
-let url: NSURL = ...
+let url: URL = ...
 let verified: Bool = ...
 try db.execute(
     "INSERT INTO links (url, verified) VALUES (?, ?)",
@@ -780,7 +780,7 @@ Values can be [extracted from rows](#column-values):
 
 ```swift
 for row in Row.fetch(db, "SELECT * FROM links") {
-    let url: NSURL = row.value(named: "url")
+    let url: URL = row.value(named: "url")
     let verified: Bool = row.value(named: "verified")
 }
 ```
@@ -788,14 +788,14 @@ for row in Row.fetch(db, "SELECT * FROM links") {
 Values can be [directly fetched](#value-queries):
 
 ```swift
-let urls = NSURL.fetchAll(db, "SELECT url FROM links")  // [NSURL]
+let urls = URL.fetchAll(db, "SELECT url FROM links")  // [URL]
 ```
 
 Use values in [Records](#records):
 
 ```swift
 class Link : Record {
-    var url: NSURL
+    var url: URL
     var verified: Bool
     
     required init(row: Row) {
@@ -813,7 +813,7 @@ class Link : Record {
 Use values in the [query interface](#the-query-interface):
 
 ```swift
-let url: NSURL = ...
+let url: URL = ...
 let link = Link.filter(urlColumn == url).fetchOne(db)
 ```
 
@@ -1846,7 +1846,7 @@ If you use the raw [Persistable](#persistable-protocol) protocol, use one of the
 
 ```swift
 struct Link : Persistable {
-    var url: NSURL
+    var url: URL
     
     func insert(_ db: Database) throws {
         try validate()

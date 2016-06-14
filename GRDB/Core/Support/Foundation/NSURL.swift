@@ -6,14 +6,14 @@ extension NSURL : DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     /// (the URL's absoluteString).
     public var databaseValue: DatabaseValue {
-        return absoluteString?.databaseValue ?? .null
+        return (self as URL).databaseValue
     }
     
     /// Returns an NSURL initialized from *databaseValue*, if possible.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        guard let string = String.fromDatabaseValue(databaseValue) else {
+        guard let url = URL.fromDatabaseValue(databaseValue) else {
             return nil
         }
-        return self.init(string: string)
+        return self.init(string: url.absoluteString!)
     }
 }
