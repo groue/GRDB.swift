@@ -711,7 +711,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             guard let fetchedItems = fetchedItems, let index = fetchedItems.index(where: { isSameItem($0, item) }) else {
                 return nil
             }
-            return NSIndexPath(forRow: index, inSection: 0)
+            return NSIndexPath(row: index, section: 0)
         }
     }
     
@@ -727,14 +727,14 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             
             var changes = [TableViewChange<Record>]()
             for (row, item) in s.enumerated() {
-                let deletion = TableViewChange.deletion(item: item, indexPath: NSIndexPath(forRow: row, inSection: 0))
+                let deletion = TableViewChange.deletion(item: item, indexPath: NSIndexPath(row: row, section: 0))
                 changes.append(deletion)
                 d[row + 1][0] = changes
             }
             
             changes.removeAll()
             for (col, item) in t.enumerated() {
-                let insertion = TableViewChange.insertion(item: item, indexPath: NSIndexPath(forRow: col, inSection: 0))
+                let insertion = TableViewChange.insertion(item: item, indexPath: NSIndexPath(row: col, section: 0))
                 changes.append(insertion)
                 d[0][col + 1] = changes
             }
@@ -757,16 +757,16 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                         // Record operation.
                         let minimumCount = min(del.count, ins.count, sub.count)
                         if del.count == minimumCount {
-                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: NSIndexPath(forRow: sx, inSection: 0))
+                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: NSIndexPath(row: sx, section: 0))
                             del.append(deletion)
                             d[sx+1][tx+1] = del
                         } else if ins.count == minimumCount {
-                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: NSIndexPath(forRow: tx, inSection: 0))
+                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: NSIndexPath(row: tx, section: 0))
                             ins.append(insertion)
                             d[sx+1][tx+1] = ins
                         } else {
-                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: NSIndexPath(forRow: sx, inSection: 0))
-                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: NSIndexPath(forRow: tx, inSection: 0))
+                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: NSIndexPath(row: sx, section: 0))
+                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: NSIndexPath(row: tx, section: 0))
                             sub.append(deletion)
                             sub.append(insertion)
                             d[sx+1][tx+1] = sub
