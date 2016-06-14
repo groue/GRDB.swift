@@ -680,11 +680,11 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         ///
         ///     If indexPath does not describe a valid index path in the fetched
         ///     records, a fatal error is raised.
-        public func record(at indexPath: NSIndexPath) -> Record {
+        public func record(at indexPath: IndexPath) -> Record {
             guard let fetchedItems = fetchedItems else {
                 fatalError("performFetch() has not been called.")
             }
-            return fetchedItems[indexPath.index(atPosition: 1)].record
+            return fetchedItems[indexPath.row].record
         }
         
         
@@ -706,12 +706,12 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
         ///
         /// - returns: The index path of *record* in the fetched records, or nil
         ///   if record could not be found.
-        public func indexPath(for record: Record) -> NSIndexPath? {
+        public func indexPath(for record: Record) -> IndexPath? {
             let item = Item<Record>(row: Row(record.persistentDictionary))
             guard let fetchedItems = fetchedItems, let index = fetchedItems.index(where: { isSameItem($0, item) }) else {
                 return nil
             }
-            return NSIndexPath(row: index, section: 0)
+            return IndexPath(row: index, section: 0)
         }
     }
     
@@ -727,14 +727,14 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
             
             var changes = [TableViewChange<Record>]()
             for (row, item) in s.enumerated() {
-                let deletion = TableViewChange.deletion(item: item, indexPath: NSIndexPath(row: row, section: 0))
+                let deletion = TableViewChange.deletion(item: item, indexPath: IndexPath(row: row, section: 0))
                 changes.append(deletion)
                 d[row + 1][0] = changes
             }
             
             changes.removeAll()
             for (col, item) in t.enumerated() {
-                let insertion = TableViewChange.insertion(item: item, indexPath: NSIndexPath(row: col, section: 0))
+                let insertion = TableViewChange.insertion(item: item, indexPath: IndexPath(row: col, section: 0))
                 changes.append(insertion)
                 d[0][col + 1] = changes
             }
@@ -757,16 +757,16 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
                         // Record operation.
                         let minimumCount = min(del.count, ins.count, sub.count)
                         if del.count == minimumCount {
-                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: NSIndexPath(row: sx, section: 0))
+                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: IndexPath(row: sx, section: 0))
                             del.append(deletion)
                             d[sx+1][tx+1] = del
                         } else if ins.count == minimumCount {
-                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: NSIndexPath(row: tx, section: 0))
+                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: IndexPath(row: tx, section: 0))
                             ins.append(insertion)
                             d[sx+1][tx+1] = ins
                         } else {
-                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: NSIndexPath(row: sx, section: 0))
-                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: NSIndexPath(row: tx, section: 0))
+                            let deletion = TableViewChange.deletion(item: s[sx], indexPath: IndexPath(row: sx, section: 0))
+                            let insertion = TableViewChange.insertion(item: t[tx], indexPath: IndexPath(row: tx, section: 0))
                             sub.append(deletion)
                             sub.append(insertion)
                             d[sx+1][tx+1] = sub
@@ -855,10 +855,10 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     }
     
     private enum TableViewChange<T: RowConvertible> {
-        case insertion(item: Item<T>, indexPath: NSIndexPath)
-        case deletion(item: Item<T>, indexPath: NSIndexPath)
-        case move(item: Item<T>, indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
-        case update(item: Item<T>, indexPath: NSIndexPath, changes: [String: DatabaseValue])
+        case insertion(item: Item<T>, indexPath: IndexPath)
+        case deletion(item: Item<T>, indexPath: IndexPath)
+        case move(item: Item<T>, indexPath: IndexPath, newIndexPath: IndexPath, changes: [String: DatabaseValue])
+        case update(item: Item<T>, indexPath: IndexPath, changes: [String: DatabaseValue])
     }
     
     extension TableViewChange {
@@ -914,20 +914,20 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     public enum TableViewEvent {
         
         /// An insertion event, at given indexPath.
-        case insertion(indexPath: NSIndexPath)
+        case insertion(indexPath: IndexPath)
         
         /// A deletion event, at given indexPath.
-        case deletion(indexPath: NSIndexPath)
+        case deletion(indexPath: IndexPath)
         
         /// A move event, from indexPath to newIndexPath. The *changes* are a
         /// dictionary whose keys are column names, and values the old values that
         /// have been changed.
-        case move(indexPath: NSIndexPath, newIndexPath: NSIndexPath, changes: [String: DatabaseValue])
+        case move(indexPath: IndexPath, newIndexPath: IndexPath, changes: [String: DatabaseValue])
         
         /// An update event, at given indexPath. The *changes* are a dictionary
         /// whose keys are column names, and values the old values that have
         /// been changed.
-        case update(indexPath: NSIndexPath, changes: [String: DatabaseValue])
+        case update(indexPath: IndexPath, changes: [String: DatabaseValue])
     }
     
     extension TableViewEvent: CustomStringConvertible {

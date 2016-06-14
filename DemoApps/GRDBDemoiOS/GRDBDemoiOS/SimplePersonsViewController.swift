@@ -54,15 +54,15 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
         performSegue(withIdentifier: "NewPerson", sender: sender)
     }
     
-    @IBAction func cancelPersonEdition(segue: UIStoryboardSegue) {
+    @IBAction func cancelPersonEdition(_ segue: UIStoryboardSegue) {
         // Person creation: cancel button was tapped
     }
     
-    @IBAction func commitPersonEdition(segue: UIStoryboardSegue) {
+    @IBAction func commitPersonEdition(_ segue: UIStoryboardSegue) {
         // Person creation: commit button was tapped
         let controller = segue.sourceViewController as! PersonEditionViewController
         controller.applyChanges()
-        let person = controller.person
+        let person = controller.person!
         if !person.name.isEmpty {
             try! dbQueue.inDatabase { db in
                 try person.save(db)
@@ -73,7 +73,7 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
     func personEditionControllerDidComplete(_ controller: PersonEditionViewController) {
         // Person edition: back button was tapped
         controller.applyChanges()
-        let person = controller.person
+        let person = controller.person!
         if !person.name.isEmpty {
             try! dbQueue.inDatabase { db in
                 try person.save(db)
@@ -86,7 +86,7 @@ extension SimplePersonsViewController : PersonEditionViewControllerDelegate {
 // MARK: - UITableViewDataSource
 
 extension SimplePersonsViewController {
-    func configure(_ cell: UITableViewCell, at indexPath: NSIndexPath) {
+    func configure(_ cell: UITableViewCell, at indexPath: IndexPath) {
         let person = persons[indexPath.row]
         cell.textLabel?.text = person.name
         cell.detailTextLabel?.text = abs(person.score) > 1 ? "\(person.score) points" : "0 point"
@@ -96,17 +96,17 @@ extension SimplePersonsViewController {
         return persons.count
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: NSIndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Person", for: indexPath)
         configure(cell, at: indexPath)
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: NSIndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         // Delete the person
         let person = persons[indexPath.row]
         try! dbQueue.inDatabase { db in
-            try person.delete(db)
+            _ = try person.delete(db)
         }
         persons.remove(at: indexPath.row)
         tableView.deleteRows(at: [indexPath], with: .fade)

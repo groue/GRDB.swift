@@ -85,7 +85,7 @@ extension PersonEditionViewController: UITextFieldDelegate {
         nameTextField.becomeFirstResponder()
     }
     
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: NSIndexPath) {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: false)
         let cell = tableView.cellForRow(at: indexPath)
         if cell === nameCell {
