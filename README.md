@@ -1,7 +1,7 @@
-GRDB.swift [![Swift](https://img.shields.io/badge/swift-2.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
+GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
-GRDB.swift is an SQLite toolkit for Swift 2.2.
+GRDB.swift is an SQLite toolkit for Swift 3.0 Preview 1 (June 13, 2016).
 
 It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
@@ -27,7 +27,7 @@ You should give it a try.
 
 **June 9, 2016: GRDB.swift 0.72.0 is out** ([changelog](CHANGELOG.md)). Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
-**Requirements**: iOS 7.0+ / OSX 10.9+, Xcode 7.3+
+**Requirements**: iOS 8.0+ / OSX 10.9+, Xcode 8.0 beta (8S128d)
 
 
 ### Usage
@@ -141,10 +141,6 @@ Documentation
 
 **GRDB runs on top of SQLite**: you should get familiar with the [SQLite FAQ](http://www.sqlite.org/faq.html). For general and detailed information, jump to the [SQLite Documentation](http://www.sqlite.org/docs.html).
 
-**Reference**
-
-- [GRDB Reference](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/index.html) (on cocoadocs.org)
-
 **Getting started**
 
 - [Installation](#installation)
@@ -178,35 +174,6 @@ Documentation
 
 
 ### Installation
-
-#### CocoaPods
-
-[CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects.
-
-To use GRDB with CocoaPods, specify in your Podfile:
-
-```ruby
-source 'https://github.com/CocoaPods/Specs.git'
-use_frameworks!
-
-pod 'GRDB.swift', '~> 0.72.0'
-```
-
-> :point_up: **Note**: [SQLCipher](#encryption) and [custom SQLite builds](#custom-sqlite-builds) are not available via CocoaPods.
-
-
-#### Carthage
-
-[Carthage](https://github.com/Carthage/Carthage) is another dependency manager for Xcode projects.
-
-To use GRDB with Carthage, specify in your Cartfile:
-
-```
-github "groue/GRDB.swift" ~> 0.72.0
-```
-
-> :point_up: **Note**: [custom SQLite builds](#custom-sqlite-builds) are not available via Carthage.
-
 
 #### Manually
 
@@ -304,7 +271,7 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // The default is already true
 config.trace = { print($0) }     // Prints all SQL statements
-config.fileAttributes = [NSFileProtectionKey: ...]  // Configure database protection
+config.fileAttributes = [FileAttributeKey.protectionKey.rawValue: ...]  // Configure database protection
 
 let dbQueue = try DatabaseQueue(
     path: "/path/to/database.sqlite",
@@ -383,7 +350,7 @@ var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // The default is already true
 config.trace = { print($0) }     // Prints all SQL statements
-config.fileAttributes = [NSFileProtectionKey: ...]  // Configure database protection
+config.fileAttributes = [FileAttributeKey.protectionKey.rawValue: ...]  // Configure database protection
 condig.maximumReaderCount = 10   // The default is 5
 
 let dbPool = try DatabasePool(
@@ -408,8 +375,8 @@ SQLite API
     - [Row Queries](#row-queries)
     - [Value Queries](#value-queries)
 - [Values](#values)
-    - [NSData](#nsdata-and-memory-savings)
-    - [NSDate and NSDateComponents](#nsdate-and-nsdatecomponents)
+    - [Data](#data-and-memory-savings)
+    - [Date and DateComponents](#date-and-datecomponents)
     - [NSNumber and NSDecimalNumber](#nsnumber-and-nsdecimalnumber)
     - [Swift enums](#swift-enums)
 - [Transactions and Savepoints](#transactions-and-savepoints)
@@ -449,7 +416,7 @@ try db.execute(
     arguments: ["Arthur", 36, "Barbara", 39])
 ```
 
-The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
+The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.).
 
 Never ever embed values directly in your SQL strings, and always use arguments instead. See [Avoiding SQL Injection](#avoiding-sql-injection) for more information.
 
@@ -486,7 +453,7 @@ if let row = Row.fetchOne(db, "SELECT * FROM wines WHERE id = ?", arguments: [1]
 ```
 
 
-**Values** are the Bool, Int, String, NSDate, Swift enums, etc. stored in row columns:
+**Values** are the Bool, Int, String, Date, Swift enums, etc. stored in row columns:
 
 ```swift
 for url in NSURL.fetch(db, "SELECT url FROM wines") {
@@ -585,7 +552,7 @@ let rows = Row.fetchAll(db,
     arguments: ["name": "Arthur"])
 ```
 
-See [Values](#values) for more information on supported arguments types (Bool, Int, String, NSDate, Swift enums, etc.).
+See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.).
 
 Unlike row arrays that contain copies of the database rows, row sequences are close to the SQLite metal, and require a little care:
 
@@ -617,7 +584,7 @@ let bookCount64: Int64 = row.value(named: "bookCount")
 let hasBooks: Bool     = row.value(named: "bookCount")  // false when 0
 
 let string: String     = row.value(named: "date")       // "2015-09-11 18:14:15.123"
-let date: NSDate       = row.value(named: "date")       // NSDate
+let date: Date         = row.value(named: "date")       // Date
 self.date = row.value(named: "date") // Depends on the type of the property.
 ```
 
@@ -641,9 +608,9 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     
     - Numeric SQLite values to numeric Swift types, and Bool (zero is the only false boolean).
     - Text SQLite values to Swift String.
-    - Blob SQLite values to NSData.
+    - Blob SQLite values to Foundation Data.
     
-    See [Values](#values) for more information on supported types (Bool, Int, String, NSDate, Swift enums, etc.)
+    See [Values](#values) for more information on supported types (Bool, Int, String, Date, Swift enums, etc.)
 
 - **NULL returns nil.**
 
@@ -667,9 +634,9 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     
     ```swift
     let row = Row.fetchOne(db, "SELECT 'foo'")!
-    row.value(atIndex: 0) as String  // "foo"
-    row.value(atIndex: 0) as NSDate? // fatal error: could not convert "foo" to NSDate.
-    row.value(atIndex: 0) as NSDate  // fatal error: could not convert "foo" to NSDate.
+    row.value(atIndex: 0) as String // "foo"
+    row.value(atIndex: 0) as Date?  // fatal error: could not convert "foo" to Date.
+    row.value(atIndex: 0) as Date   // fatal error: could not convert "foo" to Date.
     ```
     
     This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method.
@@ -704,11 +671,11 @@ case .null:                 print("NULL")
 case .int64(let int64):     print("Int64: \(int64)")
 case .double(let double):   print("Double: \(double)")
 case .string(let string):   print("String: \(string)")
-case .blob(let data):       print("NSData: \(data)")
+case .blob(let data):       print("Data: \(data)")
 }
 ```
 
-You can extract [values](#values) (Bool, Int, String, NSDate, Swift enums, etc.) from DatabaseValue, just like you do from [rows](#column-values):
+You can extract [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue, just like you do from [rows](#column-values):
 
 ```swift
 let dbv = row.databaseValue(named: "bookCount")
@@ -718,7 +685,7 @@ let hasBooks: Bool     = dbv.value() // false when 0
 
 let dbv = row.databaseValue(named: "date")
 let string: String = dbv.value()     // "2015-09-11 18:14:15.123"
-let date: NSDate   = dbv.value()     // NSDate
+let date: Date     = dbv.value()     // Date
 self.date          = dbv.value()     // Depends on the type of the property.
 ```
 
@@ -728,8 +695,8 @@ Invalid conversions from non-NULL values raise a fatal error. This fatal error c
 let row = Row.fetchOne(db, "SELECT 'foo'")!
 let dbv = row.databaseValue(at: 0)
 let string = dbv.value() as String  // "foo"
-let date = dbv.value() as NSDate?   // fatal error: could not convert "foo" to NSDate.
-let date = NSDate.fromDatabaseValue(dbv) // nil
+let date = dbv.value() as Date?     // fatal error: could not convert "foo" to Date.
+let date = Date.fromDatabaseValue(dbv) // nil
 ```
 
 
@@ -777,7 +744,7 @@ Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...) // [Int?]
 
 `fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
 
-There are many supported value types (Bool, Int, String, NSDate, Swift enums, etc.). See [Values](#values) for more information:
+There are many supported value types (Bool, Int, String, Date, Swift enums, etc.). See [Values](#values) for more information:
 
 ```swift
 let count = Int.fetchOne(db, "SELECT COUNT(*) FROM persons")! // Int
@@ -791,7 +758,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Swift Standard Library**: Bool, Double, Float, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
-- **Foundation**: [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, NSURL.
+- **Foundation**: [Data](#data-and-memory-savings), [Date](#date-and-datecomponents), [DateComponents](#date-and-datecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, NSURL.
     
 - **CoreGraphics**: CGFloat.
 
@@ -849,15 +816,15 @@ let link = Link.filter(urlColumn == url).fetchOne(db)
 ```
 
 
-### NSData (and Memory Savings)
+### Data (and Memory Savings)
 
-**NSData** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other [value types](#values).
+**Data** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other [value types](#values).
 
-Yet, when extracting NSData from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**, using the `dataNoCopy()` method:
+Yet, when extracting Data from a row, **you have the opportunity to save memory by not copying the data fetched by SQLite**, using the `dataNoCopy()` method:
 
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
-    let data = row.dataNoCopy(named: "data")     // NSData?
+    let data = row.dataNoCopy(named: "data")     // Data?
 }
 ```
 
@@ -868,11 +835,11 @@ Compare with the **anti-patterns** below:
 ```swift
 for row in Row.fetch(db, "SELECT data, ...") {
     // This data is copied:
-    let data: NSData = row.value(named: "data")
+    let data: Data = row.value(named: "data")
     
     // This data is copied:
     if let databaseValue = row.databaseValue(named: "data") {
-        let data: NSData = databaseValue.value()
+        let data: Data = databaseValue.value()
     }
     
     // This data is copied:
@@ -889,57 +856,57 @@ for row in rows {
 ```
 
 
-### NSDate and NSDateComponents
+### Date and DateComponents
 
-[**NSDate**](#nsdate) and [**NSDateComponents**](#nsdatecomponents) can be stored and fetched from the database.
+[**Date**](#date) and [**DateComponents**](#datecomponents) can be stored and fetched from the database.
 
 Here is the support provided by GRDB for the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
 
-| SQLite format                | NSDate       | NSDateComponents |
-|:---------------------------- |:------------:|:----------------:|
-| YYYY-MM-DD                   |     Read ¹   |    Read/Write    |
-| YYYY-MM-DD HH:MM             |     Read ¹   |    Read/Write    |
-| YYYY-MM-DD HH:MM:SS          |     Read ¹   |    Read/Write    |
-| YYYY-MM-DD HH:MM:SS.SSS      | Read/Write ¹ |    Read/Write    |
-| YYYY-MM-DD**T**HH:MM         |     Read ¹   |       Read       |
-| YYYY-MM-DD**T**HH:MM:SS      |     Read ¹   |       Read       |
-| YYYY-MM-DD**T**HH:MM:SS.SSS  |     Read ¹   |       Read       |
-| HH:MM                        |              |    Read/Write    |
-| HH:MM:SS                     |              |    Read/Write    |
-| HH:MM:SS.SSS                 |              |    Read/Write    |
-| Julian Day Number            |     Read ²   |                  |
-| `now`                        |              |                  |
+| SQLite format                | Date         | DateComponents |
+|:---------------------------- |:------------:|:--------------:|
+| YYYY-MM-DD                   |     Read ¹   |   Read/Write   |
+| YYYY-MM-DD HH:MM             |     Read ¹   |   Read/Write   |
+| YYYY-MM-DD HH:MM:SS          |     Read ¹   |   Read/Write   |
+| YYYY-MM-DD HH:MM:SS.SSS      | Read/Write ¹ |   Read/Write   |
+| YYYY-MM-DD**T**HH:MM         |     Read ¹   |      Read      |
+| YYYY-MM-DD**T**HH:MM:SS      |     Read ¹   |      Read      |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |     Read ¹   |      Read      |
+| HH:MM                        |              |   Read/Write   |
+| HH:MM:SS                     |              |   Read/Write   |
+| HH:MM:SS.SSS                 |              |   Read/Write   |
+| Julian Day Number            |     Read ²   |                |
+| `now`                        |              |                |
 
-¹ NSDates are stored and read in the UTC time zone. Missing components are assumed to be zero.
+¹ Dates are stored and read in the UTC time zone. Missing components are assumed to be zero.
 
 ² See https://en.wikipedia.org/wiki/Julian_day
 
 
-#### NSDate
+#### Date
 
-**GRDB stores NSDate using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.** It is precise to the millisecond.
+**GRDB stores Date using the format "yyyy-MM-dd HH:mm:ss.SSS" in the UTC time zone.** It is precise to the millisecond.
 
 This format may not fit your needs. We provide below some sample code for [storing dates as timestamps](#custom-value-types) that you can adapt for your application.
 
-NSDate can be stored and fetched from the database just like other [value types](#values):
+Date can be stored and fetched from the database just like other [value types](#values):
 
 ```swift
 try db.execute(
     "INSERT INTO persons (creationDate, ...) VALUES (?, ...)",
-    arguments: [NSDate(), ...])
+    arguments: [Date(), ...])
 ```
 
 
-#### NSDateComponents
+#### DateComponents
 
-NSDateComponents is indirectly supported, through the **DatabaseDateComponents** helper type.
+DateComponents is indirectly supported, through the **DatabaseDateComponents** helper type.
 
 DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to YYYY-MM-DD HH:MM:SS.SSS.
 
 DatabaseDateComponents can be stored and fetched from the database just like other [value types](#values):
 
 ```swift
-let components = NSDateComponents()
+let components = DateComponents()
 components.year = 1973
 components.month = 9
 components.day = 18
@@ -954,7 +921,7 @@ try db.execute(
 let row = Row.fetchOne(db, "SELECT birthDate ...")!
 let dbComponents: DatabaseDateComponents = row.value(named: "birthDate")
 dbComponents.format         // .YMD (the actual format found in the database)
-dbComponents.dateComponents // NSDateComponents
+dbComponents.dateComponents // DateComponents
 ```
 
 
@@ -1164,13 +1131,13 @@ public protocol DatabaseValueConvertible {
 }
 ```
 
-All types that adopt this protocol can be used like all other [value types](#values) (Bool, Int, String, NSDate, Swift enums, etc.)
+All types that adopt this protocol can be used like all other [value types](#values) (Bool, Int, String, Date, Swift enums, etc.)
 
-The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and NSData. DatabaseValue has no public initializer: to create one, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
+The `databaseValue` property returns [DatabaseValue](GRDB/Core/DatabaseValue.swift), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. DatabaseValue has no public initializer: to create one, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc.
 
-The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for NSDate, the method returns nil.
+The `fromDatabaseValue()` factory method returns an instance of your custom type if the databaseValue contains a suitable value. If the databaseValue does not contain a suitable value, such as "foo" for Date, the method returns nil.
 
-As an example, see [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift): it shows how to store dates as timestamps, unlike the built-in [NSDate](#nsdate-and-nsdatecomponents).
+As an example, see [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift): it shows how to store dates as timestamps, unlike the built-in [Date](#date-and-datecomponents).
 
 
 ## Prepared Statements
@@ -1265,7 +1232,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-The *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, NSDate, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
+The *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, Date, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
 
 SQLite has the opportunity to perform additional optimizations when functions are "pure", which means that their result only depends on their arguments. So make sure to set the *pure* argument to true when possible.
 
@@ -1789,7 +1756,7 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 
 - Otherwise, stick with `Persistable`. Particularly if your type is a class.
 
-The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, NSDate, Swift enums, etc.) See [Values](#values) for more information.
+The `persistentDictionary` property returns a dictionary whose keys are column names, and values any DatabaseValueConvertible value (Bool, Int, String, Date, Swift enums, etc.) See [Values](#values) for more information.
 
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion. It is called from a protected dispatch queue, and serialized with all database updates.
 
@@ -3091,7 +3058,7 @@ let arguments: NSDictionary = ...
 
 for row in Row.fetchAll(db, sql, arguments: StatementArguments(arguments)) {
     // Some untrusted database value:
-    let date: NSDate? = row.value(atIndex: 0)
+    let date: Date? = row.value(atIndex: 0)
 }
 ```
 
@@ -3118,9 +3085,9 @@ if let arguments = StatementArguments(arguments) {
     statement.unsafeSetArguments(arguments) // no need to check twice
     for row in Row.fetchAll(statement) {
         
-        // Database value may not be convertible to NSDate
+        // Database value may not be convertible to Date
         let dbv = row.databaseValue(atIndex: 0)
-        if let date = NSDate.fromDatabaseValue(dbv) {
+        if let date = Date.fromDatabaseValue(dbv) {
             // use date
         }
     }
@@ -3384,7 +3351,7 @@ Sample Code
 - The [Documentation](#documentation) is full of GRDB snippets.
 - [GRDBDemoiOS](DemoApps/GRDBDemoiOS): A sample iOS application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
-- How to read and write NSDate as timestamp: [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift)
+- How to read and write Date as timestamp: [DatabaseTimestamp.playground](Playgrounds/DatabaseTimestamp.playground/Contents.swift)
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
 - A class that behaves like NSUserDefaults, but backed by SQLite: [UserDefaults.playground](Playgrounds/UserDefaults.playground/Contents.swift)
 - How to notify view controllers of database changes: [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd)
