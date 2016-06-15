@@ -1052,7 +1052,7 @@ func myCriticalMethod(_ db: Database) throws {
 Yet, you have a better option than checking for transactions: critical sections of your application should use savepoints, described below:
 
 ```swift
-func myCriticalMethod(db: Database) throws {
+func myCriticalMethod(_ db: Database) throws {
     try db.inSavepoint {
         // Here the database is guaranteed to be inside a transaction.
         try ...
