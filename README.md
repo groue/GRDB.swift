@@ -1025,7 +1025,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-If an error is thrown within the transaction body, the transaction is rollbacked and the error is rethrown by the `inTransaction` method. If you return `.Rollback` from your closure, the transaction is also rollbacked, but no error is thrown.
+If an error is thrown within the transaction body, the transaction is rollbacked and the error is rethrown by the `inTransaction` method. If you return `.rollback` from your closure, the transaction is also rollbacked, but no error is thrown.
 
 If you want to insert a transaction between other database statements, you can use the Database.inTransaction() function:
 
@@ -1078,7 +1078,7 @@ try dbQueue.inTransaction { db in
 }
 ```
 
-If an error is thrown within the savepoint body, the savepoint is rollbacked and the error is rethrown by the `inSavepoint` method. If you return `.Rollback` from your closure, the body is also rollbacked, but no error is thrown.
+If an error is thrown within the savepoint body, the savepoint is rollbacked and the error is rethrown by the `inSavepoint` method. If you return `.rollback` from your closure, the body is also rollbacked, but no error is thrown.
 
 **Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only committed to disk when the outermost savepoint is committed:
 
