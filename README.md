@@ -1,7 +1,7 @@
 GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
-GRDB.swift is an SQLite toolkit for Swift 3.0 Preview 1 (June 13, 2016).
+GRDB.swift is an SQLite toolkit for Swift 2.2. For Swift 3, see the [Swift3](https://github.com/groue/GRDB.swift/tree/Swift3) branch.
 
 It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
@@ -2821,7 +2821,7 @@ On iOS, FetchedRecordsController can notify that the controller’s fetched reco
 
 #### Record Identity
 
-Updates and moves are nicer to the eye when your perform table view animations. They require the controller to identify individual records in the fetched database rows. You must tell the controller how to do so:
+Updates and moves are nicer to the eye when you perform table view animations. They require the controller to identify individual records in the fetched database rows. You must tell the controller how to do so:
 
 ```swift
 let controller = FetchedRecordsController<Person>(
