@@ -3318,7 +3318,7 @@ FAQ
     }
     ```
     
-    This is a Swift compiler bug (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
+    This is a Swift compiler issue (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
     
     The general workaround is to explicitly declare the type of the closure result:
     
