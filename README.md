@@ -3075,7 +3075,7 @@ In such a situation where nothing can be trusted, you can still avoid fatal erro
 
 ```swift
 // SQL may be invalid
-let statement = try db.selectStatement(sql)
+let statement = try db.makeSelectStatement(sql)
 
 // NSDictionary arguments may contain invalid values or keys:
 if let arguments = StatementArguments(arguments) {
