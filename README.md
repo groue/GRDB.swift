@@ -2856,7 +2856,7 @@ On iOS, FetchedRecordsController can notify that the controller’s fetched reco
 
 #### Record Identity
 
-Updates and moves are nicer to the eye when your perform table view animations. They require the controller to identify individual records in the fetched database rows. You must tell the controller how to do so:
+Updates and moves are nicer to the eye when you perform table view animations. They require the controller to identify individual records in the fetched database rows. You must tell the controller how to do so:
 
 ```swift
 let controller = FetchedRecordsController<Person>(
