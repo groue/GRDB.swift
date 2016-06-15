@@ -1817,9 +1817,9 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// Returns an event that can be stored:
         ///
         ///     class MyObserver: TransactionObserver {
-        ///         var pre_events: [DatabasePreUpdateEvent]
-        ///         func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent) {
-        ///             pre_events.append(event.copy())
+        ///         var events: [DatabasePreUpdateEvent]
+        ///         func databaseWillChange(with event: DatabasePreUpdateEvent) {
+        ///             events.append(event.copy())
         ///         }
         ///     }
         public func copy() -> DatabasePreUpdateEvent {
