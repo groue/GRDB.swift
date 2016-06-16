@@ -1374,7 +1374,7 @@ citizenshipsPk.rowIDColumn // nil
 They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced row has a column named "produced":
 
 ```swift
-// An adapter that maps column 'produced' to column 'consumed':
+// An adapter that maps column 'consumed' to column 'produced':
 let adapter = ColumnMapping(["consumed": "produced"])
 
 // Fetch a column named 'produced', and apply adapter:
