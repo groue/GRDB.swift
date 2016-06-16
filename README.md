@@ -600,7 +600,7 @@ Unlike row arrays that contain copies of the database rows, row sequences are cl
 
 ```swift
 let name: String = row.value(atIndex: 0)    // 0 is the leftmost column
-let name: String = row.value(named: "name") // lookup is case-insensitive
+let name: String = row.value(named: "name") // leftmost matching column - lookup is case-insensitive
 ```
 
 Make sure to ask for an optional when the value may be NULL:
@@ -693,7 +693,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 
 ```swift
 let dbv = row.databaseValue(atIndex: 0)    // 0 is the leftmost column
-let dbv = row.databaseValue(named: "name") // lookup is case-insensitive
+let dbv = row.databaseValue(named: "name") // leftmost matching column - lookup is case-insensitive
 
 // Check for NULL:
 dbv.isNull    // Bool
