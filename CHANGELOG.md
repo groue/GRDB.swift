@@ -1,6 +1,17 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- The query interface now lets you provide arguments to your sql snippets ([documentation]((https://github.com/groue/GRDB.swift/#the-query-interface))):
+    
+    ```swift
+    let wines = Wine.filter(sql: "origin = ?", arguments: ["Burgundy"]).fetchAll(db)
+    ```
+
+
 ## 0.72.0
 
 Released June 9, 2016

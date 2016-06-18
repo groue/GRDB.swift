@@ -453,40 +453,17 @@ extension Database {
         // - validateRemainingArguments validates the remaining arguments, after
         //   all statements have been executed, in the same way
         //   as Statement.validateArguments()
-        let consumeArguments: UpdateStatement -> StatementArguments
-        let validateRemainingArguments: () throws -> ()
         
-        if let arguments = arguments {
-            switch arguments.kind {
-            case .Values(let values):
-                // Extract as many values as needed, statement after statement:
-                var remainingValues = values
-                consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
-                    let argumentCount = statement.sqliteArgumentCount
-                    defer {
-                        if remainingValues.count >= argumentCount {
-                            remainingValues = Array(remainingValues.suffixFrom(argumentCount))
-                        } else {
-                            remainingValues = []
-                        }
-                    }
-                    return StatementArguments(remainingValues.prefix(argumentCount))
-                }
-                // It's not OK if there remains unused arguments:
-                validateRemainingArguments = {
-                    if !remainingValues.isEmpty {
-                        throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(values.count)")
-                    }
-                }
-            case .NamedValues:
-                // Reuse the dictionary argument for all statements:
-                consumeArguments = { _ in return arguments }
-                validateRemainingArguments = { _ in }
+        var arguments = arguments ?? StatementArguments()
+        let initialValuesCount = arguments.values.count
+        let consumeArguments = { (statement: UpdateStatement) throws -> StatementArguments in
+            let bindings = try arguments.consume(statement, allowingRemainingValues: true)
+            return StatementArguments(bindings)
+        }
+        let validateRemainingArguments = {
+            if !arguments.values.isEmpty {
+                throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)")
             }
-        } else {
-            // Empty arguments for all statements:
-            consumeArguments = { _ in return [] }
-            validateRemainingArguments = { _ in }
         }
         
         
@@ -527,7 +504,9 @@ extension Database {
                         sqliteStatement: sqliteStatement,
                         invalidatesDatabaseSchemaCache: observer.invalidatesDatabaseSchemaCache,
                         savepointAction: observer.savepointAction)
-                    try statement.execute(arguments: consumeArguments(statement))
+                    let arguments = try consumeArguments(statement)
+                    statement.unsafeSetArguments(arguments)
+                    try statement.execute()
                 } catch let statementError {
                     error = statementError
                     break
