@@ -51,3 +51,4 @@ Reading list:
 - List of documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
 - https://www.zetetic.net/sqlcipher/
 - https://sqlite.org/sharedcache.html
+- Amazing tip from Xcode labs: add a EXCLUDED_SOURCE_FILE_NAMES build setting to conditionally exclude sources for different configuration: https://twitter.com/zats/status/743862987602026496
