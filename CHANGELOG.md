@@ -17,6 +17,8 @@ Release Notes
 
 - Transaction observers can efficiently filter the database changes they are interested in ([documentation](https://github.com/groue/GRDB.swift#filtering-database-events)).
 
+- Support for NSUUID ([documentation](https://github.com/groue/GRDB.swift/#nsuuid))
+
 
 ## 0.72.0
 

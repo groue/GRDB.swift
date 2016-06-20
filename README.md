@@ -791,7 +791,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Swift Standard Library**: Bool, Double, Float, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
-- **Foundation**: [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, NSURL.
+- **Foundation**: [NSData](#nsdata-and-memory-savings), [NSDate](#nsdate-and-nsdatecomponents), [NSDateComponents](#nsdate-and-nsdatecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, NSURL, NSUUID.
     
 - **CoreGraphics**: CGFloat.
 
@@ -1001,6 +1001,11 @@ let integer = Int64.fetchOne(db, "SELECT SUM(amount) FROM transfers")! // 100
 let amount = NSDecimalNumber(longLong: integer)                        // 0.1
     .decimalNumberByMultiplyingByPowerOf10(-2)
 ```
+
+
+### NSUUID
+
+**NSUUID** can be stored and fetched from the database just like other [values](#values). GRDB stores uuids as 16-bytes data blobs.
 
 
 ### Swift Enums
