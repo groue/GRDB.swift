@@ -2635,7 +2635,7 @@ See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e63
 
 **Transaction observers can avoid being notified of some database changes they are not interested in.**
 
-At first sight, this is somewhat redundant with the checks that observers can perform in their `databaseDidChangeWithEvent` method:
+At first sight, this looks somewhat redundant with the checks that observers can perform in their `databaseDidChangeWithEvent` method:
 
 ```swift
 // An observer only interested in the "persons" table:
