@@ -2056,15 +2056,10 @@ let count = Wine.filter(color == Color.Red).fetchCount(db)
 let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
 ```
 
-Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full SQL queries, your SQL skills are welcome:
+Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
 
 ```swift
-// SQL snippets
 let count = Wine.filter(sql: "color = ?", arguments: [Color.Red]).fetchCount(db)
-let wines = Wine.filter(sql: "origin = ?", arguments: ["Burgundy"]).order(sql: "price").fetchAll(db)
-
-// Full SQL
-let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines WHERE color = ?", arguments [Color.Red])!
 let wines = Wine.fetchAll(db, "SELECT * FROM wines WHERE origin = ? ORDER BY price", arguments: ["Burgundy"])
 ```
 
