@@ -198,16 +198,15 @@ public class Statement {
 ///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement {
-    /// The tables this statement feeds on.
-    var sourceTables: Set<String>
+    /// A dictionary [tablename: Set<columnName>] of accessed columns
+    private(set) var readTables: [String: Set<String>]
     
     init(database: Database, sql: String) throws {
-        self.sourceTables = []
-        
+        self.readTables = [:]
         let observer = StatementCompilationObserver(database)
         try super.init(database: database, sql: sql, observer: observer)
         Database.preconditionValidSelectStatement(sql: sql, observer: observer)
-        self.sourceTables = observer.sourceTables
+        self.readTables = observer.readTables
     }
     
     /// The number of columns in the resulting rows.
@@ -343,20 +342,24 @@ public final class UpdateStatement : Statement {
     /// is executed.
     private(set) var invalidatesDatabaseSchemaCache: Bool
     private(set) var savepointAction: (name: String, action: SavepointActionKind)?
+    private(set) var databaseEventKinds: [DatabaseEventKind]
     
-    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool, savepointAction: (name: String, action: SavepointActionKind)?) {
+    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool, savepointAction: (name: String, action: SavepointActionKind)?, databaseEventKinds: [DatabaseEventKind]) {
         self.invalidatesDatabaseSchemaCache = invalidatesDatabaseSchemaCache
         self.savepointAction = savepointAction
+        self.databaseEventKinds = databaseEventKinds
         super.init(database: database, sqliteStatement: sqliteStatement)
     }
     
     init(database: Database, sql: String) throws {
         self.invalidatesDatabaseSchemaCache = false
+        self.databaseEventKinds = []
         
         let observer = StatementCompilationObserver(database)
         try super.init(database: database, sql: sql, observer: observer)
         self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
         self.savepointAction = observer.savepointAction
+        self.databaseEventKinds = observer.databaseEventKinds
     }
     
     /// Executes the SQL query.
@@ -369,6 +372,8 @@ public final class UpdateStatement : Statement {
         // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
         try! prepareWithArguments(arguments)
         try! reset()
+        
+        database.updateStatementWillExecute(self)
         
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE, SQLITE_ROW:
