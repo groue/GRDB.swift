@@ -2640,10 +2640,10 @@ See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e63
 
 **Transaction observers can avoid being notified of some database changes they are not interested in.**
 
-At first sight, this looks somewhat redundant with the checks that observers can perform in their `databaseDidChangeWithEvent` method:
+At first sight, this looks somewhat redundant with the checks that observers can perform in their `databaseDidChangeWithEvent` method. But the code below is inefficient:
 
 ```swift
-// An observer only interested in the "persons" table:
+// BAD: An inefficient way to track the "persons" table:
 class PersonObserver: TransactionObserverType {
     func databaseDidChangeWithEvent(event: DatabaseEvent) {
         guard event.tableName == "persons" else {
@@ -2654,7 +2654,7 @@ class PersonObserver: TransactionObserverType {
 }
 ```
 
-However, the `databaseDidChangeWithEvent` method is invoked for each insertion, deletion, and update of individual rows. When there are many changed rows, the observer will spend of a lot of time performing the same check again and again.
+The `databaseDidChangeWithEvent` method is invoked for each insertion, deletion, and update of individual rows. When there are many changed rows, the observer will spend of a lot of time performing the same check again and again.
 
 More, when you're interested in specific table columns, you're out of luck, because `databaseDidChangeWithEvent` does not know about columns: it just knows that a row has been inserted, deleted, or updated, without further detail.
 
