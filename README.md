@@ -2567,7 +2567,7 @@ dbQueue.addTransactionObserver(observer)
 
 Database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated.
 
-**A transaction observer is notified of all database changes**, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+Unless specified otherwise (see below), **a transaction observer is notified of all database changes**: inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
 Changes are not actually applied until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
@@ -2634,6 +2634,50 @@ do {
 [FetchedRecordsController](#fetchedrecordscontroller) is based on the TransactionObserverType protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
+
+
+### Filtering Database Events
+
+**Transaction observers can avoid being notified of some database changes they are not interested in.**
+
+At first sight, this is somewhat redundant with the checks that observers can perform in their `databaseDidChangeWithEvent` method:
+
+```swift
+// An observer only interested in the "persons" table:
+class PersonObserver: TransactionObserverType {
+    func databaseDidChangeWithEvent(event: DatabaseEvent) {
+        guard event.tableName == "persons" else {
+            return
+        }
+        // Process change to the "persons" table
+    }
+}
+```
+
+However, the `databaseDidChangeWithEvent` method is invoked for each insertion, deletion, and update of individual rows. When there are many changed rows, the observer will spend of a lot of time performing the same checks again and again.
+
+More, when you're interested in specific table columns, you're out of luck, because `databaseDidChangeWithEvent` does not know about columns: it just knows that a row has been inserted, deleted, or updated, without further detail.
+
+Instead, provide an event filter to the `addTransactionObserver` method, as below:
+
+```swift
+// This observer will only be notified of changes to the "name" column
+// of the "persons" table.
+dbQueue.addTransactionObserver(observer, forDatabaseEvents: { event in
+    switch event {
+    case .Insert(let tableName):
+        return tableName == "persons"
+    case .Delete(let tableName):
+        return tableName == "persons"
+    case .Update(let tableName, let columnNames):
+        return tableName == "persons" && columnNames.contains("name")
+    }
+})
+```
+
+This technique is *much more* efficient, because GRDB will apply the filter only once for each update statement, instead of once for each modified row.
+
+> :point_up: **Note**: avoid referring to the observer itself in the event filter closure, because the database would then keep a strong reference to the observer, and this is usually undesired.
 
 
 ### Support for SQLite Pre-Update Hooks

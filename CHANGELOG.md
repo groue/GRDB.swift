@@ -3,26 +3,26 @@ Release Notes
 
 ## Next Version
 
+**Improved**
+
+- [FetchedRecordsController](https://github.com/groue/GRDB.swift#fetchedrecordscontroller) doesn't check for changes when a database transaction modifies columns that are not present in the request it tracks.
+
 **New**
 
-- The query interface now lets you provide arguments to your sql snippets ([documentation]((https://github.com/groue/GRDB.swift/#the-query-interface))):
+- The query interface lets you provide arguments to your sql snippets ([documentation]((https://github.com/groue/GRDB.swift/#the-query-interface))):
     
     ```swift
     let wines = Wine.filter(sql: "origin = ?", arguments: ["Burgundy"]).fetchAll(db)
     ```
 
-- FetchedRecordsController doesn't check for changes when a database transaction modifies columns it is not interested into.
-
-**Breaking Change**
-
-- TransactionObserverType.observes()
+- Transaction observers can efficiently filter the database changes they are interested in ([documentation]((https://github.com/groue/GRDB.swift#filtering-database-events))).
 
 
 ## 0.72.0
 
 Released June 9, 2016
 
-**Fixed**
+**Improved**
 
 - NSDecimalNumber used to store as a double in the database, for all values. Now decimal numbers that contain integers fitting Int64 attempt to store integers in the database.
 
