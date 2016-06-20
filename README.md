@@ -2654,7 +2654,7 @@ class PersonObserver: TransactionObserverType {
 }
 ```
 
-However, the `databaseDidChangeWithEvent` method is invoked for each insertion, deletion, and update of individual rows. When there are many changed rows, the observer will spend of a lot of time performing the same checks again and again.
+However, the `databaseDidChangeWithEvent` method is invoked for each insertion, deletion, and update of individual rows. When there are many changed rows, the observer will spend of a lot of time performing the same check again and again.
 
 More, when you're interested in specific table columns, you're out of luck, because `databaseDidChangeWithEvent` does not know about columns: it just knows that a row has been inserted, deleted, or updated, without further detail.
 
@@ -2677,7 +2677,7 @@ dbQueue.addTransactionObserver(observer, forDatabaseEvents: { event in
 
 This technique is *much more* efficient, because GRDB will apply the filter only once for each update statement, instead of once for each modified row.
 
-> :point_up: **Note**: avoid referring to the observer itself in the event filter closure, because the database would then keep a strong reference to the observer, and this is usually undesired.
+> :point_up: **Note**: avoid referring to the observer itself in the event filter closure, because the database would then keep a strong reference to the observer - this is usually undesired.
 
 
 ### Support for SQLite Pre-Update Hooks
