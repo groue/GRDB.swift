@@ -61,14 +61,20 @@ extension DatabaseWriter {
     
     // MARK: - Transaction Observers
     
-    /// Add a transaction observer, so that it gets notified of all
+    /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///
     /// The transaction observer is weakly referenced: it is not retained, and
     /// stops getting notifications after it is deallocated.
-    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+    ///
+    /// - parameters:
+    ///     - transactionObserver: A transaction observer.
+    ///     - filter: An optional database event filter. When nil (the default),
+    ///       all events are notified to the observer. When not nil, only events
+    ///       that pass the filter are notified.
+    public func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil) {
         write { db in
-            db.addTransactionObserver(transactionObserver)
+            db.addTransactionObserver(transactionObserver, forDatabaseEvents: filter)
         }
     }
     

@@ -11,10 +11,6 @@ private class TransactionObserver : TransactionObserverType {
     var lastCommittedEvents: [DatabaseEvent] = []
     var events: [DatabaseEvent] = []
     
-    func observes(eventKind: DatabaseEventKind) -> Bool {
-        return true
-    }
-    
 #if SQLITE_ENABLE_PREUPDATE_HOOK
     var preUpdateEvents: [DatabasePreUpdateEvent] = []
     func databaseWillChangeWithEvent(event: DatabasePreUpdateEvent) {

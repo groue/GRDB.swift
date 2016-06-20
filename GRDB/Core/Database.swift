@@ -82,8 +82,8 @@ public final class Database {
     private var isInsideExplicitTransaction: Bool = false
     
     // Transaction observers
-    private var transactionObservers = [WeakTransactionObserver]()
-    private var statementObservers = [WeakTransactionObserver]()  // subset of transactionObservers, set in updateStatementWillExecute
+    private var databaseEventObservers = [DatabaseEventObserver]()
+    private var statementEventObservers = [DatabaseEventObserver]()  // subset of databaseEventObservers, set in updateStatementWillExecute
     private var transactionState: TransactionState = .WaitForTransactionCompletion
     private var savepointStack = SavePointStack()
     
@@ -1014,16 +1014,6 @@ public struct PrimaryKey {
 // =========================================================================
 // MARK: - StatementCompilationObserver
 
-/// TODO
-public enum DatabaseEventKind {
-    /// TODO
-    case Insert(tableName: String)
-    /// TODO
-    case Delete(tableName: String)
-    /// TODO
-    case Update(tableName: String, columnNames: Set<String>)
-}
-
 /// A class that gathers information about a statement during its compilation.
 final class StatementCompilationObserver {
     let database: Database
@@ -1318,15 +1308,21 @@ extension Database {
         isInsideExplicitTransaction = false
     }
     
-    /// Add a transaction observer, so that it gets notified of all
+    /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///
     /// The transaction observer is weakly referenced: it is not retained, and
     /// stops getting notifications after it is deallocated.
-    public func addTransactionObserver(transactionObserver: TransactionObserverType) {
+    ///
+    /// - parameters:
+    ///     - transactionObserver: A transaction observer.
+    ///     - filter: An optional database event filter. When nil (the default),
+    ///       all events are notified to the observer. When not nil, only events
+    ///       that pass the filter are notified.
+    public func addTransactionObserver(transactionObserver: TransactionObserverType, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil) {
         DatabaseScheduler.preconditionValidQueue(self)
-        transactionObservers.append(WeakTransactionObserver(transactionObserver))
-        if transactionObservers.count == 1 {
+        databaseEventObservers.append(DatabaseEventObserver(transactionObserver: transactionObserver, filter: filter))
+        if databaseEventObservers.count == 1 {
             installTransactionObserverHooks()
         }
     }
@@ -1334,17 +1330,17 @@ extension Database {
     /// Remove a transaction observer.
     public func removeTransactionObserver(transactionObserver: TransactionObserverType) {
         DatabaseScheduler.preconditionValidQueue(self)
-        transactionObservers.removeFirst { $0.observer === transactionObserver }
-        if transactionObservers.isEmpty {
+        databaseEventObservers.removeFirst { $0.transactionObserver === transactionObserver }
+        if databaseEventObservers.isEmpty {
             uninstallTransactionObserverHooks()
         }
     }
     
     /// Clears references to deallocated observers, and uninstall transaction
     /// hooks if there is no remaining observers.
-    private func cleanupTransactionObservers() {
-        transactionObservers = transactionObservers.filter { $0.observer != nil }
-        if transactionObservers.isEmpty {
+    private func cleanupDatabaseEventObservers() {
+        databaseEventObservers = databaseEventObservers.filter { $0.transactionObserver != nil }
+        if databaseEventObservers.isEmpty {
             uninstallTransactionObserverHooks()
         }
     }
@@ -1365,16 +1361,16 @@ extension Database {
     
     func updateStatementWillExecute(statement: UpdateStatement) {
         let databaseEventKinds = statement.databaseEventKinds
-        statementObservers = transactionObservers.filter { weakObserver in
-            guard let observer = weakObserver.observer else { return false }
-            return databaseEventKinds.indexOf({ observer.observes($0) }) != nil
+        statementEventObservers = databaseEventObservers.filter { databaseEventObserver in
+            guard let filter = databaseEventObserver.filter else { return true }
+            return databaseEventKinds.indexOf(filter) != nil
         }
     }
     
     /// Some failed statements interest transaction observers.
     func updateStatementDidFail(statement: UpdateStatement) throws {
         // Wait for next statement
-        statementObservers = []
+        statementEventObservers = []
         
         // Reset transactionState before didRollback eventually executes
         // other statements.
@@ -1403,7 +1399,7 @@ extension Database {
     /// transaction observers, and others modify the savepoint stack.
     func updateStatementDidExecute(statement: UpdateStatement) {
         // Wait for next statement
-        statementObservers = []
+        statementEventObservers = []
         
         if statement.invalidatesDatabaseSchemaCache {
             clearSchemaCache()
@@ -1418,8 +1414,8 @@ extension Database {
                 if savepointStack.isEmpty {
                     let eventsBuffer = savepointStack.eventsBuffer
                     savepointStack.clear()
-                    for (event, transactionObservers) in eventsBuffer {
-                        for observer in transactionObservers.flatMap({ $0.observer }) {
+                    for (event, notifiedObservers) in eventsBuffer {
+                        for observer in notifiedObservers.flatMap({ $0.transactionObserver }) {
                             event.send(to: observer)
                         }
                     }
@@ -1448,16 +1444,17 @@ extension Database {
     private func willCommit() throws {
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
-        var observersForCommit: [TransactionObserverType] = transactionObservers.flatMap({ $0.observer })
-        for (event, transactionObservers) in eventsBuffer {
-            for observer in transactionObservers.flatMap({ $0.observer }) {
+        
+        var notifiedObserversForCommit: [TransactionObserverType] = databaseEventObservers.flatMap({ $0.transactionObserver })
+        for (event, notifiedObservers) in eventsBuffer {
+            for observer in notifiedObservers.flatMap({ $0.transactionObserver }) {
                 event.send(to: observer)
-                if !observersForCommit.contains({ $0 === observer }) {
-                    observersForCommit.append(observer)
+                if !notifiedObserversForCommit.contains({ $0 === observer }) {
+                    notifiedObserversForCommit.append(observer)
                 }
             }
         }
-        for observer in observersForCommit {
+        for observer in notifiedObserversForCommit {
             try observer.databaseWillCommit()
         }
     }
@@ -1465,48 +1462,50 @@ extension Database {
 #if SQLITE_ENABLE_PREUPDATE_HOOK
     /// Transaction hook
     private func willChangeWithEvent(event: DatabasePreUpdateEvent) {
-        // Don't notify all transactionObservers about the database event.
-        // Only notify "statement observers" set in updateStatementWillExecute.
         if savepointStack.isEmpty {
-            for observer in statementObservers.flatMap({ $0.observer }) {
+            // Don't notify all databaseEventObservers about the database event.
+            // Only notify those that are interested in the event, and have been
+            // isolated in updateStatementWillExecute().
+            for observer in statementEventObservers.flatMap({ $0.transactionObserver }) {
                 observer.databaseWillChangeWithEvent(event)
             }
         } else {
             // Buffer both event and the observers that should be notified of the event.
-            savepointStack.eventsBuffer.append((event: event.copy(), transactionObservers: statementObservers))
+            savepointStack.eventsBuffer.append((event: event.copy(), notifiedObservers: statementEventObservers))
         }
     }
 #endif
     
     /// Transaction hook
     private func didChangeWithEvent(event: DatabaseEvent) {
-        // Don't notify all transactionObservers about the database event.
-        // Only notify "statement observers" set in updateStatementWillExecute.
         if savepointStack.isEmpty {
-            for observer in statementObservers.flatMap({ $0.observer }) {
+            // Don't notify all databaseEventObservers about the database event.
+            // Only notify those that are interested in the event, and have been
+            // isolated in updateStatementWillExecute().
+            for observer in statementEventObservers.flatMap({ $0.transactionObserver }) {
                 observer.databaseDidChangeWithEvent(event)
             }
         } else {
             // Buffer both event and the observers that should be notified of the event.
-            savepointStack.eventsBuffer.append((event: event.copy(), transactionObservers: statementObservers))
+            savepointStack.eventsBuffer.append((event: event.copy(), notifiedObservers: statementEventObservers))
         }
     }
     
     /// Transaction hook
     private func didCommit() {
-        for observer in transactionObservers.flatMap({ $0.observer }) {
+        for observer in databaseEventObservers.flatMap({ $0.transactionObserver }) {
             observer.databaseDidCommit(self)
         }
-        cleanupTransactionObservers()
+        cleanupDatabaseEventObservers()
     }
     
     /// Transaction hook
     private func didRollback() {
         savepointStack.clear()
-        for observer in transactionObservers.flatMap({ $0.observer }) {
+        for observer in databaseEventObservers.flatMap({ $0.transactionObserver }) {
             observer.databaseDidRollback(self)
         }
-        cleanupTransactionObservers()
+        cleanupDatabaseEventObservers()
     }
     
     private func installTransactionObserverHooks() {
@@ -1602,9 +1601,6 @@ private enum TransactionState {
 /// Adopting types must be a class.
 public protocol TransactionObserverType : class {
     
-    /// TODO
-    func observes(eventKind: DatabaseEventKind) -> Bool
-    
     /// Notifies a database change (insert, update, or delete).
     ///
     /// The change is pending until the end of the current transaction, notified
@@ -1675,13 +1671,28 @@ public protocol TransactionObserverType : class {
     #endif
 }
 
-/// Database stores WeakTransactionObserver so that it does not retain its
+/// Database stores DatabaseEventObserver so that it does not retain its
 /// transaction observers.
-class WeakTransactionObserver {
-    weak var observer: TransactionObserverType?
-    init(_ observer: TransactionObserverType) {
-        self.observer = observer
+class DatabaseEventObserver {
+    weak var transactionObserver: TransactionObserverType?
+    let filter: ((DatabaseEventKind) -> Bool)?
+    init(transactionObserver: TransactionObserverType, filter: ((DatabaseEventKind) -> Bool)?) {
+        self.transactionObserver = transactionObserver
+        self.filter = filter
     }
+}
+
+/// A kind of database event. See Database.addTransactionObserver()
+/// and DatabaseWriter.addTransactionObserver().
+public enum DatabaseEventKind {
+    /// The insertion of a row in a database table
+    case Insert(tableName: String)
+    
+    /// The deletion of a row in a database table
+    case Delete(tableName: String)
+    
+    /// The update of a set of columns in a database table
+    case Update(tableName: String, columnNames: Set<String>)
 }
 
 protocol DatabaseEventType {
@@ -2043,7 +2054,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 ///   rollbacked.
 class SavePointStack {
     /// The buffered events. See Database.didChangeWithEvent()
-    var eventsBuffer: [(event: DatabaseEventType, transactionObservers: [WeakTransactionObserver])] = []
+    var eventsBuffer: [(event: DatabaseEventType, notifiedObservers: [DatabaseEventObserver])] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.

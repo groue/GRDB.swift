@@ -103,12 +103,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             self.isSameItem = self.isSameItemFactory(db)
             
             if let checkForChanges = checkForChanges {
-                let observer = FetchedRecordsObserver(
-                    observedTables: statement.readTables,
-                    checkForChanges: checkForChanges)
+                let observer = FetchedRecordsObserver(checkForChanges)
                 self.observer = observer
                 observer.items = initialItems
-                db.addTransactionObserver(observer)
+                db.addTransactionObserver(observer, forDatabaseEvents: databaseEventFilter(statement.readTables))
             }
         }
     }
@@ -253,13 +251,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             }
 
             let statement = try! self.request.selectStatement(db)
-            let observer = FetchedRecordsObserver(
-                observedTables: statement.readTables,
-                checkForChanges: checkForChanges)
+            let observer = FetchedRecordsObserver(checkForChanges)
             self.observer = observer
             if let initialItems = initialItems {
                 observer.items = initialItems
-                db.addTransactionObserver(observer)
+                db.addTransactionObserver(observer, forDatabaseEvents: databaseEventFilter(statement.readTables))
                 observer.performChangesChecking()
             }
         }
@@ -305,13 +301,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             }
 
             let statement = try! self.request.selectStatement(db)
-            let observer = FetchedRecordsObserver(
-                observedTables: statement.readTables,
-                checkForChanges: checkForChanges)
+            let observer = FetchedRecordsObserver(checkForChanges)
             self.observer = observer
             if let initialItems = initialItems {
                 observer.items = initialItems
-                db.addTransactionObserver(observer)
+                db.addTransactionObserver(observer, forDatabaseEvents: databaseEventFilter(statement.readTables))
                 observer.performChangesChecking()
             }
         }
@@ -607,16 +601,14 @@ private class FetchedChangesController<Record: RowConvertible, T> {
 /// monitor changes to its fetched records.
 private final class FetchedRecordsObserver<Record: RowConvertible> : TransactionObserverType {
     var isValid: Bool
-    let observedTables: [String: Set<String>]
     var needsComputeChanges: Bool
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
     let queue: dispatch_queue_t // protects items
     var checkForChanges: (FetchedRecordsObserver<Record>) -> ()
     
-    init(observedTables: [String: Set<String>], checkForChanges: (FetchedRecordsObserver<Record>) -> ()) {
+    init(_ checkForChanges: (FetchedRecordsObserver<Record>) -> ()) {
         self.isValid = true
         self.items = nil
-        self.observedTables = observedTables
         self.needsComputeChanges = false
         self.queue = dispatch_queue_create("GRDB.FetchedRecordsObserver", DISPATCH_QUEUE_SERIAL)
         self.checkForChanges = checkForChanges
@@ -624,22 +616,6 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     
     func invalidate() {
         isValid = false
-    }
-    
-    /// Part of the TransactionObserverType protocol
-    func observes(eventKind: DatabaseEventKind) -> Bool {
-        switch eventKind {
-        case .Delete(let tableName):
-            return observedTables[tableName] != nil
-        case .Insert(let tableName):
-            return observedTables[tableName] != nil
-        case .Update(let tableName, let updatedColumnNames):
-            if let observedColumnNames = observedTables[tableName] {
-                return !updatedColumnNames.isDisjointWith(observedColumnNames)
-            } else {
-                return false
-            }
-        }
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -677,6 +653,23 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     // serialized dispatch queue.
     func performChangesChecking() {
         checkForChanges(self)
+    }
+}
+
+private func databaseEventFilter(observedTables: [String: Set<String>]) -> (DatabaseEventKind) -> Bool {
+    return { kind in
+        switch kind {
+        case .Delete(let tableName):
+            return observedTables[tableName] != nil
+        case .Insert(let tableName):
+            return observedTables[tableName] != nil
+        case .Update(let tableName, let updatedColumnNames):
+            if let observedColumnNames = observedTables[tableName] {
+                return !updatedColumnNames.isDisjointWith(observedColumnNames)
+            } else {
+                return false
+            }
+        }
     }
 }
 
