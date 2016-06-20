@@ -11,6 +11,12 @@ Release Notes
     let wines = Wine.filter(sql: "origin = ?", arguments: ["Burgundy"]).fetchAll(db)
     ```
 
+- FetchedRecordsController doesn't check for changes when a database transaction modifies columns it is not interested into.
+
+**Breaking Change**
+
+- TransactionObserverType.observes()
+
 
 ## 0.72.0
 
