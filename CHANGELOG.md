@@ -15,7 +15,7 @@ Release Notes
     let wines = Wine.filter(sql: "origin = ?", arguments: ["Burgundy"]).fetchAll(db)
     ```
 
-- Transaction observers can efficiently filter the database changes they are interested in ([documentation]((https://github.com/groue/GRDB.swift#filtering-database-events))).
+- Transaction observers can efficiently filter the database changes they are interested in ([documentation](https://github.com/groue/GRDB.swift#filtering-database-events)).
 
 
 ## 0.72.0
