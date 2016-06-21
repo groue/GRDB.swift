@@ -1163,5 +1163,106 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.didRollbackCount, 0)
         }
     }
-
+    
+    // MARK: - Filtered database events
+    
+    func testFilterDatabaseEvents() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            
+            do {
+                let observer = Observer()
+                dbQueue.add(transactionObserver: observer, forDatabaseEvents: { _ in return false })
+                
+                try dbQueue.inTransaction { db in
+                    let artist = Artist(name: "Gerhard Richter")
+                    try artist.insert(db)
+                    try artist.update(db)
+                    try artist.delete(db)
+                    return .commit
+                }
+                
+                XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.willCommitCount, 1)
+                XCTAssertEqual(observer.didCommitCount, 1)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+                XCTAssertEqual(observer.lastCommittedEvents.count, 0)
+            }
+            
+            do {
+                let observer = Observer()
+                dbQueue.add(transactionObserver: observer, forDatabaseEvents: { _ in return true })
+                
+                try dbQueue.inTransaction { db in
+                    let artist = Artist(name: "Gerhard Richter")
+                    try artist.insert(db)
+                    try artist.update(db)
+                    try artist.delete(db)
+                    return .commit
+                }
+                
+                XCTAssertEqual(observer.didChangeCount, 3)
+                XCTAssertEqual(observer.willCommitCount, 1)
+                XCTAssertEqual(observer.didCommitCount, 1)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+                XCTAssertEqual(observer.lastCommittedEvents.count, 3)
+            }
+            
+            do {
+                let observer = Observer()
+                dbQueue.add(transactionObserver: observer, forDatabaseEvents: { event in
+                    switch event {
+                    case .insert:
+                        return true
+                    case .update:
+                        return false
+                    case .delete:
+                        return false
+                    }
+                })
+                
+                try dbQueue.inTransaction { db in
+                    let artist = Artist(name: "Gerhard Richter")
+                    try artist.insert(db)
+                    try artist.update(db)
+                    try artist.delete(db)
+                    return .commit
+                }
+                
+                XCTAssertEqual(observer.didChangeCount, 1)
+                XCTAssertEqual(observer.willCommitCount, 1)
+                XCTAssertEqual(observer.didCommitCount, 1)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+                XCTAssertEqual(observer.lastCommittedEvents.count, 1)
+            }
+            
+            do {
+                let observer = Observer()
+                dbQueue.add(transactionObserver: observer, forDatabaseEvents: { event in
+                    switch event {
+                    case .insert:
+                        return true
+                    case .update:
+                        return true
+                    case .delete:
+                        return false
+                    }
+                })
+                
+                try dbQueue.inTransaction { db in
+                    let artist = Artist(name: "Gerhard Richter")
+                    try artist.insert(db)
+                    try artist.update(db)
+                    try artist.delete(db)
+                    return .commit
+                }
+                
+                XCTAssertEqual(observer.didChangeCount, 2)
+                XCTAssertEqual(observer.willCommitCount, 1)
+                XCTAssertEqual(observer.didCommitCount, 1)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+                XCTAssertEqual(observer.lastCommittedEvents.count, 2)
+            }
+        }
+    }
 }

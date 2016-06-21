@@ -1,3 +1,14 @@
+#if !USING_BUILTIN_SQLITE
+    #if os(OSX)
+        import SQLiteMacOSX
+    #elseif os(iOS)
+        #if (arch(i386) || arch(x86_64))
+            import SQLiteiPhoneSimulator
+        #else
+            import SQLiteiPhoneOS
+        #endif
+    #endif
+#endif
 
 
 // MARK: - _SQLSelectQuery
@@ -39,7 +50,7 @@ public struct _SQLSelectQuery {
         self.limit = limit
     }
     
-    func sql(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String {
+    func sql(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
         var sql = "SELECT"
         
         if isDistinct {
@@ -47,22 +58,22 @@ public struct _SQLSelectQuery {
         }
         
         assert(!selection.isEmpty)
-        sql += try " " + selection.map { try $0.resultColumnSQL(db, &bindings) }.joined(separator: ", ")
+        sql += try " " + selection.map { try $0.resultColumnSQL(db, &arguments) }.joined(separator: ", ")
         
         if let source = source {
-            sql += try " FROM " + source.sql(db, &bindings)
+            sql += try " FROM " + source.sql(db, &arguments)
         }
         
         if let whereExpression = whereExpression {
-            sql += try " WHERE " + whereExpression.sql(db, &bindings)
+            sql += try " WHERE " + whereExpression.sql(db, &arguments)
         }
         
         if !groupByExpressions.isEmpty {
-            sql += try " GROUP BY " + groupByExpressions.map { try $0.sql(db, &bindings) }.joined(separator: ", ")
+            sql += try " GROUP BY " + groupByExpressions.map { try $0.sql(db, &arguments) }.joined(separator: ", ")
         }
         
         if let havingExpression = havingExpression {
-            sql += try " HAVING " + havingExpression.sql(db, &bindings)
+            sql += try " HAVING " + havingExpression.sql(db, &arguments)
         }
         
         var orderings = self.orderings
@@ -86,7 +97,7 @@ public struct _SQLSelectQuery {
             }
         }
         if !orderings.isEmpty {
-            sql += try " ORDER BY " + orderings.map { try $0.orderingSQL(db, &bindings) }.joined(separator: ", ")
+            sql += try " ORDER BY " + orderings.map { try $0.orderingSQL(db, &arguments) }.joined(separator: ", ")
         }
         
         if let limit = limit {
@@ -189,7 +200,7 @@ indirect enum _SQLSource {
     case table(name: String, alias: String?)
     case query(query: _SQLSelectQuery, alias: String?)
     
-    func sql(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String {
+    func sql(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
         switch self {
         case .table(let table, let alias):
             if let alias = alias {
@@ -199,9 +210,9 @@ indirect enum _SQLSource {
             }
         case .query(let query, let alias):
             if let alias = alias {
-                return try "(" + query.sql(db, &bindings) + ") AS " + alias.quotedDatabaseIdentifier
+                return try "(" + query.sql(db, &arguments) + ") AS " + alias.quotedDatabaseIdentifier
             } else {
-                return try "(" + query.sql(db, &bindings) + ")"
+                return try "(" + query.sql(db, &arguments) + ")"
             }
         }
     }
@@ -216,7 +227,7 @@ indirect enum _SQLSource {
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
 public protocol _SQLOrdering {
     var reversedOrdering: _SQLOrderingExpression { get }
-    func orderingSQL(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String
+    func orderingSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String
 }
 
 /// This type is an implementation detail of the query interface.
@@ -247,12 +258,12 @@ extension _SQLOrderingExpression : _SQLOrdering {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func orderingSQL(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String {
+    public func orderingSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
         switch self {
         case .asc(let expression):
-            return try expression.sql(db, &bindings) + " ASC"
+            return try expression.sql(db, &arguments) + " ASC"
         case .desc(let expression):
-            return try expression.sql(db, &bindings) + " DESC"
+            return try expression.sql(db, &arguments) + " DESC"
         }
     }
 }
@@ -311,7 +322,7 @@ public protocol _SpecificSQLExpressible : _SQLExpressible {
     //
     // _SpecificSQLExpressible, on the other side, is not adopted by any
     // Swift standard type or any user type. It is only adopted by GRDB types,
-    // such as SQLColumn, _SQLExpression and _SQLLiteral.
+    // such as SQLColumn and _SQLExpression.
     //
     // This separation lets us define functions and operators that do not
     // spill out. The three declarations below have no chance overloading a
@@ -336,8 +347,8 @@ extension _SpecificSQLExpressible where Self: _SQLOrdering {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func orderingSQL(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String {
-        return try sqlExpression.sql(db, &bindings)
+    public func orderingSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+        return try sqlExpression.sql(db, &arguments)
     }
 }
 
@@ -347,16 +358,16 @@ extension _SpecificSQLExpressible where Self: _SQLSelectable {
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func resultColumnSQL(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String {
-        return try sqlExpression.sql(db, &bindings)
+    public func resultColumnSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+        return try sqlExpression.sql(db, &arguments)
     }
     
     /// This method is an implementation detail of the query interface.
     /// Do not use it directly.
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func countedSQL(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String {
-        return try sqlExpression.sql(db, &bindings)
+    public func countedSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
+        return try sqlExpression.sql(db, &arguments)
     }
     
     /// This property is an implementation detail of the query interface.
@@ -399,7 +410,7 @@ extension _SpecificSQLExpressible {
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
 public indirect enum _SQLExpression {
     /// For example: `name || 'rrr' AS pirateName`
-    case SQLLiteral(String)
+    case SQLLiteral(String, StatementArguments?)
     
     /// For example: `1` or `'foo'`
     case value(DatabaseValueConvertible?)   // TODO: switch to DatabaseValue?
@@ -453,21 +464,30 @@ public indirect enum _SQLExpression {
     case countDistinct(_SQLExpression)
     
     ///
-    func sql(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String {
+    func sql(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
         // NOTE: this method *was* slow to compile
         // https://medium.com/swift-programming/speeding-up-slow-swift-build-times-922feeba5780#.s77wmh4h0
-        // 10746.4ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/FetchRequest/SQLSelectQuery.swift:439:10	func sql(db: Database, inout _ bindings: [DatabaseValueConvertible?]) throws -> String
+        // 10746.4ms	/Users/groue/Documents/git/groue/GRDB.swift/GRDB/FetchRequest/SQLSelectQuery.swift:439:10	func sql(db: Database, _ arguments: inout StatementArguments) throws -> String
         // Fixes are marked with "## Slow Compile Fix (Swift 2.2.x):"
         //
         switch self {
-        case .SQLLiteral(let sql):
+        case .SQLLiteral(let sql, let literalArguments):
+            if let literalArguments = literalArguments {
+                arguments.values.append(contentsOf: literalArguments.values)
+                for (name, value) in literalArguments.namedValues {
+                    if arguments.namedValues[name] != nil {
+                        throw DatabaseError(code: SQLITE_MISUSE, message: "argument \(String(reflecting: name)) can't be reused")
+                    }
+                    arguments.namedValues[name] = value
+                }
+            }
             return sql
             
         case .value(let value):
             guard let value = value else {
                 return "NULL"
             }
-            bindings.append(value)
+            arguments.values.append(value)
             return "?"
             
         case .identifier(let identifier, let sourceName):
@@ -478,7 +498,7 @@ public indirect enum _SQLExpression {
             }
             
         case .collate(let expression, let collation):
-            let sql = try expression.sql(db, &bindings)
+            let sql = try expression.sql(db, &arguments)
             let chars = sql.characters
             if chars.last! == ")" {
                 return String(chars.prefix(upTo: chars.index(chars.endIndex, offsetBy: -1))) + " COLLATE " + collation + ")"
@@ -489,7 +509,7 @@ public indirect enum _SQLExpression {
         case .notOperator(let condition):
             switch condition {
             case .notOperator(let expression):
-                return try expression.sql(db, &bindings)
+                return try expression.sql(db, &arguments)
                 
             case .inOperator(let expressions, let expression):
                 if expressions.isEmpty {
@@ -497,30 +517,30 @@ public indirect enum _SQLExpression {
                 } else {
                     // ## Slow Compile Fix (Swift 2.2.x):
                     // TODO: Check if Swift 3 compiler fixes this line's slow compilation time:
-                    //return try "(" + expression.sql(db, &bindings) + " NOT IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ") + "))"   // Original, Slow To Compile
-                    return try "(" + expression.sql(db, &bindings) + " NOT IN (" + (expressions.map { try $0.sql(db, &bindings) } as [String]).joined(separator: ", ") + "))"
+                    //return try "(" + expression.sql(db, &arguments) + " NOT IN (" + expressions.map { try $0.sql(db, &arguments) }.joinWithSeparator(", ") + "))"   // Original, Slow To Compile
+                    return try "(" + expression.sql(db, &arguments) + " NOT IN (" + (expressions.map { try $0.sql(db, &arguments) } as [String]).joined(separator: ", ") + "))"
                 }
                 
             case .inSubQuery(let subQuery, let expression):
-                return try "(" + expression.sql(db, &bindings) + " NOT IN (" + subQuery.sql(db, &bindings)  + "))"
+                return try "(" + expression.sql(db, &arguments) + " NOT IN (" + subQuery.sql(db, &arguments)  + "))"
                 
             case .exists(let subQuery):
-                return try "(NOT EXISTS (" + subQuery.sql(db, &bindings)  + "))"
+                return try "(NOT EXISTS (" + subQuery.sql(db, &arguments)  + "))"
                 
             case .equalOperator(let lhs, let rhs):
-                return try _SQLExpression.notEqualOperator(lhs, rhs).sql(db, &bindings)
+                return try _SQLExpression.notEqualOperator(lhs, rhs).sql(db, &arguments)
                 
             case .notEqualOperator(let lhs, let rhs):
-                return try _SQLExpression.equalOperator(lhs, rhs).sql(db, &bindings)
+                return try _SQLExpression.equalOperator(lhs, rhs).sql(db, &arguments)
                 
             case .isOperator(let lhs, let rhs):
-                return try _SQLExpression.isNotOperator(lhs, rhs).sql(db, &bindings)
+                return try _SQLExpression.isNotOperator(lhs, rhs).sql(db, &arguments)
                 
             case .isNotOperator(let lhs, let rhs):
-                return try _SQLExpression.isOperator(lhs, rhs).sql(db, &bindings)
+                return try _SQLExpression.isOperator(lhs, rhs).sql(db, &arguments)
                 
             default:
-                return try "(NOT " + condition.sql(db, &bindings) + ")"
+                return try "(NOT " + condition.sql(db, &arguments) + ")"
             }
             
         case .equalOperator(let lhs, let rhs):
@@ -528,12 +548,12 @@ public indirect enum _SQLExpression {
             case (let lhs, .value(let rhs)) where rhs == nil:
                 // Swiftism!
                 // Turn `filter(a == nil)` into `a IS NULL` since the intention is obviously to check for NULL. `a = NULL` would evaluate to NULL.
-                return try "(" + lhs.sql(db, &bindings) + " IS NULL)"
+                return try "(" + lhs.sql(db, &arguments) + " IS NULL)"
             case (.value(let lhs), let rhs) where lhs == nil:
                 // Swiftism!
-                return try "(" + rhs.sql(db, &bindings) + " IS NULL)"
+                return try "(" + rhs.sql(db, &arguments) + " IS NULL)"
             default:
-                return try "(" + lhs.sql(db, &bindings) + " = " + rhs.sql(db, &bindings) + ")"
+                return try "(" + lhs.sql(db, &arguments) + " = " + rhs.sql(db, &arguments) + ")"
             }
             
         case .notEqualOperator(let lhs, let rhs):
@@ -541,39 +561,39 @@ public indirect enum _SQLExpression {
             case (let lhs, .value(let rhs)) where rhs == nil:
                 // Swiftism!
                 // Turn `filter(a != nil)` into `a IS NOT NULL` since the intention is obviously to check for NULL. `a <> NULL` would evaluate to NULL.
-                return try "(" + lhs.sql(db, &bindings) + " IS NOT NULL)"
+                return try "(" + lhs.sql(db, &arguments) + " IS NOT NULL)"
             case (.value(let lhs), let rhs) where lhs == nil:
                 // Swiftism!
-                return try "(" + rhs.sql(db, &bindings) + " IS NOT NULL)"
+                return try "(" + rhs.sql(db, &arguments) + " IS NOT NULL)"
             default:
-                return try "(" + lhs.sql(db, &bindings) + " <> " + rhs.sql(db, &bindings) + ")"
+                return try "(" + lhs.sql(db, &arguments) + " <> " + rhs.sql(db, &arguments) + ")"
             }
             
         case .isOperator(let lhs, let rhs):
             switch (lhs, rhs) {
             case (let lhs, .value(let rhs)) where rhs == nil:
-                return try "(" + lhs.sql(db, &bindings) + " IS NULL)"
+                return try "(" + lhs.sql(db, &arguments) + " IS NULL)"
             case (.value(let lhs), let rhs) where lhs == nil:
-                return try "(" + rhs.sql(db, &bindings) + " IS NULL)"
+                return try "(" + rhs.sql(db, &arguments) + " IS NULL)"
             default:
-                return try "(" + lhs.sql(db, &bindings) + " IS " + rhs.sql(db, &bindings) + ")"
+                return try "(" + lhs.sql(db, &arguments) + " IS " + rhs.sql(db, &arguments) + ")"
             }
             
         case .isNotOperator(let lhs, let rhs):
             switch (lhs, rhs) {
             case (let lhs, .value(let rhs)) where rhs == nil:
-                return try "(" + lhs.sql(db, &bindings) + " IS NOT NULL)"
+                return try "(" + lhs.sql(db, &arguments) + " IS NOT NULL)"
             case (.value(let lhs), let rhs) where lhs == nil:
-                return try "(" + rhs.sql(db, &bindings) + " IS NOT NULL)"
+                return try "(" + rhs.sql(db, &arguments) + " IS NOT NULL)"
             default:
-                return try "(" + lhs.sql(db, &bindings) + " IS NOT " + rhs.sql(db, &bindings) + ")"
+                return try "(" + lhs.sql(db, &arguments) + " IS NOT " + rhs.sql(db, &arguments) + ")"
             }
             
         case .prefixOperator(let SQLOperator, let value):
-            return try SQLOperator + value.sql(db, &bindings)
+            return try SQLOperator + value.sql(db, &arguments)
             
         case .infixOperator(let SQLOperator, let lhs, let rhs):
-            return try "(" + lhs.sql(db, &bindings) + " \(SQLOperator) " + rhs.sql(db, &bindings) + ")"
+            return try "(" + lhs.sql(db, &arguments) + " \(SQLOperator) " + rhs.sql(db, &arguments) + ")"
             
         case .inOperator(let expressions, let expression):
             guard !expressions.isEmpty else {
@@ -581,29 +601,29 @@ public indirect enum _SQLExpression {
             }
             // ## Slow Compile Fix (Swift 2.2.x):
             // TODO: Check if Swift 3 compiler fixes this line's slow compilation time:
-            //return try "(" + expression.sql(db, &bindings) + " IN (" + expressions.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ")  + "))"  // Original, Slow To Compile
-            return try "(" + expression.sql(db, &bindings) + " IN (" + (expressions.map { try $0.sql(db, &bindings) } as [String]).joined(separator: ", ")  + "))"
+            //return try "(" + expression.sql(db, &arguments) + " IN (" + expressions.map { try $0.sql(db, &arguments) }.joinWithSeparator(", ")  + "))"  // Original, Slow To Compile
+            return try "(" + expression.sql(db, &arguments) + " IN (" + (expressions.map { try $0.sql(db, &arguments) } as [String]).joined(separator: ", ")  + "))"
         
         case .inSubQuery(let subQuery, let expression):
-            return try "(" + expression.sql(db, &bindings) + " IN (" + subQuery.sql(db, &bindings)  + "))"
+            return try "(" + expression.sql(db, &arguments) + " IN (" + subQuery.sql(db, &arguments)  + "))"
             
         case .exists(let subQuery):
-            return try "(EXISTS (" + subQuery.sql(db, &bindings)  + "))"
+            return try "(EXISTS (" + subQuery.sql(db, &arguments)  + "))"
             
         case .between(value: let value, min: let min, max: let max):
-            return try "(" + value.sql(db, &bindings) + " BETWEEN " + min.sql(db, &bindings) + " AND " + max.sql(db, &bindings) + ")"
+            return try "(" + value.sql(db, &arguments) + " BETWEEN " + min.sql(db, &arguments) + " AND " + max.sql(db, &arguments) + ")"
             
         case .function(let functionName, let functionArguments):
             // ## Slow Compile Fix (Swift 2.2.x):
             // TODO: Check if Swift 3 compiler fixes this line's slow compilation time:
-            //return try functionName + "(" + functionArguments.map { try $0.sql(db, &bindings) }.joinWithSeparator(", ")  + ")"    // Original, Slow To Compile
-            return try functionName + "(" + (functionArguments.map { try $0.sql(db, &bindings) } as [String]).joined(separator: ", ")  + ")"
+            //return try functionName + "(" + functionArguments.map { try $0.sql(db, &arguments) }.joinWithSeparator(", ")  + ")"    // Original, Slow To Compile
+            return try functionName + "(" + (functionArguments.map { try $0.sql(db, &arguments) } as [String]).joined(separator: ", ")  + ")"
             
         case .count(let counted):
-            return try "COUNT(" + counted.countedSQL(db, &bindings) + ")"
+            return try "COUNT(" + counted.countedSQL(db, &arguments) + ")"
             
         case .countDistinct(let expression):
-            return try "COUNT(DISTINCT " + expression.sql(db, &bindings) + ")"
+            return try "COUNT(DISTINCT " + expression.sql(db, &arguments) + ")"
         }
     }
 }
@@ -630,8 +650,8 @@ extension _SQLExpression : _SQLOrdering {}
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
 public protocol _SQLSelectable {
-    func resultColumnSQL(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String
-    func countedSQL(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String
+    func resultColumnSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String
+    func countedSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String
     var sqlSelectableKind: _SQLSelectableKind { get }
 }
 
@@ -651,7 +671,7 @@ enum _SQLResultColumn {
 
 extension _SQLResultColumn : _SQLSelectable {
     
-    func resultColumnSQL(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String {
+    func resultColumnSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
         switch self {
         case .star(let sourceName):
             if let sourceName = sourceName {
@@ -660,16 +680,16 @@ extension _SQLResultColumn : _SQLSelectable {
                 return "*"
             }
         case .expression(expression: let expression, alias: let alias):
-            return try expression.sql(db, &bindings) + " AS " + alias.quotedDatabaseIdentifier
+            return try expression.sql(db, &arguments) + " AS " + alias.quotedDatabaseIdentifier
         }
     }
     
-    func countedSQL(_ db: Database, _ bindings: inout [DatabaseValueConvertible?]) throws -> String {
+    func countedSQL(_ db: Database, _ arguments: inout StatementArguments) throws -> String {
         switch self {
         case .star:
             return "*"
         case .expression(expression: let expression, alias: _):
-            return try expression.sql(db, &bindings)
+            return try expression.sql(db, &arguments)
         }
     }
     
@@ -682,25 +702,6 @@ extension _SQLResultColumn : _SQLSelectable {
         }
     }
 }
-
-
-// MARK: _SQLLiteral
-
-struct _SQLLiteral {
-    let sql: String
-    init(_ sql: String) {
-        self.sql = sql
-    }
-}
-
-extension _SQLLiteral : _SpecificSQLExpressible {
-    var sqlExpression: _SQLExpression {
-        return .SQLLiteral(sql)
-    }
-}
-
-extension _SQLLiteral : _SQLSelectable {}
-extension _SQLLiteral : _SQLOrdering {}
 
 
 // MARK: - SQLColumn

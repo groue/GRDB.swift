@@ -103,12 +103,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             self.isSameItem = self.isSameItemFactory(db)
             
             if let checkForChanges = checkForChanges {
-                let observer = FetchedRecordsObserver(
-                    observedTables: statement.sourceTables,
-                    checkForChanges: checkForChanges)
+                let observer = FetchedRecordsObserver(checkForChanges)
                 self.observer = observer
                 observer.items = initialItems
-                db.add(transactionObserver: observer)
+                db.add(transactionObserver: observer, forDatabaseEvents: databaseEventFilter(observedTables: statement.readTables))
             }
         }
     }
@@ -253,13 +251,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             }
 
             let statement = try! self.request.selectStatement(db)
-            let observer = FetchedRecordsObserver(
-                observedTables: statement.sourceTables,
-                checkForChanges: checkForChanges)
+            let observer = FetchedRecordsObserver(checkForChanges)
             self.observer = observer
             if let initialItems = initialItems {
                 observer.items = initialItems
-                db.add(transactionObserver: observer)
+                db.add(transactionObserver: observer, forDatabaseEvents: databaseEventFilter(observedTables: statement.readTables))
                 observer.performChangesChecking()
             }
         }
@@ -305,13 +301,11 @@ public final class FetchedRecordsController<Record: RowConvertible> {
             }
 
             let statement = try! self.request.selectStatement(db)
-            let observer = FetchedRecordsObserver(
-                observedTables: statement.sourceTables,
-                checkForChanges: checkForChanges)
+            let observer = FetchedRecordsObserver(checkForChanges)
             self.observer = observer
             if let initialItems = initialItems {
                 observer.items = initialItems
-                db.add(transactionObserver: observer)
+                db.add(transactionObserver: observer, forDatabaseEvents: databaseEventFilter(observedTables: statement.readTables))
                 observer.performChangesChecking()
             }
         }
@@ -607,16 +601,14 @@ private class FetchedChangesController<Record: RowConvertible, T> {
 /// monitor changes to its fetched records.
 private final class FetchedRecordsObserver<Record: RowConvertible> : TransactionObserver {
     var isValid: Bool
-    let observedTables: Set<String>
     var needsComputeChanges: Bool
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
     let queue: DispatchQueue // protects items
     var checkForChanges: (FetchedRecordsObserver<Record>) -> ()
     
-    init(observedTables: Set<String>, checkForChanges: (FetchedRecordsObserver<Record>) -> ()) {
+    init(_ checkForChanges: (FetchedRecordsObserver<Record>) -> ()) {
         self.isValid = true
         self.items = nil
-        self.observedTables = observedTables
         self.needsComputeChanges = false
         self.queue = DispatchQueue(label: "GRDB.FetchedRecordsObserver")
         self.checkForChanges = checkForChanges
@@ -633,9 +625,7 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     
     /// Part of the TransactionObserverType protocol
     func databaseDidChange(with event: DatabaseEvent) {
-        if !needsComputeChanges && observedTables.contains(event.tableName) {
-            needsComputeChanges = true
-        }
+        needsComputeChanges = true
     }
     
     /// Part of the TransactionObserverType protocol
@@ -663,6 +653,23 @@ private final class FetchedRecordsObserver<Record: RowConvertible> : Transaction
     // serialized dispatch queue.
     func performChangesChecking() {
         checkForChanges(self)
+    }
+}
+
+private func databaseEventFilter(observedTables: [String: Set<String>]) -> (DatabaseEventKind) -> Bool {
+    return { kind in
+        switch kind {
+        case .delete(let tableName):
+            return observedTables[tableName] != nil
+        case .insert(let tableName):
+            return observedTables[tableName] != nil
+        case .update(let tableName, let updatedColumnNames):
+            if let observedColumnNames = observedTables[tableName] {
+                return !updatedColumnNames.isDisjoint(with: observedColumnNames)
+            } else {
+                return false
+            }
+        }
     }
 }
 

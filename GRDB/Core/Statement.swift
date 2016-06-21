@@ -109,7 +109,8 @@ public class Statement {
     /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
     /// statement arguments.
     public func validate(arguments: StatementArguments) throws {
-        _ = try validatedBindings(arguments)
+        var arguments = arguments
+        _ = try arguments.consume(self, allowingRemainingValues: false)
     }
     
     /// Set arguments without any validation. Trades safety for performance.
@@ -121,132 +122,54 @@ public class Statement {
         try! reset()
         try! clearBindings()
         
-        switch arguments.kind {
-        case .values(let values):
-            for (index, value) in values.enumerated() {
-                try! bind(databaseValue: value?.databaseValue ?? .null, at: Int32(index + 1))
-            }
-            break
-        case .namedValues(let namedValues):
-            for (index, argumentName) in sqliteArgumentNames.enumerated() {
-                if let argumentName = argumentName, let value = namedValues[argumentName] {
-                    try! bind(databaseValue: value?.databaseValue ?? .null, at: Int32(index + 1))
-                }
+        var valuesIterator = arguments.values.makeIterator()
+        for (index, argumentName) in sqliteArgumentNames.enumerated() {
+            if let argumentName = argumentName, let value = arguments.namedValues[argumentName] {
+                try! bind(databaseValue: value?.databaseValue ?? .null, at: index)
+            } else if let value = valuesIterator.next() {
+                try! bind(databaseValue: value?.databaseValue ?? .null, at: index)
+            } else {
+                try! bind(databaseValue: .null, at: index)
             }
         }
     }
     
     func setArgumentsWithValidation(_ arguments: StatementArguments) throws {
         // Validate
-        let bindings = try validatedBindings(arguments)
         _arguments = arguments
+        var arguments = arguments
+        let bindings = try arguments.consume(self, allowingRemainingValues: false)
         argumentsNeedValidation = false
         
         // Apply
         try! reset()
         try! clearBindings()
         for (index, databaseValue) in bindings.enumerated() {
-            try bind(databaseValue: databaseValue, at: Int32(index + 1))
+            try bind(databaseValue: databaseValue, at: index)
         }
     }
     
-    private func bind(databaseValue: DatabaseValue, at index: Int32) throws {
+    // 0-based index
+    private func bind(databaseValue: DatabaseValue, at index: Int) throws {
         let code: Int32
         switch databaseValue.storage {
         case .null:
-            code = sqlite3_bind_null(sqliteStatement, index)
+            code = sqlite3_bind_null(sqliteStatement, Int32(index + 1))
         case .int64(let int64):
-            code = sqlite3_bind_int64(sqliteStatement, index, int64)
+            code = sqlite3_bind_int64(sqliteStatement, Int32(index + 1), int64)
         case .double(let double):
-            code = sqlite3_bind_double(sqliteStatement, index, double)
+            code = sqlite3_bind_double(sqliteStatement, Int32(index + 1), double)
         case .string(let string):
-            code = sqlite3_bind_text(sqliteStatement, index, string, -1, SQLITE_TRANSIENT)
+            code = sqlite3_bind_text(sqliteStatement, Int32(index + 1), string, -1, SQLITE_TRANSIENT)
         case .blob(let data):
             code = data.withUnsafeBytes { bytes in
-                sqlite3_bind_blob(sqliteStatement, index, bytes, Int32(data.count), SQLITE_TRANSIENT)
+                sqlite3_bind_blob(sqliteStatement, Int32(index + 1), bytes, Int32(data.count), SQLITE_TRANSIENT)
             }
         }
         
         guard code == SQLITE_OK else {
             throw DatabaseError(code: code, message: database.lastErrorMessage, sql: sql)
         }
-    }
-    
-    // Returns a validated array of as many DatabaseValue as there are
-    // parameters in the statement.
-    private func validatedBindings(_ arguments: StatementArguments) throws -> [DatabaseValue] {
-        // An array of (key, value) pairs.
-        //
-        // The key is not nil if the statement has a named parameter at given index.
-        // The value is not nil if the arguments have a value at given index.
-        //
-        // The array may be longer than the number of arguments in the statement.
-        //
-        // If the returned array is longer than the number of arguments in the statement,
-        // then we have extra arguments.
-        //
-        // If one of the values is nil, then we have a missing argument.
-        let keyValueBindings: [(String?, DatabaseValue?)] = {
-            switch arguments.kind {
-            case .values(let values):
-                var keyValueBindings: [(String?, DatabaseValue?)] = []
-                var argumentNameIter = sqliteArgumentNames.makeIterator()
-                var valuesIter = values.map { $0?.databaseValue ?? .null }.makeIterator()
-                var argumentNameOpt = argumentNameIter.next()
-                var valueOpt = valuesIter.next()
-                outer: while true {
-                    switch (argumentNameOpt, valueOpt) {
-                    case (let argumentName?, let value?):
-                        keyValueBindings.append((argumentName, value))
-                        argumentNameOpt = argumentNameIter.next()
-                        valueOpt = valuesIter.next()
-                    case (nil, let value?):
-                        keyValueBindings.append((nil, value))
-                        valueOpt = valuesIter.next()
-                    case (let argumentName?, nil):
-                        keyValueBindings.append((argumentName, nil))
-                        argumentNameOpt = argumentNameIter.next()
-                    case (nil, nil):
-                        break outer
-                    }
-                }
-                return keyValueBindings
-                
-            case .namedValues(let namedValues):
-                return sqliteArgumentNames.map { argumentName in
-                    if let argumentName = argumentName {
-                        if let value = namedValues[argumentName] {
-                            return (argumentName, value?.databaseValue ?? .null)
-                        } else {
-                            return (argumentName, nil)
-                        }
-                    }
-                    return (nil, nil)
-                }
-            }
-            }()
-
-        assert(keyValueBindings.count >= sqliteArgumentCount)
-        
-        if keyValueBindings.count > sqliteArgumentCount {
-            throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(keyValueBindings.count)", sql: sql, arguments: nil)
-        }
-        
-        if case let missingKeys = keyValueBindings.filter({ $0.1 == nil }).map({ $0.0 }) where !missingKeys.isEmpty {
-            if case let namedMissingKeys = missingKeys.flatMap({ $0 }) where namedMissingKeys.count == missingKeys.count {
-                func caseInsensitiveSort(_ strings: [String]) -> [String] {
-                    return strings
-                        .map { ($0.lowercased(), $0) }
-                        .sorted { $0.0 < $1.0 }
-                        .map { $0.1 }
-                }
-                throw DatabaseError(code: SQLITE_MISUSE, message: "missing statement argument(s): \(caseInsensitiveSort(namedMissingKeys).joined(separator: ", "))", sql: sql, arguments: nil)
-            } else {
-                throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(sqliteArgumentCount - missingKeys.count)", sql: sql, arguments: nil)
-            }
-        }
-        
-        return keyValueBindings.map { $0.1! }
     }
     
     // Don't make this one public unless we keep the arguments property in sync.
@@ -279,16 +202,15 @@ public class Statement {
 ///         let moreThanThirtyCount = Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement : Statement {
-    /// The tables this statement feeds on.
-    var sourceTables: Set<String>
+    /// A dictionary [tablename: Set<columnName>] of accessed columns
+    private(set) var readTables: [String: Set<String>]
     
     init(database: Database, sql: String) throws {
-        self.sourceTables = []
-        
+        self.readTables = [:]
         let observer = StatementCompilationObserver(database)
         try super.init(database: database, sql: sql, observer: observer)
         Database.preconditionValidSelectStatement(sql: sql, observer: observer)
-        self.sourceTables = observer.sourceTables
+        self.readTables = observer.readTables
     }
     
     /// The number of columns in the resulting rows.
@@ -420,20 +342,24 @@ public final class UpdateStatement : Statement {
     /// is executed.
     private(set) var invalidatesDatabaseSchemaCache: Bool
     private(set) var savepointAction: (name: String, action: SavepointActionKind)?
+    private(set) var databaseEventKinds: [DatabaseEventKind]
     
-    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool, savepointAction: (name: String, action: SavepointActionKind)?) {
+    init(database: Database, sqliteStatement: SQLiteStatement, invalidatesDatabaseSchemaCache: Bool, savepointAction: (name: String, action: SavepointActionKind)?, databaseEventKinds: [DatabaseEventKind]) {
         self.invalidatesDatabaseSchemaCache = invalidatesDatabaseSchemaCache
         self.savepointAction = savepointAction
+        self.databaseEventKinds = databaseEventKinds
         super.init(database: database, sqliteStatement: sqliteStatement)
     }
     
     init(database: Database, sql: String) throws {
         self.invalidatesDatabaseSchemaCache = false
+        self.databaseEventKinds = []
         
         let observer = StatementCompilationObserver(database)
         try super.init(database: database, sql: sql, observer: observer)
         self.invalidatesDatabaseSchemaCache = observer.invalidatesDatabaseSchemaCache
         self.savepointAction = observer.savepointAction
+        self.databaseEventKinds = observer.databaseEventKinds
     }
     
     /// Executes the SQL query.
@@ -446,6 +372,8 @@ public final class UpdateStatement : Statement {
         // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
         try! prepare(withArguments: arguments)
         try! reset()
+        
+        database.updateStatementWillExecute(self)
         
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE, SQLITE_ROW:
@@ -512,12 +440,7 @@ public final class UpdateStatement : Statement {
 public struct StatementArguments {
     
     public var isEmpty: Bool {
-        switch kind {
-        case .values(let values):
-            return values.isEmpty
-        case .namedValues(let namedValues):
-            return namedValues.isEmpty
-        }
+        return values.isEmpty && namedValues.isEmpty
     }
     
     
@@ -531,7 +454,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence where Sequence.Iterator.Element == DatabaseValueConvertible?>(_ sequence: Sequence) {
-        kind = .values(Array(sequence))
+        values = Array(sequence)
     }
     
     /// Initializes arguments from a sequence of optional values.
@@ -542,7 +465,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence where Sequence.Iterator.Element: DatabaseValueConvertible>(_ sequence: Sequence) {
-        kind = .values(sequence.map { $0 })
+        values = sequence.map { $0 }
     }
     
     
@@ -557,7 +480,7 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
-        kind = .namedValues(dictionary)
+        namedValues = dictionary
     }
     
     /// Initializes arguments from a sequence of (key, value) pairs, such as
@@ -569,28 +492,42 @@ public struct StatementArguments {
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence where Sequence.Iterator.Element == (String, DatabaseValueConvertible?)>(_ sequence: Sequence) {
-        kind = .namedValues(Dictionary(keyValueSequence: sequence))
+        namedValues = Dictionary(keyValueSequence: sequence)
     }
     
     
     // MARK: Not Public
     
-    /// Returns a double optional
-    func value(named name: String) -> DatabaseValueConvertible?? {
-        switch kind {
-        case .values:
-            return nil
-        case .namedValues(let dictionary):
-            return dictionary[name]
+    var values: [DatabaseValueConvertible?] = []
+    var namedValues: [String: DatabaseValueConvertible?] = [:]
+    
+    init() {
+    }
+    
+    mutating func consume(_ statement: Statement, allowingRemainingValues: Bool) throws -> [DatabaseValue] {
+        let initialValuesCount = values.count
+        let bindings = try statement.sqliteArgumentNames.map { argumentName -> DatabaseValue in
+            if let argumentName = argumentName {
+                if let value = namedValues[argumentName] {
+                    return value?.databaseValue ?? .null
+                } else if values.isEmpty {
+                    throw DatabaseError(code: SQLITE_MISUSE, message: "missing statement argument: \(argumentName)", sql: statement.sql, arguments: nil)
+                } else {
+                    return values.removeFirst()?.databaseValue ?? .null
+                }
+            } else {
+                if values.isEmpty {
+                    throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)", sql: statement.sql, arguments: nil)
+                } else {
+                    return values.removeFirst()?.databaseValue ?? .null
+                }
+            }
         }
+        if !allowingRemainingValues && !values.isEmpty {
+            throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)", sql: statement.sql, arguments: nil)
+        }
+        return bindings
     }
-    
-    enum Kind {
-        case values([DatabaseValueConvertible?])
-        case namedValues(Dictionary<String, DatabaseValueConvertible?>)
-    }
-    
-    let kind: Kind
 }
 
 extension StatementArguments : ArrayLiteralConvertible {
@@ -614,31 +551,20 @@ extension StatementArguments : DictionaryLiteralConvertible {
 extension StatementArguments : CustomStringConvertible {
     /// A textual representation of `self`.
     public var description: String {
-        switch kind {
-        case .values(let values):
-            return "["
-                + values
-                    .map { value in
-                        if let value = value {
-                            return String(reflecting: value)
-                        } else {
-                            return "nil"
-                        }
-                    }
-                    .joined(separator: ", ")
-                + "]"
-            
-        case .namedValues(let namedValues):
-            return "["
-                + namedValues.map { (key, value) in
-                    if let value = value {
-                        return "\(key):\(String(reflecting: value))"
-                    } else {
-                        return "\(key):nil"
-                    }
-                    }
-                    .joined(separator: ", ")
-                + "]"
+        let valuesDescriptions = values.map { value -> String in
+            if let value = value {
+                return String(reflecting: value)
+            } else {
+                return "nil"
+            }
         }
+        let namedValuesDescriptions = namedValues.map { (key, value) -> String in
+            if let value = value {
+                return "\(key):\(String(reflecting: value))"
+            } else {
+                return "\(key):nil"
+            }
+        }
+        return "[" + (valuesDescriptions + namedValuesDescriptions).joined(separator: ", ") + "]"
     }
 }

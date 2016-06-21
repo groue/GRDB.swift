@@ -24,10 +24,10 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func selectStatement(_ db: Database) throws -> SelectStatement {
         // TODO: split statement generation from arguments building
-        var bindings: [DatabaseValueConvertible?] = []
-        let sql = try query.sql(db, &bindings)
+        var arguments = StatementArguments()
+        let sql = try query.sql(db, &arguments)
         let statement = try db.makeSelectStatement(sql)
-        try statement.setArgumentsWithValidation(StatementArguments(bindings))
+        try statement.setArgumentsWithValidation(arguments)
         return statement
     }
     
@@ -104,8 +104,8 @@ extension QueryInterfaceRequest {
     }
     
     /// Returns a new QueryInterfaceRequest with a new net of selected columns.
-    public func select(sql: String) -> QueryInterfaceRequest<T> {
-        return select(_SQLLiteral(sql))
+    public func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
+        return select(_SQLExpression.SQLLiteral(sql, arguments))
     }
     
     /// Returns a new QueryInterfaceRequest which returns distinct rows.
@@ -129,8 +129,8 @@ extension QueryInterfaceRequest {
     
     /// Returns a new QueryInterfaceRequest with the provided *predicate* added to the
     /// eventual set of already applied predicates.
-    public func filter(sql: String) -> QueryInterfaceRequest<T> {
-        return filter(_SQLLiteral(sql))
+    public func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
+        return filter(_SQLExpression.SQLLiteral(sql, arguments))
     }
     
     /// Returns a new QueryInterfaceRequest grouped according to *expressions*.
@@ -146,8 +146,8 @@ extension QueryInterfaceRequest {
     }
     
     /// Returns a new QueryInterfaceRequest with a new grouping.
-    public func group(sql: String) -> QueryInterfaceRequest<T> {
-        return group(_SQLLiteral(sql))
+    public func group(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
+        return group(_SQLExpression.SQLLiteral(sql, arguments))
     }
     
     /// Returns a new QueryInterfaceRequest with the provided *predicate* added to the
@@ -164,8 +164,8 @@ extension QueryInterfaceRequest {
     
     /// Returns a new QueryInterfaceRequest with the provided *sql* added to
     /// the eventual set of already applied predicates.
-    public func having(sql: String) -> QueryInterfaceRequest<T> {
-        return having(_SQLLiteral(sql))
+    public func having(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
+        return having(_SQLExpression.SQLLiteral(sql, arguments))
     }
     
     /// Returns a new QueryInterfaceRequest with the provided *orderings* added to
@@ -184,8 +184,8 @@ extension QueryInterfaceRequest {
     
     /// Returns a new QueryInterfaceRequest with the provided *sql* added to the
     /// eventual set of already applied orderings.
-    public func order(sql: String) -> QueryInterfaceRequest<T> {
-        return order([_SQLLiteral(sql)])
+    public func order(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<T> {
+        return order([_SQLExpression.SQLLiteral(sql, arguments)])
     }
     
     /// Returns a new QueryInterfaceRequest sorted in reversed order.
@@ -256,8 +256,8 @@ extension TableMapping {
     }
     
     /// Returns a QueryInterfaceRequest which selects *sql*.
-    public static func select(sql: String) -> QueryInterfaceRequest<Self> {
-        return all().select(sql: sql)
+    public static func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
+        return all().select(sql: sql, arguments: arguments)
     }
     
     /// Returns a QueryInterfaceRequest with the provided *predicate*.
@@ -266,8 +266,8 @@ extension TableMapping {
     }
     
     /// Returns a QueryInterfaceRequest with the provided *predicate*.
-    public static func filter(sql: String) -> QueryInterfaceRequest<Self> {
-        return all().filter(sql: sql)
+    public static func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
+        return all().filter(sql: sql, arguments: arguments)
     }
     
     /// Returns a QueryInterfaceRequest sorted according to the
@@ -283,8 +283,8 @@ extension TableMapping {
     }
     
     /// Returns a QueryInterfaceRequest sorted according to *sql*.
-    public static func order(sql: String) -> QueryInterfaceRequest<Self> {
-        return all().order(sql: sql)
+    public static func order(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
+        return all().order(sql: sql, arguments: arguments)
     }
     
     /// Returns a QueryInterfaceRequest which fetches *limit* rows, starting at

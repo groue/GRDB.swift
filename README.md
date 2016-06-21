@@ -25,7 +25,7 @@ You should give it a try.
 
 ---
 
-The Swift3 branch has no version. It is currently synced with v0.72.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
+The Swift3 branch has no version. It is currently synced with v0.73.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
@@ -280,7 +280,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -360,7 +360,7 @@ let dbPool = try DatabasePool(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -569,7 +569,7 @@ Unlike row arrays that contain copies of the database rows, row sequences are cl
 
 ```swift
 let name: String = row.value(atIndex: 0)    // 0 is the leftmost column
-let name: String = row.value(named: "name") // lookup is case-insensitive
+let name: String = row.value(named: "name") // leftmost matching column - lookup is case-insensitive
 ```
 
 Make sure to ask for an optional when the value may be NULL:
@@ -662,7 +662,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
 
 ```swift
 let dbv = row.databaseValue(atIndex: 0)    // 0 is the leftmost column
-let dbv = row.databaseValue(named: "name") // lookup is case-insensitive
+let dbv = row.databaseValue(named: "name") // leftmost matching column - lookup is case-insensitive
 
 // Check for NULL:
 dbv.isNull    // Bool
@@ -760,7 +760,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Swift Standard Library**: Bool, Double, Float, Int, Int32, Int64, String, [Swift enums](#swift-enums).
     
-- **Foundation**: [Data](#data-and-memory-savings), [Date](#date-and-datecomponents), [DateComponents](#date-and-datecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, URL.
+- **Foundation**: [Data](#data-and-memory-savings), [Date](#date-and-datecomponents), [DateComponents](#date-and-datecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, URL, [UUID](#uuid).
     
 - **CoreGraphics**: CGFloat.
 
@@ -966,6 +966,11 @@ try db.execute("INSERT INTO transfers (amount) VALUES (?)", arguments: [integerA
 let integerAmount = Int64.fetchOne(db, "SELECT SUM(amount) FROM transfers")!    // 100
 let amount = NSDecimalNumber(value: integerAmount).multiplying(byPowerOf10: -2) // 0.1
 ```
+
+
+### UUID
+
+**UUID** can be stored and fetched from the database just like other [values](#values). GRDB stores uuids as 16-bytes data blobs.
 
 
 ### Swift Enums
@@ -1336,10 +1341,10 @@ citizenshipsPk.rowIDColumn // nil
 
 **Row adapters let you map column names for easier row consumption.**
 
-They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced column has a column named "produced":
+They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced row has a column named "produced":
 
 ```swift
-// An adapter that maps column 'produced' to column 'consumed':
+// An adapter that maps column 'consumed' to column 'produced':
 let adapter = ColumnMapping(["consumed": "produced"])
 
 // Fetch a column named 'produced', and apply adapter:
@@ -1437,10 +1442,10 @@ for person in Person.fetch(db, sql, adapter: adapter) {
 
 For more information about row adapters, see the documentation of:
 
-- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
-- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/ColumnMapping.html): a row adapter that renames row columns
-- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
-- [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Structs/VariantRowAdapter.html): the row adapter that groups several adapters together to define named variants
+- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
+- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/ColumnMapping.html): a row adapter that renames row columns
+- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
+- [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/VariantRowAdapter.html): the row adapter that groups several adapters together to define named variants
 
 
 ## Raw SQLite Pointers
@@ -2021,10 +2026,10 @@ let count = Wine.filter(color == Color.red).fetchCount(db)
 let wines = Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
 ```
 
-Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK:
+Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
 
 ```swift
-let count = Int.fetchOne(db, "SELECT COUNT(*) FROM wines WHERE color = ?", arguments [Color.red])!
+let count = Wine.filter(sql: "color = ?", arguments: [Color.Red]).fetchCount(db)
 let wines = Wine.fetchAll(db, "SELECT * FROM wines WHERE origin = ? ORDER BY price", arguments: ["Burgundy"])
 ```
 
@@ -2174,12 +2179,13 @@ Person                          // SELECT * FROM "persons"
 ```
 
 
-Raw SQL snippets are also accepted:
+Raw SQL snippets are also accepted, with eventual arguments:
 
 ```swift
-// SELECT DATE(creationDate), COUNT(*) FROM "persons" GROUP BY date(creationDate)
+// SELECT DATE(creationDate), COUNT(*) FROM "persons" WHERE name = 'Arthur' GROUP BY date(creationDate)
 Person
     .select(sql: "DATE(creationDate), COUNT(*)")
+    .filter(sql: "name = ?", arguments: ["Arthur"])
     .group(sql: "DATE(creationDate)")
 ```
 
@@ -2526,7 +2532,7 @@ dbQueue.add(transactionObserver: observer)
 
 Database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated.
 
-**A transaction observer is notified of all database changes**, inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
+Unless specified otherwise (see below), **a transaction observer is notified of all database changes**: inserts, updates and deletes, including indirect ones triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions).
 
 Changes are not actually applied until `databaseDidCommit` is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
@@ -2593,6 +2599,50 @@ do {
 [FetchedRecordsController](#fetchedrecordscontroller) is based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
+
+
+### Filtering Database Events
+
+**Transaction observers can avoid being notified of some database changes they are not interested in.**
+
+At first sight, this looks somewhat redundant with the checks that observers can perform in their `databaseDidChange` method. But the code below is inefficient:
+
+```swift
+// BAD: An inefficient way to track the "persons" table:
+class PersonObserver: TransactionObserverType {
+    func databaseDidChange(with event: DatabaseEvent) {
+        guard event.tableName == "persons" else {
+            return
+        }
+        // Process change to the "persons" table
+    }
+}
+```
+
+The `databaseDidChange` method is invoked for each insertion, deletion, and update of individual rows. When there are many changed rows, the observer will spend of a lot of time performing the same check again and again.
+
+More, when you're interested in specific table columns, you're out of luck, because `databaseDidChange` does not know about columns: it just knows that a row has been inserted, deleted, or updated, without further detail.
+
+Instead, provide an event filter to the `add(transactionObserver:)` method, as below:
+
+```swift
+// This observer will only be notified of changes to the "name" column
+// of the "persons" table.
+dbQueue.add(transactionObserver: observer, forDatabaseEvents: { event in
+    switch event {
+    case .Insert(let tableName):
+        return tableName == "persons"
+    case .Delete(let tableName):
+        return tableName == "persons"
+    case .Update(let tableName, let columnNames):
+        return tableName == "persons" && columnNames.contains("name")
+    }
+})
+```
+
+This technique is *much more* efficient, because GRDB will apply the filter only once for each update statement, instead of once for each modified row.
+
+> :point_up: **Note**: avoid referring to the observer itself in the event filter closure, because the database would then keep a strong reference to the observer - this is usually undesired.
 
 
 ### Support for SQLite Pre-Update Hooks
@@ -3256,7 +3306,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.72.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
@@ -3283,7 +3333,7 @@ FAQ
     }
     ```
     
-    This is a Swift compiler bug (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
+    This is a Swift compiler issue (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
     
     The general workaround is to explicitly declare the type of the closure result:
     

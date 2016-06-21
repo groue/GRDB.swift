@@ -149,6 +149,44 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
+    func testSelectLiteralWithPositionalArguments() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+                
+                let request = tableRequest.select(sql: "name, id - ?", arguments: [1])
+                let rows = Row.fetchAll(db, request)
+                XCTAssertEqual(self.lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
+                XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
+                XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
+                XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
+            }
+        }
+    }
+    
+    func testSelectLiteralWithNamedArguments() {
+        assertNoError {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+                try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+                
+                let request = tableRequest.select(sql: "name, id - :n", arguments: ["n": 1])
+                let rows = Row.fetchAll(db, request)
+                XCTAssertEqual(self.lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0].value(atIndex: 0) as String, "Arthur")
+                XCTAssertEqual(rows[0].value(atIndex: 1) as Int64, 0)
+                XCTAssertEqual(rows[1].value(atIndex: 0) as String, "Barbara")
+                XCTAssertEqual(rows[1].value(atIndex: 1) as Int64, 1)
+            }
+        }
+    }
+    
     func testSelect() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
@@ -210,6 +248,20 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE id <> 1")
     }
     
+    func testFilterLiteralWithPositionalArguments() {
+        let dbQueue = try! makeDatabaseQueue()
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(sql: "id <> ?", arguments: [1])),
+            "SELECT * FROM \"readers\" WHERE id <> 1")
+    }
+    
+    func testFilterLiteralWithNamedArguments() {
+        let dbQueue = try! makeDatabaseQueue()
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(sql: "id <> :id", arguments: ["id": 1])),
+            "SELECT * FROM \"readers\" WHERE id <> 1")
+    }
+    
     func testFilter() {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
@@ -232,6 +284,20 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(sql: "age, lower(name)")),
             "SELECT * FROM \"readers\" GROUP BY age, lower(name)")
+    }
+    
+    func testGroupLiteralWithPositionalArguments() {
+        let dbQueue = try! makeDatabaseQueue()
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.group(sql: "age + ?, lower(name)", arguments: [1])),
+            "SELECT * FROM \"readers\" GROUP BY age + 1, lower(name)")
+    }
+    
+    func testGroupLiteralWithNamedArguments() {
+        let dbQueue = try! makeDatabaseQueue()
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.group(sql: "age + :n, lower(name)", arguments: ["n": 1])),
+            "SELECT * FROM \"readers\" GROUP BY age + 1, lower(name)")
     }
     
     func testGroup() {
@@ -261,6 +327,20 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
     }
     
+    func testHavingLiteralWithPositionalArguments() {
+        let dbQueue = try! makeDatabaseQueue()
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.group(Col.name).having(sql: "min(age) > ?", arguments: [18])),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
+    }
+    
+    func testHavingLiteralWithNamedArguments() {
+        let dbQueue = try! makeDatabaseQueue()
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.group(Col.name).having(sql: "min(age) > :age", arguments: ["age": 18])),
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
+    }
+    
     func testHaving() {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
@@ -281,8 +361,22 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     func testSortLiteral() {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(sql: "lower(age) desc")),
-            "SELECT * FROM \"readers\" ORDER BY lower(age) desc")
+            sql(dbQueue, tableRequest.order(sql: "lower(name) desc")),
+            "SELECT * FROM \"readers\" ORDER BY lower(name) desc")
+    }
+    
+    func testSortLiteralWithPositionalArguments() {
+        let dbQueue = try! makeDatabaseQueue()
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(sql: "age + ?", arguments: [1])),
+            "SELECT * FROM \"readers\" ORDER BY age + 1")
+    }
+    
+    func testSortLiteralWithNamedArguments() {
+        let dbQueue = try! makeDatabaseQueue()
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(sql: "age + :age", arguments: ["age": 1])),
+            "SELECT * FROM \"readers\" ORDER BY age + 1")
     }
     
     func testSort() {

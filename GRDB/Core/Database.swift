@@ -82,7 +82,8 @@ public final class Database {
     private var isInsideExplicitTransaction: Bool = false
     
     // Transaction observers
-    private var transactionObservers = [WeakTransactionObserver]()
+    private var databaseEventObservers = [DatabaseEventObserver]()
+    private var statementEventObservers = [DatabaseEventObserver]()  // subset of databaseEventObservers, set in updateStatementWillExecute
     private var transactionState: TransactionState = .waitForTransactionCompletion
     private var savepointStack = SavePointStack()
     
@@ -450,40 +451,17 @@ extension Database {
         // - validateRemainingArguments validates the remaining arguments, after
         //   all statements have been executed, in the same way
         //   as Statement.validate(arguments:)
-        let consumeArguments: (UpdateStatement) -> StatementArguments
-        let validateRemainingArguments: () throws -> ()
         
-        if let arguments = arguments {
-            switch arguments.kind {
-            case .values(let values):
-                // Extract as many values as needed, statement after statement:
-                var remainingValues = values
-                consumeArguments = { (statement: UpdateStatement) -> StatementArguments in
-                    let argumentCount = statement.sqliteArgumentCount
-                    defer {
-                        if remainingValues.count >= argumentCount {
-                            remainingValues = Array(remainingValues.suffix(from: argumentCount))
-                        } else {
-                            remainingValues = []
-                        }
-                    }
-                    return StatementArguments(remainingValues.prefix(argumentCount))
-                }
-                // It's not OK if there remains unused arguments:
-                validateRemainingArguments = {
-                    if !remainingValues.isEmpty {
-                        throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(values.count)")
-                    }
-                }
-            case .namedValues:
-                // Reuse the dictionary argument for all statements:
-                consumeArguments = { _ in return arguments }
-                validateRemainingArguments = { _ in }
+        var arguments = arguments ?? StatementArguments()
+        let initialValuesCount = arguments.values.count
+        let consumeArguments = { (statement: UpdateStatement) throws -> StatementArguments in
+            let bindings = try arguments.consume(statement, allowingRemainingValues: true)
+            return StatementArguments(bindings)
+        }
+        let validateRemainingArguments = {
+            if !arguments.values.isEmpty {
+                throw DatabaseError(code: SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)")
             }
-        } else {
-            // Empty arguments for all statements:
-            consumeArguments = { _ in return [] }
-            validateRemainingArguments = { _ in }
         }
         
         
@@ -523,8 +501,11 @@ extension Database {
                         database: self,
                         sqliteStatement: sqliteStatement!,
                         invalidatesDatabaseSchemaCache: observer.invalidatesDatabaseSchemaCache,
-                        savepointAction: observer.savepointAction)
-                    try statement.execute(arguments: consumeArguments(statement))
+                        savepointAction: observer.savepointAction,
+                        databaseEventKinds: observer.databaseEventKinds)
+                    let arguments = try consumeArguments(statement)
+                    statement.unsafeSetArguments(arguments)
+                    try statement.execute()
                 } catch let statementError {
                     error = statementError
                     break
@@ -1034,15 +1015,18 @@ public struct PrimaryKey {
 final class StatementCompilationObserver {
     let database: Database
     
-    // The list of tables queried by a statement
-    var sourceTables: Set<String> = []
+    /// A dictionary [tablename: Set<columnName>] of accessed columns
+    var readTables: [String: Set<String>] = [:]
     
-    // True if a statement alter the schema in a way that required schema cache
-    // invalidation. Adding a column to a table does invalidate the schema
-    // cache, but not adding a table.
+    /// What this statement does to the database
+    var databaseEventKinds: [DatabaseEventKind] = []
+    
+    /// True if a statement alter the schema in a way that required schema cache
+    /// invalidation. Adding a column to a table does invalidate the schema
+    /// cache, but not adding a table.
     var invalidatesDatabaseSchemaCache = false
     
-    // Not nil if a statement is a BEGIN/RELEASE/ROLLBACK savepoint statement.
+    /// Not nil if a statement is a BEGIN/RELEASE/ROLLBACK savepoint statement.
     var savepointAction: (name: String, action: SavepointActionKind)?
     
     init(_ database: Database) {
@@ -1059,7 +1043,16 @@ final class StatementCompilationObserver {
                 observer.invalidatesDatabaseSchemaCache = true
             case SQLITE_READ:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                observer.sourceTables.insert(String(cString: CString1!))
+                observer.insertRead(tableName: String(cString: CString1!), columnName: String(cString: CString2!))
+            case SQLITE_INSERT:
+                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                observer.databaseEventKinds.append(.insert(tableName: String(cString: CString1!)))
+            case SQLITE_DELETE:
+                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                observer.databaseEventKinds.append(.delete(tableName: String(cString: CString1!)))
+            case SQLITE_UPDATE:
+                let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
+                observer.insertUpdateEventKind(tableName: String(cString: CString1!), columnName: String(cString: CString2!))
             case SQLITE_SAVEPOINT:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                 let name = String(cString: CString2!)
@@ -1074,9 +1067,30 @@ final class StatementCompilationObserver {
     
     // Call this method between two calls to calling sqlite3_prepare_v2()
     func reset() {
-        sourceTables = []
+        readTables = [:]
+        databaseEventKinds = []
         invalidatesDatabaseSchemaCache = false
         savepointAction = nil
+    }
+    
+    func insertRead(tableName: String, columnName: String) {
+        if readTables[tableName] != nil {
+           readTables[tableName]!.insert(columnName)
+        } else {
+           readTables[tableName] = [columnName]
+        }
+    }
+    
+    func insertUpdateEventKind(tableName: String, columnName: String) {
+        for (index, eventKind) in databaseEventKinds.enumerated() {
+            if case .update(let t, let columnNames) = eventKind where t == tableName {
+                var columnNames = columnNames
+                columnNames.insert(columnName)
+                databaseEventKinds[index] = .update(tableName: tableName, columnNames: columnNames)
+                return
+            }
+        }
+        databaseEventKinds.append(.update(tableName: tableName, columnNames: [columnName]))
     }
     
     func stop() {
@@ -1291,15 +1305,21 @@ extension Database {
         isInsideExplicitTransaction = false
     }
     
-    /// Add a transaction observer, so that it gets notified of all
+    /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///
     /// The transaction observer is weakly referenced: it is not retained, and
     /// stops getting notifications after it is deallocated.
-    public func add(transactionObserver: TransactionObserver) {
+    ///
+    /// - parameters:
+    ///     - transactionObserver: A transaction observer.
+    ///     - filter: An optional database event filter. When nil (the default),
+    ///       all events are notified to the observer. When not nil, only events
+    ///       that pass the filter are notified.
+    public func add(transactionObserver: TransactionObserver, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil) {
         DatabaseScheduler.preconditionValidQueue(self)
-        transactionObservers.append(WeakTransactionObserver(transactionObserver))
-        if transactionObservers.count == 1 {
+        databaseEventObservers.append(DatabaseEventObserver(transactionObserver: transactionObserver, filter: filter))
+        if databaseEventObservers.count == 1 {
             installTransactionObserverHooks()
         }
     }
@@ -1307,17 +1327,17 @@ extension Database {
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
         DatabaseScheduler.preconditionValidQueue(self)
-        transactionObservers.removeFirst { $0.observer === transactionObserver }
-        if transactionObservers.isEmpty {
+        databaseEventObservers.removeFirst { $0.transactionObserver === transactionObserver }
+        if databaseEventObservers.isEmpty {
             uninstallTransactionObserverHooks()
         }
     }
     
     /// Clears references to deallocated observers, and uninstall transaction
     /// hooks if there is no remaining observers.
-    private func cleanupTransactionObservers() {
-        transactionObservers = transactionObservers.filter { $0.observer != nil }
-        if transactionObservers.isEmpty {
+    private func cleanupDatabaseEventObservers() {
+        databaseEventObservers = databaseEventObservers.filter { $0.transactionObserver != nil }
+        if databaseEventObservers.isEmpty {
             uninstallTransactionObserverHooks()
         }
     }
@@ -1331,12 +1351,24 @@ extension Database {
     /// An INSERT statement will pass, but not DROP TABLE (which invalidates the
     /// database cache), or RELEASE SAVEPOINT (which alters the savepoint stack)
     static func preconditionValidSelectStatement(sql: String, observer: StatementCompilationObserver) {
-        GRDBPrecondition(!observer.invalidatesDatabaseSchemaCache, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        GRDBPrecondition(observer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         GRDBPrecondition(observer.savepointAction == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        GRDBPrecondition(observer.databaseEventKinds.isEmpty, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+    }
+    
+    func updateStatementWillExecute(_ statement: UpdateStatement) {
+        let databaseEventKinds = statement.databaseEventKinds
+        statementEventObservers = databaseEventObservers.filter { databaseEventObserver in
+            guard let filter = databaseEventObserver.filter else { return true }
+            return databaseEventKinds.index(where: filter) != nil
+        }
     }
     
     /// Some failed statements interest transaction observers.
     func updateStatementDidFail(_ statement: UpdateStatement) throws {
+        // Wait for next statement
+        statementEventObservers = []
+        
         // Reset transactionState before didRollback eventually executes
         // other statements.
         let transactionState = self.transactionState
@@ -1363,6 +1395,9 @@ extension Database {
     /// Some succeeded statements invalidate the database cache, others interest
     /// transaction observers, and others modify the savepoint stack.
     func updateStatementDidExecute(_ statement: UpdateStatement) {
+        // Wait for next statement
+        statementEventObservers = []
+        
         if statement.invalidatesDatabaseSchemaCache {
             clearSchemaCache()
         }
@@ -1376,8 +1411,8 @@ extension Database {
                 if savepointStack.isEmpty {
                     let eventsBuffer = savepointStack.eventsBuffer
                     savepointStack.clear()
-                    for observer in transactionObservers.flatMap({ $0.observer }) {
-                        for event in eventsBuffer {
+                    for (event, notifiedObservers) in eventsBuffer {
+                        for observer in notifiedObservers.flatMap({ $0.transactionObserver }) {
                             event.send(to: observer)
                         }
                     }
@@ -1406,24 +1441,34 @@ extension Database {
     private func willCommit() throws {
         let eventsBuffer = savepointStack.eventsBuffer
         savepointStack.clear()
-        for observer in transactionObservers.flatMap({ $0.observer }) {
-            for event in eventsBuffer {
+        
+        var notifiedObserversForCommit: [TransactionObserver] = databaseEventObservers.flatMap({ $0.transactionObserver })
+        for (event, notifiedObservers) in eventsBuffer {
+            for observer in notifiedObservers.flatMap({ $0.transactionObserver }) {
                 event.send(to: observer)
+                if !notifiedObserversForCommit.contains({ $0 === observer }) {
+                    notifiedObserversForCommit.append(observer)
+                }
             }
+        }
+        for observer in notifiedObserversForCommit {
             try observer.databaseWillCommit()
         }
     }
     
 #if SQLITE_ENABLE_PREUPDATE_HOOK
     /// Transaction hook
-    private func willChange(with event: DatabasePreUpdateEvent)
-    {
+    private func willChange(with event: DatabasePreUpdateEvent) {
         if savepointStack.isEmpty {
-            for observer in transactionObservers.flatMap({ $0.observer }) {
-                observer.databaseWillChange(with: event)
+            // Don't notify all databaseEventObservers about the database event.
+            // Only notify those that are interested in the event, and have been
+            // isolated in updateStatementWillExecute().
+            for observer in statementEventObservers.flatMap({ $0.transactionObserver }) {
+                observer.databaseWillChangeWithEvent(event)
             }
         } else {
-            savepointStack.eventsBuffer.append(event.copy())
+            // Buffer both event and the observers that should be notified of the event.
+            savepointStack.eventsBuffer.append((event: event.copy(), notifiedObservers: statementEventObservers))
         }
     }
 #endif
@@ -1431,29 +1476,33 @@ extension Database {
     /// Transaction hook
     private func didChange(with event: DatabaseEvent) {
         if savepointStack.isEmpty {
-            for observer in transactionObservers.flatMap({ $0.observer }) {
+            // Don't notify all databaseEventObservers about the database event.
+            // Only notify those that are interested in the event, and have been
+            // isolated in updateStatementWillExecute().
+            for observer in statementEventObservers.flatMap({ $0.transactionObserver }) {
                 observer.databaseDidChange(with: event)
             }
         } else {
-            savepointStack.eventsBuffer.append(event.copy())
+            // Buffer both event and the observers that should be notified of the event.
+            savepointStack.eventsBuffer.append((event: event.copy(), notifiedObservers: statementEventObservers))
         }
     }
     
     /// Transaction hook
     private func didCommit() {
-        for observer in transactionObservers.flatMap({ $0.observer }) {
+        for observer in databaseEventObservers.flatMap({ $0.transactionObserver }) {
             observer.databaseDidCommit(self)
         }
-        cleanupTransactionObservers()
+        cleanupDatabaseEventObservers()
     }
     
     /// Transaction hook
     private func didRollback() {
         savepointStack.clear()
-        for observer in transactionObservers.flatMap({ $0.observer }) {
+        for observer in databaseEventObservers.flatMap({ $0.transactionObserver }) {
             observer.databaseDidRollback(self)
         }
-        cleanupTransactionObservers()
+        cleanupDatabaseEventObservers()
     }
     
     private func installTransactionObserverHooks() {
@@ -1619,13 +1668,28 @@ public protocol TransactionObserver : class {
     #endif
 }
 
-/// Database stores WeakTransactionObserver so that it does not retain its
+/// Database stores DatabaseEventObserver so that it does not retain its
 /// transaction observers.
-class WeakTransactionObserver {
-    weak var observer: TransactionObserver?
-    init(_ observer: TransactionObserver) {
-        self.observer = observer
+class DatabaseEventObserver {
+    weak var transactionObserver: TransactionObserver?
+    let filter: ((DatabaseEventKind) -> Bool)?
+    init(transactionObserver: TransactionObserver, filter: ((DatabaseEventKind) -> Bool)?) {
+        self.transactionObserver = transactionObserver
+        self.filter = filter
     }
+}
+
+/// A kind of database event. See Database.add(transactionObserver:)
+/// and DatabaseWriter.add(transactionObserver:).
+public enum DatabaseEventKind {
+    /// The insertion of a row in a database table
+    case insert(tableName: String)
+    
+    /// The deletion of a row in a database table
+    case delete(tableName: String)
+    
+    /// The update of a set of columns in a database table
+    case update(tableName: String, columnNames: Set<String>)
 }
 
 protocol DatabaseEventProtocol {
@@ -1781,7 +1845,6 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// righmost column.
         ///
         /// The result is nil if the event is an .Insert event.
-        @warn_unused_result
         public func initialDatabaseValue(atIndex index: Int) -> DatabaseValue?
         {
             GRDBPrecondition(index >= 0 && index < count, "row index out of range")
@@ -1806,7 +1869,6 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
         /// righmost column.
         ///
         /// The result is nil if the event is a .Delete event.
-        @warn_unused_result
         public func finalDatabaseValue(atIndex index: Int) -> DatabaseValue?
         {
             GRDBPrecondition(index >= 0 && index < count, "row index out of range")
@@ -1989,7 +2051,7 @@ private struct CopiedDatabaseEventImpl : DatabaseEventImpl {
 ///   rollbacked.
 class SavePointStack {
     /// The buffered events. See Database.didChange(with:)
-    var eventsBuffer: [DatabaseEventProtocol] = []
+    var eventsBuffer: [(event: DatabaseEventProtocol, notifiedObservers: [DatabaseEventObserver])] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.
