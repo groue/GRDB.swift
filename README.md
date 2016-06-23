@@ -384,7 +384,7 @@ config.readonly = true
 config.foreignKeysEnabled = true // The default is already true
 config.trace = { print($0) }     // Prints all SQL statements
 config.fileAttributes = [NSFileProtectionKey: ...]  // Configure database protection
-condig.maximumReaderCount = 10   // The default is 5
+config.maximumReaderCount = 10   // The default is 5
 
 let dbPool = try DatabasePool(
     path: "/path/to/database.sqlite",
