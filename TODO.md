@@ -1,4 +1,3 @@
-- [ ] FetchRequest: return statement and adapter from a single method
 - [ ] FetchedRecordsController: see if we can replace identity comparison function with a function that returns an Equatable value (beware the generics trouble). See if this can help optimize memory use, and use a sortedMerge() algorithm.
 - [ ] FetchedRecordsController: see if we can define a IdentifiableRecord protocol which would automatically feed FetchedRecordsController comparison function.
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
