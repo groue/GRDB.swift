@@ -44,7 +44,7 @@ public protocol StatementColumnConvertible {
 public extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     
-    // MARK: - Fetching From SelectStatement
+    // MARK: Fetching From SelectStatement
     
     /// Returns a sequence of values fetched from a prepared statement.
     ///
@@ -114,9 +114,67 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
         }
         return nil
     }
+}
+
+
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
+    // MARK: Fetching From FetchRequest
     
-    // MARK: - Fetching From SQL
+    /// Returns a sequence of values fetched from a fetch request.
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
+    ///     let names = String.fetch(db, request) // DatabaseSequence<String>
+    ///
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let names = String.fetch(db, request)
+    ///     Array(names) // Arthur, Barbara
+    ///     db.execute("DELETE ...")
+    ///     Array(names) // Arthur
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements are undefined.
+    @warn_unused_result
+    public static func fetch(db: Database, _ request: FetchRequest) -> DatabaseSequence<Self> {
+        return try! fetch(request.selectStatement(db))
+    }
+    
+    /// Returns an array of values fetched from a fetch request.
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
+    ///     let names = String.fetchAll(db, request)  // [String]
+    ///
+    /// - parameter db: A database connection.
+    @warn_unused_result
+    public static func fetchAll(db: Database, _ request: FetchRequest) -> [Self] {
+        return try! fetchAll(request.selectStatement(db))
+    }
+    
+    /// Returns a single value fetched from a fetch request.
+    ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
+    ///     let name = String.fetchOne(db, request)   // String?
+    ///
+    /// - parameter db: A database connection.
+    @warn_unused_result
+    public static func fetchOne(db: Database, _ request: FetchRequest) -> Self? {
+        return try! fetchOne(request.selectStatement(db))
+    }
+}
+
+
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+
+    // MARK: Fetching From SQL
     
     /// Returns a sequence of values fetched from an SQL query.
     ///
@@ -141,7 +199,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - returns: A sequence of values.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
-        return fetch(try! db.selectStatement(sql), arguments: arguments)
+        return fetch(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: nil))
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -155,7 +213,7 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - returns: An array of values.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return fetchAll(try! db.selectStatement(sql), arguments: arguments)
+        return fetchAll(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: nil))
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -169,6 +227,6 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - returns: An optional value.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return fetchOne(try! db.selectStatement(sql), arguments: arguments)
+        return fetchOne(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: nil))
     }
 }

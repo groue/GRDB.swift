@@ -337,3 +337,49 @@ extension TableMapping {
         return all().fetchCount(db)
     }
 }
+
+
+extension RowConvertible where Self: TableMapping {
+    
+    // MARK: Fetching All
+    
+    /// Returns a sequence of all records fetched from the database.
+    ///
+    ///     let persons = Person.fetch(db) // DatabaseSequence<Person>
+    ///
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let persons = Person.fetch(db)
+    ///     Array(persons).count // 3
+    ///     db.execute("DELETE ...")
+    ///     Array(persons).count // 2
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements are undefined.
+    @warn_unused_result
+    public static func fetch(db: Database) -> DatabaseSequence<Self> {
+        return all().fetch(db)
+    }
+    
+    /// Returns an array of all records fetched from the database.
+    ///
+    ///     let persons = Person.fetchAll(db) // [Person]
+    ///
+    /// - parameter db: A database connection.
+    @warn_unused_result
+    public static func fetchAll(db: Database) -> [Self] {
+        return all().fetchAll(db)
+    }
+    
+    /// Returns the first record fetched from a fetch request.
+    ///
+    ///     let person = Person.fetchOne(db) // Person?
+    ///
+    /// - parameter db: A database connection.
+    @warn_unused_result
+    public static func fetchOne(db: Database) -> Self? {
+        return all().fetchOne(db)
+    }
+}

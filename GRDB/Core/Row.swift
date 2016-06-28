@@ -499,6 +499,79 @@ extension Row {
     }
 }
 
+
+extension Row {
+    
+    // MARK: - Fetching From FetchRequest
+    
+    /// Returns a sequence of rows fetched from a fetch request.
+    ///
+    ///     let idColumn = SQLColumn("id")
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(idColumn, nameColumn)
+    ///     for row in Row.fetch(db, request) {
+    ///         let id: Int64 = row.value(atIndex: 0)
+    ///         let name: String = row.value(atIndex: 1)
+    ///     }
+    ///
+    /// Fetched rows are reused during the sequence iteration: don't wrap a row
+    /// sequence in an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let rows = Row.fetch(statement)
+    ///     for row in rows { ... } // 3 steps
+    ///     db.execute("DELETE ...")
+    ///     for row in rows { ... } // 2 steps
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements of the sequence are undefined.
+    @warn_unused_result
+    public static func fetch(db: Database, _ request: FetchRequest) -> DatabaseSequence<Row> {
+        let statement = try! request.selectStatement(db)
+        let adapter = try! request.adapter(statement)
+        return fetch(statement, adapter: adapter)
+    }
+    
+    /// Returns an array of rows fetched from a fetch request.
+    ///
+    ///     let idColumn = SQLColumn("id")
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(idColumn, nameColumn)
+    ///     let rows = Row.fetchAll(db, request)
+    ///
+    /// - parameter db: A database connection.
+    @warn_unused_result
+    public static func fetchAll(db: Database, _ request: FetchRequest) -> [Row] {
+        let statement = try! request.selectStatement(db)
+        let adapter = try! request.adapter(statement)
+        return fetchAll(statement, adapter: adapter)
+    }
+    
+    /// Returns a single row fetched from a fetch request.
+    ///
+    ///     let idColumn = SQLColumn("id")
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(idColumn, nameColumn)
+    ///     let row = Row.fetchOne(db, request)
+    ///
+    /// - parameter db: A database connection.
+    @warn_unused_result
+    public static func fetchOne(db: Database, _ request: FetchRequest) -> Row? {
+        let statement = try! request.selectStatement(db)
+        let adapter = try! request.adapter(statement)
+        return fetchOne(statement, adapter: adapter)
+    }
+}
+
+
 extension Row {
     
     // MARK: - Fetching From SQL
@@ -538,7 +611,7 @@ extension Row {
     /// - returns: A sequence of rows.
     @warn_unused_result
     public static func fetch(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Row> {
-        return fetch(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
+        return fetch(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -553,7 +626,7 @@ extension Row {
     /// - returns: An array of rows.
     @warn_unused_result
     public static func fetchAll(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Row] {
-        return fetchAll(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
+        return fetchAll(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -568,7 +641,7 @@ extension Row {
     /// - returns: An optional row.
     @warn_unused_result
     public static func fetchOne(db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Row? {
-        return fetchOne(try! db.selectStatement(sql), arguments: arguments, adapter: adapter)
+        return fetchOne(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
