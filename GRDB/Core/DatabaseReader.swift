@@ -160,6 +160,8 @@ extension DatabaseReader {
                 case let code:
                     throw DatabaseError(code: code, message: dbDest.lastErrorMessage)
                 }
+                
+                dbDest.clearSchemaCache()
             }
         }
     }
