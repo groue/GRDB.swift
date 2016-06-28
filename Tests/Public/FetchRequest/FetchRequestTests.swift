@@ -8,12 +8,8 @@ import XCTest
 #endif
 
 private struct CustomFetchRequest : FetchRequest {
-    func selectStatement(db: Database) throws -> SelectStatement {
-        return try db.selectStatement("SELECT 1 AS 'produced'")
-    }
-    
-    func adapter(statement: SelectStatement) throws -> RowAdapter? {
-        return ColumnMapping(["consumed": "produced"])
+    func prepare(db: Database) throws -> (SelectStatement, RowAdapter?) {
+        return try (db.selectStatement("SELECT 1 AS 'produced'"), ColumnMapping(["consumed": "produced"]))
     }
 }
 

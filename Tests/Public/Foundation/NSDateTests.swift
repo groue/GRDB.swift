@@ -79,47 +79,19 @@ class NSDateTests : GRDBTestCase {
     }
     
     func testNSDateFromUnparsableString() {
-        let date = NSDate.fromDatabaseValue("foo".databaseValue)
-        XCTAssertTrue(date == nil)
+        XCTAssertTrue(NSDate.fromDatabaseValue("foo".databaseValue) == nil)
     }
     
     func testNSDateDoesNotAcceptFormatHM() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute(
-                    "INSERT INTO dates (creationDate) VALUES (?)",
-                    arguments: ["01:02"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")
-                XCTAssertTrue(date == nil)
-            }
-        }
+        XCTAssertTrue(NSDate.fromDatabaseValue("01:02".databaseValue) == nil)
     }
     
     func testNSDateDoesNotAcceptFormatHMS() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute(
-                    "INSERT INTO dates (creationDate) VALUES (?)",
-                    arguments: ["01:02:03"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")
-                XCTAssertTrue(date == nil)
-            }
-        }
+        XCTAssertTrue(NSDate.fromDatabaseValue("01:02:03".databaseValue) == nil)
     }
     
     func testNSDateDoesNotAcceptFormatHMSS() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                try db.execute(
-                    "INSERT INTO dates (creationDate) VALUES (?)",
-                    arguments: ["01:02:03.00456"])
-                let date = NSDate.fetchOne(db, "SELECT creationDate from dates")
-                XCTAssertTrue(date == nil)
-            }
-        }
+        XCTAssertTrue(NSDate.fromDatabaseValue("01:02:03.00456".databaseValue) == nil)
     }
     
     func testNSDateAcceptsFormatYMD() {

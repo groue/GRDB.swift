@@ -53,7 +53,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         XCTAssertEqual(slow.fast, false)
     }
     
-    func testRowExtractionIsFast() {
+    func testRowExtraction() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
@@ -85,7 +85,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchFromStatementIsFast() {
+    func testFetchFromStatement() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -102,7 +102,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchAllFromStatementIsFast() {
+    func testFetchAllFromStatement() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -119,7 +119,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchOneFromStatementIsFast() {
+    func testFetchOneFromStatement() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -142,7 +142,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchFromDatabaseIsFast() {
+    func testFetchFromDatabase() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -158,7 +158,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchAllFromDatabaseIsFast() {
+    func testFetchAllFromDatabase() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -174,7 +174,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testFetchOneFromDatabaseIsFast() {
+    func testFetchOneFromDatabase() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -196,7 +196,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchFromStatementIsFast() {
+    func testOptionalFetchFromStatement() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -217,7 +217,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchAllFromStatementIsFast() {
+    func testOptionalFetchAllFromStatement() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -237,7 +237,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchFromDatabaseIsFast() {
+    func testOptionalFetchFromDatabase() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -257,7 +257,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    func testOptionalFetchAllFromDatabaseIsFast() {
+    func testOptionalFetchAllFromDatabase() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in

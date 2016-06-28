@@ -96,8 +96,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // observer is added on the same serialized queue as transaction
         // callbacks.
         databaseWriter.write { db in
-            let statement = try! self.request.selectStatement(db)
-            let adapter = try! self.request.adapter(statement)
+            let (statement, adapter) = try! self.request.prepare(db)
             let initialItems = Item<Record>.fetchAll(statement, adapter: adapter)
             self.fetchedItems = initialItems
             self.isSameItem = self.isSameItemFactory(db)
@@ -250,7 +249,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 fetchedChangesController.checkForChanges(observer)
             }
 
-            let statement = try! self.request.selectStatement(db)
+            let (statement, _) = try! self.request.prepare(db)
             let observer = FetchedRecordsObserver(checkForChanges)
             self.observer = observer
             if let initialItems = initialItems {
@@ -300,7 +299,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 fetchedChangesController.checkForChanges(observer)
             }
 
-            let statement = try! self.request.selectStatement(db)
+            let (statement, _) = try! self.request.prepare(db)
             let observer = FetchedRecordsObserver(checkForChanges)
             self.observer = observer
             if let initialItems = initialItems {

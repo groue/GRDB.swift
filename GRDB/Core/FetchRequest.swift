@@ -1,11 +1,9 @@
 /// The protocol for all types that define a way to fetch values from
 /// a database.
 public protocol FetchRequest {
-    /// A prepared statement that is ready to be executed.
-    func selectStatement(db: Database) throws -> SelectStatement
-
-    /// An eventual RowAdapter
-    func adapter(statement: SelectStatement) throws -> RowAdapter?
+    /// A tuple that contains a prepared statement that is ready to be
+    /// executed, and an eventual row adapter.
+    func prepare(db: Database) throws -> (SelectStatement, RowAdapter?)
 }
 
 
@@ -23,15 +21,11 @@ struct SQLFetchRequest {
 
 
 extension SQLFetchRequest : FetchRequest {
-    func selectStatement(db: Database) throws -> SelectStatement {
+    func prepare(db: Database) throws -> (SelectStatement, RowAdapter?) {
         let statement = try db.selectStatement(sql)
         if let arguments = arguments {
             try statement.setArgumentsWithValidation(arguments)
         }
-        return statement
-    }
-    
-    func adapter(statement: SelectStatement) throws -> RowAdapter? {
-        return adapter
+        return (statement, adapter)
     }
 }

@@ -443,7 +443,7 @@ extension Row {
         // Metal rows can be reused. And reusing them yields better performance.
         let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
         return statement.fetchSequence(arguments: arguments) {
-            return row
+            row
         }
     }
     
@@ -535,8 +535,7 @@ extension Row {
     /// remaining elements of the sequence are undefined.
     @warn_unused_result
     public static func fetch(db: Database, _ request: FetchRequest) -> DatabaseSequence<Row> {
-        let statement = try! request.selectStatement(db)
-        let adapter = try! request.adapter(statement)
+        let (statement, adapter) = try! request.prepare(db)
         return fetch(statement, adapter: adapter)
     }
     
@@ -550,8 +549,7 @@ extension Row {
     /// - parameter db: A database connection.
     @warn_unused_result
     public static func fetchAll(db: Database, _ request: FetchRequest) -> [Row] {
-        let statement = try! request.selectStatement(db)
-        let adapter = try! request.adapter(statement)
+        let (statement, adapter) = try! request.prepare(db)
         return fetchAll(statement, adapter: adapter)
     }
     
@@ -565,8 +563,7 @@ extension Row {
     /// - parameter db: A database connection.
     @warn_unused_result
     public static func fetchOne(db: Database, _ request: FetchRequest) -> Row? {
-        let statement = try! request.selectStatement(db)
-        let adapter = try! request.adapter(statement)
+        let (statement, adapter) = try! request.prepare(db)
         return fetchOne(statement, adapter: adapter)
     }
 }

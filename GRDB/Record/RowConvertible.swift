@@ -131,8 +131,7 @@ extension RowConvertible {
     /// remaining elements are undefined.
     @warn_unused_result
     public static func fetch(db: Database, _ request: FetchRequest) -> DatabaseSequence<Self> {
-        let statement = try! request.selectStatement(db)
-        let adapter = try! request.adapter(statement)
+        let (statement, adapter) = try! request.prepare(db)
         return fetch(statement, adapter: adapter)
     }
     
@@ -145,8 +144,7 @@ extension RowConvertible {
     /// - parameter db: A database connection.
     @warn_unused_result
     public static func fetchAll(db: Database, _ request: FetchRequest) -> [Self] {
-        let statement = try! request.selectStatement(db)
-        let adapter = try! request.adapter(statement)
+        let (statement, adapter) = try! request.prepare(db)
         return fetchAll(statement, adapter: adapter)
     }
     
@@ -159,8 +157,7 @@ extension RowConvertible {
     /// - parameter db: A database connection.
     @warn_unused_result
     public static func fetchOne(db: Database, _ request: FetchRequest) -> Self? {
-        let statement = try! request.selectStatement(db)
-        let adapter = try! request.adapter(statement)
+        let (statement, adapter) = try! request.prepare(db)
         return fetchOne(statement, adapter: adapter)
     }
 }

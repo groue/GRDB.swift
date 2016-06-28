@@ -23,18 +23,13 @@ extension QueryInterfaceRequest : FetchRequest {
     ///
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     @warn_unused_result
-    public func selectStatement(database: Database) throws -> SelectStatement {
+    public func prepare(db: Database) throws -> (SelectStatement, RowAdapter?) {
         // TODO: split statement generation from arguments building
         var arguments = StatementArguments()
-        let sql = try query.sql(database, &arguments)
-        let statement = try database.selectStatement(sql)
+        let sql = try query.sql(db, &arguments)
+        let statement = try db.selectStatement(sql)
         try statement.setArgumentsWithValidation(arguments)
-        return statement
-    }
-    
-    /// This method is part of the FetchRequest adoption; returns nil
-    public func adapter(statement: SelectStatement) throws -> RowAdapter? {
-        return nil
+        return (statement, nil)
     }
 }
 
@@ -62,7 +57,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     /// remaining elements are undefined.
     @warn_unused_result
     public func fetch(db: Database) -> DatabaseSequence<T> {
-        return try! T.fetch(selectStatement(db))
+        return T.fetch(db, self)
     }
     
     /// Returns an array of values fetched from a fetch request.
@@ -74,7 +69,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     /// - parameter db: A database connection.
     @warn_unused_result
     public func fetchAll(db: Database) -> [T] {
-        return Array(fetch(db))
+        return T.fetchAll(db, self)
     }
     
     /// Returns a single value fetched from a fetch request.
@@ -86,7 +81,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     /// - parameter db: A database connection.
     @warn_unused_result
     public func fetchOne(db: Database) -> T? {
-        return fetch(db).generate().next()
+        return T.fetchOne(db, self)
     }
 }
 
