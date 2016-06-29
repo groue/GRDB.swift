@@ -35,13 +35,14 @@ public protocol RowConvertible {
     mutating func awakeFromFetch(row: Row)
 }
 
+
 extension RowConvertible {
     
     /// Default implementation, which does nothing.
     public func awakeFromFetch(row: Row) { }
 
     
-    // MARK: - Fetching From SelectStatement
+    // MARK: Fetching From SelectStatement
     
     /// Returns a sequence of records fetched from a prepared statement.
     ///
@@ -101,9 +102,64 @@ extension RowConvertible {
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
         return fetch(statement, arguments: arguments, adapter: adapter).makeIterator().next()
     }
+}
+
+
+extension RowConvertible {
     
+    // MARK: Fetching From FetchRequest
     
-    // MARK: - Fetching From SQL
+    /// Returns a sequence of records fetched from a fetch request.
+    ///
+    ///     let nameColumn = SQLColumn("firstName")
+    ///     let request = Person.order(nameColumn)
+    ///     let identities = Identity.fetch(db, request) // DatabaseSequence<Identity>
+    ///
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let identities = Identity.fetch(db, request)
+    ///     Array(identities).count // 3
+    ///     db.execute("DELETE ...")
+    ///     Array(identities).count // 2
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements are undefined.
+    public static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Self> {
+        let (statement, adapter) = try! request.prepare(db)
+        return fetch(statement, adapter: adapter)
+    }
+    
+    /// Returns an array of records fetched from a fetch request.
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.order(nameColumn)
+    ///     let identities = Identity.fetchAll(db, request) // [Identity]
+    ///
+    /// - parameter db: A database connection.
+    public static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Self] {
+        let (statement, adapter) = try! request.prepare(db)
+        return fetchAll(statement, adapter: adapter)
+    }
+    
+    /// Returns a single record fetched from a fetch request.
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.order(nameColumn)
+    ///     let identity = Identity.fetchOne(db, request) // Identity?
+    ///
+    /// - parameter db: A database connection.
+    public static func fetchOne(_ db: Database, _ request: FetchRequest) -> Self? {
+        let (statement, adapter) = try! request.prepare(db)
+        return fetchOne(statement, adapter: adapter)
+    }
+}
+
+
+extension RowConvertible {
+    
+    // MARK: Fetching From SQL
     
     /// Returns a sequence of records fetched from an SQL query.
     ///
@@ -128,7 +184,7 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of records.
     public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
-        return fetch(try! db.makeSelectStatement(sql), arguments: arguments, adapter: adapter)
+        return fetch(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of records fetched from an SQL query.
@@ -142,7 +198,7 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self] {
-        return fetchAll(try! db.makeSelectStatement(sql), arguments: arguments, adapter: adapter)
+        return fetchAll(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -156,6 +212,6 @@ extension RowConvertible {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
-        return fetchOne(try! db.makeSelectStatement(sql), arguments: arguments, adapter: adapter)
+        return fetchOne(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }

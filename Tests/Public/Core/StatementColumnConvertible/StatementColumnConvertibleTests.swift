@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-class SQLiteStatementConversionTests : GRDBTestCase {
+class StatementColumnConvertibleTests : GRDBTestCase {
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     

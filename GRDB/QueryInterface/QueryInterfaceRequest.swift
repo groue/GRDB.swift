@@ -22,18 +22,13 @@ extension QueryInterfaceRequest : FetchRequest {
     /// Returns a prepared statement that is ready to be executed.
     ///
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func selectStatement(_ db: Database) throws -> SelectStatement {
+    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         // TODO: split statement generation from arguments building
         var arguments = StatementArguments()
         let sql = try query.sql(db, &arguments)
         let statement = try db.makeSelectStatement(sql)
         try statement.setArgumentsWithValidation(arguments)
-        return statement
-    }
-    
-    /// This method is part of the FetchRequest adoption; returns nil
-    public func adapter(_ statement: SelectStatement) throws -> RowAdapter? {
-        return nil
+        return (statement, nil)
     }
 }
 
@@ -60,7 +55,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     /// If the database is modified while the sequence is iterating, the
     /// remaining elements are undefined.
     public func fetch(_ db: Database) -> DatabaseSequence<T> {
-        return try! T.fetch(selectStatement(db))
+        return T.fetch(db, self)
     }
     
     /// Returns an array of values fetched from a fetch request.
@@ -71,7 +66,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     ///
     /// - parameter db: A database connection.
     public func fetchAll(_ db: Database) -> [T] {
-        return Array(fetch(db))
+        return T.fetchAll(db, self)
     }
     
     /// Returns a single value fetched from a fetch request.
@@ -82,7 +77,7 @@ extension QueryInterfaceRequest where T: RowConvertible {
     ///
     /// - parameter db: A database connection.
     public func fetchOne(_ db: Database) -> T? {
-        return fetch(db).makeIterator().next()
+        return T.fetchOne(db, self)
     }
 }
 
@@ -304,5 +299,48 @@ extension TableMapping {
     /// - parameter db: A database connection.
     public static func fetchCount(_ db: Database) -> Int {
         return all().fetchCount(db)
+    }
+}
+
+
+extension RowConvertible where Self: TableMapping {
+    
+    // MARK: Fetching All
+    
+    /// Returns a sequence of all records fetched from the database.
+    ///
+    ///     let persons = Person.fetch(db) // DatabaseSequence<Person>
+    ///
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let persons = Person.fetch(db)
+    ///     Array(persons).count // 3
+    ///     db.execute("DELETE ...")
+    ///     Array(persons).count // 2
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements are undefined.
+    public static func fetch(_ db: Database) -> DatabaseSequence<Self> {
+        return all().fetch(db)
+    }
+    
+    /// Returns an array of all records fetched from the database.
+    ///
+    ///     let persons = Person.fetchAll(db) // [Person]
+    ///
+    /// - parameter db: A database connection.
+    public static func fetchAll(_ db: Database) -> [Self] {
+        return all().fetchAll(db)
+    }
+    
+    /// Returns the first record fetched from a fetch request.
+    ///
+    ///     let person = Person.fetchOne(db) // Person?
+    ///
+    /// - parameter db: A database connection.
+    public static func fetchOne(_ db: Database) -> Self? {
+        return all().fetchOne(db)
     }
 }

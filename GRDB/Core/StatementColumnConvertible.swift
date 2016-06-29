@@ -44,7 +44,7 @@ public protocol StatementColumnConvertible {
 public extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     
-    // MARK: - Fetching From SelectStatement
+    // MARK: Fetching From SelectStatement
     
     /// Returns a sequence of values fetched from a prepared statement.
     ///
@@ -66,14 +66,22 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of values.
-    public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
-        let sqliteStatement = statement.sqliteStatement
-        return statement.fetchSequence(arguments: arguments) {
-            guard sqlite3_column_type(sqliteStatement, 0) != SQLITE_NULL else {
-                fatalError("could not convert database NULL value to \(Self.self)")
+    public static func fetch(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
+        if let adapter = adapter {
+            let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+            return statement.fetchSequence(arguments: arguments) {
+                row.value(atIndex: 0)
             }
-            return Self.init(sqliteStatement: sqliteStatement, index: 0)
+        } else {
+            let sqliteStatement = statement.sqliteStatement
+            return statement.fetchSequence(arguments: arguments) {
+                guard sqlite3_column_type(sqliteStatement, 0) != SQLITE_NULL else {
+                    fatalError("could not convert database NULL value to \(Self.self)")
+                }
+                return Self.init(sqliteStatement: sqliteStatement, index: 0)
+            }
         }
     }
     
@@ -85,9 +93,10 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An array of values.
-    public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil) -> [Self] {
-        return Array(fetch(statement, arguments: arguments))
+    public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self] {
+        return Array(fetch(statement, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from a prepared statement.
@@ -98,22 +107,92 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     /// - parameters:
     ///     - statement: The statement to run.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An optional value.
-    public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil) -> Self? {
-        let sqliteStatement = statement.sqliteStatement
-        let sequence = statement.fetchSequence(arguments: arguments) {
-            (sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL) ?
-                (nil as Self?) :
-                Self.init(sqliteStatement: sqliteStatement, index: 0)
+    public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
+        if let adapter = adapter {
+            let row = try! Row(statement: statement).adaptedRow(adapter: adapter, statement: statement)
+            let sequence = statement.fetchSequence(arguments: arguments) {
+                row.value(atIndex: 0) as Self?
+            }
+            if let value = sequence.makeIterator().next() {
+                return value
+            }
+            return nil
+        } else {
+            let sqliteStatement = statement.sqliteStatement
+            let sequence = statement.fetchSequence(arguments: arguments) {
+                (sqlite3_column_type(sqliteStatement, 0) == SQLITE_NULL) ?
+                    (nil as Self?) :
+                    Self.init(sqliteStatement: sqliteStatement, index: 0)
+            }
+            if let value = sequence.makeIterator().next() {
+                return value
+            }
+            return nil
         }
-        if let value = sequence.makeIterator().next() {
-            return value
-        }
-        return nil
+    }
+}
+
+
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+    
+    // MARK: Fetching From FetchRequest
+    
+    /// Returns a sequence of values fetched from a fetch request.
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
+    ///     let names = String.fetch(db, request) // DatabaseSequence<String>
+    ///
+    /// The returned sequence can be consumed several times, but it may yield
+    /// different results, should database changes have occurred between two
+    /// generations:
+    ///
+    ///     let names = String.fetch(db, request)
+    ///     Array(names) // Arthur, Barbara
+    ///     db.execute("DELETE ...")
+    ///     Array(names) // Arthur
+    ///
+    /// If the database is modified while the sequence is iterating, the
+    /// remaining elements are undefined.
+    public static func fetch(_ db: Database, _ request: FetchRequest) -> DatabaseSequence<Self> {
+        let (statement, adapter) = try! request.prepare(db)
+        return fetch(statement, adapter: adapter)
     }
     
+    /// Returns an array of values fetched from a fetch request.
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
+    ///     let names = String.fetchAll(db, request)  // [String]
+    ///
+    /// - parameter db: A database connection.
+    public static func fetchAll(_ db: Database, _ request: FetchRequest) -> [Self] {
+        let (statement, adapter) = try! request.prepare(db)
+        return fetchAll(statement, adapter: adapter)
+    }
     
-    // MARK: - Fetching From SQL
+    /// Returns a single value fetched from a fetch request.
+    ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    ///     let nameColumn = SQLColumn("name")
+    ///     let request = Person.select(nameColumn)
+    ///     let name = String.fetchOne(db, request)   // String?
+    ///
+    /// - parameter db: A database connection.
+    public static func fetchOne(_ db: Database, _ request: FetchRequest) -> Self? {
+        let (statement, adapter) = try! request.prepare(db)
+        return fetchOne(statement, adapter: adapter)
+    }
+}
+
+
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+
+    // MARK: Fetching From SQL
     
     /// Returns a sequence of values fetched from an SQL query.
     ///
@@ -135,9 +214,10 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     - db: A Database.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: A sequence of values.
-    public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil) -> DatabaseSequence<Self> {
-        return fetch(try! db.makeSelectStatement(sql), arguments: arguments)
+    public static func fetch(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> DatabaseSequence<Self> {
+        return fetch(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -148,9 +228,10 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An array of values.
-    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil) -> [Self] {
-        return fetchAll(try! db.makeSelectStatement(sql), arguments: arguments)
+    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> [Self] {
+        return fetchAll(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -161,8 +242,9 @@ public extension DatabaseValueConvertible where Self: StatementColumnConvertible
     ///     - db: A database connection.
     ///     - sql: An SQL query.
     ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
     /// - returns: An optional value.
-    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil) -> Self? {
-        return fetchOne(try! db.makeSelectStatement(sql), arguments: arguments)
+    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) -> Self? {
+        return fetchOne(db, SQLFetchRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
