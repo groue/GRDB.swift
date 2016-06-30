@@ -94,8 +94,8 @@ public struct DatabaseMigrator {
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ db: DatabaseWriter) throws {
         try db.write { db in
-            try self.setupMigrations(db)
-            try self.runMigrations(db)
+            try setupMigrations(db)
+            try runMigrations(db)
         }
     }
     

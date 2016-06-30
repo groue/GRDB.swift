@@ -96,10 +96,10 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         // observer is added on the same serialized queue as transaction
         // callbacks.
         databaseWriter.write { db in
-            let (statement, adapter) = try! self.request.prepare(db)
+            let (statement, adapter) = try! request.prepare(db)
             let initialItems = Item<Record>.fetchAll(statement, adapter: adapter)
-            self.fetchedItems = initialItems
-            self.isSameItem = self.isSameItemFactory(db)
+            fetchedItems = initialItems
+            isSameItem = isSameItemFactory(db)
             
             if let checkForChanges = checkForChanges {
                 let observer = FetchedRecordsObserver(checkForChanges)
@@ -238,7 +238,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
         databaseWriter.write { db in
             let fetchedChangesController = FetchedChangesController(
                 controller: self,
-                isSameItem: self.isSameItemFactory(db),
+                isSameItem: isSameItemFactory(db),
                 fetchAlongside: fetchAlongside,
                 recordsWillChange: recordsWillChange,
                 tableViewEvent: tableViewEvent,
@@ -249,7 +249,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 fetchedChangesController.checkForChanges(observer)
             }
 
-            let (statement, _) = try! self.request.prepare(db)
+            let (statement, _) = try! request.prepare(db)
             let observer = FetchedRecordsObserver(checkForChanges)
             self.observer = observer
             if let initialItems = initialItems {
@@ -299,7 +299,7 @@ public final class FetchedRecordsController<Record: RowConvertible> {
                 fetchedChangesController.checkForChanges(observer)
             }
 
-            let (statement, _) = try! self.request.prepare(db)
+            let (statement, _) = try! request.prepare(db)
             let observer = FetchedRecordsObserver(checkForChanges)
             self.observer = observer
             if let initialItems = initialItems {

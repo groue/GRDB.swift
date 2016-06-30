@@ -47,7 +47,7 @@ public final class DatabasePool {
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
-            try writer.performSync { db in
+            try writer.sync { db in
                 let journalMode = String.fetchOne(db, "PRAGMA journal_mode = WAL")
                 guard journalMode == "wal" else {
                     throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
@@ -71,7 +71,7 @@ public final class DatabasePool {
                 configuration: self.readerConfig,
                 schemaCache: databaseSchemaCache)
             
-            serializedDatabase.performSync { db in
+            serializedDatabase.sync { db in
                 for function in self.functions {
                     db.add(function: function)
                 }
@@ -112,7 +112,7 @@ public final class DatabasePool {
     ///
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: CheckpointMode = .passive) throws {
-        try writer.performSync { db in
+        try writer.sync { db in
             // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
             // check whether we need a busy handler on writer and/or readers
             // when kind is not .Passive.
@@ -133,12 +133,12 @@ public final class DatabasePool {
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
         // TODO: test that this method blocks the current thread until all database accesses are completed.
-        writer.performSync { db in
+        writer.sync { db in
             db.releaseMemory()
         }
         
         readerPool.forEach { reader in
-            reader.performSync { db in
+            reader.sync { db in
                 db.releaseMemory()
             }
         }
@@ -221,10 +221,10 @@ public enum CheckpointMode: Int32 {
         /// Changes the passphrase of an encrypted database
         public func changePassphrase(passphrase: String) throws {
             try readerPool.clear {
-                try self.writer.performSync { db in
+                try writer.sync { db in
                     try db.changePassphrase(passphrase)
                 }
-                self.readerConfig.passphrase = passphrase
+                readerConfig.passphrase = passphrase
             }
         }
     }
@@ -264,11 +264,11 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func read<T>(_ block: (db: Database) throws -> T) rethrows -> T {
+    public func read<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
         // The block isolation comes from the DEFERRED transaction.
         // See DatabasePoolTests.testReadMethodIsolationOfBlock().
         return try readerPool.get { reader in
-            try reader.performSync { db in
+            try reader.sync { db in
                 var result: T? = nil
                 try db.inTransaction(.deferred) {
                     result = try block(db: db)
@@ -299,9 +299,9 @@ extension DatabasePool : DatabaseReader {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func nonIsolatedRead<T>(_ block: (db: Database) throws -> T) rethrows -> T {
+    public func nonIsolatedRead<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
         return try readerPool.get { reader in
-            try reader.performSync { db in
+            try reader.sync { db in
                 try block(db: db)
             }
         }
@@ -325,15 +325,15 @@ extension DatabasePool : DatabaseReader {
     ///     }
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
-        writer.performSync { db in db.add(function: function) }
-        readerPool.forEach { $0.performSync { db in db.add(function: function) } }
+        writer.sync { db in db.add(function: function) }
+        readerPool.forEach { $0.sync { db in db.add(function: function) } }
     }
     
     /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
         functions.remove(function)
-        writer.performSync { db in db.remove(function: function) }
-        readerPool.forEach { $0.performSync { db in db.remove(function: function) } }
+        writer.sync { db in db.remove(function: function) }
+        readerPool.forEach { $0.sync { db in db.remove(function: function) } }
     }
     
     
@@ -350,15 +350,15 @@ extension DatabasePool : DatabaseReader {
     ///     }
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)
-        writer.performSync { db in db.add(collation: collation) }
-        readerPool.forEach { $0.performSync { db in db.add(collation: collation) } }
+        writer.sync { db in db.add(collation: collation) }
+        readerPool.forEach { $0.sync { db in db.add(collation: collation) } }
     }
     
     /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
         collations.remove(collation)
-        writer.performSync { db in db.remove(collation: collation) }
-        readerPool.forEach { $0.performSync { db in db.remove(collation: collation) } }
+        writer.sync { db in db.remove(collation: collation) }
+        readerPool.forEach { $0.sync { db in db.remove(collation: collation) } }
     }
 }
 
@@ -381,8 +381,8 @@ extension DatabasePool : DatabaseWriter {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func write<T>(_ block: (db: Database) throws -> T) rethrows -> T {
-        return try writer.performSync(block)
+    public func write<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+        return try writer.sync(block)
     }
     
     /// Synchronously executes a block in a protected dispatch queue, wrapped
@@ -406,8 +406,8 @@ extension DatabasePool : DatabaseWriter {
     ///     - block: A block that executes SQL statements and return either
     ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
-    public func writeInTransaction(_ kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) throws {
-        try writer.performSync { db in
+    public func writeInTransaction(_ kind: TransactionKind? = nil, _ block: @noescape (db: Database) throws -> TransactionCompletion) throws {
+        try writer.sync { db in
             try db.inTransaction(kind) {
                 try block(db: db)
             }
@@ -444,8 +444,8 @@ extension DatabasePool : DatabaseWriter {
         writer.preconditionValidQueue()
         
         let semaphore = DispatchSemaphore(value: 0)
-        self.readerPool.get { reader in
-            reader.performAsync { db in
+        readerPool.get { reader in
+            reader.async { db in
                 // Assume COMMIT DEFERRED TRANSACTION does not throw error.
                 try! db.inTransaction(.deferred) {
                     // Now we're isolated: release the writing queue

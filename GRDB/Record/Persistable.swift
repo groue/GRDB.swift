@@ -273,7 +273,7 @@ public extension MutablePersistable {
         // that override insert or save have opportunity to perform their
         // custom job.
         
-        if self.canUpdate(db) {
+        if canUpdate(db) {
             do {
                 try update(db)
             } catch PersistenceError.recordNotFound {

@@ -59,3 +59,4 @@ try! dbQueue.inDatabase { db in
     let date = (row.value(named: "date") as DatabaseTimestamp).date
     print("timestamp: \(timestamp)")
     print("date: \(date)")
+}

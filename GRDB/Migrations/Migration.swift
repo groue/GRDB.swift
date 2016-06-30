@@ -46,8 +46,8 @@ struct Migration {
     
     private func runWithoutDisabledForeignKeys(_ db: Database) throws {
         try db.inTransaction(.immediate) {
-            try self.migrate(db: db)
-            try self.insertAppliedIdentifier(db)
+            try migrate(db: db)
+            try insertAppliedIdentifier(db)
             return .commit
         }
     }
@@ -68,8 +68,8 @@ struct Migration {
         
         // > 2. Start a transaction.
         try db.inTransaction(.immediate) {
-            try self.migrate(db: db)
-            try self.insertAppliedIdentifier(db)
+            try migrate(db: db)
+            try insertAppliedIdentifier(db)
             
             // > 10. If foreign key constraints were originally enabled then run PRAGMA
             // > foreign_key_check to verify that the schema change did not break any foreign key

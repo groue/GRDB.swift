@@ -16,7 +16,7 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
     func testInDatabaseIsNotReentrant() {
         assertCrash("Database methods are not reentrant.") {
             dbQueue.inDatabase { db in
-                self.dbQueue.inDatabase { db in
+                dbQueue.inDatabase { db in
                 }
             }
         }
@@ -25,7 +25,7 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
     func testInTransactionInsideInDatabaseIsNotReentrant() {
         assertCrash("Database methods are not reentrant.") {
             try dbQueue.inDatabase { db in
-                try self.dbQueue.inTransaction { db in
+                try dbQueue.inTransaction { db in
                     return .commit
                 }
             }
@@ -35,7 +35,7 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
     func testInTransactionIsNotReentrant() {
         assertCrash("Database methods are not reentrant.") {
             try dbQueue.inTransaction { db in
-                try self.dbQueue.inTransaction { db in
+                try dbQueue.inTransaction { db in
                     return .commit
                 }
                 return .commit

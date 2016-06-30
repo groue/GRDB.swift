@@ -71,7 +71,7 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
                 
                 do {
                     let readers = request.fetchAll(db)
-                    XCTAssertEqual(self.lastSQLQuery, "SELECT * FROM \"readers\"")
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(readers.count, 2)
                     XCTAssertEqual(readers[0].id!, arthur.id!)
                     XCTAssertEqual(readers[0].name, arthur.name)
@@ -83,7 +83,7 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
                 
                 do {
                     let reader = request.fetchOne(db)!
-                    XCTAssertEqual(self.lastSQLQuery, "SELECT * FROM \"readers\"")
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(reader.id!, arthur.id!)
                     XCTAssertEqual(reader.name, arthur.name)
                     XCTAssertEqual(reader.age, arthur.age)
@@ -91,7 +91,7 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
                 
                 do {
                     let names = request.fetch(db).map { $0.name }
-                    XCTAssertEqual(self.lastSQLQuery, "SELECT * FROM \"readers\"")
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                     XCTAssertEqual(names, [arthur.name, barbara.name])
                 }
             }

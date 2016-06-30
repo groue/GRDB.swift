@@ -49,27 +49,6 @@ func GRDBPrecondition(_ condition: @autoclosure() -> Bool, _ message: @autoclosu
     }
 }
 
-/// A function declared as rethrows that synchronously executes a throwing
-/// block in a dispatch_queue.
-func dispatchSync<T>(_ queue: DispatchQueue, _ block: () throws -> T) rethrows -> T {
-    func impl(_ queue: DispatchQueue, block: () throws -> T, onError: (ErrorProtocol) throws -> ()) rethrows -> T {
-        var result: T? = nil
-        var blockError: ErrorProtocol? = nil
-        queue.sync {
-            do {
-                result = try block()
-            } catch {
-                blockError = error
-            }
-        }
-        if let blockError = blockError {
-            try onError(blockError)
-        }
-        return result!
-    }
-    return try impl(queue, block: block, onError: { throw $0 })
-}
-
 extension Array {
     /// Removes the first object that matches *predicate*.
     mutating func removeFirst(_ predicate: @noescape(Element) throws -> Bool) rethrows {
@@ -83,9 +62,7 @@ extension Dictionary {
     
     /// Create a dictionary with the keys and values in the given sequence.
     init<Sequence: Swift.Sequence where Sequence.Iterator.Element == (Key, Value)>(keyValueSequence: Sequence) {
-        // TODO: restore use of underestimateCount when Swift is fixed
-//        self.init(minimumCapacity: keyValueSequence.underestimateCount())
-        self.init()
+        self.init(minimumCapacity: keyValueSequence.underestimatedCount)
         for (key, value) in keyValueSequence {
             self[key] = value
         }
@@ -93,9 +70,7 @@ extension Dictionary {
     
     /// Create a dictionary from keys and a value builder.
     init<Sequence: Swift.Sequence where Sequence.Iterator.Element == Key>(keys: Sequence, value: (Key) -> Value) {
-        // TODO: restore use of underestimateCount when Swift is fixed
-//        self.init(minimumCapacity: keys.underestimateCount())
-        self.init()
+        self.init(minimumCapacity: keys.underestimatedCount)
         for key in keys {
             self[key] = value(key)
         }
@@ -218,9 +193,9 @@ final class Pool<T> {
     
     /// Performs a block on each pool element, available or not.
     /// The block is run is some arbitrary queue.
-    func forEach(_ body: (T) throws -> ()) rethrows {
-        try dispatchSync(queue) {
-            for item in self.items {
+    func forEach(_ body: @noescape (T) throws -> ()) rethrows {
+        try queue.sync {
+            for item in items {
                 try body(item.element)
             }
         }
@@ -233,9 +208,9 @@ final class Pool<T> {
     
     /// Empty the pool. Currently used items won't be reused.
     /// Eventual block is executed before any other element is dequeued.
-    func clear(_ block: () throws -> ()) rethrows {
-        try dispatchSync(queue) {
-            self.items = []
+    func clear(_ block: @noescape () throws -> ()) rethrows {
+        try queue.sync {
+            items = []
             try block()
         }
     }

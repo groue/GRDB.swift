@@ -79,8 +79,8 @@ public final class DatabaseQueue {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func inDatabase<T>(_ block: (db: Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.performSync(block)
+    public func inDatabase<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+        return try serializedDatabase.sync(block)
     }
     
     /// Synchronously executes a block in a protected dispatch queue, wrapped
@@ -104,8 +104,8 @@ public final class DatabaseQueue {
     ///     - block: A block that executes SQL statements and return either
     ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
-    public func inTransaction(_ kind: TransactionKind? = nil, _ block: (db: Database) throws -> TransactionCompletion) throws {
-        try serializedDatabase.performSync { db in
+    public func inTransaction(_ kind: TransactionKind? = nil, _ block: @noescape (db: Database) throws -> TransactionCompletion) throws {
+        try serializedDatabase.sync { db in
             try db.inTransaction(kind) {
                 try block(db: db)
             }
@@ -121,7 +121,7 @@ public final class DatabaseQueue {
     ///
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
-        serializedDatabase.performSync { db in
+        serializedDatabase.sync { db in
             db.releaseMemory()
         }
     }
@@ -205,7 +205,7 @@ public final class DatabaseQueue {
         
         /// Changes the passphrase of an encrypted database
         public func changePassphrase(passphrase: String) throws {
-            try serializedDatabase.performSync { db in
+            try serializedDatabase.sync { db in
                 try db.changePassphrase(passphrase)
             }
         }
@@ -223,15 +223,15 @@ extension DatabaseQueue : DatabaseReader {
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseReader protocol adoption.
-    public func read<T>(_ block: (db: Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.performSync(block)
+    public func read<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+        return try serializedDatabase.sync(block)
     }
     
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseReader protocol adoption.
-    public func nonIsolatedRead<T>(_ block: (db: Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.performSync(block)
+    public func nonIsolatedRead<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+        return try serializedDatabase.sync(block)
     }
     
     
@@ -251,14 +251,14 @@ extension DatabaseQueue : DatabaseReader {
     ///         Int.fetchOne(db, "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
-        serializedDatabase.performSync { db in
+        serializedDatabase.sync { db in
             db.add(function: function)
         }
     }
     
     /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
-        serializedDatabase.performSync { db in
+        serializedDatabase.sync { db in
             db.remove(function: function)
         }
     }
@@ -276,14 +276,14 @@ extension DatabaseQueue : DatabaseReader {
     ///         try db.execute("CREATE TABLE files (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
-        serializedDatabase.performSync { db in
+        serializedDatabase.sync { db in
             db.add(collation: collation)
         }
     }
     
     /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
-        serializedDatabase.performSync { db in
+        serializedDatabase.sync { db in
             db.remove(collation: collation)
         }
     }
@@ -300,8 +300,8 @@ extension DatabaseQueue : DatabaseWriter {
     /// Alias for inDatabase
     ///
     /// This method is part of the DatabaseWriter protocol adoption.
-    public func write<T>(_ block: (db: Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.performSync(block)
+    public func write<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+        return try serializedDatabase.sync(block)
     }
 
     /// Executes *block*.
@@ -309,6 +309,6 @@ extension DatabaseQueue : DatabaseWriter {
     /// This method is part of the DatabaseWriter protocol adoption, and must
     /// be called from the protected database dispatch queue.
     public func readFromWrite(_ block: (db: Database) -> Void) {
-        serializedDatabase.perform(block)
+        serializedDatabase.execute(block)
     }
 }

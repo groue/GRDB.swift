@@ -36,13 +36,13 @@ final class SerializedDatabase {
         
         db = try Database(path: path, configuration: config, schemaCache: schemaCache)
         queue = DatabaseScheduler.makeSerializedQueueAllowing(database: db)
-        try dispatchSync(queue) {
-            try self.db.setup()
+        try queue.sync {
+            try db.setup()
         }
     }
     
     deinit {
-        performSync { db in
+        sync { db in
             db.close()
         }
     }
@@ -51,12 +51,12 @@ final class SerializedDatabase {
     /// its result.
     ///
     /// This method is *not* reentrant.
-    func performSync<T>(_ block: (db: Database) throws -> T) rethrows -> T {
-        return try DatabaseScheduler.dispatchSync(queue, database: db, block: block)
+    func sync<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
+        return try DatabaseScheduler.sync(queue: queue, database: db, block: block)
     }
     
     /// Asynchronously executes a block in the serialized dispatch queue.
-    func performAsync(_ block: (db: Database) -> Void) {
+    func async(_ block: (db: Database) -> Void) {
         queue.async {
             block(db: self.db)
         }
@@ -65,7 +65,7 @@ final class SerializedDatabase {
     /// Executes the block in the current queue.
     ///
     /// - precondition: the current dispatch queue is valid.
-    func perform<T>(_ block: (db: Database) throws -> T) rethrows -> T {
+    func execute<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
         preconditionValidQueue()
         return try block(db: db)
     }
