@@ -3012,7 +3012,7 @@ try dbQueue.changePassphrase("newSecret")
 
 Providing a passphrase won't encrypt a clear-text database that already exists, though. SQLCipher can't do that, and you will get an error instead: `SQLite error 26: file is encrypted or is not a database`.
 
-**To encrypt an existing clear-text database**, you have to create a new and empty encrypted database, and copy the content of the clear-text database in it. There is a [technique](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) to do that, as documented by SQLCipher. With GRDB, it gives:
+**To encrypt an existing clear-text database**, you have to create a new and empty encrypted database, and copy the content of the clear-text database in it. The technique to do that is [documented](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) by SQLCipher. With GRDB, it gives:
 
 ```swift
 // The clear-text database
