@@ -3019,7 +3019,7 @@ To encrypt an existing clear-text database, you have to create a new and empty e
 let clearDBQueue = try DatabaseQueue(path: "/path/to/clear.db")
 
 // The encrypted database, at some distinct location:
-var configuration = Configuration("/path/to/encrypted.db")
+var configuration = Configuration()
 configuration.passphrase = "secret"
 let encryptedDBQueue = try DatabaseQueue(path: "/path/to/encrypted.db", configuration: config)
 
