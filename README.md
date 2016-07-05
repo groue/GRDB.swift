@@ -3016,12 +3016,12 @@ To encrypt an existing clear-text database, you have to create an new, empty, en
 
 ```swift
 // The clear-text database
-let clearDBQueue = DatabaseQueue("/path/to/clear.db")
+let clearDBQueue = try DatabaseQueue(path: "/path/to/clear.db")
 
 // The encrypted database, at some distinct location:
 var configuration = Configuration("/path/to/encrypted.db")
 configuration.passphrase = "secret"
-let encryptedDBQueue = DatabaseQueue("/path/to/encrypted.db", configuration: config)
+let encryptedDBQueue = try DatabaseQueue(path: "/path/to/encrypted.db", configuration: config)
 
 try clearDBQueue.inDatabase { db in
     try db.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
