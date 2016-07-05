@@ -374,6 +374,15 @@ class EncryptionTests: GRDBTestCase {
                 }
                 
                 dbConfiguration.passphrase = "secret"
+                do {
+                    try makeDatabaseQueue("plaintext.sqlite")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.code, 26) // SQLITE_NOTADB
+                    XCTAssertEqual(error.message!, "file is encrypted or is not a database")
+                    XCTAssertTrue(error.sql == nil)
+                    XCTAssertEqual(error.description, "SQLite error 26: file is encrypted or is not a database")
+                }
+                
                 let encryptedDBQueue = try makeDatabaseQueue("encrypted.sqlite")
                 
                 try plainTextDBQueue.inDatabase { db in

@@ -2992,7 +2992,7 @@ When you create a controller, you can give it a serial dispatch queue. The contr
 
 **GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net).**
 
-In the [installation](#installation) phase, use the GRDBCipher framework instead of GRDB. CocoaPods is not supported.
+In the [installation](#installation) phase, don't use the GRDB framework, and use the GRDBCipher framework instead. CocoaPods is not supported. The manual installation needs you to download the embedded copy of [SQLCipher](https://www.zetetic.net/sqlcipher/) with the `git submodule update --init` command.
 
 Set the `passphrase` property of the database configuration before opening your [database connection](#database-connections):
 
@@ -3008,6 +3008,28 @@ You can change the passphrase of an encrypted database:
 
 ```swift
 try dbQueue.changePassphrase("newSecret")
+```
+
+Providing a passphrase won't encrypt a clear-text database that already exists, though. SQLCipher can't do that, and you will get an error instead: `SQLite error 26: file is encrypted or is not a database`.
+
+To encrypt an existing clear-text database, you have to create an new, empty, encrypted database, and copy the content of the clear-text database in it. There is a [technique](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) to do that, as documented by SQLCipher. With GRDB, it gives:
+
+```swift
+// The clear-text database
+let clearDBQueue = DatabaseQueue("/path/to/clear.db")
+
+// The encrypted database, at some distinct location:
+var configuration = Configuration("/path/to/encrypted.db")
+configuration.passphrase = "secret"
+let encryptedDBQueue = DatabaseQueue("/path/to/encrypted.db", configuration: config)
+
+try clearDBQueue.inDatabase { db in
+    try db.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
+    try db.execute("SELECT sqlcipher_export('encrypted')")
+    try db.execute("DETACH DATABASE encrypted")
+}
+
+// Now the copy is done, and the clear-text database can be deleted.
 ```
 
 
