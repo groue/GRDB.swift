@@ -904,10 +904,10 @@ extension Database {
         return primaryKey
     }
     
-    /// The indexes on table named `tableName`; empty if the table does
+    /// The indexes on table named `tableName`; throws if the table does
     /// not exist.
-    func indexes(tableName: String) -> [IndexInfo] {
-        return Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row in
+    func indexes(tableName: String) throws -> [IndexInfo] {
+        let indexes = Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
             let indexName: String = row.value(atIndex: 1)
             let unique: Bool = row.value(atIndex: 2)
             let columns = Row.fetch(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
@@ -915,6 +915,14 @@ extension Database {
                 .sort { $0.0 < $1.0 }
                 .map { $0.1 }
             return IndexInfo(name: indexName, columns: columns, isUnique: unique)
+        }
+        if let primaryKeyColumns = try self.primaryKey(tableName)?.columns where indexes.all({ $0.columns != primaryKeyColumns }) {
+            // Only known case when the primary key is not listed in the
+            // index_list pragma: the implicit index on INTEGER PRIMARY KEY.
+            let pkIndex = IndexInfo(name: nil, columns: primaryKeyColumns, isUnique: true)
+            return [pkIndex] + indexes
+        } else {
+            return indexes
         }
     }
     
@@ -946,7 +954,8 @@ extension Database {
     }
     
     struct IndexInfo {
-        let name: String
+        /// nil when the index is the implicit index on INTEGER PRIMARY KEY column.
+        let name: String?
         let columns: [String]
         let isUnique: Bool
     }

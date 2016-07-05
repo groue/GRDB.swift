@@ -315,7 +315,7 @@ extension TableMapping {
         }
         
         let databaseTableName = self.databaseTableName()
-        let uniqueColumnSets = Set(db.indexes(databaseTableName).filter { $0.isUnique }.map { Set($0.columns) })
+        let uniqueColumnSets = try Set(db.indexes(databaseTableName).filter { $0.isUnique }.map { Set($0.columns) })
         
         var arguments: [DatabaseValueConvertible?] = []
         var whereClauses: [String] = []
