@@ -904,6 +904,20 @@ extension Database {
         return primaryKey
     }
     
+    /// The indexes on table named `tableName`; empty if the table does
+    /// not exist.
+    func indexes(tableName: String) -> [IndexInfo] {
+        return Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row in
+            let indexName: String = row.value(atIndex: 1)
+            let unique: Bool = row.value(atIndex: 2)
+            let columns = Row.fetch(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
+                .map { ($0.value(atIndex: 0) as Int, $0.value(atIndex: 2) as String) }
+                .sort { $0.0 < $1.0 }
+                .map { $0.1 }
+            return IndexInfo(name: indexName, columns: columns, isUnique: unique)
+        }
+    }
+    
     // CREATE TABLE persons (
     //   id INTEGER PRIMARY KEY,
     //   firstName TEXT,
@@ -929,6 +943,12 @@ extension Database {
             defaultDatabaseValue = row.databaseValue(named: "dflt_value")!
             primaryKeyIndex = row.value(named: "pk")
         }
+    }
+    
+    struct IndexInfo {
+        let name: String
+        let columns: [String]
+        let isUnique: Bool
     }
 }
 
