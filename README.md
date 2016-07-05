@@ -2992,7 +2992,7 @@ When you create a controller, you can give it a serial dispatch queue. The contr
 
 **GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net).**
 
-In the [installation](#installation) phase, don't use the GRDB framework, and use the GRDBCipher framework instead. CocoaPods is not supported. The manual installation needs you to download the embedded copy of [SQLCipher](https://www.zetetic.net/sqlcipher/) with the `git submodule update --init` command.
+In the [installation](#installation) phase, don't use the GRDB framework, and use the GRDBCipher framework instead. CocoaPods is not supported. The manual installation needs you to download the embedded copy of SQLCipher with the `git submodule update --init` command.
 
 **You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
