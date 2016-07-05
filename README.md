@@ -2994,7 +2994,7 @@ When you create a controller, you can give it a serial dispatch queue. The contr
 
 In the [installation](#installation) phase, don't use the GRDB framework, and use the GRDBCipher framework instead. CocoaPods is not supported. The manual installation needs you to download the embedded copy of [SQLCipher](https://www.zetetic.net/sqlcipher/) with the `git submodule update --init` command.
 
-Set the `passphrase` property of the database configuration before opening your [database connection](#database-connections):
+**You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
 ```swift
 import GRDBCipher
@@ -3004,7 +3004,7 @@ configuration.passphrase = "secret"
 let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
 ```
 
-You can change the passphrase of an encrypted database:
+**You can change the passphrase** of an already encrypted database:
 
 ```swift
 try dbQueue.changePassphrase("newSecret")
@@ -3012,7 +3012,7 @@ try dbQueue.changePassphrase("newSecret")
 
 Providing a passphrase won't encrypt a clear-text database that already exists, though. SQLCipher can't do that, and you will get an error instead: `SQLite error 26: file is encrypted or is not a database`.
 
-To encrypt an existing clear-text database, you have to create a new and empty encrypted database, and copy the content of the clear-text database in it. There is a [technique](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) to do that, as documented by SQLCipher. With GRDB, it gives:
+**To encrypt an existing clear-text database**, you have to create a new and empty encrypted database, and copy the content of the clear-text database in it. There is a [technique](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) to do that, as documented by SQLCipher. With GRDB, it gives:
 
 ```swift
 // The clear-text database
