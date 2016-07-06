@@ -107,15 +107,9 @@ extension SequenceType where Generator.Element: Equatable {
 }
 
 extension SequenceType {
-    /// Return true if one element matches the predicate
-    func any(predicate: (Generator.Element -> Bool)) -> Bool {
-        for element in self where predicate(element) { return true }
-        return false
-    }
-    
-    func all(predicate: (Generator.Element -> Bool)) -> Bool {
-        for element in self where !predicate(element) { return false }
-        return true
+    @warn_unused_result
+    func all(@noescape predicate: (Self.Generator.Element) throws -> Bool) rethrows -> Bool {
+        return try !contains { try !predicate($0) }
     }
 }
 

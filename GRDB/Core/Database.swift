@@ -906,7 +906,7 @@ extension Database {
     
     /// The indexes on table named `tableName`; throws if the table does
     /// not exist.
-    func indexes(tableName: String) throws -> [IndexInfo] {
+    func indexes(on tableName: String) throws -> [IndexInfo] {
         let indexes = Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
             let indexName: String = row.value(atIndex: 1)
             let unique: Bool = row.value(atIndex: 2)
@@ -914,15 +914,24 @@ extension Database {
                 .map { ($0.value(atIndex: 0) as Int, $0.value(atIndex: 2) as String) }
                 .sort { $0.0 < $1.0 }
                 .map { $0.1 }
-            return IndexInfo(name: indexName, columns: columns, isUnique: unique)
+            return IndexInfo(name: indexName, columns: columns, unique: unique)
         }
-        if let primaryKeyColumns = try self.primaryKey(tableName)?.columns where indexes.all({ $0.columns != primaryKeyColumns }) {
+        if let primaryKeyColumns = try primaryKey(tableName)?.columns where indexes.all({ $0.columns != primaryKeyColumns }) {
             // Only known case when the primary key is not listed in the
             // index_list pragma: the implicit index on INTEGER PRIMARY KEY.
-            let pkIndex = IndexInfo(name: nil, columns: primaryKeyColumns, isUnique: true)
+            let pkIndex = IndexInfo(name: nil, columns: primaryKeyColumns, unique: true)
             return [pkIndex] + indexes
         } else {
             return indexes
+        }
+    }
+    
+    /// True if there exists a unique index on the provided table and columns;
+    /// throws if the table does not exist.
+    func hasUniqueIndex<T: SequenceType where T.Generator.Element == String>(on tableName: String, columns: T) throws -> Bool {
+        let columns = Set(columns)
+        return try indexes(on: tableName).contains { index in
+            index.isUnique && index.columnsSet == columns
         }
     }
     
@@ -957,7 +966,15 @@ extension Database {
         /// nil when the index is the implicit index on INTEGER PRIMARY KEY column.
         let name: String?
         let columns: [String]
+        let columnsSet: Set<String>
         let isUnique: Bool
+        
+        init(name: String?, columns: [String], unique: Bool) {
+            self.name = name
+            self.columns = columns
+            self.columnsSet = Set(columns)
+            self.isUnique = unique
+        }
     }
 }
 

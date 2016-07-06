@@ -205,7 +205,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: A sequence of records.
     @warn_unused_result
     public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
-        guard let statement = fetchByKeyStatement(db, keys: keys) else {
+        guard let statement = try! fetchByKeyStatement(db, keys: keys) else {
             return DatabaseSequence.emptySequence(db)
         }
         return fetch(statement)
@@ -223,7 +223,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
-        guard let statement = fetchByKeyStatement(db, keys: keys) else {
+        guard let statement = try! fetchByKeyStatement(db, keys: keys) else {
             return []
         }
         return fetchAll(statement)
@@ -239,28 +239,32 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
-        return fetchOne(fetchByKeyStatement(db, keys: [key])!)
+        return try! fetchOne(fetchByKeyStatement(db, keys: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE (a = ? AND b = ?) OR (a = ? AND b = ?) ...
     //
     // Returns nil if keys is empty.
     @warn_unused_result
-    private static func fetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> SelectStatement? {
+    private static func fetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> SelectStatement? {
         // Avoid performing useless SELECT
         guard keys.count > 0 else {
             return nil
         }
         
+        let databaseTableName = self.databaseTableName()
         var arguments: [DatabaseValueConvertible?] = []
         var whereClauses: [String] = []
         for dictionary in keys {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
+            let columns = dictionary.keys
+            guard try db.hasUniqueIndex(on: databaseTableName, columns: columns) else {
+                throw DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joinWithSeparator(", "))")
+            }
             arguments.appendContentsOf(dictionary.values)
-            whereClauses.append("(" + (dictionary.keys.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joinWithSeparator(" AND ") + ")")
+            whereClauses.append("(" + (columns.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joinWithSeparator(" AND ") + ")")
         }
         
-        let databaseTableName = self.databaseTableName()
         let whereClause = whereClauses.joinWithSeparator(" OR ")
         let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(whereClause)"
         let statement = try! db.selectStatement(sql)
@@ -315,16 +319,14 @@ extension TableMapping {
         }
         
         let databaseTableName = self.databaseTableName()
-        let uniqueColumnSets = try Set(db.indexes(databaseTableName).filter { $0.isUnique }.map { Set($0.columns) })
-        
         var arguments: [DatabaseValueConvertible?] = []
         var whereClauses: [String] = []
         for dictionary in keys {
+            GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             let columns = dictionary.keys
-            guard uniqueColumnSets.contains(Set(columns)) else {
+            guard try db.hasUniqueIndex(on: databaseTableName, columns: columns) else {
                 throw DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joinWithSeparator(", "))")
             }
-            GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             arguments.appendContentsOf(dictionary.values)
             whereClauses.append("(" + (columns.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joinWithSeparator(" AND ") + ")")
         }
