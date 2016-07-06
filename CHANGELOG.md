@@ -5,7 +5,7 @@ Release Notes
 
 **New**
 
-- TableMapping protocol let you delete rows identified by their primary keys, or any columns involved in a unique index ([documentation](https://github.com/groue/GRDB.swift/tree/Issue56#tablemapping-protocol)):
+- TableMapping protocol lets you delete rows identified by their primary keys, or any columns involved in a unique index ([documentation](https://github.com/groue/GRDB.swift/tree/Issue56#tablemapping-protocol)):
 
     ```swift
     try Person.deleteOne(db, key: 1)
