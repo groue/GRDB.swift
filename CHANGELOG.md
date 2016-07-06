@@ -16,7 +16,7 @@ Release Notes
 
 **Breaking change**
 
-- The `fetch(_:keys:)`, `fetchAll(_:keys:)` and `fetchOne(_:key:)` method used to accept any dictionary of column/value pairs. Now these methods raise a fatal error if the columns do not uniquely identify rows: columns must be the primary key, or involved in a unique index:
+- The `fetch(_:keys:)`, `fetchAll(_:keys:)` and `fetchOne(_:key:)` methods used to accept any dictionary of column/value pairs. Now these methods raise a fatal error if the columns do not uniquely identify rows: columns must be the primary key, or involved in a unique index:
 
     ```swift
     // CREATE TABLE persons (
