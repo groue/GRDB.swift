@@ -1,20 +1,43 @@
+/// The protocol for schema cache.
+///
+/// This protocol must not contain values that are valid for a single connection
+/// only, because several connections can share the same schema cache.
+///
+/// Statements can't be cached here, for example.
+protocol DatabaseSchemaCacheType {
+    mutating func clear()
+    
+    func primaryKey(tableName tableName: String) -> PrimaryKey??
+    mutating func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String)
+
+    func indexes(on tableName: String) -> [Database.IndexInfo]?
+    mutating func setIndexes(indexes: [Database.IndexInfo], forTableName tableName: String)
+}
+
 /// A thread-unsafe database schema cache
 final class DatabaseSchemaCache: DatabaseSchemaCacheType {
     private var primaryKeys: [String: PrimaryKey?] = [:]
+    private var indexes: [String: [Database.IndexInfo]] = [:]
     
     func clear() {
         primaryKeys = [:]
+        indexes = [:]
     }
     
     func primaryKey(tableName tableName: String) -> PrimaryKey?? {
-        guard let pk = primaryKeys[tableName] else {
-            return nil
-        }
-        return pk
+        return primaryKeys[tableName]
     }
     
     func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String) {
         primaryKeys[tableName] = primaryKey
+    }
+    
+    func indexes(on tableName: String) -> [Database.IndexInfo]? {
+        return indexes[tableName]
+    }
+    
+    func setIndexes(indexes: [Database.IndexInfo], forTableName tableName: String) {
+        self.indexes[tableName] = indexes
     }
 }
 
@@ -32,5 +55,13 @@ final class SharedDatabaseSchemaCache: DatabaseSchemaCacheType {
     
     func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String) {
         cache.write { $0.setPrimaryKey(primaryKey, forTableName: tableName) }
+    }
+    
+    func indexes(on tableName: String) -> [Database.IndexInfo]? {
+        return cache.read { $0.indexes(on: tableName) }
+    }
+    
+    func setIndexes(indexes: [Database.IndexInfo], forTableName tableName: String) {
+        cache.write { $0.setIndexes(indexes, forTableName: tableName) }
     }
 }

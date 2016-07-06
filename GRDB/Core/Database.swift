@@ -771,17 +771,6 @@ extension Database {
 // =========================================================================
 // MARK: - Database Schema
 
-/// The protocol for schema cache.
-///
-/// This protocol must not contain values that are valid for a single connection
-/// only, because several connections can share the same schema cache.
-protocol DatabaseSchemaCacheType {
-    mutating func clear()
-    
-    func primaryKey(tableName tableName: String) -> PrimaryKey??
-    mutating func setPrimaryKey(primaryKey: PrimaryKey?, forTableName tableName: String)
-}
-
 extension Database {
     
     /// Clears the database schema cache.
@@ -904,9 +893,19 @@ extension Database {
         return primaryKey
     }
     
-    /// The indexes on table named `tableName`; throws if the table does
-    /// not exist.
-    func indexes(on tableName: String) throws -> [IndexInfo] {
+    /// The indexes on table named `tableName`; returns the empty array if the
+    /// table does not exist.
+    ///
+    /// Note: SQLite defines no index for INTEGER PRIMARY KEY columns: this
+    /// method does not return any index that represents this unique constraint.
+    ///
+    /// If you want to know if a set of columns uniquely identify a row, prefer
+    /// columns(_:uniquelyIdentifyRowsIn:) instead.
+    func indexes(on tableName: String) -> [IndexInfo] {
+        if let indexes = schemaCache.indexes(on: tableName) {
+            return indexes
+        }
+        
         let indexes = Row.fetch(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
             let indexName: String = row.value(atIndex: 1)
             let unique: Bool = row.value(atIndex: 2)
@@ -916,23 +915,26 @@ extension Database {
                 .map { $0.1 }
             return IndexInfo(name: indexName, columns: columns, unique: unique)
         }
-        if let primaryKeyColumns = try primaryKey(tableName)?.columns where indexes.all({ $0.columns != primaryKeyColumns }) {
-            // Only known case when the primary key is not listed in the
-            // index_list pragma: the implicit index on INTEGER PRIMARY KEY.
-            let pkIndex = IndexInfo(name: nil, columns: primaryKeyColumns, unique: true)
-            return [pkIndex] + indexes
-        } else {
-            return indexes
-        }
+        
+        schemaCache.setIndexes(indexes, forTableName: tableName)
+        return indexes
     }
     
-    /// True if there exists a unique index on the provided table and columns;
-    /// throws if the table does not exist.
-    func hasUniqueIndex<T: SequenceType where T.Generator.Element == String>(on tableName: String, columns: T) throws -> Bool {
+    /// True if a set of columns uniquely identify a row, that is to say if
+    /// there is a unique index on those columns, or if the column is the
+    /// INTEGER PRIMARY KEY.
+    func columns<T: SequenceType where T.Generator.Element == String>(columns: T, uniquelyIdentifyRowsIn tableName: String) throws -> Bool {
+        let primaryKey = try self.primaryKey(tableName) // first, so that we fail early and consistently should the table not exist
         let columns = Set(columns)
-        return try indexes(on: tableName).contains { index in
-            index.isUnique && index.columnsSet == columns
+        if indexes(on: tableName).contains({ index in index.isUnique && Set(index.columns) == columns }) {
+            return true
         }
+        if columns.count == 1,
+            let rowIDColumnName = primaryKey?.rowIDColumn
+            where rowIDColumnName == columns.first! {
+            return true
+        }
+        return false
     }
     
     // CREATE TABLE persons (
@@ -963,16 +965,13 @@ extension Database {
     }
     
     struct IndexInfo {
-        /// nil when the index is the implicit index on INTEGER PRIMARY KEY column.
-        let name: String?
+        let name: String
         let columns: [String]
-        let columnsSet: Set<String>
         let isUnique: Bool
         
-        init(name: String?, columns: [String], unique: Bool) {
+        init(name: String, columns: [String], unique: Bool) {
             self.name = name
             self.columns = columns
-            self.columnsSet = Set(columns)
             self.isUnique = unique
         }
     }
@@ -1087,7 +1086,7 @@ final class StatementCompilationObserver {
         let observerPointer = unsafeBitCast(self, UnsafeMutablePointer<Void>.self)
         sqlite3_set_authorizer(database.sqliteConnection, { (observerPointer, actionCode, CString1, CString2, CString3, CString4) -> Int32 in
             switch actionCode {
-            case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE:
+            case SQLITE_DROP_TABLE, SQLITE_DROP_TEMP_TABLE, SQLITE_DROP_TEMP_VIEW, SQLITE_DROP_VIEW, SQLITE_DETACH, SQLITE_ALTER_TABLE, SQLITE_DROP_VTABLE, SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX, SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
                 let observer = unsafeBitCast(observerPointer, StatementCompilationObserver.self)
                 observer.invalidatesDatabaseSchemaCache = true
             case SQLITE_READ:
