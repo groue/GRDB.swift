@@ -1,6 +1,35 @@
 Release Notes
 =============
 
+## Next Version
+
+**New**
+
+- TableMapping protocol let you delete rows identified by their primary keys, or any columns involved in a unique index ([documentation](https://github.com/groue/GRDB.swift/tree/Issue56#tablemapping-protocol)):
+
+    ```swift
+    try Person.deleteOne(db, key: 1)
+    try Person.deleteOne(db, key: ["email": "arthur@example.com"])
+    try Citizenship.deleteOne(db, key: ["personID": 1, "countryCode": "FR"])
+    try Country.deleteAll(db, keys: ["FR", "US"])
+    ```
+
+**Breaking change**
+
+- The `fetch(_:keys:)`, `fetchAll(_:keys:)` and `fetchOne(_:key:)` method used to accept any dictionary of column/value pairs. Now these methods raise a fatal error if the columns do not uniquely identify rows: columns must be the primary key, or involved in a unique index:
+
+    ```swift
+    // CREATE TABLE persons (
+    //   id INTEGER PRIMARY KEY, -- can fetch and delete by id
+    //   email TEXT UNIQUE,      -- can fetch and delete by email
+    //   name TEXT               -- nope
+    // )
+    Person.fetchOne(db, key: ["id": 1])                       // Person?
+    Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
+    Person.fetchOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column name.
+    ```
+
+
 ## 0.73.0
 
 Released June 20, 2016
