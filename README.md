@@ -1748,25 +1748,18 @@ let paris = PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
 You can also fetch and delete records according to their primary key:
 
 ```swift
-// SELECT * FROM persons WHERE id = 1
+// Fetch:
 Person.fetchOne(db, key: 1)              // Person?
-
-// SELECT * FROM persons WHERE id IN (1, 2, 3)
 Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
 
-// SELECT * FROM persons WHERE isoCode = 'FR'
 Country.fetchOne(db, key: "FR")          // Country?
-
-// SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
 Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 
-// SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
+// Use a dictionary for composite primary keys:
 Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
 
-// DELETE FROM persons WHERE id = 1
+// Delete records:
 try Person.deleteOne(db, key: 1)
-
-// DELETE FROM countries WHERE isoCode IN ('FR', 'US')
 try Country.deleteAll(db, keys: ["FR", "US"])
 ```
 
