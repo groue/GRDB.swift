@@ -1745,7 +1745,7 @@ Adopting types can be fetched without SQL, using the [query interface](#the-quer
 let paris = PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
-You can also fetch records according to their primary key:
+You can also fetch and delete records according to their primary key:
 
 ```swift
 // SELECT * FROM persons WHERE id = 1
@@ -1762,6 +1762,25 @@ Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 
 // SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
 Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
+
+// DELETE FROM persons WHERE id = 1
+try Person.deleteOne(db, key: 1)
+
+// DELETE FROM countries WHERE isoCode IN ('FR', 'US')
+try Country.deleteAll(db, keys: ["FR", "US"])
+```
+
+When given dictionaries, `fetchOne`, `deleteOne`, `fetchAll` and `deleteAll` accept any set of columns that uniquely identify rows. These are the primary key columns, or any columns involved in a unique index:
+
+```swift
+// CREATE TABLE persons (
+//   id INTEGER PRIMARY KEY, -- can fetch and delete by id
+//   email TEXT UNIQUE,      -- can fetch and delete by email
+//   name TEXT               -- nope
+// )
+Person.fetchOne(db, key: ["id": 1])                       // Person?
+Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
+Person.fetchOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column name.
 ```
 
 
