@@ -121,28 +121,4 @@ class DeleteByKeyTests: GRDBTestCase {
             }
         }
     }
-    
-    func testNonUniqueIndex() {
-        assertNoError {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.inDatabase { db in
-                do {
-                    try Person.deleteOne(db, key: ["name": "Arthur"])
-                    XCTFail()
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 21) // SQLITE_MISUSE
-                    XCTAssertEqual(error.message!, "table persons has no unique index on column(s) name")
-                    XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) name")
-                }
-                do {
-                    try Person.deleteAll(db, keys: [["name": "Arthur"], ["name": "Barbara"]])
-                    XCTFail()
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.code, 21) // SQLITE_MISUSE
-                    XCTAssertEqual(error.message!, "table persons has no unique index on column(s) name")
-                    XCTAssertEqual(error.description, "SQLite error 21: table persons has no unique index on column(s) name")
-                }
-            }
-        }
-    }
 }

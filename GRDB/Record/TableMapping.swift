@@ -41,7 +41,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: A sequence of records.
     @warn_unused_result
     public static func fetch<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> DatabaseSequence<Self> {
-        guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
+        guard let statement = try! makeFetchByPrimaryKeyStatement(db, keys: keys) else {
             return DatabaseSequence.emptySequence(db)
         }
         return fetch(statement)
@@ -59,7 +59,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> [Self] {
-        guard let statement = fetchByPrimaryKeyStatement(db, keys: keys) else {
+        guard let statement = try! makeFetchByPrimaryKeyStatement(db, keys: keys) else {
             return []
         }
         return fetchAll(statement)
@@ -78,17 +78,17 @@ extension RowConvertible where Self: TableMapping {
         guard let key = key else {
             return nil
         }
-        return fetchOne(fetchByPrimaryKeyStatement(db, keys: [key])!)
+        return try! fetchOne(makeFetchByPrimaryKeyStatement(db, keys: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE id IN (?,?,?)"
     //
     // Returns nil if values is empty.
     @warn_unused_result
-    private static func fetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> SelectStatement? {
+    private static func makeFetchByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) throws -> SelectStatement? {
         // Fail early if database table does not exist.
         let databaseTableName = self.databaseTableName()
-        let primaryKey = try! db.primaryKey(databaseTableName)
+        let primaryKey = try db.primaryKey(databaseTableName)
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey?.columns ?? []
@@ -103,14 +103,14 @@ extension RowConvertible where Self: TableMapping {
         case 1:
             // SELECT * FROM table WHERE id = ?
             let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
-            let statement = try! db.selectStatement(sql)
+            let statement = try db.selectStatement(sql)
             statement.arguments = StatementArguments(keys)
             return statement
         case let count:
             // SELECT * FROM table WHERE id IN (?,?,?)
             let keysSQL = databaseQuestionMarks(count: count)
             let sql = "SELECT * FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) IN (\(keysSQL))"
-            let statement = try! db.selectStatement(sql)
+            let statement = try db.selectStatement(sql)
             statement.arguments = StatementArguments(keys)
             return statement
         }
@@ -130,7 +130,7 @@ extension TableMapping {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
     public static func deleteAll<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) throws -> Int {
-        guard let statement = deleteByPrimaryKeyStatement(db, keys: keys) else {
+        guard let statement = try! makeDeleteByPrimaryKeyStatement(db, keys: keys) else {
             return 0
         }
         try statement.execute()
@@ -156,10 +156,10 @@ extension TableMapping {
     //
     // Returns nil if keys is empty.
     @warn_unused_result
-    private static func deleteByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) -> UpdateStatement? {
+    private static func makeDeleteByPrimaryKeyStatement<Sequence: SequenceType where Sequence.Generator.Element: DatabaseValueConvertible>(db: Database, keys: Sequence) throws -> UpdateStatement? {
         // Fail early if database table does not exist.
         let databaseTableName = self.databaseTableName()
-        let primaryKey = try! db.primaryKey(databaseTableName)
+        let primaryKey = try db.primaryKey(databaseTableName)
         
         // Fail early if database table has not one column in its primary key
         let columns = primaryKey?.columns ?? []
@@ -174,14 +174,14 @@ extension TableMapping {
         case 1:
             // DELETE FROM table WHERE id = ?
             let sql = "DELETE FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) = ?"
-            let statement = try! db.updateStatement(sql)
+            let statement = try db.updateStatement(sql)
             statement.arguments = StatementArguments(keys)
             return statement
         case let count:
             // DELETE FROM table WHERE id IN (?,?,?)
             let keysSQL = databaseQuestionMarks(count: count)
             let sql = "DELETE FROM \(databaseTableName.quotedDatabaseIdentifier) WHERE \(column.quotedDatabaseIdentifier) IN (\(keysSQL))"
-            let statement = try! db.updateStatement(sql)
+            let statement = try db.updateStatement(sql)
             statement.arguments = StatementArguments(keys)
             return statement
         }
@@ -205,7 +205,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: A sequence of records.
     @warn_unused_result
     public static func fetch(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> DatabaseSequence<Self> {
-        guard let statement = try! fetchByKeyStatement(db, keys: keys) else {
+        guard let statement = try! makeFetchByKeyStatement(db, keys: keys) else {
             return DatabaseSequence.emptySequence(db)
         }
         return fetch(statement)
@@ -223,7 +223,7 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An array of records.
     @warn_unused_result
     public static func fetchAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) -> [Self] {
-        guard let statement = try! fetchByKeyStatement(db, keys: keys) else {
+        guard let statement = try! makeFetchByKeyStatement(db, keys: keys) else {
             return []
         }
         return fetchAll(statement)
@@ -239,14 +239,17 @@ extension RowConvertible where Self: TableMapping {
     /// - returns: An optional record.
     @warn_unused_result
     public static func fetchOne(db: Database, key: [String: DatabaseValueConvertible?]) -> Self? {
-        return try! fetchOne(fetchByKeyStatement(db, keys: [key])!)
+        return try! fetchOne(makeFetchByKeyStatement(db, keys: [key])!)
     }
     
     // Returns "SELECT * FROM table WHERE (a = ? AND b = ?) OR (a = ? AND b = ?) ...
     //
     // Returns nil if keys is empty.
+    //
+    // If there is no unique index on the columns, the method raises a fatal
+    // (unless fatalErrorOnMissingUniqueIndex is false, for testability).
     @warn_unused_result
-    private static func fetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> SelectStatement? {
+    static func makeFetchByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]], fatalErrorOnMissingUniqueIndex: Bool = true) throws -> SelectStatement? {
         // Avoid performing useless SELECT
         guard keys.count > 0 else {
             return nil
@@ -259,7 +262,11 @@ extension RowConvertible where Self: TableMapping {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             let columns = dictionary.keys
             guard try db.hasUniqueIndex(on: databaseTableName, columns: columns) else {
-                throw DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joinWithSeparator(", "))")
+                if fatalErrorOnMissingUniqueIndex {
+                    fatalError("table \(databaseTableName) has no unique index on column(s) \(columns.joinWithSeparator(", "))")
+                } else {
+                    throw DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joinWithSeparator(", "))")
+                }
             }
             arguments.appendContentsOf(dictionary.values)
             whereClauses.append("(" + (columns.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joinWithSeparator(" AND ") + ")")
@@ -287,7 +294,7 @@ extension TableMapping {
     ///     - keys: An array of key dictionaries.
     /// - returns: The number of deleted rows
     public static func deleteAll(db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
-        guard let statement = try deleteByKeyStatement(db, keys: keys) else {
+        guard let statement = try makeDeleteByKeyStatement(db, keys: keys) else {
             return 0
         }
         try statement.execute()
@@ -310,9 +317,10 @@ extension TableMapping {
     //
     // Returns nil if keys is empty.
     //
-    // - throws SQLITE_MISUSE if table has no unique index of the requested columns
+    // If there is no unique index on the columns, the method raises a fatal
+    // (unless fatalErrorOnMissingUniqueIndex is false, for testability).
     @warn_unused_result
-    private static func deleteByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> UpdateStatement? {
+    static func makeDeleteByKeyStatement(db: Database, keys: [[String: DatabaseValueConvertible?]], fatalErrorOnMissingUniqueIndex: Bool = true) throws -> UpdateStatement? {
         // Avoid performing useless SELECT
         guard keys.count > 0 else {
             return nil
@@ -325,7 +333,11 @@ extension TableMapping {
             GRDBPrecondition(dictionary.count > 0, "Invalid empty key dictionary")
             let columns = dictionary.keys
             guard try db.hasUniqueIndex(on: databaseTableName, columns: columns) else {
-                throw DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joinWithSeparator(", "))")
+                if fatalErrorOnMissingUniqueIndex {
+                    fatalError("table \(databaseTableName) has no unique index on column(s) \(columns.joinWithSeparator(", "))")
+                } else {
+                    throw DatabaseError(code: SQLITE_MISUSE, message: "table \(databaseTableName) has no unique index on column(s) \(columns.joinWithSeparator(", "))")
+                }
             }
             arguments.appendContentsOf(dictionary.values)
             whereClauses.append("(" + (columns.map { "\($0.quotedDatabaseIdentifier) = ?" } as [String]).joinWithSeparator(" AND ") + ")")
