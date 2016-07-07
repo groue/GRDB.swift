@@ -2394,7 +2394,7 @@ Once you have a request, you can fetch the records at the origin of the request:
 
 ```swift
 // Some request based on `Person`
-let request = Person.filter(...)... // FetchRequest<Person>
+let request = Person.filter(...)... // QueryInterfaceRequest<Person>
 
 // Fetch persons:
 request.fetch(db)    // DatabaseSequence<Person>
