@@ -53,7 +53,7 @@
 //    
 //    func databaseWillCommit() throws {
 //        do {
-//            let fm = FileManager.default()
+//            let fm = FileManager.default
 //            for (_, managedData) in pendingManagedDatas.sort({ $0.0 < $1.0 }) {
 //                if let forbiddenData = forbiddenData, let data = managedData.data where forbiddenData == data {
 //                    throw NSError(domain: "ManagedDataController", code: 0, userInfo: nil)
@@ -106,7 +106,7 @@
 //    
 //    func databaseDidRollback(_ db: Database) {
 //        if restoreFileSystemAfterRollback {
-//            let fm = FileManager.default()
+//            let fm = FileManager.default
 //            
 //            for managedData in storedManagedDatas {
 //                if fm.fileExistsAtPath(storageDataPath(managedData)) {
@@ -141,7 +141,7 @@
 //        guard managedData.rowID != nil else {
 //            return nil
 //        }
-//        let fm = FileManager.default()
+//        let fm = FileManager.default
 //        if fm.fileExistsAtPath(storageDataPath(managedData)) {
 //            return Data(contentsOfFile: storageDataPath(managedData))!
 //        } else {
@@ -168,7 +168,7 @@
 //    }
 //    
 //    private func setupDirectories() {
-//        let fm = FileManager.default()
+//        let fm = FileManager.default
 //        try! fm.createDirectoryAtPath(path, withIntermediateDirectories: true, attributes: nil)
 //        try! fm.createDirectoryAtPath(temporaryDirectoryPath, withIntermediateDirectories: true, attributes: nil)
 //    }

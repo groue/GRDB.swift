@@ -9,9 +9,9 @@ private let insertedRowCount = 20_000
 class InsertRecordTests: XCTestCase {
     
     func testGRDB() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
-        _ = try? FileManager.default().removeItem(atPath: databasePath)
+        _ = try? FileManager.default.removeItem(atPath: databasePath)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -19,11 +19,11 @@ class InsertRecordTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! FileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default.removeItem(atPath: databasePath)
         }
         
         measureBlock {
-            _ = try? FileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
@@ -40,7 +40,7 @@ class InsertRecordTests: XCTestCase {
     }
     
     func testCoreData() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         let modelURL = NSBundle(for: self.dynamicType).URLForResource("PerformanceModel", withExtension: "momd")!
         let mom = NSManagedObjectModel(contentsOfURL: modelURL)!
@@ -66,16 +66,16 @@ class InsertRecordTests: XCTestCase {
             }
             try! moc.save()
             try! psc.removePersistentStore(store)
-            try! FileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default.removeItem(atPath: databasePath)
         }
     }
     
     func testRealm() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).realm"
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).realm"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         
         measureBlock {
-            _ = try? FileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default.removeItem(atPath: databasePath)
             let realm = try! Realm(path: databasePath)
             
             try! realm.write {

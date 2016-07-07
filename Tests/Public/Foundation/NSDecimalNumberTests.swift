@@ -40,7 +40,7 @@ class NSDecimalNumberTests: GRDBTestCase {
         XCTAssertEqual(storage(NSDecimalNumber(string: "9223372036854775806")), .integer)
         
         // 0
-        XCTAssertEqual(storage(NSDecimalNumber.zero()), .integer)
+        XCTAssertEqual(storage(NSDecimalNumber.zero), .integer)
         
         // Int64.min + 1
         XCTAssertEqual(storage(NSDecimalNumber(string: "-9223372036854775807")), .integer)

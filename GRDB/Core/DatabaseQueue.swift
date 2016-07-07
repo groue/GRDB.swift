@@ -48,7 +48,7 @@ public final class DatabaseQueue {
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
-        NotificationCenter.default().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     #endif
     
@@ -137,7 +137,7 @@ public final class DatabaseQueue {
     ///   enters background.
     public func setupMemoryManagement(in application: UIApplication) {
         self.application = application
-        let center = NotificationCenter.default()
+        let center = NotificationCenter.default
         center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)), name: .UIApplicationDidReceiveMemoryWarning, object: nil)
         center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)), name: .UIApplicationDidEnterBackground, object: nil)
     }

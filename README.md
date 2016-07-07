@@ -1,7 +1,7 @@
 GRDB.swift [![Swift](https://img.shields.io/badge/swift-3-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE)
 ==========
 
-GRDB.swift is an SQLite toolkit for Swift 3.0 Preview 1 (June 13, 2016).
+GRDB.swift is an SQLite toolkit for Swift 3.0 Preview 1 (June 27, 2016).
 
 It ships with a **low-level SQLite API**, and high-level tools that help dealing with databases:
 
@@ -29,7 +29,7 @@ The Swift3 branch has no version. It is currently synced with v0.73.0 of the Swi
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
-**Requirements**: iOS 8.0+ / OSX 10.9+, Xcode 8.0 beta (8S128d)
+**Requirements**: iOS 8.0+ / OSX 10.9+, Version 8.0 beta 2 (8S162m)
 
 
 ### Usage
@@ -3379,18 +3379,18 @@ FAQ
     ```swift
     var configuration = Configuration()
     configuration.readonly = true
-    let dbPath = NSBundle.main().pathForResource("db", ofType: "sqlite")!
+    let dbPath = Bundle.main.pathForResource("db", ofType: "sqlite")!
     let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
     ```
     
     If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the Documents folder. Only then, open a [connection](#database-connections):
     
     ```swift
-    let fm = NSFileManager.default()
+    let fm = FileManager.default
     let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
     let dbPath = (documentsPath as NSString).appendingPathComponent("db.sqlite")
     if !fm.fileExists(atPath: dbPath) {
-        let dbResourcePath = NSBundle.main().pathForResource("db", ofType: "sqlite")!
+        let dbResourcePath = Bundle.main.pathForResource("db", ofType: "sqlite")!
         try fm.copyItem(atPath: dbResourcePath, toPath: dbPath)
     }
     let dbQueue = try DatabaseQueue(path: dbPath)

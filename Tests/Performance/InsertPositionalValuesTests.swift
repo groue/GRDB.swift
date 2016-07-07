@@ -8,7 +8,7 @@ private let insertedRowCount = 20_000
 class InsertPositionalValuesTests: XCTestCase {
     
     func testSQLite() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -17,11 +17,11 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! FileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default.removeItem(atPath: databasePath)
         }
         
         measureBlock {
-            _ = try? FileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             var connection: OpaquePointer = nil
             sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
@@ -54,7 +54,7 @@ class InsertPositionalValuesTests: XCTestCase {
     }
     
     func testFMDB() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -63,10 +63,10 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! FileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default.removeItem(atPath: databasePath)
         }
         measureBlock {
-            _ = try? FileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             let dbQueue = FMDatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
@@ -83,7 +83,7 @@ class InsertPositionalValuesTests: XCTestCase {
     }
     
     func testGRDB() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -92,10 +92,10 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! FileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default.removeItem(atPath: databasePath)
         }
         measureBlock {
-            _ = try? FileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
@@ -113,7 +113,7 @@ class InsertPositionalValuesTests: XCTestCase {
     }
     
     func testSQLiteSwift() {
-        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo().globallyUniqueString).sqlite"
+        let databaseFileName = "GRDBPerformanceTests-\(NSProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
@@ -122,10 +122,10 @@ class InsertPositionalValuesTests: XCTestCase {
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
                 XCTAssertEqual(Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
-            try! FileManager.default().removeItem(atPath: databasePath)
+            try! FileManager.default.removeItem(atPath: databasePath)
         }
         measureBlock {
-            _ = try? FileManager.default().removeItem(atPath: databasePath)
+            _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             let db = try! Connection(databasePath)
             try! db.run(itemsTable.create { t in

@@ -1,6 +1,6 @@
 import Foundation
 
-private let integerRoundingBehavior = NSDecimalNumberHandler(roundingMode: .roundPlain, scale: 0, raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: false)
+private let integerRoundingBehavior = NSDecimalNumberHandler(roundingMode: .plain, scale: 0, raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: false)
 
 /// NSNumber adopts DatabaseValueConvertible
 extension NSNumber: DatabaseValueConvertible {

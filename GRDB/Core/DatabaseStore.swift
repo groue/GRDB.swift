@@ -8,7 +8,7 @@ class DatabaseStore {
     private let source: DispatchSourceFileSystemObject?
     private let queue: DispatchQueue?
     
-    init(path: String, attributes: [String: AnyObject]?) throws {
+    init(path: String, attributes: [FileAttributeKey: AnyObject]?) throws {
         self.path = path
         
         guard let attributes = attributes else {
@@ -33,7 +33,7 @@ class DatabaseStore {
         let directoryDescriptor = open(directoryPath, O_EVTONLY)
         guard directoryDescriptor != -1 else {
             // Let FileManager throw a nice NSError
-            try FileManager.default().contentsOfDirectory(atPath: directoryPath)
+            try FileManager.default.contentsOfDirectory(atPath: directoryPath)
             // Come on, FileManager... OK just throw something that is somewhat relevant
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileReadUnknownError, userInfo: nil)
         }
@@ -63,8 +63,8 @@ class DatabaseStore {
         }
     }
     
-    private static func setFileAttributes(directoryPath: String, databaseFileName: String, attributes: [String: AnyObject]) {
-        let fm = FileManager.default()
+    private static func setFileAttributes(directoryPath: String, databaseFileName: String, attributes: [FileAttributeKey: AnyObject]) {
+        let fm = FileManager.default
         // TODO: handle symbolic links:
         //
         // According to https://www.sqlite.org/changes.html

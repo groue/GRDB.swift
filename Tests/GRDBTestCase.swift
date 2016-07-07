@@ -22,7 +22,7 @@ class GRDBTestCase: XCTestCase {
     
     // Builds a database queue based on dbConfiguration
     func makeDatabaseQueue(filename: String = "db.sqlite") throws -> DatabaseQueue {
-        try FileManager.default().createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+        try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
         let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
         let dbQueue = try DatabaseQueue(path: dbPath, configuration: dbConfiguration)
         try setup(dbQueue)
@@ -31,7 +31,7 @@ class GRDBTestCase: XCTestCase {
     
     // Builds a database pool based on dbConfiguration
     func makeDatabasePool(filename: String = "db.sqlite") throws -> DatabasePool {
-        try FileManager.default().createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
+        try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
         let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename)
         let dbPool = try DatabasePool(path: dbPath, configuration: dbConfiguration)
         try setup(dbPool)
@@ -55,9 +55,9 @@ class GRDBTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        let dbPoolDirectoryName = "GRDBTestCase-\(ProcessInfo.processInfo().globallyUniqueString)"
+        let dbPoolDirectoryName = "GRDBTestCase-\(ProcessInfo.processInfo.globallyUniqueString)"
         dbDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(dbPoolDirectoryName)
-        do { try FileManager.default().removeItem(atPath: dbDirectoryPath) } catch { }
+        do { try FileManager.default.removeItem(atPath: dbDirectoryPath) } catch { }
         
         dbConfiguration = Configuration()
         
@@ -107,7 +107,7 @@ class GRDBTestCase: XCTestCase {
     
     override func tearDown() {
         super.tearDown()
-        do { try FileManager.default().removeItem(atPath: dbDirectoryPath) } catch { }
+        do { try FileManager.default.removeItem(atPath: dbDirectoryPath) } catch { }
     }
     
     func assertNoError(file: StaticString = #file, line: UInt = #line, _ test: @noescape(Void) throws -> Void) {
