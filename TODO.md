@@ -1,4 +1,3 @@
-- [ ] Improve [GreenDAO](http://greenrobot.org/greendao/) compatibility: delete by primary key, as asked in [#56](https://github.com/groue/GRDB.swift/issues/56): `noteDao.deleteByKey(id)`
 - [ ] GRDBCipher: remove limitations on iOS or OS X versions
 - [ ] FetchedRecordsController: take inspiration from https://github.com/jflinter/Dwifft
 - [ ] File protection: Read https://github.com/ccgus/fmdb/issues/262 and understand https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
