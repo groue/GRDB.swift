@@ -37,8 +37,8 @@ class Person : Record {
     var id: Int64?
     var name: String?
     
-    func updateFromJSON(json: NSDictionary) {
-        id = (json["id"] as? NSNumber)?.longLongValue
+    func update(from json: NSDictionary) {
+        id = (json["id"] as? NSNumber)?.int64Value
         name = json["name"] as? String
     }
     
@@ -65,13 +65,13 @@ class Person : Record {
 
 
 // Synchronizes the persons table with a JSON payload
-func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) throws {
+func synchronizePersons(with jsonString: String, in db: Database) throws {
     let jsonData = jsonString.data(using: .utf8)!
-    let json = try NSJSONSerialization.JSONObjectWithData(jsonData, options: []) as! NSDictionary
+    let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as! NSDictionary
     
     // A support function that extracts an ID from a JSON person.
-    func jsonPersonId(jsonPerson: NSDictionary) -> Int64 {
-        return (jsonPerson["id"] as! NSNumber).longLongValue
+    func jsonPersonId(_ jsonPerson: NSDictionary) -> Int64 {
+        return (jsonPerson["id"] as! NSNumber).int64Value
     }
     
     // Sort JSON persons by id:
@@ -100,11 +100,11 @@ func synchronizePersonsWithJSON(jsonString: String, inDatabase db: Database) thr
         case .right(let jsonPerson):
             // Insert JSON person without matching database person:
             let row = Row(jsonPerson)! // Granted JSON keys are database columns
-            let person = Person(row)
+            let person = Person(row: row)
             try person.insert(db)
         case .common(let person, let jsonPerson):
             // Update database person with its JSON counterpart:
-            person.updateFromJSON(jsonPerson)
+            person.update(from: jsonPerson)
             if person.hasPersistentChangedValues {
                 try person.update(db)
             }
@@ -126,7 +126,7 @@ do {
         // INSERT INTO "persons" ("id","name") VALUES (1,'Arthur')
         // INSERT INTO "persons" ("id","name") VALUES (2,'Barbara')
         // INSERT INTO "persons" ("id","name") VALUES (3,'Craig')
-        try synchronizePersonsWithJSON(jsonString, inDatabase: db)
+        try synchronizePersons(with: jsonString, in: db)
         return .commit
     }
 }
@@ -145,7 +145,7 @@ do {
         // DELETE FROM "persons" WHERE "id"=1
         // UPDATE "persons" SET "name"='Barbie' WHERE "id"=2
         // INSERT INTO "persons" ("id","name") VALUES (4,'Daniel')
-        try synchronizePersonsWithJSON(jsonString, inDatabase: db)
+        try synchronizePersons(with: jsonString, in: db)
         return .commit
     }
 }

@@ -26,7 +26,7 @@ public class UserDefaults {
         return defaults
     }
     
-    private init(_ db: Database) {
+    private init(db: Database) {
         self.db = db
     }
     
@@ -39,30 +39,30 @@ public class UserDefaults {
     
     // MARK: - Setting Default Values
     
-    public func removeObjectForKey(key: String) {
+    public func removeObject(forKey key: String) {
         createTableIfNeeded()
         try! db.execute("DELETE FROM \(UserDefaultsItemTableName) WHERE key = ?", arguments: [key])
     }
     
-    public func setBool(value: Bool, forKey key: String) {
-        setObject(NSNumber(bool: value), forKey: key)
+    public func setBool(_ value: Bool, forKey key: String) {
+        setObject(NSNumber(value: value), forKey: key)
     }
     
-    public func setDouble(value: Double, forKey key: String) {
-        setObject(NSNumber(double: value), forKey: key)
+    public func setDouble(_ value: Double, forKey key: String) {
+        setObject(NSNumber(value: value), forKey: key)
     }
     
-    public func setFloat(value: Float, forKey key: String) {
-        setObject(NSNumber(float: value), forKey: key)
+    public func setFloat(_ value: Float, forKey key: String) {
+        setObject(NSNumber(value: value), forKey: key)
     }
     
-    public func setInteger(value: Int, forKey key: String) {
-        setObject(NSNumber(integer: value), forKey: key)
+    public func setInteger(_ value: Int, forKey key: String) {
+        setObject(NSNumber(value: value), forKey: key)
     }
     
-    public func setObject(value: AnyObject?, forKey key: String) {
+    public func setObject(_ value: AnyObject?, forKey key: String) {
         guard let value = value else {
-            removeObjectForKey(key)
+            removeObject(forKey: key)
             return
         }
         
@@ -75,7 +75,7 @@ public class UserDefaults {
         }
     }
     
-    public func setURL(value: NSURL?, forKey key: String) {
+    public func setURL(_ value: NSURL?, forKey key: String) {
         setObject(value, forKey: key)
     }
     
@@ -91,49 +91,49 @@ public class UserDefaults {
         return dic
     }
     
-    public func arrayForKey(key: String) -> [AnyObject]? {
-        return objectForKey(key) as? [AnyObject]
+    public func array(forKey key: String) -> [AnyObject]? {
+        return object(forKey: key) as? [AnyObject]
     }
     
-    public func boolForKey(key: String) -> Bool {
-        return (objectForKey(key) as? NSNumber)?.boolValue ?? false
+    public func bool(forKey key: String) -> Bool {
+        return (object(forKey: key) as? NSNumber)?.boolValue ?? false
     }
     
-    public func dataForKey(key: String) -> Data? {
-        return objectForKey(key) as? Data
+    public func data(forKey key: String) -> Data? {
+        return object(forKey: key) as? Data
     }
     
-    public func dictionaryForKey(key: String) -> [String: AnyObject]? {
-        return objectForKey(key) as? [String: AnyObject]
+    public func dictionary(forKey key: String) -> [String: AnyObject]? {
+        return object(forKey: key) as? [String: AnyObject]
     }
     
-    public func doubleForKey(key: String) -> Double {
-        return (objectForKey(key) as? NSNumber)?.doubleValue ?? 0.0
+    public func double(forKey key: String) -> Double {
+        return (object(forKey: key) as? NSNumber)?.doubleValue ?? 0.0
     }
     
-    public func floatForKey(key: String) -> Float {
-        return (objectForKey(key) as? NSNumber)?.floatValue ?? 0.0
+    public func float(forKey key: String) -> Float {
+        return (object(forKey: key) as? NSNumber)?.floatValue ?? 0.0
     }
     
-    public func integerForKey(key: String) -> Int {
-        return (objectForKey(key) as? NSNumber)?.integerValue ?? 0
+    public func integer(forKey key: String) -> Int {
+        return (object(forKey: key) as? NSNumber)?.intValue ?? 0
     }
     
-    public func objectForKey(key: String) -> AnyObject? {
+    public func object(forKey key: String) -> AnyObject? {
         createTableIfNeeded()
         return UserDefaultsItem.fetchOne(db, key: key)?.value
     }
     
-    public func stringArrayForKey(key: String) -> [String]? {
-        return objectForKey(key) as? [String]
+    public func stringArray(forKey key: String) -> [String]? {
+        return object(forKey: key) as? [String]
     }
     
-    public func stringForKey(key: String) -> String? {
-        return objectForKey(key) as? String
+    public func string(forKey key: String) -> String? {
+        return object(forKey: key) as? String
     }
     
-    public func URLForKey(key: String) -> NSURL? {
-        return objectForKey(key) as? NSURL
+    public func URL(forKey key: String) -> NSURL? {
+        return object(forKey: key) as? NSURL
     }
 }
 
@@ -145,7 +145,7 @@ private struct UserDefaultsItem {
 extension UserDefaultsItem: RowConvertible {
     init(row: Row) {
         let data = row.dataNoCopy(named: "value")!
-        let value = try! NSPropertyListSerialization.propertyListWithData(data, options: .Immutable, format: nil)
+        let value = try! PropertyListSerialization.propertyList(from: data, options: [], format: nil)
         self.key = row.value(named: "key")
         self.value = value
     }
@@ -156,7 +156,7 @@ extension UserDefaultsItem: Persistable {
         return UserDefaultsItemTableName
     }
     var persistentDictionary: [String: DatabaseValueConvertible?] {
-        let data = try! NSPropertyListSerialization.dataWithPropertyList(value, format: .BinaryFormat_v1_0, options: 0)
+        let data = try! PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
         return ["key": key, "value": data]
     }
 }
@@ -170,7 +170,7 @@ let dbQueue = DatabaseQueue()
 dbQueue.inDatabase { db in
     let defaults = UserDefaults.inDatabase(db)
     
-    defaults.integerForKey("bar") // 0
+    defaults.integer(forKey: "bar") // 0
     defaults.setInteger(12, forKey: "bar")
-    defaults.integerForKey("bar") // 12
+    defaults.integer(forKey: "bar") // 12
 }
