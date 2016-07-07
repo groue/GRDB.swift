@@ -25,7 +25,7 @@ You should give it a try.
 
 ---
 
-The Swift3 branch has no version. It is currently synced with v0.73.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
+The Swift3 branch has no version. It is currently synced with v0.74.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
@@ -280,7 +280,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -360,7 +360,7 @@ let dbPool = try DatabasePool(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -1442,10 +1442,10 @@ for person in Person.fetch(db, sql, adapter: adapter) {
 
 For more information about row adapters, see the documentation of:
 
-- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
-- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/ColumnMapping.html): a row adapter that renames row columns
-- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
-- [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Structs/VariantRowAdapter.html): the row adapter that groups several adapters together to define named variants
+- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
+- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/ColumnMapping.html): a row adapter that renames row columns
+- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
+- [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/VariantRowAdapter.html): the row adapter that groups several adapters together to define named variants
 
 
 ## Raw SQLite Pointers
@@ -1710,23 +1710,35 @@ Adopting types can be fetched without SQL, using the [query interface](#the-quer
 let paris = PointOfInterest.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
-You can also fetch records according to their primary key:
+You can also fetch and delete records according to their primary key:
 
 ```swift
-// SELECT * FROM persons WHERE id = 1
+// Fetch:
 Person.fetchOne(db, key: 1)              // Person?
-
-// SELECT * FROM persons WHERE id IN (1, 2, 3)
 Person.fetchAll(db, keys: [1, 2, 3])     // [Person]
 
-// SELECT * FROM persons WHERE isoCode = 'FR'
 Country.fetchOne(db, key: "FR")          // Country?
-
-// SELECT * FROM countries WHERE isoCode IN ('FR', 'US')
 Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 
-// SELECT * FROM citizenships WHERE personID = 1 AND countryISOCode = 'FR'
+// Use a dictionary for composite primary keys:
 Citizenship.fetchOne(db, key: ["personID": 1, "countryISOCode": "FR"]) // Citizenship?
+
+// Delete records:
+try Person.deleteOne(db, key: 1)
+try Country.deleteAll(db, keys: ["FR", "US"])
+```
+
+When given dictionaries, `fetchOne`, `deleteOne`, `fetchAll` and `deleteAll` accept any set of columns that uniquely identify rows. These are the primary key columns, or any columns involved in a unique index:
+
+```swift
+// CREATE TABLE persons (
+//   id INTEGER PRIMARY KEY, -- can fetch and delete by id
+//   email TEXT UNIQUE,      -- can fetch and delete by email
+//   name TEXT               -- nope
+// )
+Person.fetchOne(db, key: ["id": 1])                       // Person?
+Person.fetchOne(db, key: ["email": "arthur@example.com"]) // Person?
+Person.fetchOne(db, key: ["name": "Arthur"]) // fatal error: table persons has no unique index on column name.
 ```
 
 
@@ -2957,9 +2969,9 @@ When you create a controller, you can give it a serial dispatch queue. The contr
 
 **GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net).**
 
-In the [installation](#installation) phase, use the GRDBCipher framework instead of GRDB. CocoaPods is not supported.
+In the [installation](#installation) phase, don't use the GRDB framework, and use the GRDBCipher framework instead. CocoaPods is not supported. The manual installation needs you to download the embedded copy of SQLCipher with the `git submodule update --init` command.
 
-Set the `passphrase` property of the database configuration before opening your [database connection](#database-connections):
+**You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
 ```swift
 import GRDBCipher
@@ -2969,10 +2981,32 @@ configuration.passphrase = "secret"
 let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
 ```
 
-You can change the passphrase of an encrypted database:
+**You can change the passphrase** of an already encrypted database:
 
 ```swift
 try dbQueue.changePassphrase("newSecret")
+```
+
+Providing a passphrase won't encrypt a clear-text database that already exists, though. SQLCipher can't do that, and you will get an error instead: `SQLite error 26: file is encrypted or is not a database`.
+
+**To encrypt an existing clear-text database**, you have to create a new and empty encrypted database, and copy the content of the clear-text database in it. The technique to do that is [documented](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) by SQLCipher. With GRDB, it gives:
+
+```swift
+// The clear-text database
+let clearDBQueue = try DatabaseQueue(path: "/path/to/clear.db")
+
+// The encrypted database, at some distinct location:
+var configuration = Configuration()
+configuration.passphrase = "secret"
+let encryptedDBQueue = try DatabaseQueue(path: "/path/to/encrypted.db", configuration: config)
+
+try clearDBQueue.inDatabase { db in
+    try db.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
+    try db.execute("SELECT sqlcipher_export('encrypted')")
+    try db.execute("DETACH DATABASE encrypted")
+}
+
+// Now the copy is done, and the clear-text database can be deleted.
 ```
 
 
@@ -3306,7 +3340,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.73.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 

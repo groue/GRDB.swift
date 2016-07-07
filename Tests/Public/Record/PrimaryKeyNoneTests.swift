@@ -10,16 +10,19 @@ import XCTest
 // Item has no primary key.
 private class Item : Record {
     var name: String?
+    var email: String?
     
-    init(name: String? = nil) {
+    init(name: String? = nil, email: String? = nil) {
         self.name = name
+        self.email = email
         super.init()
     }
     
     static func setup(inDatabase db: Database) throws {
         try db.execute(
             "CREATE TABLE items (" +
-                "name NOT NULL" +
+                "name TEXT," +
+                "email TEXT UNIQUE" +
             ")")
     }
     
@@ -31,11 +34,12 @@ private class Item : Record {
     
     required init(row: Row) {
         name = row.value(named: "name")
+        email = row.value(named: "email")
         super.init(row: row)
     }
     
     override var persistentDictionary: [String: DatabaseValueConvertible?] {
-        return ["name": name]
+        return ["name": name, "email": email]
     }
 }
 
@@ -84,15 +88,15 @@ class PrimaryKeyNoneTests: GRDBTestCase {
     
     // MARK: - Select
     
-    func testSelectWithKey() {
+    func testFetchOneWithKey() {
         assertNoError {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let record = Item(name: "Table")
+                let record = Item(email: "item@example.com")
                 try record.insert(db)
                 
-                let fetchedRecord = Item.fetchOne(db, key: ["name": record.name])!
-                XCTAssertTrue(fetchedRecord.name == record.name)
+                let fetchedRecord = Item.fetchOne(db, key: ["email": record.email])!
+                XCTAssertTrue(fetchedRecord.email == record.email)
             }
         }
     }

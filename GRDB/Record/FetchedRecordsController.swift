@@ -548,14 +548,14 @@ private class FetchedChangesController<Record: RowConvertible, T> {
                     tableViewChanges = changes
                 } else {
                     // Look for a row difference
-                    guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).any({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                    guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
                         return
                     }
                     tableViewChanges = nil
                 }
             #else
                 // Look for a row difference
-                guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).any({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
+                guard fetchedItems.count != strongObserver.items.count || zip(fetchedItems, strongObserver.items).contains({ (fetchedItem, item) in fetchedItem.row != item.row }) else {
                     return
                 }
             #endif

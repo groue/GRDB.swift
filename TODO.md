@@ -19,6 +19,11 @@
 - [ ] In-memory DatabasePool (https://www.sqlite.org/inmemorydb.html). Unfortunately, a shared cache is not enough. Since SQLite does not provide WAL mode for in-memory databases, it's easy to get "database is locked" errors. A WAL database on a RAM disk looks out of reach. Possible solution: have one writer that is exclusive with the readers.
 
 
+Not sure
+
+- [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
+
+
 Require changes in the Swift language:
 
 - [ ] Specific and optimized Optional<StatementColumnConvertible>.fetch... methods when http://openradar.appspot.com/22852669 is fixed.
@@ -39,4 +44,4 @@ Reading list:
 - List of documentation keywords: https://swift.org/documentation/api-design-guidelines.html#special-instructions
 - https://www.zetetic.net/sqlcipher/
 - https://sqlite.org/sharedcache.html
-- Amazing tip from Xcode labs: add a EXCLUDED_SOURCE_FILE_NAMES build setting to conditionally exclude sources for different configuration: https://twitter.com/zats/status/743862987602026496
+- Amazing tip from Xcode labs: add a EXCLUDED_SOURCE_FILE_NAMES build setting to conditionally exclude sources for different configuration: https://twitter.com/zats/status/74386298602026496

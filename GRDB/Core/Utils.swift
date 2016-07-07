@@ -86,15 +86,8 @@ extension Sequence where Iterator.Element: Equatable {
 }
 
 extension Sequence {
-    /// Return true if one element matches the predicate
-    func any(_ predicate: (Iterator.Element) -> Bool) -> Bool {
-        for element in self where predicate(element) { return true }
-        return false
-    }
-    
-    func all(_ predicate: (Iterator.Element) -> Bool) -> Bool {
-        for element in self where !predicate(element) { return false }
-        return true
+    func all(predicate: @noescape (Self.Iterator.Element) throws -> Bool) rethrows -> Bool {
+        return try !contains { try !predicate($0) }
     }
 }
 
