@@ -38,7 +38,7 @@ public class Statement {
     }
     
     private init(database: Database, sql: String, observer: StatementCompilationObserver) throws {
-        DatabaseScheduler.preconditionValidQueue(database)
+        SchedulingWatchdog.preconditionValidQueue(database)
         
         observer.start()
         defer { observer.stop() }
@@ -248,7 +248,7 @@ public struct DatabaseSequence<Element>: SequenceType {
     private init(statement: SelectStatement, element: () -> Element) {
         self.generateImpl = {
             // Check that generator is built on a valid queue.
-            DatabaseScheduler.preconditionValidQueue(statement.database, "Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
+            SchedulingWatchdog.preconditionValidQueue(statement.database, "Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
             
             // Support multiple sequence iterations
             try statement.reset()
@@ -275,7 +275,7 @@ public struct DatabaseSequence<Element>: SequenceType {
         // to be used on the database queue.
         return DatabaseSequence() {
             // Check that generator is built on a valid queue.
-            DatabaseScheduler.preconditionValidQueue(database, "Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
+            SchedulingWatchdog.preconditionValidQueue(database, "Database was not used on the correct thread. Iterate sequences in a protected dispatch queue, or consider using an array returned by fetchAll() instead.")
             return DatabaseGenerator()
         }
     }
@@ -367,7 +367,7 @@ public final class UpdateStatement : Statement {
     /// - parameter arguments: Statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments arguments: StatementArguments? = nil) throws {
-        DatabaseScheduler.preconditionValidQueue(database)
+        SchedulingWatchdog.preconditionValidQueue(database)
         
         // Force arguments validity. See SelectStatement.fetchSequence(), and Database.execute()
         try! prepareWithArguments(arguments)

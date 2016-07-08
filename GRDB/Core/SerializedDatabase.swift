@@ -35,7 +35,7 @@ final class SerializedDatabase {
         config.threadingMode = .MultiThread
         
         db = try Database(path: path, configuration: config, schemaCache: schemaCache)
-        queue = DatabaseScheduler.makeSerializedQueueAllowing(database: db)
+        queue = SchedulingWatchdog.makeSerializedQueueAllowing(database: db)
         try dispatchSync(queue) {
             try self.db.setup()
         }
@@ -73,7 +73,7 @@ final class SerializedDatabase {
         //          }
         //      }
         
-        if let sourceScheduler = DatabaseScheduler.currentScheduler() {
+        if let sourceWatchdog = SchedulingWatchdog.current {
             // Case 2 or 3:
             //
             // 2. A database is invoked in a reentrant way:
@@ -91,7 +91,7 @@ final class SerializedDatabase {
             //      }
             //
             // 2 is forbidden.
-            GRDBPrecondition(!sourceScheduler.allows(db), "Database methods are not reentrant.")
+            GRDBPrecondition(!sourceWatchdog.allows(db), "Database methods are not reentrant.")
             
             // Case 3:
             //
@@ -110,14 +110,14 @@ final class SerializedDatabase {
                 var result: T? = nil
                 var blockError: ErrorType? = nil
                 dispatch_sync(queue) {
-                    let targetScheduler = DatabaseScheduler.currentScheduler()!
-                    assert(targetScheduler.allowedDatabases[0] === db) // sanity check
+                    let targetWatchdog = SchedulingWatchdog.current!
+                    assert(targetWatchdog.allowedDatabases[0] === db) // sanity check
                     
                     do {
-                        let backup = targetScheduler.allowedDatabases
-                        targetScheduler.allowedDatabases.appendContentsOf(sourceScheduler.allowedDatabases)
+                        let backup = targetWatchdog.allowedDatabases
+                        targetWatchdog.allowedDatabases.appendContentsOf(sourceWatchdog.allowedDatabases)
                         defer {
-                            targetScheduler.allowedDatabases = backup
+                            targetWatchdog.allowedDatabases = backup
                         }
                         result = try block(db: db)
                     } catch {
@@ -177,6 +177,6 @@ final class SerializedDatabase {
     
     /// Fatal error if current dispatch queue is not valid.
     func preconditionValidQueue(@autoclosure message: () -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
-        DatabaseScheduler.preconditionValidQueue(db, message, file: file, line: line)
+        SchedulingWatchdog.preconditionValidQueue(db, message, file: file, line: line)
     }
 }
