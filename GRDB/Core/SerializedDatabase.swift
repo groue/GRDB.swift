@@ -52,7 +52,112 @@ final class SerializedDatabase {
     ///
     /// This method is *not* reentrant.
     func performSync<T>(block: (db: Database) throws -> T) rethrows -> T {
-        return try DatabaseScheduler.dispatchSync(queue, database: db, block: block)
+        // Three diffent cases:
+        //
+        // 1. A database is invoked from some queue like the main queue:
+        //
+        //      dbQueue.inDatabase { db in
+        //      }
+        //
+        // 2. A database is invoked in a reentrant way:
+        //
+        //      dbQueue.inDatabase { db in
+        //          dbQueue.inDatabase { db in
+        //          }
+        //      }
+        //
+        // 3. A database in invoked from another database:
+        //
+        //      dbQueue1.inDatabase { db1 in
+        //          dbQueue2.inDatabase { db2 in
+        //          }
+        //      }
+        
+        if let sourceScheduler = DatabaseScheduler.currentScheduler() {
+            // Case 2 or 3:
+            //
+            // 2. A database is invoked in a reentrant way:
+            //
+            //      dbQueue.inDatabase { db in
+            //          dbQueue.inDatabase { db in
+            //          }
+            //      }
+            //
+            // 3. A database in invoked from another database:
+            //
+            //      dbQueue1.inDatabase { db1 in
+            //          dbQueue2.inDatabase { db2 in
+            //          }
+            //      }
+            //
+            // 2 is forbidden.
+            GRDBPrecondition(!sourceScheduler.allows(db), "Database methods are not reentrant.")
+            
+            // Case 3:
+            //
+            // 3. A database in invoked from another database:
+            //
+            //      dbQueue1.inDatabase { db1 in
+            //          dbQueue2.inDatabase { db2 in
+            //          }
+            //      }
+            //
+            // Let's enter the new queue, and temporarily allow the
+            // currently allowed databases inside.
+            //
+            // The impl function helps us turn dispatch_sync into a rethrowing function
+            func impl(queue: dispatch_queue_t, db: Database, block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+                var result: T? = nil
+                var blockError: ErrorType? = nil
+                dispatch_sync(queue) {
+                    let targetScheduler = DatabaseScheduler.currentScheduler()!
+                    assert(targetScheduler.allowedDatabases[0] === db) // sanity check
+                    
+                    do {
+                        let backup = targetScheduler.allowedDatabases
+                        targetScheduler.allowedDatabases.appendContentsOf(sourceScheduler.allowedDatabases)
+                        defer {
+                            targetScheduler.allowedDatabases = backup
+                        }
+                        result = try block(db: db)
+                    } catch {
+                        blockError = error
+                    }
+                }
+                if let blockError = blockError {
+                    try onError(blockError)
+                }
+                return result!
+            }
+            return try impl(queue, db: db, block: block, onError: { throw $0 })
+        } else {
+            // Case 1:
+            //
+            // 1. A database is invoked from some queue like the main queue:
+            //
+            //      dbQueue.inDatabase { db in
+            //      }
+            //
+            // Just dispatch block to queue:
+            //
+            // The impl function helps us turn dispatch_sync into a rethrowing function
+            func impl(queue: dispatch_queue_t, db: Database, block: (db: Database) throws -> T, onError: (ErrorType) throws -> ()) rethrows -> T {
+                var result: T? = nil
+                var blockError: ErrorType? = nil
+                dispatch_sync(queue) {
+                    do {
+                        result = try block(db: db)
+                    } catch {
+                        blockError = error
+                    }
+                }
+                if let blockError = blockError {
+                    try onError(blockError)
+                }
+                return result!
+            }
+            return try impl(queue, db: db, block: block, onError: { throw $0 })
+        }
     }
     
     /// Asynchronously executes a block in the serialized dispatch queue.
