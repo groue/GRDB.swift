@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.75.1
+
+Released July 8, 2016
+
+**Fixed**
+
+- Fixed a crash that would happen when performing a full text search in a DatabasePool (fixes [#80](https://github.com/groue/GRDB.swift/issues/80))
+
+
 ## 0.75.0
 
 Released July 8, 2016
