@@ -442,21 +442,17 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         // SQLite has a statement that modifies the sqlite_master table, is
         // still allowed as a regular select statement.
         assertNoError {
-            do {
-                // This test uses a database pool, a connection for creating the
-                // search virtual table, and another conncetion for reading.
-                //
-                // This is the tested setup: don't change it.
-                
-                let dbPool = try makeDatabasePool()
-                dbPool.write { db in
-                    try! db.execute("CREATE VIRTUAL TABLE search  USING fts3(title, tokenize = unicode61)")
-                }
-                
-                let rows = dbPool.read { db -> [Row] in
-                    return Row.fetchAll(db, "SELECT * FROM search")
-                }
-                print(rows)
+            // This test uses a database pool, a connection for creating the
+            // search virtual table, and another connection for reading.
+            //
+            // This is the tested setup: don't change it.
+            
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.execute("CREATE VIRTUAL TABLE search  USING fts3(title, tokenize = unicode61)")
+            }
+            dbPool.read { db in
+                _ = Row.fetchAll(db, "SELECT * FROM search")
             }
         }
     }
