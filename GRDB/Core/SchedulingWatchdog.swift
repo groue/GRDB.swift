@@ -1,4 +1,4 @@
-/// DatabaseScheduler makes sure that databases connections are used on correct
+/// SchedulingWatchdog makes sure that databases connections are used on correct
 /// dispatch queues, and warns the user with a fatal error whenever she misuses
 /// a database connection.
 ///
@@ -7,11 +7,11 @@
 /// https://github.com/groue/GRDB.swift/issues/55. To support this use case, a
 /// single dispatch queue can be temporarily shared by two or more connections.
 ///
-/// - DatabaseScheduler.makeSerializedQueueAllowing(database:) creates a
+/// - SchedulingWatchdog.makeSerializedQueueAllowing(database:) creates a
 ///   dispatch queue that allows one database.
 ///
-///   It does so by registering one instance of DatabaseScheduler as a specific
-///   of the dispatch queue, a DatabaseScheduler that allows that database only.
+///   It does so by registering one instance of SchedulingWatchdog as a specific
+///   of the dispatch queue, a SchedulingWatchdog that allows that database only.
 ///
 ///   Later on, the queue can be shared by several databases with the method
 ///   allowing(databases:execute:). See SerializedDatabase.sync() for
@@ -19,8 +19,8 @@
 ///
 /// - preconditionValidQueue() crashes whenever a database is used in an invalid
 ///   dispatch queue.
-final class DatabaseScheduler {
-    private static let specificKey = DispatchSpecificKey<DatabaseScheduler>()
+final class SchedulingWatchdog {
+    private static let specificKey = DispatchSpecificKey<SchedulingWatchdog>()
     private(set) var allowedDatabases: [Database]
     
     private init(allowedDatabase database: Database) {
@@ -29,8 +29,8 @@ final class DatabaseScheduler {
     
     static func makeSerializedQueueAllowing(database: Database) -> DispatchQueue {
         let queue = DispatchQueue(label: "GRDB.SerializedDatabase")
-        let scheduler = DatabaseScheduler(allowedDatabase: database)
-        queue.setSpecific(key: specificKey, value: scheduler)
+        let watchdog = SchedulingWatchdog(allowedDatabase: database)
+        queue.setSpecific(key: specificKey, value: watchdog)
         return queue
     }
     
@@ -54,7 +54,7 @@ final class DatabaseScheduler {
         return allowedDatabases.contains { $0 === db }
     }
     
-    static var current: DatabaseScheduler? {
+    static var current: SchedulingWatchdog? {
         return DispatchQueue.getSpecific(key: specificKey)
     }
 }

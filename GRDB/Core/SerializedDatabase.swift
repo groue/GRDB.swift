@@ -35,7 +35,7 @@ final class SerializedDatabase {
         config.threadingMode = .multiThread
         
         db = try Database(path: path, configuration: config, schemaCache: schemaCache)
-        queue = DatabaseScheduler.makeSerializedQueueAllowing(database: db)
+        queue = SchedulingWatchdog.makeSerializedQueueAllowing(database: db)
         try queue.sync {
             try db.setup()
         }
@@ -73,7 +73,7 @@ final class SerializedDatabase {
         //          }
         //      }
         
-        if let scheduler = DatabaseScheduler.current {
+        if let watchdog = SchedulingWatchdog.current {
             // Case 2 or 3:
             //
             // 2. A database is invoked in a reentrant way:
@@ -91,7 +91,7 @@ final class SerializedDatabase {
             //      }
             //
             // 2 is forbidden.
-            GRDBPrecondition(!scheduler.allows(db), "Database methods are not reentrant.")
+            GRDBPrecondition(!watchdog.allows(db), "Database methods are not reentrant.")
             
             // Case 3:
             //
@@ -105,7 +105,7 @@ final class SerializedDatabase {
             // Let's enter the new queue, and temporarily allow the
             // currently allowed databases inside.
             return try queue.sync {
-                try DatabaseScheduler.current!.allowing(databases: scheduler.allowedDatabases) {
+                try SchedulingWatchdog.current!.allowing(databases: watchdog.allowedDatabases) {
                     try block(db: db)
                 }
             }
@@ -143,6 +143,6 @@ final class SerializedDatabase {
     
     /// Fatal error if current dispatch queue is not valid.
     func preconditionValidQueue(_ message: @autoclosure() -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
-        DatabaseScheduler.preconditionValidQueue(db, message, file: file, line: line)
+        SchedulingWatchdog.preconditionValidQueue(db, message, file: file, line: line)
     }
 }

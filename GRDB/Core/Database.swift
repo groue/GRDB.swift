@@ -49,7 +49,7 @@ public final class Database {
     ///
     /// For more detailed information, see https://www.sqlite.org/c3ref/last_insert_rowid.html
     public var lastInsertedRowID: Int64 {
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         return sqlite3_last_insert_rowid(sqliteConnection)
     }
     
@@ -58,7 +58,7 @@ public final class Database {
     ///
     /// For more detailed information, see https://www.sqlite.org/c3ref/changes.html
     public var changesCount: Int {
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         return Int(sqlite3_changes(sqliteConnection))
     }
     
@@ -68,7 +68,7 @@ public final class Database {
     ///
     /// For more detailed information, see https://www.sqlite.org/c3ref/total_changes.html
     public var totalChangesCount: Int {
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         return Int(sqlite3_total_changes(sqliteConnection))
     }
     
@@ -153,7 +153,7 @@ public final class Database {
     
     /// This method must be called before database deallocation
     func close() {
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         assert(!isClosed)
         
         configuration.SQLiteConnectionWillClose?(sqliteConnection)
@@ -442,7 +442,7 @@ extension Database {
         // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
         // It adds support for arguments.
         
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         
         // The tricky part is to consume arguments as statements are executed.
         //
@@ -775,7 +775,7 @@ extension Database {
     /// You may need to clear the cache manually if the database schema is
     /// modified by another connection.
     public func clearSchemaCache() {
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         schemaCache.clear()
         
         // We also clear updateStatementCache and selectStatementCache despite
@@ -788,7 +788,7 @@ extension Database {
     
     /// Returns whether a table exists.
     public func tableExists(_ tableName: String) -> Bool {
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         
         // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
         return Row.fetchOne(self,
@@ -801,7 +801,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError if table does not exist.
     public func primaryKey(_ tableName: String) throws -> PrimaryKey? {
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         
         if let primaryKey = schemaCache.primaryKey(tableName) {
             return primaryKey
@@ -1372,7 +1372,7 @@ extension Database {
     ///       all events are notified to the observer. When not nil, only events
     ///       that pass the filter are notified.
     public func add(transactionObserver: TransactionObserver, forDatabaseEvents filter: ((DatabaseEventKind) -> Bool)? = nil) {
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         databaseEventObservers.append(DatabaseEventObserver(transactionObserver: transactionObserver, filter: filter))
         if databaseEventObservers.count == 1 {
             installTransactionObserverHooks()
@@ -1381,7 +1381,7 @@ extension Database {
     
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
-        DatabaseScheduler.preconditionValidQueue(self)
+        SchedulingWatchdog.preconditionValidQueue(self)
         databaseEventObservers.removeFirst { $0.transactionObserver === transactionObserver }
         if databaseEventObservers.isEmpty {
             uninstallTransactionObserverHooks()

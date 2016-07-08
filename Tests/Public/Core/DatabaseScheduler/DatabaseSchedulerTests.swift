@@ -1,10 +1,10 @@
 import XCTest
 #if USING_SQLCIPHER
-    @testable import GRDBCipher // @testable so that we can test DatabaseScheduler
+    @testable import GRDBCipher // @testable so that we can test SchedulingWatchdog
 #elseif USING_CUSTOMSQLITE
-    @testable import GRDBCustomSQLite // @testable so that we can test DatabaseScheduler
+    @testable import GRDBCustomSQLite // @testable so that we can test SchedulingWatchdog
 #else
-    @testable import GRDB // @testable so that we can test DatabaseScheduler
+    @testable import GRDB // @testable so that we can test SchedulingWatchdog
 #endif
 
 class DatabaseSchedulerTests: GRDBTestCase {
@@ -22,33 +22,33 @@ class DatabaseSchedulerTests: GRDBTestCase {
             dbQueue2.inDatabase { db2 = $0 }
             dbQueue3.inDatabase { db3 = $0 }
 
-            XCTAssertFalse(DatabaseScheduler.allows(db1))
-            XCTAssertFalse(DatabaseScheduler.allows(db2))
-            XCTAssertFalse(DatabaseScheduler.allows(db3))
+            XCTAssertFalse(SchedulingWatchdog.allows(db1))
+            XCTAssertFalse(SchedulingWatchdog.allows(db2))
+            XCTAssertFalse(SchedulingWatchdog.allows(db3))
             dbQueue1.inDatabase { _ in
-                XCTAssertTrue(DatabaseScheduler.allows(db1))
-                XCTAssertFalse(DatabaseScheduler.allows(db2))
-                XCTAssertFalse(DatabaseScheduler.allows(db3))
+                XCTAssertTrue(SchedulingWatchdog.allows(db1))
+                XCTAssertFalse(SchedulingWatchdog.allows(db2))
+                XCTAssertFalse(SchedulingWatchdog.allows(db3))
                 dbQueue2.inDatabase { _ in
-                    XCTAssertTrue(DatabaseScheduler.allows(db1))
-                    XCTAssertTrue(DatabaseScheduler.allows(db2))
-                    XCTAssertFalse(DatabaseScheduler.allows(db3))
+                    XCTAssertTrue(SchedulingWatchdog.allows(db1))
+                    XCTAssertTrue(SchedulingWatchdog.allows(db2))
+                    XCTAssertFalse(SchedulingWatchdog.allows(db3))
                     dbQueue3.inDatabase { _ in
-                        XCTAssertTrue(DatabaseScheduler.allows(db1))
-                        XCTAssertTrue(DatabaseScheduler.allows(db2))
-                        XCTAssertTrue(DatabaseScheduler.allows(db3))
+                        XCTAssertTrue(SchedulingWatchdog.allows(db1))
+                        XCTAssertTrue(SchedulingWatchdog.allows(db2))
+                        XCTAssertTrue(SchedulingWatchdog.allows(db3))
                     }
-                    XCTAssertTrue(DatabaseScheduler.allows(db1))
-                    XCTAssertTrue(DatabaseScheduler.allows(db2))
-                    XCTAssertFalse(DatabaseScheduler.allows(db3))
+                    XCTAssertTrue(SchedulingWatchdog.allows(db1))
+                    XCTAssertTrue(SchedulingWatchdog.allows(db2))
+                    XCTAssertFalse(SchedulingWatchdog.allows(db3))
                 }
-                XCTAssertTrue(DatabaseScheduler.allows(db1))
-                XCTAssertFalse(DatabaseScheduler.allows(db3))
-                XCTAssertFalse(DatabaseScheduler.allows(db2))
+                XCTAssertTrue(SchedulingWatchdog.allows(db1))
+                XCTAssertFalse(SchedulingWatchdog.allows(db3))
+                XCTAssertFalse(SchedulingWatchdog.allows(db2))
             }
-            XCTAssertFalse(DatabaseScheduler.allows(db1))
-            XCTAssertFalse(DatabaseScheduler.allows(db2))
-            XCTAssertFalse(DatabaseScheduler.allows(db3))
+            XCTAssertFalse(SchedulingWatchdog.allows(db1))
+            XCTAssertFalse(SchedulingWatchdog.allows(db2))
+            XCTAssertFalse(SchedulingWatchdog.allows(db3))
         }
     }
     
