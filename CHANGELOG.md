@@ -1,6 +1,43 @@
 Release Notes
 =============
 
+## 0.75.0
+
+Released July 8, 2016
+
+**Breaking change**
+
+- Row adapters have been refactored ([documentation](https://github.com/groue/GRDB.swift#row-adapters)).
+
+    ```diff
+     // Row "variants" have been renamed row "scopes":
+     struct Row {
+    -    func variant(named name: String) -> Row?
+    +    func scoped(on name: String) -> Row?
+     }
+     
+     // Scope definition: VariantRowAdapter has been renamed ScopeAdapter:
+    -struct VariantRowAdapter : RowAdapter {
+    -    init(variants: [String: RowAdapter])
+    -}
+    +struct ScopeAdapter : RowAdapter {
+    +    init(_ scopes: [String: RowAdapter])
+    +}
+     
+     // Adding scopes to an existing adapter:
+     extension RowAdapter {
+    -    func adapterWithVariants(variants: [String: RowAdapter]) -> RowAdapter
+    +    func addingScopes(scopes: [String: RowAdapter]) -> RowAdapter
+     }
+     
+     // Implementing custom adapters
+     protocol ConcreteRowAdapter {
+    -    var variants: [String: ConcreteRowAdapter] { get }
+    +    var scopes: [String: ConcreteRowAdapter] { get }
+     }
+    ```
+
+
 ## 0.74.0
 
 Released July 6, 2016
