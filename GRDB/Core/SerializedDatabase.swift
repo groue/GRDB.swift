@@ -52,7 +52,84 @@ final class SerializedDatabase {
     ///
     /// This method is *not* reentrant.
     func sync<T>(_ block: @noescape (db: Database) throws -> T) rethrows -> T {
-        return try DatabaseScheduler.sync(queue: queue, database: db, block: block)
+        // Three different cases:
+        //
+        // 1. A database is invoked from some queue like the main queue:
+        //
+        //      dbQueue.inDatabase { db in
+        //      }
+        //
+        // 2. A database is invoked in a reentrant way:
+        //
+        //      dbQueue.inDatabase { db in
+        //          dbQueue.inDatabase { db in
+        //          }
+        //      }
+        //
+        // 3. A database in invoked from another database:
+        //
+        //      dbQueue1.inDatabase { db1 in
+        //          dbQueue2.inDatabase { db2 in
+        //          }
+        //      }
+        
+        if let sourceScheduler = DatabaseScheduler.current {
+            // Case 2 or 3:
+            //
+            // 2. A database is invoked in a reentrant way:
+            //
+            //      dbQueue.inDatabase { db in
+            //          dbQueue.inDatabase { db in
+            //          }
+            //      }
+            //
+            // 3. A database in invoked from another database:
+            //
+            //      dbQueue1.inDatabase { db1 in
+            //          dbQueue2.inDatabase { db2 in
+            //          }
+            //      }
+            //
+            // 2 is forbidden.
+            GRDBPrecondition(!sourceScheduler.allows(db), "Database methods are not reentrant.")
+            
+            // Case 3:
+            //
+            // 3. A database in invoked from another database:
+            //
+            //      dbQueue1.inDatabase { db1 in
+            //          dbQueue2.inDatabase { db2 in
+            //          }
+            //      }
+            //
+            // Let's enter the new queue, and temporarily allow the
+            // currently allowed databases inside.
+            return try queue.sync {
+                let targetScheduler = DatabaseScheduler.current!
+                assert(targetScheduler.allowedDatabases[0] === db) // sanity check
+                
+                let backup = targetScheduler.allowedDatabases
+                targetScheduler.allowedDatabases.append(contentsOf: sourceScheduler.allowedDatabases)
+                defer {
+                    targetScheduler.allowedDatabases = backup
+                }
+                return try block(db: db)
+            }
+        } else {
+            // Case 1:
+            //
+            // 1. A database is invoked from some queue like the main queue:
+            //
+            //      dbQueue.inDatabase { db in
+            //      }
+            //
+            // Just dispatch block to queue:
+            //
+            // The impl function helps us turn dispatch_sync into a rethrowing function
+            return try queue.sync {
+                try block(db: db)
+            }
+        }
     }
     
     /// Asynchronously executes a block in the serialized dispatch queue.
