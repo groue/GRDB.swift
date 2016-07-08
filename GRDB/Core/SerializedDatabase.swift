@@ -73,7 +73,7 @@ final class SerializedDatabase {
         //          }
         //      }
         
-        if let sourceScheduler = DatabaseScheduler.current {
+        if let scheduler = DatabaseScheduler.current {
             // Case 2 or 3:
             //
             // 2. A database is invoked in a reentrant way:
@@ -91,7 +91,7 @@ final class SerializedDatabase {
             //      }
             //
             // 2 is forbidden.
-            GRDBPrecondition(!sourceScheduler.allows(db), "Database methods are not reentrant.")
+            GRDBPrecondition(!scheduler.allows(db), "Database methods are not reentrant.")
             
             // Case 3:
             //
@@ -105,15 +105,9 @@ final class SerializedDatabase {
             // Let's enter the new queue, and temporarily allow the
             // currently allowed databases inside.
             return try queue.sync {
-                let targetScheduler = DatabaseScheduler.current!
-                assert(targetScheduler.allowedDatabases[0] === db) // sanity check
-                
-                let backup = targetScheduler.allowedDatabases
-                targetScheduler.allowedDatabases.append(contentsOf: sourceScheduler.allowedDatabases)
-                defer {
-                    targetScheduler.allowedDatabases = backup
+                try DatabaseScheduler.current!.allowing(databases: scheduler.allowedDatabases) {
+                    try block(db: db)
                 }
-                return try block(db: db)
             }
         } else {
             // Case 1:

@@ -7,22 +7,21 @@
 /// https://github.com/groue/GRDB.swift/issues/55. To support this use case, a
 /// single dispatch queue can be temporarily shared by two or more connections.
 ///
-/// Two entry points:
-///
 /// - DatabaseScheduler.makeSerializedQueueAllowing(database:) creates a
 ///   dispatch queue that allows one database.
 ///
 ///   It does so by registering one instance of DatabaseScheduler as a specific
 ///   of the dispatch queue, a DatabaseScheduler that allows that database only.
 ///
-///   Later on, the queue can be shared by several databases by mutating the
-///   allowedDatabases property. See SerializedDatabase.sync()
+///   Later on, the queue can be shared by several databases with the method
+///   allowing(databases:execute:). See SerializedDatabase.sync() for
+///   an example.
 ///
 /// - preconditionValidQueue() crashes whenever a database is used in an invalid
 ///   dispatch queue.
 final class DatabaseScheduler {
     private static let specificKey = DispatchSpecificKey<DatabaseScheduler>()
-    var allowedDatabases: [Database]
+    private(set) var allowedDatabases: [Database]
     
     private init(allowedDatabase database: Database) {
         allowedDatabases = [database]
@@ -33,6 +32,14 @@ final class DatabaseScheduler {
         let scheduler = DatabaseScheduler(allowedDatabase: database)
         queue.setSpecific(key: specificKey, value: scheduler)
         return queue
+    }
+    
+    // Temporarily allows `databases` while executing `body`
+    func allowing<T>(databases: [Database], execute body: @noescape () throws -> T) rethrows -> T {
+        let backup = allowedDatabases
+        allowedDatabases.append(contentsOf: databases)
+        defer { allowedDatabases = backup }
+        return try body()
     }
     
     static func preconditionValidQueue(_ db: Database, _ message: @autoclosure() -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
