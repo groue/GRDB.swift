@@ -205,22 +205,22 @@ public struct SuffixRowAdapter : RowAdapter {
     }
 }
 
-/// ScopeAdapter is a row adapter that lets you add scoped adaptations to rows.
+/// ScopeAdapter is a row adapter that lets you define scopes on rows.
 ///
 ///     // Two adapters
 ///     let fooAdapter = ColumnMapping(["value": "foo"])
 ///     let barAdapter = ColumnMapping(["value": "bar"])
 ///
-///     // An adapter with named scopes
+///     // Define scopes
 ///     let adapter = ScopeAdapter([
 ///         "foo": fooAdapter,
 ///         "bar": barAdapter])
 ///
-///     // Fetch a row
+///     // Fetch
 ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
 ///     let row = Row.fetchOne(db, sql, adapter: adapter)!
 ///
-///     // Two scoped rows:
+///     // Scoped rows:
 ///     if let fooRow = row.scoped(on: "foo") {
 ///         fooRow.value(named: "value")    // "foo"
 ///     }
@@ -240,7 +240,7 @@ public struct ScopeAdapter : RowAdapter {
     /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
     public init(_ scopes: [String: RowAdapter]) {
-        self.mainAdapter = SuffixRowAdapter(fromIndex: 0)
+        self.mainAdapter = SuffixRowAdapter(fromIndex: 0)   // Use SuffixRowAdapter(fromIndex: 0) as the identity adapter
         self.scopes = scopes
     }
     

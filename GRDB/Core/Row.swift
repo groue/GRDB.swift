@@ -396,22 +396,22 @@ extension Row {
     // MARK: - Scopes
     
     /// Returns a scoped row, if the row was fetched along with a row adapter
-    /// that defined this scope.
+    /// that defines this scope.
     ///
     ///     // Two adapters
     ///     let fooAdapter = ColumnMapping(["value": "foo"])
     ///     let barAdapter = ColumnMapping(["value": "bar"])
     ///
-    ///     // An adapter with scopes
+    ///     // Define scopes
     ///     let adapter = ScopeAdapter([
     ///         "foo": fooAdapter,
     ///         "bar": barAdapter])
     ///
-    ///     // Fetch a row
+    ///     // Fetch
     ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
     ///     let row = Row.fetchOne(db, sql, adapter: adapter)!
     ///
-    ///     // Two scoped rows:
+    ///     // Scoped rows:
     ///     if let fooRow = row.scoped(on: "foo") {
     ///         fooRow.value(named: "value")    // "foo"
     ///     }
