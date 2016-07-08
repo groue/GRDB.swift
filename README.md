@@ -1390,7 +1390,7 @@ row.value(named: "consumed") // "Hello"
 ```
 
 
-**Row adapters can also define row variants.** Variants help several consumers feed on a single row and can reveal useful with joined queries.
+**Row adapters can also define row "scopes".** Scopes help several consumers feed on a single row and can reveal useful with joined queries.
 
 For example, let's build a query which loads books along with their author:
 
@@ -1401,14 +1401,14 @@ let sql = "SELECT books.id, books.title, " +
           "JOIN persons ON books.authorID = persons.id"
 ```
 
-The author columns are "authorID" and "authorName". Let's say that we prefer to consume them as "id" and "name". For that we build an adapter which defines a variant named "author":
+The author columns are "authorID" and "authorName". Let's say that we prefer to consume them as "id" and "name". For that we define a scope named "author":
 
 ```swift
 let authorMapping = ColumnMapping(["id": "authorID", "name": "authorName"])
-let adapter = VariantRowAdapter(variants: ["author": authorMapping])
+let adapter = ScopeAdapter(["author": authorMapping])
 ```
 
-Use the `Row.variant(named:)` method to load the "author" variant:
+Use the `Row.scoped(on:)` method to access the "author" scope:
 
 ```swift
 for row in Row.fetch(db, sql, adapter: adapter) {
@@ -1418,15 +1418,15 @@ for row in Row.fetch(db, sql, adapter: adapter) {
     row.value(named: "authorID")    // 10
     row.value(named: "authorName")  // Melville
     
-    // The "author" variant, with mapped columns:
-    if let authorRow = row.variant(named: "author") {
+    // The "author" scope, with mapped columns:
+    if let authorRow = row.scoped(on: "author") {
         authorRow.value(named: "id")    // 10
         authorRow.value(named: "name")  // Melville
     }
 }
 ```
 
-> :bowtie: **Tip**: now that we have nice "id" and "name" columns, we can leverage [RowConvertible](#rowconvertible-protocol) types such as [Record](#record-class) subclasses. For example, assuming the Book type consumes the "author" variant in its row initializer and builds a Person from it, the same row can be consumed by both the Book and Person types:
+> :bowtie: **Tip**: now that we have nice "id" and "name" columns, we can leverage [RowConvertible](#rowconvertible-protocol) types such as [Record](#record-class) subclasses. For example, assuming the Book type consumes the "author" scope in its row initializer and builds a Person from it, the same row can be consumed by both the Book and Person types:
 > 
 > ```swift
 > for book in Book.fetch(db, sql, adapter: adapter) {
@@ -1443,7 +1443,7 @@ for row in Row.fetch(db, sql, adapter: adapter) {
 > ```
 
 
-**You can mix a main adapter with variant adapters:**
+**You can mix a main adapter with scopes:**
 
 ```swift
 let sql = "SELECT main.id AS mainID, main.name AS mainName, " +
@@ -1453,21 +1453,21 @@ let sql = "SELECT main.id AS mainID, main.name AS mainName, " +
 
 let mainAdapter = ColumnMapping(["id": "mainID", "name": "mainName"])
 let bestFriendAdapter = ColumnMapping(["id": "friendID", "name": "friendName"])
-let adapter = mainAdapter.adapterWithVariants(["bestFriend": bestFriendAdapter])
+let adapter = mainAdapter.addingScopes(["bestFriend": bestFriendAdapter])
 
 for row in Row.fetch(db, sql, adapter: adapter) {
     // The fetched row, adapted with mainAdapter:
     row.value(named: "id")   // 1
     row.value(named: "name") // Arthur
     
-    // The "bestFriend" variant, with bestFriendAdapter:
-    if let bestFriendRow = row.variant(named: "bestFriend") {
+    // The "bestFriend" scope, with bestFriendAdapter:
+    if let bestFriendRow = row.scoped(on: "bestFriend") {
         bestFriendRow.value(named: "id")    // 2
         bestFriendRow.value(named: "name")  // Barbara
     }
 }
 
-// Assuming Person.init(row) consumes the "bestFriend" variant:
+// Assuming Person.init(row) consumes the "bestFriend" scope:
 for person in Person.fetch(db, sql, adapter: adapter) {
     person.name             // Arthur
     person.bestFriend?.name // Barbara
@@ -1480,7 +1480,7 @@ For more information about row adapters, see the documentation of:
 - [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
 - [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/ColumnMapping.html): a row adapter that renames row columns
 - [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
-- [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/VariantRowAdapter.html): the row adapter that groups several adapters together to define named variants
+- [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
 
 
 ## Raw SQLite Pointers

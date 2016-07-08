@@ -256,7 +256,7 @@ class DetachedRowTests: GRDBTestCase {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
             let row = Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
-            XCTAssertTrue(row.variant(named: "missing") == nil)
+            XCTAssertTrue(row.scoped(on: "missing") == nil)
         }
     }
     

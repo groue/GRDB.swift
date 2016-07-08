@@ -34,16 +34,16 @@ private class Person : RowConvertible {
     required init(_ row: Row) {
         firstName = row.value(named: "firstName")
         lastName = row.value(named: "lastName")
-        if let variant = row.variant(named: "bestFriend") {
-            bestFriend = Person(variant)
+        if let bestFriendRow = row.scoped(on: "bestFriend") {
+            bestFriend = Person(bestFriendRow)
         }
         fetched = false
     }
     
     func awakeFromFetch(row row: Row) {
         fetched = true
-        if let bestFriend = bestFriend, let variant = row.variant(named: "bestFriend") {
-            bestFriend.awakeFromFetch(row: variant)
+        if let bestFriend = bestFriend, let bestFriendRow = row.scoped(on: "bestFriend") {
+            bestFriend.awakeFromFetch(row: bestFriendRow)
         }
     }
 }
@@ -113,7 +113,7 @@ class RowConvertibleTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .adapterWithVariants(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
+                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let ss = Person.fetch(db, sql, arguments: arguments, adapter: adapter)
@@ -133,7 +133,7 @@ class RowConvertibleTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .adapterWithVariants(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
+                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let ss = Person.fetchAll(db, sql, arguments: arguments, adapter: adapter)
@@ -153,7 +153,7 @@ class RowConvertibleTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .adapterWithVariants(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
+                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let s = Person.fetchOne(db, sql, arguments: arguments, adapter: adapter)!
@@ -219,7 +219,7 @@ class RowConvertibleTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .adapterWithVariants(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
+                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.selectStatement(sql)
@@ -240,7 +240,7 @@ class RowConvertibleTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .adapterWithVariants(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
+                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.selectStatement(sql)
@@ -261,7 +261,7 @@ class RowConvertibleTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
                 let adapter = ColumnMapping(["firstName": "firstName1", "lastName": "lastName1"])
-                    .adapterWithVariants(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
+                    .addingScopes(["bestFriend": ColumnMapping(["firstName": "firstName2", "lastName": "lastName2"])])
                 let sql = "SELECT ? AS firstName1, ? AS lastName1, ? AS firstName2, ? AS lastName2"
                 let arguments = StatementArguments(["Stan", "Laurel", "Oliver", "Hardy"])
                 let statement = try db.selectStatement(sql)
