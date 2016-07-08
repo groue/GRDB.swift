@@ -380,10 +380,33 @@ extension Row {
 
 extension Row {
     
-    // MARK: - Variants
+    // MARK: - Scopes
     
-    public func variant(named name: String) -> Row? {
-        return impl.variant(named: name)
+    /// Returns a scoped row, if the row was fetched along with a row adapter
+    /// that defines this scope.
+    ///
+    ///     // Two adapters
+    ///     let fooAdapter = ColumnMapping(["value": "foo"])
+    ///     let barAdapter = ColumnMapping(["value": "bar"])
+    ///
+    ///     // Define scopes
+    ///     let adapter = ScopeAdapter([
+    ///         "foo": fooAdapter,
+    ///         "bar": barAdapter])
+    ///
+    ///     // Fetch
+    ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
+    ///     let row = Row.fetchOne(db, sql, adapter: adapter)!
+    ///
+    ///     // Scoped rows:
+    ///     if let fooRow = row.scoped(on: "foo") {
+    ///         fooRow.value(named: "value")    // "foo"
+    ///     }
+    ///     if let barRow = row.scopeed(on: "bar") {
+    ///         barRow.value(named: "value")    // "bar"
+    ///     }
+    public func scoped(on name: String) -> Row? {
+        return impl.scoped(on: name)
     }
 }
 
@@ -707,16 +730,16 @@ public func ==(lhs: Row, rhs: Row) -> Bool {
         }
     }
     
-    let lvariantNames = lhs.impl.variantNames
-    let rvariantNames = rhs.impl.variantNames
-    guard lvariantNames == rvariantNames else {
+    let lscopeNames = lhs.impl.scopeNames
+    let rscopeNames = rhs.impl.scopeNames
+    guard lscopeNames == rscopeNames else {
         return false
     }
     
-    for name in lvariantNames {
-        let lvariant = lhs.variant(named: name)
-        let rvariant = rhs.variant(named: name)
-        guard lvariant == rvariant else {
+    for name in lscopeNames {
+        let lscope = lhs.scoped(on: name)
+        let rscope = rhs.scoped(on: name)
+        guard lscope == rscope else {
             return false
         }
     }
@@ -768,9 +791,9 @@ protocol RowImpl {
     // leftmost column that matches *name*.
     func index(ofColumn name: String) -> Int?
     
-    func variant(named name: String) -> Row?
+    func scoped(on name: String) -> Row?
     
-    var variantNames: Set<String> { get }
+    var scopeNames: Set<String> { get }
     
     // row.impl is guaranteed to be self.
     func copy(_ row: Row) -> Row
@@ -813,11 +836,11 @@ private struct DictionaryRowImpl : RowImpl {
         return dictionary.distance(from: dictionary.startIndex, to: index)
     }
     
-    func variant(named name: String) -> Row? {
+    func scoped(on name: String) -> Row? {
         return nil
     }
     
-    var variantNames: Set<String> {
+    var scopeNames: Set<String> {
         return []
     }
     
@@ -861,11 +884,11 @@ private struct StatementCopyRowImpl : RowImpl {
         return columnNames.index { $0.lowercased() == lowercaseName }
     }
     
-    func variant(named name: String) -> Row? {
+    func scoped(on name: String) -> Row? {
         return nil
     }
     
-    var variantNames: Set<String> {
+    var scopeNames: Set<String> {
         return []
     }
     
@@ -921,11 +944,11 @@ private struct StatementRowImpl : RowImpl {
         return lowercaseColumnIndexes[name.lowercased()]
     }
     
-    func variant(named name: String) -> Row? {
+    func scoped(on name: String) -> Row? {
         return nil
     }
     
-    var variantNames: Set<String> {
+    var scopeNames: Set<String> {
         return []
     }
     
@@ -955,11 +978,11 @@ private struct EmptyRowImpl : RowImpl {
         return nil
     }
     
-    func variant(named name: String) -> Row? {
+    func scoped(on name: String) -> Row? {
         return nil
     }
     
-    var variantNames: Set<String> {
+    var scopeNames: Set<String> {
         return []
     }
     

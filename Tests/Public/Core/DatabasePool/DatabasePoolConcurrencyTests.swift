@@ -434,4 +434,26 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
         }
     }
+    
+    func testIssue80() {
+        // See https://github.com/groue/GRDB.swift/issues/80
+        //
+        // Here we test that `SELECT * FROM search`, which is announced by
+        // SQLite has a statement that modifies the sqlite_master table, is
+        // still allowed as a regular select statement.
+        assertNoError {
+            // This test uses a database pool, a connection for creating the
+            // search virtual table, and another connection for reading.
+            //
+            // This is the tested setup: don't change it.
+            
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.execute("CREATE VIRTUAL TABLE search  USING fts3(title, tokenize = unicode61)")
+            }
+            dbPool.read { db in
+                _ = Row.fetchAll(db, "SELECT * FROM search")
+            }
+        }
+    }
 }

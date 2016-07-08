@@ -270,10 +270,10 @@ class AdapterRowTests: GRDBTestCase {
         }
     }
     
-    func testVariants() {
+    func testScopes() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
-            let adapter = VariantRowAdapter(variants: [
+            let adapter = ScopeAdapter([
                     "sub1": ColumnMapping(["id": "id1", "val": "val1"]),
                     "sub2": ColumnMapping(["id": "id2", "val": "val2"])])
             let row = Row.fetchOne(db, "SELECT 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
@@ -284,32 +284,32 @@ class AdapterRowTests: GRDBTestCase {
             XCTAssertEqual(row.value(named: "id2") as Int, 2)
             XCTAssertEqual(row.value(named: "val2") as String, "foo2")
             
-            if let variant = row.variant(named: "sub1") {
-                XCTAssertEqual(variant.count, 2)
-                XCTAssertEqual(variant.value(named: "id") as Int, 1)
-                XCTAssertEqual(variant.value(named: "val") as String, "foo1")
+            if let scope = row.scoped(on: "sub1") {
+                XCTAssertEqual(scope.count, 2)
+                XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
             } else {
                 XCTFail()
             }
             
-            if let variant = row.variant(named: "sub2") {
-                XCTAssertEqual(variant.count, 2)
-                XCTAssertEqual(variant.value(named: "id") as Int, 2)
-                XCTAssertEqual(variant.value(named: "val") as String, "foo2")
+            if let scope = row.scoped(on: "sub2") {
+                XCTAssertEqual(scope.count, 2)
+                XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                XCTAssertEqual(scope.value(named: "val") as String, "foo2")
             } else {
                 XCTFail()
             }
             
-            XCTAssertTrue(row.variant(named: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
-            XCTAssertTrue(row.variant(named: "missing") == nil)
+            XCTAssertTrue(row.scoped(on: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
+            XCTAssertTrue(row.scoped(on: "missing") == nil)
         }
     }
     
-    func testVariantsWithMainMapping() {
+    func testScopesWithMainMapping() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["id": "id0", "val": "val0"])
-                .adapter(withVariants: [
+                .addingScopes([
                     "sub1": ColumnMapping(["id": "id1", "val": "val1"]),
                     "sub2": ColumnMapping(["id": "id2", "val": "val2"])])
             let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
@@ -318,75 +318,75 @@ class AdapterRowTests: GRDBTestCase {
             XCTAssertEqual(row.value(named: "id") as Int, 0)
             XCTAssertEqual(row.value(named: "val") as String, "foo0")
 
-            if let variant = row.variant(named: "sub1") {
-                XCTAssertEqual(variant.count, 2)
-                XCTAssertEqual(variant.value(named: "id") as Int, 1)
-                XCTAssertEqual(variant.value(named: "val") as String, "foo1")
+            if let scope = row.scoped(on: "sub1") {
+                XCTAssertEqual(scope.count, 2)
+                XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
             } else {
                 XCTFail()
             }
             
-            if let variant = row.variant(named: "sub2") {
-                XCTAssertEqual(variant.count, 2)
-                XCTAssertEqual(variant.value(named: "id") as Int, 2)
-                XCTAssertEqual(variant.value(named: "val") as String, "foo2")
+            if let scope = row.scoped(on: "sub2") {
+                XCTAssertEqual(scope.count, 2)
+                XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                XCTAssertEqual(scope.value(named: "val") as String, "foo2")
             } else {
                 XCTFail()
             }
             
-            XCTAssertTrue(row.variant(named: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
-            XCTAssertTrue(row.variant(named: "missing") == nil)
+            XCTAssertTrue(row.scoped(on: "SUB1") == nil)     // case-insensitivity is not really required here, and case-sensitivity helps the implementation because it allows the use of a dictionary. So let's enforce this with a public test.
+            XCTAssertTrue(row.scoped(on: "missing") == nil)
         }
     }
     
-    func testMergeVariants() {
+    func testMergeScopes() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
             let adapter0 = ColumnMapping(["id": "id0", "val": "val0"])
             let adapter1 = ColumnMapping(["id": "id1", "val": "val1"])
             let adapter2 = ColumnMapping(["id": "id2", "val": "val2"])
             
-            let mainAdapter = VariantRowAdapter(variants: ["sub0": adapter0, "sub1": adapter2])
-            let adapter = mainAdapter.adapter(withVariants: ["sub1": adapter1, "sub2": adapter2])
+            let mainAdapter = ScopeAdapter(["sub0": adapter0, "sub1": adapter2])
+            let adapter = mainAdapter.addingScopes(["sub1": adapter1, "sub2": adapter2])
             let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
-            // sub0 is defined in the the first variant adapter
-            if let variant = row.variant(named: "sub0") {
-                XCTAssertEqual(variant.count, 2)
-                XCTAssertEqual(variant.value(named: "id") as Int, 0)
-                XCTAssertEqual(variant.value(named: "val") as String, "foo0")
+            // sub0 is defined in the the first scoped adapter
+            if let scope = row.scoped(on: "sub0") {
+                XCTAssertEqual(scope.count, 2)
+                XCTAssertEqual(scope.value(named: "id") as Int, 0)
+                XCTAssertEqual(scope.value(named: "val") as String, "foo0")
             } else {
                 XCTFail()
             }
             
-            // sub1 is defined in the the first variant adapter, and then
+            // sub1 is defined in the the first scoped adapter, and then
             // redefined in the second
-            if let variant = row.variant(named: "sub1") {
-                XCTAssertEqual(variant.count, 2)
-                XCTAssertEqual(variant.value(named: "id") as Int, 1)
-                XCTAssertEqual(variant.value(named: "val") as String, "foo1")
+            if let scope = row.scoped(on: "sub1") {
+                XCTAssertEqual(scope.count, 2)
+                XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
             } else {
                 XCTFail()
             }
             
-            // sub2 is defined in the the second variant adapter
-            if let variant = row.variant(named: "sub2") {
-                XCTAssertEqual(variant.count, 2)
-                XCTAssertEqual(variant.value(named: "id") as Int, 2)
-                XCTAssertEqual(variant.value(named: "val") as String, "foo2")
+            // sub2 is defined in the the second scoped adapter
+            if let scope = row.scoped(on: "sub2") {
+                XCTAssertEqual(scope.count, 2)
+                XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                XCTAssertEqual(scope.value(named: "val") as String, "foo2")
             } else {
                 XCTFail()
             }
         }
     }
     
-    func testThreeLevelVariants() {
+    func testThreeLevelScopes() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["id": "id0", "val": "val0"])
-                .adapter(withVariants: [
+                .addingScopes([
                     "sub1": ColumnMapping(["id": "id1", "val": "val1"])
-                        .adapter(withVariants: [
+                        .addingScopes([
                             "sub2": ColumnMapping(["id": "id2", "val": "val2"])])])
             let row = Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
@@ -394,15 +394,15 @@ class AdapterRowTests: GRDBTestCase {
             XCTAssertEqual(row.value(named: "id") as Int, 0)
             XCTAssertEqual(row.value(named: "val") as String, "foo0")
             
-            if let variant = row.variant(named: "sub1") {
-                XCTAssertEqual(variant.count, 2)
-                XCTAssertEqual(variant.value(named: "id") as Int, 1)
-                XCTAssertEqual(variant.value(named: "val") as String, "foo1")
+            if let scope = row.scoped(on: "sub1") {
+                XCTAssertEqual(scope.count, 2)
+                XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
                 
-                if let variant = variant.variant(named: "sub2") {
-                    XCTAssertEqual(variant.count, 2)
-                    XCTAssertEqual(variant.value(named: "id") as Int, 2)
-                    XCTAssertEqual(variant.value(named: "val") as String, "foo2")
+                if let scope = scope.scoped(on: "sub2") {
+                    XCTAssertEqual(scope.count, 2)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo2")
                 } else {
                     XCTFail()
                 }
@@ -411,33 +411,32 @@ class AdapterRowTests: GRDBTestCase {
             }
             
             // sub2 is only defined in sub1
-            XCTAssertTrue(row.variant(named: "sub2") == nil)
+            XCTAssertTrue(row.scoped(on: "sub2") == nil)
         }
     }
     
     func testSuffixAdapter() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
-            let adapter = VariantRowAdapter(
-                variants: [
-                    "sub1": SuffixRowAdapter(fromIndex: 2)
-                        .adapter(withVariants: [
-                            "sub2": SuffixRowAdapter(fromIndex: 4)])])
+            let adapter = ScopeAdapter([
+                "sub1": SuffixRowAdapter(fromIndex: 2)
+                    .addingScopes([
+                        "sub2": SuffixRowAdapter(fromIndex: 4)])])
             let row = Row.fetchOne(db, "SELECT 0 AS id, 'foo0' AS val, 1 AS id, 'foo1' AS val, 2 as id, 'foo2' AS val", adapter: adapter)!
             
             XCTAssertEqual(row.count, 6)
             XCTAssertEqual(row.value(named: "id") as Int, 0)
             XCTAssertEqual(row.value(named: "val") as String, "foo0")
             
-            if let variant = row.variant(named: "sub1") {
-                XCTAssertEqual(variant.count, 4)
-                XCTAssertEqual(variant.value(named: "id") as Int, 1)
-                XCTAssertEqual(variant.value(named: "val") as String, "foo1")
+            if let scope = row.scoped(on: "sub1") {
+                XCTAssertEqual(scope.count, 4)
+                XCTAssertEqual(scope.value(named: "id") as Int, 1)
+                XCTAssertEqual(scope.value(named: "val") as String, "foo1")
                 
-                if let variant = variant.variant(named: "sub2") {
-                    XCTAssertEqual(variant.count, 2)
-                    XCTAssertEqual(variant.value(named: "id") as Int, 2)
-                    XCTAssertEqual(variant.value(named: "val") as String, "foo2")
+                if let scope = scope.scoped(on: "sub2") {
+                    XCTAssertEqual(scope.count, 2)
+                    XCTAssertEqual(scope.value(named: "id") as Int, 2)
+                    XCTAssertEqual(scope.value(named: "val") as String, "foo2")
                 } else {
                     XCTFail()
                 }
@@ -446,7 +445,7 @@ class AdapterRowTests: GRDBTestCase {
             }
             
             // sub2 is only defined in sub1
-            XCTAssertTrue(row.variant(named: "sub2") == nil)
+            XCTAssertTrue(row.scoped(on: "sub2") == nil)
         }
     }
     
@@ -454,7 +453,7 @@ class AdapterRowTests: GRDBTestCase {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                .adapter(withVariants: ["sub": ColumnMapping(["a": "baseb"])])
+                .addingScopes(["sub": ColumnMapping(["a": "baseb"])])
             var copiedRow: Row? = nil
             for baseRow in Row.fetch(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter) {
                 copiedRow = baseRow.copy()
@@ -465,9 +464,9 @@ class AdapterRowTests: GRDBTestCase {
                 XCTAssertEqual(copiedRow.value(named: "a") as Int, 0)
                 XCTAssertEqual(copiedRow.value(named: "b") as Int, 1)
                 XCTAssertEqual(copiedRow.value(named: "c") as Int, 2)
-                if let variant = copiedRow.variant(named: "sub") {
-                    XCTAssertEqual(variant.count, 1)
-                    XCTAssertEqual(variant.value(named: "a") as Int, 1)
+                if let scope = copiedRow.scoped(on: "sub") {
+                    XCTAssertEqual(scope.count, 1)
+                    XCTAssertEqual(scope.value(named: "a") as Int, 1)
                 }
             } else {
                 XCTFail()
@@ -493,18 +492,18 @@ class AdapterRowTests: GRDBTestCase {
         }
     }
     
-    func testEqualityComparesVariants() {
+    func testEqualityComparesScopes() {
         let dbQueue = DatabaseQueue()
         dbQueue.inDatabase { db in
             let adapter1 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                .adapter(withVariants: ["sub": ColumnMapping(["b": "baseb"])])
+                .addingScopes(["sub": ColumnMapping(["b": "baseb"])])
             let adapter2 = ColumnMapping(["a": "basea", "b": "baseb2", "c": "basec"])
             let adapter3 = ColumnMapping(["a": "basea", "b": "baseb2", "c": "basec"])
-                .adapter(withVariants: ["sub": ColumnMapping(["b": "baseb2"])])
+                .addingScopes(["sub": ColumnMapping(["b": "baseb2"])])
             let adapter4 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                .adapter(withVariants: ["sub": ColumnMapping(["b": "baseb"]), "altSub": ColumnMapping(["a": "baseb2"])])
+                .addingScopes(["sub": ColumnMapping(["b": "baseb"]), "altSub": ColumnMapping(["a": "baseb2"])])
             let adapter5 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-                .adapter(withVariants: ["sub": ColumnMapping(["b": "baseb", "c": "basec"])])
+                .addingScopes(["sub": ColumnMapping(["b": "baseb", "c": "basec"])])
             let row1 = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter1)!
             let row2 = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter2)!
             let row3 = Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter3)!
@@ -516,9 +515,9 @@ class AdapterRowTests: GRDBTestCase {
                 (row1, row3, true),
                 (row1, row4, false),
                 (row1, row5, false),
-                (row1.variant(named: "sub"), row3.variant(named: "sub"), true),
-                (row1.variant(named: "sub"), row4.variant(named: "sub"), true),
-                (row1.variant(named: "sub"), row5.variant(named: "sub"), false)]
+                (row1.scoped(on: "sub"), row3.scoped(on: "sub"), true),
+                (row1.scoped(on: "sub"), row4.scoped(on: "sub"), true),
+                (row1.scoped(on: "sub"), row5.scoped(on: "sub"), false)]
             for (lrow, rrow, equal) in tests {
                 print(lrow)
                 print(rrow)

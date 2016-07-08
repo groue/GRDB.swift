@@ -10,33 +10,33 @@
     #endif
 #endif
 
-/// AdaptedColumnsDescription is a type that supports the RowAdapter protocol.
-public struct AdaptedColumnsDescription {
+/// ConcreteColumnMapping is a type that supports the RowAdapter protocol.
+public struct ConcreteColumnMapping {
     let columns: [(Int, String)]         // [(baseRowIndex, adaptedColumn), ...]
     let lowercaseColumnIndexes: [String: Int]   // [adaptedColumn: adaptedRowIndex]
     
-    /// Creates an AdaptedColumnsDescription from an array of (index, name)
+    /// Creates an ConcreteColumnMapping from an array of (index, name)
     /// pairs. In each pair:
     ///
     /// - index is the index of a column in an original row
     /// - name is the name of the column in an adapted row
     ///
-    /// For example, the following AdaptedColumnsDescription defines two
+    /// For example, the following ConcreteColumnMapping defines two
     /// columns, "foo" and "bar", that load from the original columns at
     /// indexes 1 and 2:
     ///
-    ///     AdaptedColumnsDescription([(1, "foo"), (2, "bar")])
+    ///     ConcreteColumnMapping([(1, "foo"), (2, "bar")])
     ///
     /// Use it in your custom RowAdapter type:
     ///
     ///     struct FooBarAdapter : RowAdapter {
     ///         func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-    ///             return AdaptedColumnsDescription([(1, "foo"), (2, "bar")])
+    ///             return ConcreteColumnMapping([(1, "foo"), (2, "bar")])
     ///         }
     ///     }
     ///
-    ///     // <Row foo:2 bar: 3>
-    ///     Row.fetchOne(db, "SELECT 1, 2, 3", adapter: FooBarAdapter())
+    ///     // <Row foo:"foo" bar: "bar">
+    ///     Row.fetchOne(db, "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
     public init(columns: [(Int, String)]) {
         self.columns = columns
         self.lowercaseColumnIndexes = Dictionary(keyValueSequence: columns.enumerated().map { ($1.1.lowercased(), $0) }.reversed())
@@ -62,37 +62,33 @@ public struct AdaptedColumnsDescription {
     }
 }
 
-/// AdaptedColumnsDescription adopts ConcreteRowAdapter
-extension AdaptedColumnsDescription : ConcreteRowAdapter {
+/// ConcreteColumnMapping adopts ConcreteRowAdapter
+extension ConcreteColumnMapping : ConcreteRowAdapter {
     /// Part of the ConcreteRowAdapter protocol; returns self.
-    public var adaptedColumnsDescription: AdaptedColumnsDescription {
+    public var concreteColumnMapping: ConcreteColumnMapping {
         return self
     }
     
     /// Part of the ConcreteRowAdapter protocol; returns the empty dictionary.
-    public var variants: [String: ConcreteRowAdapter] {
+    public var scopes: [String: ConcreteRowAdapter] {
         return [:]
     }
 }
 
-struct ConcreteVariantRowAdapter : ConcreteRowAdapter {
-    let adaptedColumnsDescription: AdaptedColumnsDescription
-    let variants: [String: ConcreteRowAdapter]
-}
-
 /// ConcreteRowAdapter is a protocol that supports the RowAdapter protocol.
 ///
-/// GRBD ships with a concrete type that adopts the ConcreteRowAdapter protocol:
-/// AdaptedColumnsDescription.
+/// GRBD ships with a ready-made type that adopts this protocol:
+/// ConcreteColumnMapping.
 ///
 /// It is unlikely that you need to write your custom type that adopts
 /// this protocol.
 public protocol ConcreteRowAdapter {
-    // An AdaptedColumnsDescription
-    var adaptedColumnsDescription: AdaptedColumnsDescription { get }
+    /// A ConcreteColumnMapping that defines how to map a column name to a
+    /// column in an original row.
+    var concreteColumnMapping: ConcreteColumnMapping { get }
     
-    /// A dictionary whose keys are variant names.
-    var variants: [String: ConcreteRowAdapter] { get }
+    /// A dictionary of scopes
+    var scopes: [String: ConcreteRowAdapter] { get }
 }
 
 /// RowAdapter is a protocol that helps two incompatible row interfaces working
@@ -102,8 +98,7 @@ public protocol ConcreteRowAdapter {
 ///
 /// - ColumnMapping: renames row columns
 /// - SuffixRowAdapter: hides the first columns of a row
-/// - VariantRowAdapter: groups several adapters together to define named row
-///   variants.
+/// - ScopeAdapter: groups several adapters together to define named scopes
 ///
 /// If the built-in adapters don't fit your needs, you can implement your own
 /// type that adopts RowAdapter.
@@ -121,7 +116,7 @@ public protocol RowAdapter {
     /// adapter has to be applied.
     ///
     /// The result is a value that adopts ConcreteRowAdapter, such as
-    /// AdaptedColumnsDescription.
+    /// ConcreteColumnMapping.
     ///
     /// For example:
     ///
@@ -130,7 +125,7 @@ public protocol RowAdapter {
     ///     // original row.
     ///     struct FirstColumnAdapter : RowAdapter {
     ///         func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-    ///             return AdaptedColumnsDescription(columns: [(0, "foo")])
+    ///             return ConcreteColumnMapping(columns: [(0, "foo")])
     ///         }
     ///     }
     ///
@@ -140,15 +135,15 @@ public protocol RowAdapter {
 }
 
 extension RowAdapter {
-    /// Returns an adapter based on self, with added variants.
+    /// Returns an adapter based on self, with added scopes.
     ///
-    /// If self already defines variants, the added variants replace
-    /// eventual existing variants with the same name.
+    /// If self already defines scopes, the added scopes replace
+    /// eventual existing scopes with the same name.
     ///
-    /// - parameter variants: A dictionary that maps variant names to
+    /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
-    public func adapter(withVariants variants: [String: RowAdapter]) -> RowAdapter {
-        return VariantRowAdapter(mainAdapter: self, variants: variants)
+    public func addingScopes(_ scopes: [String: RowAdapter]) -> RowAdapter {
+        return ScopeAdapter(mainAdapter: self, scopes: scopes)
     }
 }
 
@@ -179,7 +174,7 @@ public struct ColumnMapping : RowAdapter {
                 return (index, mappedColumn)
             }
             .sorted { $0.0 < $1.0 }
-        return AdaptedColumnsDescription(columns: columns)
+        return ConcreteColumnMapping(columns: columns)
     }
 }
 
@@ -206,67 +201,71 @@ public struct SuffixRowAdapter : RowAdapter {
     /// Part of the RowAdapter protocol
     public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
         GRDBPrecondition(index <= statement.columnCount, "Column index is out of range")
-        return AdaptedColumnsDescription(columns: statement.columnNames.suffix(from: index).enumerated().map { ($0 + index, $1) })
+        return ConcreteColumnMapping(columns: statement.columnNames.suffix(from: index).enumerated().map { ($0 + index, $1) })
     }
 }
 
-/// VariantRowAdapter is a row adapter that lets you add adapted variants to
-/// fetched rows.
+/// ScopeAdapter is a row adapter that lets you define scopes on rows.
 ///
 ///     // Two adapters
 ///     let fooAdapter = ColumnMapping(["value": "foo"])
 ///     let barAdapter = ColumnMapping(["value": "bar"])
 ///
-///     // An adapter with named variants
-///     let variants: [String: RowAdapter] = [
+///     // Define scopes
+///     let adapter = ScopeAdapter([
 ///         "foo": fooAdapter,
 ///         "bar": barAdapter])
-///     let adapter = VariantRowAdapter(variants: variants)
 ///
-///     // Fetch a row
+///     // Fetch
 ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
 ///     let row = Row.fetchOne(db, sql, adapter: adapter)!
 ///
-///     // Two variants of the fetched row:
-///     if let fooRow = row.variant(named: "foo") {
+///     // Scoped rows:
+///     if let fooRow = row.scoped(on: "foo") {
 ///         fooRow.value(named: "value")    // "foo"
 ///     }
-///     if let barRow = row.variant(named: "bar") {
+///     if let barRow = row.scopeed(on: "bar") {
 ///         barRow.value(named: "value")    // "bar"
 ///     }
-public struct VariantRowAdapter : RowAdapter {
+public struct ScopeAdapter : RowAdapter {
     
     /// The main adapter
     let mainAdapter: RowAdapter
     
-    /// The variant adapters
-    let variants: [String: RowAdapter]
+    /// The scope adapters
+    let scopes: [String: RowAdapter]
     
-    /// Creates a variant adapter.
+    /// Creates a scoped adapter.
     ///
-    /// - parameter variants: A dictionary that maps variant names to
+    /// - parameter scopes: A dictionary that maps scope names to
     ///   row adapters.
-    public init(variants: [String: RowAdapter]) {
-        self.mainAdapter = SuffixRowAdapter(fromIndex: 0)
-        self.variants = variants
+    public init(_ scopes: [String: RowAdapter]) {
+        self.mainAdapter = SuffixRowAdapter(fromIndex: 0)   // Use SuffixRowAdapter(fromIndex: 0) as the identity adapter
+        self.scopes = scopes
     }
     
-    init(mainAdapter: RowAdapter, variants: [String: RowAdapter]) {
+    init(mainAdapter: RowAdapter, scopes: [String: RowAdapter]) {
         self.mainAdapter = mainAdapter
-        self.variants = variants
+        self.scopes = scopes
     }
     
     /// Part of the RowAdapter protocol
     public func concreteRowAdapter(with statement: SelectStatement) throws -> ConcreteRowAdapter {
-        let mainConcreteRowAdapter = try mainAdapter.concreteRowAdapter(with: statement)
-        var variantConcreteRowAdapters = mainConcreteRowAdapter.variants
-        for (name, adapter) in variants {
-            try variantConcreteRowAdapters[name] = adapter.concreteRowAdapter(with: statement)
+        let mainConcreteAdapter = try mainAdapter.concreteRowAdapter(with: statement)
+        var concreteAdapterScopes = mainConcreteAdapter.scopes
+        for (name, adapter) in scopes {
+            try concreteAdapterScopes[name] = adapter.concreteRowAdapter(with: statement)
         }
-        return ConcreteVariantRowAdapter(
-            adaptedColumnsDescription: mainConcreteRowAdapter.adaptedColumnsDescription,
-            variants: variantConcreteRowAdapters)
+        return ConcreteScopeAdapter(
+            concreteColumnMapping: mainConcreteAdapter.concreteColumnMapping,
+            scopes: concreteAdapterScopes)
     }
+}
+
+/// The concrete row adapter for ScopeAdapter
+struct ConcreteScopeAdapter : ConcreteRowAdapter {
+    let concreteColumnMapping: ConcreteColumnMapping
+    let scopes: [String: ConcreteRowAdapter]
 }
 
 extension Row {
@@ -287,43 +286,43 @@ extension Row {
 struct AdapterRowImpl : RowImpl {
     let baseRow: Row
     let concreteRowAdapter: ConcreteRowAdapter
-    let adaptedColumnsDescription: AdaptedColumnsDescription
+    let concreteColumnMapping: ConcreteColumnMapping
     
     init(baseRow: Row, concreteRowAdapter: ConcreteRowAdapter) {
         self.baseRow = baseRow
         self.concreteRowAdapter = concreteRowAdapter
-        self.adaptedColumnsDescription = concreteRowAdapter.adaptedColumnsDescription
+        self.concreteColumnMapping = concreteRowAdapter.concreteColumnMapping
     }
     
     var count: Int {
-        return adaptedColumnsDescription.count
+        return concreteColumnMapping.count
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
-        return baseRow.databaseValue(atIndex: adaptedColumnsDescription.baseColumIndex(adaptedIndex: index))
+        return baseRow.databaseValue(atIndex: concreteColumnMapping.baseColumIndex(adaptedIndex: index))
     }
     
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
-        return baseRow.dataNoCopy(atIndex: adaptedColumnsDescription.baseColumIndex(adaptedIndex: index))
+        return baseRow.dataNoCopy(atIndex: concreteColumnMapping.baseColumIndex(adaptedIndex: index))
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
-        return adaptedColumnsDescription.columnName(adaptedIndex: index)
+        return concreteColumnMapping.columnName(adaptedIndex: index)
     }
     
     func index(ofColumn name: String) -> Int? {
-        return adaptedColumnsDescription.adaptedIndexOfColumn(named: name)
+        return concreteColumnMapping.adaptedIndexOfColumn(named: name)
     }
     
-    func variant(named name: String) -> Row? {
-        guard let concreteRowAdapter = concreteRowAdapter.variants[name] else {
+    func scoped(on name: String) -> Row? {
+        guard let concreteRowAdapter = concreteRowAdapter.scopes[name] else {
             return nil
         }
         return Row(baseRow: baseRow, concreteRowAdapter: concreteRowAdapter)
     }
     
-    var variantNames: Set<String> {
-        return Set(concreteRowAdapter.variants.keys)
+    var scopeNames: Set<String> {
+        return Set(concreteRowAdapter.scopes.keys)
     }
     
     func copy(_ row: Row) -> Row {

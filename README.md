@@ -25,7 +25,7 @@ You should give it a try.
 
 ---
 
-The Swift3 branch has no version. It is currently synced with v0.74.0 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
+The Swift3 branch has no version. It is currently synced with v0.75.1 of the Swift 2.2 [main branch](https://github.com/groue/GRDB.swift).
 
 Follow [@groue](http://twitter.com/groue) on Twitter for release announcements and usage tips.
 
@@ -280,7 +280,7 @@ let dbQueue = try DatabaseQueue(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Structs/Configuration.html) for more details.
 
 
 ## Database Pools
@@ -360,7 +360,7 @@ let dbPool = try DatabasePool(
     configuration: config)
 ```
 
-See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/Configuration.html) for more details.
+See [Configuration](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Structs/Configuration.html) for more details.
 
 
 Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
@@ -1355,7 +1355,7 @@ row.value(named: "consumed") // "Hello"
 ```
 
 
-**Row adapters can also define row variants.** Variants help several consumers feed on a single row and can reveal useful with joined queries.
+**Row adapters can also define row "scopes".** Scopes help several consumers feed on a single row and can reveal useful with joined queries.
 
 For example, let's build a query which loads books along with their author:
 
@@ -1366,14 +1366,14 @@ let sql = "SELECT books.id, books.title, " +
           "JOIN persons ON books.authorID = persons.id"
 ```
 
-The author columns are "authorID" and "authorName". Let's say that we prefer to consume them as "id" and "name". For that we build an adapter which defines a variant named "author":
+The author columns are "authorID" and "authorName". Let's say that we prefer to consume them as "id" and "name". For that we define a scope named "author":
 
 ```swift
 let authorMapping = ColumnMapping(["id": "authorID", "name": "authorName"])
-let adapter = VariantRowAdapter(variants: ["author": authorMapping])
+let adapter = ScopeAdapter(["author": authorMapping])
 ```
 
-Use the `Row.variant(named:)` method to load the "author" variant:
+Use the `Row.scoped(on:)` method to access the "author" scope:
 
 ```swift
 for row in Row.fetch(db, sql, adapter: adapter) {
@@ -1383,15 +1383,15 @@ for row in Row.fetch(db, sql, adapter: adapter) {
     row.value(named: "authorID")    // 10
     row.value(named: "authorName")  // Melville
     
-    // The "author" variant, with mapped columns:
-    if let authorRow = row.variant(named: "author") {
+    // The "author" scope, with mapped columns:
+    if let authorRow = row.scoped(on: "author") {
         authorRow.value(named: "id")    // 10
         authorRow.value(named: "name")  // Melville
     }
 }
 ```
 
-> :bowtie: **Tip**: now that we have nice "id" and "name" columns, we can leverage [RowConvertible](#rowconvertible-protocol) types such as [Record](#record-class) subclasses. For example, assuming the Book type consumes the "author" variant in its row initializer and builds a Person from it, the same row can be consumed by both the Book and Person types:
+> :bowtie: **Tip**: now that we have nice "id" and "name" columns, we can leverage [RowConvertible](#rowconvertible-protocol) types such as [Record](#record-class) subclasses. For example, assuming the Book type consumes the "author" scope in its row initializer and builds a Person from it, the same row can be consumed by both the Book and Person types:
 > 
 > ```swift
 > for book in Book.fetch(db, sql, adapter: adapter) {
@@ -1408,7 +1408,7 @@ for row in Row.fetch(db, sql, adapter: adapter) {
 > ```
 
 
-**You can mix a main adapter with variant adapters:**
+**You can mix a main adapter with scopes:**
 
 ```swift
 let sql = "SELECT main.id AS mainID, main.name AS mainName, " +
@@ -1418,21 +1418,21 @@ let sql = "SELECT main.id AS mainID, main.name AS mainName, " +
 
 let mainAdapter = ColumnMapping(["id": "mainID", "name": "mainName"])
 let bestFriendAdapter = ColumnMapping(["id": "friendID", "name": "friendName"])
-let adapter = mainAdapter.adapter(withVariants: ["bestFriend": bestFriendAdapter])
+let adapter = mainAdapter.addingScopes(["bestFriend": bestFriendAdapter])
 
 for row in Row.fetch(db, sql, adapter: adapter) {
     // The fetched row, adapted with mainAdapter:
     row.value(named: "id")   // 1
     row.value(named: "name") // Arthur
     
-    // The "bestFriend" variant, with bestFriendAdapter:
-    if let bestFriendRow = row.variant(named: "bestFriend") {
+    // The "bestFriend" scope, with bestFriendAdapter:
+    if let bestFriendRow = row.scoped(on: "bestFriend") {
         bestFriendRow.value(named: "id")    // 2
         bestFriendRow.value(named: "name")  // Barbara
     }
 }
 
-// Assuming Person.init(row: row) consumes the "bestFriend" variant:
+// Assuming Person.init(row: row) consumes the "bestFriend" scope:
 for person in Person.fetch(db, sql, adapter: adapter) {
     person.name             // Arthur
     person.bestFriend?.name // Barbara
@@ -1442,10 +1442,10 @@ for person in Person.fetch(db, sql, adapter: adapter) {
 
 For more information about row adapters, see the documentation of:
 
-- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
-- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/ColumnMapping.html): a row adapter that renames row columns
-- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
-- [VariantRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Structs/VariantRowAdapter.html): the row adapter that groups several adapters together to define named variants
+- [RowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Protocols/RowAdapter.html): the protocol that lets you define your custom row adapters
+- [ColumnMapping](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Structs/ColumnMapping.html): a row adapter that renames row columns
+- [SuffixRowAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Structs/SuffixRowAdapter.html): a row adapter that hides the first columns of a row
+- [ScopeAdapter](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Structs/ScopeAdapter.html): the row adapter that groups several adapters together to define scopes
 
 
 ## Raw SQLite Pointers
@@ -2359,7 +2359,7 @@ Once you have a request, you can fetch the records at the origin of the request:
 
 ```swift
 // Some request based on `Person`
-let request = Person.filter(...)... // FetchRequest<Person>
+let request = Person.filter(...)... // QueryInterfaceRequest<Person>
 
 // Fetch persons:
 request.fetch(db)    // DatabaseSequence<Person>
@@ -3340,7 +3340,7 @@ let count2 = dbQueue.inDatabase { db in
 
 SQLite concurrency is a wiiide topic.
 
-First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.74.0/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
+First have a detailed look at the full API of [DatabaseQueue](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Classes/DatabaseQueue.html) and [DatabasePool](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Classes/DatabasePool.html). Both adopt the [DatabaseReader](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Protocols/DatabaseReader.html) and [DatabaseWriter](http://cocoadocs.org/docsets/GRDB.swift/0.75.1/Protocols/DatabaseWriter.html) protocols, so that you can write code that targets both classes.
 
 If the built-in queues and pools do not fit your needs, or if you can not guarantee that a single queue or pool is accessing your database file, you may have a look at:
 
@@ -3448,6 +3448,6 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [Vladimir Babin](https://github.com/Chiliec), [Pascal Edmond](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Steven Schveighoffer](https://github.com/schveiguy) and [@swiftlyfalling](https://github.com/swiftlyfalling) for their contributions, help, and feedback on GRDB.
+- [Vladimir Babin](https://github.com/Chiliec), [Pascal Edmond](https://github.com/pakko972), [Cristian Filipov](https://github.com/cfilipov), [@peter-ss](https://github.com/peter-ss), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Steven Schveighoffer](https://github.com/schveiguy) and [@swiftlyfalling](https://github.com/swiftlyfalling) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [Mathieu "Kali" Poumeyrol](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.

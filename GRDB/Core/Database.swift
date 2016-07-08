@@ -1097,7 +1097,17 @@ final class StatementCompilationObserver {
                 observer.databaseEventKinds.append(.delete(tableName: String(cString: CString1!)))
             case SQLITE_UPDATE:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                observer.insertUpdateEventKind(tableName: String(cString: CString1!), columnName: String(cString: CString2!))
+                let tableName = String(cString: CString1!)
+                
+                // Ignore all changes to sqlite_master.
+                //
+                // The schema changes are already processed by the SQLITE_DROP_TABLE, SQLITE_CREATE_INDEX, etc. (see above).
+                //
+                // Plus SQLite will sometimes announce that SELECT statements
+                // perform changes to sqlite_master. See DatabasePoolConcurrencyTests.testIssue80()
+                if tableName != "sqlite_master" {
+                    observer.insertUpdateEventKind(tableName: tableName, columnName: String(cString: CString2!))
+                }
             case SQLITE_SAVEPOINT:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                 let name = String(cString: CString2!)
