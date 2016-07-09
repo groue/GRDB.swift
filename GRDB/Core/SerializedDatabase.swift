@@ -118,8 +118,6 @@ final class SerializedDatabase {
             //      }
             //
             // Just dispatch block to queue:
-            //
-            // The impl function helps us turn dispatch_sync into a rethrowing function
             return try queue.sync {
                 try block(db: db)
             }
