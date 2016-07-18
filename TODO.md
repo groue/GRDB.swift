@@ -18,6 +18,7 @@
 
 Not sure
 
+- [ ] Issue 85: Consider Django ordering: "Each order_by() call will clear any previous ordering": https://docs.djangoproject.com/en/1.9/ref/models/querysets/#order-by
 - [ ] Support for NSColor/UIColor. Beware UIColor components can go beyond [0, 1.0] in iOS10.
 
 
