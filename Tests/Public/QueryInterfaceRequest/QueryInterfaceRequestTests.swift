@@ -415,7 +415,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.age).order(Col.name)),
-            "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\"")
+            "SELECT * FROM \"readers\" ORDER BY \"name\"")
     }
     
     
@@ -462,7 +462,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.reversed().reversed()),
             "SELECT * FROM \"readers\"")
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.order(Col.age).order(Col.name).reversed().reversed()),
+            sql(dbQueue, tableRequest.order(Col.age, Col.name).reversed().reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\"")
     }
     

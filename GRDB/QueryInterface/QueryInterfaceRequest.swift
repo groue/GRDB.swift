@@ -173,7 +173,7 @@ extension QueryInterfaceRequest {
     /// the eventual set of already applied orderings.
     public func order(_ orderings: [_SQLOrdering]) -> QueryInterfaceRequest<T> {
         var query = self.query
-        query.orderings.append(contentsOf: orderings)
+        query.orderings = orderings
         return QueryInterfaceRequest(query: query)
     }
     
