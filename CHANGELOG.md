@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+## 0.76.0
+
+**Breaking Change**
+
+- The query interface `order` method now replaces any previously applied ordering (related issue: [#85](https://github.com/groue/GRDB.swift/issues/85)):
+    
+    ```swift
+    // SELECT * FROM "persons" ORDER BY "name"
+    Person.order(scoreColumn).order(nameColumn)
+    ```
+
+
 ## 0.75.2
 
 Released July 18, 2016
