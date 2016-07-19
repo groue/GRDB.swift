@@ -927,8 +927,9 @@ extension Database {
             return true
         }
         if columns.count == 1,
-            let rowIDColumnName = primaryKey?.rowIDColumn
-            where rowIDColumnName == columns.first! {
+            let rowIDColumnName = primaryKey?.rowIDColumn,
+            rowIDColumnName == columns.first!
+        {
             return true
         }
         return false
@@ -1128,7 +1129,7 @@ final class StatementCompilationObserver {
     
     func insertUpdateEventKind(tableName: String, columnName: String) {
         for (index, eventKind) in databaseEventKinds.enumerated() {
-            if case .update(let t, let columnNames) = eventKind where t == tableName {
+            if case .update(let t, let columnNames) = eventKind, t == tableName {
                 var columnNames = columnNames
                 columnNames.insert(columnName)
                 databaseEventKinds[index] = .update(tableName: tableName, columnNames: columnNames)
@@ -1335,7 +1336,7 @@ extension Database {
             // > by this.
             //
             // Rollback and ignore error because we'll throw firstError.
-            guard let underlyingError = underlyingError as? DatabaseError where [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(Int32(underlyingError.code)) else {
+            guard let underlyingError = underlyingError as? DatabaseError, [SQLITE_FULL, SQLITE_IOERR, SQLITE_BUSY, SQLITE_NOMEM].contains(Int32(underlyingError.code)) else {
                 throw error
             }
         }
@@ -2145,7 +2146,7 @@ class SavePointStack {
     // > database unchanged.
     func rollbackSavepoint(named name: String) {
         let name = name.lowercased()
-        while let pair = savepoints.last where pair.name != name {
+        while let pair = savepoints.last, pair.name != name {
             savepoints.removeLast()
         }
         if let savepoint = savepoints.last {
@@ -2161,7 +2162,7 @@ class SavePointStack {
     // > even savepoints with matching savepoint-names, are unchanged.
     func releaseSavepoint(named name: String) {
         let name = name.lowercased()
-        while let pair = savepoints.last where pair.name != name {
+        while let pair = savepoints.last, pair.name != name {
             savepoints.removeLast()
         }
         if !savepoints.isEmpty {

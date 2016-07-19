@@ -14,7 +14,7 @@ extension NSUUID: DatabaseValueConvertible {
     
     /// Returns an NSUUID initialized from *databaseValue*, if possible.
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        guard let data = NSData.fromDatabaseValue(databaseValue) where data.length == 16 else {
+        guard let data = NSData.fromDatabaseValue(databaseValue), data.length == 16 else {
             return nil
         }
         return self.init(uuidBytes: UnsafePointer<UInt8>(data.bytes))

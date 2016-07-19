@@ -44,7 +44,7 @@ extension DatabaseError: CustomStringConvertible {
         if let sql = sql {
             description += " with statement `\(sql)`"
         }
-        if let arguments = arguments where !arguments.isEmpty {
+        if let arguments = arguments, !arguments.isEmpty {
             description += " arguments \(arguments)"
         }
         if let message = message {

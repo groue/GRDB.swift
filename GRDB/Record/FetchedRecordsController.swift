@@ -485,7 +485,7 @@ private class FetchedChangesController<Record: RowConvertible, T> {
         guard observer.isValid else { return }
         
         // Controller alive?
-        guard let request = controller?.request, databaseWriter = controller?.databaseWriter else { return }
+        guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
         
         // Fetch items.
         //

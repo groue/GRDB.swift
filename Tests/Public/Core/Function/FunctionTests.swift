@@ -12,7 +12,7 @@ struct CustomValueType : DatabaseValueConvertible {
         return "CustomValueType".databaseValue
     }
     static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> CustomValueType? {
-        guard let string = String.fromDatabaseValue(databaseValue) where string == "CustomValueType" else {
+        guard let string = String.fromDatabaseValue(databaseValue), string == "CustomValueType" else {
             return nil
         }
         return CustomValueType()

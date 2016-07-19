@@ -135,13 +135,13 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             controller.performFetch()
             
             // First insert
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [
                     Person(id: 1, name: "Arthur")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
             XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
@@ -157,14 +157,14 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             }
             
             // Second insert
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [
                     Person(id: 1, name: "Arthur"),
                     Person(id: 2, name: "Barbara")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur"])
@@ -195,17 +195,17 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             controller.performFetch()
             
             // Insert
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [
                     Person(id: 1, name: "Arthur"),
                     Person(id: 2, name: "Barbara")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             // First update
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             // No change should be recorded
             try dbQueue.inTransaction { db in
                 try db.execute("UPDATE persons SET name = ? WHERE id = ?", arguments: ["Arthur", 1])
@@ -218,7 +218,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
                     Person(id: 2, name: "Barbara")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
@@ -236,14 +236,14 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             }
             
             // Second update
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [
                     Person(id: 1, name: "Craig"),
                     Person(id: 2, name: "Danielle")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Craig", "Barbara"])
@@ -274,23 +274,23 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             controller.performFetch()
             
             // Insert
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [
                     Person(id: 1, name: "Arthur"),
                     Person(id: 2, name: "Barbara")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             // First delete
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [
                     Person(id: 2, name: "Barbara")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
@@ -307,12 +307,12 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             }
             
             // Second delete
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Barbara"])
@@ -341,24 +341,24 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             controller.performFetch()
             
             // Insert
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [
                     Person(id: 1, name: "Arthur"),
                     Person(id: 2, name: "Barbara")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             // Move
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [
                     Person(id: 1, name: "Craig"),
                     Person(id: 2, name: "Barbara")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
@@ -397,21 +397,21 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             controller.performFetch()
             
             // Insert
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
                 try db.execute("INSERT INTO books (ownerId, title) VALUES (?, ?)", arguments: [1, "Moby Dick"])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             // Change books
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try db.execute("DELETE FROM books")
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur"])
@@ -540,12 +540,12 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             ]
 
             for step in steps {
-                recorder.transactionExpectation = expectation(withDescription: "expectation")
+                recorder.transactionExpectation = expectation(description: "expectation")
                 try dbQueue.inTransaction { db in
                     try synchronizePersons(db, step.word.characters.enumerated().map { Person(id: Int64($0), name: String($1)) })
                     return .commit
                 }
-                waitForExpectations(withTimeout: 1, handler: nil)
+                waitForExpectations(timeout: 1, handler: nil)
                 
                 XCTAssertEqual(recorder.changes.count, step.events.count)
                 for (change, event) in zip(recorder.changes, step.events) {
@@ -578,19 +578,19 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             controller.performFetch()
             
             // Insert
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             try dbQueue.inTransaction { db in
                 try synchronizePersons(db, [
                     Person(id: 1, name: "Arthur"),
                     Person(id: 2, name: "Barbara")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             // Change request with FetchRequest
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             controller.setRequest(Person.order(SQLColumn("name").desc))
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
@@ -609,9 +609,9 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             }
             
             // Change request with SQL and arguments
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             controller.setRequest(sql: "SELECT ? AS id, ? AS name", arguments: [1, "Craig"])
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
             XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Barbara", "Arthur"])
@@ -656,12 +656,12 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             }
             
             // Set callbacks
-            recorder.transactionExpectation = expectation(withDescription: "expectation")
+            recorder.transactionExpectation = expectation(description: "expectation")
             controller.trackChanges(
                 recordsWillChange: { recorder.controllerWillChange($0) },
                 tableViewEvent: { (controller, record, event) in recorder.controller(controller, didChangeRecord: record, withEvent: event) },
                 recordsDidChange: { recorder.controllerDidChange($0) })
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             
             XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
             XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
@@ -685,7 +685,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
             var persons: [Person] = []
             controller.performFetch()
             
-            let expectation = self.expectation(withDescription: "expectation")
+            let expectation = self.expectation(description: "expectation")
             controller.trackChanges {
                 persons = $0.fetchedRecords!
                 expectation.fulfill()
@@ -695,7 +695,7 @@ class FetchedRecordsControlleriOSTests: GRDBTestCase {
                     Person(id: 1, name: "Arthur")])
                 return .commit
             }
-            waitForExpectations(withTimeout: 1, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(persons.map { $0.name }, ["Arthur"])
         }
     }
