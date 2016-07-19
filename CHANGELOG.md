@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## 0.75.2
+
+Released July 18, 2016
+
+**Fixed**
+
+- Fixed crashes that could happen when using virtual tables (fixes [#82](https://github.com/groue/GRDB.swift/issues/82))
+
+
 ## 0.75.1
 
 Released July 8, 2016

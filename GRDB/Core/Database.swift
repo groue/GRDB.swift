@@ -1097,17 +1097,7 @@ final class StatementCompilationObserver {
                 observer.databaseEventKinds.append(.delete(tableName: String(cString: CString1!)))
             case SQLITE_UPDATE:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
-                let tableName = String(cString: CString1!)
-                
-                // Ignore all changes to sqlite_master.
-                //
-                // The schema changes are already processed by the SQLITE_DROP_TABLE, SQLITE_CREATE_INDEX, etc. (see above).
-                //
-                // Plus SQLite will sometimes announce that SELECT statements
-                // perform changes to sqlite_master. See DatabasePoolConcurrencyTests.testIssue80()
-                if tableName != "sqlite_master" {
-                    observer.insertUpdateEventKind(tableName: tableName, columnName: String(cString: CString2!))
-                }
+                observer.insertUpdateEventKind(tableName: String(cString: CString1!), columnName: String(cString: CString2!))
             case SQLITE_SAVEPOINT:
                 let observer = unsafeBitCast(observerPointer, to: StatementCompilationObserver.self)
                 let name = String(cString: CString2!)
@@ -1408,7 +1398,28 @@ extension Database {
     static func preconditionValidSelectStatement(sql: String, observer: StatementCompilationObserver) {
         GRDBPrecondition(observer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         GRDBPrecondition(observer.savepointAction == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-        GRDBPrecondition(observer.databaseEventKinds.isEmpty, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        
+        // Don't check for observer.databaseEventKinds.isEmpty
+        //
+        // When observer.databaseEventKinds.isEmpty is NOT empty, this means
+        // that the database is changed by the statement.
+        //
+        // It thus looks like the statement should be performed by an
+        // UpdateStatement, not a SelectStatement: transaction observers are not
+        // notified of database changes when they are executed by
+        // a SelectStatement.
+        //
+        // However https://github.com/groue/GRDB.swift/issues/80 and
+        // https://github.com/groue/GRDB.swift/issues/82 have shown that SELECT
+        // statements on virtual tables can generate database changes.
+        //
+        // :-(
+        //
+        // OK, this is getting very difficult to protect the user against
+        // himself: just give up, and allow SelectStatement to execute database
+        // changes. We'll cope with eventual troubles later, when they occur.
+        //
+        // GRDBPrecondition(observer.databaseEventKinds.isEmpty, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
     }
     
     func updateStatementWillExecute(_ statement: UpdateStatement) {
