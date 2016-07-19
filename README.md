@@ -2182,6 +2182,13 @@ All the methods above return another request, which you can further refine by ap
     // SELECT * FROM "persons" ORDER BY "score" DESC, "name"
     Person.order(scoreColumn.desc, nameColumn)
     ```
+    
+    Each `order` call clears any previous ordering:
+    
+    ```swift
+    // SELECT * FROM "persons" ORDER BY "name"
+    Person.order(scoreColumn).order(nameColumn)
+    ```
 
 - `reverse()` reverses the eventual orderings.
     
@@ -2214,13 +2221,14 @@ You can refine requests by chaining those methods:
 Person.order(nameColumn).filter(emailColumn != nil)
 ```
 
-The `select`, `group` and `limit` methods ignore and replace previously applied selection, grouping and limits. On the opposite, `filter`, `having`, and `order` methods extend the query:
+The `select`, `order`, `group`, and `limit` methods ignore and replace previously applied selection, orderings, grouping, and limits. On the opposite, `filter`, and `having` methods extend the query:
 
 ```swift
 Person                          // SELECT * FROM "persons"
     .filter(nameColumn != nil)  // WHERE (("name" IS NOT NULL)
     .filter(emailColumn != nil) //        AND ("email IS NOT NULL"))
-    .order(nameColumn)          // ORDER BY "name"
+    .order(nameColumn)          // - ignored -
+    .order(ageColumn)           // ORDER BY "age"
     .limit(20, offset: 40)      // - ignored -
     .limit(10)                  // LIMIT 10
 ```

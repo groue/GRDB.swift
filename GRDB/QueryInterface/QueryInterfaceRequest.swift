@@ -189,7 +189,7 @@ extension QueryInterfaceRequest {
     @warn_unused_result
     public func order(orderings: [_SQLOrdering]) -> QueryInterfaceRequest<T> {
         var query = self.query
-        query.orderings.appendContentsOf(orderings)
+        query.orderings = orderings
         return QueryInterfaceRequest(query: query)
     }
     

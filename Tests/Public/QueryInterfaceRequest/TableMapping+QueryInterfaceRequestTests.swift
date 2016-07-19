@@ -254,7 +254,7 @@ class TableMappingQueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try! makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, Reader.order(Col.age).order(Col.name)),
-            "SELECT * FROM \"readers\" ORDER BY \"age\", \"name\"")
+            "SELECT * FROM \"readers\" ORDER BY \"name\"")
     }
     
     
