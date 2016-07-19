@@ -3,6 +3,8 @@ Release Notes
 
 ## 0.76.0
 
+Released July 19, 2016
+
 **Breaking Change**
 
 - The query interface `order` method now replaces any previously applied ordering (related issue: [#85](https://github.com/groue/GRDB.swift/issues/85)):
